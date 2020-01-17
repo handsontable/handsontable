@@ -111,7 +111,7 @@ class Viewport {
   }
 
   /**
-   * Checks if viewport has vertical scroll
+   * Checks if viewport has vertical scroll.
    *
    * @returns {boolean}
    */
@@ -120,7 +120,7 @@ class Viewport {
   }
 
   /**
-   * Checks if viewport has horizontal scroll
+   * Checks if viewport has horizontal scroll.
    *
    * @returns {boolean}
    */
@@ -295,7 +295,7 @@ class Viewport {
   /**
    * Creates:
    * - rowsRenderCalculator (before draw, to qualify rows for rendering)
-   * - rowsVisibleCalculator (after draw, to measure which rows are actually visible)
+   * - rowsVisibleCalculator (after draw, to measure which rows are actually visible).
    *
    * @param {number} calculationType The render type ID, which determines for what type of
    *                                 calculation calculator is created.
@@ -358,7 +358,7 @@ class Viewport {
   /**
    * Creates:
    * - columnsRenderCalculator (before draw, to qualify columns for rendering)
-   * - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
+   * - columnsVisibleCalculator (after draw, to measure which columns are actually visible).
    *
    * @param {number} calculationType The render type ID, which determines for what type of
    *                                 calculation calculator is created.
@@ -401,11 +401,11 @@ class Viewport {
 
   /**
    * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and
-   * cols should be rendered)
+   * cols should be rendered).
    *
    * @param {boolean} fastDraw If `true`, will try to avoid full redraw and only update the border positions.
-   *                           If `false` or `undefined`, will perform a full redraw
-   * @returns {boolean} The fastDraw value, possibly modified
+   *                           If `false` or `undefined`, will perform a full redraw.
+   * @returns {boolean} The fastDraw value, possibly modified.
    */
   createRenderCalculators(fastDraw = false) {
     let runFastDraw = fastDraw;
@@ -433,7 +433,7 @@ class Viewport {
 
   /**
    * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are
-   * the actually fully visible rows and columns)
+   * the actually fully visible rows and columns).
    */
   createVisibleCalculators() {
     this.rowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
@@ -442,11 +442,11 @@ class Viewport {
 
   /**
    * Returns information whether proposedRowsVisibleCalculator viewport
-   * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator)
+   * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator).
    *
    * @param {ViewportRowsCalculator} proposedRowsVisibleCalculator The instance of the viewport calculator to compare with.
    * @returns {boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
-   *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed)
+   *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) {
     if (!this.rowsVisibleCalculator) {
@@ -469,11 +469,11 @@ class Viewport {
 
   /**
    * Returns information whether proposedColumnsVisibleCalculator viewport
-   * is contained inside column rendered in previous draw (cached in columnsRenderCalculator)
+   * is contained inside column rendered in previous draw (cached in columnsRenderCalculator).
    *
    * @param {ViewportRowsCalculator} proposedColumnsVisibleCalculator The instance of the viewport calculator to compare with.
    * @returns {boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
-   *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed)
+   *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) {
     if (!this.columnsVisibleCalculator) {

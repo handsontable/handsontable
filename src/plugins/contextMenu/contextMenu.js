@@ -29,6 +29,7 @@ Hooks.getSingleton().register('afterContextMenuShow');
 Hooks.getSingleton().register('afterContextMenuHide');
 Hooks.getSingleton().register('afterContextMenuExecute');
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  * This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
@@ -36,7 +37,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
- * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in)
+ * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in).
  *
  * or array of any available strings:
  * * `'row_above'`
@@ -52,7 +53,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * * `'---------'` (menu item separator)
  * * `'borders'` (with {@link Options#customBorders} turned on)
  * * `'commentsAddEdit'` (with {@link Options#comments} turned on)
- * * `'commentsRemove'` (with {@link Options#comments} turned on)
+ * * `'commentsRemove'` (with {@link Options#comments} turned on).
  *
  * See [the context menu demo](https://handsontable.com/docs/demo-context-menu.html) for examples.
  *
@@ -66,6 +67,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  *
  * @plugin ContextMenu
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class ContextMenu extends BasePlugin {
   /**
    * Context menu default items order when `contextMenu` options is set as `true`.
@@ -252,7 +254,7 @@ class ContextMenu extends BasePlugin {
    *  * `'alignment:right'` - Alignment to the right
    *  * `'alignment:bottom'` - Alignment to the bottom
    *  * `'alignment:middle'` - Alignment to the middle
-   *  * `'alignment:center'` - Alignment to the center (justify)
+   *  * `'alignment:center'` - Alignment to the center (justify).
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *

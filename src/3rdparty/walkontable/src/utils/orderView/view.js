@@ -51,7 +51,7 @@ export default class OrderView {
 
   /**
    * Sets the size for rendered elements. It can be a size for rows, cells or size for row
-   * headers etc. it depends for what table renderer this instance was created.
+   * headers etc. It depends for what table renderer this instance was created.
    *
    * @param {number} size The size.
    * @returns {OrderView}

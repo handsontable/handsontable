@@ -47,7 +47,7 @@ class ManualRowMove extends BasePlugin {
     super(hotInstance);
 
     /**
-     * Set up WeakMap of plugin to sharing private parameters;
+     * Set up WeakMap of plugin to sharing private parameters;.
      */
     privatePool.set(this, {
       rowsToMove: [],
@@ -222,7 +222,7 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. you can’t move more than one element to the last position.
+   * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.

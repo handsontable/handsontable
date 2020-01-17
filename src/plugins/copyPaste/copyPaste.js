@@ -30,19 +30,20 @@ const META_HEAD = [
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  * This plugin enables the copy/paste functionality in the Handsontable. The functionality works for API, Context Menu,
  * using keyboard shortcuts and menu bar from the browser.
  * Possible values:
  * * `true` (to enable default options),
- * * `false` (to disable completely)
+ * * `false` (to disable completely).
  *
  * or an object with values:
  * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
  * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
  * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
- * * `'uiContainer'` (see {@link CopyPaste#uiContainer})
+ * * `'uiContainer'` (see {@link CopyPaste#uiContainer}).
  *
  * See [the copy/paste demo](https://handsontable.com/docs/demo-copy-paste.html) for examples.
  *
@@ -61,6 +62,7 @@ const META_HEAD = [
  * @class CopyPaste
  * @plugin CopyPaste
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
@@ -375,7 +377,7 @@ class CopyPaste extends BasePlugin {
    * @private
    * @param {Array} inputArray An array of the data to populate.
    * @param {Array} [selection] The selection which indicates from what position the data will be populated.
-   * @returns {Array} Range coordinates after populate data
+   * @returns {Array} Range coordinates after populate data.
    */
   populateValues(inputArray, selection = this.hot.getSelectedLast()) {
     if (!inputArray.length) {

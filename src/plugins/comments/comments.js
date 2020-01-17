@@ -25,6 +25,7 @@ const META_COMMENT_VALUE = 'value';
 const META_STYLE = 'style';
 const META_READONLY = 'readOnly';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin Comments
  *
@@ -35,7 +36,7 @@ const META_READONLY = 'readOnly';
  * To enable the plugin, you'll need to set the comments property of the config object to `true`:
  * ```js
  * comments: true
- * ```
+ * ```.
  *
  * or an object with extra predefined plugin config:
  *
@@ -43,7 +44,7 @@ const META_READONLY = 'readOnly';
  * comments: {
  *   displayDelay: 1000
  * }
- * ```
+ * ```.
  *
  * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
  *
@@ -74,6 +75,7 @@ const META_READONLY = 'readOnly';
  * commentsPlugin.removeComment();
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class Comments extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
@@ -224,7 +226,7 @@ class Comments extends BasePlugin {
    * Checks if the event target is a cell containing a comment.
    *
    * @private
-   * @param {Event} event DOM event
+   * @param {Event} event DOM event.
    * @returns {boolean}
    */
   targetIsCellWithComment(event) {
@@ -557,8 +559,8 @@ class Comments extends BasePlugin {
     this.mouseDown = false;
   }
 
-  /** *
-   * The `afterRenderer` hook callback..
+  /**
+   * The `afterRenderer` hook callback.
    *
    * @private
    * @param {HTMLTableCellElement} TD The rendered `TD` element.

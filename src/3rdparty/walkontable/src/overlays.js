@@ -27,7 +27,7 @@ class Overlays {
     const { rootDocument, rootWindow, wtTable } = this.wot;
     /**
      * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
-     * https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values
+     * Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
      */
     const BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).lineHeight, 10);
     const FALLBACK_BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
@@ -135,7 +135,7 @@ class Overlays {
   }
 
   /**
-   * Refresh and redraw table
+   * Refresh and redraw table.
    */
   refreshAll() {
     if (!this.wot.drawn) {
@@ -221,7 +221,7 @@ class Overlays {
   }
 
   /**
-   * Scroll listener
+   * Scroll listener.
    *
    * @param {Event} event The mouse event object.
    */
@@ -278,7 +278,7 @@ class Overlays {
   }
 
   /**
-   * Key down listener
+   * Key down listener.
    *
    * @param {Event} event The keyboard event object.
    */
@@ -287,14 +287,14 @@ class Overlays {
   }
 
   /**
-   * Key up listener
+   * Key up listener.
    */
   onKeyUp() {
     this.keyPressed = false;
   }
 
   /**
-   * Translate wheel event into scroll event and sync scroll overlays position
+   * Translate wheel event into scroll event and sync scroll overlays position.
    *
    * @private
    * @param {Event} event The mouse event object.
@@ -384,7 +384,7 @@ class Overlays {
   }
 
   /**
-   * Synchronize overlay scrollbars with the master scrollbar
+   * Synchronize overlay scrollbars with the master scrollbar.
    */
   syncScrollWithMaster() {
     const master = this.topOverlay.mainTableScrollableElement;
@@ -453,7 +453,7 @@ class Overlays {
   /**
    * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
-   *                                   rendering anyway
+   *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
@@ -489,7 +489,7 @@ class Overlays {
   }
 
   /**
-   * Adjust overlays elements size and master table size
+   * Adjust overlays elements size and master table size.
    *
    * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
    */

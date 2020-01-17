@@ -49,7 +49,7 @@ export default function dateValidator(value, callback) {
 }
 
 /**
- * Format the given string using moment.js' format feature
+ * Format the given string using moment.js' format feature.
  *
  * @param {string} value The value to format.
  * @param {string} dateFormat The date pattern to format to.

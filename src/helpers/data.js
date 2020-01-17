@@ -95,7 +95,7 @@ export function createSpreadsheetObjectData(rows = 100, colCount = 4) {
  * Generates an empty data object.
  *
  * @param {number} rows Number of rows to generate.
- * @param {number} columns Number of columns to generate
+ * @param {number} columns Number of columns to generate.
  * @returns {Array}
  */
 export function createEmptySpreadsheetData(rows, columns) {
@@ -151,8 +151,8 @@ export function translateRowsToColumns(input) {
  * it reaches the Object.prototype.
  *
  *
- * @param {string} methodName name of the method/property to search (i.e. 'renderer', 'validator', 'copyable')
- * @param {boolean} [allowUndefined] if `false`, the search is continued if methodName has not been found in cell "type"
+ * @param {string} methodName Name of the method/property to search (i.e. 'renderer', 'validator', 'copyable').
+ * @param {boolean} [allowUndefined] If `false`, the search is continued if methodName has not been found in cell "type".
  * @returns {Function}
  */
 export function cellMethodLookupFactory(methodName, allowUndefined) {

@@ -40,9 +40,9 @@ export function areValidSortStates(sortStates) {
 }
 
 /**
- * Get next sort order for particular column. The order sequence looks as follows: 'asc' -> 'desc' -> undefined -> 'asc'
+ * Get next sort order for particular column. The order sequence looks as follows: 'asc' -> 'desc' -> undefined -> 'asc'.
  *
- * @param {string|undefined} sortOrder sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
+ * @param {string|undefined} sortOrder Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
  * @returns {string|undefined} Next sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
  */
 export function getNextSortOrder(sortOrder) {
@@ -59,7 +59,7 @@ export function getNextSortOrder(sortOrder) {
 /**
  * Get `span` DOM element inside `th` DOM element.
  *
- * @param {Element} TH th HTML element.
+ * @param {Element} TH Th HTML element.
  * @returns {Element | null}
  */
 export function getHeaderSpanElement(TH) {
@@ -73,7 +73,7 @@ export function getHeaderSpanElement(TH) {
  * Get if handled header is first level column header.
  *
  * @param {number} column Visual column index.
- * @param {Element} TH th HTML element.
+ * @param {Element} TH Th HTML element.
  * @returns {boolean}
  */
 export function isFirstLevelColumnHeader(column, TH) {

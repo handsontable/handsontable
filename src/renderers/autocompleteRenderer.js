@@ -4,7 +4,7 @@ import { CellCoords } from './../3rdparty/walkontable/src';
 import { getRenderer } from './index';
 
 /**
- * Autocomplete renderer
+ * Autocomplete renderer.
  *
  * @private
  * @param {Core} instance The Handsontable instance.

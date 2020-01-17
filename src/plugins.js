@@ -1,5 +1,5 @@
 /**
- * Utility to register plugins and common namespace for keeping reference to all plugins classes
+ * Utility to register plugins and common namespace for keeping reference to all plugins classes.
  */
 import Hooks from './pluginHooks';
 import { objectEach } from './helpers/object';
@@ -8,7 +8,7 @@ import { toUpperCaseFirst } from './helpers/string';
 const registeredPlugins = new WeakMap();
 
 /**
- * Registers plugin under given name
+ * Registers plugin under given name.
  *
  * @param {string} pluginName The plugin name.
  * @param {Function} PluginClass The plugin class.
@@ -40,7 +40,7 @@ function registerPlugin(pluginName, PluginClass) {
 /**
  * @param {Core} instance The Handsontable instance.
  * @param {string} pluginName The plugin name.
- * @returns {Function} pluginClass Returns plugin instance if exists or `undefined` if not exists.
+ * @returns {Function} PluginClass Returns plugin instance if exists or `undefined` if not exists.
  */
 function getPlugin(instance, pluginName) {
   if (typeof pluginName !== 'string') {

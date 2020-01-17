@@ -60,7 +60,7 @@ class Border {
   }
 
   /**
-   * Register all necessary events
+   * Register all necessary events.
    */
   registerListeners() {
     const documentBody = this.wot.rootDocument.body;
@@ -74,7 +74,7 @@ class Border {
   }
 
   /**
-   * Mouse down listener
+   * Mouse down listener.
    *
    * @private
    */
@@ -83,7 +83,7 @@ class Border {
   }
 
   /**
-   * Mouse up listener
+   * Mouse up listener.
    *
    * @private
    */
@@ -95,7 +95,7 @@ class Border {
    * Mouse enter listener for fragment selection functionality.
    *
    * @private
-   * @param {Event} event Dom event
+   * @param {Event} event Dom event.
    * @param {HTMLElement} parentElement Part of border element.
    */
   onMouseEnter(event, parentElement) {
@@ -144,7 +144,7 @@ class Border {
   }
 
   /**
-   * Create border elements
+   * Create border elements.
    *
    * @param {object} settings The border settings.
    */
@@ -213,7 +213,7 @@ class Border {
   }
 
   /**
-   * Create multiple selector handler for mobile devices
+   * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
     const { rootDocument } = this.wot;
@@ -340,7 +340,7 @@ class Border {
   }
 
   /**
-   * Show border around one or many cells
+   * Show border around one or many cells.
    *
    * @param {Array} corners The corner coordinates.
    */
@@ -563,7 +563,7 @@ class Border {
    * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
    * @param {number} fromIndex Start index of the selection.
    * @param {number} toIndex End index of the selection.
-   * @param {number} containerOffset offset of the container.
+   * @param {number} containerOffset Offset of the container.
    * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
   getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
@@ -687,7 +687,7 @@ class Border {
   }
 
   /**
-   * Hide border
+   * Hide border.
    */
   disappear() {
     this.topStyle.display = 'none';

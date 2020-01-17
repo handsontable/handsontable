@@ -2,6 +2,7 @@ import { extend } from '../../../helpers/object';
 import { expandMetaType, assert, isUnsignedNumber } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The cell meta object is a root of all settings defined for the specific cell rendered by the
  * Handsontable. Each cell meta inherits settings from higher layers. When a property doesn't
@@ -30,6 +31,7 @@ import LazyFactoryMap from '../lazyFactoryMap';
  *
  * @class {CellMeta}
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 export default class CellMeta {
   constructor(columnMeta) {
     /**

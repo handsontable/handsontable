@@ -10,7 +10,7 @@ const privatePool = new WeakMap();
  */
 class ViewportColumnsCalculator {
   /**
-   * Default column width
+   * Default column width.
    *
    * @type {number}
    */
@@ -20,13 +20,13 @@ class ViewportColumnsCalculator {
 
   /**
    * @param {object} options Object with all options specyfied for column viewport calculation.
-   * @param {number} options.viewportWidth Width of the viewport
-   * @param {number} options.scrollOffset Current horizontal scroll position of the viewport
-   * @param {number} options.totalColumns Total number of columns
-   * @param {Function} options.columnWidthFn Function that returns the width of the column at a given index (in px)
-   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
+   * @param {number} options.viewportWidth Width of the viewport.
+   * @param {number} options.scrollOffset Current horizontal scroll position of the viewport.
+   * @param {number} options.totalColumns Total number of columns.
+   * @param {Function} options.columnWidthFn Function that returns the width of the column at a given index (in px).
+   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
    * @param {string} options.calculationType String which describes types of calculation which will be performed.
-   * @param {string} [options.stretchH] Stretch mode 'all' or 'last'
+   * @param {string} [options.stretchH] Stretch mode 'all' or 'last'.
    * @param {Function} [options.stretchingColumnWidthFn] Function that returns the new width of the stretched column.
    */
   constructor({
@@ -50,28 +50,28 @@ class ViewportColumnsCalculator {
     });
 
     /**
-     * Number of rendered/visible columns
+     * Number of rendered/visible columns.
      *
      * @type {number}
      */
     this.count = 0;
 
     /**
-     * Index of the first rendered/visible column (can be overwritten using overrideFn)
+     * Index of the first rendered/visible column (can be overwritten using overrideFn).
      *
      * @type {number|null}
      */
     this.startColumn = null;
 
     /**
-     * Index of the last rendered/visible column (can be overwritten using overrideFn)
+     * Index of the last rendered/visible column (can be overwritten using overrideFn).
      *
      * @type {null}
      */
     this.endColumn = null;
 
     /**
-     * Position of the first rendered/visible column (in px)
+     * Position of the first rendered/visible column (in px).
      *
      * @type {number|null}
      */
@@ -88,7 +88,7 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * Calculates viewport
+   * Calculates viewport.
    */
   calculate() {
     let sum = 0;

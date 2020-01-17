@@ -56,7 +56,7 @@ export function pivot(arr) {
  * A specialized version of `.reduce` for arrays without support for callback
  * shorthands and `this` binding.
  *
- * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}.
  *
  * @param {Array} array The array to iterate over.
  * @param {Function} iteratee The function invoked per iteration.
@@ -93,7 +93,7 @@ export function arrayReduce(array, iteratee, accumulator, initFromArray) {
  * A specialized version of `.filter` for arrays without support for callback
  * shorthands and `this` binding.
  *
- * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}.
  *
  * @param {Array} array The array to iterate over.
  * @param {Function} predicate The function invoked per iteration.
@@ -160,7 +160,7 @@ export function arrayMap(array, iteratee) {
  * A specialized version of `.forEach` for arrays without support for callback
  * shorthands and `this` binding.
  *
- * {@link https://github.com/lodash/lodash/blob/master/lodash.js}
+ * {@link https://github.com/lodash/lodash/blob/master/lodash.js}.
  *
  * @param {Array|*} array The array to iterate over or an any element with implemented iterator protocol.
  * @param {Function} iteratee The function invoked per iteration.
@@ -236,7 +236,7 @@ export function arrayAvg(array) {
 /**
  * Flatten multidimensional array.
  *
- * @param {Array} array Array of Arrays
+ * @param {Array} array Array of Arrays.
  * @returns {Array}
  */
 export function arrayFlatten(array) {

@@ -15,7 +15,7 @@ class DataSource {
      */
     this.hot = hotInstance;
     /**
-     * Data source
+     * Data source.
      *
      * @type {Array}
      */

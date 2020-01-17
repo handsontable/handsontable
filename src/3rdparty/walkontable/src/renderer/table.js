@@ -38,7 +38,7 @@
  *         <td>  /                    /
  *       </tr>                       /
  *     </tbody>  ___________________/
- *   </table>
+ *   </table>.
  *
  * @class {RowsRenderer}
  */

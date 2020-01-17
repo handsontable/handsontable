@@ -1,6 +1,7 @@
 import { arrayFilter } from '../../helpers/array';
 import { assert, isUnsignedNumber, isNullish } from './utils';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The LazyFactoryMap object holds key-value pairs in the structure similar to the
  * regular Map. Once created, items can be moved around a grid depending on the operations
@@ -12,30 +13,30 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  *
  * Having created N items with corresponding example data where the data has 10
  * holes (`undefined` values) within (that's why internal storage index counts from 10).
- * +------+------+------+------+------+
+ * +------+------+------+------+------+.
  * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 |  Keys (volatile zero-based index / internal storage index)
- * +------+------+------+------+------+
+ * +------+------+------+------+------+.
  *    │      │      │      │      │
- * +------+------+------+------+------+
+ * +------+------+------+------+------+.
  * | AAA  | BBB  | CCC  | DDD  | EEE  |  Data
- * +------+------+------+------+------+
+ * +------+------+------+------+------+.
  *
- * map.obtain(0) // returns "AAA"
- * map.obtain(2) // returns "CCC"
+ * Map.obtain(0) // returns "AAA"
+ * map.obtain(2) // returns "CCC".
  *
- * after inserting 2 new rows, keys that hold the data positioned after the place
+ * After inserting 2 new rows, keys that hold the data positioned after the place
  * where the new rows are added are upshifted by 2.
  *               │
  *               │ Insert 2 rows
  *              \│/
- * +------+------+------+------+------+
+ * +------+------+------+------+------+.
  * | 0/10 | 1/11 | 2/12 | 3/13 | 4/14 |  Keys before
- * +------+------+------+------+------+
+ * +------+------+------+------+------+.
  *
  *                / 2 new rows \
- * +------+------+------+------+------+------+------+
+ * +------+------+------+------+------+------+------+.
  * | 0/10 | 1/11 | 2/15 | 3/16 | 4/12 | 5/13 | 6/14 |  Keys after
- * +------+------+------+------+------+------+------+
+ * +------+------+------+------+------+------+------+.
  *    │       │      │      │      │      │     │
  *    │       │      └──────┼──────┼──────┼┐    │
  *    │       │             └──────┼──────┼┼────┼┐
@@ -43,7 +44,7 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  *    │       │      │      ┌─────────────┘│    ││
  *    │       │      │      │      ┌───────┼────┘│
  *    │       │      │      │      │       │     │
- * +------+------+------+------+------+------+------+
+ * +------+------+------+------+------+------+------+.
  * | AAA  | BBB  | CCC  | DDD  | EEE  | FFF  | GGG  |  Data
  * +------+------+------+------+------+------+------+
  *
@@ -119,6 +120,7 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
  * The first "hole" (at index 0) item is permanently removed and replaced by a new item.
  * The hole index is taken from the hole collection which act as FIFO (First In First Out).
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 export default class LazyFactoryMap {
   constructor(valueFactory) {
     this.valueFactory = valueFactory;

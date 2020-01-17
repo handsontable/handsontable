@@ -31,11 +31,11 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
  * ```js
  * // as a number (300 columns in sync, rest async)
- * autoColumnSize: {syncLimit: 300},
+ * autoColumnSize: {syncLimit: 300},.
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
- * ```
+ * ```.
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
@@ -117,7 +117,7 @@ class AutoColumnSize extends BasePlugin {
       return { value: cellValue, bundleCountSeed };
     });
     /**
-     * `true` only if the first calculation was performed
+     * `true` only if the first calculation was performed.
      *
      * @private
      * @type {boolean}

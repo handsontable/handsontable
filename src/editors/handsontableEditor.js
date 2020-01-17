@@ -163,7 +163,7 @@ class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
    * @private
    * @param {Event} event The keyboard event object.

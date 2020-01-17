@@ -29,7 +29,7 @@ class TopOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {Table}
    */
   createTable(...args) {
@@ -244,7 +244,7 @@ class TopOverlay extends Overlay {
    * Scrolls vertically to a row.
    *
    * @param {number} sourceRow Row index which you want to scroll to.
-   * @param {boolean} [bottomEdge] if `true`, scrolls according to the bottom edge (top edge is by default).
+   * @param {boolean} [bottomEdge] If `true`, scrolls according to the bottom edge (top edge is by default).
    * @returns {boolean}
    */
   scrollTo(sourceRow, bottomEdge) {

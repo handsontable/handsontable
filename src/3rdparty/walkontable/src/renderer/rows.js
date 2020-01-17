@@ -13,7 +13,7 @@ let performanceWarningAppeared = false;
  *     ├ <tr>    \
  *     ├ <tr>     - RowsRenderer
  *     ├ <tr>    /
- *     └ <tr>   /
+ *     └ <tr>   /.
  *
  * @class {RowsRenderer}
  */

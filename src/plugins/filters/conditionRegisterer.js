@@ -41,8 +41,8 @@ export function getConditionDescriptor(name) {
  * Condition registerer.
  *
  * @param {string} name Condition name.
- * @param {Function} condition Condition function
- * @param {object} descriptor Condition descriptor
+ * @param {Function} condition Condition function.
+ * @param {object} descriptor Condition descriptor.
  */
 export function registerCondition(name, condition, descriptor) {
   descriptor.key = name;

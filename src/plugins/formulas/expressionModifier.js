@@ -69,12 +69,12 @@ class ExpressionModifier {
    *  - delta, Number as distance to translate. Can be positive or negative.
    *  - startFromIndex, Base index which translation will be applied from.
    *
-   * the function must return an array with 3 items, where:
+   * The function must return an array with 3 items, where:
    *  [
    *    deltaStart, Number as a delta to translate first part of coordinates.
-   *    deltaEnd,   Number as a delta to translate second part of coordinates (if cell range is modified).
-   *    refError,   Defines an error which refers to the situation when translated cell overcrossed the data boundary.
-   *  ]
+   *    DeltaEnd,   Number as a delta to translate second part of coordinates (if cell range is modified).
+   *    RefError,   Defines an error which refers to the situation when translated cell overcrossed the data boundary.
+   *  ].
    *
    *
    * @param {Function} customModifier Function with custom logic.

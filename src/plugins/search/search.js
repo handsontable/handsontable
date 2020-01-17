@@ -244,7 +244,7 @@ class Search extends BasePlugin {
     }
   }
 
-  /** *
+  /**
    * The `beforeRenderer` hook callback.
    *
    * @private

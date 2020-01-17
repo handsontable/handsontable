@@ -11,7 +11,7 @@ const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
 
 /**
- * Checkbox renderer
+ * Checkbox renderer.
  *
  * @private
  * @param {Core} instance The Handsontable instance.
@@ -119,7 +119,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   }
 
   /**
-   * Change checkbox checked property
+   * Change checkbox checked property.
    *
    * @private
    * @param {boolean} [uncheckCheckbox=false] The new "checked" state for the checkbox elements.

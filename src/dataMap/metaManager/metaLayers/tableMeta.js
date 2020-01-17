@@ -7,24 +7,24 @@ import { expandMetaType } from '../utils';
  * merged with settings passed by the developer. Adding, removing, or changing property in that
  * object has no direct reflection on any other layers.
  *
- * +-------------+
+ * +-------------+.
  * │ GlobalMeta  │
  * │ (prototype) │
  * +-------------+\
  *       │         \
  *       │          \
  *      \│/         _\|
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  * │ TableMeta   │    │ ColumnMeta  │
  * │ (instance)  │    │ (prototype) │
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  *                         │
  *                         │
  *                        \│/
- *                    +-------------+
+ *                    +-------------+.
  *                    │  CellMeta   │
  *                    │ (instance)  │
- *                    +-------------+
+ *                    +-------------+.
  *
  * @class {TableMeta}
  */

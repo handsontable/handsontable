@@ -237,11 +237,11 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Gets the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection])
+   * Gets the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection]).
    *
    * @private
    * @param {Array} populationArgumentsList Array containing argument lists for the `populateFromArray` method - row, column and data for population.
-   * @returns {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex])
+   * @returns {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex]).
    */
   getBulkCollectionDataRange(populationArgumentsList) {
     const start = [0, 0];
@@ -343,7 +343,7 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {CellRange} cellRange Cell range to merge.
-   * @param {boolean} [auto=false] `true` if is called automatically, e.g. at initialization.
+   * @param {boolean} [auto=false] `true` if is called automatically, e.g. At initialization.
    * @param {boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end, but rather return its arguments.
    * @returns {Array|boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to true. If the the merging process went successful, it returns `true`, otherwise - `false`.
    * @fires Hooks#beforeMergeCells
@@ -690,7 +690,7 @@ class MergeCells extends BasePlugin {
 
   /**
    * `beforeSetRangeEnd` hook callback.
-   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
+   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell.
    *
    * @private
    * @param {object} coords Cell coords.
@@ -933,8 +933,8 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {CellCoords} coords Coordinates of the to-be-selected cell.
-   * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down)
-   * @param {number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
+   * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down).
+   * @param {number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down).
    */
   onAfterModifyTransformStart(coords, rowTransformDir, colTransformDir) {
     if (!this.enabled) {

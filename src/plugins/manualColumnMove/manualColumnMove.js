@@ -47,7 +47,7 @@ class ManualColumnMove extends BasePlugin {
     super(hotInstance);
 
     /**
-     * Set up WeakMap of plugin to sharing private parameters;
+     * Set up WeakMap of plugin to sharing private parameters;.
      */
     privatePool.set(this, {
       columnsToMove: [],
@@ -224,7 +224,7 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Indicates if it's possible to move columns to the desired position. Some of the actions aren't possible, i.e. you can’t move more than one element to the last position.
+   * Indicates if it's possible to move columns to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
    *
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.

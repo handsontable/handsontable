@@ -27,7 +27,7 @@ class BottomOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {Table}
    */
   createTable(...args) {
@@ -51,7 +51,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
    */
@@ -61,7 +61,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Updates the top overlay position
+   * Updates the top overlay position.
    */
   resetFixedPosition() {
     if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
@@ -107,7 +107,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Sets the main overlay's vertical scroll position
+   * Sets the main overlay's vertical scroll position.
    *
    * @param {number} pos The scroll position.
    * @returns {boolean}
@@ -129,18 +129,18 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Triggers onScroll hook callback
+   * Triggers onScroll hook callback.
    */
   onScroll() {
     this.wot.getSetting('onScrollHorizontally');
   }
 
   /**
-   * Calculates total sum cells height
+   * Calculates total sum cells height.
    *
-   * @param {number} from Row index which calculates started from
-   * @param {number} to Row index where calculation is finished
-   * @returns {number} Height sum
+   * @param {number} from Row index which calculates started from.
+   * @param {number} to Row index where calculation is finished.
+   * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
     const { wtTable, wtSettings } = this.wot;
@@ -212,7 +212,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Adjust overlay root childs size
+   * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
@@ -223,7 +223,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Adjust the overlay dimensions and position
+   * Adjust the overlay dimensions and position.
    */
   applyToDOM() {
     const total = this.wot.getSetting('totalRows');
@@ -249,7 +249,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Synchronize calculated left position to an element
+   * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
@@ -261,10 +261,10 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Scrolls vertically to a row
+   * Scrolls vertically to a row.
    *
-   * @param {number} sourceRow Row index which you want to scroll to
-   * @param {boolean} [bottomEdge=false] if `true`, scrolls according to the bottom edge (top edge is by default)
+   * @param {number} sourceRow Row index which you want to scroll to.
+   * @param {boolean} [bottomEdge=false] If `true`, scrolls according to the bottom edge (top edge is by default).
    */
   scrollTo(sourceRow, bottomEdge) {
     let newY = this.getTableParentOffset();
@@ -291,7 +291,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent top position
+   * Gets table parent top position.
    *
    * @returns {number}
    */
@@ -304,18 +304,18 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Gets the main overlay's vertical scroll position
+   * Gets the main overlay's vertical scroll position.
    *
-   * @returns {number} Main table's vertical scroll position
+   * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
     return getScrollTop(this.mainTableScrollableElement, this.wot.rootWindow);
   }
 
   /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue)
+   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
-   * @param {number} position Header Y position if trimming container is window or scroll top if not
+   * @param {number} position Header Y position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
     if (this.wot.getSetting('fixedRowsBottom') === 0 && this.wot.getSetting('columnHeaders').length > 0) {

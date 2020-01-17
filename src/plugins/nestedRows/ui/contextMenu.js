@@ -33,7 +33,7 @@ class ContextMenuUI extends BaseUI {
   }
   /**
    * Append options to the context menu. (Propagated from the `afterContextMenuDefaultOptions` hook callback)
-   * f
+   * f.
    *
    * @private
    * @param {object} defaultOptions Default context menu options.

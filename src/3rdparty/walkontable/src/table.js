@@ -29,7 +29,7 @@ class Table {
    */
   constructor(wotInstance, table) {
     /**
-     * Indicates if this instance is of type `MasterTable` (i.e. it is NOT an overlay)
+     * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
      * @type {boolean}
      */
@@ -213,7 +213,7 @@ class Table {
   }
 
   /**
-   * Redraws the table
+   * Redraws the table.
    *
    * @param {boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
@@ -543,7 +543,7 @@ class Table {
    *  -1 row before viewport
    *  -2 row after viewport
    *  -3 column before viewport
-   *  -4 column after viewport
+   *  -4 column after viewport.
    */
   getCell(coords) {
     let row = coords.row;
@@ -594,11 +594,11 @@ class Table {
   }
 
   /**
-   * getColumnHeader
+   * GetColumnHeader.
    *
-   * @param {number} col Column index
-   * @param {number} [level=0] Header level (0 = most distant to the table)
-   * @returns {object} HTMLElement on success or undefined on error
+   * @param {number} col Column index.
+   * @param {number} [level=0] Header level (0 = most distant to the table).
+   * @returns {object} HTMLElement on success or undefined on error.
    */
   getColumnHeader(col, level = 0) {
     const TR = this.THEAD.childNodes[level];
@@ -609,10 +609,10 @@ class Table {
   }
 
   /**
-   * getRowHeader
+   * GetRowHeader.
    *
-   * @param {number} row Row index
-   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`
+   * @param {number} row Row index.
+   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`.
    */
   getRowHeader(row) {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
@@ -679,7 +679,7 @@ class Table {
   }
 
   /**
-   * Check if any of the rendered rows is higher than expected, and if so, cache them
+   * Check if any of the rendered rows is higher than expected, and if so, cache them.
    */
   markOversizedRows() {
     if (this.wot.getSetting('externalRowCalculator')) {
@@ -729,7 +729,7 @@ class Table {
   }
 
   /**
-   * 0-based index of column header
+   * 0-based index of column header.
    *
    * @param {number} level The header level to check.
    * @returns {boolean}
@@ -742,7 +742,7 @@ class Table {
   }
 
   /**
-   * 0-based index of row header
+   * 0-based index of row header.
    *
    * @param {number} level The header level to check.
    * @returns {boolean}
@@ -869,7 +869,7 @@ class Table {
   }
 
   /**
-   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
+   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height.
    *
    * @param {number} sourceRow The physical row index.
    * @returns {number}

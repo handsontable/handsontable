@@ -24,7 +24,7 @@ export function cleanPatches(patches) {
     return true;
   });
   /**
-   * Extend patches with changed cells coords
+   * Extend patches with changed cells coords.
    */
   cleanedPatches = arrayMap(cleanedPatches, (patch) => {
     const coords = parsePath(patch.path);

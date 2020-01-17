@@ -39,15 +39,15 @@ import { MetaManager, DataMap } from './dataMap/index';
 let activeGuid = null;
 
 /**
- * Handsontable constructor
+ * Handsontable constructor.
  *
  * @core
  * @class Core
  * @description
  * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
  *
- * ---
- * ## How to call methods
+ * ---.
+ * ## How to call methods.
  *
  * These are 2 equal ways to call a Handsontable method:
  *
@@ -57,13 +57,13 @@ let activeGuid = null;
  *
  * // now, to use setDataAtCell method, you can either:
  * ht.setDataAtCell(0, 0, 'new value');
- * ```
+ * ```.
  *
  * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
  * ```js
  * $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
  * ```
- * ---
+ * ---.
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
@@ -506,7 +506,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     },
 
     /**
-     * Makes sure there are empty rows at the bottom of the table
+     * Makes sure there are empty rows at the bottom of the table.
      */
     adjustRowsAndCols() {
       if (tableMeta.minRows) {
@@ -629,7 +629,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * @param {string} direction (left|right|up|down) String specifying the direction.
      * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
      *                       Useful **only** when the type of handled cells is `numeric`.
-     * @returns {object|undefined} ending td in pasted area (only if any cell was changed).
+     * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
      */
     populateFromArray(start, input, end, source, method, direction, deltas) {
       // TODO: either remove or implement the `direction` argument. Currently it's not working at all.
@@ -827,7 +827,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Internal function to set `language` key of settings.
    *
    * @private
-   * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'
+   * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
    * @fires Hooks#afterLanguageChange
    */
   function setLanguage(languageCode) {
@@ -1013,11 +1013,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
-   * Internal function to apply changes. Called after validateChanges
+   * Internal function to apply changes. Called after validateChanges.
    *
    * @private
-   * @param {Array} changes Array in form of [row, prop, oldValue, newValue]
-   * @param {string} source String that identifies how this change will be described in changes array (useful in onChange callback)
+   * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
+   * @param {string} source String that identifies how this change will be described in changes array (useful in onChange callback).
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
@@ -1346,7 +1346,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function populateFromArray
    * @param {number} row Start visual row index.
    * @param {number} column Start visual column index.
-   * @param {Array} input 2d array
+   * @param {Array} input 2d array.
    * @param {number} [endRow] End visual row index (use when you want to cut input when certain row is reached).
    * @param {number} [endCol] End visual column index (use when you want to cut input when certain column is reached).
    * @param {string} [source=populateFromArray] Used to identify this call in the resulting events (beforeChange, afterChange).
@@ -1354,7 +1354,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {string} direction Populate direction, possible values: `'left'`, `'right'`, `'up'`, `'down'`.
    * @param {Array} deltas The deltas array. A difference between values of adjacent cells.
    *                       Useful **only** when the type of handled cells is `numeric`.
-   * @returns {object|undefined} ending td in pasted area (only if any cell was changed).
+   * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method, direction, deltas) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
@@ -1655,7 +1655,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
-   * unless some modifications have been applied (i.e. sequence of rows/columns was changed, some row/column was skipped).
+   * unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
    * If that's the case - use the {@link Core#getSourceData} method.).
    *
    * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
@@ -1960,7 +1960,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *  * `'insert_row'`
    *  * `'insert_col'`
    *  * `'remove_row'`
-   *  * `'remove_col'`
+   *  * `'remove_col'`.
    * @param {number|number[]} index Visual index of the row/column before which the new row/column will be
    *                                inserted/removed or an array of arrays in format `[[index, amount],...]`.
    * @param {number} [amount=1] Amount of rows/columns to be inserted or removed.
@@ -2044,7 +2044,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Translate physical row index into visual.
    *
    * This method is useful when you want to retrieve visual row index which can be reordered, moved or trimmed
-   * based on a physical index
+   * based on a physical index.
    *
    * @memberof Core#
    * @function toVisualRow
@@ -2057,7 +2057,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Translate physical column index into visual.
    *
    * This method is useful when you want to retrieve visual column index which can be reordered, moved or trimmed
-   * based on a physical index
+   * based on a physical index.
    *
    * @memberof Core#
    * @function toVisualColumn
@@ -3104,7 +3104,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the number of visible columns. Returns -1 if table is not visible
+   * Returns the number of visible columns. Returns -1 if table is not visible.
    *
    * @memberof Core#
    * @function countVisibleCols
@@ -3523,7 +3523,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function hasHook
    * @see Hooks#has
-   * @param {string} key Hook name
+   * @param {string} key Hook name.
    * @returns {boolean}
    *
    * @example

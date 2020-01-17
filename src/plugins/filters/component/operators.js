@@ -49,7 +49,7 @@ class OperatorsComponent extends BaseComponent {
   }
 
   /**
-   * Add RadioInputUI elements to component
+   * Add RadioInputUI elements to component.
    *
    * @private
    */
@@ -89,7 +89,7 @@ class OperatorsComponent extends BaseComponent {
   }
 
   /**
-   * Get `id` of active operator
+   * Get `id` of active operator.
    *
    * @returns {string}
    */

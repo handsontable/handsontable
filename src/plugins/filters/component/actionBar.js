@@ -94,7 +94,7 @@ class ActionBarComponent extends BaseComponent {
    * On button click listener.
    *
    * @private
-   * @param {Event} event DOM event
+   * @param {Event} event DOM event.
    * @param {InputUI} button InputUI object.
    */
   onButtonClick(event, button) {

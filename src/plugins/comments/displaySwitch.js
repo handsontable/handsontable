@@ -27,7 +27,7 @@ class DisplaySwitch {
      */
     this.showDebounced = null;
     /**
-     * Reference to timer, run by `setTimeout`, which is hiding comment
+     * Reference to timer, run by `setTimeout`, which is hiding comment.
      *
      * @type {number}
      */

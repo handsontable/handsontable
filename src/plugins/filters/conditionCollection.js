@@ -74,7 +74,7 @@ class ConditionCollection {
    *
    * @param {Array} conditions List of conditions.
    * @param {object} value Object with `value` and `meta` keys.
-   * @param {string} [operationType='conjunction'] Type of conditions operation
+   * @param {string} [operationType='conjunction'] Type of conditions operation.
    * @returns {boolean}
    */
   isMatchInConditions(conditions, value, operationType = OPERATION_AND) {
@@ -97,7 +97,7 @@ class ConditionCollection {
    * @param {object} conditionDefinition Object with keys:
    *  * `command` Object, Command object with condition name as `key` property.
    *  * `args` Array, Condition arguments.
-   * @param {string} [operation='conjunction'] Type of conditions operation
+   * @param {string} [operation='conjunction'] Type of conditions operation.
    * @fires ConditionCollection#beforeAdd
    * @fires ConditionCollection#afterAdd
    */
@@ -279,7 +279,7 @@ class ConditionCollection {
   }
 
   /**
-   * Init conditions collection
+   * Init conditions collection.
    *
    * @private
    * @returns {object} Returns an initial bucket for conditions.

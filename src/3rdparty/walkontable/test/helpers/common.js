@@ -311,7 +311,7 @@ export function getTableCornerClone() {
 }
 
 /**
- * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...)
+ * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...).
  *
  * @param {number} rows The number of rows to generate.
  * @param {number} columns The number of columns to generate.
@@ -407,11 +407,11 @@ export function getScrollbarWidth() {
 }
 
 /**
- * Run expectation towards a certain WtTable overlay
+ * Run expectation towards a certain WtTable overlay.
  *
- * @param {*} wt WOT instance
- * @param {*} callb Callback that will receive wtTable of that overlay
- * @param {*} name Name of the overlay
+ * @param {*} wt WOT instance.
+ * @param {*} callb Callback that will receive wtTable of that overlay.
+ * @param {*} name Name of the overlay.
  * @returns {Function}
  */
 export function expectWtTable(wt, callb, name) {

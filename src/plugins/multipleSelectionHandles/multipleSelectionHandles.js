@@ -55,7 +55,7 @@ class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * Bind the touch events
+   * Bind the touch events.
    *
    * @private
    */
@@ -361,7 +361,7 @@ class MultipleSelectionHandles extends BasePlugin {
   /**
    * Check if user is currently dragging the handle.
    *
-   * @returns {boolean} Dragging state
+   * @returns {boolean} Dragging state.
    */
   isDragged() {
     return this.dragged.length > 0;

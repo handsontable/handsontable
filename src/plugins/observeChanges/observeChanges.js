@@ -16,7 +16,7 @@ import { registerPlugin } from './../../plugins';
  * ```js
  * // as a boolean
  * observeChanges: true,
- * ```
+ * ```.
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */

@@ -123,7 +123,7 @@ class Settings {
   }
 
   /**
-   * Update settings
+   * Update settings.
    *
    * @param {object} settings The singular settings to update or if passed as object to merge with.
    * @param {*} value The value to set if the first argument is passed as string.
@@ -141,7 +141,7 @@ class Settings {
   }
 
   /**
-   * Get setting by name
+   * Get setting by name.
    *
    * @param {string} key The settings key to retrieve.
    * @param {*} [param1] Additional parameter passed to the options defined as function.
@@ -165,7 +165,7 @@ class Settings {
   }
 
   /**
-   * Checks if setting exists
+   * Checks if setting exists.
    *
    * @param {boolean} key The settings key to check.
    * @returns {boolean}

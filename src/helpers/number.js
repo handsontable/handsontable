@@ -1,6 +1,6 @@
 /**
  * Checks if value of n is a numeric one
- * http://jsperf.com/isnan-vs-isnumeric/4
+ * http://jsperf.com/isnan-vs-isnumeric/4.
  *
  * @param {*} value The value to check.
  * @returns {boolean}

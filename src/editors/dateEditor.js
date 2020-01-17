@@ -13,7 +13,7 @@ import TextEditor from './textEditor';
  */
 class DateEditor extends TextEditor {
   /**
-   * @param {Core} hotInstance Handsontable instance
+   * @param {Core} hotInstance Handsontable instance.
    * @private
    */
   constructor(hotInstance) {
@@ -41,7 +41,7 @@ class DateEditor extends TextEditor {
   }
 
   /**
-   * Create data picker instance
+   * Create data picker instance.
    */
   createElements() {
     super.createElements();
@@ -60,14 +60,14 @@ class DateEditor extends TextEditor {
     const eventManager = new EventManager(this);
 
     /**
-     * Prevent recognizing clicking on datepicker as clicking outside of table
+     * Prevent recognizing clicking on datepicker as clicking outside of table.
      */
     eventManager.addEventListener(this.datePicker, 'mousedown', event => event.stopPropagation());
     this.hideDatepicker();
   }
 
   /**
-   * Destroy data picker instance
+   * Destroy data picker instance.
    */
   destroyElements() {
     const datePickerParentElement = this.datePicker.parentNode;
@@ -80,7 +80,7 @@ class DateEditor extends TextEditor {
   }
 
   /**
-   * Prepare editor to appear
+   * Prepare editor to appear.
    *
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
@@ -94,7 +94,7 @@ class DateEditor extends TextEditor {
   }
 
   /**
-   * Open editor
+   * Open editor.
    *
    * @param {Event} [event=null] The event object.
    */
@@ -104,7 +104,7 @@ class DateEditor extends TextEditor {
   }
 
   /**
-   * Close editor
+   * Close editor.
    */
   close() {
     this._opened = false;
@@ -135,7 +135,7 @@ class DateEditor extends TextEditor {
   }
 
   /**
-   * Show data picker
+   * Show data picker.
    *
    * @param {Event} event The event object.
    */
@@ -194,7 +194,7 @@ class DateEditor extends TextEditor {
   }
 
   /**
-   * Hide data picker
+   * Hide data picker.
    */
   hideDatepicker() {
     this.datePickerStyle.display = 'none';

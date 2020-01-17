@@ -148,7 +148,7 @@ class Event {
   }
 
   /**
-   * onMouseDown callback.
+   * OnMouseDown callback.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.
@@ -187,7 +187,7 @@ class Event {
   }
 
   /**
-   * onContextMenu callback.
+   * OnContextMenu callback.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.
@@ -203,7 +203,7 @@ class Event {
   }
 
   /**
-   * onMouseOver callback.
+   * OnMouseOver callback.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.
@@ -225,7 +225,7 @@ class Event {
   }
 
   /**
-   * onMouseOut callback.
+   * OnMouseOut callback.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.
@@ -245,7 +245,7 @@ class Event {
   }
 
   /**
-   * onMouseUp callback.
+   * OnMouseUp callback.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.
@@ -285,7 +285,7 @@ class Event {
   }
 
   /**
-   * onTouchStart callback. Simulates mousedown event.
+   * OnTouchStart callback. Simulates mousedown event.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.
@@ -300,7 +300,7 @@ class Event {
   }
 
   /**
-   * onTouchEnd callback. Simulates mouseup event.
+   * OnTouchEnd callback. Simulates mouseup event.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.

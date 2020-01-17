@@ -18,7 +18,7 @@ const hooksRefRegisterer = {
    * Add hook to the collection.
    *
    * @param {string} key The hook name.
-   * @param {Function} callback The hook callback
+   * @param {Function} callback The hook callback.
    * @returns {object}
    */
   addHook(key, callback) {
@@ -35,7 +35,7 @@ const hooksRefRegisterer = {
   /**
    * Remove all hooks listeners by hook name.
    *
-   * @param {string} key The hook name
+   * @param {string} key The hook name.
    */
   removeHooksByKey(key) {
     arrayEach(this._hooksStorage[key] || [], (callback) => {

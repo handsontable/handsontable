@@ -17,10 +17,10 @@ import { isDefined } from './helpers/mixed';
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
 /**
- * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names
+ * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names.
  *
- * @todo refactor arguments of methods getRange, getText to be numbers (not objects)
- * @todo remove priv, GridSettings from object constructor
+ * @todo Refactor arguments of methods getRange, getText to be numbers (not objects).
+ * @todo Remove priv, GridSettings from object constructor.
  *
  * @util
  * @class DataMap
@@ -48,14 +48,14 @@ class DataMap {
    */
   constructor(instance, data, tableMeta) {
     /**
-     * Instance of {@link Handsontable}
+     * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
      */
     this.instance = instance;
     /**
-     * Instance of {@link TableMeta}
+     * Instance of {@link TableMeta}.
      *
      * @private
      * @type {TableMeta}
@@ -314,11 +314,11 @@ class DataMap {
   /**
    * Creates column at the right of the data array.
    *
-   * @param {number} [index] Visual index of the column before which the new column will be inserted
+   * @param {number} [index] Visual index of the column before which the new column will be inserted.
    * @param {number} [amount=1] An amount of columns to add.
    * @param {string} [source] Source of method call.
    * @fires Hooks#afterCreateCol
-   * @returns {number} Returns number of created columns
+   * @returns {number} Returns number of created columns.
    */
   createCol(index, amount = 1, source) {
     if (!this.instance.isColumnModificationAllowed()) {
@@ -390,8 +390,8 @@ class DataMap {
    *
    * @fires Hooks#beforeRemoveRow
    * @fires Hooks#afterRemoveRow
-   * @param {number} [index] Visual index of the row to be removed. If not provided, the last row will be removed
-   * @param {number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed
+   * @param {number} [index] Visual index of the row to be removed. If not provided, the last row will be removed.
+   * @param {number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed.
    * @param {string} [source] Source of method call.
    * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
@@ -441,8 +441,8 @@ class DataMap {
    *
    * @fires Hooks#beforeRemoveCol
    * @fires Hooks#afterRemoveCol
-   * @param {number} [index] Visual index of the column to be removed. If not provided, the last column will be removed
-   * @param {number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed
+   * @param {number} [index] Visual index of the column to be removed. If not provided, the last column will be removed.
+   * @param {number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed.
    * @param {string} [source] Source of method call.
    * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
@@ -505,9 +505,9 @@ class DataMap {
   /**
    * Add/Removes data from the column.
    *
-   * @param {number} col Physical index of column in which do you want to do splice
-   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end
-   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
+   * @param {number} col Physical index of column in which do you want to do splice.
+   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {Array} [elements] The new columns to add.
    * @returns {Array} Returns removed portion of columns.
    */
@@ -531,11 +531,11 @@ class DataMap {
   /**
    * Add/Removes data from the row.
    *
-   * @param {number} row Physical index of row in which do you want to do splice
+   * @param {number} row Physical index of row in which do you want to do splice.
    * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
    * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
    * @param {Array} [elements] The new rows to add.
-   * @returns {Array} Returns removed portion of rows
+   * @returns {Array} Returns removed portion of rows.
    */
   spliceRow(row, index, amount, ...elements) {
     const rowData = this.instance.getSourceDataAtRow(row);
@@ -627,7 +627,7 @@ class DataMap {
 
     } else if (typeof prop === 'function') {
       /**
-       *  allows for interacting with complex structures, for example
+       *  Allows for interacting with complex structures, for example
        *  d3/jQuery getter/setter properties:
        *
        *    {columns: [{
@@ -637,7 +637,7 @@ class DataMap {
        *        }
        *        row.property(value);
        *      }
-       *    }]}
+       *    }]}.
        */
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
@@ -727,7 +727,7 @@ class DataMap {
   /**
    * This ridiculous piece of code maps rows Id that are present in table data to those displayed for user.
    * The trick is, the physical row id (stored in settings.data) is not necessary the same
-   * as the visual (displayed) row id (e.g. when sorting is applied).
+   * as the visual (displayed) row id (e.g. When sorting is applied).
    *
    * @param {number} index Visual row index.
    * @param {number} amount An amount of rows to translate.
@@ -835,7 +835,7 @@ class DataMap {
    *
    * @param {object} [start] Start selection position. Visual indexes.
    * @param {object} [end] End selection position. Visual indexes.
-   * @param {number} destination Destination of datamap.get
+   * @param {number} destination Destination of datamap.get.
    * @returns {Array}
    */
   getRange(start, end, destination) {

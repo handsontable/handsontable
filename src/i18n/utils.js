@@ -29,12 +29,12 @@ export function extendNotExistingKeys(target, extension) {
  * createCellHeadersRange(2, 7) => `2-7`
  * createCellHeadersRange(7, 2) => `2-7`
  * createCellHeadersRange(0, 4, 'A', 'D') => `A-D`
- * createCellHeadersRange(4, 0, 'D', 'A') => `A-D`
+ * createCellHeadersRange(4, 0, 'D', 'A') => `A-D`.
  *
- * @param {number} firstRowIndex Index of "first" cell
- * @param {number} nextRowIndex Index of "next" cell
- * @param {*} fromValue Value which will represent "first" cell
- * @param {*} toValue Value which will represent "next" cell
+ * @param {number} firstRowIndex Index of "first" cell.
+ * @param {number} nextRowIndex Index of "next" cell.
+ * @param {*} fromValue Value which will represent "first" cell.
+ * @param {*} toValue Value which will represent "next" cell.
  * @returns {string} Value representing range i.e. A-Z, 11-15.
  */
 export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = firstRowIndex, toValue = nextRowIndex) {
@@ -50,7 +50,7 @@ export function createCellHeadersRange(firstRowIndex, nextRowIndex, fromValue = 
 
 /**
  * Normalize language code. It takes handled languageCode proposition and change it to proper languageCode.
- * For example, when it takes `eN-us` as parameter it return `en-US`
+ * For example, when it takes `eN-us` as parameter it return `en-US`.
  *
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {string}

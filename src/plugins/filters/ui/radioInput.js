@@ -65,7 +65,7 @@ class RadioInputUI extends BaseUI {
   }
 
   /**
-   * Set input checked attribute
+   * Set input checked attribute.
    *
    * @param {boolean} value Set the component state.
    */

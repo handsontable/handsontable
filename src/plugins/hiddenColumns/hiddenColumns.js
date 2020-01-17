@@ -26,7 +26,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * Possible plugin settings:
  *  * `copyPasteEnabled` as `Boolean` (default `true`)
  *  * `columns` as `Array`
- *  * `indicators` as `Boolean` (default `false`)
+ *  * `indicators` as `Boolean` (default `false`).
  *
  * @example
  *
@@ -77,7 +77,7 @@ class HiddenColumns extends BasePlugin {
      */
     this.settings = {};
     /**
-     * List of currently hidden columns
+     * List of currently hidden columns.
      *
      * @private
      * @type {number[]}
@@ -237,7 +237,7 @@ class HiddenColumns extends BasePlugin {
    * Checks if the provided column is hidden.
    *
    * @param {number} column Column index.
-   * @param {boolean} isPhysicalIndex flag which determines type of index.
+   * @param {boolean} isPhysicalIndex Flag which determines type of index.
    * @returns {boolean}
    */
   isHidden(column, isPhysicalIndex = false) {
@@ -279,7 +279,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Sets width hidden columns on 0
+   * Sets width hidden columns on 0.
    *
    * @private
    * @param {number} width Column width.

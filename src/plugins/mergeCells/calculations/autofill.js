@@ -81,7 +81,7 @@ class AutofillCalculations {
    * @param {Array} dragArea The drag area.
    * @param {string} dragDirection The autofill drag direction.
    * @param {Array} foundMergedCells MergeCellCoords found in the base selection area.
-   * @returns {Array} The new drag area
+   * @returns {Array} The new drag area.
    */
   snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells) {
     const newDragArea = dragArea.slice(0);

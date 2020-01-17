@@ -21,7 +21,7 @@ class Selection {
 
   /**
    * Each Walkontable clone requires it's own border for every selection. This method creates and returns selection
-   * borders per instance
+   * borders per instance.
    *
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @returns {Border}
@@ -35,7 +35,7 @@ class Selection {
   }
 
   /**
-   * Checks if selection is empty
+   * Checks if selection is empty.
    *
    * @returns {boolean}
    */
@@ -44,7 +44,7 @@ class Selection {
   }
 
   /**
-   * Adds a cell coords to the selection
+   * Adds a cell coords to the selection.
    *
    * @param {CellCoords} coords The cell coordinates to add.
    * @returns {Selection}
@@ -62,7 +62,7 @@ class Selection {
 
   /**
    * If selection range from or to property equals oldCoords, replace it with newCoords. Return boolean
-   * information about success
+   * information about success.
    *
    * @param {CellCoords} oldCoords An old cell coordinates to replace.
    * @param {CellCoords} newCoords The new cell coordinates.
@@ -86,7 +86,7 @@ class Selection {
   }
 
   /**
-   * Clears selection
+   * Clears selection.
    *
    * @returns {Selection}
    */
@@ -97,9 +97,9 @@ class Selection {
   }
 
   /**
-   * Returns the top left (TL) and bottom right (BR) selection coordinates
+   * Returns the top left (TL) and bottom right (BR) selection coordinates.
    *
-   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`
+   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
     const topLeft = this.cellRange.getTopLeftCorner();
@@ -114,12 +114,12 @@ class Selection {
   }
 
   /**
-   * Adds class name to cell element at given coords
+   * Adds class name to cell element at given coords.
    *
-   * @param {Walkontable} wotInstance Walkontable instance
-   * @param {number} sourceRow Cell row coord
-   * @param {number} sourceColumn Cell column coord
-   * @param {string} className Class name
+   * @param {Walkontable} wotInstance Walkontable instance.
+   * @param {number} sourceRow Cell row coord.
+   * @param {number} sourceColumn Cell column coord.
+   * @param {string} className Class name.
    * @param {boolean} [markIntersections=false] If `true`, linear className generator will be used to add CSS classes
    *                                            in a continuous way.
    * @returns {Selection}
@@ -148,7 +148,7 @@ class Selection {
    * Generate helper for calculating classNames based on previously added base className.
    * The generated className is always generated as a continuation of the previous className. For example, when
    * the currently checked element has 'area-2' className the generated new className will be 'area-3'. When
-   * the element doesn't have any classNames than the base className will be returned ('area');
+   * the element doesn't have any classNames than the base className will be returned ('area');.
    *
    * @param {string} baseClassName Base className to be used.
    * @param {number} layerLevelOwner Layer level which the instance of the Selection belongs to.

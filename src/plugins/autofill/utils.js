@@ -51,7 +51,7 @@ export function getDeltas(start, end, data, direction) {
 }
 
 /**
- * Get direction between positions and cords of selections difference (drag area)
+ * Get direction between positions and cords of selections difference (drag area).
  *
  * @param {Array} startSelection The coordinates where the selection starts.
  * @param {Array} endSelection The coordinates where the selection ends.
@@ -97,11 +97,11 @@ export function getDragDirectionAndRange(startSelection, endSelection) {
 
 /**
  * Get mapped FillHandle setting containing information about
- * allowed FillHandle directions and if allowed is automatic insertion of rows on drag
+ * allowed FillHandle directions and if allowed is automatic insertion of rows on drag.
  *
- * @param {boolean|object} fillHandle property of Handsontable settings
- * @returns {{directions: Array, autoInsertRow: boolean}} object allowing access to information
- * about FillHandle in more useful way
+ * @param {boolean|object} fillHandle Property of Handsontable settings.
+ * @returns {{directions: Array, autoInsertRow: boolean}} Object allowing access to information
+ * about FillHandle in more useful way.
  */
 export function getMappedFillHandleSetting(fillHandle) {
   const mappedSettings = {};

@@ -13,7 +13,7 @@ import BaseRenderer from './_base';
  *     ├ <td>    \
  *     ├ <td>     - CellsRenderer
  *     ├ <td>    /
- *     └ <td>   /
+ *     └ <td>   /.
  *
  * @class {CellsRenderer}
  */

@@ -22,7 +22,7 @@ class MapCollection {
    * Register custom index map.
    *
    * @param {string} uniqueName Unique name of the index map.
-   * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
+   * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. Meta data, indexes sequence), updated after remove and insert data actions.
    */
   register(uniqueName, indexMap) {
     if (this.collection.has(uniqueName) === false) {

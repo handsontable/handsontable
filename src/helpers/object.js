@@ -41,7 +41,7 @@ export function duckSchema(object) {
 /**
  * Inherit without without calling parent constructor, and setting `Child.prototype.constructor` to `Child` instead of `Parent`.
  * Creates temporary dummy function to call it as constructor.
- * Described in ticket: https://github.com/handsontable/handsontable/pull/516
+ * Described in ticket: https://github.com/handsontable/handsontable/pull/516.
  *
  * @param {object} Child The child class.
  * @param {object} Parent The parent class.
@@ -100,7 +100,7 @@ export function deepExtend(target, extension) {
  * Perform deep clone of an object.
  * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc.
  *
- * @param {object} obj An object that will be cloned
+ * @param {object} obj An object that will be cloned.
  * @returns {object}
  */
 export function deepClone(obj) {
@@ -190,7 +190,7 @@ export function mixin(Base, ...mixins) {
 }
 
 /**
- * Checks if two objects or arrays are (deep) equal
+ * Checks if two objects or arrays are (deep) equal.
  *
  * @param {object|Array} object1 The first object to compare.
  * @param {object|Array} object2 The second object to compare.
@@ -202,7 +202,7 @@ export function isObjectEqual(object1, object2) {
 
 /**
  * Determines whether given object is a plain Object.
- * Note: String and Array are not plain Objects
+ * Note: String and Array are not plain Objects.
  *
  * @param {*} object An object to ckeck.
  * @returns {boolean}

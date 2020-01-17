@@ -78,7 +78,7 @@ class TextEditor extends BaseEditor {
      */
     this.textareaParentStyle = void 0;
     /**
-     * z-index class style for the editor.
+     * Z-index class style for the editor.
      *
      * @private
      * @type {string}
@@ -474,7 +474,7 @@ class TextEditor extends BaseEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
    * @param {Event} event The keyboard event object.
    */

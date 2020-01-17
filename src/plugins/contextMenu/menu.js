@@ -225,7 +225,7 @@ class Menu {
   /**
    * Close menu.
    *
-   * @param {boolean} [closeParent=false] if `true` try to close parent menu if exists.
+   * @param {boolean} [closeParent=false] If `true` try to close parent menu if exists.
    */
   close(closeParent = false) {
     if (!this.isOpened()) {

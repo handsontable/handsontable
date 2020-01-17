@@ -533,7 +533,7 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Modifies the provided column width, based on the plugin settings
+   * Modifies the provided column width, based on the plugin settings.
    *
    * @private
    * @param {number} width Column width.

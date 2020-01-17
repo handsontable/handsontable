@@ -159,9 +159,9 @@ export function handsontable(options) {
  * Therefore, simple $(".htCore") will return more than one object. Most of the time, you're interested in the original
  * htCore, not the copies made by native scroll.
  *
- * This method returns the original htCore object
+ * This method returns the original htCore object.
  *
- * @returns {jqObject} reference to the original htCore
+ * @returns {jQuery} The reference to the original htCore.
  */
 export function getHtCore() {
   return spec().$container.find('.htCore').first();
@@ -394,7 +394,7 @@ export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
 /**
  * Returns a function that triggers a key event.
  *
- * @param {string} type Event type
+ * @param {string} type Event type.
  * @returns {Function}
  */
 export function handsontableKeyTriggerFactory(type) {
@@ -512,7 +512,7 @@ export const keyDown = handsontableKeyTriggerFactory('keydown');
 export const keyUp = handsontableKeyTriggerFactory('keyup');
 
 /**
- * Presses keyDown, then keyUp
+ * Presses keyDown, then keyUp.
  *
  * @param {string} key The key code which will be associated with the event.
  * @param {object} extend Additional options which extends the event.
@@ -925,7 +925,7 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 }
 
 /**
- * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...)
+ * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...).
  *
  * @param {*} args The arguments passed directly to the Handsontable helper.
  * @returns {Array}

@@ -14,7 +14,7 @@ class EditorManager {
    */
   constructor(instance, tableMeta, selection) {
     /**
-     * Instance of {@link Handsontable}
+     * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
@@ -28,7 +28,7 @@ class EditorManager {
      */
     this.tableMeta = tableMeta;
     /**
-     * Instance of {@link Selection}
+     * Instance of {@link Selection}.
      *
      * @private
      * @type {Selection}
@@ -191,7 +191,7 @@ class EditorManager {
   /**
    * Open editor with initial value.
    *
-   * @param {null|string} newInitialValue new value from which editor will start if handled property it's not the `null`.
+   * @param {null|string} newInitialValue New value from which editor will start if handled property it's not the `null`.
    * @param {Event} event The event object.
    */
   openEditor(newInitialValue, event) {
@@ -321,7 +321,7 @@ class EditorManager {
   }
 
   /**
-   * onAfterDocumentKeyDown callback.
+   * OnAfterDocumentKeyDown callback.
    *
    * @private
    * @param {KeyboardEvent} event The keyboard event object.
@@ -518,7 +518,7 @@ class EditorManager {
   }
 
   /**
-   * onCellDblClick callback.
+   * OnCellDblClick callback.
    *
    * @private
    * @param {MouseEvent} event The mouse event object.

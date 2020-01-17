@@ -3,7 +3,7 @@ import { getRenderer } from './index';
 import { isNumeric } from './../helpers/number';
 
 /**
- * Numeric cell renderer
+ * Numeric cell renderer.
  *
  * @private
  * @param {Core} instance The Handsontable instance.

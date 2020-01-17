@@ -1,12 +1,13 @@
 import { isDefined } from '../../helpers/mixed';
 import { isObjectEqual } from '../../helpers/object';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
  * @class
  * @description
  *
- * ## Constructor options
+ * ## Constructor options.
  *
  * Constructor options are applied using an object literal passed as a second argument to the Handsontable constructor.
  *
@@ -20,7 +21,7 @@ import { isObjectEqual } from '../../helpers/object';
  * ```
  *
  * ---
- * ## Cascading configuration
+ * ## Cascading configuration.
  *
  * Handsontable is using *Cascading Configuration*, which is a fast way to provide configuration options
  * for the entire table, including its columns and particular cells.
@@ -33,19 +34,19 @@ import { isObjectEqual } from '../../helpers/object';
  *   columns: [
  *     {readOnly: false},
  *     {},
- *     {}
+ *     {},
  *   ],
  *   cells: function(row, col, prop) {
  *     var cellProperties = {};
  *
  *     if (row === 0 && col === 0) {
  *       cellProperties.readOnly = true;
- *     }
+ *     }.
  *
  *     return cellProperties;
  *   }
  * });
- * ```
+ * ```.
  *
  * The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
  *
@@ -72,6 +73,7 @@ import { isObjectEqual } from '../../helpers/object';
  * ---
  * __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 export default () => {
   return {
     /**
@@ -198,7 +200,7 @@ export default () => {
      * @description
      * Initial number of rows.
      *
-     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided
+     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
      *
      * @memberof Options#
      * @type {number}
@@ -216,7 +218,7 @@ export default () => {
      * @description
      * Initial number of columns.
      *
-     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided
+     * __Note:__ This option only has effect in Handsontable constructor and only if `data` option is not provided.
      *
      * @memberof Options#
      * @type {number}
@@ -393,7 +395,7 @@ export default () => {
      *
      * Possible values of `prop`:
      * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
-     * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array)
+     * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array).
      *
      * @memberof Options#
      * @type {Function}
@@ -603,7 +605,7 @@ export default () => {
 
     /**
      * When set to 1 (or more), Handsontable will add a new row at the end of grid if there are no more empty rows.
-     * (unless the number of rows exceeds the one set in the `maxRows` property)
+     * (unless the number of rows exceeds the one set in the `maxRows` property).
      *
      * @memberof Options#
      * @type {number}
@@ -619,7 +621,7 @@ export default () => {
 
     /**
      * When set to 1 (or more), Handsontable will add a new column at the end of grid if there are no more empty columns.
-     * (unless the number of rows exceeds the one set in the `maxCols` property)
+     * (unless the number of rows exceeds the one set in the `maxCols` property).
      *
      * @memberof Options#
      * @type {number}
@@ -920,17 +922,17 @@ export default () => {
      * data storage mechanism, `persistentState` option must be set to `true` (you can set it either during Handsontable
      * initialization or using the `updateSettings` method). When `persistentState` is enabled it exposes 3 hooks:
      *
-     * __persistentStateSave__ (key: String, value: Mixed)
+     * __persistentStateSave__ (key: String, value: Mixed).
      *
      *   * Saves value under given key in browser local storage.
      *
-     * __persistentStateLoad__ (key: String, valuePlaceholder: Object)
+     * __persistentStateLoad__ (key: String, valuePlaceholder: Object).
      *
      *   * Loads `value`, saved under given key, form browser local storage. The loaded `value` will be saved in
      *   `valuePlaceholder.value` (this is due to specific behaviour of `Hooks.run()` method). If no value have
      *   been saved under key `valuePlaceholder.value` will be `undefined`.
      *
-     * __persistentStateReset__ (key: String)
+     * __persistentStateReset__ (key: String).
      *
      *   * Clears the value saved under `key`. If no `key` is given, all values associated with table will be cleared.
      *
@@ -1057,7 +1059,7 @@ export default () => {
      * [See more](https://docs.handsontable.com/demo-stretching.html) mode. Possible values:
      *  * `'none'` Disable stretching
      *  * `'last'` Stretch only the last column
-     *  * `'all'` Stretch all the columns evenly
+     *  * `'all'` Stretch all the columns evenly.
      *
      * @memberof Options#
      * @type {string}
@@ -1175,8 +1177,8 @@ export default () => {
     allowInvalid: true,
 
     /**
-     * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`). If set to `false`,
-     * Handsontable will *not* accept the empty values and mark cell as invalid.
+     * If set to `true`, Handsontable will accept values that are empty (`null`, `undefined` or `''`). If set
+     * to `false`, Handsontable will *not* accept the empty values and mark cell as invalid.
      *
      * @memberof Options#
      * @type {boolean}
@@ -1277,7 +1279,7 @@ export default () => {
      * If a function is provided, it will receive the following arguments:
      * ```js
      * function(instance, TD, row, col, prop, value, cellProperties) {}
-     * ```
+     * ```.
      *
      * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
      *
@@ -1452,7 +1454,7 @@ export default () => {
      *  * [numeric](https://docs.handsontable.com/demo-numeric.html)
      *  * [password](https://docs.handsontable.com/demo-password.html)
      *  * text
-     *  * [time](https://docs.handsontable.com/demo-time.html)
+     *  * [time](https://docs.handsontable.com/demo-time.html).
      *
      * Or you can register the custom cell type under specified name and use
      * its name as an alias in your configuration.
@@ -1527,7 +1529,7 @@ export default () => {
      *  * [mobile](https://docs.handsontable.com/demo-mobiles-and-tablets.html)
      *  * [password](https://docs.handsontable.com/demo-password.html)
      *  * [select](https://docs.handsontable.com/demo-select.html)
-     *  * text
+     *  * text.
      *
      * Or you can [register](https://docs.handsontable.com/tutorial-cell-editor.html#registering-an-editor) the custom editor under specified name and use its name as an alias in your
      * configuration.
@@ -1655,7 +1657,7 @@ export default () => {
      * * `true` (to enable default options),
      * * `false` (to disable completely)
      * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
-     * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom)
+     * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom).
      *
      * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
      *
@@ -2540,7 +2542,7 @@ export default () => {
      *  * `'max'`
      *  * `'count'`
      *  * `'average'`
-     *  * `'custom'` - add `customFunction`
+     *  * `'custom'` - add `customFunction`.
      *
      * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
      *
@@ -2670,7 +2672,7 @@ export default () => {
      * The {@link HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `columns` - an array of rows that should be hidden on plugin initialization
-     *  * `indicators` - enables small ui markers to indicate where are hidden columns
+     *  * `indicators` - enables small ui markers to indicate where are hidden columns.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2696,7 +2698,7 @@ export default () => {
      * The {@link HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `rows` - an array of rows that should be hidden on plugin initialization
-     *  * `indicators` - enables small ui markers to indicate where are hidden columns
+     *  * `indicators` - enables small ui markers to indicate where are hidden columns.
      *
      * @memberof Options#
      * @type {boolean|object}

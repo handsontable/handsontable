@@ -26,7 +26,7 @@ class SelectionCalculations {
 
   /**
    * "Snap" the delta value according to defined merged cells. (In other words, compensate the rowspan -
-   * e.g. going up with `delta.row = -1` over a merged cell with `rowspan = 3`, `delta.row` should change to `-3`.)
+   * e.g. Going up with `delta.row = -1` over a merged cell with `rowspan = 3`, `delta.row` should change to `-3`.).
    *
    * @param {object} delta The delta object containing `row` and `col` properties.
    * @param {CellRange} selectionRange The selection range.
@@ -46,7 +46,7 @@ class SelectionCalculations {
   }
 
   /**
-   * "Jump" over the merged cell (compensate for the indexes within the merged cell to get past it)
+   * "Jump" over the merged cell (compensate for the indexes within the merged cell to get past it).
    *
    * @private
    * @param {object} delta The delta object.
@@ -143,7 +143,7 @@ class SelectionCalculations {
   }
 
   /**
-   * Check if the provided merged cell is fully selected (by one or many layers of selection)
+   * Check if the provided merged cell is fully selected (by one or many layers of selection).
    *
    * @param {MergedCellCoords} mergedCell The merged cell to be processed.
    * @param {CellRange[]} selectionRangesArray Array of selection ranges.

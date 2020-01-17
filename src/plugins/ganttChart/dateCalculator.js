@@ -234,7 +234,7 @@ class DateCalculator {
    *
    * @param {number} column Column index.
    * @param {number} [year] Year to be used.
-   * @returns {object} Object in a form of {start: startDate, end: endDate}
+   * @returns {object} Object in a form of {start: startDate, end: endDate}.
    */
   columnToDate(column, year = this.getYear()) {
     let month = null;
@@ -318,10 +318,10 @@ class DateCalculator {
    * Generate headers for the year structure.
    *
    * @private
-   * @param {string} type Granulation type ('months'/'weeks'/'days')
+   * @param {string} type Granulation type ('months'/'weeks'/'days').
    * @param {Function|null} weekHeaderGenerator Function generating the looks of the week headers.
    * @param {number} [year=this.year] The year for the calculation.
-   * @returns {Array} The header array
+   * @returns {Array} The header array.
    */
   generateHeaderSet(type, weekHeaderGenerator, year = this.year) {
     const monthList = this.getMonthList(year);

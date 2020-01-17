@@ -9,7 +9,7 @@ import Endpoints from './endpoints';
  * @description
  * Allows making pre-defined calculations on the cell values and display the results within Handsontable.
  * [See the demo for more information](https://handsontable.com/docs/demo-summary-calculations.html).
- *s
+ *
  * @example
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
@@ -132,7 +132,7 @@ class ColumnSummary extends BasePlugin {
    *
    * @private
    * @param {object} endpoint Contains the endpoint information.
-   * @returns {number} Sum for the selected range
+   * @returns {number} Sum for the selected range.
    */
   calculateSum(endpoint) {
     let sum = 0;
@@ -145,7 +145,7 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Returns partial sum of values from a single row range
+   * Returns partial sum of values from a single row range.
    *
    * @private
    * @param {Array} rowRange Range for the sum.
@@ -174,7 +174,7 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Calculates the minimal value for the selected ranges
+   * Calculates the minimal value for the selected ranges.
    *
    * @private
    * @param {object} endpoint Contains the endpoint information.
@@ -209,12 +209,12 @@ class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * Returns a local minimum of the provided sub-range
+   * Returns a local minimum of the provided sub-range.
    *
    * @private
    * @param {Array} rowRange Range for the calculation.
    * @param {number} col Column index.
-   * @param {string} type `'min'` or `'max'`
+   * @param {string} type `'min'` or `'max'`.
    * @returns {number} Min or max value.
    */
   getPartialMinMax(rowRange, col, type) {

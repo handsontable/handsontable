@@ -127,7 +127,7 @@ class Autofill extends BasePlugin {
    * Prepares copyable ranges from the cells selection.
    *
    * @private
-   * @returns {object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {object[]} Ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    */
   getCopyableRanges() {
     const selRange = this.hot.getSelectedRangeLast();
@@ -152,7 +152,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Gets selection data
+   * Gets selection data.
    *
    * @private
    * @returns {Array} Array with the data.
@@ -193,7 +193,7 @@ class Autofill extends BasePlugin {
    * Try to apply fill values to the area in fill border, omitting the selection border.
    *
    * @private
-   * @returns {boolean} reports if fill was applied.
+   * @returns {boolean} Reports if fill was applied.
    *
    * @fires Hooks#modifyAutofillRange
    * @fires Hooks#beforeAutofill
@@ -273,7 +273,7 @@ class Autofill extends BasePlugin {
    * Reduces the selection area if the handle was dragged outside of the table or on headers.
    *
    * @private
-   * @param {CellCoords} coords indexes of selection corners.
+   * @param {CellCoords} coords Indexes of selection corners.
    * @returns {CellCoords}
    */
   reduceSelectionAreaIfNeeded(coords) {
@@ -329,7 +329,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Add new row
+   * Add new row.
    *
    * @private
    */
@@ -376,12 +376,12 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get index of last adjacent filled in row
+   * Get index of last adjacent filled in row.
    *
    * @private
-   * @param {Array} cornersOfSelectedCells indexes of selection corners.
-   * @returns {number} gives number greater than or equal to zero when selection adjacent can be applied.
-   * or -1 when selection adjacent can't be applied
+   * @param {Array} cornersOfSelectedCells Indexes of selection corners.
+   * @returns {number} Gives number greater than or equal to zero when selection adjacent can be applied.
+   *                   Or -1 when selection adjacent can't be applied.
    */
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
@@ -412,7 +412,7 @@ class Autofill extends BasePlugin {
    * Adds a selection from the start area to the specific row index.
    *
    * @private
-   * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection.
+   * @param {Array} selectStartArea Selection area from which we start to create more comprehensive selection.
    * @param {number} rowIndex The row index into the selection will be added.
    */
   addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {

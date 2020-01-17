@@ -354,7 +354,7 @@ class NestedRows extends BasePlugin {
    * @private
    * @param {MouseEvent} event Mousedown event.
    * @param {object} coords Cell coords.
-   * @param {HTMLElement} TD clicked cell.
+   * @param {HTMLElement} TD Clicked cell.
    */
   onBeforeOnCellMouseDown(event, coords, TD) {
     this.collapsingUI.toggleState(event, coords, TD);
@@ -437,7 +437,7 @@ class NestedRows extends BasePlugin {
    *
    * @private
    * @param {number} row Row index.
-   * @param {HTMLElement} TH row header element.
+   * @param {HTMLElement} TH Row header element.
    */
   onAfterGetRowHeader(row, TH) {
     this.headersUI.appendLevelIndicators(row, TH);

@@ -700,7 +700,7 @@ class ColumnSorting extends BasePlugin {
    * Callback for the `afterLoadData` hook.
    *
    * @private
-   * @param {boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
   onAfterLoadData(initialLoad) {
     if (initialLoad === true) {

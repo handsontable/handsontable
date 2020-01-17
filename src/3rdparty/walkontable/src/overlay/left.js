@@ -28,7 +28,7 @@ class LeftOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {Table}
    */
   createTable(...args) {
@@ -235,7 +235,7 @@ class LeftOverlay extends Overlay {
    * Scrolls horizontally to a column at the left edge of the viewport.
    *
    * @param {number} sourceCol  Column index which you want to scroll to.
-   * @param {boolean} [beyondRendered]  if `true`, scrolls according to the bottom edge (top edge is by default).
+   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the bottom edge (top edge is by default).
    * @returns {boolean}
    */
   scrollTo(sourceCol, beyondRendered) {

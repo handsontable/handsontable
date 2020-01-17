@@ -1,5 +1,5 @@
 /**
- * Utility to register editors and common namespace for keeping reference to all editor classes
+ * Utility to register editors and common namespace for keeping reference to all editor classes.
  */
 import staticRegister from './../utils/staticRegister';
 import Hooks from './../pluginHooks';

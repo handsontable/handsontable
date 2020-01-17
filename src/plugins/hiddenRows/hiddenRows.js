@@ -25,7 +25,7 @@ Hooks.getSingleton().register('afterUnhideRows');
  * Possible plugin settings:
  *  * `copyPasteEnabled` as `Boolean` (default `true`)
  *  * `rows` as `Array`
- *  * `indicators` as `Boolean` (default `false`)
+ *  * `indicators` as `Boolean` (default `false`).
  *
  * @example
  *
@@ -241,7 +241,7 @@ class HiddenRows extends BasePlugin {
    * Checks if given row is hidden.
    *
    * @param {number} row Row index.
-   * @param {boolean} isPhysicalIndex flag which determines type of index.
+   * @param {boolean} isPhysicalIndex Flag which determines type of index.
    * @returns {boolean}
    */
   isHidden(row, isPhysicalIndex = false) {
@@ -554,7 +554,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Recalculates index of hidden rows after add row action
+   * Recalculates index of hidden rows after add row action.
    *
    * @private
    * @param {number} index Represents the visual index of first newly created row in the data source array.
@@ -575,7 +575,7 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Recalculates index of hidden rows after remove row action
+   * Recalculates index of hidden rows after remove row action.
    *
    * @private
    * @param {number} index Represents the visual index from which rows are removed.

@@ -54,8 +54,8 @@ class GanttChartDataFeed {
    * @param {object} instance The source Handsontable instance.
    * @param {number} startDateColumn Index of the column containing the start dates.
    * @param {number} endDateColumn Index of the column containing the end dates.
-   * @param {object} additionalData Object containing column and label information about additional data passed to the
-   * Gantt Plugin. See the example for more details.
+   * @param {object} additionalData Object containing column and label information about additional data
+   *                 passed to the Gantt Plugin. See the example for more details.
    * @param {boolean} asyncUpdates If set to true, the source instance updates will be applied asynchronously.
    *
    * @example
@@ -250,7 +250,7 @@ class GanttChartDataFeed {
    * Split the provided range into maximum-year-long chunks.
    *
    * @param {object} bar The range bar object.
-   * @returns {Array} An array of slip chunks (or a single-element array, if no splicing occured)
+   * @returns {Array} An array of slip chunks (or a single-element array, if no splicing occured).
    */
   splitRangeIfNeeded(bar) {
     const splitBars = [];
@@ -286,7 +286,7 @@ class GanttChartDataFeed {
   }
 
   /**
-   * afterChange hook callback for the source Handsontable instance.
+   * AfterChange hook callback for the source Handsontable instance.
    *
    * @private
    * @param {Array} changes List of changes.
@@ -324,7 +324,7 @@ class GanttChartDataFeed {
   }
 
   /**
-   * afterLoadData hook callback for the source Handsontable instance.
+   * AfterLoadData hook callback for the source Handsontable instance.
    *
    * @private
    */
@@ -336,7 +336,7 @@ class GanttChartDataFeed {
   }
 
   /**
-   * afterColumnSort hook callback for the source Handsontable instance.
+   * AfterColumnSort hook callback for the source Handsontable instance.
    *
    * @private
    */

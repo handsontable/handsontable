@@ -94,7 +94,7 @@ class Filters extends BasePlugin {
      */
     this.lastSelectedColumn = null;
     /**
-     * Hidden menu rows indexed by physical column index
+     * Hidden menu rows indexed by physical column index.
      *
      * @private
      * @type {Map}
@@ -226,6 +226,7 @@ class Filters extends BasePlugin {
     super.disablePlugin();
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @description
    * Adds condition to the conditions collection at specified column index.
@@ -246,7 +247,7 @@ class Filters extends BasePlugin {
    *  * `not_between` - Not between
    *  * `not_contains` - Not contains
    *  * `not_empty` - Not empty
-   *  * `neq` - Not equal
+   *  * `neq` - Not equal.
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
@@ -290,8 +291,9 @@ class Filters extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
    * @param {Array} args Condition arguments.
-   * @param {string} operationId `id` of operation which is performed on the column
+   * @param {string} operationId `id` of operation which is performed on the column.
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column, name, args, operationId = OPERATION_AND) {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
@@ -381,7 +383,7 @@ class Filters extends BasePlugin {
    * Gets last selected column index.
    *
    * @returns {object|null} Return `null` when column isn't selected otherwise
-   * object containing information about selected column with keys `visualIndex` and `physicalIndex`
+   * object containing information about selected column with keys `visualIndex` and `physicalIndex`.
    */
   getSelectedColumn() {
     return this.lastSelectedColumn;
@@ -442,10 +444,10 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Update condition of ValueComponent basing on handled changes
+   * Update condition of ValueComponent basing on handled changes.
    *
    * @private
-   * @param {number} columnIndex Column index of handled ValueComponent condition
+   * @param {number} columnIndex Column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex) {
     const dataAtCol = this.hot.getDataAtCol(columnIndex);
@@ -526,12 +528,12 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Get operation basing on number and type of arguments (where arguments are states of components)
+   * Get operation basing on number and type of arguments (where arguments are states of components).
    *
-   * @param {string} suggestedOperation operation which was chosen by user from UI
-   * @param {object} byConditionState1 state of first condition component
-   * @param {object} byConditionState2 state of second condition component
-   * @param {object} byValueState state of value component
+   * @param {string} suggestedOperation Operation which was chosen by user from UI.
+   * @param {object} byConditionState1 State of first condition component.
+   * @param {object} byConditionState2 State of second condition component.
+   * @param {object} byValueState State of value component.
    * @private
    * @returns {string}
    */
@@ -604,7 +606,7 @@ class Filters extends BasePlugin {
    * On component change listener.
    *
    * @private
-   * @param {BaseComponent} component Component inheriting BaseComponent
+   * @param {BaseComponent} component Component inheriting BaseComponent.
    * @param {object} command Menu item object (command).
    */
   onComponentChange(component, command) {
@@ -633,7 +635,7 @@ class Filters extends BasePlugin {
 
   /**
    * Listen to the keyboard input on document body and forward events to instance of Handsontable
-   * created by DropdownMenu plugin
+   * created by DropdownMenu plugin.
    *
    * @private
    */
@@ -745,7 +747,7 @@ class Filters extends BasePlugin {
    *
    * @private
    * @param {number} column Physical column index.
-   * @param {Array} indexes Physical indexes of rows which will be removed from `hiddenRows` cache
+   * @param {Array} indexes Physical indexes of rows which will be removed from `hiddenRows` cache.
    */
   removeIndexesFromHiddenRowsCache(column, indexes) {
     const hiddenRowsForColumn = this.hiddenRowsCache.get(column);

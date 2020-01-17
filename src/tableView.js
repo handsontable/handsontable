@@ -23,18 +23,18 @@ const privatePool = new WeakMap();
  */
 class TableView {
   /**
-   * @param {Hanstontable} instance Instance of {@link Handsontable}
+   * @param {Hanstontable} instance Instance of {@link Handsontable}.
    */
   constructor(instance) {
     /**
-     * Instance of {@link Handsontable}
+     * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
      */
     this.instance = instance;
     /**
-     * Instance of {@link EventManager}
+     * Instance of {@link EventManager}.
      *
      * @private
      * @type {EventManager}
@@ -122,7 +122,7 @@ class TableView {
   }
 
   /**
-   * Returns td object given coordinates
+   * Returns td object given coordinates.
    *
    * @param {CellCoords} coords The cell coordinates.
    * @param {boolean} topmost Indicates whether the cell should be calculated from the topmost.
@@ -701,7 +701,7 @@ class TableView {
   }
 
   /**
-   * Append row header to a TH element
+   * Append row header to a TH element.
    *
    * @private
    * @param {number} row The visual row index.
@@ -737,7 +737,7 @@ class TableView {
   }
 
   /**
-   * Append column header to a TH element
+   * Append column header to a TH element.
    *
    * @private
    * @param {number} col The visual column index.
@@ -774,9 +774,9 @@ class TableView {
    * Updates header cell content.
    *
    * @since 0.15.0-beta4
-   * @param {HTMLElement} element Element to update
-   * @param {number} index Row index or column index
-   * @param {Function} content Function which should be returns content for this cell
+   * @param {HTMLElement} element Element to update.
+   * @param {number} index Row index or column index.
+   * @param {Function} content Function which should be returns content for this cell.
    */
   updateCellHeader(element, index, content) {
     let renderedIndex = index;
@@ -804,7 +804,7 @@ class TableView {
 
   /**
    * Given a element's left position relative to the viewport, returns maximum element width until the right
-   * edge of the viewport (before scrollbar)
+   * edge of the viewport (before scrollbar).
    *
    * @private
    * @param {number} leftOffset The left offset.
@@ -819,7 +819,7 @@ class TableView {
 
   /**
    * Given a element's top position relative to the viewport, returns maximum element height until the bottom
-   * edge of the viewport (before scrollbar)
+   * edge of the viewport (before scrollbar).
    *
    * @private
    * @param {number} topOffset The top offset.

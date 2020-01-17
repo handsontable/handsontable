@@ -78,7 +78,7 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Check if plugin is enabled
+   * Check if plugin is enabled.
    *
    * @returns {boolean}
    */

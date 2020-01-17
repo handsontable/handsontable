@@ -12,7 +12,7 @@ const MIXIN_NAME = 'calculatedRows';
  */
 const calculatedRows = {
   /**
-   * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1
+   * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
    */
@@ -26,7 +26,7 @@ const calculatedRows = {
   },
 
   /**
-   * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1
+   * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1.
    *
    * @returns {number}
    */
@@ -40,7 +40,7 @@ const calculatedRows = {
   },
 
   /**
-   * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1
+   * Get the source index of the last rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
    */
@@ -54,7 +54,7 @@ const calculatedRows = {
   },
 
   /**
-   * Get the source index of the last row fully visible in the viewport. If no rows are fully visible, returns an error code: -1
+   * Get the source index of the last row fully visible in the viewport. If no rows are fully visible, returns an error code: -1.
    *
    * @returns {number}
    */
@@ -68,7 +68,7 @@ const calculatedRows = {
   },
 
   /**
-   * Get the number of rendered rows
+   * Get the number of rendered rows.
    *
    * @returns {number}
    */
@@ -77,7 +77,7 @@ const calculatedRows = {
   },
 
   /**
-   * Get the number of fully visible rows in the viewport
+   * Get the number of fully visible rows in the viewport.
    *
    * @returns {number}
    */

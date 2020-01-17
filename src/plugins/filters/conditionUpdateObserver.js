@@ -85,7 +85,7 @@ class ConditionUpdateObserver {
   }
 
   /**
-   * On before modify condition (add or remove from collection),
+   * On before modify condition (add or remove from collection),.
    *
    * @param {number} column Column index.
    * @private

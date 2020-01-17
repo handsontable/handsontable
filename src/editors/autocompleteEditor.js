@@ -448,7 +448,7 @@ class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
    * @private
    * @param {KeyboardEvent} event The keyboard event object.
@@ -488,7 +488,7 @@ class AutocompleteEditor extends HandsontableEditor {
  * @param {*} value The selected value.
  * @param {string[]} choices The list of available choices.
  * @param {boolean} caseSensitive Indicates if it's sorted by case.
- * @returns {number[]} array of indexes in original choices array
+ * @returns {number[]} Array of indexes in original choices array.
  */
 AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   const choicesRelevance = [];

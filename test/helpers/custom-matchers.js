@@ -240,6 +240,7 @@ beforeEach(function() {
         }
       };
     },
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
      * the appropriate CSS class name was added.
@@ -287,6 +288,7 @@ beforeEach(function() {
      *
      * @returns {object}
      */
+    /* eslint-enable jsdoc/require-description-complete-sentence */
     toBeMatchToSelectionPattern() {
       return {
         compare(actualPattern) {

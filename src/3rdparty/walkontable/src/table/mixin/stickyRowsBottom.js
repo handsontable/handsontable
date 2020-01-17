@@ -12,7 +12,7 @@ const MIXIN_NAME = 'stickyRowsBottom';
  */
 const stickyRowsBottom = {
   /**
-   * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1
+   * Get the source index of the first rendered row. If no rows are rendered, returns an error code: -1.
    *
    * @returns {number}
    */
@@ -28,7 +28,7 @@ const stickyRowsBottom = {
   },
 
   /**
-   * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1
+   * Get the source index of the first row fully visible in the viewport. If no rows are fully visible, returns an error code: -1.
    * Assumes that all rendered rows are fully visible.
    *
    * @returns {number}

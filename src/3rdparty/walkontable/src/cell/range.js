@@ -75,7 +75,7 @@ class CellRange {
   }
 
   /**
-   * Checks if this cell range is restricted to one cell
+   * Checks if this cell range is restricted to one cell.
    *
    * @returns {boolean}
    */
@@ -170,7 +170,7 @@ class CellRange {
   }
 
   /**
-   * Returns `true` if the provided range is overlapping the current range horizontally (e.g. the current range's last
+   * Returns `true` if the provided range is overlapping the current range horizontally (e.g. The current range's last
    * column is 5 and the provided range's first column is 3).
    *
    * @param {CellRange} cellRange The cells range to check.
@@ -182,7 +182,7 @@ class CellRange {
   }
 
   /**
-   * Returns `true` if the provided range is overlapping the current range vertically (e.g. the current range's last
+   * Returns `true` if the provided range is overlapping the current range vertically (e.g. The current range's last
    *  row is 5 and the provided range's first row is 3).
    *
    * @param {CellRange} cellRange The cells range to check.
@@ -504,7 +504,7 @@ class CellRange {
   }
 
   /**
-   * Get inner selected cell coords defined by this range
+   * Get inner selected cell coords defined by this range.
    *
    * @returns {Array}
    */
@@ -524,7 +524,7 @@ class CellRange {
   }
 
   /**
-   * Get all selected cell coords defined by this range
+   * Get all selected cell coords defined by this range.
    *
    * @returns {Array}
    */
@@ -552,7 +552,7 @@ class CellRange {
 
   /**
    * Runs a callback function against all cells in the range. You can break the iteration by returning
-   * `false` in the callback function
+   * `false` in the callback function.
    *
    * @param {Function} callback The callback function.
    */

@@ -165,7 +165,7 @@ class GhostTable {
   /**
    * Set the Ghost Table settings to the provided object.
    *
-   * @param {object} settings New Ghost Table Settings
+   * @param {object} settings New Ghost Table Settings.
    */
   setSettings(settings) {
     this.settings = settings;

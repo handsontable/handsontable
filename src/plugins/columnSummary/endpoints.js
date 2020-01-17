@@ -214,7 +214,7 @@ class Endpoints {
   }
 
   /**
-   * afterCreateRow/afterCreateRow/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
+   * AfterCreateRow/afterCreateRow/afterRemoveRow/afterRemoveCol hook callback. Reset and reenables the summary functionality
    * after changing the table structure.
    *
    * @private

@@ -9,24 +9,24 @@ import CellMeta from './metaLayers/cellMeta';
  * be passed as physical values.
  *
  * The diagram of the meta layers:
- * +-------------+
+ * +-------------+.
  * │ GlobalMeta  │
  * │ (prototype) │
  * +-------------+\
  *       │         \
  *       │          \
  *      \│/         _\|
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  * │ TableMeta   │    │ ColumnMeta  │
  * │ (instance)  │    │ (prototype) │
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  *                         │
  *                         │
  *                        \│/
- *                    +-------------+
+ *                    +-------------+.
  *                    │  CellMeta   │
  *                    │ (instance)  │
- *                    +-------------+
+ *                    +-------------+.
  *
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
  *
@@ -118,8 +118,8 @@ export default class MetaManager {
   }
 
   /**
-   * Gets the cell meta object that is a root of all settings defined for the specific cell rendered by the
-   * Handsontable. Each cell meta inherits settings from higher layers. When a property doesn't
+   * Gets the cell meta object that is a root of all settings defined for the specific cell rendered by
+   * the Handsontable. Each cell meta inherits settings from higher layers. When a property doesn't
    * exist in that layer, it is looked up through a prototype to the highest layer. Starting
    * from CellMeta -> ColumnMeta and ending to GlobalMeta, which stores default settings. Adding,
    * removing, or changing property in that object has no direct reflection on any other layers.

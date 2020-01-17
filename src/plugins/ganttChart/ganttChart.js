@@ -323,7 +323,7 @@ class GanttChart extends BasePlugin {
    * Loads chart data to the Handsontable instance.
    *
    * @private
-   * @param {Array|object} data Array of objects containing the range data OR another Handsontable instance, to be used as the data feed
+   * @param {Array|object} data Array of objects containing the range data OR another Handsontable instance, to be used as the data feed.
    * @param {number} [startDateColumn] Index of the start date column (Needed only if the data argument is a HOT instance).
    * @param {number} [endDateColumn] Index of the end date column (Needed only if the data argument is a HOT instance).
    * @param {object} [additionalData] Object containing additional data labels and their corresponding column indexes (Needed only if the data argument is a HOT instance).

@@ -361,7 +361,7 @@ class DataManager {
   }
 
   /**
-   * Add a child to the provided parent. It's optional to add a row object as the "element"
+   * Add a child to the provided parent. It's optional to add a row object as the "element".
    *
    * @param {object} parent The parent row object.
    * @param {object} [element] The element to add as a child.
@@ -637,7 +637,7 @@ class DataManager {
   }
 
   /**
-   * Move the cell meta
+   * Move the cell meta.
    *
    * @private
    * @param {number} fromIndex Index of the starting row.

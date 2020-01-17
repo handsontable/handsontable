@@ -390,7 +390,7 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Set borders for each cell re. to border position.
+   * Set borders for each cell re. To border position.
    *
    * @private
    * @param {number} row Visual row index.

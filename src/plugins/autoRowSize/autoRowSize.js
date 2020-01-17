@@ -30,14 +30,14 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
  * ```js
  * // as a number (300 columns in sync, rest async)
- * autoRowSize: {syncLimit: 300},
+ * autoRowSize: {syncLimit: 300},.
  *
  * // as a string (percent)
- * autoRowSize: {syncLimit: '40%'},
+ * autoRowSize: {syncLimit: '40%'},.
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
- * ```
+ * ```.
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.

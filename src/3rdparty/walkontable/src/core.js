@@ -66,11 +66,11 @@ class Walkontable {
   }
 
   /**
-   * Force rerender of Walkontable
+   * Force rerender of Walkontable.
    *
    * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
-   *                                   rendering anyway
+   *                                   rendering anyway.
    * @returns {Walkontable}
    */
   draw(fastDraw = false) {
@@ -199,7 +199,7 @@ class Walkontable {
   }
 
   /**
-   * Get overlay name
+   * Get overlay name.
    *
    * @returns {string}
    */
@@ -229,7 +229,7 @@ class Walkontable {
   }
 
   /**
-   * Get/Set Walkontable instance setting
+   * Get/Set Walkontable instance setting.
    *
    * @param {string} key The settings key to retrieve.
    * @param {*} [param1] Additional parameter passed to the options defined as function.
@@ -244,7 +244,7 @@ class Walkontable {
   }
 
   /**
-   * Checks if setting exists
+   * Checks if setting exists.
    *
    * @param {string} key The settings key to check.
    * @returns {boolean}
@@ -254,7 +254,7 @@ class Walkontable {
   }
 
   /**
-   * Destroy instance
+   * Destroy instance.
    */
   destroy() {
     this.wtOverlays.destroy();

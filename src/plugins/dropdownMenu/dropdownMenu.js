@@ -27,6 +27,7 @@ Hooks.getSingleton().register('afterDropdownMenuExecute');
 
 const BUTTON_CLASS_NAME = 'changeType';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin DropdownMenu
  *
@@ -35,7 +36,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * among [other features](https://handsontable.com/docs/demo-context-menu.html).
  * Possible values:
  * * `true` (to enable default options),
- * * `false` (to disable completely)
+ * * `false` (to disable completely).
  *
  * or array of any available strings:
  * * `["row_above", "row_below", "col_left", "col_right",
@@ -62,6 +63,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * });
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class DropdownMenu extends BasePlugin {
   /**
    * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
@@ -262,7 +264,7 @@ class DropdownMenu extends BasePlugin {
    *  * `'alignment:right'` - Alignment to the right
    *  * `'alignment:bottom'` - Alignment to the bottom
    *  * `'alignment:middle'` - Alignment to the middle
-   *  * `'alignment:center'` - Alignment to the center (justify)
+   *  * `'alignment:center'` - Alignment to the center (justify).
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
@@ -274,7 +276,7 @@ class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Turns on / off listening on dropdown menu
+   * Turns on / off listening on dropdown menu.
    *
    * @private
    * @param {boolean} listen Turn on listening when value is set to true, otherwise turn it off.

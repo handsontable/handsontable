@@ -5,7 +5,7 @@ import { isNumeric } from './../helpers/number';
  *
  * @private
  * @param {*} value Value of edited cell.
- * @param {Function} callback Callback called with validation result
+ * @param {Function} callback Callback called with validation result.
  */
 export default function numericValidator(value, callback) {
   let valueToValidate = value;

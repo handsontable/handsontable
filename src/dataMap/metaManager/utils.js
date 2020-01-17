@@ -7,7 +7,7 @@ import { getCellType } from '../../cellTypes';
  * If "type" is passed as an object that object will be returned, excluding properties that
  * already exist in the "metaObject" if passed.
  *
- * @param {object|string} type Type to expand;
+ * @param {object|string} type Type to expand;.
  * @param {object|undefined} [metaObject] Source meta object.
  * @returns {object|undefined}
  */

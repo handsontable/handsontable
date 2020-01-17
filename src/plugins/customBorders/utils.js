@@ -17,7 +17,7 @@ export function createId(row, col) {
 /**
  * Create default single border for each position (top/right/bottom/left).
  *
- * @returns {object} `{{width: number, color: string}}`
+ * @returns {object} `{{width: number, color: string}}`.
  */
 export function createDefaultCustomBorder() {
   return {
@@ -29,7 +29,7 @@ export function createDefaultCustomBorder() {
 /**
  * Create default object for empty border.
  *
- * @returns {object} `{{hide: boolean}}`
+ * @returns {object} `{{hide: boolean}}`.
  */
 export function createSingleEmptyBorder() {
   return { hide: true };
@@ -38,7 +38,7 @@ export function createSingleEmptyBorder() {
 /**
  * Create default Handsontable border object.
  *
- * @returns {object} `{{width: number, color: string, cornerVisible: boolean}}`
+ * @returns {object} `{{width: number, color: string, cornerVisible: boolean}}`.
  */
 export function createDefaultHtBorder() {
   return {
@@ -53,7 +53,7 @@ export function createDefaultHtBorder() {
  *
  * @param {number} row Visual row index.
  * @param {number} col Visual column index.
- * @returns {object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
+ * @returns {object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
 export function createEmptyBorders(row, col) {
   return {

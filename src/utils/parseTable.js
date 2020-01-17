@@ -23,7 +23,7 @@ function isHTMLTable(element) {
  * Converts Handsontable into HTMLTableElement.
  *
  * @param {Core} instance The Handsontable instance.
- * @returns {string} outerHTML of the HTMLTableElement
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 export function instanceToHTML(instance) {
   const hasColumnHeaders = instance.hasColHeaders();
@@ -104,8 +104,8 @@ export function instanceToHTML(instance) {
 /**
  * Converts 2D array into HTMLTableElement.
  *
- * @param {Array} input Input array which will be converted to HTMLTable
- * @returns {string} outerHTML of the HTMLTableElement
+ * @param {Array} input Input array which will be converted to HTMLTable.
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 // eslint-disable-next-line no-restricted-globals
 export function _dataToHTML(input) {

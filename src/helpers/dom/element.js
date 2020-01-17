@@ -70,8 +70,8 @@ export function hasAccessToParentWindow(frame) {
  * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
  * This method goes up through web components.
  *
- * @param {HTMLElement} element Element from which traversing is started
- * @param {Array} nodes Array of elements or Array of elements name
+ * @param {HTMLElement} element Element from which traversing is started.
+ * @param {Array} nodes Array of elements or Array of elements name.
  * @param {HTMLElement} [until] The element until the traversing ends.
  * @returns {HTMLElement|null}
  */
@@ -96,8 +96,8 @@ export function closest(element, nodes, until) {
 /**
  * Goes "down" the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
  *
- * @param {HTMLElement} element Element from which traversing is started
- * @param {Array} nodes Array of elements or Array of elements name
+ * @param {HTMLElement} element Element from which traversing is started.
+ * @param {Array} nodes Array of elements or Array of elements name.
  * @param {HTMLElement} [until] The list of elements until the traversing ends.
  * @returns {HTMLElement|null}
  */
@@ -158,9 +158,9 @@ export function isChildOf(child, parent) {
 }
 
 /**
- * Counts index of element within its parent
- * WARNING: for performance reasons, assumes there are only element nodes (no text nodes). This is true for Walkotnable
- * Otherwise would need to check for nodeType or use previousElementSibling
+ * Counts index of element within its parent.
+ * WARNING: for performance reasons, assumes there are only element nodes (no text nodes). This is true
+ * for Walkotnable, otherwise would need to check for nodeType or use previousElementSibling.
  *
  * @see http://jsperf.com/sibling-index/10
  * @param {Element} element The element to check.
@@ -181,7 +181,7 @@ export function index(element) {
 }
 
 /**
- * Check if the provided overlay contains the provided element
+ * Check if the provided overlay contains the provided element.
  *
  * @param {string} overlayType The type of the overlay.
  * @param {HTMLElement} element An element to check.
@@ -347,7 +347,7 @@ export function hasClass(element, className) {
 }
 
 /**
- * Add class name to an element
+ * Add class name to an element.
  *
  * @param {HTMLElement} element An element to process.
  * @param {string|Array} className Class name as string or array of strings.
@@ -357,10 +357,10 @@ export function addClass(element, className) {
 }
 
 /**
- * Remove class name from an element
+ * Remove class name from an element.
  *
  * @param {HTMLElement} element An element to process.
- * @param {string|Array} className Class name as string or array of strings
+ * @param {string|Array} className Class name as string or array of strings.
  */
 export function removeClass(element, className) {
   _removeClass(element, className);
@@ -385,7 +385,7 @@ export function removeTextNodes(element) {
  * Remove childs function
  * WARNING - this doesn't unload events and data attached by jQuery
  * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/9
- * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method
+ * http://jsperf.com/jquery-html-vs-empty-vs-innerhtml/11 - no siginificant improvement with Chrome remove() method.
  *
  * @param {HTMLElement} element An element to clear.
  */
@@ -414,7 +414,7 @@ export function fastInnerHTML(element, content) {
 }
 
 /**
- * Insert text content into element
+ * Insert text content into element.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
@@ -440,7 +440,7 @@ export function fastInnerText(element, content) {
 }
 
 /**
- * Returns true if element is attached to the DOM and visible, false otherwise
+ * Returns true if element is attached to the DOM and visible, false otherwise.
  *
  * @param {HTMLElement} element An element to check.
  * @returns {boolean}
@@ -484,7 +484,7 @@ export function isVisible(element) {
  * Returns elements top and left offset relative to the document. Function is not compatible with jQuery offset.
  *
  * @param {HTMLElement} element An element to get the offset position from.
- * @returns {object} Returns object with `top` and `left` props
+ * @returns {object} Returns object with `top` and `left` props.
  */
 export function offset(element) {
   const rootDocument = element.ownerDocument;
@@ -604,7 +604,7 @@ export function getScrollLeft(element, rootWindow = window) {
  * Returns a DOM element responsible for scrolling of the provided element.
  *
  * @param {HTMLElement} element An element to get the scrollable element from.
- * @returns {HTMLElement} Element's scrollable parent
+ * @returns {HTMLElement} Element's scrollable parent.
  */
 export function getScrollableElement(element) {
   let rootDocument = element.ownerDocument;
@@ -650,8 +650,8 @@ export function getScrollableElement(element) {
 /**
  * Returns a DOM element responsible for trimming the provided element.
  *
- * @param {HTMLElement} base Base element
- * @returns {HTMLElement} Base element's trimming parent
+ * @param {HTMLElement} base Base element.
+ * @returns {HTMLElement} Base element's trimming parent.
  */
 export function getTrimmingContainer(base) {
   const rootDocument = base.ownerDocument;
@@ -684,9 +684,9 @@ export function getTrimmingContainer(base) {
  * Returns a style property for the provided element. (Be it an inline or external style).
  *
  * @param {HTMLElement} element An element to get the style from.
- * @param {string} prop Wanted property
+ * @param {string} prop Wanted property.
  * @param {Window} [rootWindow] The document window owner.
- * @returns {string|undefined} Element's style property
+ * @returns {string|undefined} Element's style property.
  */
 // eslint-disable-next-line no-restricted-globals
 export function getStyle(element, prop, rootWindow = window) {
@@ -745,7 +745,7 @@ export function matchesCSSRules(element, rule) {
  *
  * @param {HTMLElement} element An element to get style from.
  * @param {Window} [rootWindow] The document window owner.
- * @returns {IEElementStyle|CssStyle} Elements computed style object
+ * @returns {IEElementStyle|CssStyle} Elements computed style object.
  */
 // eslint-disable-next-line no-restricted-globals
 export function getComputedStyle(element, rootWindow = window) {
@@ -756,17 +756,17 @@ export function getComputedStyle(element, rootWindow = window) {
  * Returns the element's outer width.
  *
  * @param {HTMLElement} element An element to get the width from.
- * @returns {number} Element's outer width
+ * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
   return element.offsetWidth;
 }
 
 /**
- * Returns the element's outer height
+ * Returns the element's outer height.
  *
  * @param {HTMLElement} element An element to get the height from.
- * @returns {number} Element's outer height
+ * @returns {number} Element's outer height.
  */
 export function outerHeight(element) {
   if (hasCaptionProblem() && element.firstChild && element.firstChild.nodeName === 'CAPTION') {
@@ -787,7 +787,7 @@ export function outerHeight(element) {
  * Returns the element's inner height.
  *
  * @param {HTMLElement} element An element to get the height from.
- * @returns {number} Element's inner height
+ * @returns {number} Element's inner height.
  */
 export function innerHeight(element) {
   return element.clientHeight || element.innerHeight;
@@ -797,7 +797,7 @@ export function innerHeight(element) {
  * Returns the element's inner width.
  *
  * @param {HTMLElement} element An element to get the width from.
- * @returns {number} Element's inner width
+ * @returns {number} Element's inner width.
  */
 export function innerWidth(element) {
   return element.clientWidth || element.innerWidth;
@@ -822,7 +822,7 @@ export function removeEvent(element, event, callback) {
 }
 
 /**
- * Returns caret position in text input
+ * Returns caret position in text input.
  *
  * @author https://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
  * @param {HTMLElement} el An element to check.
@@ -855,7 +855,7 @@ export function getCaretPosition(el) {
 }
 
 /**
- * Returns end of the selection in text input
+ * Returns end of the selection in text input.
  *
  * @param {HTMLElement} el An element to check.
  * @returns {number}
@@ -952,7 +952,7 @@ let cachedScrollbarWidth;
 
 /**
  * Helper to calculate scrollbar width.
- * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
+ * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes.
  *
  * @private
  * @param {Document} rootDocument The onwer of the document.
@@ -992,7 +992,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
  * Returns the computed width of the native browser scroll bar.
  *
  * @param {Document} [rootDocument] The owner of the document.
- * @returns {number} width
+ * @returns {number} Width.
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarWidth(rootDocument = document) {
@@ -1024,7 +1024,7 @@ export function hasHorizontalScrollbar(element) {
 }
 
 /**
- * Sets overlay position depending on it's type and used browser
+ * Sets overlay position depending on it's type and used browser.
  *
  * @param {HTMLElement} overlayElem An element to process.
  * @param {number} left The left position of the overlay.
@@ -1073,9 +1073,9 @@ export function resetCssTransform(element) {
 
 /**
  * Determines if the given DOM element is an input field.
- * Notice: By 'input' we mean input, textarea and select nodes
+ * Notice: By 'input' we mean input, textarea and select nodes.
  *
- * @param {HTMLElement} element - DOM element
+ * @param {HTMLElement} element - DOM element.
  * @returns {boolean}
  */
 export function isInput(element) {
@@ -1086,9 +1086,9 @@ export function isInput(element) {
 
 /**
  * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
- * Notice: By 'input' we mean input, textarea and select nodes
+ * Notice: By 'input' we mean input, textarea and select nodes.
  *
- * @param {HTMLElement} element - DOM element
+ * @param {HTMLElement} element - DOM element.
  * @returns {boolean}
  */
 export function isOutsideInput(element) {
@@ -1098,7 +1098,7 @@ export function isOutsideInput(element) {
 /**
  * Check if the given DOM element can be focused (by using "select" method).
  *
- * @param {HTMLElement} element - DOM element
+ * @param {HTMLElement} element - DOM element.
  */
 export function selectElementIfAllowed(element) {
   const activeElement = element.ownerDocument.activeElement;

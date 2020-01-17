@@ -18,7 +18,7 @@ const localHooks = {
    * Add hook to the collection.
    *
    * @param {string} key The hook name.
-   * @param {Function} callback The hook callback
+   * @param {Function} callback The hook callback.
    * @returns {object}
    */
   addLocalHook(key, callback) {

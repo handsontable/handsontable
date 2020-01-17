@@ -99,7 +99,7 @@ class CollapsingUI extends BaseUI {
   /**
    * Collapse multiple children.
    *
-   * @param {Array} rows Rows to collapse (including their children)
+   * @param {Array} rows Rows to collapse (including their children).
    * @param {boolean} [forceRender=true] `true` if the table should be rendered after finishing the function.
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    */
@@ -135,7 +135,7 @@ class CollapsingUI extends BaseUI {
    * @param {Array} rowIndexes Array of row indexes to collapse.
    * @param {boolean} [recursive=true] `true` if it should collapse the rows' children.
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
-   * @returns {Array} Rows prepared for trimming (or trimmed, if doTrimming == true)
+   * @returns {Array} Rows prepared for trimming (or trimmed, if doTrimming == true).
    */
   collapseRows(rowIndexes, recursive = true, doTrimming = false) {
     const rowsToTrim = [];
@@ -426,7 +426,7 @@ class CollapsingUI extends BaseUI {
    * Toggle collapsed state. Callback for the `beforeOnCellMousedown` hook.
    *
    * @private
-   * @param {MouseEvent} event `mousedown` event
+   * @param {MouseEvent} event `mousedown` event.
    * @param {object} coords Coordinates of the clicked cell/header.
    */
   toggleState(event, coords) {

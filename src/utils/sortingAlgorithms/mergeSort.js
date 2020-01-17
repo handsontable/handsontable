@@ -3,9 +3,9 @@ import LinkedList from '../dataStructures/linkedList';
 /**
  * Refactored implementation of mergeSort (part of javascript-algorithms project) by Github users:
  * mgechev, AndriiHeonia and lekkas (part of javascript-algorithms project - all project contributors
- * at repository website)
+ * at repository website).
  *
- * Link to repository: https://github.com/mgechev/javascript-algorithms
+ * Link to repository: https://github.com/mgechev/javascript-algorithms.
  */
 
 /**
@@ -56,14 +56,14 @@ export default function mergeSort(array, compareFunction = defaultCompareFunctio
 }
 
 /**
- * Devides and sort merges two subarrays of given array
+ * Devides and sort merges two subarrays of given array.
  *
  * @param {Array} array The array which subarrays should be sorted.
  * @param {Function} compareFunction The function with comparision logic.
  * @param {number} startIndex The start of the first subarray.
  * This subarray is with end middle - 1.
  * @param {number} middleIndex The start of the second array.
- * @param {number} endIndex end - 1 is the end of the second array.
+ * @param {number} endIndex End - 1 is the end of the second array.
  * @returns {Array} The array with sorted subarray.
  */
 function merge(array, compareFunction, startIndex, middleIndex, endIndex) {

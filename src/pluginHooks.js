@@ -62,7 +62,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
-   * value is entered using an editor or changed using API (e.q setDataAtCell)
+   * value is entered using an editor or changed using API (e.q setDataAtCell).
    *
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
@@ -307,12 +307,12 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterLoadData
    * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
   'afterLoadData',
 
   /**
-   * Fired after a scroll event, which is identified as a momentum scroll (e.g. on an iPad).
+   * Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
    *
    * @event Hooks#afterMomentumScroll
    */
@@ -472,7 +472,7 @@ const REGISTERED_HOOKS = [
   'afterScrollVertically',
 
   /**
-   * Fired after one or more cells are selected (e.g. during mouse move).
+   * Fired after one or more cells are selected (e.g. During mouse move).
    *
    * @event Hooks#afterSelection
    * @param {number} row Selection start visual row index.
@@ -518,7 +518,7 @@ const REGISTERED_HOOKS = [
   'afterSelectionByProp',
 
   /**
-   * Fired after one or more cells are selected (e.g. on mouse up).
+   * Fired after one or more cells are selected (e.g. On mouse up).
    *
    * @event Hooks#afterSelectionEnd
    * @param {number} row Selection start visual row index.
@@ -530,7 +530,7 @@ const REGISTERED_HOOKS = [
   'afterSelectionEnd',
 
   /**
-   * Fired after one or more cells are selected (e.g. on mouse up).
+   * Fired after one or more cells are selected (e.g. On mouse up).
    *
    * The `prop` and `prop2` arguments represent the source object property name instead of the column number.
    *
@@ -598,7 +598,7 @@ const REGISTERED_HOOKS = [
    * A plugin hook executed after validator function, only if validator function is defined.
    * Validation result is the first parameter. This can be used to determinate if validation passed successfully or not.
    *
-   * __Returning false from the callback will mark the cell as invalid.__
+   * __Returning false from the callback will mark the cell as invalid.__.
    *
    * @event Hooks#afterValidate
    * @param {boolean} isValid `true` if valid, `false` if not.
@@ -611,7 +611,7 @@ const REGISTERED_HOOKS = [
   'afterValidate',
 
   /**
-   * Fired before successful change of language (when proper language code was set)
+   * Fired before successful change of language (when proper language code was set).
    *
    * @event Hooks#beforeLanguageChange
    * @since 0.35.0
@@ -654,7 +654,7 @@ const REGISTERED_HOOKS = [
    * * `htJustify`
    * * `htTop`
    * * `htMiddle`
-   * * `htBottom`
+   * * `htBottom`.
    */
   'beforeCellAlignment',
 
@@ -753,7 +753,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeLoadData
    * @param {Array} sourceData Array of arrays or array of objects containing data.
-   * @param {boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
   'beforeLoadData',
 
@@ -889,7 +889,7 @@ const REGISTERED_HOOKS = [
    * Fired before cell validation, only if validator function is defined. This can be used to manipulate the value
    * of changed cell before it is applied to the validator function.
    *
-   * __Note:__ this will not affect values of changes. This will change value *ONLY* for validation
+   * __Note:__ this will not affect values of changes. This will change value *ONLY* for validation.
    *
    * @event Hooks#beforeValidate
    * @param {*} value Value of the cell.
@@ -1328,7 +1328,7 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```
+   * ```.
    * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
    */
   'beforeFilter',
@@ -1357,7 +1357,7 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```
+   * ```.
    */
   'afterFilter',
 
@@ -1428,7 +1428,7 @@ const REGISTERED_HOOKS = [
   'beforeAutofillInsidePopulate',
 
   /**
-   * Fired when the start of the selection is being modified (e.g. moving the selection with the arrow keys).
+   * Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformStart
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
@@ -1436,7 +1436,7 @@ const REGISTERED_HOOKS = [
   'modifyTransformStart',
 
   /**
-   * Fired when the end of the selection is being modified (e.g. moving the selection with the arrow keys).
+   * Fired when the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#modifyTransformEnd
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
@@ -1444,7 +1444,7 @@ const REGISTERED_HOOKS = [
   'modifyTransformEnd',
 
   /**
-   * Fired after the start of the selection is being modified (e.g. moving the selection with the arrow keys).
+   * Fired after the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#afterModifyTransformStart
    * @param {CellCoords} coords Coords of the freshly selected cell.
@@ -1454,7 +1454,7 @@ const REGISTERED_HOOKS = [
   'afterModifyTransformStart',
 
   /**
-   * Fired after the end of the selection is being modified (e.g. moving the selection with the arrow keys).
+   * Fired after the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
    * @event Hooks#afterModifyTransformEnd
    * @param {CellCoords} coords Visual coords of the freshly selected cell.
@@ -1876,13 +1876,13 @@ const REMOVED_HOOKS = new Map([
  * printed out when the hook is used.
  *
  * Usage:
- * ```
+ * ```.
  * ...
- * new Map([
+ * New Map([
  *   ['beforeColumnExpand', 'The plugin hook "beforeColumnExpand" is deprecated. Use "beforeColumnExpand2" instead.'],
  * ])
  * ...
- * ```
+ * ```.
  *
  *
  * @type {Map<string, string>}

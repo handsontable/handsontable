@@ -368,7 +368,7 @@ class CollapsibleColumns extends BasePlugin {
   /**
    * Expands section at the provided coords.
    *
-   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`)
+   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
   expandSection(coords) {
     this.toggleCollapsibleSection([coords], 'expand');
@@ -377,7 +377,7 @@ class CollapsibleColumns extends BasePlugin {
   /**
    * Collapses section at the provided coords.
    *
-   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`)
+   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
   collapseSection(coords) {
     this.toggleCollapsibleSection([coords], 'collapse');

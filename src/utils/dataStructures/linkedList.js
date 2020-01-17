@@ -1,9 +1,9 @@
 /**
  * Refactored implementation of LinkedList (part of javascript-algorithms project) by Github users:
  * mgechev, AndriiHeonia, Microfed and Jakeh (part of javascript-algorithms project - all project contributors
- * at repository website)
+ * at repository website).
  *
- * Link to repository: https://github.com/mgechev/javascript-algorithms
+ * Link to repository: https://github.com/mgechev/javascript-algorithms.
  */
 
 /**
@@ -210,7 +210,7 @@ class LinkedList {
   }
 
   /**
-   * Reverses the linked list recursively
+   * Reverses the linked list recursively.
    */
   recursiveReverse() {
     /**
@@ -238,7 +238,7 @@ class LinkedList {
   }
 
   /**
-   * Reverses the linked list iteratively
+   * Reverses the linked list iteratively.
    */
   reverse() {
     if (!this.first || !this.first.next) {
