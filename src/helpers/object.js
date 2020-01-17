@@ -204,7 +204,7 @@ export function isObjectEqual(object1, object2) {
  * Determines whether given object is a plain Object.
  * Note: String and Array are not plain Objects.
  *
- * @param {*} object An object to ckeck.
+ * @param {*} object An object to check.
  * @returns {boolean}
  */
 export function isObject(object) {
