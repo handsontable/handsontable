@@ -3,12 +3,19 @@ import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 
 const offsetToOverLapPrecedingBorder = -1;
+const headerGridlineWidth = 1;
 
 /**
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`
  */
 export default class BorderRenderer {
-  constructor(parentElement, padding) {
+  constructor(parentElement, padding, uniqueDomId) {
+    /**
+     * String that can be used to uniquely identify the SVG border element in the window DOM
+     *
+     * @type {String}
+     */
+    this.uniqueDomId = uniqueDomId;
     /**
      * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
      *
@@ -62,8 +69,8 @@ export default class BorderRenderer {
   createSvgContainer(parentElement) {
     const svg = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
-    svg.style.top = `${this.padding.top}px`;
-    svg.style.left = `${this.padding.left}px`;
+    svg.style.top = '0';
+    svg.style.left = '0';
     svg.style.width = '0';
     svg.style.height = '0';
     svg.style.position = 'absolute';
@@ -71,6 +78,18 @@ export default class BorderRenderer {
     svg.setAttribute('pointer-events', 'none');
     svg.setAttribute('class', 'wtBorders'); // in IE, classList is not defined on SVG elements and className is read-only
     parentElement.appendChild(svg);
+
+    const defs = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+    const clipPath = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+    clipPath.setAttribute('id', `${this.uniqueDomId}-inner-clip`);
+
+    const rect = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    this.clipPathShape = rect;
+
+    clipPath.appendChild(rect);
+    defs.appendChild(clipPath);
+    svg.appendChild(defs);
 
     return svg;
   }
@@ -91,8 +110,9 @@ export default class BorderRenderer {
         this.ensurePathGroup(index - 1); // ensure there are no gaps
       }
 
+      const isCustomBorder = index === 0;
       const pathGroup = {
-        svgPathsRenderer: this.getSvgPathsRendererForGroup(this.svg),
+        svgPathsRenderer: this.getSvgPathsRendererForGroup(this.svg, isCustomBorder),
         stylesAndLines: new Map(),
         styles: [],
         commands: []
@@ -113,6 +133,10 @@ export default class BorderRenderer {
    * @param {Array.<Array.<*>>} argArrays
    */
   render(table, argArrays) {
+    this.clipLeft = 0;
+    this.clipTop = 0;
+    this.clipRight = 0;
+    this.clipBottom = 0;
     this.containerBoundingRect = table.getBoundingClientRect();
 
     this.maxWidth = 0;
@@ -124,8 +148,8 @@ export default class BorderRenderer {
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
     // batch all DOM writes
-    let width = Math.min(this.maxWidth, this.containerBoundingRect.width) - (this.padding.left + this.padding.right);
-    let height = Math.min(this.maxHeight, this.containerBoundingRect.height) - (this.padding.top + this.padding.bottom);
+    let width = Math.min(this.maxWidth, this.containerBoundingRect.width);
+    let height = Math.min(this.maxHeight, this.containerBoundingRect.height);
     if (width < 0) {
       width = 0;
     }
@@ -133,6 +157,20 @@ export default class BorderRenderer {
       height = 0;
     }
     this.svgResizer(width, height);
+
+    this.clipLeft += this.padding.left;
+    this.clipTop += this.padding.top;
+    this.clipRight += this.padding.right;
+    this.clipBottom += this.padding.bottom;
+
+    const clipWidth = width - this.clipLeft - this.clipRight;
+    const clipHeight = height - this.clipTop - this.clipBottom;
+
+    this.clipPathShape.setAttribute('width', Math.max(clipWidth, 0));
+    this.clipPathShape.setAttribute('height', Math.max(clipHeight, 0));
+    this.clipPathShape.setAttribute('x', this.clipLeft);
+    this.clipPathShape.setAttribute('y', this.clipTop);
+
     this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
 
@@ -268,10 +306,15 @@ export default class BorderRenderer {
    * Creates and configures the SVG group element, where all SVG paths are rendered
    *
    * @param {HTMLElement} svg SVG container element
+   * @param {Boolean} useInnerClipping
    * @returns {HTMLElement}
    */
-  getSvgPathsRendererForGroup(svg) {
+  getSvgPathsRendererForGroup(svg, useInnerClipping) {
     const group = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+    if (useInnerClipping) {
+      group.setAttribute('clip-path', `url(#${this.uniqueDomId}-inner-clip)`);
+    }
 
     svg.appendChild(group);
 
@@ -317,26 +360,29 @@ export default class BorderRenderer {
   convertArgsToLines(selectionSetting, getCellFn, selectionStart, selectionEnd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
     const layerNumber = this.getLayerNumber(selectionSetting);
     const stylesAndLines = this.ensurePathGroup(layerNumber).stylesAndLines;
+    const isItASelectionBorder = !!selectionSetting.className;
 
     const isSingle = selectionStart.row === selectionEnd.row && selectionStart.col === selectionEnd.col;
     let addFirstTdWidth = 0;
     let addFirstTdHeight = 0;
     let firstTd = getCellFn(selectionStart);
 
-    if (firstTd === -1) {
-      selectionStart.row += 1;
-      firstTd = getCellFn(selectionStart);
-      addFirstTdHeight = -1;
-    }
-    if (firstTd === -2) {
-      selectionStart.row -= 1;
-      firstTd = getCellFn(selectionStart);
-      addFirstTdHeight = 1;
-    }
-    if (firstTd === -4) {
-      selectionStart.col -= 1;
-      firstTd = getCellFn(selectionStart);
-      addFirstTdWidth = 1;
+    if (!isItASelectionBorder) {
+      if (firstTd === -1) {
+        selectionStart.row += 1;
+        firstTd = getCellFn(selectionStart);
+        addFirstTdHeight = -1;
+      }
+      if (firstTd === -2) {
+        selectionStart.row -= 1;
+        firstTd = getCellFn(selectionStart);
+        addFirstTdHeight = 1;
+      }
+      if (firstTd === -4) {
+        selectionStart.col -= 1;
+        firstTd = getCellFn(selectionStart);
+        addFirstTdWidth = 1;
+      }
     }
 
     if (typeof firstTd !== 'object') {
@@ -389,15 +435,14 @@ export default class BorderRenderer {
     y2 += addLastTdHeight * lastTdBoundingRect.height;
 
     // adjustments needed to render the border directly on the gridline, depending on the surrounding CSS
-    x1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
-    y1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
-    x2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
-    y2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
+    x1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left;
+    y1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top;
+    x2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left;
+    y2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top;
 
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
     const isThisTheFirstRow = firstTd.parentNode.previousElementSibling === null;
-    const isItASelectionBorder = !!selectionSetting.className;
 
     if (isThisTheFirstColumn) {
       x1 += 1;
@@ -405,8 +450,7 @@ export default class BorderRenderer {
       const areTherePossiblyRowHeaders = x1 > 0;
 
       if (areTherePossiblyRowHeaders && !isItASelectionBorder) {
-        x1 += 1;
-        hasLeftEdge = false; // don't draw a left edge that would overlap the border of the header cell
+        this.clipLeft = x1 + headerGridlineWidth; // don't draw an edge that would overlap the border of the header cell
       }
     }
     if (isThisTheFirstRow) {
@@ -415,8 +459,7 @@ export default class BorderRenderer {
       const areTherePossiblyColumnHeaders = y1 > 0;
 
       if (areTherePossiblyColumnHeaders && !isItASelectionBorder) {
-        y1 += 1;
-        hasTopEdge = false; // don't draw a top edge that would overlap the border of the header cell
+        this.clipTop = y1 + headerGridlineWidth; // don't draw an edge that would overlap the border of the header cell
       }
     }
 
