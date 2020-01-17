@@ -156,6 +156,7 @@ function createOrGetSecondaryElement(container) {
   const element = doc.createElement('textarea');
 
   secondaryElements.set(container, element);
+  element.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
   element.className = 'HandsontableCopyPaste';
   element.tabIndex = -1;
   element.autocomplete = 'off';

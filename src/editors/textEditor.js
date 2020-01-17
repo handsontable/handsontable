@@ -214,6 +214,7 @@ class TextEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
+    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');

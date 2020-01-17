@@ -1086,13 +1086,13 @@ export function isInput(element) {
 
 /**
  * Determines if the given DOM element is an input field placed OUTSIDE of HOT.
- * Notice: By 'input' we mean input, textarea and select nodes.
+ * Notice: By 'input' we mean input, textarea and select nodes which have defined 'data-hot-input' attribute.
  *
  * @param {HTMLElement} element - DOM element.
  * @returns {boolean}
  */
 export function isOutsideInput(element) {
-  return isInput(element) && element.className.indexOf('handsontableInput') === -1 && element.className.indexOf('HandsontableCopyPaste') === -1;
+  return isInput(element) && element.hasAttribute('data-hot-input') === false;
 }
 
 /**
