@@ -80,7 +80,10 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.borderRenderer = new BorderRenderer(this.spreader, this.getBorderPadding(), `${this.wot.guid}-border-renderer`);
+    this.borderRenderer = new BorderRenderer(this.spreader,
+      this.getBorderPadding(),
+      `${this.wot.guid}-border-renderer`,
+      this.isMaster ? 'master' : this.wot.getOverlayName());
   }
 
   /**

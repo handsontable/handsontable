@@ -9,7 +9,13 @@ const headerGridlineWidth = 1;
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`
  */
 export default class BorderRenderer {
-  constructor(parentElement, padding, uniqueDomId) {
+  constructor(parentElement, padding, uniqueDomId, overlayName) {
+    /**
+     * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
+     *
+     * @type {Object} Object with properties top, left, bottom, right
+     */
+    this.padding = padding;
     /**
      * String that can be used to uniquely identify the SVG border element in the window DOM
      *
@@ -17,11 +23,11 @@ export default class BorderRenderer {
      */
     this.uniqueDomId = uniqueDomId;
     /**
-     * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
+     * Overlay name
      *
-     * @type {Object} Object with properties top, left, bottom, right
+     * @type {String}
      */
-    this.padding = padding;
+    this.overlayName = overlayName;
     /**
      * The SVG container element, where all SVG groups are rendered
      *
@@ -367,22 +373,20 @@ export default class BorderRenderer {
     let addFirstTdHeight = 0;
     let firstTd = getCellFn(selectionStart);
 
-    if (!isItASelectionBorder) {
-      if (firstTd === -1) {
-        selectionStart.row += 1;
-        firstTd = getCellFn(selectionStart);
-        addFirstTdHeight = -1;
-      }
-      if (firstTd === -2) {
-        selectionStart.row -= 1;
-        firstTd = getCellFn(selectionStart);
-        addFirstTdHeight = 1;
-      }
-      if (firstTd === -4) {
-        selectionStart.col -= 1;
-        firstTd = getCellFn(selectionStart);
-        addFirstTdWidth = 1;
-      }
+    if (firstTd === -1) {
+      selectionStart.row += 1;
+      firstTd = getCellFn(selectionStart);
+      addFirstTdHeight = -1;
+    }
+    if (firstTd === -2) {
+      selectionStart.row -= 1;
+      firstTd = getCellFn(selectionStart);
+      addFirstTdHeight = 1;
+    }
+    if (firstTd === -4) {
+      selectionStart.col -= 1;
+      firstTd = getCellFn(selectionStart);
+      addFirstTdWidth = 1;
     }
 
     if (typeof firstTd !== 'object') {
@@ -417,6 +421,14 @@ export default class BorderRenderer {
 
     if (typeof lastTd !== 'object') {
       return;
+    }
+
+    const selectionBeginsAndEndsOnDifferentOverlay = addFirstTdWidth !== 0 || addFirstTdHeight !== 0 || addLastTdWidth !== 0 || addLastTdHeight !== 0;
+
+    if (isItASelectionBorder && selectionBeginsAndEndsOnDifferentOverlay) {
+      if (!this.overlayName === 'bottom_left_corner') {
+        return; // For selections made on a pane that is lower in the visual hierarchy, we do not render the part of a selection border that is on the freeze line.
+      }
     }
 
     const firstTdBoundingRect = firstTd.getBoundingClientRect();
