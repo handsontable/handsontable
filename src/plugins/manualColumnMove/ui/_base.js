@@ -27,7 +27,7 @@ class BaseUI {
     /**
      * Flag which determines build state of element.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.state = STATE_INITIALIZED;
   }
@@ -70,7 +70,7 @@ class BaseUI {
   /**
    * Check if UI element are appended.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isAppended() {
     return this.state === STATE_APPENDED;
@@ -79,7 +79,7 @@ class BaseUI {
   /**
    * Check if UI element are built.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isBuilt() {
     return this.state >= STATE_BUILT;
@@ -88,8 +88,8 @@ class BaseUI {
   /**
    * Setter for position.
    *
-   * @param {Number} top New top position of the element.
-   * @param {Number} left New left position of the element.
+   * @param {number} top New top position of the element.
+   * @param {number} left New left position of the element.
    */
   setPosition(top, left) {
     if (isNumeric(top)) {
@@ -103,7 +103,7 @@ class BaseUI {
   /**
    * Getter for the element position.
    *
-   * @returns {Object} Object contains left and top position of the element.
+   * @returns {object} Object contains left and top position of the element.
    */
   getPosition() {
     return {
@@ -115,8 +115,8 @@ class BaseUI {
   /**
    * Setter for the element size.
    *
-   * @param {Number} width New width of the element.
-   * @param {Number} height New height of the element.
+   * @param {number} width New width of the element.
+   * @param {number} height New height of the element.
    */
   setSize(width, height) {
     if (isNumeric(width)) {
@@ -130,7 +130,7 @@ class BaseUI {
   /**
    * Getter for the element position.
    *
-   * @returns {Object} Object contains height and width of the element.
+   * @returns {object} Object contains height and width of the element.
    */
   getSize() {
     return {
@@ -142,8 +142,8 @@ class BaseUI {
   /**
    * Setter for the element offset. Offset means marginTop and marginLeft of the element.
    *
-   * @param {Number} top New margin top of the element.
-   * @param {Number} left New margin left of the element.
+   * @param {number} top New margin top of the element.
+   * @param {number} left New margin left of the element.
    */
   setOffset(top, left) {
     if (isNumeric(top)) {
@@ -157,7 +157,7 @@ class BaseUI {
   /**
    * Getter for the element offset.
    *
-   * @returns {Object} Object contains top and left offset of the element.
+   * @returns {object} Object contains top and left offset of the element.
    */
   getOffset() {
     return {

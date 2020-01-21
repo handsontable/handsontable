@@ -51,7 +51,7 @@ const _predefinedItems = {
 /**
  * Gets new object with all predefined menu items.
  *
- * @returns {Object}
+ * @returns {object}
  */
 export function predefinedItems() {
   const items = {};
@@ -66,8 +66,8 @@ export function predefinedItems() {
 /**
  * Add new predefined menu item to the collection.
  *
- * @param {String} key Menu command id.
- * @param {Object} item Object command descriptor.
+ * @param {string} key Menu command id.
+ * @param {object} item Object command descriptor.
  */
 export function addItem(key, item) {
   if (ITEMS.indexOf(key) === -1) {

@@ -1,6 +1,6 @@
 import BasePlugin from '../_base';
 import staticRegister from '../../utils/staticRegister';
-import { HyperFormula } from 'hyperformula/dist/unoptimized-full/bundle.js';
+import { HyperFormula } from 'hyperformula/dist/hyperformula.full.js';
 import { registerPlugin } from '../../plugins';
 import { parseHFValue } from './utils';
 
@@ -75,7 +75,7 @@ class Formulas extends BasePlugin {
 
     this.sheetName = this.hyperformula.addSheet(this.settings.sheetName || void 0);
 
-    this.sheetId = this.hyperformula.sheetId(this.sheetName); // TODO: maybe this HF API entry should be called `getSheetId` for consistency, instead of `sheetId`?
+    this.sheetId = this.hyperformula.getSheetId(this.sheetName); // TODO: maybe this HF API entry should be called `getSheetId` for consistency, instead of `sheetId`?
 
     super.enablePlugin();
   }
@@ -190,7 +190,7 @@ class Formulas extends BasePlugin {
       // TODO: temporary solution for no `clearSheet` HF API method
       this.hyperformula.removeSheet(this.sheetName);
       this.sheetName = this.hyperformula.addSheet(this.settings.sheetName || void 0);
-      this.sheetId = this.hyperformula.sheetId(this.sheetName);
+      this.sheetId = this.hyperformula.getSheetId(this.sheetName);
       //
 
       this.hyperformula.setMultipleCellContents({

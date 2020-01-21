@@ -29,7 +29,7 @@ export default class ViewSizeSet {
      * Defines if this instance shares its size with another instance. If it's in the shared
      * mode it defines what space it occupies ('top' or 'bottom').
      *
-     * @type {Number}
+     * @type {number}
      */
     this.workingSpace = WORKING_SPACE_ALL;
     /**
@@ -44,7 +44,7 @@ export default class ViewSizeSet {
    * Sets the size for rendered elements. It can be a size for rows, cells or size for row
    * headers etc.
    *
-   * @param {Number} size
+   * @param {number} size The size.
    */
   setSize(size) {
     this.size.setSize(size);
@@ -54,7 +54,7 @@ export default class ViewSizeSet {
    * Sets the offset for rendered elements. The offset describes the shift between 0 and
    * the first rendered element according to the scroll position.
    *
-   * @param {Number} offset
+   * @param {number} offset The offset.
    */
   setOffset(offset) {
     this.size.setOffset(offset);
@@ -72,7 +72,7 @@ export default class ViewSizeSet {
   /**
    * Checks if this ViewSizeSet is sharing the size with another instance.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isShared() {
     return this.sharedSize instanceof ViewSize;
@@ -81,8 +81,8 @@ export default class ViewSizeSet {
   /**
    * Checks what working space describes this size instance.
    *
-   * @param {Number} workingSpace The number which describes the type of the working space (see constants.js).
-   * @returns {Boolean}
+   * @param {number} workingSpace The number which describes the type of the working space (see constants.js).
+   * @returns {boolean}
    */
   isPlaceOn(workingSpace) {
     return this.workingSpace === workingSpace;
@@ -91,7 +91,7 @@ export default class ViewSizeSet {
   /**
    * Appends the ViewSizeSet instance to this instance that turns it into a shared mode.
    *
-   * @param {ViewSizeSet} viewSizeSet
+   * @param {ViewSizeSet} viewSize The instance of the ViewSizeSet class.
    */
   append(viewSize) {
     this.workingSpace = WORKING_SPACE_TOP;
@@ -102,7 +102,7 @@ export default class ViewSizeSet {
   /**
    * Prepends the ViewSize instance to this instance that turns it into a shared mode.
    *
-   * @param {ViewSizeSet} viewSizeSet
+   * @param {ViewSizeSet} viewSize The instance of the ViewSizeSet class.
    */
   prepend(viewSize) {
     this.workingSpace = WORKING_SPACE_BOTTOM;

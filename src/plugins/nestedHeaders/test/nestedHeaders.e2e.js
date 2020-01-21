@@ -1,11 +1,20 @@
 describe('NestedHeaders', () => {
   const id = 'testContainer';
 
+  /**
+   * @param hot
+   * @param row
+   */
   function nonHiddenTHs(hot, row) {
     const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
     return headerRows[row].querySelectorAll('th:not(.hiddenHeader)');
   }
 
+  /**
+   * @param rows
+   * @param cols
+   * @param obj
+   */
   function generateComplexSetup(rows, cols, obj) {
     const data = [];
 

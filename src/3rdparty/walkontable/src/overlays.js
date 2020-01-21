@@ -13,7 +13,7 @@ import Overlay from './overlay/_base';
  */
 class Overlays {
   /**
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     /**
@@ -27,7 +27,7 @@ class Overlays {
     const { rootDocument, rootWindow, wtTable } = this.wot;
     /**
      * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
-     * https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values
+     * Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
      */
     const BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).lineHeight, 10);
     const FALLBACK_BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
@@ -75,7 +75,7 @@ class Overlays {
   /**
    * Prepare overlays based on user settings.
    *
-   * @returns {Boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
+   * @returns {boolean} Returns `true` if changes applied to overlay needs scroll synchronization.
    */
   prepareOverlays() {
     let syncScroll = false;
@@ -135,7 +135,7 @@ class Overlays {
   }
 
   /**
-   * Refresh and redraw table
+   * Refresh and redraw table.
    */
   refreshAll() {
     if (!this.wot.drawn) {
@@ -221,9 +221,9 @@ class Overlays {
   }
 
   /**
-   * Scroll listener
+   * Scroll listener.
    *
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
    */
   onTableScroll(event) {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
@@ -248,7 +248,8 @@ class Overlays {
   /**
    * Wheel listener for cloned overlays.
    *
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
+   * @param {boolean} preventDefault If `true`, the `preventDefault` will be called on event object.
    */
   onCloneWheel(event, preventDefault) {
     const { rootWindow } = this.wot;
@@ -277,24 +278,27 @@ class Overlays {
   }
 
   /**
-   * Key down listener
+   * Key down listener.
+   *
+   * @param {Event} event The keyboard event object.
    */
   onKeyDown(event) {
     this.keyPressed = isKey(event.keyCode, 'ARROW_UP|ARROW_RIGHT|ARROW_DOWN|ARROW_LEFT');
   }
 
   /**
-   * Key up listener
+   * Key up listener.
    */
   onKeyUp() {
     this.keyPressed = false;
   }
 
   /**
-   * Translate wheel event into scroll event and sync scroll overlays position
+   * Translate wheel event into scroll event and sync scroll overlays position.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
+   * @returns {boolean}
    */
   translateMouseWheelToScroll(event) {
     const browserLineHeight = this.browserLineHeight;
@@ -316,7 +320,8 @@ class Overlays {
   /**
    * Scrolls main scrollable element horizontally.
    *
-   * @param {Number} delta Relative value to scroll.
+   * @param {number} delta Relative value to scroll.
+   * @returns {boolean}
    */
   scrollVertically(delta) {
     const previousScroll = this.scrollableElement.scrollTop;
@@ -329,7 +334,8 @@ class Overlays {
   /**
    * Scrolls main scrollable element horizontally.
    *
-   * @param {Number} delta Relative value to scroll.
+   * @param {number} delta Relative value to scroll.
+   * @returns {boolean}
    */
   scrollHorizontally(delta) {
     const previousScroll = this.scrollableElement.scrollLeft;
@@ -378,7 +384,7 @@ class Overlays {
   }
 
   /**
-   * Synchronize overlay scrollbars with the master scrollbar
+   * Synchronize overlay scrollbars with the master scrollbar.
    */
   syncScrollWithMaster() {
     const master = this.topOverlay.mainTableScrollableElement;
@@ -445,7 +451,9 @@ class Overlays {
   }
 
   /**
-   * @param {Boolean} [fastDraw=false]
+   * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   *                                   the data. It will only work if Table.draw() does not force
+   *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
@@ -481,9 +489,9 @@ class Overlays {
   }
 
   /**
-   * Adjust overlays elements size and master table size
+   * Adjust overlays elements size and master table size.
    *
-   * @param {Boolean} [force=false]
+   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
    */
   adjustElementsSize(force = false) {
     const { wtViewport, wtTable } = this.wot;
@@ -547,8 +555,8 @@ class Overlays {
   /**
    * Get the parent overlay of the provided element.
    *
-   * @param {HTMLElement} element
-   * @returns {Object|null}
+   * @param {HTMLElement} element An element to process.
+   * @returns {object|null}
    */
   getParentOverlay(element) {
     if (!element) {

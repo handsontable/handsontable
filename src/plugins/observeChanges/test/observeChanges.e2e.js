@@ -12,6 +12,10 @@ describe('HandsontableObserveChanges', () => {
     }
   });
 
+  /**
+   * @param data
+   * @param observeChanges
+   */
   function createHOT(data, observeChanges) {
     return handsontable({
       data,

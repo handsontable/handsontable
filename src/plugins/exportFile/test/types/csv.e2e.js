@@ -1,10 +1,17 @@
 describe('exportFile CSV type', () => {
   const id = 'testContainer';
 
+  /**
+   * @param x
+   * @param y
+   */
   function data(x, y) {
     return Handsontable.helper.createSpreadsheetData(x, y);
   }
 
+  /**
+   * @param str
+   */
   function countLines(str) {
     const lines = str.split('\r\n');
 

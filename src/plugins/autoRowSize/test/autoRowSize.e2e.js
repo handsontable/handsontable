@@ -12,6 +12,9 @@ describe('AutoRowSize', () => {
     }
   });
 
+  /**
+   *
+   */
   function arrayOfObjects() {
     return [
       { id: 'Short' },
@@ -19,6 +22,9 @@ describe('AutoRowSize', () => {
       { id: 'The\nvery\nvery\nvery\nlongest one' }
     ];
   }
+  /**
+   *
+   */
   function arrayOfObjects2() {
     return [
       { id: 'Short', name: 'Somewhat long' },

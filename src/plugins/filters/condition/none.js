@@ -3,6 +3,9 @@ import { registerCondition } from '../conditionRegisterer';
 
 export const CONDITION_NAME = 'none';
 
+/**
+ * @returns {boolean}
+ */
 export function condition() {
   return true;
 }

@@ -1,4 +1,4 @@
-import { EmptyValue, CellError } from 'hyperformula/dist/unoptimized-full/bundle.js';
+import { EmptyValue, CellError } from 'hyperformula/dist/hyperformula.full.js';
 
 // TODO: docs
 export function parseHFValue(value) {

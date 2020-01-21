@@ -4,6 +4,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_col';
 
+/**
+ * @returns {object}
+ */
 export default function removeColumnItem() {
   return {
     key: KEY,

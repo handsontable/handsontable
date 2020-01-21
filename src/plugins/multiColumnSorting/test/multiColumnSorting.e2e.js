@@ -1247,10 +1247,13 @@ describe('MultiColumnSorting', () => {
       { a: 'dddd', b: 13, c: 13 },
       { a: 'bbbb', b: 10, c: 11 }
     ];
+    let dataReference = null;
 
+    /**
+     * @param row
+     */
     function customIsEmptyRow(row) {
-      const data = this.getSourceData();
-      return data[row].isNew;
+      return dataReference[row].isNew;
     }
 
     handsontable({
@@ -1265,6 +1268,9 @@ describe('MultiColumnSorting', () => {
       dataSchema: { isNew: true, a: false }, // default for a to avoid #bad value#
       multiColumnSorting: true,
       minSpareRows: 3,
+      beforeLoadData: (data) => {
+        dataReference = data;
+      },
       isEmptyRow: customIsEmptyRow
     });
 

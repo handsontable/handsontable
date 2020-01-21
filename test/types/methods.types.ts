@@ -100,6 +100,9 @@ hot.setDataAtCell(123, 123, {myProperty: 'foo'}, 'foo');
 hot.setDataAtCell([[123, 123, 'foo'], [123, 123, {myProperty: 'foo'}]], 'foo');
 hot.setDataAtRowProp(123, 'foo', 'foo', 'foo');
 hot.setDataAtRowProp([[123, 'foo', 'foo'], [123, 'foo', 'foo']], 'foo');
+hot.setSourceDataAtCell(123, 123, 'foo');
+hot.setSourceDataAtRow(123, [1, 2, 'foo']);
+hot.setSourceDataAtRow(1, {foo: 'bar'});
 hot.spliceCol(123, 123, 123, 'foo');
 hot.spliceRow(123, 123, 123, 'foo');
 hot.toPhysicalColumn(123) == 123;
@@ -155,6 +158,7 @@ const columnSummary: Handsontable.plugins.ColumnSummary = hot.getPlugin('columnS
 const comments: Handsontable.plugins.Comments = hot.getPlugin('comments');
 const contextMenu: Handsontable.plugins.ContextMenu = hot.getPlugin('contextMenu');
 const copyPaste: Handsontable.plugins.CopyPaste = hot.getPlugin('copyPaste');
+const customBorders: Handsontable.plugins.CustomBorders = hot.getPlugin('customBorders');
 const dragToScroll: Handsontable.plugins.DragToScroll = hot.getPlugin('dragToScroll');
 const dropdownMenu: Handsontable.plugins.DropdownMenu = hot.getPlugin('dropdownMenu');
 const exportFile: Handsontable.plugins.ExportFile = hot.getPlugin('exportFile');

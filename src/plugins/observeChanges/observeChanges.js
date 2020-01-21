@@ -16,7 +16,7 @@ import { registerPlugin } from './../../plugins';
  * ```js
  * // as a boolean
  * observeChanges: true,
- * ```
+ * ```.
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */
@@ -36,7 +36,7 @@ class ObserveChanges extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ObserveChanges#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().observeChanges;
@@ -50,7 +50,7 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
-      this.observer = new DataObserver(this.hot.getSourceData());
+      this.observer = new DataObserver(this.hot.getSettings().data);
       this._exposePublicApi();
     }
 
@@ -60,7 +60,7 @@ class ObserveChanges extends BasePlugin {
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(sourceData, firstRun));
 
     super.enablePlugin();
   }
@@ -139,7 +139,7 @@ class ObserveChanges extends BasePlugin {
    * On after table alter listener. Prevents infinity loop between internal and external data changing.
    *
    * @private
-   * @param source
+   * @param {string} source The identifier of the code that performed the action.
    */
   onAfterTableAlter(source) {
     if (source !== 'loadData') {
@@ -152,11 +152,12 @@ class ObserveChanges extends BasePlugin {
    * On after load data listener.
    *
    * @private
-   * @param {Boolean} firstRun `true` if event was fired first time.
+   * @param {Array} sourceData Source data array.
+   * @param {boolean} firstRun `true` if event was fired first time.
    */
-  onAfterLoadData(firstRun) {
+  onAfterLoadData(sourceData, firstRun) {
     if (!firstRun) {
-      this.observer.setObservedData(this.hot.getSourceData());
+      this.observer.setObservedData(sourceData);
     }
   }
 
