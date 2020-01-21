@@ -415,8 +415,9 @@ export default class BorderRenderer {
 
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
+    // const isThisTheFirstRowInTbody = firstTd.parentNode.previousElementSibling === null;
     const isThisTheFirstRowInTbody = firstTd.parentNode.previousElementSibling === null && firstTd.parentNode.parentNode.previousElementSibling !== null;
-
+    
     if (settings.border && settings.border.width && settings.border.strokeAlignment === 'inside') {
       // strokeAlignment: 'inside' is used to render the border of selection "inside" a cell
       // any other strokeAlignment value means to render the border centered on the gridlines. Other alignment types might be implemented in the future

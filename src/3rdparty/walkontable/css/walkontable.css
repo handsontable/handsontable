@@ -86,14 +86,14 @@
 }
 
 .handsontable th:first-child,
- .handsontable td:first-child { 
+.handsontable td:first-child { 
   border-left: 1px solid #ccc;
 }
 
 .handsontable thead tr:first-child th,
-.handsontable thead tr:first-child td
-.handsontable tbody:first-child tr:first-child th,
-.handsontable tbody:first-child tr:first-child td {
+.handsontable thead tr:first-child td,
+.handsontable tbody.afterEmptyThead tr:first-child th,
+.handsontable tbody.afterEmptyThead tr:first-child td { 
   border-top: 1px solid #ccc;
 }
 
@@ -243,8 +243,11 @@
 .ht_clone_top_left_corner tbody tr:last-child td {
   border-bottom: 1px solid #969696;
 }
-.ht_clone_bottom_left_corner tr:first-child th,
-.ht_clone_bottom_left_corner tr:first-child td,
-.ht_clone_bottom tr:first-child td {
+/* .ht_clone_bottom_left_corner tbody tr:first-child th,
+.ht_clone_bottom_left_corner tbody tr:first-child td,
+.ht_clone_bottom tbody tr:first-child td, */
+.ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child th,
+.ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child td,
+.ht_clone_bottom tbody.afterEmptyThead tr:first-child td {
   border-top: 1px solid #969696;
 }
