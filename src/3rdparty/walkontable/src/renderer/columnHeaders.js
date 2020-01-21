@@ -15,6 +15,7 @@ import BaseRenderer from './_base';
  */
 export default class ColumnHeadersRenderer extends BaseRenderer {
   constructor(rootNode) {
+    console.log('innit', rootNode.firstChild);
     super(null, rootNode); // NodePool is not implemented for this renderer yet
   }
 
@@ -24,9 +25,10 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
   adjust() {
     const { columnHeadersCount, rowHeadersCount } = this.table;
     let TR = this.rootNode.firstChild;
+    console.log('TR', TR);
 
-    if (columnHeadersCount) {
-      const { columnsToRender } = this.table;
+    const { columnsToRender } = this.table;
+    if (columnHeadersCount && columnsToRender) {
       const allColumnsToRender = columnsToRender + rowHeadersCount;
 
       for (let i = 0, len = columnHeadersCount; i < len; i++) {

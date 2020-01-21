@@ -2,6 +2,7 @@ import { warn } from './../../../../helpers/console';
 import { toSingleLine } from './../../../../helpers/templateLiteralTag';
 import { OrderView } from './../utils/orderView';
 import BaseRenderer from './_base';
+import { addClass, removeClass } from '../../../../helpers/dom/element';
 
 let performanceWarningAppeared = false;
 
@@ -52,6 +53,14 @@ export default class RowsRenderer extends BaseRenderer {
       performanceWarningAppeared = true;
       warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting the number\x20
         of rendered rows by specifying the table height and/or turning off the "renderAllRows" option.`);
+    }
+
+    const thead = this.rootNode.previousElementSibling;
+    const isTheadEmpty = thead.firstElementChild === null;
+    if (isTheadEmpty) {
+      addClass(this.rootNode, 'afterEmptyThead');
+    } else {
+      removeClass(this.rootNode, 'afterEmptyThead');
     }
 
     this.orderView

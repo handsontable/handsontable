@@ -139,7 +139,7 @@ class Table {
     }
 
     if (this.wot.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
-      this.THEAD.appendChild(rootDocument.createElement('TR'));
+      // this.THEAD.appendChild(rootDocument.createElement('TR'));
     }
   }
 
