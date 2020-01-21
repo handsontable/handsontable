@@ -266,9 +266,11 @@ describe('DomElement helper', () => {
   // Handsontable.helper.selectElementIfAllowed
   //
   describe('selectElementIfAllowed', () => {
-    it('should select hot editor', () => {
+    it('should focus known textarea element', () => {
       const textarea = document.createElement('textarea');
-      textarea.className = 'handsontableInput';
+
+      textarea.setAttribute('data-hot-input', '');
+      textarea.focus();
 
       const spy = spyOn(textarea, 'select');
 
@@ -277,8 +279,23 @@ describe('DomElement helper', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('shouldn\'t focus input', () => {
+    it('should not focus unknown textarea element with the same class name as HOT editor input', () => {
+      const textarea = document.createElement('textarea');
+
+      textarea.className = 'handsontableInput';
+      textarea.focus();
+
+      const spy = spyOn(textarea, 'select');
+
+      selectElementIfAllowed(textarea);
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('should not focus unknown input (bare input)', () => {
       const input = document.createElement('input');
+
+      input.focus();
 
       const spy = spyOn(input, 'focus');
 
