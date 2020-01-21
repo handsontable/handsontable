@@ -301,21 +301,7 @@ class BottomOverlay extends Overlay {
    * @param {number} position Header Y position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
-    const { master } = this;
 
-    if (master.getSetting('fixedRowsBottom') === 0 && master.getSetting('columnHeaders').length > 0) {
-      const masterRootElement = master.wtTable.wtRootElement;
-      const previousState = hasClass(masterRootElement, 'innerBorderTop');
-
-      if (position) {
-        addClass(masterRootElement, 'innerBorderTop');
-      } else {
-        removeClass(masterRootElement, 'innerBorderTop');
-      }
-      if (!previousState && position || previousState && !position) {
-        master.wtOverlays.adjustElementsSizes();
-      }
-    }
   }
 }
 

@@ -2,6 +2,8 @@ import {
   getScrollbarWidth,
 } from './../../../../helpers/dom/element';
 
+const defaultRowHeight = 50;
+
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *
@@ -95,7 +97,11 @@ export default class ColumnUtils {
 
     rowHeaderWidthSetting = wot.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
+    if (rowHeaderWidthSetting === null || rowHeaderWidthSetting === void 0) {
+      rowHeaderWidthSetting = defaultRowHeight;
+    }
+
+    {
       const rowHeadersCount = wot.getSetting('rowHeaders').length;
       const defaultColumnWidth = wot.getSetting('defaultColumnWidth');
 
@@ -103,6 +109,11 @@ export default class ColumnUtils {
         let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
 
         width = (width === null || width === void 0) ? defaultColumnWidth : width;
+
+        if (visibleColumnIndex === 0) {
+          const magicOnePixelForLeftBorder = 1; // right border is included in each cells width, but single left border in the first cell is not included
+          width += magicOnePixelForLeftBorder;
+        }
 
         this.headerWidths.set(visibleColumnIndex, width);
       }

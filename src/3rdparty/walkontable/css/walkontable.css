@@ -60,14 +60,6 @@
   max-height: none;
 }
 
-.handsontable col {
-  width: 50px;
-}
-
-.handsontable col.rowHeader {
-  width: 50px;
-}
-
 .handsontable th,
 .handsontable td {
   border-top-width: 0;
@@ -94,30 +86,15 @@
 }
 
 .handsontable th:first-child,
-.handsontable th:nth-child(2),
-.handsontable td:first-of-type {
+ .handsontable td:first-child { 
   border-left: 1px solid #ccc;
 }
 
-.handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-left: 1px solid #ccc;
-}
-
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
+.handsontable thead tr:first-child th,
+.handsontable thead tr:first-child td
+.handsontable tbody:first-child tr:first-child th,
+.handsontable tbody:first-child tr:first-child td {
   border-top: 1px solid #ccc;
-}
-
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
-  border-right-width: 0;
-}
-
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
 }
 
 .handsontable th {

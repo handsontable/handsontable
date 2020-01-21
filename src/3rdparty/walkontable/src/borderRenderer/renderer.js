@@ -415,14 +415,7 @@ export default class BorderRenderer {
 
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
-    const isThisTheFirstRow = firstTd.parentNode.previousElementSibling === null;
-
-    if (isThisTheFirstColumn) {
-      x1 += 1;
-    }
-    if (isThisTheFirstRow) {
-      y1 += 1;
-    }
+    const isThisTheFirstRowInTbody = firstTd.parentNode.previousElementSibling === null && firstTd.parentNode.parentNode.previousElementSibling !== null;
 
     if (settings.border && settings.border.width && settings.border.strokeAlignment === 'inside') {
       // strokeAlignment: 'inside' is used to render the border of selection "inside" a cell
