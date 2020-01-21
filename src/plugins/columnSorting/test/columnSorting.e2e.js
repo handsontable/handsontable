@@ -1265,10 +1265,10 @@ describe('ColumnSorting', () => {
       { a: 'dddd', b: 13, c: 13 },
       { a: 'bbbb', b: 10, c: 11 }
     ];
+    let dataReference = null;
 
     function customIsEmptyRow(row) {
-      const data = this.getSourceData();
-      return data[row].isNew;
+      return dataReference[row].isNew;
     }
 
     handsontable({
@@ -1283,6 +1283,9 @@ describe('ColumnSorting', () => {
       dataSchema: { isNew: true, a: false }, // default for a to avoid #bad value#
       columnSorting: true,
       minSpareRows: 3,
+      beforeLoadData: (data) => {
+        dataReference = data;
+      },
       isEmptyRow: customIsEmptyRow
     });
 

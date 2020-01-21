@@ -10,7 +10,7 @@ import EventManager from './eventManager';
 import {
   deepClone,
   duckSchema,
-  extend, isObject,
+  extend,
   isObjectEqual,
   deepObjectSize,
   hasOwnProperty,
@@ -2272,6 +2272,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Set the provided data array/object in the source data set.
+   *
+   * @memberof Core#
+   * @function setSourceDataAtRow
+   * @param {Number} row Physical row index.
+   * @param {Array|Object} rowData Row of data to be set in the source data set.
+   */
+  this.setSourceDataAtRow = function(row, rowData) {
+    dataSource.setAtRow(row, rowData);
+  };
+
+  /**
    * Returns a single row of the data (array or object, depending on what data format you use).
    *
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
@@ -2284,6 +2296,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSourceDataAtRow = function(row) {
     return dataSource.getAtRow(row);
+  };
+
+  /**
+   * Set the provided value in the source data set at the provided coordinates.
+   *
+   * @memberof Core#
+   * @function getSourceDataAtCol
+   * @param {Number} row Physical row index.
+   * @param {Number|String} column Physical column index / prop name.
+   * @param {*} value The value to be set at the provided coordinates.
+   */
+  this.setSourceDataAtCell = function(row, column, value) {
+    dataSource.setAtCell(row, column, value);
   };
 
   /**
@@ -3007,8 +3032,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of rows.
    */
   this.countSourceRows = function() {
-    const sourceLength = instance.runHooks('modifySourceLength');
-    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
+    let sourceLength = null;
+
+    if (instance.hasHook('modifySourceLength')) {
+      sourceLength = instance.runHooks('modifySourceLength');
+    }
+
+    return sourceLength !== null ? sourceLength : dataSource.countRows();
   };
 
   /**
@@ -3019,17 +3049,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of columns.
    */
   this.countSourceCols = function() {
-    let len = 0;
-    const obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
-
-    if (isObject(obj)) {
-      len = deepObjectSize(obj);
-
-    } else {
-      len = obj.length || 0;
-    }
-
-    return len;
+    return dataSource.countColumns();
   };
 
   /**

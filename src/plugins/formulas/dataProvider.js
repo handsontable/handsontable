@@ -186,7 +186,7 @@ class DataProvider {
    * @param {*} value Value to update.
    */
   updateSourceData(physicalRow, physicalColumn, value) {
-    this.hot.getSourceData()[physicalRow][this.hot.colToProp(physicalColumn)] = value;
+    this.hot.setSourceDataAtCell(physicalRow, this.hot.colToProp(physicalColumn), value);
   }
 
   /**

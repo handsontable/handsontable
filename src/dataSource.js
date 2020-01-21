@@ -1,6 +1,12 @@
-import { getProperty } from './helpers/object';
+import {
+  createObjectPropListener,
+  getProperty,
+  isObject,
+  objectEach
+} from './helpers/object';
 import { arrayEach } from './helpers/array';
 import { rangeEach } from './helpers/number';
+import { isFunction } from './helpers/function';
 
 /**
  * @class DataSource
@@ -33,6 +39,16 @@ class DataSource {
   }
 
   /**
+   * Get the reference to the original dataset passed to the instance.
+   *
+   * @private
+   * @returns {Array} Reference to the original dataset.
+   */
+  getRawData() {
+    return this.data;
+  }
+
+  /**
    * Get all data.
    *
    * @param {Boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
@@ -40,17 +56,15 @@ class DataSource {
    * @returns {Array}
    */
   getData(toArray = false) {
-    let result = this.data;
-
-    if (toArray) {
-      result = this.getByRange(
-        { row: 0, col: 0 },
-        { row: Math.max(this.countRows() - 1, 0), col: Math.max(this.countColumns() - 1, 0) },
-        true
-      );
+    if (!this.data || this.data.length === 0) {
+      return this.getRawData();
     }
 
-    return result;
+    return this.getByRange(
+      { row: 0, col: 0 },
+      { row: Math.max(this.countRows() - 1, 0), col: Math.max(this.countColumns() - 1, 0) },
+      toArray
+    );
   }
 
   /**
@@ -71,17 +85,8 @@ class DataSource {
   getAtColumn(column) {
     const result = [];
 
-    arrayEach(this.data, (row) => {
-      const property = this.colToProp(column);
-      let value;
-
-      if (typeof property === 'string') {
-        value = getProperty(row, property);
-      } else if (typeof property === 'function') {
-        value = property(row);
-      } else {
-        value = row[property];
-      }
+    arrayEach(this.data, (row, rowIndex) => {
+      const value = this.getAtCell(rowIndex, column);
 
       result.push(value);
     });
@@ -96,7 +101,109 @@ class DataSource {
    * @returns {Array|Object}
    */
   getAtRow(row) {
-    return this.data[row];
+    let dataRow = null;
+    let newDataRow = null;
+    let modifyRowData = null;
+
+    if (this.hot.hasHook('modifyRowData')) {
+      modifyRowData = this.hot.runHooks('modifyRowData', row);
+    }
+
+    dataRow = modifyRowData !== null && isNaN(modifyRowData) ? modifyRowData : this.data[row];
+
+    if (Array.isArray(dataRow)) {
+      newDataRow = [];
+
+      rangeEach(0, dataRow.length - 1, (column) => {
+        newDataRow[column] = this.getAtPhysicalCell(row, column, dataRow);
+      });
+
+    } else if (isObject(dataRow) || isFunction(dataRow)) {
+      newDataRow = {};
+
+      objectEach(dataRow, (value, prop) => {
+        newDataRow[prop] = this.getAtPhysicalCell(row, prop, dataRow);
+      });
+    }
+
+    return newDataRow;
+  }
+
+  /**
+   * Set the provided data array/object in the source data set.
+   *
+   * @param {Number} row Physical row index.
+   * @param {Array|Object} rowData Row of data to be set in the source data set.
+   */
+  setAtRow(row, rowData) {
+    if (Array.isArray(rowData)) {
+      rangeEach(0, rowData.length - 1, (column) => {
+        this.setAtCell(row, column, rowData[column]);
+      });
+
+    } else if (isObject(rowData) || isFunction(rowData)) {
+      objectEach(rowData, (value, prop) => {
+        this.setAtCell(row, prop, rowData[prop]);
+      });
+    }
+  }
+
+  /**
+   * Set the provided value in the source data set at the provided coordinates.
+   *
+   * @param {Number} row Physical row index.
+   * @param {Number|String} column Property name / physical column index.
+   * @param {*} value The value to be set at the provided coordinates.
+   */
+  setAtCell(row, column, value) {
+    if (this.hot.hasHook('modifySourceData')) {
+      const valueHolder = createObjectPropListener(value);
+
+      this.hot.runHooks('modifySourceData', row, this.propToCol(column), valueHolder, 'set');
+
+      if (valueHolder.isTouched()) {
+        value = valueHolder.value;
+      }
+    }
+
+    this.data[row][column] = value;
+  }
+
+  /**
+   * Get data from the source data set using the physical indexes.
+   *
+   * @private
+   * @param {Number} row Physical row index.
+   * @param {String|number|Function} column Physical column index / property / function.
+   * @param {Array|Object} dataRow A representation of a data row.
+   * @returns {*} Value at the provided coordinates.
+   */
+  getAtPhysicalCell(row, column, dataRow) {
+    let result = null;
+
+    if (dataRow) {
+      if (typeof column === 'string') {
+        result = getProperty(dataRow, column);
+
+      } else if (typeof column === 'function') {
+        result = column(dataRow);
+
+      } else {
+        result = dataRow[column];
+      }
+    }
+
+    if (this.hot.hasHook('modifySourceData')) {
+      const valueHolder = createObjectPropListener(result);
+
+      this.hot.runHooks('modifySourceData', row, this.colToProp(column), valueHolder, 'get');
+
+      if (valueHolder.isTouched()) {
+        result = valueHolder.value;
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -107,27 +214,15 @@ class DataSource {
    * @returns {*}
    */
   getAtCell(row, column) {
-    let result = null;
+    let modifyRowData = null;
 
-    const modifyRowData = this.hot.runHooks('modifyRowData', row);
-
-    const dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
-
-    if (dataRow) {
-      const prop = this.colToProp(column);
-
-      if (typeof prop === 'string') {
-        result = getProperty(dataRow, prop);
-
-      } else if (typeof prop === 'function') {
-        result = prop(this.data.slice(row, row + 1)[0]);
-
-      } else {
-        result = dataRow[prop];
-      }
+    if (this.hot.hasHook('modifyRowData')) {
+      modifyRowData = this.hot.runHooks('modifyRowData', row);
     }
 
-    return result;
+    const dataRow = modifyRowData !== null && isNaN(modifyRowData) ? modifyRowData : this.data[row];
+
+    return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
   }
 
   /**
@@ -150,19 +245,46 @@ class DataSource {
       const row = this.getAtRow(currentRow);
       let newRow;
 
-      if (this.dataType === 'array') {
+      if (this.data[0] && Array.isArray(this.data[0])) {
         newRow = row.slice(startCol, endCol + 1);
 
-      } else if (this.dataType === 'object') {
+      } else if (this.data[0] && isObject(this.data[0])) {
         newRow = toArray ? [] : {};
 
         rangeEach(startCol, endCol, (column) => {
           const prop = this.colToProp(column);
+          const propHierarchy = isNaN(prop) ? prop.split('.') : [prop];
+          let value = null;
+
+          if (propHierarchy.length > 1) {
+            value = propHierarchy.reduce((acc, cv) => acc && acc[cv], row);
+
+          } else {
+            value = row[prop];
+          }
 
           if (toArray) {
-            newRow.push(row[prop]);
+            newRow.push(value);
+
           } else {
-            newRow[prop] = row[prop];
+            let nestedObject = newRow;
+            let deepProp = prop;
+
+            propHierarchy.forEach((nestedProp, i) => {
+              if (i === propHierarchy.length - 1) {
+                deepProp = nestedProp;
+
+                return;
+              }
+
+              if (!nestedObject[nestedProp]) {
+                nestedObject[nestedProp] = {};
+              }
+
+              nestedObject = nestedObject[nestedProp];
+            });
+
+            nestedObject[deepProp] = value;
           }
         });
       }
@@ -179,7 +301,14 @@ class DataSource {
    * @returns {Number}
    */
   countRows() {
-    return Array.isArray(this.data) ? this.data.length : 0;
+    if (this.hot.hasHook('modifySourceLength')) {
+      const modifiedSourceLength = this.hot.runHooks('modifySourceLength');
+
+      return isNaN(modifiedSourceLength) ? (this.data.length || 0) : modifiedSourceLength;
+
+    }
+
+    return this.data.length || 0;
   }
 
   /**
@@ -191,11 +320,29 @@ class DataSource {
     let result = 0;
 
     if (Array.isArray(this.data)) {
-      if (this.dataType === 'array') {
+      if (this.data[0] && Array.isArray(this.data[0])) {
         result = this.data[0].length;
 
-      } else if (this.dataType === 'object') {
-        result = Object.keys(this.data[0]).length;
+      } else if (this.data[0] && isObject(this.data[0])) {
+        const countKeys = (object, keycount) => {
+          objectEach(object, (value, key) => {
+            if (key === '__children') {
+              return;
+            }
+
+            if (isObject(value)) {
+              keycount += countKeys(value, 0);
+
+            } else {
+              keycount += 1;
+            }
+          });
+
+          return keycount;
+        };
+
+        result = countKeys(this.data[0], 0);
+
       }
     }
 

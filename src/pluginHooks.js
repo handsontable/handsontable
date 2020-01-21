@@ -961,12 +961,23 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
-   * @param {Number} row Row height.
-   * @param {Number} column Column index.
+   * @param {Number} row Physical row index.
+   * @param {Number} column Physical column index.
    * @param {Object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {String} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   'modifyData',
+
+  /**
+   * Fired when a data was retrieved or modified from the source data set.
+   *
+   * @event Hooks#modifySourceData
+   * @param {Number} row Physical row index.
+   * @param {Number} column Physical column index.
+   * @param {Object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {String} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
+  'modifySourceData',
 
   /**
    * Fired when a data was retrieved or modified.

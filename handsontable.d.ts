@@ -118,6 +118,8 @@ declare namespace _Handsontable {
     setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
     setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
     setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
+    setSourceDataAtCell(row: number, column: number, value: Handsontable.CellValue): void;
+    setSourceDataAtRow(row: number, rowData: Handsontable.CellValue[]|{ [key: string]: Handsontable.CellValue }): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     table: HTMLTableElement;
@@ -1988,7 +1990,7 @@ declare namespace Handsontable {
     column: boolean;
     cells: boolean;
   }
-  
+
   namespace RecordTranslation {
     interface IndexMap {
       getValues: number[],
@@ -1998,16 +2000,16 @@ declare namespace Handsontable {
       clear: () => void;
       getLength: () => number;
     }
-    
+
     interface IndexMapper {
       executeBatchOperations: (wrappedOperations: () => any) => void;
       registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
       unregisterMap: (name: string) => void;
-      getPhysicalIndex: (visualIndex: number) => number | null; 
+      getPhysicalIndex: (visualIndex: number) => number | null;
       getVisualIndex: (physicalIndex: number) => number | null;
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
-      setIndexesSequence: (indexes: number[]) => void;  
+      setIndexesSequence: (indexes: number[]) => void;
       getNotSkippedIndexes: (readFromCache?: boolean) => number[];
       getNotSkippedIndexesLength: () => number;
       getNumberOfIndexes: () => number;

@@ -278,8 +278,10 @@ class MultipleSelectUI extends BaseUI {
    */
   onSelectAllClick(event) {
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row) => {
+    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = true;
+
+      this.itemsBox.setSourceDataAtRow(rowIndex, row);
     });
     this.itemsBox.render();
   }
@@ -292,8 +294,10 @@ class MultipleSelectUI extends BaseUI {
    */
   onClearAllClick(event) {
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row) => {
+    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = false;
+
+      this.itemsBox.setSourceDataAtRow(rowIndex, row);
     });
     this.itemsBox.render();
   }
