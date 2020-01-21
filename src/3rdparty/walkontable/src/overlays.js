@@ -475,7 +475,7 @@ class Overlays {
     const hiderStyle = wtTable.hider.style;
 
     hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
-    hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
+    hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows)}px`;
 
     if (this.scrollbarSize > 0) {
       const {

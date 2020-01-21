@@ -407,22 +407,20 @@ export default class BorderRenderer {
     x2 += addLastTdWidth * lastTdBoundingRect.width;
     y2 += addLastTdHeight * lastTdBoundingRect.height;
 
+    const firstTdIncludesGridlineOnTheLeft = !(firstTd.nodeName === 'TH' || firstTd.previousElementSibling); // if there is a row header, the left gridline of column 0 comes from the row header. If firstTD is the first child, we know that there is no row header
+    const firstTdIncludesGridlineOnTheTop = !firstTd.parentNode.previousElementSibling && !firstTd.parentNode.parentNode.previousElementSibling.firstElementChild; // if there is a column header, the top gridline of row 0 comes from the column header. If the table table has an empty thead, we know that there is no row header
+
     // adjustments needed to render the border directly on the gridline, depending on the surrounding CSS
-    x1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
-    y1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
+    if (!firstTdIncludesGridlineOnTheLeft) {
+      x1 += offsetToOverLapPrecedingBorder;
+    }
+    if (!firstTdIncludesGridlineOnTheTop) {
+      y1 += offsetToOverLapPrecedingBorder;
+    }
+    x1 += -this.containerBoundingRect.left - this.padding.left;
+    y1 += -this.containerBoundingRect.top - this.padding.top;
     x2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
     y2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
-
-    const prevElemSibling = firstTd.previousElementSibling;
-    const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
-    const isThisTheFirstRow = firstTd.parentNode.previousElementSibling === null;
-
-    if (isThisTheFirstColumn) {
-      x1 += 1;
-    }
-    if (isThisTheFirstRow) {
-      y1 += 1;
-    }
 
     if (settings.border && settings.border.width && settings.border.strokeAlignment === 'inside') {
       // strokeAlignment: 'inside' is used to render the border of selection "inside" a cell

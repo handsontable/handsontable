@@ -224,9 +224,17 @@ class Viewport {
   }
 
   /**
+   * Returns total width for all row header cells.
+   *
    * @returns {number}
    */
   getRowHeaderWidth() {
+    if (this.wot.overlay) {
+      return this.wot.overlay.master.wtViewport.getRowHeaderWidth();
+    }
+
+    // TODO simply sum this.headerWidths instead of this logic
+
     const rowHeadersWidthSetting = this.wot.getSetting('rowHeaderWidth');
     const rowHeaders = this.wot.getSetting('rowHeaders');
 
@@ -236,10 +244,6 @@ class Viewport {
       for (let i = 0, len = rowHeaders.length; i < len; i++) {
         this.rowHeaderWidth += rowHeadersWidthSetting[i] || rowHeadersWidthSetting;
       }
-    }
-
-    if (this.wot.overlay) {
-      return this.wot.overlay.master.wtViewport.getRowHeaderWidth();
     }
 
     if (isNaN(this.rowHeaderWidth)) {

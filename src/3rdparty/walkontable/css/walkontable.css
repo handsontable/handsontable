@@ -60,14 +60,6 @@
   max-height: none;
 }
 
-.handsontable col {
-  width: 50px;
-}
-
-.handsontable col.rowHeader {
-  width: 50px;
-}
-
 .handsontable th,
 .handsontable td {
   border-top-width: 0;
@@ -94,30 +86,15 @@
 }
 
 .handsontable th:first-child,
-.handsontable th:nth-child(2),
-.handsontable td:first-of-type {
+.handsontable td:first-child {
   border-left: 1px solid #ccc;
 }
 
-.handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-left: 1px solid #ccc;
-}
-
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
+.handsontable thead tr:first-child th,
+.handsontable thead tr:first-child td,
+.handsontable tbody.afterEmptyThead tr:first-child th,
+.handsontable tbody.afterEmptyThead tr:first-child td {
   border-top: 1px solid #ccc;
-}
-
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
-  border-right-width: 0;
-}
-
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
 }
 
 .handsontable th {
@@ -230,12 +207,6 @@
   overflow: auto;
 }
 
-.handsontable .ht_master thead,
-.handsontable .ht_master tr th,
-.handsontable .ht_clone_left thead {
-  visibility: hidden;
-}
-
 .ht_clone_top .wtHolder,
 .ht_clone_left .wtHolder,
 .ht_clone_bottom .wtHolder {
@@ -266,8 +237,11 @@
 .ht_clone_top_left_corner tbody tr:last-child td {
   border-bottom: 1px solid #969696;
 }
-.ht_clone_bottom_left_corner tr:first-child th,
-.ht_clone_bottom_left_corner tr:first-child td,
-.ht_clone_bottom tr:first-child td {
+/* .ht_clone_bottom_left_corner tbody tr:first-child th,
+.ht_clone_bottom_left_corner tbody tr:first-child td,
+.ht_clone_bottom tbody tr:first-child td, */
+.ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child th,
+.ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child td,
+.ht_clone_bottom tbody.afterEmptyThead tr:first-child td {
   border-top: 1px solid #969696;
 }
