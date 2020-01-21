@@ -396,12 +396,10 @@ export default class BorderRenderer {
 
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
-    const isThisTheFirstRow = firstTd.parentNode.previousElementSibling === null;
+    const isThisTheFirstRowInTbody = firstTd.parentNode.previousElementSibling === null && firstTd.parentNode.parentNode.previousElementSibling !== null;
     const isItASelectionBorder = !!selectionSetting.className;
 
     if (isThisTheFirstColumn) {
-      x1 += 1;
-
       const areTherePossiblyRowHeaders = x1 > 0;
 
       if (areTherePossiblyRowHeaders && !isItASelectionBorder) {
@@ -409,14 +407,15 @@ export default class BorderRenderer {
         hasLeftEdge = false; // don't draw a left edge that would overlap the border of the header cell
       }
     }
-    if (isThisTheFirstRow) {
-      y1 += 1;
-
+    if (isThisTheFirstRowInTbody) {
       const areTherePossiblyColumnHeaders = y1 > 0;
 
       if (areTherePossiblyColumnHeaders && !isItASelectionBorder) {
         y1 += 1;
         hasTopEdge = false; // don't draw a top edge that would overlap the border of the header cell
+      }
+      if (!areTherePossiblyColumnHeaders && isItASelectionBorder) {
+        y1 += 1;
       }
     }
 

@@ -325,33 +325,7 @@ class TopOverlay extends Overlay {
    * @param {Number} position Header Y position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
-    const { master } = this;
-    const masterRootElement = master.wtTable.wtRootElement;
-    const totalColumns = master.getSetting('totalColumns');
 
-    if (totalColumns) {
-      removeClass(masterRootElement, 'emptyColumns');
-    } else {
-      addClass(masterRootElement, 'emptyColumns');
-    }
-
-    if (master.getSetting('fixedRowsTop') === 0 && master.getSetting('columnHeaders').length > 0) {
-      const previousState = hasClass(masterRootElement, 'innerBorderTop');
-
-      if (position || master.getSetting('totalRows') === 0) {
-        addClass(masterRootElement, 'innerBorderTop');
-      } else {
-        removeClass(masterRootElement, 'innerBorderTop');
-      }
-
-      if (!previousState && position || previousState && !position) {
-        master.wtOverlays.adjustElementsSizes();
-
-        // cell borders should be positioned once again,
-        // because we added / removed 1px border from table header
-        this.redrawAllSelectionsBorders();
-      }
-    }
   }
 }
 

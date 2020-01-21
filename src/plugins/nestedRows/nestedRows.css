@@ -9,11 +9,6 @@
   left: 11px;
 }
 
-.handsontable.innerBorderLeft th div.ht_nestingLevels,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingLevels {
-  right: 10px;
-}
-
 .handsontable th span.ht_nestingLevel {
   display: inline-block;
 }
@@ -47,9 +42,4 @@
 
 .handsontable th div.ht_nestingButton.ht_nestingCollapse::after {
   content: "\002D";
-}
-
-.handsontable.innerBorderLeft th div.ht_nestingButton,
-.handsontable.innerBorderLeft ~ .handsontable th div.ht_nestingButton {
-  right: 0;
 }
