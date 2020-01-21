@@ -4,8 +4,8 @@ const $ = (selector, context = document) => context.querySelector(selector);
 /**
  * Return ASCII symbol for headers depends on what the class name HTMLTableCellElement has.
  *
- * @param {HTMLTableCellElement} cell
- * @return {String} Returns '   ', ` * ` or ' - '.
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {string} Returns '   ', ` * ` or ' - '.
  */
 function getSelectionSymbolForHeader(cell) {
   const hasActiveHeader = cell.classList.contains('ht__active_highlight');
@@ -26,8 +26,8 @@ function getSelectionSymbolForHeader(cell) {
 /**
  * Return ASCII symbol for cells depends on what the class name HTMLTableCellElement has.
  *
- * @param {HTMLTableCellElement} cell
- * @return {String} Returns valid symbol for the pariticaul cell.
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {string} Returns valid symbol for the pariticaul cell.
  */
 function getSelectionSymbolForCell(cell) {
   const hasCurrent = cell.classList.contains('current');
@@ -63,8 +63,8 @@ function getSelectionSymbolForCell(cell) {
 /**
  * Generate ASCII symbol for passed cell element.
  *
- * @param {HTMLTableCellElement} cell
- * @return {String}
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {string}
  */
 function getSelectionSymbol(cell) {
   if (isLeftHeader(cell) || isTopHeader(cell)) {
@@ -77,8 +77,8 @@ function getSelectionSymbol(cell) {
 /**
  * Check if passed element belong to the left header.
  *
- * @param {HTMLTableCellElement} cell
- * @return {Boolean}
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {boolean}
  */
 function isLeftHeader(cell) {
   return cell.tagName === 'TH' && cell.parentElement.parentElement.tagName === 'TBODY';
@@ -87,16 +87,16 @@ function isLeftHeader(cell) {
 /**
  * Check if passed element belong to the rop header.
  *
- * @param {HTMLTableCellElement} cell
- * @return {Boolean}
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {boolean}
  */
 function isTopHeader(cell) {
   return cell.tagName === 'TH' && cell.parentElement.parentElement.tagName === 'THEAD';
 }
 
 /**
- * @param {HTMLTableElement} overlay
- * @return {Function}
+ * @param {HTMLTableElement} overlay The overlay element to process.
+ * @returns {Function}
  */
 function cellFactory(overlay) {
   return (row, column) => overlay && overlay.rows[row] && overlay.rows[row].cells[column];
@@ -106,7 +106,7 @@ function cellFactory(overlay) {
  * Generates table based on Handsontable structure.
  *
  * @param {HTMLElement} context The root element of the Handsontable instance to be generated.
- * @return {String}
+ * @returns {string}
  */
 export function generateASCIITable(context) {
   const TABLE_EDGES_SYMBOL = '|';

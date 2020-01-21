@@ -3,6 +3,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'col_left';
 
+/**
+ * @returns {object}
+ */
 export default function columnLeftItem() {
   return {
     key: KEY,

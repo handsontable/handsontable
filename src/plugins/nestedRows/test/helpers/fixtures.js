@@ -1,3 +1,6 @@
+/**
+ * @returns {object[]}
+ */
 export function getMoreComplexNestedData() {
   return [
     {
@@ -67,6 +70,9 @@ export function getMoreComplexNestedData() {
   ];
 }
 
+/**
+ * @returns {object[]}
+ */
 export function getSimplerNestedData() {
   return [
     {

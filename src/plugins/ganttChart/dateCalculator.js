@@ -13,13 +13,13 @@ class DateCalculator {
     /**
      * Year to base calculations on.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.year = year;
     /**
      * First day of the week.
      *
-     * @type {String}
+     * @type {string}
      */
     this.firstWeekDay = 'monday';
     /**
@@ -37,20 +37,20 @@ class DateCalculator {
     /**
      * Number of week sections (full weeks + incomplete week blocks in months).
      *
-     * @type {Number}
+     * @type {number}
      */
     this.weekSectionCount = 0;
     /**
      * Cache of lists of months and their week/day related information.
      * It's categorized by year, so month information for a certain year is stored under `this.monthListCache[year]`.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.monthListCache = {};
     /**
      * Object containing references to the year days and their corresponding columns.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.daysInColumns = {};
 
@@ -60,7 +60,7 @@ class DateCalculator {
   /**
    * Set the year as a base for calculations.
    *
-   * @param {Number} year
+   * @param {number} year The year.
    */
   setYear(year) {
     this.year = year;
@@ -72,7 +72,7 @@ class DateCalculator {
   /**
    * Set the first week day.
    *
-   * @param {String} day Day of the week. Available options: 'monday' or 'sunday'.
+   * @param {string} day Day of the week. Available options: 'monday' or 'sunday'.
    */
   setFirstWeekDay(day) {
     const lowercaseDay = day.toLowerCase();
@@ -89,7 +89,7 @@ class DateCalculator {
   /**
    * Count week sections (full weeks + incomplete weeks in the months).
    *
-   * @returns {Number} Week section count.
+   * @returns {number} Week section count.
    */
   countWeekSections() {
     return this.weekSectionCount;
@@ -98,7 +98,7 @@ class DateCalculator {
   /**
    * Get the first week day.
    *
-   * @returns {String}
+   * @returns {string}
    */
   getFirstWeekDay() {
     return this.firstWeekDay;
@@ -107,7 +107,7 @@ class DateCalculator {
   /**
    * Get the currently applied year.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getYear() {
     return this.year;
@@ -116,7 +116,7 @@ class DateCalculator {
   /**
    * Get month list along with the month information.
    *
-   * @param {Number} [year] Year for the calculation.
+   * @param {number} [year] Year for the calculation.
    * @returns {Array}
    */
   getMonthList(year = this.year) {
@@ -130,7 +130,7 @@ class DateCalculator {
   /**
    * Get month lists for all years declared in the range bars.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getFullMonthList() {
     return this.monthListCache;
@@ -139,8 +139,8 @@ class DateCalculator {
   /**
    * Convert a date to a column number.
    *
-   * @param {String|Date} date
-   * @returns {Number|Boolean}
+   * @param {string|Date} date The date to convert.
+   * @returns {number|boolean}
    */
   dateToColumn(date) {
     const convertedDate = parseDate(date);
@@ -160,10 +160,10 @@ class DateCalculator {
    * Get the column index for the provided day and month indexes.
    *
    * @private
-   * @param {Number} dayIndex The index of the day.
-   * @param {Number} monthIndex The index of the month.
-   * @param {Number} [year] Year for the calculation.
-   * @returns {Number} Returns the column index.
+   * @param {number} dayIndex The index of the day.
+   * @param {number} monthIndex The index of the month.
+   * @param {number} [year] Year for the calculation.
+   * @returns {number} Returns the column index.
    */
   getWeekColumn(dayIndex, monthIndex, year = this.getYear()) {
     let resultColumn = null;
@@ -190,8 +190,8 @@ class DateCalculator {
    * Get the cached day array for the provided month.
    *
    * @private
-   * @param {Number} monthIndex Index of the Month.
-   * @param {Number} [year] Year for the calculation.
+   * @param {number} monthIndex Index of the Month.
+   * @param {number} [year] Year for the calculation.
    * @returns {Array}
    */
   getMonthCacheArray(monthIndex, year = this.getYear()) {
@@ -232,9 +232,9 @@ class DateCalculator {
   /**
    * Convert a column index to a certain date.
    *
-   * @param {Number} column Column index.
-   * @param {Number} [year] Year to be used.
-   * @returns {Object} Object in a form of {start: startDate, end: endDate}
+   * @param {number} column Column index.
+   * @param {number} [year] Year to be used.
+   * @returns {object} Object in a form of {start: startDate, end: endDate}.
    */
   columnToDate(column, year = this.getYear()) {
     let month = null;
@@ -268,8 +268,8 @@ class DateCalculator {
    * Check if the provided date is a starting or an ending day of a week.
    *
    * @private
-   * @param {Date|String} date
-   * @returns {Array|Boolean} Returns null, if an invalid date was provided or an array of results ( [1,0] => is on the beginning of the week, [0,1] => is on the end of the week).
+   * @param {Date|string} date The date to check.
+   * @returns {Array|boolean} Returns null, if an invalid date was provided or an array of results ( [1,0] => is on the beginning of the week, [0,1] => is on the end of the week).
    */
   isOnTheEdgeOfWeek(date) {
     const convertedDate = parseDate(date);
@@ -318,10 +318,10 @@ class DateCalculator {
    * Generate headers for the year structure.
    *
    * @private
-   * @param {String} type Granulation type ('months'/'weeks'/'days')
+   * @param {string} type Granulation type ('months'/'weeks'/'days').
    * @param {Function|null} weekHeaderGenerator Function generating the looks of the week headers.
-   * @param {Number} [year=this.year] The year for the calculation.
-   * @returns {Array} The header array
+   * @param {number} [year=this.year] The year for the calculation.
+   * @returns {Array} The header array.
    */
   generateHeaderSet(type, weekHeaderGenerator, year = this.year) {
     const monthList = this.getMonthList(year);
@@ -395,15 +395,15 @@ class DateCalculator {
    * Get the week column range.
    *
    * @private
-   * @param {Object} options The options object.
-   * @param {Object} options.monthObject The month object.
-   * @param {Number} options.monthNumber Index of the month.
-   * @param {Number} options.headerIndex Index of the header.
-   * @param {Boolean} options.areDaysBeforeFullWeeksVisible `true` if the days before full weeks are to be visible.
-   * @param {Boolean} options.areDaysAfterFullWeeksVisible `true` if the days after full weeks are to be visible.
-   * @param {Number} options.headerCount Number of headers to be generated for the provided month.
-   * @param {Boolean} [options.mixedMonth=false] `true` if the header is the single header of a mixed month.
-   * @param {Number} [year] Year for the calculation.
+   * @param {object} options The options object.
+   * @param {object} options.monthObject The month object.
+   * @param {number} options.monthNumber Index of the month.
+   * @param {number} options.headerIndex Index of the header.
+   * @param {boolean} options.areDaysBeforeFullWeeksVisible `true` if the days before full weeks are to be visible.
+   * @param {boolean} options.areDaysAfterFullWeeksVisible `true` if the days after full weeks are to be visible.
+   * @param {number} options.headerCount Number of headers to be generated for the provided month.
+   * @param {boolean} [options.mixedMonth=false] `true` if the header is the single header of a mixed month.
+   * @param {number} [options.year] Year for the calculation.
    * @returns {Array}
    */
   getWeekColumnRange({
@@ -461,11 +461,11 @@ class DateCalculator {
    * Add days to the column/day cache.
    *
    * @private
-   * @param {Number} monthNumber Index of the month.
-   * @param {Number} columnNumber Index of the column.
-   * @param {Number} start First day in the column.
-   * @param {Number} end Last day in the column.
-   * @param {Number} [year] Year to process.
+   * @param {number} monthNumber Index of the month.
+   * @param {number} columnNumber Index of the column.
+   * @param {number} start First day in the column.
+   * @param {number} end Last day in the column.
+   * @param {number} [year] Year to process.
    */
   addDaysToCache(monthNumber, columnNumber, start, end, year = this.getYear()) {
     if (!this.daysInColumns[year]) {
@@ -501,9 +501,9 @@ class DateCalculator {
   /**
    * Check if the provided dates can be used in a range bar.
    *
-   * @param {Date|String} startDate Range start date.
-   * @param {Date|String} endDate Range end date.
-   * @returns {Boolean}
+   * @param {Date|string} startDate Range start date.
+   * @param {Date|string} endDate Range end date.
+   * @returns {boolean}
    */
   isValidRangeBarData(startDate, endDate) {
     const startDateParsed = parseDate(startDate);
@@ -515,7 +515,7 @@ class DateCalculator {
   /**
    * Calculate the month/day related information.
    *
-   * @param {Number} [year] Year to be used.
+   * @param {number} [year] Year to be used.
    * @returns {Array}
    */
   calculateMonthData(year = this.year) {
@@ -538,8 +538,8 @@ class DateCalculator {
   /**
    * Count the number of months.
    *
-   * @param {Number} [year] Year to be used.
-   * @returns {Number}
+   * @param {number} [year] Year to be used.
+   * @returns {number}
    */
   countMonths(year = this.getYear()) {
     return this.monthListCache[year].length;
@@ -548,9 +548,9 @@ class DateCalculator {
   /**
    * Count days in a month.
    *
-   * @param {Number} month Month index, where January = 1, February = 2, etc.
-   * @param {Number} [year] Year to be used.
-   * @returns {Number}
+   * @param {number} month Month index, where January = 1, February = 2, etc.
+   * @param {number} [year] Year to be used.
+   * @returns {number}
    */
   countMonthDays(month, year = this.getYear()) {
     return this.monthListCache[year][month - 1].days;
@@ -559,9 +559,9 @@ class DateCalculator {
   /**
    * Count full weeks in a month.
    *
-   * @param {Number} month Month index, where January = 1, February = 2, etc.
-   * @param {Number} [year] Year to be used.
-   * @returns {Number}
+   * @param {number} month Month index, where January = 1, February = 2, etc.
+   * @param {number} [year] Year to be used.
+   * @returns {number}
    */
   countMonthFullWeeks(month, year = this.getYear()) {
     return this.monthListCache[year][month - 1].fullWeeks;
@@ -571,7 +571,7 @@ class DateCalculator {
    * Calculate week structure within defined months.
    *
    * @private
-   * @param {Number} [year] Year for the calculation.
+   * @param {number} [year] Year for the calculation.
    */
   calculateWeekStructure(year = this.getYear()) {
     this.monthListCache[year] = this.calculateMonthData(year);
@@ -635,9 +635,9 @@ class DateCalculator {
    * Add a mixed (e.g. 'Jan/Feb') month to the month list.
    *
    * @private
-   * @param {Number} index Index for the month.
-   * @param {Object} monthObject The month object.
-   * @param {Number} [year] Year for the calculation.
+   * @param {number} index Index for the month.
+   * @param {object} monthObject The month object.
+   * @param {number} [year] Year for the calculation.
    */
   addMixedMonth(index, monthObject, year) {
     if (index === null) {

@@ -1267,6 +1267,9 @@ describe('ColumnSorting', () => {
     ];
     let dataReference = null;
 
+    /**
+     * @param row
+     */
     function customIsEmptyRow(row) {
       return dataReference[row].isNew;
     }

@@ -9,7 +9,7 @@ const {
 /**
  * Register phrase formatter.
  *
- * @param {String} name Name of formatter.
+ * @param {string} name Name of formatter.
  * @param {Function} formatterFn Function which will be applied on phrase propositions. It will transform them if it's possible.
  */
 export function register(name, formatterFn) {

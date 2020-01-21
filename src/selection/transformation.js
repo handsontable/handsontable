@@ -22,7 +22,7 @@ class Transformation {
     /**
      * Additional options which define the state of the settings which can infer transformation.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.options = options;
   }
@@ -30,9 +30,9 @@ class Transformation {
   /**
    * Selects cell relative to current cell (if possible).
    *
-   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
-   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
-   * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   * @param {number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    * @returns {CellCoords}
    */
@@ -107,8 +107,8 @@ class Transformation {
   /**
    * Sets selection end cell relative to current selection end cell (if possible).
    *
-   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
-   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {number} colDelta Columns number to move, value can be passed as negative number.
    * @returns {CellCoords}
    */
   transformEnd(rowDelta, colDelta) {

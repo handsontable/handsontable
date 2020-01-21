@@ -3,7 +3,6 @@ import { hasClass } from './../helpers/dom/element';
 
 /**
  * @private
- * @editor CheckboxEditor
  * @class CheckboxEditor
  */
 class CheckboxEditor extends BaseEditor {

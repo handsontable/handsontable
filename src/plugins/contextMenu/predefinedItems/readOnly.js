@@ -4,6 +4,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'make_read_only';
 
+/**
+ * @returns {object}
+ */
 export default function readOnlyItem() {
   return {
     key: KEY,

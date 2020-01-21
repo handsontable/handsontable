@@ -20,9 +20,7 @@ const privatePool = new WeakMap();
 
 /**
  * @private
- * @editor AutocompleteEditor
  * @class AutocompleteEditor
- * @dependencies HandsontableEditor
  */
 class AutocompleteEditor extends HandsontableEditor {
   constructor(instance) {
@@ -30,13 +28,13 @@ class AutocompleteEditor extends HandsontableEditor {
     /**
      * Query string to turn available values over.
      *
-     * @type {String}
+     * @type {string}
      */
     this.query = null;
     /**
      * Contains stripped choices.
      *
-     * @type {String[]}
+     * @type {string[]}
      */
     this.strippedChoices = [];
     /**
@@ -55,7 +53,7 @@ class AutocompleteEditor extends HandsontableEditor {
   /**
    * Gets current value from editable element.
    *
-   * @returns {String}
+   * @returns {string}
    */
   getValue() {
     const selectedValue = this.rawChoices.find((value) => {
@@ -148,9 +146,10 @@ class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Verifies result of validation or closes editor if user's cancelled changes. Re-renders WalkOnTable.
+   * Verifies result of validation or closes editor if user's cancelled changes.
    *
-   * @param {Boolean|undefined} result
+   * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
+   *                                   then an editor won't be closed until validation is passed.
    */
   discardEditor(result) {
     super.discardEditor(result);
@@ -162,7 +161,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Prepares choices list based on applied argument.
    *
    * @private
-   * @param {String} query
+   * @param {string} query The query.
    */
   queryChoices(query) {
     const source = this.cellProperties.source;
@@ -187,7 +186,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Updates list of the possible completions to choose.
    *
    * @private
-   * @param {Array} choicesList
+   * @param {Array} choicesList The choices list to process.
    */
   updateChoicesList(choicesList) {
     const pos = getCaretPosition(this.TEXTAREA);
@@ -249,7 +248,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Checks where is enough place to open editor.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   flipDropdownIfNeeded() {
     const textareaOffset = offset(this.TEXTAREA);
@@ -286,8 +285,8 @@ class AutocompleteEditor extends HandsontableEditor {
    * Checks if the internal table should generate scrollbar or could be rendered without it.
    *
    * @private
-   * @param {Number} spaceAvailable
-   * @param {Number} dropdownHeight
+   * @param {number} spaceAvailable The free space as height definded in px available for dropdown list.
+   * @param {number} dropdownHeight The dropdown height.
    */
   limitDropdownIfNeeded(spaceAvailable, dropdownHeight) {
     if (dropdownHeight > spaceAvailable) {
@@ -316,7 +315,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Configures editor to open it at the top.
    *
    * @private
-   * @param {Number} dropdownHeight
+   * @param {number} dropdownHeight The dropdown height.
    */
   flipDropdown(dropdownHeight) {
     const dropdownStyle = this.htEditor.rootElement.style;
@@ -364,7 +363,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Sets new height of the internal Handsontable's instance.
    *
    * @private
-   * @param {Number} height
+   * @param {number} height The new dropdown height.
    */
   setDropdownHeight(height) {
     this.htEditor.updateSettings({
@@ -376,7 +375,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Creates new selection on specified row index, or deselects selected cells.
    *
    * @private
-   * @param {Number|undefined} index
+   * @param {number|undefined} index The visual row index.
    */
   highlightBestMatchingChoice(index) {
     if (typeof index === 'number') {
@@ -390,7 +389,7 @@ class AutocompleteEditor extends HandsontableEditor {
    * Calculates and return the internal Handsontable's height.
    *
    * @private
-   * @returns {Number}
+   * @returns {number}
    */
   getDropdownHeight() {
     const firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
@@ -403,8 +402,8 @@ class AutocompleteEditor extends HandsontableEditor {
    * Sanitizes value from potential dangerous tags.
    *
    * @private
-   * @param {String} value
-   * @returns {String}
+   * @param {string} value The value to sanitize.
+   * @returns {string}
    */
   stripValueIfNeeded(value) {
     return this.stripValuesIfNeeded([value])[0];
@@ -414,8 +413,8 @@ class AutocompleteEditor extends HandsontableEditor {
    * Sanitizes an array of the values from potential dangerous tags.
    *
    * @private
-   * @param {String[]} values
-   * @returns {String[]}
+   * @param {string[]} values The value to sanitize.
+   * @returns {string[]}
    */
   stripValuesIfNeeded(values) {
     const { allowHtml } = this.cellProperties;
@@ -430,8 +429,8 @@ class AutocompleteEditor extends HandsontableEditor {
    * Captures use of arrow down and up to control their behaviour.
    *
    * @private
-   * @param {Number} keyCode
-   * @returns {Boolean}
+   * @param {number} keyCode The keyboard keycode.
+   * @returns {boolean}
    */
   allowKeyEventPropagation(keyCode) {
     const selectedRange = this.htEditor.getSelectedRangeLast();
@@ -449,10 +448,10 @@ class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
    * @private
-   * @param {KeyboardEvent} event
+   * @param {KeyboardEvent} event The keyboard event object.
    */
   onBeforeKeyDown(event) {
     const priv = privatePool.get(this);
@@ -486,10 +485,10 @@ class AutocompleteEditor extends HandsontableEditor {
 /**
  * Filters and sorts by relevance.
  *
- * @param value
- * @param choices
- * @param caseSensitive
- * @returns {Number[]} array of indexes in original choices array
+ * @param {*} value The selected value.
+ * @param {string[]} choices The list of available choices.
+ * @param {boolean} caseSensitive Indicates if it's sorted by case.
+ * @returns {number[]} Array of indexes in original choices array.
  */
 AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   const choicesRelevance = [];
