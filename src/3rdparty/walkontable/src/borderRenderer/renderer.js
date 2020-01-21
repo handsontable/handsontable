@@ -389,26 +389,30 @@ export default class BorderRenderer {
     y2 += addLastTdHeight * lastTdBoundingRect.height;
 
     // adjustments needed to render the border directly on the gridline, depending on the surrounding CSS
-    x1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
-    y1 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
-    x2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left - this.padding.left;
-    y2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top - this.padding.top;
+    x1 += 0 - this.containerBoundingRect.left - this.padding.left;
+    y1 += 0 - this.containerBoundingRect.top - this.padding.top;
+    x2 += 0 - this.containerBoundingRect.left - this.padding.left;
+    y2 += 0 - this.containerBoundingRect.top - this.padding.top;
+
+    const gridlineWidth = 1;
+
+    // offsetToOverLapPrecedingBorder
 
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
+    const isLeftGridlineInsideFirstTdRect = isThisTheFirstColumn;
+
     // const isThisTheFirstRowInTbody = firstTd.parentNode.previousElementSibling === null;
     const isThisTheFirstRowInTbody = firstTd.parentNode.previousElementSibling === null && firstTd.parentNode.parentNode.previousElementSibling !== null;
     const isItASelectionBorder = !!selectionSetting.className;
 
-    if (isThisTheFirstColumn) {
-      const areTherePossiblyRowHeaders = x1 > 0;
+    // const areThereColumnHeaders = y1 > 0; // do not render custom borders on column header border
 
-      if (areTherePossiblyRowHeaders && !isItASelectionBorder) {
-        x1 += 1;
+    if (isLeftGridlineInsideFirstTdRect) {
+
+      if (!isItASelectionBorder) {
+        x1 += gridlineWidth;
         hasLeftEdge = false; // don't draw a left edge that would overlap the border of the header cell
-      }
-      if (!areTherePossiblyRowHeaders && isItASelectionBorder) {
-        x1 += 1;
       }
     }
     if (isThisTheFirstRowInTbody) {
