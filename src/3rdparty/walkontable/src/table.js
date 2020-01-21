@@ -8,7 +8,6 @@ import {
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
-import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
@@ -64,11 +63,6 @@ class Table {
     this.rowFilter = null;
     this.columnFilter = null;
     this.correctHeaderWidth = false;
-
-    const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
-
-    // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
-    this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
 
     this.tableRenderer = new Renderer({
       TABLE: this.TABLE,
@@ -818,46 +812,6 @@ class Table {
    */
   isVisible() {
     return isVisible(this.TABLE);
-  }
-
-  /**
-   * Modify row header widths provided by user in class contructor.
-   *
-   * @private
-   * @param {Function} rowHeaderWidthFactory The function which can provide default width values for rows..
-   * @returns {number}
-   */
-  _modifyRowHeaderWidth(rowHeaderWidthFactory) {
-    let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
-
-    if (Array.isArray(widths)) {
-      widths = [...widths];
-      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
-    } else {
-      widths = this._correctRowHeaderWidth(widths);
-    }
-
-    return widths;
-  }
-
-  /**
-   * Correct row header width if necessary.
-   *
-   * @private
-   * @param {number} width The width to process.
-   * @returns {number}
-   */
-  _correctRowHeaderWidth(width) {
-    let rowHeaderWidth = width;
-
-    if (typeof width !== 'number') {
-      rowHeaderWidth = this.wot.getSetting('defaultColumnWidth');
-    }
-    if (this.correctHeaderWidth) {
-      rowHeaderWidth += 1;
-    }
-
-    return rowHeaderWidth;
   }
 }
 
