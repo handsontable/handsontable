@@ -2070,6 +2070,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const wotIndex = column < 0 ? column : this.columnIndexMapper.getRenderableFromVisualIndex(column);
+
     return instance.view.getCellAtCoords(new CellCoords(row, wotIndex), topmost);
   };
 

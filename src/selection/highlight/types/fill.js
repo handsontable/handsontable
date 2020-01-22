@@ -1,4 +1,4 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import VisualSelection from '../visualSelection';
 
 /**
  * Creates the new instance of Selection, responsible for highlighting cells which are covered by fill handle
@@ -6,8 +6,10 @@ import { Selection } from './../../../3rdparty/walkontable/src';
  *
  * @return {Selection}
  */
-function createHighlight() {
-  const s = new Selection({
+function createHighlight({ translateCoords, untranslateCoords }) {
+  const s = new VisualSelection({
+    translateCoords,
+    untranslateCoords,
     className: 'fill',
     border: {
       width: 1,

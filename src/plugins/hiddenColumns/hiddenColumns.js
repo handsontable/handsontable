@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayReduce } from '../../helpers/array';
 import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
@@ -163,7 +163,7 @@ class HiddenColumns extends BasePlugin {
       destinationHideConfig = currentHideConfig.filter(hiddenColumn => columns.includes(hiddenColumn) === false);
 
       this.hot.executeBatchOperations(() => {
-        columns.forEach((visualColumn) => {
+        arrayEach(columns, (visualColumn) => {
           this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
         });
       });
@@ -204,7 +204,7 @@ class HiddenColumns extends BasePlugin {
 
     if (validColumns) {
       this.hot.executeBatchOperations(() => {
-        columns.forEach((visualColumn) => {
+        arrayEach(columns, (visualColumn) => {
           this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });
       });
@@ -229,7 +229,7 @@ class HiddenColumns extends BasePlugin {
    * @returns {Number[]}
    */
   getHiddenColumns() {
-    return this.hiddenColumnsMap.getValues().reduce((hiddenColumns, flag, index) => {
+    return arrayReduce(this.hiddenColumnsMap.getValues(), (hiddenColumns, flag, index) => {
       if (flag) {
         hiddenColumns.push(index);
       }
@@ -294,8 +294,7 @@ class HiddenColumns extends BasePlugin {
     if (this.isHidden(col)) {
       return 0.1;
 
-    } else if (this.settings.indicators && (this.isHidden(col + 1) ||
-      this.isHidden(col - 1))) {
+    } else if (this.settings.indicators && (this.isHidden(col + 1) || this.isHidden(col - 1))) {
 
       // add additional space for hidden column indicator
       return width + (this.hot.hasColHeaders() ? 15 : 0);
@@ -412,8 +411,6 @@ class HiddenColumns extends BasePlugin {
         this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
       }
     }
-
-    return 'hiddenColumn';
   }
 
   /**

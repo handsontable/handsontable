@@ -27,8 +27,8 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
 
       hiddenColumnsPlugin.hideColumns(columnsToHide);
 
-      const contedRenderableColumns = this.countRenderableColumns();
-      const columnToSelect = start >= contedRenderableColumns ? contedRenderableColumns - 1 : start;
+      const countedRenderableColumns = this.countRenderableColumns();
+      const columnToSelect = start >= countedRenderableColumns ? countedRenderableColumns - 1 : start;
 
       this.selectColumns(columnToSelect);
       this.render();

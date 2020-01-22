@@ -77,6 +77,8 @@ class Selection {
       disableHighlight: this.settings.disableVisualSelection,
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
+      translateCoords: coords => this.tableProps.translateCoords(coords),
+      untranslateCoords: coords => this.tableProps.untranslateCoords(coords),
     });
     /**
      * The module for modifying coordinates.
@@ -221,7 +223,7 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.tableProps.translateCoords(this.selectedRange.current().highlight));
+      this.highlight.getCell().add(this.selectedRange.current().highlight);
     }
 
     const layerLevel = this.getLayerLevel();
@@ -246,8 +248,8 @@ class Selection {
 
     if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
-        .add(this.tableProps.translateCoords(cellRange.from))
-        .add(this.tableProps.translateCoords(cellRange.to));
+        .add(cellRange.from)
+        .add(cellRange.to);
 
       if (layerLevel === 1) {
         // For single cell selection in the same layer, we do not create area selection to prevent blue background.
@@ -256,7 +258,7 @@ class Selection {
         this.highlight
           .useLayerLevel(layerLevel - 1)
           .createOrGetArea()
-          .add(this.tableProps.translateCoords(this.selectedRange.previous().from));
+          .add(this.selectedRange.previous().from);
 
         this.highlight.useLayerLevel(layerLevel);
       }
@@ -268,8 +270,8 @@ class Selection {
 
       } else {
         headerHighlight
-          .add(this.tableProps.translateCoords(cellRange.from))
-          .add(this.tableProps.translateCoords(cellRange.to));
+          .add(cellRange.from)
+          .add(cellRange.to);
       }
     }
 
@@ -279,8 +281,8 @@ class Selection {
       // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
       if (isRowSelected) {
         activeHeaderHighlight
-          .add(this.tableProps.translateCoords(new CellCoords(cellRange.from.row, -1)))
-          .add(this.tableProps.translateCoords(new CellCoords(cellRange.to.row, -1)));
+          .add(new CellCoords(cellRange.from.row, -1))
+          .add(new CellCoords(cellRange.to.row, -1));
       }
     }
 
@@ -290,8 +292,8 @@ class Selection {
       // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
       if (isColumnSelected) {
         activeHeaderHighlight
-          .add(this.tableProps.translateCoords(new CellCoords(-1, cellRange.from.col)))
-          .add(this.tableProps.translateCoords(new CellCoords(-1, cellRange.to.col)));
+          .add(new CellCoords(-1, cellRange.from.col))
+          .add(new CellCoords(-1, cellRange.to.col));
       }
     }
 
