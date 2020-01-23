@@ -1,7 +1,6 @@
 import BasePlugin from './../_base';
 import { addClass, hasClass, removeClass, outerWidth } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
-import { pageY } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
@@ -393,7 +392,7 @@ class ManualRowResize extends BasePlugin {
       }
 
       this.dblclick += 1;
-      this.startY = pageY(event);
+      this.startY = event.pageY;
       this.newSize = this.startHeight;
     }
   }
@@ -406,7 +405,7 @@ class ManualRowResize extends BasePlugin {
    */
   onMouseMove(event) {
     if (this.pressed) {
-      this.currentHeight = this.startHeight + (pageY(event) - this.startY);
+      this.currentHeight = this.startHeight + (event.pageY - this.startY);
 
       arrayEach(this.selectedRows, (selectedRow) => {
         this.newSize = this.setManualSize(selectedRow, this.currentHeight);

@@ -322,7 +322,11 @@ class ColumnSummary extends BasePlugin {
     const visualColumnIndex = this.hot.toVisualColumn(col);
 
     let cellValue = this.hot.getSourceDataAtCell(row, col);
-    const cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
+    let cellClassName = '';
+
+    if (visualRowIndex !== null && visualColumnIndex !== null) {
+      cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
+    }
 
     if (cellClassName.indexOf('columnSummaryResult') > -1) {
       return null;

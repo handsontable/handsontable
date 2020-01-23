@@ -521,7 +521,7 @@ class ManualColumnMove extends BasePlugin {
     const selection = this.hot.getSelectedRangeLast();
     const priv = privatePool.get(this);
     // This block action shouldn't be handled below.
-    const isSortingElement = hasClass(event.realTarget, 'sortAction');
+    const isSortingElement = hasClass(event.target, 'sortAction');
 
     if (!selection || !isHeaderSelection || priv.pressed || event.button !== 0 || isSortingElement) {
       priv.pressed = false;
@@ -591,7 +591,7 @@ class ManualColumnMove extends BasePlugin {
     }
 
     // callback for browser which doesn't supports CSS pointer-event: none
-    if (event.realTarget === this.backlight.element) {
+    if (event.target === this.backlight.element) {
       const width = this.backlight.getSize().width;
       this.backlight.setSize(0);
 

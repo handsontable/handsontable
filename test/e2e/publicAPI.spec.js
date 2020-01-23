@@ -183,7 +183,6 @@ describe('Public API', () => {
       expect(Handsontable.dom.innerHeight).toBeFunction();
       expect(Handsontable.dom.innerWidth).toBeFunction();
       expect(Handsontable.dom.isChildOf).toBeFunction();
-      expect(Handsontable.dom.isChildOfWebComponentTable).toBeFunction();
       expect(Handsontable.dom.isImmediatePropagationStopped).toBeFunction();
       expect(Handsontable.dom.isInput).toBeFunction();
       expect(Handsontable.dom.isLeftClick).toBeFunction();
@@ -193,10 +192,6 @@ describe('Public API', () => {
       expect(Handsontable.dom.outerHeight).toBeFunction();
       expect(Handsontable.dom.outerWidth).toBeFunction();
       expect(Handsontable.dom.overlayContainsElement).toBeFunction();
-      expect(Handsontable.dom.pageX).toBeFunction();
-      expect(Handsontable.dom.pageY).toBeFunction();
-      expect(Handsontable.dom.polymerUnwrap).toBeFunction();
-      expect(Handsontable.dom.polymerWrap).toBeFunction();
       expect(Handsontable.dom.removeClass).toBeFunction();
       expect(Handsontable.dom.removeEvent).toBeFunction();
       expect(Handsontable.dom.removeTextNodes).toBeFunction();
@@ -204,7 +199,6 @@ describe('Public API', () => {
       expect(Handsontable.dom.setCaretPosition).toBeFunction();
       expect(Handsontable.dom.setOverlayPosition).toBeFunction();
       expect(Handsontable.dom.stopImmediatePropagation).toBeFunction();
-      expect(Handsontable.dom.stopPropagation).toBeFunction();
     });
   });
 });

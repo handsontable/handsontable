@@ -42,6 +42,7 @@ export function handsontableMethodFactory(method) {
   };
 }
 
+export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
 export const alter = handsontableMethodFactory('alter');
 export const colToProp = handsontableMethodFactory('colToProp');

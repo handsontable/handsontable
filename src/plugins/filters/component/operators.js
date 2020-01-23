@@ -156,7 +156,7 @@ class OperatorsComponent extends BaseComponent {
    * @param {Event} event DOM event
    */
   onRadioInputChange(event) {
-    this.setState(event.realTarget.value);
+    this.setState(event.target.value);
   }
 }
 

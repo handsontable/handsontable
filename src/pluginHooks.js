@@ -1,5 +1,8 @@
 import { arrayEach } from './helpers/array';
 import { objectEach } from './helpers/object';
+import { substitute } from './helpers/string';
+import { warn } from './helpers/console';
+import { toSingleLine } from './helpers/templateLiteralTag';
 
 /**
  * @description
@@ -1840,6 +1843,52 @@ const REGISTERED_HOOKS = [
   'afterColumnExpand',
 ];
 
+/**
+ * Template warning message for removed hooks.
+ *
+ * @type {String}
+ */
+const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in Handsontable [removedInVersion].\x20
+  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to learn about the migration path.`;
+
+/**
+ * The list of the hooks which are removed from the API. The warning message is printed out in
+ * the developer console when the hook is used.
+ *
+ * The Map key is represented by hook name and its value points to the Handsontable version
+ * in which it was removed.
+ *
+ * @type {Map<String, String>}
+ */
+const REMOVED_HOOKS = new Map([
+  ['modifyRow', '8.0.0'],
+  ['modifyCol', '8.0.0'],
+  ['unmodifyRow', '8.0.0'],
+  ['unmodifyCol', '8.0.0'],
+  ['skipLengthCache', '8.0.0'],
+]);
+
+/**
+ * The list of the hooks which are deprecated. The warning message is printed out in
+ * the developer console when the hook is used.
+ *
+ * The Map key is represented by hook name and its value keeps message which whould be
+ * printed out when the hook is used.
+ *
+ * Usage:
+ * ```
+ * ...
+ * new Map([
+ *   ['beforeColumnExpand', 'The plugin hook "beforeColumnExpand" is deprecated. Use "beforeColumnExpand2" instead.'],
+ * ])
+ * ...
+ * ```
+ *
+ *
+ * @type {Map<String, String>}
+ */
+const DEPRECATED_HOOKS = new Map([]);
+
 class Hooks {
   static getSingleton() {
     return getGlobalSingleton();
@@ -1930,6 +1979,14 @@ class Hooks {
       arrayEach(callback, c => this.add(key, c, context));
 
     } else {
+
+      if (REMOVED_HOOKS.has(key)) {
+        warn(substitute(REMOVED_MESSAGE, { hookName: key, removedInVersion: REMOVED_HOOKS.get(key) }));
+      }
+      if (DEPRECATED_HOOKS.has(key)) {
+        warn(DEPRECATED_HOOKS.get(key));
+      }
+
       const bucket = this.getBucket(context);
 
       if (typeof bucket[key] === 'undefined') {
@@ -2161,9 +2218,28 @@ class Hooks {
   }
 
   /**
+   * Returns a boolean value depending on if a hook by such name has been removed or deprecated.
+   *
+   * @param key {String} The hook name to check.
+   * @returns {Boolean} Returns `true` if the provided hook name was marked as deprecated or
+   *                    removed from API, `false` otherwise.
+   *
+   * @example
+   * ```js
+   * Handsontable.hooks.isDeprecated('skipLengthCache');
+   *
+   * // Results:
+   * true
+   * ```
+   */
+  isDeprecated(hookName) {
+    return DEPRECATED_HOOKS.has(hookName) || REMOVED_HOOKS.has(hookName);
+  }
+
+  /**
    * Returns a boolean depending on if a hook by such name has been registered.
    *
-   * @param key {String} Hook name.
+   * @param key {String} The hook name to check.
    * @returns {Boolean} `true` for success, `false` otherwise.
    *
    * @example
@@ -2174,8 +2250,8 @@ class Hooks {
    * true
    * ```
    */
-  isRegistered(key) {
-    return REGISTERED_HOOKS.indexOf(key) >= 0;
+  isRegistered(hookName) {
+    return REGISTERED_HOOKS.indexOf(hookName) >= 0;
   }
 
   /**
