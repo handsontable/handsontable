@@ -1,10 +1,9 @@
 /**
- * Autocomplete cell validator.
+ * The Autocomplete cell validator.
  *
  * @private
- * @validator AutocompleteValidator
- * @param {*} value - Value of edited cell
- * @param {Function} callback - Callback called with validation result
+ * @param {*} value Value of edited cell.
+ * @param {Function} callback Callback called with validation result.
  */
 export default function autocompleteValidator(value, callback) {
   let valueToValidate = value;
@@ -33,8 +32,9 @@ export default function autocompleteValidator(value, callback) {
 /**
  * Function responsible for validation of autocomplete value.
  *
- * @param {*} value - Value of edited cell
- * @param {Function} callback - Callback called with validation result
+ * @param {*} value Value of edited cell.
+ * @param {Function} callback Callback called with validation result.
+ * @returns {Function}
  */
 function process(value, callback) {
   const originalVal = value;

@@ -9,7 +9,7 @@ import BaseRenderer from './_base';
  *     ├ <tr>    \
  *     ├ <tr>     - ColumnHeadersRenderer
  *     ├ <tr>    /
- *     └ <tr>   /
+ *     └ <tr>   /.
  *
  * @class {ColumnHeadersRenderer}
  */

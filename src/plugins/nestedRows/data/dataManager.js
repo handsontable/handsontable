@@ -13,19 +13,19 @@ class DataManager {
     /**
      * Main Handsontable instance reference.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.hot = hotInstance;
     /**
      * Reference to the source data object.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.data = sourceData;
     /**
      * Reference to the NestedRows plugin.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.plugin = nestedRowsPlugin;
     /**
@@ -37,7 +37,7 @@ class DataManager {
     /**
      * Nested structure cache.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.cache = {
       levels: [],
@@ -69,9 +69,9 @@ class DataManager {
    * Cache a data node.
    *
    * @private
-   * @param {Object} node Node to cache.
-   * @param {Number} level Level of the node.
-   * @param {Object} parent Parent of the node.
+   * @param {object} node Node to cache.
+   * @param {number} level Level of the node.
+   * @param {object} parent Parent of the node.
    */
   cacheNode(node, level, parent) {
     if (!this.cache.levels[level]) {
@@ -96,7 +96,8 @@ class DataManager {
   /**
    * Get the date for the provided visual row number.
    *
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
+   * @returns {object}
    */
   getDataObject(row) {
     return row === null || row === void 0 ? null : this.cache.rows[row];
@@ -106,11 +107,11 @@ class DataManager {
    * Read the row tree in search for a specific row index or row object.
    *
    * @private
-   * @param {Object} parent The initial parent object.
-   * @param {Number} readCount Number of read nodes.
-   * @param {Number} neededIndex The row index we search for.
-   * @param {Object} neededObject The row object we search for.
-   * @returns {Number|Object}
+   * @param {object} parent The initial parent object.
+   * @param {number} readCount Number of read nodes.
+   * @param {number} neededIndex The row index we search for.
+   * @param {object} neededObject The row object we search for.
+   * @returns {number|object}
    */
   readTreeNodes(parent, readCount, neededIndex, neededObject) {
     let rootLevel = false;
@@ -198,8 +199,8 @@ class DataManager {
   /**
    * Get the row index for the provided row object.
    *
-   * @param {Object} rowObj The row object.
-   * @returns {Number} Row index.
+   * @param {object} rowObj The row object.
+   * @returns {number} Row index.
    */
   getRowIndex(rowObj) {
     return rowObj === null || rowObj === void 0 ? null : this.cache.nodeInfo.get(rowObj).row;
@@ -208,8 +209,8 @@ class DataManager {
   /**
    * Get the index of the provided row index/row object within its parent.
    *
-   * @param {Number|Object} row Row index / row object.
-   * @returns {Number}
+   * @param {number|object} row Row index / row object.
+   * @returns {number}
    */
   getRowIndexWithinParent(row) {
     let rowObj = null;
@@ -231,6 +232,8 @@ class DataManager {
 
   /**
    * Count all rows (including all parents and children).
+   *
+   * @returns {number}
    */
   countAllRows() {
     const rootNodeMock = {
@@ -243,8 +246,8 @@ class DataManager {
   /**
    * Count children of the provided parent.
    *
-   * @param {Object|Number} parent Parent node.
-   * @returns {Number} Children count.
+   * @param {object|number} parent Parent node.
+   * @returns {number} Children count.
    */
   countChildren(parent) {
     let rowCount = 0;
@@ -271,7 +274,8 @@ class DataManager {
   /**
    * Get the parent of the row at the provided index.
    *
-   * @param {Number|Object} row Row index.
+   * @param {number|object} row Row index.
+   * @returns {object}
    */
   getRowParent(row) {
     let rowObject;
@@ -289,7 +293,8 @@ class DataManager {
    * Get the parent of the provided row object.
    *
    * @private
-   * @param {Object} rowObject The row object (tree node).
+   * @param {object} rowObject The row object (tree node).
+   * @returns {object|null}
    */
   getRowObjectParent(rowObject) {
     if (typeof rowObject !== 'object') {
@@ -302,8 +307,8 @@ class DataManager {
   /**
    * Get the nesting level for the row with the provided row index.
    *
-   * @param {Number} row Row index.
-   * @returns {Number|null} Row level or null, when row doesn't exist.
+   * @param {number} row Row index.
+   * @returns {number|null} Row level or null, when row doesn't exist.
    */
   getRowLevel(row) {
     let rowObject = null;
@@ -321,8 +326,8 @@ class DataManager {
    * Get the nesting level for the row with the provided row index.
    *
    * @private
-   * @param {Object} rowObject Row object.
-   * @returns {Number} Row level.
+   * @param {object} rowObject Row object.
+   * @returns {number} Row level.
    */
   getRowObjectLevel(rowObject) {
     return rowObject === null || rowObject === void 0 ? null : this.cache.nodeInfo.get(rowObject).level;
@@ -331,8 +336,8 @@ class DataManager {
   /**
    * Check if the provided row/row element has children.
    *
-   * @param {Number|Object} row Row number or row element.
-   * @returns {Boolean}
+   * @param {number|object} row Row number or row element.
+   * @returns {boolean}
    */
   hasChildren(row) {
     let rowObj = row;
@@ -356,10 +361,10 @@ class DataManager {
   }
 
   /**
-   * Add a child to the provided parent. It's optional to add a row object as the "element"
+   * Add a child to the provided parent. It's optional to add a row object as the "element".
    *
-   * @param {Object} parent The parent row object.
-   * @param {Object} [element] The element to add as a child.
+   * @param {object} parent The parent row object.
+   * @param {object} [element] The element to add as a child.
    */
   addChild(parent, element) {
     let childElement = element;
@@ -397,10 +402,10 @@ class DataManager {
   /**
    * Add a child node to the provided parent at a specified index.
    *
-   * @param {Object} parent Parent node.
-   * @param {Number} index Index to insert the child element at.
-   * @param {Object} [element] Element (node) to insert.
-   * @param {Number} [globalIndex] Global index of the inserted row.
+   * @param {object} parent Parent node.
+   * @param {number} index Index to insert the child element at.
+   * @param {object} [element] Element (node) to insert.
+   * @param {number} [globalIndex] Global index of the inserted row.
    */
   addChildAtIndex(parent, index, element, globalIndex) {
     let childElement = element;
@@ -431,7 +436,7 @@ class DataManager {
   /**
    * Add a sibling element at the specified index.
    *
-   * @param {Number} index New element sibling's index.
+   * @param {number} index New element sibling's index.
    * @param {('above'|'below')} where Direction in which the sibling is to be created.
    */
   addSibling(index, where = 'below') {
@@ -454,8 +459,8 @@ class DataManager {
   /**
    * Detach the provided element from its parent and add it right after it.
    *
-   * @param {Object|Array} elements Row object or an array of selected coordinates.
-   * @param {Boolean} [forceRender=true] If true (default), it triggers render after finished.
+   * @param {object|Array} elements Row object or an array of selected coordinates.
+   * @param {boolean} [forceRender=true] If true (default), it triggers render after finished.
    */
   detachFromParent(elements, forceRender = true) {
     let element = null;
@@ -522,8 +527,8 @@ class DataManager {
    * Filter the data by the `logicRows` array.
    *
    * @private
-   * @param {Number} index Index of the first row to remove.
-   * @param {Number} amount Number of elements to remove.
+   * @param {number} index Index of the first row to remove.
+   * @param {number} amount Number of elements to remove.
    * @param {Array} logicRows Array of indexes to remove.
    */
   filterData(index, amount, logicRows) {
@@ -551,9 +556,9 @@ class DataManager {
    * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the default script.
    *
    * @private
-   * @param {Number} index Index of the element at the splice beginning.
-   * @param {Number} amount Number of elements to be removed.
-   * @param {Object} element Row to add.
+   * @param {number} index Index of the element at the splice beginning.
+   * @param {number} amount Number of elements to be removed.
+   * @param {object} element Row to add.
    */
   spliceData(index, amount, element) {
     const elementIndex = this.translateTrimmedRow(index);
@@ -595,8 +600,8 @@ class DataManager {
   /**
    * Move a single row.
    *
-   * @param {Number} fromIndex Index of the row to be moved.
-   * @param {Number} toIndex Index of the destination.
+   * @param {number} fromIndex Index of the row to be moved.
+   * @param {number} toIndex Index of the destination.
    */
   moveRow(fromIndex, toIndex) {
     const targetIsParent = this.isParent(toIndex);
@@ -632,11 +637,11 @@ class DataManager {
   }
 
   /**
-   * Move the cell meta
+   * Move the cell meta.
    *
    * @private
-   * @param {Number} fromIndex Index of the starting row.
-   * @param {Number} toIndex Index of the ending row.
+   * @param {number} fromIndex Index of the starting row.
+   * @param {number} toIndex Index of the ending row.
    */
   moveCellMeta(fromIndex, toIndex) {
     const rowOfMeta = this.hot.getCellMetaAtRow(fromIndex);
@@ -649,8 +654,8 @@ class DataManager {
    * Translate the row index according to the `TrimRows` plugin.
    *
    * @private
-   * @param {Number} row Row index.
-   * @returns {Number}
+   * @param {number} row Row index.
+   * @returns {number}
    */
   translateTrimmedRow(row) {
     if (this.plugin.collapsingUI) {

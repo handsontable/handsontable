@@ -1,5 +1,5 @@
 /**
- * Utility to register plugins and common namespace for keeping reference to all plugins classes
+ * Utility to register plugins and common namespace for keeping reference to all plugins classes.
  */
 import Hooks from './pluginHooks';
 import { objectEach } from './helpers/object';
@@ -8,10 +8,10 @@ import { toUpperCaseFirst } from './helpers/string';
 const registeredPlugins = new WeakMap();
 
 /**
- * Registers plugin under given name
+ * Registers plugin under given name.
  *
- * @param {String} pluginName
- * @param {Function} PluginClass
+ * @param {string} pluginName The plugin name.
+ * @param {Function} PluginClass The plugin class.
  */
 function registerPlugin(pluginName, PluginClass) {
   const correctedPluginName = toUpperCaseFirst(pluginName);
@@ -38,9 +38,9 @@ function registerPlugin(pluginName, PluginClass) {
 }
 
 /**
- * @param {Object} instance
- * @param {String|Function} pluginName
- * @returns {Function} pluginClass Returns plugin instance if exists or `undefined` if not exists.
+ * @param {Core} instance The Handsontable instance.
+ * @param {string} pluginName The plugin name.
+ * @returns {Function} PluginClass Returns plugin instance if exists or `undefined` if not exists.
  */
 function getPlugin(instance, pluginName) {
   if (typeof pluginName !== 'string') {
@@ -58,7 +58,7 @@ function getPlugin(instance, pluginName) {
 /**
  * Get all registred plugins names for concrete Handsontable instance.
  *
- * @param {Object} hotInstance
+ * @param {Core} hotInstance The Handsontable instance.
  * @returns {Array}
  */
 function getRegistredPluginNames(hotInstance) {
@@ -68,9 +68,9 @@ function getRegistredPluginNames(hotInstance) {
 /**
  * Get plugin name.
  *
- * @param {Object} hotInstance
- * @param {Object} plugin
- * @returns {String|null}
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {BasePlugin} plugin The plugin instance.
+ * @returns {string|null}
  */
 function getPluginName(hotInstance, plugin) {
   let pluginName = null;

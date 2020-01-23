@@ -17,7 +17,7 @@ export function getDecreasedIndexes(indexedValues, removedIndexes) {
  *
  * @private
  * @param {Array} indexedValues List of values for particular indexes.
- * @param {Number} insertionIndex Position inside the actual list.
+ * @param {number} insertionIndex Position inside the actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
  * @returns {Array} List with increased indexes.
  */

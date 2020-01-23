@@ -18,7 +18,7 @@ import Overlay from './_base';
  */
 class TopOverlay extends Overlay {
   /**
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     super(wotInstance);
@@ -30,7 +30,7 @@ class TopOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {Table}
    */
   createTable(...args) {
@@ -40,7 +40,7 @@ class TopOverlay extends Overlay {
   /**
    * Checks if overlay should be fully rendered.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   shouldBeRendered() {
     return !!(this.master.getSetting('fixedRowsTop') || this.master.getSetting('columnHeaders').length);
@@ -114,8 +114,8 @@ class TopOverlay extends Overlay {
   /**
    * Sets the main overlay's vertical scroll position.
    *
-   * @param {Number} pos
-   * @returns {Boolean}
+   * @param {number} pos The scroll position.
+   * @returns {boolean}
    */
   setScrollPosition(pos) {
     const rootWindow = this.master.rootWindow;
@@ -143,9 +143,9 @@ class TopOverlay extends Overlay {
   /**
    * Calculates total sum cells height.
    *
-   * @param {Number} from Row index which calculates started from.
-   * @param {Number} to Row index where calculation is finished.
-   * @returns {Number} Height sum.
+   * @param {number} from Row index which calculates started from.
+   * @param {number} to Row index where calculation is finished.
+   * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
     const defaultRowHeight = this.master.wtSettings.settings.defaultRowHeight;
@@ -165,7 +165,7 @@ class TopOverlay extends Overlay {
   /**
    * If needed, adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
    *
-   * @param {Boolean} [force=false]
+   * @param {boolean} [force=false] When `true`, it adjusts the DOM nodes sizes for that overlay.
    */
   adjustElementsSize(force = false) {
     if (!this.needFullRender && !force) {
@@ -211,9 +211,9 @@ class TopOverlay extends Overlay {
   /**
    * Scrolls vertically to a row.
    *
-   * @param {Number} sourceRow Row index which you want to scroll to.
-   * @param {Boolean} [bottomEdge] if `true`, scrolls according to the bottom edge (top edge is by default).
-   * @returns {Boolean}
+   * @param {number} sourceRow Row index which you want to scroll to.
+   * @param {boolean} [bottomEdge] If `true`, scrolls according to the bottom edge (top edge is by default).
+   * @returns {boolean}
    */
   scrollTo(sourceRow, bottomEdge) {
     const { master } = this;
@@ -245,7 +245,7 @@ class TopOverlay extends Overlay {
   /**
    * Gets table parent top position.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getTableParentOffset() {
     if (this.mainTableScrollableElement === this.master.rootWindow) {
@@ -259,7 +259,7 @@ class TopOverlay extends Overlay {
   /**
    * Gets the main overlay's vertical scroll position.
    *
-   * @returns {Number} Main table's vertical scroll position.
+   * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
     return getScrollTop(this.mainTableScrollableElement, this.master.rootWindow);
@@ -322,7 +322,7 @@ class TopOverlay extends Overlay {
   /**
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
-   * @param {Number} position Header Y position if trimming container is window or scroll top if not.
+   * @param {number} position Header Y position if trimming container is window or scroll top if not.
    */
   adjustHeaderBordersPosition(position) {
     const { master } = this;

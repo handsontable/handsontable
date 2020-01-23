@@ -40,41 +40,41 @@ class Autofill extends BasePlugin {
      * Specifies if adding new row started.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.addingStarted = false;
     /**
      * Specifies if there was mouse down on the cell corner.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.mouseDownOnCellCorner = false;
     /**
      * Specifies if mouse was dragged outside Handsontable.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.mouseDragOutside = false;
     /**
      * Specifies how many cell levels were dragged using the handle.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.handleDraggedCells = 0;
     /**
      * Specifies allowed directions of drag (`'horizontal'` or '`vertical`').
      *
      * @private
-     * @type {String[]}
+     * @type {string[]}
      */
     this.directions = [];
     /**
      * Specifies if can insert new rows if needed.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.autoInsertRow = false;
   }
@@ -82,7 +82,7 @@ class Autofill extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().fillHandle;
@@ -127,7 +127,7 @@ class Autofill extends BasePlugin {
    * Prepares copyable ranges from the cells selection.
    *
    * @private
-   * @returns {Object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @returns {object[]} Ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    */
   getCopyableRanges() {
     const selRange = this.hot.getSelectedRangeLast();
@@ -152,7 +152,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Gets selection data
+   * Gets selection data.
    *
    * @private
    * @returns {Array} Array with the data.
@@ -193,7 +193,7 @@ class Autofill extends BasePlugin {
    * Try to apply fill values to the area in fill border, omitting the selection border.
    *
    * @private
-   * @returns {Boolean} reports if fill was applied.
+   * @returns {boolean} Reports if fill was applied.
    *
    * @fires Hooks#modifyAutofillRange
    * @fires Hooks#beforeAutofill
@@ -273,7 +273,7 @@ class Autofill extends BasePlugin {
    * Reduces the selection area if the handle was dragged outside of the table or on headers.
    *
    * @private
-   * @param {CellCoords} coords indexes of selection corners.
+   * @param {CellCoords} coords Indexes of selection corners.
    * @returns {CellCoords}
    */
   reduceSelectionAreaIfNeeded(coords) {
@@ -329,7 +329,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Add new row
+   * Add new row.
    *
    * @private
    */
@@ -376,12 +376,12 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get index of last adjacent filled in row
+   * Get index of last adjacent filled in row.
    *
    * @private
-   * @param {Array} cornersOfSelectedCells indexes of selection corners.
-   * @returns {Number} gives number greater than or equal to zero when selection adjacent can be applied.
-   * or -1 when selection adjacent can't be applied
+   * @param {Array} cornersOfSelectedCells Indexes of selection corners.
+   * @returns {number} Gives number greater than or equal to zero when selection adjacent can be applied.
+   *                   Or -1 when selection adjacent can't be applied.
    */
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
@@ -412,8 +412,8 @@ class Autofill extends BasePlugin {
    * Adds a selection from the start area to the specific row index.
    *
    * @private
-   * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection.
-   * @param {Number} rowIndex
+   * @param {Array} selectStartArea Selection area from which we start to create more comprehensive selection.
+   * @param {number} rowIndex The row index into the selection will be added.
    */
   addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {
     this.hot.selection.highlight.getFill()
@@ -432,7 +432,7 @@ class Autofill extends BasePlugin {
    * Sets selection based on passed corners.
    *
    * @private
-   * @param {Array} cornersOfArea
+   * @param {Array} cornersOfArea An array witch defines selection.
    */
   setSelection(cornersOfArea) {
     this.hot.selectCell(...cornersOfArea, false, false);
@@ -442,7 +442,7 @@ class Autofill extends BasePlugin {
    * Try to select cells down to the last row in the left column and then returns if selection was applied.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   selectAdjacent() {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
@@ -490,7 +490,7 @@ class Autofill extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event `mousemove` event properties.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   getIfMouseWasDraggedOutside(event) {
     const { documentElement } = this.hot.rootDocument;

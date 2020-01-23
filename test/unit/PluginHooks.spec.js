@@ -134,6 +134,7 @@ describe('PluginHooks', () => {
 
     hooks.add('skipLengthCache', fn1, context);
 
+    // eslint-disable-next-line no-console
     expect(console.warn.calls.mostRecent().args).toEqual(['The plugin hook "skipLengthCache" was removed in Handsontable' +
       ' 8.0.0. Please consult release notes https://github.com/handsontable/handsontable/releases/tag/8.0.0 to learn ' +
       'about the migration path.']);

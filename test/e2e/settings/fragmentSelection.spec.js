@@ -15,8 +15,9 @@ describe('settings', () => {
     });
 
     /**
-     * Returns current text selection or false if there is no text selection
-     * @returns {*}
+     * Returns current text selection or false if there is no text selection.
+     *
+     * @returns {string|boolean}
      */
     function getSelected() {
       const { activeElement } = document;
@@ -33,9 +34,10 @@ describe('settings', () => {
 
     /**
      * Selects a <fromEl> node at as many siblings as given in the <cells> value
-     * Note: IE8 fallback assumes that a node contains exactly one word
-     * @param fromEl
-     * @param siblings
+     * Note: IE8 fallback assumes that a node contains exactly one word.
+     *
+     * @param {HTMLElement} fromEl An element from the selection starts.
+     * @param {number} siblings The number of siblings to process.
      */
     function selectElementText(fromEl, siblings) {
       const doc = window.document;
@@ -48,19 +50,15 @@ describe('settings', () => {
         sel = window.getSelection();
         range = doc.createRange();
         range.setStartBefore(element, 0);
+
         while (numOfSiblings > 1) {
           element = element.nextSibling;
           numOfSiblings -= 1;
         }
+
         range.setEndAfter(element, 0);
         sel.removeAllRanges();
         sel.addRange(range);
-
-      } else if (doc.body.createTextRange) { // IE8
-        range = doc.body.createTextRange();
-        range.moveToElementText(element);
-        range.moveEnd('word', numOfSiblings + 1);
-        range.select();
       }
     }
 

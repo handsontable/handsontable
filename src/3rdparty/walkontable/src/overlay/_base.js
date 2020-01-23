@@ -15,35 +15,35 @@ const registeredOverlays = {};
  */
 class Overlay {
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_TOP() {
     return 'top';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_BOTTOM() {
     return 'bottom';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_LEFT() {
     return 'left';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_TOP_LEFT_CORNER() {
     return 'top_left_corner';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_BOTTOM_LEFT_CORNER() {
     return 'bottom_left_corner';
@@ -67,8 +67,8 @@ class Overlay {
   /**
    * Register overlay class.
    *
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @param {Overlay} overlayClass Overlay class extended from base overlay class {@link Overlay}
+   * @param {string} type Overlay type, one of the CLONE_TYPES value.
+   * @param {Overlay} overlayClass Overlay class extended from base overlay class {@link Overlay}.
    */
   static registerOverlay(type, overlayClass) {
     if (Overlay.CLONE_TYPES.indexOf(type) === -1) {
@@ -80,8 +80,9 @@ class Overlay {
   /**
    * Create new instance of overlay type.
    *
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @param {Walkontable} wot Walkontable instance
+   * @param {string} type Overlay type, one of the CLONE_TYPES value.
+   * @param {Walkontable} wot The Walkontable instance.
+   * @returns {Overlay}
    */
   static createOverlay(type, wot) {
     return new registeredOverlays[type](wot);
@@ -90,15 +91,15 @@ class Overlay {
   /**
    * Check if specified overlay was registered.
    *
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @returns {Boolean}
+   * @param {string} type Overlay type, one of the CLONE_TYPES value.
+   * @returns {boolean}
    */
   static hasOverlay(type) {
     return registeredOverlays[type] !== void 0;
   }
 
   /**
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     this.master = wotInstance;
@@ -121,9 +122,9 @@ class Overlay {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   shouldBeRendered() {
     return true;
@@ -147,9 +148,9 @@ class Overlay {
    * NOTE: The element needs to be a child of the overlay in order for the method to work correctly.
    *
    * @param {HTMLElement} element The cell element to calculate the position for.
-   * @param {Number} rowIndex Visual row index.
-   * @param {Number} columnIndex Visual column index.
-   * @returns {{top: Number, left: Number}|undefined}
+   * @param {number} rowIndex Visual row index.
+   * @param {number} columnIndex Visual column index.
+   * @returns {{top: number, left: number}|undefined}
    */
   getRelativeCellPosition(element, rowIndex, columnIndex) {
     if (this.clone.wtTable.holder.contains(element) === false) {
@@ -186,11 +187,11 @@ class Overlay {
    * as a scrollable element.
    *
    * @private
-   * @param {Boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
-   * @param {Boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
-   * @param {Number} elementOffset Offset position of the cell element.
-   * @param {Number} spreaderOffset Offset position of the spreader element.
-   * @returns {{top: Number, left: Number}}
+   * @param {boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {number} elementOffset Offset position of the cell element.
+   * @param {number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
     const absoluteRootElementPosition = this.master.wtTable.wtRootElement.getBoundingClientRect();
@@ -224,12 +225,12 @@ class Overlay {
    * as a scrollable element.
    *
    * @private
-   * @param {Boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
-   * @param {Boolean} onFixedRowBottom `true` if the coordinates point to a place within the bottom fixed rows.
-   * @param {Boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
-   * @param {Number} elementOffset Offset position of the cell element.
-   * @param {Number} spreaderOffset Offset position of the spreader element.
-   * @returns {{top: Number, left: Number}}
+   * @param {boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {boolean} onFixedRowBottom `true` if the coordinates point to a place within the bottom fixed rows.
+   * @param {boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {number} elementOffset Offset position of the cell element.
+   * @param {number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
     const tableScrollPosition = {
@@ -259,7 +260,7 @@ class Overlay {
   }
 
   /**
-   * Make a clone of table for overlay
+   * Make a clone of table for overlay.
    *
    * @param {String} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
    *                           `Overlay.CLONE_TOP_LEFT_CORNER`
@@ -309,7 +310,9 @@ class Overlay {
    * Redraws the content of the overlay's clone instance of Walkontable, including the cells, selections and borders.
    * Does not change the size nor the position of the overlay root element.
    *
-   * @param {Boolean} [fastDraw=false]
+   * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   *                                   the data. It will only work if Table.draw() does not force
+   *                                   rendering anyway.
    */
   redrawClone(fastDraw = false) {
     this.adjustElementsPosition();
@@ -333,7 +336,7 @@ class Overlay {
   }
 
   /**
-   * Destroy overlay instance
+   * Destroy overlay instance.
    */
   destroy() {
     (new EventManager(this.clone)).destroy();

@@ -3427,6 +3427,9 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
+      /**
+       *
+       */
       function contextMenu2() {
         const hot = spec().$container2.data('handsontable');
         let selected = hot.getSelected();
@@ -3479,6 +3482,9 @@ describe('ContextMenu', () => {
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(6);
 
+      /**
+       *
+       */
       function contextMenu2() {
         const hot = spec().$container2.data('handsontable');
         let selected = hot.getSelected();

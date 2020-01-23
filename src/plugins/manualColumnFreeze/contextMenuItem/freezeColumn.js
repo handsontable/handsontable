@@ -1,5 +1,9 @@
 import * as C from './../../../i18n/constants';
 
+/**
+ * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
+ * @returns {object}
+ */
 export default function freezeColumnItem(manualColumnFreezePlugin) {
   return {
     key: 'freeze_column',

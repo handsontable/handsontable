@@ -17,8 +17,8 @@ import CellCoords from './cell/coords';
  */
 class SelectionHandle {
   /**
-   * @param {Walkontable} wotInstance
-   * @param {Object} settings
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {object} settings The border settings.
    */
   constructor(wotInstance, settings) {
     if (!settings) {
@@ -45,7 +45,7 @@ class SelectionHandle {
   }
 
   /**
-   * Register all necessary events
+   * Register all necessary events.
    */
   registerListeners() {
     const documentBody = this.wot.rootDocument.body;
@@ -59,7 +59,7 @@ class SelectionHandle {
   }
 
   /**
-   * Mouse down listener
+   * Mouse down listener.
    *
    * @private
    */
@@ -68,7 +68,7 @@ class SelectionHandle {
   }
 
   /**
-   * Mouse up listener
+   * Mouse up listener.
    *
    * @private
    */
@@ -80,7 +80,7 @@ class SelectionHandle {
    * Mouse enter listener for fragment selection functionality.
    *
    * @private
-   * @param {Event} event Dom event
+   * @param {Event} event Dom event.
    * @param {HTMLElement} parentElement Part of border element.
    */
   onMouseEnter(event, parentElement) {
@@ -97,6 +97,10 @@ class SelectionHandle {
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
+    /**
+     * @param {Event} mouseEvent The mouse event object.
+     * @returns {boolean}
+     */
     function isOutside(mouseEvent) {
       if (mouseEvent.clientY < Math.floor(bounds.top)) {
         return true;
@@ -112,6 +116,9 @@ class SelectionHandle {
       }
     }
 
+    /**
+     * @param {Event} handlerEvent The mouse event object.
+     */
     function handler(handlerEvent) {
       if (isOutside(handlerEvent)) {
         _this.eventManager.removeEventListener(documentBody, 'mousemove', handler);
@@ -125,7 +132,7 @@ class SelectionHandle {
   /**
    * Create elements for corner selection handler (desktop) or multiple selector handler (mobile)
    *
-   * @param {Object} settings
+   * @param {object} settings The border settings.
    */
   createElements(settings) {
     const { rootDocument } = this.wot;
@@ -178,7 +185,7 @@ class SelectionHandle {
   }
 
   /**
-   * Create multiple selector handler for mobile devices
+   * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
     const { rootDocument } = this.wot;
@@ -238,6 +245,11 @@ class SelectionHandle {
     this.main.appendChild(this.selectionHandles.bottomRightHitArea);
   }
 
+  /**
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {boolean}
+   */
   isPartRange(row, col) {
     const areaSelection = this.wot.selections.createOrGetArea();
 
@@ -250,6 +262,14 @@ class SelectionHandle {
     return false;
   }
 
+  /**
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number} top The top position of the handler.
+   * @param {number} left The left position of the handler.
+   * @param {number} width The width of the handler.
+   * @param {number} height The height of the handler.
+   */
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
     const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
     const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
@@ -298,9 +318,9 @@ class SelectionHandle {
   }
 
   /**
-   * Show border around one or many cells
+   * Show border around one or many cells.
    *
-   * @param {Array} corners
+   * @param {Array} corners The corner coordinates.
    */
   appear(corners) {
     if (this.disabled) {
@@ -475,8 +495,9 @@ class SelectionHandle {
    * Check whether an entire column of cells is selected.
    *
    * @private
-   * @param {Number} startRowIndex Start row index.
-   * @param {Number} endRowIndex End row index.
+   * @param {number} startRowIndex Start row index.
+   * @param {number} endRowIndex End row index.
+   * @returns {boolean}
    */
   isEntireColumnSelected(startRowIndex, endRowIndex) {
     return startRowIndex === this.wot.wtTable.getFirstRenderedRow() && endRowIndex === this.wot.wtTable.getLastRenderedRow();
@@ -486,8 +507,9 @@ class SelectionHandle {
    * Check whether an entire row of cells is selected.
    *
    * @private
-   * @param {Number} startColumnIndex Start column index.
-   * @param {Number} endColumnIndex End column index.
+   * @param {number} startColumnIndex Start column index.
+   * @param {number} endColumnIndex End column index.
+   * @returns {boolean}
    */
   isEntireRowSelected(startColumnIndex, endColumnIndex) {
     return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() && endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
@@ -497,11 +519,11 @@ class SelectionHandle {
    * Get left/top index and width/height depending on the `direction` provided.
    *
    * @private
-   * @param {String} direction `rows` or `columns`, defines if an entire column or row is selected.
-   * @param {Number} fromIndex Start index of the selection.
-   * @param {Number} toIndex End index of the selection.
-   * @param {Number} containerOffset offset of the container.
-   * @return {Array|Boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
+   * @param {number} fromIndex Start index of the selection.
+   * @param {number} toIndex End index of the selection.
+   * @param {number} containerOffset Offset of the container.
+   * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
   getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
     const { wtTable } = this.wot;

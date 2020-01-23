@@ -3,7 +3,7 @@ import { Selection } from './../../../3rdparty/walkontable/src';
 /**
  * Creates the new instance of Selection responsible for highlighting area of the selected multiple cells.
  *
- * @return {Selection}
+ * @returns {Selection}
  */
 function createHighlight({ layerLevel, areaCornerVisible }) {
   const s = new Selection({

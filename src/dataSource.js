@@ -15,7 +15,7 @@ class DataSource {
      */
     this.hot = hotInstance;
     /**
-     * Data source
+     * Data source.
      *
      * @type {Array}
      */
@@ -23,7 +23,7 @@ class DataSource {
     /**
      * Type of data source.
      *
-     * @type {String}
+     * @type {string}
      * @default 'array'
      */
     this.dataType = 'array';
@@ -35,7 +35,7 @@ class DataSource {
   /**
    * Get all data.
    *
-   * @param {Boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
+   * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
    *                                  in another format.
    * @returns {Array}
    */
@@ -56,7 +56,7 @@ class DataSource {
   /**
    * Set new data source.
    *
-   * @param data {Array}
+   * @param {Array} data The new data.
    */
   setData(data) {
     this.data = data;
@@ -65,7 +65,7 @@ class DataSource {
   /**
    * Returns array of column values from the data source. `column` is the index of the row in the data source.
    *
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    * @returns {Array}
    */
   getAtColumn(column) {
@@ -92,8 +92,8 @@ class DataSource {
   /**
    * Returns a single row of the data (array or object, depending on what you have). `row` is the index of the row in the data source.
    *
-   * @param {Number} row Physical row index.
-   * @returns {Array|Object}
+   * @param {number} row Physical row index.
+   * @returns {Array|object}
    */
   getAtRow(row) {
     return this.data[row];
@@ -102,8 +102,8 @@ class DataSource {
   /**
    * Returns a single value from the data.
    *
-   * @param {Number} row Physical row index.
-   * @param {Number} column Visual column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Visual column index.
    * @returns {*}
    */
   getAtCell(row, column) {
@@ -133,9 +133,9 @@ class DataSource {
   /**
    * Returns source data by passed range.
    *
-   * @param {Object} start Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
-   * @param {Object} end Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
-   * @param {Boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
+   * @param {object} start Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
+   * @param {object} end Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
+   * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
    *                                  in another format.
    * @returns {Array}
    */
@@ -176,7 +176,7 @@ class DataSource {
   /**
    * Count number of rows.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   countRows() {
     return Array.isArray(this.data) ? this.data.length : 0;
@@ -185,7 +185,7 @@ class DataSource {
   /**
    * Count number of columns.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   countColumns() {
     let result = 0;

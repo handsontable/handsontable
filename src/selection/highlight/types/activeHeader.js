@@ -1,7 +1,7 @@
 import { Selection } from './../../../3rdparty/walkontable/src';
 
 /**
- * @return {Selection}
+ * @returns {Selection}
  */
 function createHighlight({ activeHeaderClassName }) {
   const s = new Selection({

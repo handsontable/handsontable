@@ -21,9 +21,8 @@ class MapCollection {
   /**
    * Register custom index map.
    *
-   * @param {String} uniqueName Unique name of the index map.
-   * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. meta data, indexes sequence), updated after remove and insert data actions.
-   * @returns {IndexMap|undefined}
+   * @param {string} uniqueName Unique name of the index map.
+   * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. Meta data, indexes sequence), updated after remove and insert data actions.
    */
   register(uniqueName, indexMap) {
     if (this.collection.has(uniqueName) === false) {
@@ -38,7 +37,7 @@ class MapCollection {
   /**
    * Unregister custom index map.
    *
-   * @param {String} name Name of the index map.
+   * @param {string} name Name of the index map.
    */
   unregister(name) {
     const indexMap = this.collection.get(name);
@@ -56,7 +55,7 @@ class MapCollection {
   /**
    * Get index map for the provided name.
    *
-   * @param {String} [name] Name of the index map.
+   * @param {string} [name] Name of the index map.
    * @returns {Array|IndexMap}
    */
   get(name) {
@@ -70,7 +69,7 @@ class MapCollection {
   /**
    * Get collection size.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLength() {
     return this.collection.size;
@@ -92,7 +91,7 @@ class MapCollection {
    * Insert new indexes and corresponding mapping and update values of the others all collection's index maps.
    *
    * @private
-   * @param {Number} insertionIndex Position inside the actual list.
+   * @param {number} insertionIndex Position inside the actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insertToEvery(insertionIndex, insertedIndexes) {
@@ -104,7 +103,7 @@ class MapCollection {
   /**
    * Set default values to index maps within collection.
    *
-   * @param {Number} length Destination length for all stored maps.
+   * @param {number} length Destination length for all stored maps.
    */
   initEvery(length) {
     this.collection.forEach((indexMap) => {
@@ -117,6 +116,9 @@ mixin(MapCollection, localHooks);
 
 export default MapCollection;
 
+/**
+ * @returns {number}
+ */
 export function getRegisteredMapsCounter() {
   return registeredMaps;
 }

@@ -1,6 +1,10 @@
 import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
+/**
+ * @param {HiddenRows} hiddenRowsPlugin The plugin instance.
+ * @returns {object}
+ */
 export default function showRowItem(hiddenRowsPlugin) {
   const beforeHiddenRows = [];
   const afterHiddenRows = [];

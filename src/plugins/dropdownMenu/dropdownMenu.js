@@ -27,16 +27,16 @@ Hooks.getSingleton().register('afterDropdownMenuExecute');
 
 const BUTTON_CLASS_NAME = 'changeType';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin DropdownMenu
- * @dependencies ContextMenu
  *
  * @description
  * This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
  * among [other features](https://handsontable.com/docs/demo-context-menu.html).
  * Possible values:
  * * `true` (to enable default options),
- * * `false` (to disable completely)
+ * * `false` (to disable completely).
  *
  * or array of any available strings:
  * * `["row_above", "row_below", "col_left", "col_right",
@@ -63,6 +63,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * });
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class DropdownMenu extends BasePlugin {
   /**
    * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
@@ -123,7 +124,7 @@ class DropdownMenu extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link DropdownMenu#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().dropdownMenu;
@@ -213,7 +214,7 @@ class DropdownMenu extends BasePlugin {
   /**
    * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
+   * @param {object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
    *                                the top left of the fully rendered content area in the browser or with `clientX`
    *                                and `clientY`  properties which contains values relative to the upper left edge
    *                                of the content area (the viewport) of the browser window. This object is structurally
@@ -263,22 +264,22 @@ class DropdownMenu extends BasePlugin {
    *  * `'alignment:right'` - Alignment to the right
    *  * `'alignment:bottom'` - Alignment to the bottom
    *  * `'alignment:middle'` - Alignment to the middle
-   *  * `'alignment:center'` - Alignment to the center (justify)
+   *  * `'alignment:center'` - Alignment to the center (justify).
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
-   * @param {String} commandName Command name to execute.
-   * @param {*} params
+   * @param {string} commandName Command name to execute.
+   * @param {*} params Additional parameters passed to the command executor.
    */
   executeCommand(commandName, ...params) {
     this.commandExecutor.execute(commandName, ...params);
   }
 
   /**
-   * Turns on / off listening on dropdown menu
+   * Turns on / off listening on dropdown menu.
    *
    * @private
-   * @param {Boolean} listen Turn on listening when value is set to true, otherwise turn it off.
+   * @param {boolean} listen Turn on listening when value is set to true, otherwise turn it off.
    */
   setListening(listen = true) {
     if (this.menu.isOpened()) {
@@ -294,7 +295,7 @@ class DropdownMenu extends BasePlugin {
    * Table click listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
    */
   onTableClick(event) {
     event.stopPropagation();
@@ -326,8 +327,8 @@ class DropdownMenu extends BasePlugin {
    * On after get column header listener.
    *
    * @private
-   * @param {Number} col
-   * @param {HTMLTableCellElement} TH
+   * @param {number} col Visual column index.
+   * @param {HTMLTableCellElement} TH Header's TH element.
    */
   onAfterGetColHeader(col, TH) {
     // Corner or a higher-level header

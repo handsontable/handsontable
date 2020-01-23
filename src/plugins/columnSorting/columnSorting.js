@@ -101,7 +101,7 @@ class ColumnSorting extends BasePlugin {
      * Main settings key designed for the plugin.
      *
      * @private
-     * @type {String}
+     * @type {string}
      */
     this.pluginKey = PLUGIN_KEY;
     /**
@@ -117,7 +117,7 @@ class ColumnSorting extends BasePlugin {
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ColumnSorting#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!(this.hot.getSettings()[this.pluginKey]);
@@ -191,7 +191,7 @@ class ColumnSorting extends BasePlugin {
   /**
    * Sorts the table by chosen columns and orders.
    *
-   * @param {undefined|Object} sortConfig Single column sort configuration. The configuration object contains `column` and `sortOrder` properties.
+   * @param {undefined|object} sortConfig Single column sort configuration. The configuration object contains `column` and `sortOrder` properties.
    * First of them contains visual column index, the second one contains sort order (`asc` for ascending, `desc` for descending).
    *
    * **Note**: Please keep in mind that every call of `sort` function set an entirely new sort order. Previous sort configs aren't preserved.
@@ -251,7 +251,7 @@ class ColumnSorting extends BasePlugin {
   /**
    * Checks if the table is sorted (any column have to be sorted).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSorted() {
     return this.enabled && !this.columnStatesManager.isListOfSortedColumnsEmpty();
@@ -262,8 +262,8 @@ class ColumnSorting extends BasePlugin {
    *
    * **Note**: Please keep in mind that returned objects expose **visual** column index under the `column` key. They are handled by the `sort` function.
    *
-   * @param {Number} [column] Visual column index.
-   * @returns {undefined|Object|Array}
+   * @param {number} [column] Visual column index.
+   * @returns {undefined|object|Array}
    */
   getSortConfig(column) {
     const translateColumnToVisual = ({ column: physicalColumn, ...restOfProperties }) =>
@@ -304,7 +304,7 @@ class ColumnSorting extends BasePlugin {
    *   return false; // The blockade for the default sort action.
    * }```
    *
-   * @param {undefined|Object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
+   * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    */
@@ -325,7 +325,7 @@ class ColumnSorting extends BasePlugin {
    * Get normalized sort configs.
    *
    * @private
-   * @param {Object|Array} [sortConfig=[]] Single column sort configuration or full sort configuration (for all sorted columns).
+   * @param {object|Array} [sortConfig=[]] Single column sort configuration or full sort configuration (for all sorted columns).
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    * @returns {Array}
@@ -343,7 +343,7 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    * @param {Array} sortConfigs Sort configuration for all sorted columns. Objects contain `column` and `sortOrder` properties.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   areValidSortConfigs(sortConfigs) {
     if (Array.isArray(sortConfigs) === false) {
@@ -376,7 +376,7 @@ class ColumnSorting extends BasePlugin {
    * Get all saved sorting settings. Loading works only when {@link Options#persistentState} option is enabled.
    *
    * @private
-   * @returns {Object} Previously saved sort settings.
+   * @returns {object} Previously saved sort settings.
    *
    * @fires Hooks#persistentStateLoad
    */
@@ -402,8 +402,8 @@ class ColumnSorting extends BasePlugin {
    * **Note**: Please keep in mind that returned object expose **visual** column index under the `column` key.
    *
    * @private
-   * @param {Number} column Visual column index.
-   * @returns {undefined|Object}
+   * @param {number} column Visual column index.
+   * @returns {undefined|object}
    */
   getColumnNextConfig(column) {
     const physicalColumn = this.hot.toPhysicalColumn(column);
@@ -435,8 +435,8 @@ class ColumnSorting extends BasePlugin {
    * Get sort configuration with "next order" for particular column.
    *
    * @private
-   * @param {Number} columnToChange Visual column index of column which order will be changed.
-   * @param {String} strategyId ID of strategy. Possible values: 'append' and 'replace'. The first one
+   * @param {number} columnToChange Visual column index of column which order will be changed.
+   * @param {string} strategyId ID of strategy. Possible values: 'append' and 'replace'. The first one
    * change order of particular column and change it's position in the sort queue to the last one. The second one
    * just change order of particular column.
    *
@@ -475,8 +475,8 @@ class ColumnSorting extends BasePlugin {
    * Get plugin's column config for the specified column index.
    *
    * @private
-   * @param {Object} columnConfig Configuration inside `columns` property for the specified column index.
-   * @returns {Object}
+   * @param {object} columnConfig Configuration inside `columns` property for the specified column index.
+   * @returns {object}
    */
   getPluginColumnConfig(columnConfig) {
     if (isObject(columnConfig)) {
@@ -494,8 +494,8 @@ class ColumnSorting extends BasePlugin {
    * Get plugin settings related properties, properly merged from cascade settings.
    *
    * @private
-   * @param {Number} column Visual column index.
-   * @returns {Object}
+   * @param {number} column Visual column index.
+   * @returns {object}
    */
   getMergedPluginSettings(column) {
     const pluginMainSettings = this.hot.getSettings()[this.pluginKey];
@@ -517,8 +517,8 @@ class ColumnSorting extends BasePlugin {
    * Get copy of settings for first cell in the column.
    *
    * @private
-   * @param {Number} column Visual column index.
-   * @returns {Object}
+   * @param {number} column Visual column index.
+   * @returns {object}
    */
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. Instead of getting properties from column meta we call this function.
   // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
@@ -535,8 +535,8 @@ class ColumnSorting extends BasePlugin {
    * Get number of rows which should be sorted.
    *
    * @private
-   * @param {Number} numberOfRows Total number of displayed rows.
-   * @returns {Number}
+   * @param {number} numberOfRows Total number of displayed rows.
+   * @returns {number}
    */
   getNumberOfRowsToSort(numberOfRows) {
     const settings = this.hot.getSettings();
@@ -621,7 +621,7 @@ class ColumnSorting extends BasePlugin {
    * Sort the table by provided configuration.
    *
    * @private
-   * @param {Object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
+   * @param {object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
    * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
    */
   sortBySettings(allSortSettings) {
@@ -644,7 +644,7 @@ class ColumnSorting extends BasePlugin {
    * Callback for the `onAfterGetColHeader` hook. Adds column sorting CSS classes.
    *
    * @private
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    * @param {Element} TH TH HTML element.
    */
   onAfterGetColHeader(column, TH) {
@@ -682,7 +682,7 @@ class ColumnSorting extends BasePlugin {
    * for `updateSettings` in specific situations.
    *
    * @private
-   * @param {Object} newSettings New settings object.
+   * @param {object} newSettings New settings object.
    */
   onUpdateSettings(newSettings) {
     super.onUpdateSettings();
@@ -700,7 +700,7 @@ class ColumnSorting extends BasePlugin {
    * Callback for the `afterLoadData` hook.
    *
    * @private
-   * @param {Boolean} initialLoad flag that determines whether the data has been loaded during the initialization.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
   onAfterLoadData(initialLoad) {
     if (initialLoad === true) {
@@ -716,8 +716,8 @@ class ColumnSorting extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event The `mousedown` event.
-   * @param {Number} column Visual column index.
-   * @returns {Boolean}
+   * @param {number} column Visual column index.
+   * @returns {boolean}
    */
   wasClickableHeaderClicked(event, column) {
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
@@ -732,8 +732,9 @@ class ColumnSorting extends BasePlugin {
    * @private
    * @param {MouseEvent} event The `mousedown` event.
    * @param {CellCoords} coords Visual coordinates.
-   * @param {HTMLElement} TD
-   * @param {Object} blockCalculations
+   * @param {HTMLElement} TD The cell element.
+   * @param {object} blockCalculations A literal object which holds boolean values which controls
+   *                                   how the selection while selecting neighboring cells.
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {

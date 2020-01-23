@@ -23,18 +23,18 @@ const privatePool = new WeakMap();
  */
 class TableView {
   /**
-   * @param {Hanstontable} instance Instance of {@link Handsontable}
+   * @param {Hanstontable} instance Instance of {@link Handsontable}.
    */
   constructor(instance) {
     /**
-     * Instance of {@link Handsontable}
+     * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
      */
     this.instance = instance;
     /**
-     * Instance of {@link EventManager}
+     * Instance of {@link EventManager}.
      *
      * @private
      * @type {EventManager}
@@ -78,12 +78,12 @@ class TableView {
        * Defines if the text should be selected during mousemove.
        *
        * @private
-       * @type {Boolean}
+       * @type {boolean}
        */
       selectionMouseDown: false,
       /**
        * @private
-       * @type {Boolean}
+       * @type {boolean}
        */
       mouseDown: void 0,
       /**
@@ -96,13 +96,13 @@ class TableView {
       /**
        * Cached width of the rootElement.
        *
-       * @type {Number}
+       * @type {number}
        */
       lastWidth: 0,
       /**
        * Cached height of the rootElement.
        *
-       * @type {Number}
+       * @type {number}
        */
       lastHeight: 0,
     });
@@ -122,10 +122,10 @@ class TableView {
   }
 
   /**
-   * Returns td object given coordinates
+   * Returns td object given coordinates.
    *
-   * @param {CellCoords} coords
-   * @param {Boolean} topmost
+   * @param {CellCoords} coords The cell coordinates.
+   * @param {boolean} topmost Indicates whether the cell should be calculated from the topmost.
    * @returns {HTMLTableCellElement|null}
    */
   getCellAtCoords(coords, topmost) {
@@ -141,12 +141,12 @@ class TableView {
   /**
    * Scroll viewport to a cell.
    *
-   * @param {CellCoords} coords
-   * @param {Boolean} [snapToTop]
-   * @param {Boolean} [snapToRight]
-   * @param {Boolean} [snapToBottom]
-   * @param {Boolean} [snapToLeft]
-   * @returns {Boolean}
+   * @param {CellCoords} coords The cell coordinates.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left side of the table.
+   * @returns {boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
     return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
@@ -155,10 +155,10 @@ class TableView {
   /**
    * Scroll viewport to a column.
    *
-   * @param {Number} column Visual column index.
-   * @param {Boolean} [snapToLeft]
-   * @param {Boolean} [snapToRight]
-   * @returns {Boolean}
+   * @param {number} column Visual column index.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left side of the table.
+   * @returns {boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
     return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
@@ -167,10 +167,10 @@ class TableView {
   /**
    * Scroll viewport to a row.
    *
-   * @param {Number} row Visual row index.
-   * @param {Boolean} [snapToTop]
-   * @param {Boolean} [snapToBottom]
-   * @returns {Boolean}
+   * @param {number} row Visual row index.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
+   * @returns {boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
     return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
@@ -615,8 +615,8 @@ class TableView {
    * Checks if it's possible to create text selection in element.
    *
    * @private
-   * @param {HTMLElement} el
-   * @returns {Boolean}
+   * @param {HTMLElement} el The element to check.
+   * @returns {boolean}
    */
   isTextSelectionAllowed(el) {
     if (isInput(el)) {
@@ -641,7 +641,7 @@ class TableView {
    * Checks if user's been called mousedown.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isMouseDown() {
     return privatePool.get(this).mouseDown;
@@ -651,7 +651,7 @@ class TableView {
    * Check if selected only one cell.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSelectedOnlyCell() {
     const [row, col, rowEnd, colEnd] = this.instance.getSelectedLast() || [];
@@ -663,7 +663,7 @@ class TableView {
    * Checks if active cell is editing.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isCellEdited() {
     const activeEditor = this.instance.getActiveEditor();
@@ -675,8 +675,9 @@ class TableView {
    * `beforeDraw` callback.
    *
    * @private
-   * @param {Boolean} force
-   * @param {Boolean} skipRender
+   * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
+   *                        rendering was triggered by scrolling or moving selection.
+   * @param {boolean} skipRender Indicates whether the rendering is skipped.
    */
   beforeRender(force, skipRender) {
     if (force) {
@@ -689,7 +690,8 @@ class TableView {
    * `onDraw` callback.
    *
    * @private
-   * @param {Boolean} force
+   * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
+   *                        rendering was triggered by scrolling or moving selection.
    */
   onDraw(force) {
     if (force) {
@@ -699,11 +701,11 @@ class TableView {
   }
 
   /**
-   * Append row header to a TH element
+   * Append row header to a TH element.
    *
    * @private
-   * @param row
-   * @param TH
+   * @param {number} row The visual row index.
+   * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
   appendRowHeader(row, TH) {
     if (TH.firstChild) {
@@ -735,11 +737,11 @@ class TableView {
   }
 
   /**
-   * Append column header to a TH element
+   * Append column header to a TH element.
    *
    * @private
-   * @param col
-   * @param TH
+   * @param {number} col The visual column index.
+   * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
   appendColHeader(col, TH) {
     if (TH.firstChild) {
@@ -772,9 +774,9 @@ class TableView {
    * Updates header cell content.
    *
    * @since 0.15.0-beta4
-   * @param {HTMLElement} element Element to update
-   * @param {Number} index Row index or column index
-   * @param {Function} content Function which should be returns content for this cell
+   * @param {HTMLElement} element Element to update.
+   * @param {number} index Row index or column index.
+   * @param {Function} content Function which should be returns content for this cell.
    */
   updateCellHeader(element, index, content) {
     let renderedIndex = index;
@@ -802,11 +804,11 @@ class TableView {
 
   /**
    * Given a element's left position relative to the viewport, returns maximum element width until the right
-   * edge of the viewport (before scrollbar)
+   * edge of the viewport (before scrollbar).
    *
    * @private
-   * @param {Number} leftOffset
-   * @return {Number}
+   * @param {number} leftOffset The left offset.
+   * @returns {number}
    */
   maximumVisibleElementWidth(leftOffset) {
     const workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
@@ -817,11 +819,11 @@ class TableView {
 
   /**
    * Given a element's top position relative to the viewport, returns maximum element height until the bottom
-   * edge of the viewport (before scrollbar)
+   * edge of the viewport (before scrollbar).
    *
    * @private
-   * @param {Number} topOffset
-   * @return {Number}
+   * @param {number} topOffset The top offset.
+   * @returns {number}
    */
   maximumVisibleElementHeight(topOffset) {
     const workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
@@ -832,6 +834,9 @@ class TableView {
 
   /**
    * Sets new dimensions of the container.
+   *
+   * @param {number} width The table width.
+   * @param {number} height The table height.
    */
   setLastSize(width, height) {
     const priv = privatePool.get(this);
@@ -841,6 +846,8 @@ class TableView {
 
   /**
    * Returns cached dimensions.
+   *
+   * @returns {object}
    */
   getLastSize() {
     const priv = privatePool.get(this);
@@ -852,7 +859,7 @@ class TableView {
    * Checks if master overlay is active.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   mainViewIsActive() {
     return this.wt === this.activeWt;

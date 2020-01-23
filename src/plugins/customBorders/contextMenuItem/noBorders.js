@@ -1,6 +1,10 @@
 import * as C from './../../../i18n/constants';
 import { checkSelectionBorders } from './../utils';
 
+/**
+ * @param {CustomBorders} customBordersPlugin The plugin instance.
+ * @returns {object}
+ */
 export default function noBorders(customBordersPlugin) {
   return {
     key: 'borders:no_borders',

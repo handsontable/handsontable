@@ -16,8 +16,8 @@ export default class ColumnUtils {
   /**
    * Returns column width based on passed source index.
    *
-   * @param {Number} sourceIndex Column source index.
-   * @returns {Number}
+   * @param {number} sourceIndex Column source index.
+   * @returns {number}
    */
   getWidth(sourceIndex) {
     let width = this.wot.wtSettings.settings.columnWidth;
@@ -35,8 +35,8 @@ export default class ColumnUtils {
   /**
    * Returns stretched column width based on passed source index.
    *
-   * @param {Number} sourceIndex Column source index.
-   * @returns {Number}
+   * @param {number} sourceIndex Column source index.
+   * @returns {number}
    */
   getStretchedColumnWidth(sourceIndex) {
     const columnWidth = this.getWidth(sourceIndex);
@@ -57,8 +57,8 @@ export default class ColumnUtils {
   /**
    * Returns column header height based on passed header level.
    *
-   * @param {Number} level Column header level.
-   * @returns {Number}
+   * @param {number} level Column header level.
+   * @returns {number}
    */
   getHeaderHeight(level) {
     let height = this.wot.wtSettings.settings.defaultRowHeight;
@@ -74,8 +74,8 @@ export default class ColumnUtils {
   /**
    * Returns column header width based on passed source index.
    *
-   * @param {Number} sourceIndex Column source index.
-   * @returns {Number}
+   * @param {number} sourceIndex Column source index.
+   * @returns {number}
    */
   getHeaderWidth(sourceIndex) {
     return this.headerWidths.get(this.wot.wtTable.columnFilter.sourceToRendered(sourceIndex));

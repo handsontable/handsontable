@@ -1,14 +1,12 @@
-/**
- * Numeric cell validator
- *
- * @private
- * @validator NumericValidator
- * @param {*} value - Value of edited cell
- * @param {*} callback - Callback called with validation result
- */
-
 import { isNumeric } from './../helpers/number';
 
+/**
+ * The Numeric cell validator.
+ *
+ * @private
+ * @param {*} value Value of edited cell.
+ * @param {Function} callback Callback called with validation result.
+ */
 export default function numericValidator(value, callback) {
   let valueToValidate = value;
 

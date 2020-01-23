@@ -31,11 +31,11 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value to a config object:
  * ```js
  * // as a number (300 columns in sync, rest async)
- * autoColumnSize: {syncLimit: 300},
+ * autoColumnSize: {syncLimit: 300},.
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
- * ```
+ * ```.
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
@@ -117,22 +117,22 @@ class AutoColumnSize extends BasePlugin {
       return { value: cellValue, bundleCountSeed };
     });
     /**
-     * `true` only if the first calculation was performed
+     * `true` only if the first calculation was performed.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.firstCalculation = true;
     /**
      * `true` if the size calculation is in progress.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.inProgress = false;
     /**
      * Number of already measured columns (we already know their sizes).
      *
-     * @type {Number}
+     * @type {number}
      */
     this.measuredColumns = 0;
     /**
@@ -152,7 +152,7 @@ class AutoColumnSize extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link AutoColumnSize#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().autoColumnSize !== false && !this.hot.getSettings().colWidths;
@@ -197,9 +197,9 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Calculates a columns width.
    *
-   * @param {Number|Object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
-   * @param {Number|Object} rowRange Visual row index or an object with `from` and `to` visual indexes as a range.
-   * @param {Boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
+   * @param {number|object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
+   * @param {number|object} rowRange Visual row index or an object with `from` and `to` visual indexes as a range.
+   * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
   calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
@@ -238,7 +238,7 @@ class AutoColumnSize extends BasePlugin {
    * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
    * To retrieve width for specyfied column use {@link AutoColumnSize#getColumnWidth} method.
    *
-   * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
+   * @param {object|number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
   calculateAllColumnsWidth(rowRange = { from: 0, to: this.hot.countRows() - 1 }) {
     let current = 0;
@@ -324,7 +324,7 @@ class AutoColumnSize extends BasePlugin {
    * Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
    * asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see {@link Options#autoColumnSize}).
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getSyncCalculationLimit() {
     /* eslint-disable no-bitwise */
@@ -348,10 +348,10 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the calculated column width.
    *
-   * @param {Number} column Visual column index.
-   * @param {Number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
-   * @param {Boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
-   * @returns {Number}
+   * @param {number} column Visual column index.
+   * @param {number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
+   * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
+   * @returns {number}
    */
   getColumnWidth(column, defaultWidth = void 0, keepMinimum = true) {
     let width = defaultWidth;
@@ -370,7 +370,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {Number} Returns column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
+   * @returns {number} Returns column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -388,7 +388,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the last visible column.
    *
-   * @returns {Number} Returns column index or -1 if table is not rendered.
+   * @returns {number} Returns column index or -1 if table is not rendered.
    */
   getLastVisibleColumn() {
     const wot = this.hot.view.wt;
@@ -435,7 +435,7 @@ class AutoColumnSize extends BasePlugin {
    * Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
    * Otherwise whole cache will be cleared.
    *
-   * @param {Number[]} [columns] List of physical column indexes to clear.
+   * @param {number[]} [columns] List of physical column indexes to clear.
    */
   clearCache(columns = []) {
     if (columns.length) {
@@ -453,7 +453,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Checks if all widths were calculated. If not then return `true` (need recalculate).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isNeedRecalculate() {
     return !!arrayFilter(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => (item === null)).length;
@@ -508,7 +508,7 @@ class AutoColumnSize extends BasePlugin {
    * On before change listener.
    *
    * @private
-   * @param {Array} changes
+   * @param {Array} changes An array of modified data.
    */
   onBeforeChange(changes) {
     const changedColumns = arrayMap(changes, ([, columnProperty]) => this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
@@ -520,10 +520,10 @@ class AutoColumnSize extends BasePlugin {
    * On before column resize listener.
    *
    * @private
-   * @param {Number} size Calculated new column width.
-   * @param {Number} column Visual index of the resized column.
-   * @param {Boolean} isDblClick  Flag that determines whether there was a double-click.
-   * @returns {Number}
+   * @param {number} size Calculated new column width.
+   * @param {number} column Visual index of the resized column.
+   * @param {boolean} isDblClick  Flag that determines whether there was a double-click.
+   * @returns {number}
    */
   onBeforeColumnResize(size, column, isDblClick) {
     let newSize = size;

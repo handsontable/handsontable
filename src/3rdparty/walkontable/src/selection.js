@@ -8,8 +8,8 @@ import CellRange from './cell/range';
  */
 class Selection {
   /**
-   * @param {Object} settings
-   * @param {CellRange} cellRange
+   * @param {object} settings The selection settings object.
+   * @param {CellRange} cellRange The cell range instance.
    */
   constructor(settings, cellRange) {
     this.settings = settings;
@@ -58,18 +58,19 @@ class Selection {
   }
 
   /**
-   * Checks if selection is empty
+   * Checks if selection is empty.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEmpty() {
     return this.cellRange === null;
   }
 
   /**
-   * Adds a cell coords to the selection
+   * Adds a cell coords to the selection.
    *
-   * @param {CellCoords} coords
+   * @param {CellCoords} coords The cell coordinates to add.
+   * @returns {Selection}
    */
   add(coords) {
     if (this.isEmpty()) {
@@ -84,11 +85,11 @@ class Selection {
 
   /**
    * If selection range from or to property equals oldCoords, replace it with newCoords. Return boolean
-   * information about success
+   * information about success.
    *
-   * @param {CellCoords} oldCoords
-   * @param {CellCoords} newCoords
-   * @returns {Boolean}
+   * @param {CellCoords} oldCoords An old cell coordinates to replace.
+   * @param {CellCoords} newCoords The new cell coordinates.
+   * @returns {boolean}
    */
   replace(oldCoords, newCoords) {
     if (!this.isEmpty()) {
@@ -108,7 +109,7 @@ class Selection {
   }
 
   /**
-   * Clears selection
+   * Clears selection.
    *
    * @returns {Selection}
    */
@@ -119,18 +120,18 @@ class Selection {
   }
 
   /**
-   * Returns the top left (TL) and bottom right (BR) selection coordinates
+   * Returns the top left (TL) and bottom right (BR) selection coordinates.
    *
-   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`
+   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
     return this.cellRange.getCorners();
   }
 
   /**
-   * Adds class name to cell element at given coords
+   * Adds class name to cell element at given coords.
    *
-   * @param {Table} wtTable
+   * @param {Table} wtTable Table instance.
    * @param {Number} sourceRow Cell row coord
    * @param {Number} sourceColumn Cell column coord
    * @param {String} className Class name
@@ -162,11 +163,11 @@ class Selection {
    * Generate helper for calculating classNames based on previously added base className.
    * The generated className is always generated as a continuation of the previous className. For example, when
    * the currently checked element has 'area-2' className the generated new className will be 'area-3'. When
-   * the element doesn't have any classNames than the base className will be returned ('area');
+   * the element doesn't have any classNames than the base className will be returned ('area');.
    *
-   * @param {String} baseClassName Base className to be used.
-   * @param {Number} layerLevelOwner Layer level which the instance of the Selection belongs to.
-   * @return {Function}
+   * @param {string} baseClassName Base className to be used.
+   * @param {number} layerLevelOwner Layer level which the instance of the Selection belongs to.
+   * @returns {Function}
    */
   linearClassNameGenerator(baseClassName, layerLevelOwner) {
     // TODO: Make this recursive function Proper Tail Calls (TCO/PTC) friendly.

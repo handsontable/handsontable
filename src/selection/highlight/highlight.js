@@ -28,7 +28,7 @@ class Highlight {
     /**
      * Options consumed by Highlight class and Walkontable Selection classes.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.options = options;
     /**
@@ -38,7 +38,7 @@ class Highlight {
      *
      * An order of the layers is the same as the order of added new non-consecutive selections.
      *
-     * @type {Number}
+     * @type {number}
      * @default 0
      */
     this.layerLevel = 0;
@@ -89,8 +89,8 @@ class Highlight {
   /**
    * Check if highlight cell rendering is disabled for specyfied highlight type.
    *
-   * @param {String} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
-   * @return {Boolean}
+   * @param {string} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
+   * @returns {boolean}
    */
   isEnabledFor(highlightType) {
     // Legacy compatibility.
@@ -107,7 +107,7 @@ class Highlight {
   /**
    * Set a new layer level to make access to the desire `area` and `header` highlights.
    *
-   * @param {Number} [level=0] Layer level to use.
+   * @param {number} [level=0] Layer level to use.
    * @returns {Highlight}
    */
   useLayerLevel(level = 0) {
@@ -119,7 +119,7 @@ class Highlight {
   /**
    * Get Walkontable Selection instance created for controlling highlight of the currently selected/edited cell.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   getCell() {
     return this.cell;
@@ -128,7 +128,7 @@ class Highlight {
   /**
    * Get Walkontable Selection instance created for controlling highlight of the autofill functionality.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   getFill() {
     return this.fill;
@@ -138,7 +138,7 @@ class Highlight {
    * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
    * of the multiple selected cells.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   createOrGetArea() {
     const layerLevel = this.layerLevel;
@@ -158,7 +158,7 @@ class Highlight {
   /**
    * Get all Walkontable Selection instances which describes the state of the visual highlight of the cells.
    *
-   * @return {Selection[]}
+   * @returns {Selection[]}
    */
   getAreas() {
     return [...this.areas.values()];
@@ -168,7 +168,7 @@ class Highlight {
    * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
    * of the multiple selected header cells.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   createOrGetHeader() {
     const layerLevel = this.layerLevel;
@@ -188,7 +188,7 @@ class Highlight {
   /**
    * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers.
    *
-   * @return {Selection[]}
+   * @returns {Selection[]}
    */
   getHeaders() {
     return [...this.headers.values()];
@@ -198,7 +198,7 @@ class Highlight {
    * Get or create (if not exist in the cache) Walkontable Selection instance created for controlling highlight
    * of the multiple selected active header cells.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   createOrGetActiveHeader() {
     const layerLevel = this.layerLevel;
@@ -218,7 +218,7 @@ class Highlight {
   /**
    * Get all Walkontable Selection instances which describes the state of the visual highlight of the active headers.
    *
-   * @return {Selection[]}
+   * @returns {Selection[]}
    */
   getActiveHeaders() {
     return [...this.activeHeaders.values()];
@@ -227,7 +227,7 @@ class Highlight {
   /**
    * Get Walkontable Selection instance created for controlling highlight of the custom selection functionality.
    *
-   * @return {Selection}
+   * @returns {Selection}
    */
   getCustomSelections() {
     return [...this.customSelections.values()];
@@ -257,7 +257,8 @@ class Highlight {
 
   /**
    * This function returns an array that can be iterate over all kinds of highlight objects
-   * @returns {Array}
+   * 
+   * @returns {Selection[]}
    */
   getAll() {
     return [

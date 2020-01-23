@@ -4,6 +4,11 @@ import { registerCondition } from '../conditionRegisterer';
 
 export const CONDITION_NAME = 'begins_with';
 
+/**
+ * @param {object} dataRow The object which holds and describes the single cell value.
+ * @param {Array} inputValues An array of values to compare with.
+ * @returns {boolean}
+ */
 export function condition(dataRow, [value]) {
   return stringify(dataRow.value).toLowerCase().startsWith(stringify(value));
 }

@@ -98,10 +98,10 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-  * hook and if it returns `true` than the {@link CustomBorders#enablePlugin} method is called.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link CustomBorders#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().customBorders;
@@ -144,21 +144,21 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-    * Set custom borders.
-    *
-    * @example
-    * ```js
-    * const customBordersPlugin = hot.getPlugin('customBorders');
-    *
-    * // Using an array of arrays (produced by `.getSelected()` method).
-    * customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {left: {width: 2, color: 'blue'}});
-    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-    * customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
-    * ```
-    *
-    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
-    * @param {Object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
-    */
+   * Set custom borders.
+   *
+   * @example
+   * ```js
+   * const customBordersPlugin = hot.getPlugin('customBorders');
+   *
+   * // Using an array of arrays (produced by `.getSelected()` method).
+   * customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {left: {width: 2, color: 'blue'}});
+   * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+   * customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
+   * ```
+   *
+   * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
+   * @param {object} borderObject Object with `top`, `right`, `bottom` and `left` properties.
+   */
   setBorders(selectionRanges, borderObject) {
     const defaultBorderKeys = ['top', 'right', 'bottom', 'left'];
     const borderKeys = borderObject ? Object.keys(borderObject) : defaultBorderKeys;
@@ -199,23 +199,23 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-    * Get custom borders.
-    *
-    * @example
-    * ```js
-    * const customBordersPlugin = hot.getPlugin('customBorders');
-    *
-    * // Using an array of arrays (produced by `.getSelected()` method).
-    * customBordersPlugin.getBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
-    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-    * customBordersPlugin.getBorders(hot.getSelectedRange());
-    * // Using without param - return all customBorders.
-    * customBordersPlugin.getBorders();
-    * ```
-    *
-    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
-    * @return {Object[]} Returns array of border objects.
-    */
+   * Get custom borders.
+   *
+   * @example
+   * ```js
+   * const customBordersPlugin = hot.getPlugin('customBorders');
+   *
+   * // Using an array of arrays (produced by `.getSelected()` method).
+   * customBordersPlugin.getBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
+   * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+   * customBordersPlugin.getBorders(hot.getSelectedRange());
+   * // Using without param - return all customBorders.
+   * customBordersPlugin.getBorders();
+   * ```
+   *
+   * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
+   * @returns {object[]} Returns array of border objects.
+   */
   getBorders(selectionRanges) {
     if (!Array.isArray(selectionRanges)) {
       return this.savedBorders;
@@ -243,22 +243,22 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-    * Clear custom borders.
-    *
-    * @example
-    * ```js
-    * const customBordersPlugin = hot.getPlugin('customBorders');
-    *
-    * // Using an array of arrays (produced by `.getSelected()` method).
-    * customBordersPlugin.clearBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
-    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-    * customBordersPlugin.clearBorders(hot.getSelectedRange());
-    * // Using without param - clear all customBorders.
-    * customBordersPlugin.clearBorders();
-    * ```
-    *
-    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
-    */
+   * Clear custom borders.
+   *
+   * @example
+   * ```js
+   * const customBordersPlugin = hot.getPlugin('customBorders');
+   *
+   * // Using an array of arrays (produced by `.getSelected()` method).
+   * customBordersPlugin.clearBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
+   * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+   * customBordersPlugin.clearBorders(hot.getSelectedRange());
+   * // Using without param - clear all customBorders.
+   * customBordersPlugin.clearBorders();
+   * ```
+   *
+   * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
+   */
   clearBorders(selectionRanges) {
     if (selectionRanges) {
       this.setBorders(selectionRanges);
@@ -309,10 +309,10 @@ class CustomBorders extends BasePlugin {
    * Prepare borders from setting (single cell).
    *
    * @private
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {Object} borderDescriptor Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
-   * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object} borderDescriptor Object with `row` and `col`, `left`, `right`, `top` and `bottom` properties.
+   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
     let border = createEmptyBorders(row, column);
@@ -337,7 +337,7 @@ class CustomBorders extends BasePlugin {
    * Prepare borders from setting (object).
    *
    * @private
-   * @param {Object} rowDecriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
+   * @param {object} rowDecriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
    */
   prepareBorderFromCustomAddedRange(rowDecriptor) {
     const range = rowDecriptor.range;
@@ -389,8 +389,8 @@ class CustomBorders extends BasePlugin {
    * Remove border (triggered from context menu).
    *
    * @private
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
    */
   removeAllBorders(row, column) {
     const borderId = createId(row, column);
@@ -403,13 +403,13 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Set borders for each cell re. to border position.
+   * Set borders for each cell re. To border position.
    *
    * @private
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
-   * @param {Boolean} remove True when remove borders, and false when add borders.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
+   * @param {boolean} remove True when remove borders, and false when add borders.
    */
   setBorder(row, column, place, remove) {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
@@ -453,9 +453,9 @@ class CustomBorders extends BasePlugin {
    * Prepare borders based on cell and border position.
    *
    * @private
-   * @param {Object} selected
-   * @param {String} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
-   * @param {Boolean} remove True when remove borders, and false when add borders.
+   * @param {CellRange[]} selected An array of CellRange objects.
+   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
+   * @param {boolean} remove True when remove borders, and false when add borders.
    */
   prepareBorder(selected, place, remove) {
     arrayEach(selected, ({ start, end }) => {
@@ -563,11 +563,11 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Clear borders settings from custom selections.
-  *
-  * @private
-  * @param {String} borderId Border id name as string.
-  */
+   * Clear borders settings from custom selections.
+   *
+   * @private
+   * @param {string} borderId Border id name as string.
+   */
   clearBordersFromSelectionSettings(borderId) {
     const customSelection = this.hot.selection.highlight.customSelections.get(borderId);
 
@@ -589,11 +589,11 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Splice border from savedBorders.
-  *
-  * @private
-  * @param {String} borderId Border id name as string.
-  */
+   * Splice border from savedBorders.
+   *
+   * @private
+   * @param {string} borderId Border id name as string.
+   */
   spliceBorder(borderId) {
     const border = this.savedBordersById.get(borderId);
 
@@ -668,11 +668,11 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Add border options to context menu.
-  *
-  * @private
-  * @param {Object} defaultOptions Context menu items.
-  */
+   * Add border options to context menu.
+   *
+   * @private
+   * @param {object} defaultOptions Context menu items.
+   */
   onAfterContextMenuDefaultOptions(defaultOptions) {
     if (!this.hot.getSettings().customBorders) {
       return;

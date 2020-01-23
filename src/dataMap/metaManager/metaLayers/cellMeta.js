@@ -2,6 +2,7 @@ import { extend } from '../../../helpers/object';
 import { expandMetaType, assert, isUnsignedNumber } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The cell meta object is a root of all settings defined for the specific cell rendered by the
  * Handsontable. Each cell meta inherits settings from higher layers. When a property doesn't
@@ -30,6 +31,7 @@ import LazyFactoryMap from '../lazyFactoryMap';
  *
  * @class {CellMeta}
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 export default class CellMeta {
   constructor(columnMeta) {
     /**
@@ -44,7 +46,7 @@ export default class CellMeta {
      * The access to the cell meta object is done through access to the row defined by the physical
      * row index and then by accessing the second LazyFactory Map under the physical column index.
      *
-     * @type {LazyFactoryMap<Number, LazyFactoryMap<Number, Object>>}
+     * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
      */
     this.metas = new LazyFactoryMap(() => this._createRow());
   }
@@ -52,9 +54,9 @@ export default class CellMeta {
   /**
    * Updates cell meta object by merging settings with the current state.
    *
-   * @param {Number} physicalRow The physical row index which points what cell meta object is updated.
-   * @param {Number} physicalColumn The physical column index which points what cell meta object is updated.
-   * @param {Object} settings An object to merge with.
+   * @param {number} physicalRow The physical row index which points what cell meta object is updated.
+   * @param {number} physicalColumn The physical column index which points what cell meta object is updated.
+   * @param {object} settings An object to merge with.
    */
   updateMeta(physicalRow, physicalColumn, settings) {
     const meta = this.getMeta(physicalRow, physicalColumn);
@@ -66,8 +68,8 @@ export default class CellMeta {
   /**
    * Creates one or more rows at specific position.
    *
-   * @param {Number} physicalRow The physical row index which points from what position the row is added.
-   * @param {Number} amount An amount of rows to add.
+   * @param {number} physicalRow The physical row index which points from what position the row is added.
+   * @param {number} amount An amount of rows to add.
    */
   createRow(physicalRow, amount) {
     this.metas.insert(physicalRow, amount);
@@ -76,8 +78,8 @@ export default class CellMeta {
   /**
    * Creates one or more columns at specific position.
    *
-   * @param {Number} physicalColumn The physical column index which points from what position the column is added.
-   * @param {Number} amount An amount of columns to add.
+   * @param {number} physicalColumn The physical column index which points from what position the column is added.
+   * @param {number} amount An amount of columns to add.
    */
   createColumn(physicalColumn, amount) {
     for (let i = 0; i < this.metas.size(); i++) {
@@ -88,8 +90,8 @@ export default class CellMeta {
   /**
    * Removes one or more rows from the collection.
    *
-   * @param {Number} physicalRow The physical row index which points from what position the row is removed.
-   * @param {Number} amount An amount of rows to remove.
+   * @param {number} physicalRow The physical row index which points from what position the row is removed.
+   * @param {number} amount An amount of rows to remove.
    */
   removeRow(physicalRow, amount) {
     this.metas.remove(physicalRow, amount);
@@ -98,8 +100,8 @@ export default class CellMeta {
   /**
    * Removes one or more columns from the collection.
    *
-   * @param {Number} physicalColumn The physical column index which points from what position the column is removed.
-   * @param {Number} amount An amount of columns to remove.
+   * @param {number} physicalColumn The physical column index which points from what position the column is removed.
+   * @param {number} amount An amount of columns to remove.
    */
   removeColumn(physicalColumn, amount) {
     for (let i = 0; i < this.metas.size(); i++) {
@@ -110,10 +112,10 @@ export default class CellMeta {
   /**
    * Gets settings object for this layer.
    *
-   * @param {Number} physicalRow The physical row index.
-   * @param {Number} physicalColumn The physical column index.
-   * @param {String} [key] If the key exists its value will be returned, otherwise the whole cell meta object.
-   * @returns {Object}
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} [key] If the key exists its value will be returned, otherwise the whole cell meta object.
+   * @returns {object}
    */
   getMeta(physicalRow, physicalColumn, key) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
@@ -128,9 +130,9 @@ export default class CellMeta {
   /**
    * Sets settings object for this layer defined by "key" property.
    *
-   * @param {Number} physicalRow The physical row index.
-   * @param {Number} physicalColumn The physical column index.
-   * @param {String} key The property name to set.
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The property name to set.
    * @param {*} value Value to save.
    */
   setMeta(physicalRow, physicalColumn, key, value) {
@@ -142,9 +144,9 @@ export default class CellMeta {
   /**
    * Removes a property defined by the "key" argument from the cell meta object.
    *
-   * @param {Number} physicalRow The physical row index.
-   * @param {Number} physicalColumn The physical column index.
-   * @param {String} key The property name to remove.
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {string} key The property name to remove.
    */
   removeMeta(physicalRow, physicalColumn, key) {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
@@ -157,7 +159,7 @@ export default class CellMeta {
    * objects are created lazy, the length of the returned collection depends on how and when the
    * table has asked for access to that meta objects.
    *
-   * @returns {Object[]}
+   * @returns {object[]}
    */
   getMetas() {
     const metas = [];
@@ -174,8 +176,8 @@ export default class CellMeta {
    * Returns all cell meta objects that were created during the Handsontable operation but for
    * specyfic row index.
    *
-   * @param {physicalRow} The physical row index.
-   * @returns {Object[]}
+   * @param {number} physicalRow The physical row index.
+   * @returns {object[]}
    */
   getMetasAtRow(physicalRow) {
     assert(() => isUnsignedNumber(physicalRow), 'Expecting an unsigned number.');
@@ -196,7 +198,7 @@ export default class CellMeta {
    * Creates and returns new structure for cell meta objects stored in columnar axis.
    *
    * @private
-   * @returns {Object}
+   * @returns {object}
    */
   _createRow() {
     return new LazyFactoryMap(physicalColumn => this._createMeta(physicalColumn));
@@ -206,7 +208,8 @@ export default class CellMeta {
    * Creates and returns new cell meta object with properties inherited from the column meta layer.
    *
    * @private
-   * @returns {Object}
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object}
    */
   _createMeta(physicalColumn) {
     const ColumnMeta = this.columnMeta.getMetaConstructor(physicalColumn);

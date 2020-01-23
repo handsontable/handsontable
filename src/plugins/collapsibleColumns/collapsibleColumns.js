@@ -17,7 +17,6 @@ import BasePlugin from '../_base';
 
 /**
  * @plugin CollapsibleColumns
- * @dependencies NestedHeaders HiddenColumns
  *
  * @description
  * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
@@ -62,42 +61,42 @@ class CollapsibleColumns extends BasePlugin {
      * Cached plugin settings.
      *
      * @private
-     * @type {Boolean|Array}
+     * @type {boolean|Array}
      */
     this.settings = null;
     /**
      * Map listing headers with buttons enabled.
      *
      * @private
-      * @type {Map<number, Set<number>>}
+     * @type {Map<number, Set<number>>}
      */
     this.buttonEnabledList = new Map();
     /**
      * Cached reference to the HiddenColumns plugin.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.hiddenColumnsPlugin = null;
     /**
      * Cached reference to the NestedHeaders plugin.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.nestedHeadersPlugin = null;
     /**
      * Map listing the currently collapsed sections.
      *
      * @private
-      * @type {Map<number, any[]>}
+     * @type {Map<number, any[]>}
      */
     this.collapsedSections = new Map();
     /**
      * Number of column header levels.
      *
      * @private
-     * @type {Number}
+     * @type {number}
      */
     this.columnHeaderLevelCount = null;
     /**
@@ -111,7 +110,7 @@ class CollapsibleColumns extends BasePlugin {
      * List of currently collapsed columns.
      *
      * @private
-     * @type {Number[]}
+     * @type {number[]}
      */
     this.collapsedColumns = [];
     /**
@@ -127,7 +126,7 @@ class CollapsibleColumns extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link CollapsibleColumns#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().collapsibleColumns;
@@ -245,7 +244,7 @@ class CollapsibleColumns extends BasePlugin {
    * Checks if plugin dependencies are met.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   meetsDependencies() {
     const settings = this.hot.getSettings();
@@ -278,7 +277,7 @@ class CollapsibleColumns extends BasePlugin {
    * Generates the indicator element.
    *
    * @private
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @param {HTMLElement} TH TH Element.
    * @returns {HTMLElement}
    */
@@ -310,7 +309,7 @@ class CollapsibleColumns extends BasePlugin {
    * Generates the list of collapsable coords.
    *
    * @private
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @param {HTMLElement} TH TH Element.
    */
   generateCollapsableCoordsList(column, TH) {
@@ -329,10 +328,10 @@ class CollapsibleColumns extends BasePlugin {
    * Marks (internally) a section as 'collapsed' or 'expanded' (optionally, also mark the 'child' headers).
    *
    * @private
-   * @param {String} state State ('collapsed' or 'expanded').
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
-   * @param {Boolean} recursive If `true`, it will also attempt to mark the child sections.
+   * @param {string} state State ('collapsed' or 'expanded').
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @param {boolean} recursive If `true`, it will also attempt to mark the child sections.
    */
   markSectionAs(state, row, column, recursive) {
     if (!this.collapsedSections.has(row)) {
@@ -369,7 +368,7 @@ class CollapsibleColumns extends BasePlugin {
   /**
    * Expands section at the provided coords.
    *
-   * @param {Object} coords Contains coordinates information. (`coords.row`, `coords.col`)
+   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
   expandSection(coords) {
     this.toggleCollapsibleSection([coords], 'expand');
@@ -378,7 +377,7 @@ class CollapsibleColumns extends BasePlugin {
   /**
    * Collapses section at the provided coords.
    *
-   * @param {Object} coords Contains coordinates information. (`coords.row`, `coords.col`)
+   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
   collapseSection(coords) {
     this.toggleCollapsibleSection([coords], 'collapse');
@@ -387,7 +386,7 @@ class CollapsibleColumns extends BasePlugin {
   /**
    * Collapses or expand all collapsible sections, depending on the action parameter.
    *
-   * @param {String} action 'collapse' or 'expand'.
+   * @param {string} action 'collapse' or 'expand'.
    */
   toggleAllCollapsibleSections(action) {
     const nestedHeadersColspanArray = this.nestedHeadersPlugin.colspanArray;
@@ -443,7 +442,7 @@ class CollapsibleColumns extends BasePlugin {
    * Collapses/Expands a section.
    *
    * @param {Array} coords Array of coords - section coordinates.
-   * @param {String} action Action definition ('collapse' or 'expand').
+   * @param {string} action Action definition ('collapse' or 'expand').
    * @fires Hooks#beforeColumnCollapse
    * @fires Hooks#beforeColumnExpand
    * @fires Hooks#afterColumnCollapse
@@ -557,7 +556,7 @@ class CollapsibleColumns extends BasePlugin {
    * Adds the indicator to the headers.
    *
    * @private
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @param {HTMLElement} TH TH element.
    */
   onAfterGetColHeader(column, TH) {
@@ -578,8 +577,9 @@ class CollapsibleColumns extends BasePlugin {
    * Indicator mouse event callback.
    *
    * @private
-   * @param {Object} event Mouse event.
-   * @param {Object} coords Event coordinates.
+   * @param {object} event Mouse event.
+   * @param {object} coords Event coordinates.
+   * @returns {boolean}
    */
   onBeforeOnCellMouseDown(event, coords) {
     if (hasClass(event.target, 'collapsibleIndicator')) {

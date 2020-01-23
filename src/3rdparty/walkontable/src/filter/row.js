@@ -3,9 +3,9 @@
  */
 class RowFilter {
   /**
-   * @param {Number} offset
-   * @param {Number} total
-   * @param {Number} countTH
+   * @param {number} offset The scroll vertical offset.
+   * @param {number} total The total height of the table.
+   * @param {number} countTH The number of rendered column headers.
    */
   constructor(offset, total, countTH) {
     this.offset = offset;
@@ -14,64 +14,64 @@ class RowFilter {
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   offsetted(index) {
     return index + this.offset;
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   unOffsetted(index) {
     return index - this.offset;
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   renderedToSource(index) {
     return this.offsetted(index);
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   sourceToRendered(index) {
     return this.unOffsetted(index);
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   offsettedTH(index) {
     return index - this.countTH;
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   unOffsettedTH(index) {
     return index + this.countTH;
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   visibleColHeadedRowToSourceRow(index) {
     return this.renderedToSource(this.offsettedTH(index));
   }
 
   /**
-   * @param index
-   * @returns {Number}
+   * @param {number} index The visual row index.
+   * @returns {number}
    */
   sourceRowToVisibleColHeadedRow(index) {
     return this.unOffsettedTH(this.sourceToRendered(index));
