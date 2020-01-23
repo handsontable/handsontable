@@ -20,17 +20,19 @@ class Selection {
   }
 
   /**
-   * Returns information if the current selection is configured to display a corner or a selection handle
+   * Returns information if the current selection is configured to display a corner or a selection handle.
+   *
+   * @returns {boolean}
    */
   hasSelectionHandle() {
     return this.settings.border && typeof this.settings.border.cornerVisible === 'function';
   }
 
   /**
-   * Each Walkontable clone requires it's own selection handle for every selection. This method creates and returns selection
-   * handles per instance
+   * Each Walkontable clone requires it's own selection handle for every selection. This method creates and returns selection.
+   * Handles per instance.
    *
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    * @returns {SelectionHandle}
    */
   getSelectionHandle(wotInstance) {
@@ -48,9 +50,9 @@ class Selection {
   }
 
   /**
-   * Return an existing intance of Border class if defined for a given Walkontable instance
+   * Return an existing intance of Border class if defined for a given Walkontable instance.
    *
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    * @returns {SelectionHandle|undefined}
    */
   getSelectionHandleIfExists(wotInstance) {
@@ -132,10 +134,10 @@ class Selection {
    * Adds class name to cell element at given coords.
    *
    * @param {Table} wtTable Table instance.
-   * @param {Number} sourceRow Cell row coord
-   * @param {Number} sourceColumn Cell column coord
-   * @param {String} className Class name
-   * @param {Boolean} [markIntersections=false] If `true`, linear className generator will be used to add CSS classes
+   * @param {number} sourceRow Cell row coord.
+   * @param {number} sourceColumn Cell column coord.
+   * @param {string} className Class name.
+   * @param {boolean} [markIntersections=false] If `true`, linear className generator will be used to add CSS classes
    *                                            in a continuous way.
    * @returns {Selection}
    */
@@ -197,10 +199,10 @@ class Selection {
   }
 
   /**
-   * Add CSS class names to an element, but only if the element exists
+   * Add CSS class names to an element, but only if the element exists.
    *
-   * @param {HTMLElement} elem
-   * @param {Array} classNames
+   * @param {HTMLElement} elem A HTML element.
+   * @param {Array} classNames An array of string CSS class names.
    */
   addClassIfElemExists(elem, classNames) {
     if (elem) {
@@ -215,13 +217,13 @@ class Selection {
    * if no border edges should be rendered for the current viewport. Every nested array has the structure that is
    * expected by {@link BorderRenderer.convertArgsToLines}.
    *
-   * @param {Walkontable} wotInstance
-   * @param {number} tableRowsCount
-   * @param {number} tableColumnsCount
-   * @param {number} tableStartRow Source index of the first rendered row in the table. Expecting -1 when there are no rendered rows
-   * @param {number} tableStartColumn Source index of the first rendered column in the table. Expecting -1 when there are no rendered columns
-   * @param {number} tableEndRow Source index of the last rendered row in the table. Expecting  -1 when there are no rendered rows
-   * @param {number} tableEndColumn Source index of the last rendered column in the table. Expecting -1 when there are no rendered columns
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {number} tableRowsCount The number of rows in the table.
+   * @param {number} tableColumnsCount The number of columns in the table.
+   * @param {number} tableStartRow Source index of the first rendered row in the table. Expecting -1 when there are no rendered rows.
+   * @param {number} tableStartColumn Source index of the first rendered column in the table. Expecting -1 when there are no rendered columns.
+   * @param {number} tableEndRow Source index of the last rendered row in the table. Expecting  -1 when there are no rendered rows.
+   * @param {number} tableEndColumn Source index of the last rendered column in the table. Expecting -1 when there are no rendered columns.
    * @returns {Array.<Array.<*>>}
    */
   draw(wotInstance,

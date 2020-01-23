@@ -5,58 +5,58 @@ import svgOptimizePath from './svg/optimizePath';
 const offsetToOverLapPrecedingBorder = -1;
 
 /**
- * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`
+ * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`.
  */
 export default class BorderRenderer {
   constructor(parentElement, padding) {
     /**
      * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
      *
-     * @type {Object} Object with properties top, left, bottom, right
+     * @type {object} Object with properties top, left, bottom, right
      */
     this.padding = padding;
     /**
-     * The SVG container element, where all SVG groups are rendered
+     * The SVG container element, where all SVG groups are rendered.
      *
      * @type {HTMLElement}
      */
     this.svg = this.createSvgContainer(parentElement);
     /**
-     * The function used to resize the SVG container when needed
+     * The function used to resize the SVG container when needed.
      *
      * @type {Function}
      */
     this.svgResizer = getSvgResizer(this.svg);
     /**
-     * Array that holds pathGroup metadata objects keyed by the layer number
+     * Array that holds pathGroup metadata objects keyed by the layer number.
      *
-     * @type {Array.<Object>}
+     * @type {Array.<object>}
      */
     this.pathGroups = [];
     /**
-     * Desired width for the SVG container
+     * Desired width for the SVG container.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.maxWidth = 0;
     /**
-     * Desired height for the SVG container
+     * Desired height for the SVG container.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.maxHeight = 0;
     /**
-     * Context for getComputedStyle
+     * Context for getComputedStyle.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.rootWindow = parentElement.ownerDocument.defaultView;
   }
 
   /**
-   * Creates and configures the SVG container element, where all SVG paths are rendered
+   * Creates and configures the SVG container element, where all SVG paths are rendered.
    *
-   * @param {HTMLElement} parentElement
+   * @param {HTMLElement} parentElement Parent element where the SVG element will be inserted.
    * @returns {HTMLElement}
    */
   createSvgContainer(parentElement) {
@@ -78,10 +78,10 @@ export default class BorderRenderer {
   /**
    * Returns pathGroup metadata object for a given index.
    * Works recursively to fill gaps in indices starting from 0, e.g.
-   * you request index 1 while 0 does not exist, it will create 0 and 1
+   * You request index 1 while 0 does not exist, it will create 0 and 1.
    *
-   * @param {Number} index Number that corresonds to a visual layer (0 is the bottom layer)
-   * @returns {Object} pathGroup metadata object
+   * @param {number} index Number that corresonds to a visual layer (0 is the bottom layer).
+   * @returns {object} PathGroup metadata object.
    */
   ensurePathGroup(index) {
     const found = this.pathGroups[index];
@@ -107,10 +107,10 @@ export default class BorderRenderer {
   }
 
   /**
-   * Draws the paths according to configuration passed in `argArrays`
+   * Draws the paths according to configuration passed in `argArrays`.
    *
-   * @param {HTMLElement} table
-   * @param {Array.<Array.<*>>} argArrays
+   * @param {HTMLTableElement} table HTML table element used for position measurements.
+   * @param {Array.<Array.<*>>} argArrays Border descriptor array, as returned from Selection class.
    */
   render(table, argArrays) {
     this.containerBoundingRect = table.getBoundingClientRect();
@@ -137,22 +137,23 @@ export default class BorderRenderer {
   }
 
   /**
-   * Returns the sum of values at a specified inner index in a 2D array
+   * Returns the sum of values at a specified inner index in a 2D array.
    *
-   * @param {Array.<Array.<number>>} arr Array of subarrays
-   * @param {Number} index Index in subarray
-   * @returns {Number} Sum
+   * @param {Array.<Array.<number>>} arr Array of subarrays.
+   * @param {number} index Index in subarray.
+   * @returns {number} Sum.
    */
   sumArrayElementAtIndex(arr, index) {
     return arr.reduce((accumulator, subarr) => Math.max(accumulator, subarr[index]), 0);
   }
 
   /**
-   * Get a value stored in a 2D map (key1->key2->value)
+   * Get a value stored in a 2D map (key1->key2->value).
    *
-   * @param {Map.<number, Map.<number, number>>} map
-   * @param {number} key1
-   * @param {number} key2
+   * @param {Map.<number, Map.<number, number>>} map Map.
+   * @param {number} key1 Key 1.
+   * @param {number} key2 Key 2.
+   * @returns {number} Value.
    */
   getFrom2dMap(map, key1, key2) {
     const subMap = map.get(key1);
@@ -160,12 +161,12 @@ export default class BorderRenderer {
   }
 
   /**
-   * Store a value in a 2D map key1->key2->value)
+   * Store a value in a 2D map key1->key2->value).
    *
-   * @param {Map.<number, Map.<number, number>>} map
-   * @param {number} key1
-   * @param {number} key2
-   * @param {number} value
+   * @param {Map.<number, Map.<number, number>>} map Map.
+   * @param {number} key1 Key 1.
+   * @param {number} key2 Key 2.
+   * @param {number} value Value.
    */
   setIn2dMap(map, key1, key2, value) {
     const subMap = map.get(key1);
@@ -178,12 +179,12 @@ export default class BorderRenderer {
 
   /**
    * Adjusts the beginning and end tips of the lines to overlap each other according to the specification.
-   * The specification is covered in TDD file border.spec.js   *
+   * The specification is covered in TDD file border.spec.js   *.
    *
-   * @param {Array.<number>} lines
-   * @param {Number} width
-   * @param {Map} horizontalPointSizeMap
-   * @param {Map} verticalPointSizeMap
+   * @param {Array.<Array.<number>>} lines Lines in format `[[x1, y1, x2, y2, ...], ...]`.
+   * @param {number} width Line width.
+   * @param {Map} horizontalPointSizeMap Horizontal point size map.
+   * @param {Map} verticalPointSizeMap Vertical point size map.
    */
   adjustTipsOfLines(lines, width, horizontalPointSizeMap, verticalPointSizeMap) {
     if (lines.length === 0) {
@@ -227,10 +228,10 @@ export default class BorderRenderer {
   }
 
   /**
-   * Serializes `stylesAndLines` map into into a 1D array of SVG path commands (`commands`) within a pathGroup
+   * Serializes `stylesAndLines` map into into a 1D array of SVG path commands (`commands`) within a pathGroup.
    * Sets `this.maxWidth` and `this.maxHeight` to the highest observed value.
    *
-   * @param {Object} pathGroup pathGroup metadata object
+   * @param {object} pathGroup PathGroup metadata object.
    */
   convertLinesToCommands(pathGroup) {
     const { stylesAndLines, commands } = pathGroup;
@@ -265,9 +266,9 @@ export default class BorderRenderer {
   }
 
   /**
-   * Creates and configures the SVG group element, where all SVG paths are rendered
+   * Creates and configures the SVG group element, where all SVG paths are rendered.
    *
-   * @param {HTMLElement} svg SVG container element
+   * @param {HTMLElement} svg SVG container element.
    * @returns {HTMLElement}
    */
   getSvgPathsRendererForGroup(svg) {
@@ -283,8 +284,8 @@ export default class BorderRenderer {
    * Used to render custom borders on a lower layer than built-in borders (fill, area, current).
    * Higher numbers render above lower numbers.
    *
-   * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
-   * @returns {Number}
+   * @param {object} selectionSetting Settings provided in the same format as used by `Selection.setting`.
+   * @returns {number}
    */
   getLayerNumber(selectionSetting) {
     switch (selectionSetting.className) {
@@ -303,16 +304,16 @@ export default class BorderRenderer {
   }
 
   /**
-   * Generates lines in format `[[x1, y1, x2, y2], ...]` based on input given as arguments, and stores them in `pathGroup.stylesAndLines`
+   * Generates lines in format `[[x1, y1, x2, y2], ...]` based on input given as arguments, and stores them in `pathGroup.stylesAndLines`.
    *
-   * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
-   * @param {Function} getCellFn Function that returns a cell from the current overlay
-   * @param {Object} selectionStart Object with properties row, col that represents the top left corner of the selection
-   * @param {Object} selectionEnd Object with properties row, col that represents the bottom right corner of the selection
-   * @param {Boolean} hasTopEdge TRUE if the range between `firstTd` and `lastTd` contains the top line, FALSE otherwise
-   * @param {Boolean} hasRightEdge TRUE if the range between `firstTd` and `lastTd` contains the right line, FALSE otherwise
-   * @param {Boolean} hasBottomEdge TRUE if the range between `firstTd` and `lastTd` contains bottom top line, FALSE otherwise
-   * @param {Boolean} hasLeftEdge TRUE if the range between `firstTd` and `lastTd` contains left top line, FALSE otherwise
+   * @param {object} selectionSetting Settings provided in the same format as used by `Selection.setting`.
+   * @param {Function} getCellFn Function that returns a cell from the current overlay.
+   * @param {object} selectionStart Object with properties row, col that represents the top left corner of the selection.
+   * @param {object} selectionEnd Object with properties row, col that represents the bottom right corner of the selection.
+   * @param {boolean} hasTopEdge TRUE if the range between `firstTd` and `lastTd` contains the top line, FALSE otherwise.
+   * @param {boolean} hasRightEdge TRUE if the range between `firstTd` and `lastTd` contains the right line, FALSE otherwise.
+   * @param {boolean} hasBottomEdge TRUE if the range between `firstTd` and `lastTd` contains bottom top line, FALSE otherwise.
+   * @param {boolean} hasLeftEdge TRUE if the range between `firstTd` and `lastTd` contains left top line, FALSE otherwise.
    */
   convertArgsToLines(selectionSetting, getCellFn, selectionStart, selectionEnd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
     const layerNumber = this.getLayerNumber(selectionSetting);
@@ -463,9 +464,9 @@ export default class BorderRenderer {
    * Checks in the selection configuration to see if a particular edge is set to be rendered and
    * returns TRUE if yes, FALSE otherwise.
    *
-   * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
-   * @param {String} edge Possible values: 'top', 'right', 'bottom', 'left'
-   * @returns {Boolean}
+   * @param {object} selectionSetting Settings provided in the same format as used by `Selection.setting`.
+   * @param {string} edge Possible values: 'top', 'right', 'bottom', 'left'.
+   * @returns {boolean}
    */
   hasLineAtEdge(selectionSetting, edge) {
     return !(selectionSetting[edge] && selectionSetting[edge].hide);
@@ -475,10 +476,10 @@ export default class BorderRenderer {
    * For a given `selectionSetting` and `edge`, returns a relevant array from the `stylesAndLines` map.
    * Sets a new array in `stylesAndLines` if an existing one is not found.
    *
-   * @param {Map.<string, Array.<Array.<number>>>} stylesAndLines Map where keys are the `style` strings and values are lines in format `[[x1, y1, x2, y2, ...], ...]`
-   * @param {Object} selectionSetting Settings provided in the same format as used by `Selection.setting`
-   * @param {String} edge Possible falues: 'top', 'right', 'bottom', 'left'
-   * @returns {Array.<Array.<number>>} Lines in format `[[x1, y1, x2, y2, ...], ...]`
+   * @param {Map.<string, Array.<Array.<number>>>} stylesAndLines Map where keys are the `style` strings and values are lines in format `[[x1, y1, x2, y2, ...], ...]`.
+   * @param {object} selectionSetting Settings provided in the same format as used by `Selection.setting`.
+   * @param {string} edge Possible falues: 'top', 'right', 'bottom', 'left'.
+   * @returns {Array.<Array.<number>>} Lines in format `[[x1, y1, x2, y2, ...], ...]`.
    */
   getLines(stylesAndLines, selectionSetting, edge) {
     let width = 1;

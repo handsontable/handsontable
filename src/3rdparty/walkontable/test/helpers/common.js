@@ -431,7 +431,7 @@ export function expectWtTable(wt, callb, name) {
  * Returns all SVG <path> elements within the parent. The items order
  * matches the rendered order (equivalent of "z-index").
  *
- * @param {HTMLElement} parentElem
+ * @param {HTMLElement} parentElem HTML element.
  * @returns {Array.<HTMLElement>}
  */
 function getSvgPaths(parentElem) {
@@ -441,7 +441,8 @@ function getSvgPaths(parentElem) {
 /**
  * Returns path command for all SVG <path> elements within the parent.
  *
- * @param {HTMLElement} parentElem
+ * @param {HTMLElement} parentElem HTML element.
+ * @returns {string[]} Array of "d" attributes found in SVG paths within parentElem.
  */
 export function getRenderedBorderPaths(parentElem) {
   if (!parentElem || !parentElem.querySelectorAll) {
@@ -454,7 +455,8 @@ export function getRenderedBorderPaths(parentElem) {
 /**
  * Returns information about the existence of path command for all SVG <path> elements within the parent.
  *
- * @param {HTMLElement} parentElem
+ * @param {HTMLElement} parentElem HTML element.
+ * @returns {boolean[]} Array of boolean true or false for all SVG paths within parentElem, depending whether the path has a non-empty path.
  */
 export function getRenderedBorderPathExistence(parentElem) {
   const paths = getSvgPaths(parentElem).map(x => !!x.getAttribute('d'));
@@ -464,7 +466,8 @@ export function getRenderedBorderPathExistence(parentElem) {
 /**
  * Returns stroke style for all SVG <path> elements within the parent.
  *
- * @param {HTMLElement} parentElem
+ * @param {HTMLElement} parentElem HTML element.
+ * @returns {string[]} Returns array of stroke information stored in a data attribute.
  */
 export function getRenderedBorderStyles(parentElem) {
   const paths = getSvgPaths(parentElem).map(x => x.getAttribute('data-stroke-style'));

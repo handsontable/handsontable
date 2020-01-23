@@ -123,7 +123,7 @@ class Overlays {
   }
 
   /**
-   * Refresh and redraw the master table, which will include refreshing of the clones
+   * Refresh and redraw the master table, which will include refreshing of the clones.
    */
   refreshMasterAndClones() {
     if (!this.wot.drawn) {
@@ -420,7 +420,8 @@ class Overlays {
   }
 
   /**
-   * Refresh (update the sizes and positions) and redraw the clones
+   * Refresh (update the sizes and positions) and redraw the clones.
+   *
    * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
    *                                   rendering anyway.

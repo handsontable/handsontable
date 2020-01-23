@@ -19,10 +19,10 @@ and limitations under the License.
 */
 
 /**
- * Arrange lines that share the starting or ending point into chains. This allows to reduce the number of "move" operations
+ * Arrange lines that share the starting or ending point into chains. This allows to reduce the number of "move" operations.
  *
- * @param {Array.<Array.<number>>>} lines SVG Path data in format `[[x1, y1, x2, y2], ...]`
- * @returns {Array.<Array.<number>>>} SVG Path data in chained format `[[x1, y1, x2, y2, x3, y3, ...], ...]`
+ * @param {Array.<Array.<number>>} lines SVG Path data in format `[[x1, y1, x2, y2], ...]`.
+ * @returns {Array.<Array.<number>>} SVG Path data in chained format `[[x1, y1, x2, y2, x3, y3, ...], ...]`.
  */
 export default function groupLinesIntoPolylines(lines) {
   const pointGraph = new PointGraph();
@@ -117,8 +117,8 @@ PointGraph.prototype.reset = function() {
  * Insert a value.
  *
  * @private
- * @param value Value associated with this point.
- * @returns valueId of the inserted value.
+ * @param {object} value Value associated with this point.
+ * @returns {number} ValueId of the inserted value.
  */
 PointGraph.prototype.insertValue = function(value) {
   this.values.push(value);
@@ -127,11 +127,11 @@ PointGraph.prototype.insertValue = function(value) {
 };
 
 /**
- * Insert a value at a point.
+ * Insert a value id at a point.
  *
  * @private
- * @param p Point.
- * @param value Value associated with this point.
+ * @param {number} valueId ValueId.
+ * @param {number[]} p Point.
  */
 PointGraph.prototype.insertValueIdAtPoint = function(valueId, p) {
   const x = p[0];
@@ -163,7 +163,7 @@ PointGraph.prototype.insertValueIdAtPoint = function(valueId, p) {
  * Iterate over points in the index.
  *
  * @private
- * @param cb Callback for each point in the index.
+ * @param {Function} cb Callback for each point in the index.
  */
 PointGraph.prototype.forEachPoint = function(cb) {
   for (let pointId = 0; pointId < this.insertedCount; pointId++) {
@@ -179,7 +179,8 @@ PointGraph.prototype.forEachPoint = function(cb) {
  * Gets the id of a point, after merging.
  *
  * @private
- * @param p Point to look up id.
+ * @param {number[]} p Point to look up id.
+ * @returns {string}
  */
 PointGraph.prototype.getIdOfPoint = function(p) {
   const px = this.graph[p[0]];
@@ -197,7 +198,8 @@ PointGraph.prototype.getIdOfPoint = function(p) {
  * Get the index element of a point, after merging.
  *
  * @private
- * @param p Point to look up index element.
+ * @param {number[]} p Point to look up index element.
+ * @returns {number[]}
  */
 PointGraph.prototype.getElementAtPoint = function(p) {
   const pointId = this.getIdOfPoint(p);
@@ -209,6 +211,8 @@ PointGraph.prototype.getElementAtPoint = function(p) {
 
 /**
  * @private
+ * @param {number[]} line An array of four numbers, containing coordinates for the line origin and end.
+ * @returns {number[]}
  */
 function getOriginCoords(line) {
   return line.slice(0, 2);
@@ -216,6 +220,8 @@ function getOriginCoords(line) {
 
 /**
  * @private
+ * @param {number[]} line An array of four numbers, containing coordinates for the line origin and end.
+ * @returns {number[]}
  */
 function getEndCoords(line) {
   return line.slice(2, 4);
@@ -223,6 +229,10 @@ function getEndCoords(line) {
 
 /**
  * @private
+ * @param {PointGraph} pointGraph Point graph.
+ * @param {object} currLink Object with properties: pathContext ([number, number, number, number]), reversed (boolean).
+ * @param {object[]} chain Array of objects with properties: pathContext ([number, number, number, number]), reversed (boolean).
+ * @param {object} firstLink Object with properties: pathContext ([number, number, number, number]), reversed (boolean).
  */
 function followLink(pointGraph, currLink, chain, firstLink) {
   while (currLink) {
@@ -255,6 +265,9 @@ function followLink(pointGraph, currLink, chain, firstLink) {
 
 /**
  * @private
+ * @param {number[]} pathContext An array of four numbers, containing coordinates for the line origin and end.
+ * @param {boolean} isReversed Is reversed.
+ * @returns {numer[]}
  */
 function getNextPoint(pathContext, isReversed) {
   if (isReversed) {
@@ -266,6 +279,9 @@ function getNextPoint(pathContext, isReversed) {
 
 /**
  * @private
+ * @param {object[]} linkedPaths Array of objects with properties: pathContext ([number, number, number, number]), reversed (boolean).
+ * @param {number[]} pathContext An array of four numbers, containing coordinates for the line origin and end.
+ * @returns {object} LinkedPaths An object with properties: pathContext ([number, number, number, number]), reversed (boolean).
  */
 function getOpposedLink(linkedPaths, pathContext) {
   if (linkedPaths[0].pathContext === pathContext) {
@@ -279,9 +295,9 @@ function getOpposedLink(linkedPaths, pathContext) {
  * Find out if two points are equal.
  *
  * @private
- * @param a First point.
- * @param b Second point.
- * @returns true if points are the same, false if they are not
+ * @param {number[]} a First point.
+ * @param {number[]} b Second point.
+ * @returns {boolean} True if points are the same, false if they are not.
  */
 function isPointEqual(a, b) {
   return a[0] === b[0] && a[1] === b[1];
@@ -289,6 +305,9 @@ function isPointEqual(a, b) {
 
 /**
  * @private
+ * @param {object} link Object with properties: pathContext ([number, number, number, number]), reversed (boolean).
+ * @param {boolean} beginning Beginning.
+ * @returns {number[]}
  */
 function linkEndpoint(link, beginning) {
   if (beginning === link.reversed) {
@@ -299,11 +318,11 @@ function linkEndpoint(link, beginning) {
 }
 
 /**
- * Convert a chain to an array of positions
+ * Convert a chain to an array of positions.
  *
  * @private
- * @param chain Chain to convert.
- * @returns Array of positions [x1, y1, x2, y2, ...]
+ * @param {object[]} chain Array of objects with properties: pathContext ([number, number, number, number]), reversed (boolean).
+ * @returns {number[]} Array of positions [x1, y1, x2, y2, ...].
  */
 function chainToPolyline(chain) {
   const result = [];

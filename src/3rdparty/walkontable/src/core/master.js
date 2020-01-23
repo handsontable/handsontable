@@ -56,7 +56,7 @@ class Master extends Core {
    *
    * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
-   *                                   rendering anyway
+   *                                   rendering anyway.
    * @returns {Master}
    */
   draw(fastDraw = false) {
@@ -207,7 +207,7 @@ class Master extends Core {
   }
 
   /**
-   * Destroy instance
+   * Destroy instance.
    */
   destroy() {
     this.wtOverlays.destroy();

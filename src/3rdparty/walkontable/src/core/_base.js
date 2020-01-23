@@ -6,7 +6,7 @@ import { setCurrentWindowContext } from '../borderRenderer/svg/color';
  */
 class Core {
   /**
-   * @param {Object} settings
+   * @param {object} settings The Walkontable settings.
    */
   constructor(settings) {
     // this is the namespace for global events
@@ -17,13 +17,13 @@ class Core {
   }
 
   /**
-   * Get/Set Walkontable instance setting
+   * Get/Set Walkontable instance setting.
    *
-   * @param {String} key
-   * @param {*} [param1]
-   * @param {*} [param2]
-   * @param {*} [param3]
-   * @param {*} [param4]
+   * @param {string} key The settings key to retrieve.
+   * @param {*} [param1] Additional parameter passed to the options defined as function.
+   * @param {*} [param2] Additional parameter passed to the options defined as function.
+   * @param {*} [param3] Additional parameter passed to the options defined as function.
+   * @param {*} [param4] Additional parameter passed to the options defined as function.
    * @returns {*}
    */
   getSetting(key, param1, param2, param3, param4) {
@@ -32,10 +32,10 @@ class Core {
   }
 
   /**
-   * Checks if setting exists
+   * Checks if setting exists.
    *
-   * @param {String} key
-   * @returns {Boolean}
+   * @param {string} key The settings key to check.
+   * @returns {boolean}
    */
   hasSetting(key) {
     return this.wtSettings.has(key);

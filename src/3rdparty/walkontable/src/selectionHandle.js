@@ -130,7 +130,7 @@ class SelectionHandle {
   }
 
   /**
-   * Create elements for corner selection handler (desktop) or multiple selector handler (mobile)
+   * Create elements for corner selection handler (desktop) or multiple selector handler (mobile).
    *
    * @param {object} settings The border settings.
    */
@@ -580,7 +580,7 @@ class SelectionHandle {
   }
 
   /**
-   * Hide border
+   * Hide border.
    */
   disappear() {
     this.cornerStyle.display = 'none';

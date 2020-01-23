@@ -365,9 +365,9 @@ class CellRange {
   }
 
   /**
-   * Returns the top left (TL) and bottom right (BR) range coordinates
+   * Returns the top left (TL) and bottom right (BR) range coordinates.
    *
-   * @returns {Array.<number>} Returns array of coordinates for example `[1, 1, 5, 5]`
+   * @returns {Array.<number>} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
     return [

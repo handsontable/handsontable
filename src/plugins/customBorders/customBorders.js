@@ -89,7 +89,7 @@ class CustomBorders extends BasePlugin {
     this.savedBorders = [];
 
     /**
-     * Map containing border id as the key and the border object as the value
+     * Map containing border id as the key and the border object as the value.
      *
      * @private
      * @type {Map}
@@ -279,7 +279,7 @@ class CustomBorders extends BasePlugin {
    * Insert WalkontableSelection instance into Walkontable settings.
    *
    * @private
-   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    */
   insertBorderIntoSettings(border) {
     const prevBorder = this.savedBordersById.get(border.id);
@@ -524,12 +524,12 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Returns information if all of the border edges are disabled
-  *
-  * @private
-   * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   * @returns {Boolean}
-  */
+   * Returns information if all of the border edges are disabled.
+   *
+   * @private
+   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @returns {boolean}
+   */
   areAllEdgesDisabled(border) {
     if (this.isEdgeEnabled(border.left)) {
       return false;
@@ -549,10 +549,10 @@ class CustomBorders extends BasePlugin {
 
   /**
    * For a given subtree of the border settings that represents a single edge, returns a TRUE if the edge
-   * is configured to be rendered; otherwise FALSE
+   * is configured to be rendered; otherwise FALSE.
    *
-   * @param {Object} edge Object with optional `hide` property
-   * @returns {Boolean}
+   * @param {object} edge Object with optional `hide` property.
+   * @returns {boolean}
    */
   isEdgeEnabled(edge) {
     if (edge !== undefined && edge.hide !== undefined) {
@@ -578,10 +578,10 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-    * Hide custom borders.
-    *
-    * @private
-    */
+   * Hide custom borders.
+   *
+   * @private
+   */
   hideBorders() {
     arrayEach(this.savedBorders, (border) => {
       this.clearBordersFromSelectionSettings(border.id);
@@ -606,26 +606,26 @@ class CustomBorders extends BasePlugin {
   }
 
   /**
-  * Check if an border already exists in the customSelections
-  *
-  * @private
-  * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-  *
-  * @return {Boolean}
-  */
+   * Check if an border already exists in the customSelections.
+   *
+   * @private
+   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   *
+   * @returns {boolean}
+   */
   checkCustomSelectionsFromContextMenu(border) {
     return this.hot.selection.highlight.customSelections.has(border.id);
   }
 
   /**
-  * Check if an border already exists in the customSelections, and if true reset cellRange.
-  *
-  * @private
-  * @param {Object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-  * @param {CellRange} cellRange
-  *
-  * @return {Boolean}
-  */
+   * Check if an border already exists in the customSelections, and if true reset cellRange.
+   *
+   * @private
+   * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
+   * @param {CellRange} cellRange The selection range to check.
+   *
+   * @returns {boolean}
+   */
   checkCustomSelections(border, cellRange) {
     const disabled = this.areAllEdgesDisabled(border);
 

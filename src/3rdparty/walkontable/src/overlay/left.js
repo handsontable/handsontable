@@ -46,7 +46,7 @@ class LeftOverlay extends Overlay {
   }
 
   /**
-   * Updates the position of the overlay root element relatively to the position of the master instance
+   * Updates the position of the overlay root element relatively to the position of the master instance.
    */
   adjustElementsPosition() {
     const { master } = this;

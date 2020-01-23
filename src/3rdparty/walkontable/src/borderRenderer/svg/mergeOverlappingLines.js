@@ -21,8 +21,8 @@ and limitations under the License.
 /**
  * Reduce redundancy by combining multiple overlapping lines into a single line.
  *
- * @param {Array.<Array.<number>>>} lines SVG Path data in format `[[x1, y1, x2, y2], ...]`
- * @returns {Array.<Array.<number>>>} SVG Path data in the same format as input, but you can expect fewer lines if possible
+ * @param {Array.<Array.<number>>} lines SVG Path data in format `[[x1, y1, x2, y2], ...]`.
+ * @returns {Array.<Array.<number>>} SVG Path data in the same format as input, but you can expect fewer lines if possible.
  */
 export default function mergeOverlappingLines(lines) {
   const newLines = [];
@@ -57,6 +57,8 @@ export default function mergeOverlappingLines(lines) {
 
 /**
  * @private
+ * @param {Array.<Array.<number>>} walkedPaths An array of arrays of numbers, representing lines.
+ * @returns {Array.<Array.<number>>} The Same array, with removed overlapped lines.
  */
 function checkForOverlaps(walkedPaths) {
   let currIndex = 0;
@@ -101,6 +103,10 @@ function checkForOverlaps(walkedPaths) {
 
 /**
  * @private
+ * @param {number} pointX Point x coordinate.
+ * @param {number} pointY Point y coordinate.
+ * @param {number[]} line An array of four numbers.
+ * @returns {boolean}
  */
 function isPointOnLine(pointX, pointY, line) {
   if (isBetween(pointX, line[0], line[2])) {
@@ -114,9 +120,9 @@ function isPointOnLine(pointX, pointY, line) {
  * Check for line overlapping another line.
  *
  * @private
- * @param lineA The line to test.
- * @param lineB The line to check for overlap.
- * @returns Boolean true if lineA is overlapped with lineB.
+ * @param {number[]} lineA The line to test.
+ * @param {number[]} lineB The line to check for overlap.
+ * @returns {boolean} True if lineA is overlapped with lineB.
  */
 function isLineOverlapping(lineA, lineB) {
   return isPointOnLine(lineB[0], lineB[1], lineA) || isPointOnLine(lineB[2], lineB[3], lineA);
@@ -126,10 +132,10 @@ function isLineOverlapping(lineA, lineB) {
  * Check if a given number is between two given limits.
  *
  * @private
- * @param valueInQuestion The number to test.
- * @param limitA First limit.
- * @param limitB Second limit.
- * @returns Boolean true if value is between (or equal to) the limits.
+ * @param {number} valueInQuestion The number to test.
+ * @param {number} limitA First limit.
+ * @param {number} limitB Second limit.
+ * @returns {boolean} True if value is between (or equal to) the limits.
  */
 function isBetween(valueInQuestion, limitA, limitB) {
   if (limitB > limitA) {
@@ -143,7 +149,9 @@ function isBetween(valueInQuestion, limitA, limitB) {
  * Measures the smallest rectangle which contains a model.
  *
  * @private
- * @returns object with low and high points.
+ * @param {number[]} lineA Line.
+ * @param {number[]} lineB Line.
+ * @returns {object} Object with low and high points.
  */
 function modelExtents(lineA, lineB) {
   const extentsA = pathExtents(lineA);
@@ -156,8 +164,8 @@ function modelExtents(lineA, lineB) {
  * Calculates the smallest rectangle which contains a path.
  *
  * @private
- * @param pathToMeasure The path to measure.
- * @returns object with low and high points.
+ * @param {number[]} pathToMeasure The path to measure.
+ * @returns {object} Object with low and high points.
  */
 function pathExtents(pathToMeasure) {
   return {
@@ -168,6 +176,9 @@ function pathExtents(pathToMeasure) {
 
 /**
  * @private
+ * @param {number[]} line An array with four numbers.
+ * @param {Function} fn The extreme function.
+ * @returns {number[]} An array with two numbers.
  */
 function getExtremePoint(line, fn) {
   return [
@@ -180,9 +191,9 @@ function getExtremePoint(line, fn) {
  * Increase a measurement by an additional measurement.
  *
  * @private
- * @param baseMeasure The measurement to increase.
- * @param addMeasure The additional measurement.
- * @returns The increased original measurement (for cascading).
+ * @param {object} baseMeasure The measurement to increase.
+ * @param {object} addMeasure The additional measurement.
+ * @returns {object} The increased original measurement (for cascading).
  */
 function increase(baseMeasure, addMeasure) {
   getExtreme(baseMeasure.low, addMeasure.low, Math.min);
@@ -193,6 +204,9 @@ function increase(baseMeasure, addMeasure) {
 
 /**
  * @private
+ * @param {number[]} basePoint Point.
+ * @param {number[]} newPoint Point.
+ * @param {Function} fn Point.
  */
 function getExtreme(basePoint, newPoint, fn) {
   basePoint[0] = fn(basePoint[0], newPoint[0]);

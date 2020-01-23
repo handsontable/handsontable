@@ -7,7 +7,7 @@ import Scroll from '../scroll';
  */
 class Clone extends Core {
   /**
-   * @param {Object} settings
+   * @param {object} settings The Walkontable settings.
    */
   constructor(settings) {
     super(settings);
@@ -26,9 +26,9 @@ class Clone extends Core {
    * Force rerender of Walkontable sub-instance ("clone") used for a single overlay. This method should only be called
    * privately by Walkontable, not externally from Handsontable or any of the plugins.
    *
-   * @param {Boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
-   *                                   rendering anyway
+   *                                   rendering anyway.
    * @returns {Walkontable}
    */
   drawClone(fastDraw = false) {
@@ -38,9 +38,9 @@ class Clone extends Core {
   }
 
   /**
-   * Get overlay name
+   * Get overlay name.
    *
-   * @returns {String}
+   * @returns {string}
    */
   getOverlayName() {
     return this.overlayName;

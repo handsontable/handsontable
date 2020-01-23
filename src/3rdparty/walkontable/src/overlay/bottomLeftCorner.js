@@ -44,7 +44,7 @@ class BottomLeftCornerOverlay extends Overlay {
   }
 
   /**
-   * Updates the position of the overlay root element relatively to the position of the master instance
+   * Updates the position of the overlay root element relatively to the position of the master instance.
    */
   adjustElementsPosition() {
     const { clone, master } = this;
@@ -100,7 +100,7 @@ class BottomLeftCornerOverlay extends Overlay {
   /**
    * If needed, adjust the sizes of the clone and the master elements to the dimensions of the trimming container.
    *
-   * @param {Boolean} [force=false]
+   * @param {boolean} [force=false] When `true`, it adjusts the DOM nodes sizes for that overlay.
    */
   adjustElementsSize(force = false) {
     if (!this.needFullRender && !force) {

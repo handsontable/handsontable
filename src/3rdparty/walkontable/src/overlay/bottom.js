@@ -36,7 +36,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
    */
@@ -46,7 +46,7 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   * Updates the position of the overlay root element relatively to the position of the master instance
+   * Updates the position of the overlay root element relatively to the position of the master instance.
    */
   adjustElementsPosition() {
     const { master } = this;
@@ -276,7 +276,9 @@ class BottomOverlay extends Overlay {
    * Redraws the content of the overlay's clone instance of Walkontable, including the cells, selections and borders.
    * Does not change the size nor the position of the overlay root element.
    *
-   * @param {Boolean} [fastDraw=false]
+   * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   *                                   the data. It will only work if Table.draw() does not force
+   *                                   rendering anyway.
    */
   redrawClone(fastDraw = false) {
     Overlay.prototype.redrawClone.call(this, fastDraw); // equals: super(fastDraw)

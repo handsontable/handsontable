@@ -50,7 +50,7 @@ class Overlay {
   }
 
   /**
-   * List of all availables clone types
+   * List of all availables clone types.
    *
    * @type {Array}
    */
@@ -99,7 +99,7 @@ class Overlay {
   }
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance.
+   @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     this.master = wotInstance;
@@ -262,8 +262,8 @@ class Overlay {
   /**
    * Make a clone of table for overlay.
    *
-   * @param {String} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
-   *                           `Overlay.CLONE_TOP_LEFT_CORNER`
+   * @param {string} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
+   *                           `Overlay.CLONE_TOP_LEFT_CORNER`.
    * @returns {Walkontable}
    */
   makeClone(direction) {

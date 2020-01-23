@@ -17,9 +17,9 @@ import RowFilter from './../filter/row';
  */
 class MasterTable extends Table {
   /**
-  * @param {Walkontable} wotInstance
-  * @param {HTMLTableElement} table
-  */
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {HTMLTableElement} table An element to the Walkontable generated table is injected.
+   */
   constructor(wotInstance, table) {
     super(wotInstance, table);
     this.holderOffset = 0;
@@ -110,9 +110,9 @@ class MasterTable extends Table {
   }
 
   /**
-   * Redraws the table
+   * Redraws the table.
    *
-   * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
+   * @param {boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
    */
   draw(fastDraw = false) {

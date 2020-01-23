@@ -236,11 +236,11 @@ class Highlight {
   /**
    * Add selection to the custom selection instance. The new selection are added to the end of the selection collection.
    *
-   * @param {String} key
-   * @param {Object} options
+   * @param {string} key Border ID.
+   * @param {object} selectionInstance The selection instance.
    */
-  addCustomSelection(key, options) {
-    this.customSelections.set(key, createHighlight(CUSTOM_SELECTION, { ...options }));
+  addCustomSelection(key, selectionInstance) {
+    this.customSelections.set(key, createHighlight(CUSTOM_SELECTION, { ...selectionInstance }));
   }
 
   /**
@@ -256,8 +256,8 @@ class Highlight {
   }
 
   /**
-   * This function returns an array that can be iterate over all kinds of highlight objects
-   * 
+   * This function returns an array that can be iterate over all kinds of highlight objects.
+   *
    * @returns {Selection[]}
    */
   getAll() {

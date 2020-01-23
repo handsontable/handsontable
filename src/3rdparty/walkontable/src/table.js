@@ -95,9 +95,9 @@ class Table {
   }
 
   /**
-   * Creates the border padding object as defined in BorderRenderer.padding
+   * Creates the border padding object as defined in BorderRenderer.padding.
    *
-   * @type {Object} Object with properties top, left, bottom, right
+   * @type {object} Object with properties top, left, bottom, right
    */
   createBorderPaddingObject() {
     let top = 0;
@@ -801,8 +801,8 @@ class Table {
   }
 
   /**
-   * Checks if the table has defined size. It returns `true` when the table has width and height
-   * set bigger than `0px`.
+   * Checks if the table has defined size. It returns `true` when the table has width and height.
+   * Set bigger than `0px`.
    *
    * @returns {boolean}
    */
