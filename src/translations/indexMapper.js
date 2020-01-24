@@ -10,13 +10,19 @@ import { isDefined } from '../helpers/mixed';
 
 /**
  * Index mapper stores, registers and manages the indexes on the basis of calculations collected from this class objects.
- * It should be seen as a single source of truth for any operation that considers CRUD actions such as **insertion**, **movement**, **removal** etc, and is used to properly calculate physical and visual indexes translations in both ways.
+ * It should be seen as a single source of truth (regarding row and column indexes i. e. their sequence, information if they are skipped in the process of rendering, values linked to them)
+ * for any operation that considers CRUD actions such as **insertion**, **movement**, **removal** etc, and is used to properly calculate physical and visual indexes translations in both ways.
+ * It has a built-in cache that is updated only when the data or structure changes.
+ *
+ * **Physical index** is a type of an index from the sequence of indexes assigned to the data source rows or columns
+ *  (from 0 to n, where n is number of the cells on the axis).
+ * **Visual index** is a type of an index from the sequence of indexes assigned to visible rows or columns (from 0 to n, where n is number of the cells on the axis).
  *
  * To ensure the calculation is done correctly **index mapper** also registers the skipping process
  * and embeds **cache** which is triggered only when the data or structure changes.
  *
  *
- *  **rowIndexMapper** and **columnIndexMapper** are instances ofindexMapper which, respectively, manage **rows** and **columns** by calling methods.
+ *  **rowIndexMapper** and **columnIndexMapper** are instances of indexMapper which, respectively, manage **rows** and **columns** by calling methods.
  *
  * **These are the main objects on class IndexMapper for storing different types of index information:**
  *
