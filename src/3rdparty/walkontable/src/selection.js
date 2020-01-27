@@ -213,10 +213,6 @@ class Selection {
   /**
    * Renders the selection if it is within the current viewport.
    *
-   * Returns an array of arrays that contain information about border edges renderable in the current selection or null,
-   * if no border edges should be rendered for the current viewport. Every nested array has the structure that is
-   * expected by {@link BorderRenderer.convertArgsToLines}.
-   *
    * @param {Walkontable} wotInstance The Walkontable instance.
    * @param {number} tableRowsCount The number of rows in the table.
    * @param {number} tableColumnsCount The number of columns in the table.
@@ -224,7 +220,7 @@ class Selection {
    * @param {number} tableStartColumn Source index of the first rendered column in the table. Expecting -1 when there are no rendered columns.
    * @param {number} tableEndRow Source index of the last rendered row in the table. Expecting  -1 when there are no rendered rows.
    * @param {number} tableEndColumn Source index of the last rendered column in the table. Expecting -1 when there are no rendered columns.
-   * @returns {Array.<Array.<*>>}
+   * @returns {object[]|undefined} Object that contains information about border edges renderable in the current selection or undefined, if no border edges should be rendered for the current viewport. Properties are defined in {@link BorderRenderer.convertBorderEdgesDescriptorToLines}.
    */
   draw(wotInstance,
        tableRowsCount, tableColumnsCount,
@@ -294,7 +290,16 @@ class Selection {
 
     if (tableRowsCount && tableColumnsCount) {
       if (this.settings.border && selectionStartRow <= selectionEndRow && selectionStartColumn <= selectionEndColumn) {
-        borderEdgesDescriptor = [this.settings, getCellFn, selectionStart, selectionEnd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        borderEdgesDescriptor = {
+          settings: this.settings,
+          getCellFn,
+          selectionStart,
+          selectionEnd,
+          hasTopEdge,
+          hasRightEdge,
+          hasBottomEdge,
+          hasLeftEdge
+        };
       }
 
       for (let sourceRow = selectionStartRow; sourceRow <= selectionEndRow; sourceRow += 1) {

@@ -110,9 +110,9 @@ export default class BorderRenderer {
    * Draws the paths according to configuration passed in `argArrays`.
    *
    * @param {HTMLTableElement} table HTML table element used for position measurements.
-   * @param {Array.<Array.<*>>} argArrays Border descriptor array, as returned from Selection class.
+   * @param {object[]} borderEdgesDescriptors Array of border edge descriptors.
    */
-  render(table, argArrays) {
+  render(table, borderEdgesDescriptors) {
     this.containerBoundingRect = table.getBoundingClientRect();
 
     this.maxWidth = 0;
@@ -120,7 +120,9 @@ export default class BorderRenderer {
 
     // batch all calculations
     this.pathGroups.forEach(pathGroup => pathGroup.stylesAndLines.clear());
-    argArrays.forEach(argArray => this.convertArgsToLines(...argArray));
+    for (let i = 0; i < borderEdgesDescriptors.length; i++) {
+      this.convertBorderEdgesDescriptorToLines(borderEdgesDescriptors[i]);
+    }
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
     // batch all DOM writes
@@ -309,17 +311,30 @@ export default class BorderRenderer {
   /**
    * Generates lines in format `[[x1, y1, x2, y2], ...]` based on input given as arguments, and stores them in `pathGroup.stylesAndLines`.
    *
-   * @param {object} selectionSetting Settings provided in the same format as used by `Selection.setting`.
-   * @param {Function} getCellFn Function that returns a cell from the current overlay.
-   * @param {object} selectionStart Object with properties row, col that represents the top left corner of the selection.
-   * @param {object} selectionEnd Object with properties row, col that represents the bottom right corner of the selection.
-   * @param {boolean} hasTopEdge TRUE if the range between `firstTd` and `lastTd` contains the top line, FALSE otherwise.
-   * @param {boolean} hasRightEdge TRUE if the range between `firstTd` and `lastTd` contains the right line, FALSE otherwise.
-   * @param {boolean} hasBottomEdge TRUE if the range between `firstTd` and `lastTd` contains bottom top line, FALSE otherwise.
-   * @param {boolean} hasLeftEdge TRUE if the range between `firstTd` and `lastTd` contains left top line, FALSE otherwise.
+   * @param {object} borderEdgesDescriptor Border descriptor object.
+   * @param {object} borderEdgesDescriptor.settings Settings provided in the same format as used by `Selection.setting`.
+   * @param {Function} borderEdgesDescriptor.getCellFn Function that returns a cell from the current overlay.
+   * @param {object} borderEdgesDescriptor.selectionStart Object with properties row, col that represents the top left corner of the selection.
+   * @param {object} borderEdgesDescriptor.selectionEnd Object with properties row, col that represents the bottom right corner of the selection.
+   * @param {boolean} borderEdgesDescriptor.hasTopEdge TRUE if the range between `firstTd` and `lastTd` contains the top line, FALSE otherwise.
+   * @param {boolean} borderEdgesDescriptor.hasRightEdge TRUE if the range between `firstTd` and `lastTd` contains the right line, FALSE otherwise.
+   * @param {boolean} borderEdgesDescriptor.hasBottomEdge TRUE if the range between `firstTd` and `lastTd` contains bottom top line, FALSE otherwise.
+   * @param {boolean} borderEdgesDescriptor.hasLeftEdge TRUE if the range between `firstTd` and `lastTd` contains left top line, FALSE otherwise.
    */
-  convertArgsToLines(selectionSetting, getCellFn, selectionStart, selectionEnd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
-    const layerNumber = this.getLayerNumber(selectionSetting);
+  convertBorderEdgesDescriptorToLines(borderEdgesDescriptor) {
+    const {
+      settings,
+      getCellFn,
+      selectionStart,
+      selectionEnd,
+      hasRightEdge,
+      hasBottomEdge
+    } = borderEdgesDescriptor;
+    let {
+      hasTopEdge,
+      hasLeftEdge
+    } = borderEdgesDescriptor;
+    const layerNumber = this.getLayerNumber(settings);
     const stylesAndLines = this.ensurePathGroup(layerNumber).stylesAndLines;
 
     const isSingle = selectionStart.row === selectionEnd.row && selectionStart.col === selectionEnd.col;
@@ -403,7 +418,7 @@ export default class BorderRenderer {
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
     const isThisTheFirstRow = firstTd.parentNode.previousElementSibling === null;
-    const isItASelectionBorder = !!selectionSetting.className;
+    const isItASelectionBorder = !!settings.className;
 
     if (isThisTheFirstColumn) {
       x1 += 1;
@@ -426,11 +441,11 @@ export default class BorderRenderer {
       }
     }
 
-    if (selectionSetting.border && selectionSetting.border.width && selectionSetting.border.strokeAlignment === 'inside') {
+    if (settings.border && settings.border.width && settings.border.strokeAlignment === 'inside') {
       // strokeAlignment: 'inside' is used to render the border of selection "inside" a cell
       // any other strokeAlignment value means to render the border centered on the gridlines. Other alignment types might be implemented in the future
-      const flooredHalfWidth = Math.floor(selectionSetting.border.width / 2);
-      const ceiledHalfWidth = Math.ceil(selectionSetting.border.width / 2) - 1;
+      const flooredHalfWidth = Math.floor(settings.border.width / 2);
+      const ceiledHalfWidth = Math.ceil(settings.border.width / 2) - 1;
 
       x1 += flooredHalfWidth;
       y1 += flooredHalfWidth;
@@ -443,23 +458,23 @@ export default class BorderRenderer {
       return;
     }
 
-    if (hasTopEdge && this.hasLineAtEdge(selectionSetting, 'top')) {
-      const lines = this.getLines(stylesAndLines, selectionSetting, 'top');
+    if (hasTopEdge && this.hasLineAtEdge(settings, 'top')) {
+      const lines = this.getLines(stylesAndLines, settings, 'top');
 
       lines.push([x1, y1, x2, y1]);
     }
-    if (hasRightEdge && this.hasLineAtEdge(selectionSetting, 'right')) {
-      const lines = this.getLines(stylesAndLines, selectionSetting, 'right');
+    if (hasRightEdge && this.hasLineAtEdge(settings, 'right')) {
+      const lines = this.getLines(stylesAndLines, settings, 'right');
 
       lines.push([x2, y1, x2, y2]);
     }
-    if (hasBottomEdge && this.hasLineAtEdge(selectionSetting, 'bottom')) {
-      const lines = this.getLines(stylesAndLines, selectionSetting, 'bottom');
+    if (hasBottomEdge && this.hasLineAtEdge(settings, 'bottom')) {
+      const lines = this.getLines(stylesAndLines, settings, 'bottom');
 
       lines.push([x1, y2, x2, y2]);
     }
-    if (hasLeftEdge && this.hasLineAtEdge(selectionSetting, 'left')) {
-      const lines = this.getLines(stylesAndLines, selectionSetting, 'left');
+    if (hasLeftEdge && this.hasLineAtEdge(settings, 'left')) {
+      const lines = this.getLines(stylesAndLines, settings, 'left');
 
       lines.push([x1, y1, x1, y2]);
     }
