@@ -23,6 +23,7 @@ describe('Walkontable Border Renderer', () => {
       bottom: EMPTY,
       left: EMPTY
     };
+
     return new Walkontable.Selection(Object.assign(defaultConfig, config));
   }
 

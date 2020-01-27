@@ -126,6 +126,7 @@ export default class BorderRenderer {
     // batch all DOM writes
     let width = Math.min(this.maxWidth, this.containerBoundingRect.width) - (this.padding.left + this.padding.right);
     let height = Math.min(this.maxHeight, this.containerBoundingRect.height) - (this.padding.top + this.padding.bottom);
+
     if (width < 0) {
       width = 0;
     }
@@ -157,6 +158,7 @@ export default class BorderRenderer {
    */
   getFrom2dMap(map, key1, key2) {
     const subMap = map.get(key1);
+
     return subMap ? subMap.get(key2) : undefined;
   }
 
@@ -170,6 +172,7 @@ export default class BorderRenderer {
    */
   setIn2dMap(map, key1, key2, value) {
     const subMap = map.get(key1);
+
     if (subMap) {
       subMap.set(key2, value);
     } else {
@@ -179,7 +182,7 @@ export default class BorderRenderer {
 
   /**
    * Adjusts the beginning and end tips of the lines to overlap each other according to the specification.
-   * The specification is covered in TDD file border.spec.js   *.
+   * The specification is covered in TDD file border.spec.js.
    *
    * @param {Array.<Array.<number>>} lines Lines in format `[[x1, y1, x2, y2, ...], ...]`.
    * @param {number} width Line width.
@@ -347,12 +350,14 @@ export default class BorderRenderer {
     let lastTd;
     let addLastTdWidth = 0;
     let addLastTdHeight = 0;
+
     if (isSingle) {
       lastTd = firstTd;
       addLastTdWidth = addFirstTdWidth;
       addLastTdHeight = addFirstTdHeight;
     } else {
       lastTd = getCellFn(selectionEnd);
+
       if (lastTd === -1) {
         selectionEnd.row += 1;
         lastTd = getCellFn(selectionEnd);
