@@ -443,8 +443,8 @@ class Table {
       }
     }
 
-    this.borderRenderer.skipFirstRowTopEdge = !!this.wot.getSetting('columnHeaders').length;
-    this.borderRenderer.skipFirstColumnLeftEdge = !!this.wot.getSetting('rowHeaders').length;
+    this.wot.getSetting('columnHeaders'); // TODO If this line is removed, an e2e test fails: NestedHeaders > Selection > should highlight only last line of headers on cell selection
+
     this.borderRenderer.render(this.TABLE, borderEdgesDescriptors);
   }
 
