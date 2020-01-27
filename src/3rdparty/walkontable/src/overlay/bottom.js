@@ -281,7 +281,7 @@ class BottomOverlay extends Overlay {
    *                                   rendering anyway.
    */
   redrawClone(fastDraw = false) {
-    Overlay.prototype.redrawClone.call(this, fastDraw); // equals: super(fastDraw)
+    super.redrawClone(fastDraw);
 
     if (!fastDraw) {
       // nasty workaround for double border in the header, TODO: find a pure-css solution
