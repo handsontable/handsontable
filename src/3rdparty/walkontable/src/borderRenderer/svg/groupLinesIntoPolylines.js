@@ -53,6 +53,7 @@ export default function groupLinesIntoPolylines(lines) {
       const chain = [];
 
       followLink(pointGraph, values[0], chain, values[0]);
+
       if (chain.endless) {
         chains.push(chain);
       } else {
@@ -67,6 +68,7 @@ export default function groupLinesIntoPolylines(lines) {
         const currLink = chain.pop();
 
         followLink(pointGraph, currLink, chain, firstLink);
+
         if (chain.length > 1) {
           // chain found
           chain.endless = isPointEqual(linkEndpoint(chain[0], true), linkEndpoint(chain[chain.length - 1]));
@@ -85,7 +87,6 @@ export default function groupLinesIntoPolylines(lines) {
     polylines.push(chainToPolyline(chain));
   });
   loose.forEach((pathContext) => {
-
     polylines.push(pathContext);
   });
 
@@ -250,6 +251,7 @@ function followLink(pointGraph, currLink, chain, firstLink) {
 
     // remove the first 2 items, which should be currlink and nextlink
     nextEl.splice(0, 2);
+
     if (!nextLink) {
       break;
     }
@@ -328,6 +330,7 @@ function chainToPolyline(chain) {
   const result = [];
 
   result.push(...getNextPoint(chain[0].pathContext, !chain[0].reversed));
+
   for (let i = 0; i < chain.length; i++) {
     result.push(...getNextPoint(chain[i].pathContext, chain[i].reversed));
   }

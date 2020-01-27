@@ -37,6 +37,7 @@ export function convertCssColorToRGBA(cssColor) {
   const colorParsed = colorInRgb.match(numericRegexp);
 
   helperSpanForColorPicking.ownerDocument.body.removeChild(helperSpanForColorPicking);
+
   if (colorParsed === null || colorParsed.length < 2) {
     return [0, 0, 0, 1]; // parsing went wrong, return black
   }
@@ -62,6 +63,7 @@ export function compareLuminance(luminance1, luminance2) {
   } else if (luminance1 < luminance2) {
     return -1;
   }
+
   return 0;
 }
 
@@ -75,12 +77,15 @@ const colorLuminances = new Map();
  */
 export function getMemoizedLuminanceForColor(color) {
   const memoizedLuminance = colorLuminances.get(color);
+
   if (memoizedLuminance !== undefined) {
     return memoizedLuminance;
   }
 
   const luminance = getLuminance(convertCssColorToRGBA(color));
+
   colorLuminances.set(color, luminance);
+
   return luminance;
 }
 
@@ -92,5 +97,6 @@ export function getMemoizedLuminanceForColor(color) {
  */
 export function getLuminance(rgba) {
   const [r, g, b] = rgba;
+
   return (r * 0.2126) + (g * 0.7152) + (b * 0.0722);
 }

@@ -84,10 +84,12 @@ export function compareStrokePriority(style1, style2) {
 
   const parsedWidth1 = parseInt(styleSplitted1[0], 10);
   const parsedWidth2 = parseInt(styleSplitted2[0], 10);
+
   styleSplitted1.shift(); // remove width
   styleSplitted1.shift(); // remove linestyle
   styleSplitted2.shift(); // remove width
   styleSplitted2.shift(); // remove linestyle
+
   const color1 = styleSplitted1.join(' ');
   const color2 = styleSplitted2.join(' ');
 
@@ -117,8 +119,10 @@ function getStateForStyle(states, style, parent) {
     const elem = parent.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'path');
     const styleSplitted = style.split(' ');
     const width = parseInt(styleSplitted[0], 10);
+
     styleSplitted.shift(); // remove width
     styleSplitted.shift(); // remove linestyle
+
     const color = styleSplitted.join(' ');
 
     elem.setAttribute('stroke', color);

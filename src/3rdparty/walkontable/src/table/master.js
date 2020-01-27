@@ -174,6 +174,7 @@ class MasterTable extends Table {
           .render();
 
         const workspaceWidth = wtViewport.getWorkspaceWidth();
+
         wtViewport.containerWidth = null;
         this.markOversizedColumnHeaders();
 

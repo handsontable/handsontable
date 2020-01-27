@@ -449,6 +449,7 @@ export function getRenderedBorderPaths(parentElem) {
     return null;
   }
   const paths = getSvgPaths(parentElem).map(x => x.getAttribute('d'));
+
   return paths;
 }
 
@@ -460,6 +461,7 @@ export function getRenderedBorderPaths(parentElem) {
  */
 export function getRenderedBorderPathExistence(parentElem) {
   const paths = getSvgPaths(parentElem).map(x => !!x.getAttribute('d'));
+
   return paths;
 }
 
@@ -471,5 +473,6 @@ export function getRenderedBorderPathExistence(parentElem) {
  */
 export function getRenderedBorderStyles(parentElem) {
   const paths = getSvgPaths(parentElem).map(x => x.getAttribute('data-stroke-style'));
+
   return paths;
 }

@@ -275,6 +275,7 @@ class SelectionHandle {
     const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
 
     const color = (this.settings.corner && this.settings.corner.color) ? this.settings.corner.color : this.settings.border.color;
+
     this.selectionHandles.styles.topLeft.borderColor = color;
     this.selectionHandles.styles.bottomRight.borderColor = color;
 
