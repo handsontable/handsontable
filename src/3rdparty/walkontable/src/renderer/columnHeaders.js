@@ -1,4 +1,4 @@
-import { empty } from './../../../../helpers/dom/element';
+import { empty, addClass } from './../../../../helpers/dom/element';
 import BaseRenderer from './_base';
 
 /**
@@ -79,7 +79,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
         columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
 
         if (sourceColumnIndex < 0) {
-          TH.classList.add('wtTableCornerCell');
+          addClass(TH, 'wtTableCornerCell');
         }
       }
     }
