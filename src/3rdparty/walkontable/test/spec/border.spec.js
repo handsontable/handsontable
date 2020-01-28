@@ -421,8 +421,8 @@ describe('Walkontable Border Renderer', () => {
       });
 
       wt.draw();
-      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0.5 24 0.5 47', 'M 49 24 49 47', 'M 0 46 50 46']);
-      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid green', '2px solid green', '4px solid green']);
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0.5 23 0.5 47', 'M 49 23 49 47', 'M 0 23.5 50 23.5', 'M 0 46 50 46']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid green', '2px solid green', '3px solid green', '4px solid green']);
     });
 
     it('should not render left edge on master if row headers are present', () => {
@@ -442,8 +442,8 @@ describe('Walkontable Border Renderer', () => {
       });
 
       wt.draw();
-      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 0 99 24', 'M 51 0.5 100 0.5', 'M 51 23 100 23']);
-      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px solid green', '3px solid green', '4px solid green']);
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 50.5 0 50.5 24', 'M 99 0 99 24', 'M 50 0.5 100 0.5', 'M 50 23 100 23']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid green', '2px solid green', '3px solid green', '4px solid green']);
     });
 
     it('should not render top and left edge on master if row or column headers are present', () => {
@@ -464,8 +464,8 @@ describe('Walkontable Border Renderer', () => {
       });
 
       wt.draw();
-      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 99 24 99 47', 'M 51 46 100 46']);
-      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['2px solid green', '4px solid green']);
+      expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 50.5 23 50.5 47', 'M 99 23 99 47', 'M 50 23.5 100 23.5', 'M 50 46 100 46']);
+      expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid green', '2px solid green', '3px solid green', '4px solid green']);
 
     });
   });

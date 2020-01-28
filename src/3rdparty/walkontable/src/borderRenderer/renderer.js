@@ -327,11 +327,9 @@ export default class BorderRenderer {
       getCellFn,
       selectionStart,
       selectionEnd,
-      hasRightEdge,
-      hasBottomEdge
-    } = borderEdgesDescriptor;
-    let {
       hasTopEdge,
+      hasRightEdge,
+      hasBottomEdge,
       hasLeftEdge
     } = borderEdgesDescriptor;
     const layerNumber = this.getLayerNumber(settings);
@@ -418,27 +416,12 @@ export default class BorderRenderer {
     const prevElemSibling = firstTd.previousElementSibling;
     const isThisTheFirstColumn = prevElemSibling === null || prevElemSibling.nodeName !== 'TD';
     const isThisTheFirstRow = firstTd.parentNode.previousElementSibling === null;
-    const isItASelectionBorder = !!settings.className;
 
     if (isThisTheFirstColumn) {
       x1 += 1;
-
-      const areTherePossiblyRowHeaders = x1 > 0;
-
-      if (areTherePossiblyRowHeaders && !isItASelectionBorder) {
-        x1 += 1;
-        hasLeftEdge = false; // don't draw a left edge that would overlap the border of the header cell
-      }
     }
     if (isThisTheFirstRow) {
       y1 += 1;
-
-      const areTherePossiblyColumnHeaders = y1 > 0;
-
-      if (areTherePossiblyColumnHeaders && !isItASelectionBorder) {
-        y1 += 1;
-        hasTopEdge = false; // don't draw a top edge that would overlap the border of the header cell
-      }
     }
 
     if (settings.border && settings.border.width && settings.border.strokeAlignment === 'inside') {
