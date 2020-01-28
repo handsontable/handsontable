@@ -29,7 +29,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       const start = Math.min(startColumn, endColumn);
       const end = Math.max(startColumn, endColumn);
       const sequence = this.columnIndexMapper.getIndexesSequence();
-      const physicalStartColumn = this.columnIndexMapper.getPhysicalFromRenderableIndex(start);
+      const physicalStartColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(start);
       const currentStartPosition = sequence.indexOf(physicalStartColumn);
 
       if (start === end) {
@@ -61,7 +61,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         columns.push(...columnsBefore, ...columnsAfter);
 
       } else {
-        const physicalEndColumn = this.columnIndexMapper.getPhysicalFromRenderableIndex(end);
+        const physicalEndColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(end);
         const currentEndPosition = sequence.indexOf(physicalEndColumn);
 
         rangeEach(currentStartPosition, currentEndPosition, (column) => {
