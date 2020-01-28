@@ -409,7 +409,7 @@ describe('HiddenColumns', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [1, 3],
             },
@@ -434,9 +434,9 @@ describe('HiddenColumns', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
-              columns: [1, 2, 3],
+              columns: [1],
             },
           });
 
@@ -530,6 +530,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(0, 4);
 
+          contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
@@ -560,6 +561,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(2);
 
+          contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
@@ -590,6 +592,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(2);
 
+          contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
