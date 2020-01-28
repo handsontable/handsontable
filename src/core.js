@@ -1887,6 +1887,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
+    this.selection.updateBorderStyleFromSettings(settings.selectionStyle || {});
+
     if (!init) {
       if (instance.view) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();

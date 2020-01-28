@@ -1576,4 +1576,268 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10, void 0]);
     });
   });
+
+  describe('selectionStyle configuration', () => {
+    const builtins = {
+      cell: { borderWidth: 2, borderColor: '#4b89ff', _borderColorRgb: 'rgb(75, 137, 255)' },
+      area: { borderWidth: 1, borderColor: '#4b89ff', _borderColorRgb: 'rgb(75, 137, 255)' },
+      fill: { borderWidth: 1, borderColor: '#ff0000', _borderColorRgb: 'rgb(255, 0, 0)' },
+    };
+
+    const customs = {
+      cell: { borderWidth: 3, borderColor: 'pink', _borderColorRgb: 'rgb(255, 192, 203)' },
+      area: { borderWidth: 2, borderColor: 'rgb(11, 22, 33)', _borderColorRgb: 'rgb(11, 22, 33)' },
+      fill: { borderWidth: 2, borderColor: 'hsl(120, 100%, 75%)', _borderColorRgb: 'rgb(128, 255, 128)' },
+    };
+
+    const mobileBrowserUAS = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B411 Safari/600.1.4';
+
+    const pathOfWidthAndColor = (width, color) => {
+      return spec().$container.find(`path[stroke-width='${width}'][stroke='${color}']`)[0];
+    };
+
+    const borderOfSelector = (selector) => {
+      return spec().$container.find(selector).css('border-top-color');
+    };
+
+    const backgroundOfSelector = (selector) => {
+      return spec().$container.find(selector).css('background-color');
+    };
+
+    describe('desktop, single selection', () => {
+      it('should use default configuration if selectionStyle is not provided', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+        });
+        selectCell(1, 1);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(builtins.cell._borderColorRgb);
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
+      });
+
+      it('should fall back to default configuration if selectionStyle is partially provided', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: {
+            cell: {
+              borderColor: customs.cell.borderColor
+            }
+          }
+        });
+        selectCell(1, 1);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(customs.cell._borderColorRgb);
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
+      });
+
+      it('should use selectionStyle if all properties are provided', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: customs
+        });
+        selectCell(1, 1);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
+
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(customs.cell._borderColorRgb);
+        expect(pathOfWidthAndColor(customs.fill.borderWidth, customs.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
+      });
+    });
+
+    describe('mobile, single single selection', () => {
+      it('should use default configuration if selectionStyle is not provided', () => {
+        Handsontable.helper.setBrowserMeta({
+          userAgent: mobileBrowserUAS
+        });
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+        });
+        selectCell(1, 1);
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(borderOfSelector('.topLeftSelectionHandle'))
+          .withContext('top left selection handle').toBe(builtins.cell._borderColorRgb);
+        expect(borderOfSelector('.bottomRightSelectionHandle'))
+          .withContext('bottom right selection handle').toBe(builtins.cell._borderColorRgb);
+
+        Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
+      });
+
+      it('should fall back to default configuration if selectionStyle is partially provided', () => {
+        Handsontable.helper.setBrowserMeta({
+          userAgent: mobileBrowserUAS
+        });
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: {
+            cell: {
+              borderColor: customs.cell.borderColor
+            }
+          }
+        });
+        selectCell(1, 1);
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(borderOfSelector('.topLeftSelectionHandle'))
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
+        expect(borderOfSelector('.bottomRightSelectionHandle'))
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
+
+        Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
+      });
+
+      it('should use selectionStyle if all properties are provided', () => {
+        Handsontable.helper.setBrowserMeta({
+          userAgent: mobileBrowserUAS
+        });
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: customs
+        });
+        selectCell(1, 1);
+
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(borderOfSelector('.topLeftSelectionHandle'))
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
+        expect(borderOfSelector('.bottomRightSelectionHandle'))
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
+
+        Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
+      });
+    });
+
+    describe('desktop, multiple selection', () => {
+      it('should use default configuration if selectionStyle is not provided', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+        });
+        selectCell(0, 0, 1, 1);
+
+        spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
+        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(builtins.area._borderColorRgb);
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
+      });
+
+      it('should fall back to default configuration if selectionStyle is partially provided', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: {
+            cell: {
+              borderColor: customs.cell.borderColor
+            }
+          }
+        });
+        selectCell(0, 0, 1, 1);
+
+        spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
+        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(builtins.area._borderColorRgb);
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
+      });
+
+      it('should use selectionStyle if all properties are provided', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: customs
+        });
+        selectCell(0, 0, 1, 1);
+
+        spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
+
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.area.borderWidth, customs.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
+        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(customs.area._borderColorRgb);
+        expect(pathOfWidthAndColor(customs.fill.borderWidth, customs.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
+      });
+    });
+
+    describe('mobile, multiple selection', () => {
+      it('should use default configuration if selectionStyle is not provided', () => {
+        Handsontable.helper.setBrowserMeta({
+          userAgent: mobileBrowserUAS
+        });
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+        });
+        selectCell(0, 0, 1, 1);
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
+        expect(borderOfSelector('.topLeftSelectionHandle'))
+          .withContext('top left selection handle').toBe(builtins.area._borderColorRgb);
+        expect(borderOfSelector('.bottomRightSelectionHandle'))
+          .withContext('bottom right selection handle').toBe(builtins.area._borderColorRgb);
+
+        Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
+      });
+
+      it('should fall back to default configuration if selectionStyle is partially provided', () => {
+        Handsontable.helper.setBrowserMeta({
+          userAgent: mobileBrowserUAS
+        });
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: {
+            cell: {
+              borderColor: customs.cell.borderColor
+            }
+          }
+        });
+        selectCell(0, 0, 1, 1);
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
+        expect(borderOfSelector('.topLeftSelectionHandle'))
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
+        expect(borderOfSelector('.bottomRightSelectionHandle'))
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
+
+        Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
+      });
+
+      it('should use selectionStyle if all properties are provided', () => {
+        Handsontable.helper.setBrowserMeta({
+          userAgent: mobileBrowserUAS
+        });
+
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: customs
+        });
+        selectCell(0, 0, 1, 1);
+
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.area.borderWidth, customs.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
+        expect(borderOfSelector('.topLeftSelectionHandle'))
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
+        expect(borderOfSelector('.bottomRightSelectionHandle'))
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
+
+        Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
+      });
+    });
+  });
 });

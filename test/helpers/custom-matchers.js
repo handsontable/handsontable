@@ -330,6 +330,23 @@ beforeEach(function() {
         }
       };
     },
+    toBeNonEmptySVGPath() {
+      return {
+        compare(actual) {
+          const pathCommand = actual?.getAttribute('d');
+          let pass = false;
+          if (pathCommand && pathCommand.indexOf) {
+            pass = pathCommand.indexOf('M ') === 0;
+          }
+          const message = `Expected ${actual} to be a SVG <path> element with a non-empty d="" attribute`;
+
+          return {
+            pass,
+            message
+          };
+        }
+      };
+    }
   };
 
   jasmine.addMatchers(matchers);
