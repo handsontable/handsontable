@@ -26,7 +26,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
     let TR = this.rootNode.firstChild;
 
     const { columnsToRender } = this.table;
-    if (columnHeadersCount && columnsToRender) { // TODO this fails when there are no fixedColumnsLeft
+    if (columnHeadersCount || columnsToRender) {
       const allColumnsToRender = columnsToRender + rowHeadersCount;
 
       for (let i = 0, len = columnHeadersCount; i < len; i++) {
