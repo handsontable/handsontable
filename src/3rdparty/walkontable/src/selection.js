@@ -288,43 +288,40 @@ class Selection {
       }
     }
 
-    if (tableRowsCount && tableColumnsCount) {
-      if (this.settings.border && selectionStartRow <= selectionEndRow && selectionStartColumn <= selectionEndColumn) {
-        borderEdgesDescriptor = {
-          settings: this.settings,
-          getCellFn,
-          selectionStart,
-          selectionEnd,
-          hasTopEdge,
-          hasRightEdge,
-          hasBottomEdge,
-          hasLeftEdge
-        };
-      }
+    if (this.settings.border && selectionStartRow <= selectionEndRow && selectionStartColumn <= selectionEndColumn) {
+      borderEdgesDescriptor = {
+        settings: this.settings,
+        getCellFn,
+        selectionStart,
+        selectionEnd,
+        hasTopEdge,
+        hasRightEdge,
+        hasBottomEdge,
+        hasLeftEdge
+      };
+    }
 
-      for (let sourceRow = selectionStartRow; sourceRow <= selectionEndRow; sourceRow += 1) {
-        for (let sourceColumn = selectionStartColumn; sourceColumn <= selectionEndColumn; sourceColumn += 1) {
+    for (let sourceRow = selectionStartRow; sourceRow <= selectionEndRow; sourceRow += 1) {
+      for (let sourceColumn = selectionStartColumn; sourceColumn <= selectionEndColumn; sourceColumn += 1) {
 
-          if (sourceRow >= selectionStartRow
+        if (sourceRow >= selectionStartRow
             && sourceRow <= selectionEndRow
             && sourceColumn >= selectionStartColumn
             && sourceColumn <= selectionEndColumn) {
-            // selected cell
-            if (this.settings.className) {
-              this.addClassAtCoords(wtTable, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
-            }
-          }
-
+          // selected cell
           if (this.settings.className) {
-            // This has a big perf cost. Don't perform this for custom borders
-
-            const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceColumn, selectionCorners, this.settings.layerLevel);
-
-            if (typeof additionalSelectionClass === 'string') {
-              this.addClassAtCoords(wtTable, sourceRow, sourceColumn, additionalSelectionClass);
-            }
+            this.addClassAtCoords(wtTable, sourceRow, sourceColumn, this.settings.className, this.settings.markIntersections);
           }
+        }
 
+        if (this.settings.className) {
+          // This has a big perf cost. Don't perform this for custom borders
+
+          const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceColumn, selectionCorners, this.settings.layerLevel);
+
+          if (typeof additionalSelectionClass === 'string') {
+            this.addClassAtCoords(wtTable, sourceRow, sourceColumn, additionalSelectionClass);
+          }
         }
       }
     }

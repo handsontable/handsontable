@@ -56,11 +56,13 @@ export default class RowsRenderer extends BaseRenderer {
     }
 
     const thead = this.rootNode.previousElementSibling;
-    const isTheadEmpty = thead.firstElementChild === null;
-    if (isTheadEmpty) {
-      addClass(this.rootNode, 'afterEmptyThead');
-    } else {
-      removeClass(this.rootNode, 'afterEmptyThead');
+    if (thead) {
+      const isTheadEmpty = thead.firstElementChild === null;
+      if (isTheadEmpty) {
+        addClass(this.rootNode, 'afterEmptyThead');
+      } else {
+        removeClass(this.rootNode, 'afterEmptyThead');
+      }
     }
 
     this.orderView

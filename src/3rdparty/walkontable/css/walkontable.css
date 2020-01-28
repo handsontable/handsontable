@@ -86,14 +86,14 @@
 }
 
 .handsontable th:first-child,
-.handsontable td:first-child { 
+.handsontable td:first-child {
   border-left: 1px solid #ccc;
 }
 
 .handsontable thead tr:first-child th,
 .handsontable thead tr:first-child td,
 .handsontable tbody.afterEmptyThead tr:first-child th,
-.handsontable tbody.afterEmptyThead tr:first-child td { 
+.handsontable tbody.afterEmptyThead tr:first-child td {
   border-top: 1px solid #ccc;
 }
 
@@ -205,12 +205,6 @@
 
 .ht_master .wtHolder {
   overflow: auto;
-}
-
-.handsontable .ht_master thead,
-.handsontable .ht_master tr th,
-.handsontable .ht_clone_left thead {
-  visibility: hidden;
 }
 
 .ht_clone_top .wtHolder,
