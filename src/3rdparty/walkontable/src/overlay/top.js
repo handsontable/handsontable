@@ -1,11 +1,8 @@
 import {
-  addClass,
   getScrollbarWidth,
   getScrollTop,
   getWindowScrollLeft,
-  hasClass,
   outerHeight,
-  removeClass,
   setOverlayPosition,
   resetCssTransform,
 } from './../../../../helpers/dom/element';
@@ -80,7 +77,6 @@ class TopOverlay extends Overlay {
     }
 
     const overlayRootElement = this.clone.wtTable.wtRootElement;
-    let headerPosition = 0;
     const preventOverflow = master.getSetting('preventOverflow');
 
     if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
@@ -98,17 +94,13 @@ class TopOverlay extends Overlay {
       } else {
         finalTop = 0;
       }
-      headerPosition = finalTop;
       finalTop += 'px';
 
       setOverlayPosition(overlayRootElement, finalLeft, finalTop);
 
     } else {
-      headerPosition = this.getScrollPosition();
       resetCssTransform(overlayRootElement);
     }
-
-    this.adjustHeaderBordersPosition(headerPosition);
   }
 
   /**
@@ -319,15 +311,6 @@ class TopOverlay extends Overlay {
         }
       }
     }
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
-   *
-   * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   */
-  adjustHeaderBordersPosition(position) {
-
   }
 }
 

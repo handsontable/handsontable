@@ -1,11 +1,8 @@
 import {
-  addClass,
   getScrollbarWidth,
   getScrollTop,
   getWindowScrollLeft,
-  hasClass,
   outerHeight,
-  removeClass,
   resetCssTransform
 } from './../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
@@ -79,7 +76,6 @@ class BottomOverlay extends Overlay {
     }
 
     const overlayRootElement = this.clone.wtTable.wtRootElement;
-    let headerPosition = 0;
     const preventOverflow = master.getSetting('preventOverflow');
 
     overlayRootElement.style.top = '';
@@ -99,7 +95,6 @@ class BottomOverlay extends Overlay {
       } else {
         finalBottom = 0;
       }
-      headerPosition = finalBottom;
       finalBottom += 'px';
 
       overlayRootElement.style.top = '';
@@ -107,7 +102,6 @@ class BottomOverlay extends Overlay {
       overlayRootElement.style.bottom = finalBottom;
 
     } else {
-      headerPosition = this.getScrollPosition();
       resetCssTransform(overlayRootElement);
 
       let scrollbarWidth = getScrollbarWidth(master.rootDocument);
@@ -119,7 +113,6 @@ class BottomOverlay extends Overlay {
       overlayRootElement.style.top = '';
       overlayRootElement.style.bottom = `${scrollbarWidth}px`;
     }
-    this.adjustHeaderBordersPosition(headerPosition);
   }
 
   /**
@@ -293,15 +286,6 @@ class BottomOverlay extends Overlay {
         }
       }
     }
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
-   *
-   * @param {number} position Header Y position if trimming container is window or scroll top if not.
-   */
-  adjustHeaderBordersPosition(position) {
-
   }
 }
 

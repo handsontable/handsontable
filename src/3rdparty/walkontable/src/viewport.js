@@ -224,7 +224,7 @@ class Viewport {
   }
 
   /**
-   * Returns total width for all row header cells
+   * Returns total width for all row header cells.
    *
    * @returns {number}
    */
