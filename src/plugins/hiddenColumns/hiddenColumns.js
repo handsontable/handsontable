@@ -112,6 +112,7 @@ class HiddenColumns extends BasePlugin {
     this.hot.columnIndexMapper.registerMap(PLUGIN_NAME, this.hiddenColumnsMap);
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
+    this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
     this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
     this.addHook('hiddenColumn', (...args) => this.isHidden(...args));
 
@@ -298,6 +299,62 @@ class HiddenColumns extends BasePlugin {
 
       // add additional space for hidden column indicator
       return width + (this.hot.hasColHeaders() ? 15 : 0);
+    }
+  }
+
+  /**
+   * Sets the copy-related cell meta.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   * @param {object} cellProperties Object containing the cell properties.
+   */
+  onAfterGetCellMeta(row, col, cellProperties) {
+    if (this.settings.copyPasteEnabled === false && this.isHidden(col)) {
+      cellProperties.skipColumnOnPaste = true;
+    }
+
+    if (this.isHidden(cellProperties.visualCol - 1)) {
+      let firstSectionHidden = true;
+      let i = cellProperties.visualCol - 1;
+
+      cellProperties.className = cellProperties.className || '';
+
+      if (cellProperties.className.indexOf('afterHiddenColumn') === -1) {
+        cellProperties.className += ' afterHiddenColumn';
+      }
+
+      do {
+        if (!this.isHidden(i)) {
+          firstSectionHidden = false;
+          break;
+        }
+
+        i -= 1;
+      } while (i >= 0);
+
+      if (firstSectionHidden && cellProperties.className.indexOf('firstVisibleColumn') === -1) {
+        cellProperties.className += ' firstVisibleColumn';
+      }
+    } else if (cellProperties.className) {
+      const classArr = cellProperties.className.split(' ');
+
+      if (classArr.length) {
+        const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
+
+        if (containAfterHiddenColumn > -1) {
+          classArr.splice(containAfterHiddenColumn, 1);
+        }
+
+        const containFirstVisible = classArr.indexOf('firstVisibleColumn');
+
+        if (containFirstVisible > -1) {
+          classArr.splice(containFirstVisible, 1);
+        }
+
+        cellProperties.className = classArr.join(' ');
+      }
     }
   }
 
