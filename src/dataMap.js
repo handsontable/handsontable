@@ -119,7 +119,7 @@ class DataMap {
       const schemaLen = deepObjectSize(schema);
 
       if (typeof columns === 'function') {
-        columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
+        columnsLen = schemaLen > 0 ? schemaLen : this.countRowColumns();
         columnsAsFunc = true;
       }
 
@@ -140,6 +140,26 @@ class DataMap {
     } else {
       this.recursiveDuckColumns(schema);
     }
+  }
+
+  /**
+   * Get the amount of physical columns in the first data row.
+   *
+   * @returns {number} Amount of physical columns in the first data row.
+   */
+  countRowColumns() {
+    let result = 0;
+
+    if (Array.isArray(this.dataSource)) {
+      if (this.dataSource[0] && Array.isArray(this.dataSource[0])) {
+        result = this.dataSource[0].length;
+
+      } else if (this.dataSource[0] && isObject(this.dataSource[0])) {
+        result = deepObjectSize(this.dataSource[0]);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -828,6 +848,15 @@ class DataMap {
     }
 
     return this.getRange(start, end, DataMap.DESTINATION_RENDERER);
+  }
+
+  /**
+   * Count the number of columns cached in the `colToProp` cache.
+   *
+   * @returns {number} Amount of cached columns.
+   */
+  countCachedColumns() {
+    return this.colToPropCache.length;
   }
 
   /**

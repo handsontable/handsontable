@@ -1620,6 +1620,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
+    dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
 
     metaManager.clearCellsCache();
 
@@ -1637,7 +1638,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
      * (ie. `data` may be empty, `columns` may be a function).
      */
-    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
+    this.columnIndexMapper.initToLength(Math.max(this.countDataRowCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
     this.rowIndexMapper.initToLength(this.countSourceRows());
 
     grid.adjustRowsAndCols();
@@ -2226,15 +2227,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Set the provided data array/object in the source data set.
+   * Set new source value to a cell and render the table. To change many cells at once , pass an array of `changes` in format
+   * `[[row, prop, value],...]` as the first argument.
    *
    * @memberof Core#
-   * @function setSourceDataAtRow
-   * @param {number} row Physical row index.
-   * @param {Array|object} rowData Row of data to be set in the source data set.
+   * @function setSourceDataAtRowProp
+   * @param {number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {string} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
+   * @param {string} value Value to be set.
    */
-  this.setSourceDataAtRow = function(row, rowData) {
-    dataSource.setAtRow(row, rowData);
+  this.setSourceDataAtRowProp = function(row, prop, value) {
+    const input = setDataInputToArray(row, prop, value);
+    const changes = [];
+
+    input.forEach((change, i) => {
+      const [changeRow, changeProp, changeValue] = change;
+      changes.push([
+        input[i][0],
+        input[i][1],
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
+        input[i][2],
+      ]);
+
+      dataSource.setAtCell(changeRow, changeProp, changeValue);
+    });
+
+    this.render();
   };
 
   /**
@@ -2262,7 +2280,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {*} value The value to be set at the provided coordinates.
    */
   this.setSourceDataAtCell = function(row, column, value) {
-    dataSource.setAtCell(row, column, value);
+    dataSource.setAtCell(row, this.colToProp(column), value);
   };
 
   /**
@@ -3004,7 +3022,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the total number of columns in the data source.
+   * Returns the total number of columns in the data source, filtered with the `columns` setting.
    *
    * @memberof Core#
    * @function countSourceCols
@@ -3012,6 +3030,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countSourceCols = function() {
     return dataSource.countColumns();
+  };
+
+  /**
+   * Returns the total number of columns in the data source.
+   *
+   * @memberof Core#
+   * @function countDataRowCols
+   * @returns {number} Total number of columns.
+   */
+  this.countDataRowCols = function() {
+    return datamap.countRowColumns();
   };
 
   /**

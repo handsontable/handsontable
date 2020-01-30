@@ -1,8 +1,10 @@
 import {
   createObjectPropListener,
+  deepObjectSize,
   getProperty,
   isObject,
-  objectEach
+  objectEach,
+  setProperty
 } from './helpers/object';
 import { arrayEach } from './helpers/array';
 import { rangeEach } from './helpers/number';
@@ -61,8 +63,8 @@ class DataSource {
     }
 
     return this.getByRange(
-      { row: 0, col: 0 },
-      { row: Math.max(this.countRows() - 1, 0), col: Math.max(this.countColumns() - 1, 0) },
+      null,
+      null,
       toArray
     );
   }
@@ -95,12 +97,17 @@ class DataSource {
   }
 
   /**
-   * Returns a single row of the data (array or object, depending on what you have). `row` is the index of the row in the data source.
+   * Returns a single row of the data or a subset of its columns. If a column range or `toArray` arguments are provided, it
+   * operates only on the columns declared by the `columns` setting or the data schema.
    *
    * @param {number} row Physical row index.
+   * @param {number|null} [startColumn] Starting index for the column range (optional).
+   * @param {number|null} [endColumn] Ending index for the column range (optional).
+   * @param {boolean} [toArray] `true` if the returned value should be forced to be presented as an array.
    * @returns {Array|object}
    */
-  getAtRow(row) {
+  getAtRow(row, startColumn, endColumn, toArray = false) {
+    const getAllProps = startColumn === void 0 && endColumn === void 0;
     let dataRow = null;
     let newDataRow = null;
     let modifyRowData = null;
@@ -114,38 +121,51 @@ class DataSource {
     if (Array.isArray(dataRow)) {
       newDataRow = [];
 
-      rangeEach(0, dataRow.length - 1, (column) => {
-        newDataRow[column] = this.getAtPhysicalCell(row, column, dataRow);
-      });
+      if (getAllProps) {
+        dataRow.forEach((cell, column) => {
+          newDataRow[column] = this.getAtPhysicalCell(row, column, dataRow);
+        });
+
+      } else {
+        // Only the columns from the provided range
+        rangeEach(startColumn, endColumn, (column) => {
+          newDataRow[column - startColumn] = this.getAtPhysicalCell(row, column, dataRow);
+        });
+      }
 
     } else if (isObject(dataRow) || isFunction(dataRow)) {
-      newDataRow = {};
+      if (toArray) {
+        newDataRow = [];
+      } else {
+        newDataRow = {};
+      }
 
-      objectEach(dataRow, (value, prop) => {
-        newDataRow[prop] = this.getAtPhysicalCell(row, prop, dataRow);
-      });
+      if (!getAllProps || toArray) {
+        const rangeStart = 0;
+        const rangeEnd = this.countRowKeys() - 1;
+
+        rangeEach(rangeStart, rangeEnd, (column) => {
+          const prop = this.colToProp(column);
+
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && isNaN(prop)) {
+            const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
+
+            if (toArray) {
+              newDataRow.push(cellValue);
+
+            } else {
+              setProperty(newDataRow, prop, cellValue);
+            }
+          }
+        });
+
+      } else {
+        objectEach(dataRow, (value, prop) => {
+          setProperty(newDataRow, prop, this.getAtPhysicalCell(row, prop, dataRow));
+        });
+      }
     }
-
     return newDataRow;
-  }
-
-  /**
-   * Set the provided data array/object in the source data set.
-   *
-   * @param {number} row Physical row index.
-   * @param {Array|object} rowData Row of data to be set in the source data set.
-   */
-  setAtRow(row, rowData) {
-    if (Array.isArray(rowData)) {
-      rangeEach(0, rowData.length - 1, (column) => {
-        this.setAtCell(row, column, rowData[column]);
-      });
-
-    } else if (isObject(rowData) || isFunction(rowData)) {
-      objectEach(rowData, (value, prop) => {
-        this.setAtCell(row, prop, rowData[prop]);
-      });
-    }
   }
 
   /**
@@ -156,6 +176,11 @@ class DataSource {
    * @param {*} value The value to be set at the provided coordinates.
    */
   setAtCell(row, column, value) {
+    if (row >= this.countRows() || column >= this.countColumns()) {
+      // Not enough rows and/or columns.
+      return;
+    }
+
     if (this.hot.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(value);
 
@@ -166,7 +191,13 @@ class DataSource {
       }
     }
 
-    this.data[row][column] = value;
+    if (isNaN(column)) {
+      // column argument is the prop name
+      setProperty(this.data[row], column, value);
+
+    } else {
+      this.data[row][column] = value;
+    }
   }
 
   /**
@@ -235,61 +266,34 @@ class DataSource {
    * @returns {Array}
    */
   getByRange(start, end, toArray = false) {
-    const startRow = Math.min(start.row, end.row);
-    const startCol = Math.min(start.col, end.col);
-    const endRow = Math.max(start.row, end.row);
-    const endCol = Math.max(start.col, end.col);
+    let getAllProps = false;
+    let startRow = null;
+    let startCol = null;
+    let endRow = null;
+    let endCol = null;
+
+    if (start === null && end === null) {
+      getAllProps = true;
+      startRow = 0;
+      startCol = 0;
+      endRow = this.countRows() - 1;
+      endCol = this.countColumns() - 1;
+
+    } else {
+      startRow = Math.min(start.row, end.row);
+      startCol = Math.min(start.col, end.col);
+      endRow = Math.max(start.row, end.row);
+      endCol = Math.max(start.col, end.col);
+    }
+
     const result = [];
 
     rangeEach(startRow, endRow, (currentRow) => {
-      const row = this.getAtRow(currentRow);
-      let newRow;
-
-      if (this.data[0] && Array.isArray(this.data[0])) {
-        newRow = row.slice(startCol, endCol + 1);
-
-      } else if (this.data[0] && isObject(this.data[0])) {
-        newRow = toArray ? [] : {};
-
-        rangeEach(startCol, endCol, (column) => {
-          const prop = this.colToProp(column);
-          const propHierarchy = isNaN(prop) ? prop.split('.') : [prop];
-          let value = null;
-
-          if (propHierarchy.length > 1) {
-            value = propHierarchy.reduce((acc, cv) => acc && acc[cv], row);
-
-          } else {
-            value = row[prop];
-          }
-
-          if (toArray) {
-            newRow.push(value);
-
-          } else {
-            let nestedObject = newRow;
-            let deepProp = prop;
-
-            propHierarchy.forEach((nestedProp, i) => {
-              if (i === propHierarchy.length - 1) {
-                deepProp = nestedProp;
-
-                return;
-              }
-
-              if (!nestedObject[nestedProp]) {
-                nestedObject[nestedProp] = {};
-              }
-
-              nestedObject = nestedObject[nestedProp];
-            });
-
-            nestedObject[deepProp] = value;
-          }
-        });
-      }
-
-      result.push(newRow);
+      result.push((
+        getAllProps ?
+          this.getAtRow(currentRow, void 0, void 0, toArray) :
+          this.getAtRow(currentRow, startCol, endCol, toArray)
+      ));
     });
 
     return result;
@@ -312,11 +316,20 @@ class DataSource {
   }
 
   /**
-   * Count number of columns.
+   * Count the number of columns (cached in `colToPropCache`), falls back to the physical number of columns in the first data row.
    *
    * @returns {number}
    */
   countColumns() {
+    return this.countCachedColumns() || this.countRowKeys();
+  }
+
+  /**
+   * Count number of columns.
+   *
+   * @returns {number}
+   */
+  countRowKeys() {
     let result = 0;
 
     if (Array.isArray(this.data)) {
@@ -324,25 +337,7 @@ class DataSource {
         result = this.data[0].length;
 
       } else if (this.data[0] && isObject(this.data[0])) {
-        const countKeys = (object, keycount) => {
-          objectEach(object, (value, key) => {
-            if (key === '__children') {
-              return;
-            }
-
-            if (isObject(value)) {
-              keycount += countKeys(value, 0);
-
-            } else {
-              keycount += 1;
-            }
-          });
-
-          return keycount;
-        };
-
-        result = countKeys(this.data[0], 0);
-
+        result = deepObjectSize(this.data[0]);
       }
     }
 

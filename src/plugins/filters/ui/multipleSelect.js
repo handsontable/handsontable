@@ -3,6 +3,7 @@ import { clone, extend } from '../../../helpers/object';
 import { arrayFilter, arrayMap, arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { partial } from '../../../helpers/function';
+import { dataRowToChangesArray } from '../../../helpers/data';
 import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import BaseUI from './_base';
@@ -281,7 +282,7 @@ class MultipleSelectUI extends BaseUI {
     arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = true;
 
-      this.itemsBox.setSourceDataAtRow(rowIndex, row);
+      this.itemsBox.setSourceDataAtRowProp(dataRowToChangesArray(row, rowIndex));
     });
     this.itemsBox.render();
   }
@@ -297,7 +298,7 @@ class MultipleSelectUI extends BaseUI {
     arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = false;
 
-      this.itemsBox.setSourceDataAtRow(rowIndex, row);
+      this.itemsBox.setSourceDataAtRowProp(dataRowToChangesArray(row, rowIndex));
     });
     this.itemsBox.render();
   }

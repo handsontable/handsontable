@@ -6,6 +6,7 @@ import {
   deepExtend,
   deepObjectSize,
   createObjectPropListener,
+  setProperty
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -51,7 +52,17 @@ describe('Object helper', () => {
     it('should returns valid schema object (deeply)', () => {
       expect(duckSchema({ test: { a: { b: 11 } } })).toEqual({ test: { a: { b: null } } });
       expect(duckSchema({ test: { a: { b: [] } } })).toEqual({ test: { a: { b: [] } } });
-      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
+      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({
+        test: {
+          a: {
+            b: [
+              {
+                q: null,
+                w: null
+              }]
+          }
+        }
+      });
     });
   });
 
@@ -60,7 +71,8 @@ describe('Object helper', () => {
   //
   describe('mixin', () => {
     it('should mix base object from one object', () => {
-      const Base = function() {};
+      const Base = function() {
+      };
       const MixinFoo = {
         local: 'value',
         myFunction() {
@@ -91,7 +103,8 @@ describe('Object helper', () => {
     });
 
     it('should mix base object from multiple objects', () => {
-      const Base = function() {};
+      const Base = function() {
+      };
       const MixinFoo = {
         local: 'value',
         myFunction() {
@@ -124,8 +137,10 @@ describe('Object helper', () => {
     });
 
     it('mixed object should not interfere with properties from another mixed objects', () => {
-      const Base = function() {};
-      const Base1 = function() {};
+      const Base = function() {
+      };
+      const Base1 = function() {
+      };
       const MixinFoo = {
         local: {},
         myFunction() {
@@ -153,7 +168,8 @@ describe('Object helper', () => {
   //
   describe('clone', () => {
     it('should returns cloned object', () => {
-      const function1 = function() {};
+      const function1 = function() {
+      };
       const object1 = {};
       const object2 = {
         foo: false,
@@ -302,6 +318,33 @@ describe('Object helper', () => {
 
       expect(propListener.isTouched()).toBe(true);
       expect(propListener.value).toBe(void 0);
+    });
+  });
+
+  //
+  // Handsontable.helper.setProperty
+  //
+  describe('setProperty', () => {
+    it('should set a property value on a given object', () => {
+      const testObject = {};
+      const testObject2 = { prop1: 0 };
+
+      setProperty(testObject, 'prop1', 'value1');
+      expect(testObject.prop1).toEqual('value1');
+
+      setProperty(testObject2, 'prop1', 'value1');
+      expect(testObject2.prop1).toEqual('value1');
+    });
+
+    it('should set a nested property value on a given object', () => {
+      const testObject = {};
+      const testObject2 = { prop1: { subprop1: 0 } };
+
+      setProperty(testObject, 'prop1.subprop1', 'value1');
+      expect(testObject.prop1.subprop1).toEqual('value1');
+
+      setProperty(testObject2, 'prop1.subprop1', 'value1');
+      expect(testObject2.prop1.subprop1).toEqual('value1');
     });
   });
 });
