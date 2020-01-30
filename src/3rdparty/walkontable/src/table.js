@@ -77,7 +77,8 @@ class Table {
     this.borderRenderer = new BorderRenderer(this.spreader,
       this.createBorderPaddingObject(),
       `${this.wot.guid}-border-renderer`,
-      this.isMaster ? 'master' : this.wot.getOverlayName());
+      this.isMaster ? 'master' : this.wot.getOverlayName(),
+      this.getCell.bind(this));
   }
 
   /**

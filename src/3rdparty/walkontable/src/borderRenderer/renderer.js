@@ -8,7 +8,7 @@ const offsetToOverLapPrecedingBorder = -1;
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`.
  */
 export default class BorderRenderer {
-  constructor(parentElement, padding, uniqueDomId, overlayName) {
+  constructor(parentElement, padding, uniqueDomId, overlayName, getCellFn) {
     /**
      * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
      *
@@ -27,6 +27,12 @@ export default class BorderRenderer {
      * @type {string}
      */
     this.overlayName = overlayName;
+    /**
+     * Function that returns a cell from the current overlay.
+     *
+     * @type {Function}
+     */
+    this.getCellFn = getCellFn;
     /**
      * The SVG container element, where all SVG groups are rendered.
      *
@@ -364,7 +370,6 @@ export default class BorderRenderer {
    *
    * @param {object} borderEdgesDescriptor Border descriptor object.
    * @param {object} borderEdgesDescriptor.settings Settings provided in the same format as used by `Selection.setting`.
-   * @param {Function} borderEdgesDescriptor.getCellFn Function that returns a cell from the current overlay.
    * @param {object} borderEdgesDescriptor.selectionStart Object with properties row, col that represents the top left corner of the selection.
    * @param {object} borderEdgesDescriptor.selectionEnd Object with properties row, col that represents the bottom right corner of the selection.
    * @param {boolean} borderEdgesDescriptor.hasTopEdge TRUE if the range between `firstTd` and `lastTd` contains the top line, FALSE otherwise.
@@ -375,7 +380,6 @@ export default class BorderRenderer {
   convertBorderEdgesDescriptorToLines(borderEdgesDescriptor) {
     const {
       settings,
-      getCellFn,
       selectionStart,
       selectionEnd,
       hasTopEdge,
@@ -390,21 +394,21 @@ export default class BorderRenderer {
     const isSingle = selectionStart.row === selectionEnd.row && selectionStart.col === selectionEnd.col;
     let addFirstTdWidth = 0;
     let addFirstTdHeight = 0;
-    let firstTd = getCellFn(selectionStart);
+    let firstTd = this.getCellFn(selectionStart);
 
     if (firstTd === -1) {
       selectionStart.row += 1;
-      firstTd = getCellFn(selectionStart);
+      firstTd = this.getCellFn(selectionStart);
       addFirstTdHeight = -1;
     }
     if (firstTd === -2) {
       selectionStart.row -= 1;
-      firstTd = getCellFn(selectionStart);
+      firstTd = this.getCellFn(selectionStart);
       addFirstTdHeight = 1;
     }
     if (firstTd === -4) {
       selectionStart.col -= 1;
-      firstTd = getCellFn(selectionStart);
+      firstTd = this.getCellFn(selectionStart);
       addFirstTdWidth = 1;
     }
 
@@ -421,21 +425,21 @@ export default class BorderRenderer {
       addLastTdWidth = addFirstTdWidth;
       addLastTdHeight = addFirstTdHeight;
     } else {
-      lastTd = getCellFn(selectionEnd);
+      lastTd = this.getCellFn(selectionEnd);
 
       if (lastTd === -1) {
         selectionEnd.row += 1;
-        lastTd = getCellFn(selectionEnd);
+        lastTd = this.getCellFn(selectionEnd);
         addLastTdHeight = -1;
       }
       if (lastTd === -2) {
         selectionEnd.row -= 1;
-        lastTd = getCellFn(selectionEnd);
+        lastTd = this.getCellFn(selectionEnd);
         addLastTdHeight = 1;
       }
       if (lastTd === -4) {
         selectionEnd.col -= 1;
-        lastTd = getCellFn(selectionEnd);
+        lastTd = this.getCellFn(selectionEnd);
         addLastTdWidth = 1;
       }
     }

@@ -254,7 +254,6 @@ class Selection {
     const hasBottomEdge = selectionEndRow === selectionSettingBottom;
     const hasLeftEdge = selectionStartColumn === selectionSettingLeft;
     let borderEdgesDescriptor;
-    const getCellFn = wtTable.getCell.bind(wtTable);
 
     if (tableColumnsCount && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = selectionStartColumn; sourceColumn <= selectionEndColumn; sourceColumn += 1) {
@@ -291,7 +290,6 @@ class Selection {
     if (this.settings.border && selectionStartRow <= selectionEndRow && selectionStartColumn <= selectionEndColumn) {
       borderEdgesDescriptor = {
         settings: this.settings,
-        getCellFn,
         selectionStart,
         selectionEnd,
         hasTopEdge,
