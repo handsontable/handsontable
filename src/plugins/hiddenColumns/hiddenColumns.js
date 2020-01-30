@@ -114,7 +114,6 @@ class HiddenColumns extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
     this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
-    this.addHook('hiddenColumn', (...args) => this.isHidden(...args));
 
     super.enablePlugin();
   }
@@ -274,11 +273,6 @@ class HiddenColumns extends BasePlugin {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
       if (meta) {
         meta.skipColumnOnPaste = false;
-
-        if (meta.baseRenderer !== null) {
-          meta.renderer = meta.baseRenderer;
-          meta.baseRenderer = null;
-        }
       }
     });
   }

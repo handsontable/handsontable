@@ -141,11 +141,11 @@ class DataProvider {
    * Check if column at specified column index is hidden.
    *
    * @private
-   * @param {Number} column Column index.
+   * @param {Number} column Visual column index.
    * @returns {Boolean}
    */
   _isHiddenColumn(column) {
-    return this.hot.hasHook('hiddenColumn') && this.hot.runHooks('hiddenColumn', column);
+    return this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column));
   }
 }
 
