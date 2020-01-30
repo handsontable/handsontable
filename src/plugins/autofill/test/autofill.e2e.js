@@ -823,7 +823,7 @@ describe('AutoFill', () => {
     expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[2, 0, 1, 2], [5, 3, 4, 5]]));
   });
 
-  it('should omitting data from hidden cells - fill vertically', () => {
+  it('should omit data propagation for hidden cells - fill vertically (option `copyPasteEnabled` set to `false` for the both plugins)', () => {
     handsontable({
       data: [
         [0, 0, 0, 0, 0, 0],
@@ -868,7 +868,52 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  it('should omitting data from hidden cells - fill horizontally', () => {
+  it('should propagate data for hidden cells - fill vertically (option `copyPasteEnabled` set to `true` for the both plugins)', () => {
+    handsontable({
+      data: [
+        [0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1],
+        [2, 2, null, null, null, null],
+        [3, 3, null, null, null, null]
+      ],
+      hiddenColumns: {
+        copyPasteEnabled: true,
+        indicators: true,
+        columns: [1]
+      },
+      hiddenRows: {
+        copyPasteEnabled: true,
+        rows: [1],
+        indicators: true
+      },
+    });
+
+    selectCell(0, 0, 0, 2);
+
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(2, 2, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 0)).toEqual(0);
+    expect(getDataAtCell(0, 1)).toEqual(0);
+    expect(getDataAtCell(0, 2)).toEqual(0);
+
+    expect(getDataAtCell(1, 0)).toEqual(0); // Hidden row, there was change.
+    expect(getDataAtCell(1, 1)).toEqual(0); // Hidden column and row, there was change.
+    expect(getDataAtCell(1, 2)).toEqual(0); // Hidden row, there was change.
+
+    expect(getDataAtCell(2, 0)).toEqual(0);
+    expect(getDataAtCell(2, 1)).toEqual(0); // Hidden column, there was change.
+    expect(getDataAtCell(2, 2)).toEqual(0);
+
+    expect(getData()).toEqual([
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 1, 1, 1],
+      [0, 0, 0, null, null, null],
+      [3, 3, null, null, null, null]
+    ]); // Extra test for checking wrong data propagation.
+  });
+
+  it('should omit data propagation for hidden cells - fill horizontally (option `copyPasteEnabled` set to `false` for the both plugins)', () => {
     handsontable({
       data: [
         [0, 1, 2, 3, 4, 5],
@@ -909,6 +954,51 @@ describe('AutoFill', () => {
       [0, 1, 0, 3, 4, 5],
       [0, 1, 2, 3, 4, 5],
       [0, 1, 0, null, null, null],
+      [0, 1, null, null, null, null]
+    ]); // Extra test for checking wrong data propagation.
+  });
+
+  it('should propagate data for hidden cells - fill horizontally (option `copyPasteEnabled` set to `true` for the both plugins)', () => {
+    handsontable({
+      data: [
+        [0, 1, 2, 3, 4, 5],
+        [0, 1, 2, 3, 4, 5],
+        [0, 1, null, null, null, null],
+        [0, 1, null, null, null, null]
+      ],
+      hiddenColumns: {
+        copyPasteEnabled: true,
+        indicators: true,
+        columns: [1]
+      },
+      hiddenRows: {
+        copyPasteEnabled: true,
+        rows: [1],
+        indicators: true
+      },
+    });
+
+    selectCell(0, 0, 2, 0);
+
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(2, 2, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 0)).toEqual(0);
+    expect(getDataAtCell(1, 0)).toEqual(0);
+    expect(getDataAtCell(2, 0)).toEqual(0);
+
+    expect(getDataAtCell(0, 1)).toEqual(0); // Hidden column, there was change.
+    expect(getDataAtCell(1, 1)).toEqual(0); // Hidden column and row, there was change.
+    expect(getDataAtCell(2, 1)).toEqual(0); // Hidden column, there was change.
+
+    expect(getDataAtCell(0, 2)).toEqual(0);
+    expect(getDataAtCell(1, 2)).toEqual(0); // Hidden row, there was change.
+    expect(getDataAtCell(2, 2)).toEqual(0);
+
+    expect(getData()).toEqual([
+      [0, 0, 0, 3, 4, 5],
+      [0, 0, 0, 3, 4, 5],
+      [0, 0, 0, null, null, null],
       [0, 1, null, null, null, null]
     ]); // Extra test for checking wrong data propagation.
   });
