@@ -2,7 +2,7 @@ import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
 import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
+import { rangeEach } from '../../helpers/number';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import { CellCoords } from './../../3rdparty/walkontable/src';
@@ -130,7 +130,42 @@ class Autofill extends BasePlugin {
    * @returns {Array} Array with the data.
    */
   getSelectionData() {
-    return this.hot.getData(...this.hot.getSelectedLast());
+    const [startRow, startCol, endRow, endCol] = this.hot.getSelectedLast();
+
+    const copyableRanges = this.hot.runHooks('modifyCopyableRange', [{
+      startRow,
+      startCol,
+      endRow,
+      endCol
+    }]);
+    const copyableRows = [];
+    const copyableColumns = [];
+    const data = [];
+
+    arrayEach(copyableRanges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
+        }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+
+    arrayEach(copyableRows, (row) => {
+      const rowSet = [];
+
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(this.hot.getCopyableData(row, column));
+      });
+
+      data.push(rowSet);
+    });
+
+    return data;
   }
 
   /**
