@@ -42,6 +42,7 @@ describe('Core_modifySourceData', () => {
             // Check for multiple API endpoints
             expect(getSourceDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
             expect(getSourceDataAtRow(rowIndex)[columnIndex]).toEqual(modifiedSourceCellValue);
+            expect(getSourceDataAtCol(columnIndex)[rowIndex]).toEqual(modifiedSourceCellValue);
             expect(getSourceData()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
             expect(getSourceData(0, 0, 1, 2)[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
             expect(getSourceDataArray()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
@@ -82,6 +83,7 @@ describe('Core_modifySourceData', () => {
             expect(getSourceDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
             expect(getSourceDataAtCell(rowIndex, colProp)).toEqual(modifiedSourceCellValue);
             expect(getSourceDataAtRow(rowIndex)[colProp]).toEqual(modifiedSourceCellValue);
+            expect(getSourceDataAtCol(columnIndex)[rowIndex]).toEqual(modifiedSourceCellValue);
             expect(getSourceData()[rowIndex][colProp]).toEqual(modifiedSourceCellValue);
             expect(getSourceData(0, 0, 1, 2)[rowIndex][colProp]).toEqual(modifiedSourceCellValue);
             expect(getSourceDataArray()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
@@ -166,6 +168,7 @@ describe('Core_modifySourceData', () => {
           // Check for multiple API endpoints
           expect(getSourceDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
           expect(getSourceDataAtRow(rowIndex)[columnIndex]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataAtCol(columnIndex)[rowIndex]).toEqual(modifiedSourceCellValue);
           expect(getSourceData()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
           expect(getSourceData(0, 0, 1, 2)[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
           expect(getSourceDataArray()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
@@ -210,6 +213,7 @@ describe('Core_modifySourceData', () => {
           // Check for multiple API endpoints
           expect(getSourceDataAtCell(rowIndex, columnIndex)).toEqual(modifiedSourceCellValue);
           expect(getSourceDataAtRow(rowIndex)[prop]).toEqual(modifiedSourceCellValue);
+          expect(getSourceDataAtCol(columnIndex)[rowIndex]).toEqual(modifiedSourceCellValue);
           expect(getSourceData()[rowIndex][prop]).toEqual(modifiedSourceCellValue);
           expect(getSourceData(0, 0, 1, 2)[rowIndex][prop]).toEqual(modifiedSourceCellValue);
           expect(getSourceDataArray()[rowIndex][columnIndex]).toEqual(modifiedSourceCellValue);
