@@ -467,7 +467,8 @@ class SelectionHandle {
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
         const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
-        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
+        const columnUtils = this.wot.overlay ? this.wot.overlay.master.columnUtils : this.wot.columnUtils;
+        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer) - columnUtils.scrollbarCompensation;
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
