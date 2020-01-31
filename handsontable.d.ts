@@ -119,7 +119,7 @@ declare namespace _Handsontable {
     setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
     setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
     setSourceDataAtCell(row: number, column: number, value: Handsontable.CellValue): void;
-    setSourceDataAtRow(row: number, rowData: Handsontable.CellValue[]|{ [key: string]: Handsontable.CellValue }): void;
+    setSourceDataAtRowProp(row: number|[number, string, any][], prop?: string, value?: any): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     table: HTMLTableElement;

@@ -2234,7 +2234,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function setSourceDataAtRowProp
    * @param {number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
    * @param {string} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
-   * @param {string} value Value to be set.
+   * @param {*} value Value to be set.
    */
   this.setSourceDataAtRowProp = function(row, prop, value) {
     const input = setDataInputToArray(row, prop, value);
