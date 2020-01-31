@@ -230,6 +230,7 @@ class Viewport {
    */
   getRowHeaderWidth() {
     if (this.wot.overlay) {
+      // TODO remove this line, because wtViewport is a singleton for all instances, so this condition is never met
       return this.wot.overlay.master.wtViewport.getRowHeaderWidth();
     }
 

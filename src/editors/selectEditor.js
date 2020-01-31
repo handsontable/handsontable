@@ -230,9 +230,11 @@ class SelectEditor extends BaseEditor {
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
     if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
+      // TODO this can be safely removed, because after fe829b29124b7ed9f249e6825492f0cfbcedf5e7 no TD has a top or left border
       height -= 1;
     }
     if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
+      // TODO this can be safely removed, because after fe829b29124b7ed9f249e6825492f0cfbcedf5e7 no TD has a top or left border
       width -= 1;
     }
 
