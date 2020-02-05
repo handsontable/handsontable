@@ -14,7 +14,7 @@ import localHooks from './../mixins/localHooks';
 class Transformation {
   constructor(range, options) {
     /**
-     * Instance of the SelectionRange, holder for coordinates applied to the table.
+     * Instance of the SelectionRange, holder for visual coordinates applied to the table.
      *
      * @type {SelectionRange}
      */
