@@ -612,6 +612,7 @@ describe('HiddenColumns', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [0],
         },
@@ -622,12 +623,22 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row by header if last column is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [4],
         },
@@ -638,12 +649,22 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row by header if any column in the middle is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -654,12 +675,22 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(`
+      |   ║ - : - |
+      |===:===:===|
+      | * ║ A : 0 |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should keep hidden columns in cell range', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -673,6 +704,15 @@ describe('HiddenColumns', () => {
       mouseUp(endCell);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(`
+      |   ║ - : - |
+      |===:===:===|
+      | - ║ A : 0 |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
     });
   });
 
@@ -703,6 +743,7 @@ describe('HiddenColumns', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [0, 1, 2, 3, 4],
         },
@@ -711,12 +752,21 @@ describe('HiddenColumns', () => {
       selectAll();
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(`
+      |   |
+      | * |
+      | * |
+      | * |
+      | * |
+      | * |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row after call selectRows if the first column is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [0],
         },
@@ -725,12 +775,22 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row after call selectRows if the last column is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [4],
         },
@@ -739,12 +799,22 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row after call selectRows if columns between the first and the last are hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -753,12 +823,22 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(`
+      |   ║ - : - |
+      |===:===:===|
+      | * ║ A : 0 |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
-    it('should select hidden column after call selectColumns', () => {
+    it('should select hidden column internally after the `selectColumns` call (no visual effect)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1],
         },
@@ -767,12 +847,46 @@ describe('HiddenColumns', () => {
       selectColumns(1);
 
       expect(getSelectedLast()).toEqual([0, 1, 4, 1]);
+      expect(`
+      |   ║   :   :   :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
-    it('should select columns after call selectColumns if range is partially hidden at the begining of selection', () => {
+    it('should select columns after the `selectColumns` call if range is partially hidden at the begining of selection #1', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectColumns(1, 4);
+
+      expect(getSelectedLast()).toEqual([0, 1, 4, 4]);
+      expect(`
+      |   ║   : * |
+      |===:===:===|
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select columns after the `selectColumns` call if range is partially hidden at the begining of selection #2', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -781,12 +895,22 @@ describe('HiddenColumns', () => {
       selectColumns(2, 4);
 
       expect(getSelectedLast()).toEqual([0, 2, 4, 4]);
+      expect(`
+      |   ║   : * |
+      |===:===:===|
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      `).toBeMatchToSelectionPattern();
     });
 
-    it('should select columns after call selectColumns if range is partially hidden at the end of selection', () => {
+    it('should select columns after the `selectColumns` call if range is partially hidden at the end of selection #1', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -795,12 +919,46 @@ describe('HiddenColumns', () => {
       selectColumns(0, 2);
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 2]);
+      expect(`
+      |   ║ * :   |
+      |===:===:===|
+      | - ║ A :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select columns after the `selectColumns` call if range is partially hidden at the end of selection #2', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectColumns(0, 3);
+
+      expect(getSelectedLast()).toEqual([0, 0, 4, 3]);
+      expect(`
+      |   ║ * :   |
+      |===:===:===|
+      | - ║ A :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select columns after call selectColumns if range is partially hidden in the middle of selection', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -809,6 +967,15 @@ describe('HiddenColumns', () => {
       selectColumns(0, 4);
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(`
+      |   ║ * : * |
+      |===:===:===|
+      | - ║ A : 0 |
+      | - ║ 0 : 0 |
+      | - ║ 0 : 0 |
+      | - ║ 0 : 0 |
+      | - ║ 0 : 0 |
+      `).toBeMatchToSelectionPattern();
     });
   });
 
