@@ -398,7 +398,8 @@ class Autofill extends BasePlugin {
     this.hot.selection.highlight.getFill()
       .clear()
       .add(new CellCoords(selectStartArea[0], selectStartArea[1]))
-      .add(new CellCoords(rowIndex, selectStartArea[3]));
+      .add(new CellCoords(rowIndex, selectStartArea[3]))
+      .commit();
   }
 
   /**
@@ -453,7 +454,8 @@ class Autofill extends BasePlugin {
       .clear()
       .add(this.hot.getSelectedRangeLast().from)
       .add(this.hot.getSelectedRangeLast().to)
-      .add(coords);
+      .add(coords)
+      .commit();
 
     this.hot.view.render();
   }

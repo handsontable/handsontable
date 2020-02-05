@@ -223,7 +223,7 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight);
+      this.highlight.getCell().add(this.selectedRange.current().highlight).commit();
     }
 
     const layerLevel = this.getLayerLevel();
@@ -249,7 +249,8 @@ class Selection {
     if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
         .add(cellRange.from)
-        .add(cellRange.to);
+        .add(cellRange.to)
+        .commit();
 
       if (layerLevel === 1) {
         // For single cell selection in the same layer, we do not create area selection to prevent blue background.
@@ -258,7 +259,8 @@ class Selection {
         this.highlight
           .useLayerLevel(layerLevel - 1)
           .createOrGetArea()
-          .add(this.selectedRange.previous().from);
+          .add(this.selectedRange.previous().from)
+          .commit();
 
         this.highlight.useLayerLevel(layerLevel);
       }
@@ -271,7 +273,8 @@ class Selection {
       } else {
         headerHighlight
           .add(cellRange.from)
-          .add(cellRange.to);
+          .add(cellRange.to)
+          .commit();
       }
     }
 
@@ -282,7 +285,8 @@ class Selection {
       if (isRowSelected) {
         activeHeaderHighlight
           .add(new CellCoords(cellRange.from.row, -1))
-          .add(new CellCoords(cellRange.to.row, -1));
+          .add(new CellCoords(cellRange.to.row, -1))
+          .commit();
       }
     }
 
@@ -293,7 +297,8 @@ class Selection {
       if (isColumnSelected) {
         activeHeaderHighlight
           .add(new CellCoords(-1, cellRange.from.col))
-          .add(new CellCoords(-1, cellRange.to.col));
+          .add(new CellCoords(-1, cellRange.to.col))
+          .commit();
       }
     }
 
