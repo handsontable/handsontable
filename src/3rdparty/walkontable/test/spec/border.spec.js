@@ -447,8 +447,8 @@ describe('Walkontable Border Renderer', () => {
 
       wt.draw();
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual([
-        'M 50.5 0 50.5 24', 'M 100 0 100 24', 'M 50 0.5 101 0.5', 'M 50 23 101 23',
-        'M 50.5 0 50.5 24', 'M 101 0 101 24', 'M 50 0.5 102 0.5', 'M 50 23 102 23']);
+        'M 49.5 0 49.5 24', 'M 99 0 99 24', 'M 49 0.5 100 0.5', 'M 49 23 100 23',
+        'M 49.5 0 49.5 24', 'M 99 0 99 24', 'M 49 0.5 100 0.5', 'M 49 23 100 23']);
       expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([
         '1px solid green', '2px solid green', '3px solid green', '4px solid green',
         '1px solid green', '2px solid green', '3px solid green', '4px solid green']);
@@ -473,10 +473,10 @@ describe('Walkontable Border Renderer', () => {
 
       wt.draw();
       expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual([
-        'M 50.5 23 50.5 47', 'M 100 23 100 47', 'M 50 23.5 101 23.5', 'M 50 46 101 46',
-        'M 50.5 23 50.5 48', 'M 100 23 100 48', 'M 50 23.5 101 23.5', 'M 50 47 101 47',
-        'M 50.5 23 50.5 47', 'M 101 23 101 47', 'M 50 23.5 102 23.5', 'M 50 46 102 46',
-        'M 50.5 23 50.5 48', 'M 101 23 101 48', 'M 50 23.5 102 23.5', 'M 50 47 102 47']);
+        'M 49.5 23 49.5 47', 'M 99 23 99 47', 'M 49 23.5 100 23.5', 'M 49 46 100 46',
+        'M 49.5 23 49.5 48', 'M 99 23 99 48', 'M 49 23.5 100 23.5', 'M 49 47 100 47',
+        'M 49.5 23 49.5 47', 'M 99 23 99 47', 'M 49 23.5 100 23.5', 'M 49 46 100 46',
+        'M 49.5 23 49.5 48', 'M 99 23 99 48', 'M 49 23.5 100 23.5', 'M 49 47 100 47']);
       expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual([
         '1px solid green', '2px solid green', '3px solid green', '4px solid green',
         '1px solid green', '2px solid green', '3px solid green', '4px solid green',

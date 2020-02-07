@@ -261,7 +261,7 @@ class Viewport {
           } else {
             // yes this is a cheat but it worked like that before, just taking assumption from CSS instead of measuring.
             // TODO: proper fix
-            this.rowHeaderWidth += 51;
+            this.rowHeaderWidth += 50;
           }
         }
       } else {

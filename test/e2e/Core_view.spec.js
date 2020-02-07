@@ -933,11 +933,11 @@ describe('Core_view', () => {
 
       let expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;
 
-      expect(getCell(0, 0).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 1).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 2).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 3).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 4).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0, 0).offsetWidth).withContext('before 0, 0').toEqual(expectedCellWidth);
+      expect(getCell(0, 1).offsetWidth).withContext('before 0, 1').toEqual(expectedCellWidth);
+      expect(getCell(0, 2).offsetWidth).withContext('before 0, 2').toEqual(expectedCellWidth);
+      expect(getCell(0, 3).offsetWidth).withContext('before 0, 3').toEqual(expectedCellWidth);
+      expect(getCell(0, 4).offsetWidth).withContext('before 0, 4').toEqual(expectedCellWidth);
 
       spec().$container[0].style.width = '';
       spec().$container.wrap('<div class="temp_wrapper" style="width:400px;"></div>');
@@ -945,11 +945,11 @@ describe('Core_view', () => {
 
       expectedCellWidth = (parseInt($('.temp_wrapper')[0].style.width, 10) - rowHeaderWidth) / 5;
 
-      expect(getCell(0, 0).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 1).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 2).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 3).offsetWidth).toEqual(expectedCellWidth);
-      expect(getCell(0, 4).offsetWidth).toEqual(expectedCellWidth);
+      expect(getCell(0, 0).offsetWidth).withContext('after 0, 0').toEqual(expectedCellWidth);
+      expect(getCell(0, 1).offsetWidth).withContext('after 0, 1').toEqual(expectedCellWidth);
+      expect(getCell(0, 2).offsetWidth).withContext('after 0, 2').toEqual(expectedCellWidth);
+      expect(getCell(0, 3).offsetWidth).withContext('after 0, 3').toEqual(expectedCellWidth);
+      expect(getCell(0, 4).offsetWidth).withContext('after 0, 4').toEqual(expectedCellWidth);
 
       spec().$container.unwrap();
     });
@@ -1009,11 +1009,11 @@ describe('Core_view', () => {
 
       const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-      expect($columnHeaders.eq(0).width()).toEqual(48);
-      expect($columnHeaders.eq(1).width()).toEqual(73);
-      expect($columnHeaders.eq(2).width()).toEqual(149);
-      expect($columnHeaders.eq(3).width()).toEqual(74);
-      expect($columnHeaders.eq(4).width()).toEqual(74);
+      expect($columnHeaders.eq(0).width()).withContext('th:eq(0) width').toEqual(48);
+      expect($columnHeaders.eq(1).width()).withContext('th:eq(1) width').toEqual(74);
+      expect($columnHeaders.eq(2).width()).withContext('th:eq(2) width').toEqual(149);
+      expect($columnHeaders.eq(3).width()).withContext('th:eq(3) width').toEqual(74);
+      expect($columnHeaders.eq(4).width()).withContext('th:eq(4) width').toEqual(74);
 
       expect(callbackSpy).toHaveBeenCalled();
       // First cycle to check what columns has permanent width

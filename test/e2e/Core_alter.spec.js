@@ -1420,11 +1420,11 @@ describe('Core_alter', () => {
         stretchH: 'all'
       });
 
-      expect(Handsontable.dom.outerWidth(hot.view.TBODY)).toEqual(500);
+      expect(Handsontable.dom.outerWidth(hot.view.TBODY)).withContext('1st run').toEqual(500);
       alter('insert_col', null, 1);
-      expect(Handsontable.dom.outerWidth(hot.view.TBODY)).toEqual(500);
+      expect(Handsontable.dom.outerWidth(hot.view.TBODY)).withContext('2nd run').toEqual(500); // TODO now it is 485 due to incorrectly subtracted scrollbar width
       alter('insert_col', null, 1);
-      expect(Handsontable.dom.outerWidth(hot.view.TBODY)).toEqual(500);
+      expect(Handsontable.dom.outerWidth(hot.view.TBODY)).withContext('3rd run').toEqual(500);
     });
 
     it('should shift the cell meta according to the new column layout', () => {

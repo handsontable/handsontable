@@ -111,11 +111,6 @@ export default class ColumnUtils {
 
         width = (width === null || width === void 0) ? defaultColumnWidth : width;
 
-        if (visibleColumnIndex === 0) {
-          const magicOnePixelForLeftBorder = 1; // right border is included in each cells width, but single left border in the first cell is not included
-          width += magicOnePixelForLeftBorder;
-        }
-
         this.headerWidths.set(visibleColumnIndex, width);
       }
     }
