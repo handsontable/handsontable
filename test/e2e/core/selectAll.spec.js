@@ -28,7 +28,7 @@ describe('Core.selectAll', () => {
     hot.view.wt.wtTable.holder.scrollLeft = 150;
 
     selectAll();
-
+    // TODO the below expectation fails for an unknown reason
     expect(`
       |   ║ * : * : * : * : * : * |
       |===:===:===:===:===:===:===|

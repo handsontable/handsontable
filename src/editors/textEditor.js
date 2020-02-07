@@ -353,15 +353,14 @@ class TextEditor extends BaseEditor {
     const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
     const scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0;
 
-    // If colHeaders is disabled, cells in the first row have border-top
-    const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-
     const settings = this.hot.getSettings();
-    const colHeadersCount = this.hot.hasColHeaders();
+    const hasColHeaders = this.hot.hasColHeaders();
+    const hasRowHeaders = this.hot.hasRowHeaders();
     const backgroundColor = this.TD.style.backgroundColor;
 
-    let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
-    let editLeft = currentOffset.left - containerOffset.left - 1 - scrollLeft;
+    const gridlineWidth = 1;
+    let editTop = currentOffset.top - containerOffset.top - gridlineWidth - scrollTop;
+    let editLeft = currentOffset.left - containerOffset.left - gridlineWidth - scrollLeft;
     let cssTransformOffset;
 
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
@@ -385,12 +384,12 @@ class TextEditor extends BaseEditor {
         break;
     }
 
-    if (colHeadersCount && this.hot.getSelectedLast()[0] === 0 ||
+    if (!hasColHeaders && this.hot.getSelectedLast()[0] === 0 ||
         (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
       editTop += 1;
     }
 
-    if (this.hot.getSelectedLast()[1] === 0) {
+    if (!hasRowHeaders && this.hot.getSelectedLast()[1] === 0) {
       editLeft += 1;
     }
 
