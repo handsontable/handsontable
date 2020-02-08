@@ -105,11 +105,11 @@ describe('Walkontable.Selection', () => {
     expect(paths.length).toBe(4);
 
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_master')[0])).withContext('ht_master')
-      .toEqual(['M 49.5 0 49.5 24 M 0 23.5 50 23.5']);
+      .toEqual(['M 50.5 0 50.5 24 M 0 23.5 51 23.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
-      .toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 48 M 0 47.5 50 47.5']);
+      .toEqual(['M 0 0.5 51 0.5 M 50.5 0 50.5 48 M 0 47.5 51 47.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
-      .toEqual(['M 99.5 0 99.5 24 M 0 23.5 100 23.5 M 0.5 0 0.5 24']);
+      .toEqual(['M 101.5 0 101.5 24 M 0 23.5 102 23.5 M 0.5 0 0.5 24']);
     expect(spec().$wrapper.find('.ht_clone_bottom_left_corner').length).withContext('ht_clone_top_left_corner')
       .toEqual(0);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')
@@ -144,17 +144,17 @@ describe('Walkontable.Selection', () => {
     expect(paths.length).toBe(4);
 
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_master')[0])).withContext('ht_master')
-      .toEqual(['M 0 253.5 50 253.5 M 49.5 253 49.5 277']);
+      .toEqual(['M 0 253.5 51 253.5 M 50.5 253 50.5 277']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
       .toEqual([]);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
-      .toEqual(['M 0 253.5 100 253.5 M 99.5 253 99.5 277 M 0.5 253 0.5 277']);
+      .toEqual(['M 0 253.5 102 253.5 M 101.5 253 101.5 277 M 0.5 253 0.5 277']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top_left_corner')[0])).withContext('ht_clone_top_left_corner')
       .toEqual(null);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')
-      .toEqual(['M 0 -23.5 50 -23.5 M 49.5 -24 49.5 24 M 0 23.5 50 23.5']);
+      .toEqual(['M 0 -23.5 51 -23.5 M 50.5 -24 50.5 24 M 0 23.5 51 23.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom_left_corner')[0])).withContext('ht_clone_bottom_left_corner')
-      .toEqual(['M 0 -23.5 100 -23.5 M 99.5 -24 99.5 24 M 0 23.5 100 23.5 M 0.5 -24 0.5 24']);
+      .toEqual(['M 0 -23.5 102 -23.5 M 101.5 -24 101.5 24 M 0 23.5 102 23.5 M 0.5 -24 0.5 24']);
   });
 
   it('should not add class to selection until it is rerendered', () => {
@@ -196,7 +196,7 @@ describe('Walkontable.Selection', () => {
 
     const pos1 = $corner.position();
     expect(pos1.top).toBeGreaterThan(0);
-    expect(pos1.left).toBe(45);
+    expect(pos1.left).toBe(46);
 
     $td2.simulate('mousedown');
     const pos2 = $corner.position();
@@ -430,7 +430,7 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
     wt.draw();
 
-    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 24 M 0 23.5 50 23.5 M 0.5 0 0.5 24']);
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0 0.5 51 0.5 M 50.5 0 50.5 24 M 0 23.5 51 23.5 M 0.5 0 0.5 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)']);
     expect($('.wtBorder.current.corner').css('background-color')).toEqual('rgb(255, 0, 0)');
 
@@ -438,7 +438,7 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().settings.border.width = 2;
     wt.draw();
 
-    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['', 'M 1 1 50 1 M 49 0 49 24 M 1 23 50 23 M 1 0 1 24']);
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['', 'M 1 1 51 1 M 50 0 50 24 M 1 23 51 23 M 1 0 1 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)', '2px solid rgb(127, 124, 0)']);
     expect($('.wtBorder.current.corner').css('background-color')).toEqual('rgb(127, 124, 0)');
   });
@@ -477,7 +477,7 @@ describe('Walkontable.Selection', () => {
     const topLeftComputedStyle = window.getComputedStyle(document.querySelector('.topLeftSelectionHandle'));
     const bottomRightComputedStyle = window.getComputedStyle(document.querySelector('.bottomRightSelectionHandle'));
 
-    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0 0.5 50 0.5 M 49.5 0 49.5 24 M 0 23.5 50 23.5 M 0.5 0 0.5 24']);
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['M 0 0.5 51 0.5 M 50.5 0 50.5 24 M 0 23.5 51 23.5 M 0.5 0 0.5 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)']);
 
     expect(topLeftComputedStyle.borderTopColor).toEqual(redColor);
@@ -493,7 +493,7 @@ describe('Walkontable.Selection', () => {
     wt.selections.getCell().settings.border.width = 2;
     wt.draw();
 
-    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['', 'M 1 1 50 1 M 49 0 49 24 M 1 23 50 23 M 1 0 1 24']);
+    expect(getRenderedBorderPaths(spec().$wrapper[0])).toEqual(['', 'M 1 1 51 1 M 50 0 50 24 M 1 23 51 23 M 1 0 1 24']);
     expect(getRenderedBorderStyles(spec().$wrapper[0])).toEqual(['1px solid rgb(255, 0, 0)', '2px solid rgb(127, 124, 0)']);
 
     expect(topLeftComputedStyle.borderTopColor).toEqual(greenColor);

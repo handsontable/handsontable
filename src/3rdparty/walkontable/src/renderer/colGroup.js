@@ -1,6 +1,8 @@
 import BaseRenderer from './_base';
 import { addClass } from './../../../../helpers/dom/element';
 
+const gridlineWidth = 1;
+
 /**
  * Colgroup renderer responsible for managing (inserting, tracking, rendering) COL elements.
  *
@@ -54,7 +56,13 @@ export default class ColGroupRenderer extends BaseRenderer {
     // Render column nodes for cells
     for (let visibleColumnIndex = 0; visibleColumnIndex < columnsToRender; visibleColumnIndex++) {
       const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
-      const width = this.table.columnUtils.getStretchedColumnWidth(sourceColumnIndex);
+      let width = this.table.columnUtils.getStretchedColumnWidth(sourceColumnIndex);
+
+      const needCompensationForLeftGridline = rowHeadersCount === 0 && visibleColumnIndex === 0;
+
+      if (needCompensationForLeftGridline) {
+        width += gridlineWidth;
+      }
 
       this.rootNode.childNodes[visibleColumnIndex + rowHeadersCount].style.width = `${width}px`;
     }

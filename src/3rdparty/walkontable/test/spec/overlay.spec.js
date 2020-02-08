@@ -29,10 +29,10 @@ describe('WalkontableOverlay', () => {
 
     expect($(wt.wtOverlays.topOverlay.clone.wtTable.holder).height()).toBe(47);
     expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
-    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.holder).width()).toBe(101);
+    expect($(wt.wtOverlays.leftOverlay.clone.wtTable.holder).width()).toBe(101);
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
-    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).width()).toBe(100);
+    expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).width()).toBe(101);
     expect($(wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 });

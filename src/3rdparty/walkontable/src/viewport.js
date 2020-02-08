@@ -290,7 +290,8 @@ class Viewport {
       return containerWidth - rowHeaderWidth;
     }
 
-    return containerWidth;
+    const gridlineWidth = 1; // traditionally, all cell contains its right gridline, but not its left gridline. We need to deduct first gridline on the left, because it is not common with any right gridline
+    return containerWidth - gridlineWidth;
   }
 
   /**

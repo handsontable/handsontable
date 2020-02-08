@@ -72,7 +72,7 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
 
     expect(rootNode.outerHTML).toMatchHTML(`
       <colgroup>
-        <col class="rowHeader" style="width: 100px;">
+        <col class="rowHeader" style="width: 101px;">
         <col style="width: 100px;">
         <col style="width: 100px;">
       </colgroup>
