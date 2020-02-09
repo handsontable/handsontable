@@ -207,7 +207,7 @@ describe('TextEditor', () => {
 
     setTimeout(() => {
       expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('41px');
       done();
     }, 200);
   });

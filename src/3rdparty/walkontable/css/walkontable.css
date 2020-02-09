@@ -62,10 +62,12 @@
 
 .handsontable th,
 .handsontable td {
+  border-style: solid;
+  border-color: #ccc;
   border-top-width: 0;
   border-left-width: 0;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
   height: 22px;
   empty-cells: show;
   line-height: 21px;
@@ -81,20 +83,20 @@
 
 .handsontable th:last-child {
   /*Foundation framework fix*/
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
 }
 
 .handsontable th:first-child,
 .handsontable td:first-child {
-  border-left: 1px solid #ccc;
+  border-left-width: 1px;
 }
 
 .handsontable thead tr:first-child th,
 .handsontable thead tr:first-child td,
 .handsontable tbody.afterEmptyThead tr:first-child th,
 .handsontable tbody.afterEmptyThead tr:first-child td {
-  border-top: 1px solid #ccc;
+  border-top-width: 1px;
 }
 
 .handsontable th {
@@ -179,11 +181,11 @@
   Cell borders
   */
 .handsontable tbody tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
+  border-right-width: 1px;
 }
 
 .ht_clone_top_left_corner thead tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
+  border-right-width: 1px;
 }
 
 .handsontable col.hidden {

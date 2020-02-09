@@ -121,7 +121,7 @@ describe('AutocompleteEditor', () => {
         ]
       });
       const scrollbarWidth = Handsontable.dom.getScrollbarWidth();
-      const expectedWidth = 50 + (scrollbarWidth === 0 ? 15 : scrollbarWidth);
+      const expectedWidth = 51 + (scrollbarWidth === 0 ? 15 : scrollbarWidth);
 
       selectCell(0, 0);
 
