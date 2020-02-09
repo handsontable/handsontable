@@ -1,8 +1,9 @@
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand, compareStrokePriority } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
+import { GRIDLINE_WIDTH } from '../utils/gridline';
 
-const offsetToOverLapPrecedingBorder = -1;
+const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
 
 /**
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`.
@@ -248,7 +249,6 @@ export default class BorderRenderer {
       return;
     }
 
-    const gridlineWidth = 1;
     const beginX = 0;
     const beginY = 1;
 
@@ -274,7 +274,7 @@ export default class BorderRenderer {
         line[beginIndex] -= Math.floor(cachedStartPointSize / 2);
       }
 
-      line[endIndex] += gridlineWidth;
+      line[endIndex] += GRIDLINE_WIDTH;
 
       if (cachedEndPointSize) {
         const compensateForEvenWidthsInset = (cachedEndPointSize % 2 === 0) ? -1 : 0;
@@ -463,8 +463,8 @@ export default class BorderRenderer {
       const veryFirstTd = firstTd.parentElement.parentElement.querySelector('td');
       if (veryFirstTd) {
         const rect = veryFirstTd.getBoundingClientRect();
-        this.clipLeft = Math.max(0, rect.left - this.containerBoundingRect.left + offsetToOverLapPrecedingBorder);
-        this.clipTop = Math.max(0, rect.top - this.containerBoundingRect.top + offsetToOverLapPrecedingBorder);
+        this.clipLeft = Math.max(0, rect.left - this.containerBoundingRect.left + offsetToOverLapPrecedingGridline);
+        this.clipTop = Math.max(0, rect.top - this.containerBoundingRect.top + offsetToOverLapPrecedingGridline);
       }
     }
 
@@ -485,15 +485,15 @@ export default class BorderRenderer {
 
     // adjustments needed to render the border directly on the gridline, depending on the surrounding CSS
     if (!firstTdIncludesGridlineOnTheLeft) {
-      x1 += offsetToOverLapPrecedingBorder;
+      x1 += offsetToOverLapPrecedingGridline;
     }
     if (!firstTdIncludesGridlineOnTheTop) {
-      y1 += offsetToOverLapPrecedingBorder;
+      y1 += offsetToOverLapPrecedingGridline;
     }
     x1 += -this.containerBoundingRect.left;
     y1 += -this.containerBoundingRect.top;
-    x2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.left;
-    y2 += offsetToOverLapPrecedingBorder - this.containerBoundingRect.top;
+    x2 += offsetToOverLapPrecedingGridline - this.containerBoundingRect.left;
+    y2 += offsetToOverLapPrecedingGridline - this.containerBoundingRect.top;
 
     if (settings.border && settings.border.width && settings.border.strokeAlignment === 'inside') {
       // strokeAlignment: 'inside' is used to render the border of selection "inside" a cell

@@ -7,8 +7,7 @@ import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base';
-
-const gridlineWidth = 1;
+import { GRIDLINE_WIDTH } from './utils/gridline';
 
 /**
  * @class Overlays
@@ -476,8 +475,8 @@ class Overlays {
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
     const hiderStyle = wtTable.hider.style;
 
-    const widthBeforeColumns = headerRowSize || gridlineWidth;
-    const heightBeforeRows = headerColumnSize || gridlineWidth;
+    const widthBeforeColumns = headerRowSize || GRIDLINE_WIDTH;
+    const heightBeforeRows = headerColumnSize || GRIDLINE_WIDTH;
 
     hiderStyle.width = `${widthBeforeColumns + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
     hiderStyle.height = `${heightBeforeRows + this.topOverlay.sumCellSizes(0, totalRows)}px`;

@@ -12,6 +12,7 @@ import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
+import { GRIDLINE_WIDTH } from './utils/gridline';
 
 /**
  * @class Viewport
@@ -290,8 +291,8 @@ class Viewport {
       return containerWidth - rowHeaderWidth;
     }
 
-    const gridlineWidth = 1; // traditionally, all cell contains its right gridline, but not its left gridline. We need to deduct first gridline on the left, because it is not common with any right gridline
-    return containerWidth - gridlineWidth;
+    const compensateForLeftGridline = GRIDLINE_WIDTH; // traditionally, all cell widths contain the right gridline, but not the left gridline. We need to subtract the first gridline on the left, because it is not common with any right gridline.
+    return containerWidth - compensateForLeftGridline;
   }
 
   /**

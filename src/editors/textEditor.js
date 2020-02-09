@@ -21,6 +21,7 @@ import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src/utils/gridline';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
@@ -358,9 +359,8 @@ class TextEditor extends BaseEditor {
     const hasRowHeaders = this.hot.hasRowHeaders();
     const backgroundColor = this.TD.style.backgroundColor;
 
-    const gridlineWidth = 1;
-    let editTop = currentOffset.top - containerOffset.top - gridlineWidth - scrollTop;
-    let editLeft = currentOffset.left - containerOffset.left - gridlineWidth - scrollLeft;
+    let editTop = currentOffset.top - containerOffset.top - GRIDLINE_WIDTH - scrollTop;
+    let editLeft = currentOffset.left - containerOffset.left - GRIDLINE_WIDTH - scrollLeft;
     let cssTransformOffset;
 
     // TODO: Refactor this to the new instance.getCell method (from #ply-59), after 0.12.1 is released
