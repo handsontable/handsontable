@@ -8,6 +8,8 @@ import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base';
 
+const gridlineWidth = 1;
+
 /**
  * @class Overlays
  */
@@ -474,8 +476,11 @@ class Overlays {
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
     const hiderStyle = wtTable.hider.style;
 
-    hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
-    hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows)}px`; // TODO add + 1, because otherwise tests in WalkontableSelectionHandle fail
+    const widthBeforeColumns = headerRowSize || gridlineWidth;
+    const heightBeforeRows = headerColumnSize || gridlineWidth;
+
+    hiderStyle.width = `${widthBeforeColumns + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
+    hiderStyle.height = `${heightBeforeRows + this.topOverlay.sumCellSizes(0, totalRows)}px`;
 
     if (this.scrollbarSize > 0) {
       const {

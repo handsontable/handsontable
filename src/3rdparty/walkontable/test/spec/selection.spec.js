@@ -144,11 +144,11 @@ describe('Walkontable.Selection', () => {
     expect(paths.length).toBe(4);
 
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_master')[0])).withContext('ht_master')
-      .toEqual(['M 0 253.5 51 253.5 M 50.5 253 50.5 277']);
+      .toEqual(['M 0 253.5 51 253.5 M 50.5 253 50.5 300 M 0 299.5 51 299.5']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top')[0])).withContext('ht_clone_top')
       .toEqual([]);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_left')[0])).withContext('ht_clone_left')
-      .toEqual(['M 0 253.5 102 253.5 M 101.5 253 101.5 277 M 0.5 253 0.5 277']);
+      .toEqual(['M 0 253.5 102 253.5 M 101.5 253 101.5 300 M 0 299.5 102 299.5 M 0.5 253 0.5 300']);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_top_left_corner')[0])).withContext('ht_clone_top_left_corner')
       .toEqual(null);
     expect(getRenderedBorderPaths(spec().$wrapper.find('.ht_clone_bottom')[0])).withContext('ht_clone_bottom')

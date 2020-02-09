@@ -204,7 +204,7 @@ describe('WalkontableSelectionHandle', () => {
   it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
     spec().$wrapper.css({
       height: '',
-      width: '50px',
+      width: '51px',
       marginTop: '2000px',
       marginLeft: '2000px',
     });
