@@ -223,7 +223,7 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight).commit();
+      this.highlight.getCell().add(this.selectedRange.current().highlight).commit(cellRange);
     }
 
     const layerLevel = this.getLayerLevel();
@@ -534,7 +534,8 @@ class Selection {
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
     const countCols = this.tableProps.countCols();
-    const isValid = isValidCoord(start, countCols) && isValidCoord(end, countCols);
+    const countRows = this.tableProps.countRows();
+    const isValid = countRows > 0 && isValidCoord(start, countCols) && isValidCoord(end, countCols);
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(-1, start));

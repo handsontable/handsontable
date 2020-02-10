@@ -54,13 +54,27 @@ class VisualSelection extends Selection {
    * Override internally stored visual indexes added by the Selection's `add` function. It should be executed
    * at the end of process of adding visual selection coordinates.
    *
+   * @param {CellRange} broaderCellRange Actual cell range may be contained in the broader cell range. When there is
+   * no way to represent some cell range visually we try to find range containing just the first visible cell.
    * @return {VisualSelection}
    */
-  commit() {
-    const fromRangeTranslated = this.findVisibleCoordsInRange(this.cellRange.from, this.cellRange.to,1);
+  commit(broaderCellRange) {
+    const fromRangeTranslated = this.findVisibleCoordsInRange(this.cellRange.from, this.cellRange.to, 1);
     const toRangeTranslated = this.findVisibleCoordsInRange(this.cellRange.to, this.cellRange.from, -1);
 
-    if (fromRangeTranslated === null || toRangeTranslated === null) {
+    // There is no visual start point (and also visual end point) in the range. We are looking for the first visible cell in a broader range.
+    if (fromRangeTranslated === null) {
+      if (broaderCellRange) {
+        const singleCellRangeTranslated = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
+
+        if (singleCellRangeTranslated !== null) {
+          this.cellRange.setFrom(singleCellRangeTranslated);
+          this.cellRange.setTo(singleCellRangeTranslated);
+
+          return this;
+        }
+      }
+
       this.cellRange = null;
 
       return this;

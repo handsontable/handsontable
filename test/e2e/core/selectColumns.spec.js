@@ -244,6 +244,41 @@ describe('Core.selectColumns', () => {
       `).toBeMatchToSelectionPattern();
   });
 
+  it('should not mark headers as selected when there are no rows', () => {
+    handsontable({
+      data: [],
+      colHeaders: true,
+      columns: [{ }, { }],
+    });
+
+    let wasSelected = selectColumns(0);
+
+    expect(`
+      |   :   |
+      |===:===|
+      `).toBeMatchToSelectionPattern();
+    expect(getSelected()).toBeUndefined();
+    expect(wasSelected).toBeFalsy();
+
+    wasSelected = selectColumns(1);
+
+    expect(`
+      |   :   |
+      |===:===|
+      `).toBeMatchToSelectionPattern();
+    expect(getSelected()).toBeUndefined();
+    expect(wasSelected).toBeFalsy();
+
+    wasSelected = selectColumns(1, 2);
+
+    expect(`
+      |   :   |
+      |===:===|
+      `).toBeMatchToSelectionPattern();
+    expect(getSelected()).toBeUndefined();
+    expect(wasSelected).toBeFalsy();
+  });
+
   it('should not deselect current selection when selectColumns is called without arguments', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
