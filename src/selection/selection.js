@@ -15,9 +15,42 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
-import { getBorderPrototype as cellGetBorderPrototype } from './highlight/types/cell';
-import { getBorderPrototype as areaGetBorderPrototype } from './highlight/types/area';
-import { getBorderPrototype as fillGetBorderPrototype } from './highlight/types/fill';
+import { defaults as CellDefaults } from './highlight/types/cell';
+import { defaults as AreaDefaults } from './highlight/types/area';
+import { defaults as FillDefaults } from './highlight/types/fill';
+
+/**
+ * @param defaults
+ */
+function getBorderPrototype(defaults) {
+  const CellBorderInHandsontableInstance = class {
+    iAmCellBorderInHandsontableInstance = () => {}
+  };
+  CellBorderInHandsontableInstance.prototype = Object.create(defaults.prototype);
+  updateBorderStyle(CellBorderInHandsontableInstance, {});
+  return CellBorderInHandsontableInstance;
+}
+
+/**
+ * Update style properties of the highlight's border.
+ *
+ * @param InstanceBorder
+ * @param {object} obj An object with optional `color` and `width` properties.
+ */
+export function updateBorderStyle(InstanceBorder, obj) {
+
+  if (obj.borderWidth) {
+    InstanceBorder.prototype.width = obj.borderWidth;
+  } else if (InstanceBorder.prototype.hasOwnProperty('width')) {
+    delete InstanceBorder.prototype.width;
+  }
+  if (obj.borderColor) {
+    InstanceBorder.prototype.color = obj.borderColor;
+  } else if (InstanceBorder.prototype.hasOwnProperty('color')) {
+    delete InstanceBorder.prototype.color;
+  }
+
+}
 
 /**
  * @class Selection
@@ -80,9 +113,9 @@ class Selection {
       disableHighlight: this.settings.disableVisualSelection,
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
-      cellBorderPrototype: cellGetBorderPrototype(),
-      areaBorderPrototype: areaGetBorderPrototype(),
-      fillBorderPrototype: fillGetBorderPrototype()
+      CellBorderPrototype: getBorderPrototype(CellDefaults),
+      AreaBorderPrototype: getBorderPrototype(AreaDefaults),
+      FillBorderPrototype: getBorderPrototype(FillDefaults)
     });
 
     /**

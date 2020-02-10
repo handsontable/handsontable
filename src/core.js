@@ -35,10 +35,7 @@ import { warnUserAboutLanguageRegistration, getValidLanguageCode, normalizeLangu
 import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DataMap } from './dataMap/index';
-import { updateBorderStyle as cellUpdateBorderStyle } from './selection/highlight/types/cell';
-import { updateBorderStyle as areaUpdateBorderStyle } from './selection/highlight/types/area';
-import { updateBorderStyle as fillUpdateBorderStyle } from './selection/highlight/types/fill';
-
+import { updateBorderStyle } from './selection/selection';
 let activeGuid = null;
 
 /**
@@ -1891,21 +1888,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (settings.selectionStyle?.cell) {
-      cellUpdateBorderStyle(this.selection.highlight.options.cellBorderPrototype, settings.selectionStyle.cell);
+      updateBorderStyle(this.selection.highlight.options.CellBorderPrototype, settings.selectionStyle.cell);
     } else {
-      cellUpdateBorderStyle(this.selection.highlight.options.cellBorderPrototype, {});
+      updateBorderStyle(this.selection.highlight.options.CellBorderPrototype, {});
     }
 
     if (settings.selectionStyle?.area) {
-      areaUpdateBorderStyle(this.selection.highlight.options.areaBorderPrototype, settings.selectionStyle.area);
+      updateBorderStyle(this.selection.highlight.options.AreaBorderPrototype, settings.selectionStyle.area);
     } else {
-      areaUpdateBorderStyle(this.selection.highlight.options.areaBorderPrototype, {});
+      updateBorderStyle(this.selection.highlight.options.AreaBorderPrototype, {});
     }
 
     if (settings.selectionStyle?.fill) {
-      fillUpdateBorderStyle(this.selection.highlight.options.fillBorderPrototype, settings.selectionStyle.fill);
+      updateBorderStyle(this.selection.highlight.options.FillBorderPrototype, settings.selectionStyle.fill);
     } else {
-      fillUpdateBorderStyle(this.selection.highlight.options.fillBorderPrototype, {});
+      updateBorderStyle(this.selection.highlight.options.FillBorderPrototype, {});
     }
 
     if (!init) {
