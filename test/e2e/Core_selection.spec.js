@@ -1578,24 +1578,16 @@ describe('Core_selection', () => {
   });
 
   describe('selectionStyle configuration', () => {
-    const colorsInRGB = {
-      '#4b89ff': 'rgb(75, 137, 255)',
-      '#ff0000': 'rgb(255, 0, 0)',
-      pink: 'rgb(255, 192, 203);',
-      'rgb(11, 22, 33)': 'rgb(11, 22, 33)',
-      'hsl(120, 100%, 75%)': 'rgb(128, 255, 128);',
-    };
-
     const builtins = {
-      current: { borderWidth: 2, borderColor: '#4b89ff' },
-      area: { borderWidth: 1, borderColor: '#4b89ff' },
-      fill: { borderWidth: 1, borderColor: '#ff0000' },
+      cell: { borderWidth: 2, borderColor: '#4b89ff', _borderColorRgb: 'rgb(75, 137, 255)' },
+      area: { borderWidth: 1, borderColor: '#4b89ff', _borderColorRgb: 'rgb(75, 137, 255)' },
+      fill: { borderWidth: 1, borderColor: '#ff0000', _borderColorRgb: 'rgb(255, 0, 0)' },
     };
 
     const customs = {
-      current: { borderWidth: 3, borderColor: 'pink' },
-      area: { borderWidth: 2, borderColor: 'rgb(11, 22, 33)' },
-      fill: { borderWidth: 2, borderColor: 'hsl(120, 100%, 75%)' },
+      cell: { borderWidth: 3, borderColor: 'pink', _borderColorRgb: 'rgb(255, 192, 203)' },
+      area: { borderWidth: 2, borderColor: 'rgb(11, 22, 33)', _borderColorRgb: 'rgb(11, 22, 33)' },
+      fill: { borderWidth: 2, borderColor: 'hsl(120, 100%, 75%)', _borderColorRgb: 'rgb(128, 255, 128)' },
     };
 
     const mobileBrowserUAS = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B411 Safari/600.1.4';
@@ -1622,8 +1614,8 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(builtins.current.borderColor, builtins.current.borderWidth)).withContext('current').toMatch(/^M /);
-        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(colorsInRGB[builtins.current.borderColor]);
+        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(builtins.cell._borderColorRgb);
         expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toMatch(/^M /);
       });
 
@@ -1631,8 +1623,8 @@ describe('Core_selection', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
           selectionStyle: {
-            current: {
-              borderColor: customs.fill.borderColor
+            cell: {
+              borderColor: customs.cell.borderColor
             }
           }
         });
@@ -1641,8 +1633,8 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
-        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(colorsInRGB[builtins.current.borderColor]);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(customs.cell._borderColorRgb);
         expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toMatch(/^M /);
       });
 
@@ -1656,8 +1648,8 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
-        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(colorsInRGB[customs.current.borderColor]);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(customs.cell._borderColorRgb);
         expect(pathOfColorAndWidth(customs.fill.borderColor, customs.fill.borderWidth)).withContext('fill').toMatch(/^M /);
       });
     });
@@ -1673,11 +1665,11 @@ describe('Core_selection', () => {
         });
         selectCell(1, 1);
 
-        expect(pathOfColorAndWidth(builtins.current.borderColor, builtins.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(borderOfSelector('.topLeftSelectionHandle'))
-          .withContext('top left selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('top left selection handle').toBe(builtins.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
-          .withContext('bottom right selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('bottom right selection handle').toBe(builtins.cell._borderColorRgb);
 
         Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
       });
@@ -1690,18 +1682,18 @@ describe('Core_selection', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
           selectionStyle: {
-            current: {
-              borderColor: customs.fill.borderColor
+            cell: {
+              borderColor: customs.cell.borderColor
             }
           }
         });
         selectCell(1, 1);
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(borderOfSelector('.topLeftSelectionHandle'))
-          .withContext('top left selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
-          .withContext('bottom right selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
 
         Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
       });
@@ -1717,11 +1709,11 @@ describe('Core_selection', () => {
         });
         selectCell(1, 1);
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(borderOfSelector('.topLeftSelectionHandle'))
-          .withContext('top left selection handle').toBe(colorsInRGB[customs.area.borderColor]);
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
-          .withContext('bottom right selection handle').toBe(colorsInRGB[customs.area.borderColor]);
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
 
         Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
       });
@@ -1737,9 +1729,9 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(builtins.current.borderColor, builtins.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toMatch(/^M /);
-        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(colorsInRGB[builtins.area.borderColor]);
+        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(builtins.area._borderColorRgb);
         expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toMatch(/^M /);
       });
 
@@ -1747,8 +1739,8 @@ describe('Core_selection', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
           selectionStyle: {
-            current: {
-              borderColor: customs.fill.borderColor
+            cell: {
+              borderColor: customs.cell.borderColor
             }
           }
         });
@@ -1757,9 +1749,9 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toMatch(/^M /);
-        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(colorsInRGB[builtins.area.borderColor]);
+        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(builtins.area._borderColorRgb);
         expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toMatch(/^M /);
       });
 
@@ -1773,9 +1765,9 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(pathOfColorAndWidth(customs.area.borderColor, customs.area.borderWidth)).withContext('area').toMatch(/^M /);
-        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(colorsInRGB[customs.area.borderColor]);
+        expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(customs.area._borderColorRgb);
         expect(pathOfColorAndWidth(customs.fill.borderColor, customs.fill.borderWidth)).withContext('fill').toMatch(/^M /);
       });
     });
@@ -1791,12 +1783,12 @@ describe('Core_selection', () => {
         });
         selectCell(0, 0, 1, 1);
 
-        expect(pathOfColorAndWidth(builtins.current.borderColor, builtins.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toMatch(/^M /);
         expect(borderOfSelector('.topLeftSelectionHandle'))
-          .withContext('top left selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('top left selection handle').toBe(builtins.area._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
-          .withContext('bottom right selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('bottom right selection handle').toBe(builtins.area._borderColorRgb);
 
         Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
       });
@@ -1809,19 +1801,19 @@ describe('Core_selection', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
           selectionStyle: {
-            current: {
-              borderColor: customs.fill.borderColor
+            cell: {
+              borderColor: customs.cell.borderColor
             }
           }
         });
         selectCell(0, 0, 1, 1);
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toMatch(/^M /);
         expect(borderOfSelector('.topLeftSelectionHandle'))
-          .withContext('top left selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
-          .withContext('bottom right selection handle').toBe(colorsInRGB[builtins.area.borderColor]);
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
 
         Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
       });
@@ -1837,12 +1829,12 @@ describe('Core_selection', () => {
         });
         selectCell(0, 0, 1, 1);
 
-        expect(pathOfColorAndWidth(customs.current.borderColor, customs.current.borderWidth)).withContext('current').toMatch(/^M /);
+        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toMatch(/^M /);
         expect(pathOfColorAndWidth(customs.area.borderColor, customs.area.borderWidth)).withContext('area').toMatch(/^M /);
         expect(borderOfSelector('.topLeftSelectionHandle'))
-          .withContext('top left selection handle').toBe(colorsInRGB[customs.area.borderColor]);
+          .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
-          .withContext('bottom right selection handle').toBe(colorsInRGB[customs.area.borderColor]);
+          .withContext('bottom right selection handle').toBe(customs.cell._borderColorRgb);
 
         Handsontable.helper.setBrowserMeta(); // reset to original value from the current browser
       });

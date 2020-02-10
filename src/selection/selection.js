@@ -15,6 +15,9 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
+import { getBorderPrototype as cellGetBorderPrototype } from './highlight/types/cell';
+import { getBorderPrototype as areaGetBorderPrototype } from './highlight/types/area';
+import { getBorderPrototype as fillGetBorderPrototype } from './highlight/types/fill';
 
 /**
  * @class Selection
@@ -77,7 +80,11 @@ class Selection {
       disableHighlight: this.settings.disableVisualSelection,
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
+      cellBorderPrototype: cellGetBorderPrototype(),
+      areaBorderPrototype: areaGetBorderPrototype(),
+      fillBorderPrototype: fillGetBorderPrototype()
     });
+
     /**
      * The module for modifying coordinates.
      *
