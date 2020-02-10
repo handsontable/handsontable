@@ -1887,23 +1887,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
-    if (settings.selectionStyle?.cell) {
-      updateBorderStyle(this.selection.highlight.options.CellBorderStyleClass, settings.selectionStyle.cell);
-    } else {
-      updateBorderStyle(this.selection.highlight.options.CellBorderStyleClass, {});
-    }
-
-    if (settings.selectionStyle?.area) {
-      updateBorderStyle(this.selection.highlight.options.AreaBorderStyleClass, settings.selectionStyle.area);
-    } else {
-      updateBorderStyle(this.selection.highlight.options.AreaBorderStyleClass, {});
-    }
-
-    if (settings.selectionStyle?.fill) {
-      updateBorderStyle(this.selection.highlight.options.FillBorderStyleClass, settings.selectionStyle.fill);
-    } else {
-      updateBorderStyle(this.selection.highlight.options.FillBorderStyleClass, {});
-    }
+    this.selection.updateBorderStyleFromSettings(settings.selectionStyle || {});
 
     if (!init) {
       if (instance.view) {

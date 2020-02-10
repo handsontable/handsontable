@@ -38,7 +38,6 @@ export function getBorderPrototype(DefaultBorderStyle) {
  * @param {object} obj An object with optional `color` and `width` properties.
  */
 export function updateBorderStyle(InstanceBorder, obj) {
-
   if (obj.borderWidth) {
     InstanceBorder.prototype.width = obj.borderWidth;
   } else if (InstanceBorder.prototype.hasOwnProperty('width')) {
@@ -49,7 +48,6 @@ export function updateBorderStyle(InstanceBorder, obj) {
   } else if (InstanceBorder.prototype.hasOwnProperty('color')) {
     delete InstanceBorder.prototype.color;
   }
-
 }
 
 /**
@@ -139,6 +137,16 @@ class Selection {
     this.transformation.addLocalHook('afterTransformEnd', (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
     this.transformation.addLocalHook('insertRowRequire', (...args) => this.runLocalHooks('insertRowRequire', ...args));
     this.transformation.addLocalHook('insertColRequire', (...args) => this.runLocalHooks('insertColRequire', ...args));
+  }
+
+  /**
+   * 
+   * @param {object} obj Object with properties that configure selection styles
+   */
+  updateBorderStyleFromSettings(obj) {
+    updateBorderStyle(this.highlight.options.CellBorderStyleClass, obj.cell || {});
+    updateBorderStyle(this.highlight.options.AreaBorderStyleClass, obj.area || {});
+    updateBorderStyle(this.highlight.options.FillBorderStyleClass, obj.fill || {});
   }
 
   /**
