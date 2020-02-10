@@ -20,33 +20,47 @@ import { DefaultBorderStyle as AreaDefaultBorderStyle } from './highlight/types/
 import { DefaultBorderStyle as FillDefaultBorderStyle } from './highlight/types/fill';
 
 /**
- * @param DefaultBorderStyle
+ * Dynamically creates and returns a border style class for the current Selection instance, based on the provided default border style class.
+ * The prototype properties of the returned class can be updated with custom values that will be used for the current Selection instance.
+ * The provided default border style is used as fallback for the default values. This architecture allows to swap the border style properties
+ * for already created highlights.
+ *
+ * Note the {typeof Class} syntax based on https://github.com/jsdoc/jsdoc/issues/1349.
+ *
+ * @param {typeof DefaultBorderStyleClass} DefaultBorderStyleClass The class type used to create a border style.
+ * @returns {typeof BorderStyleClass}
  */
-export function getBorderPrototype(DefaultBorderStyle) {
-  const CellBorderInHandsontableInstance = class {
-    iAmCellBorderInHandsontableInstance = () => {}
-  };
-  CellBorderInHandsontableInstance.prototype = Object.create(DefaultBorderStyle.prototype);
-  updateBorderStyle(CellBorderInHandsontableInstance, {});
-  return CellBorderInHandsontableInstance;
+export function createBorderStyleClass(DefaultBorderStyleClass) {
+  const BorderStyleClass = class {};
+  BorderStyleClass.prototype = Object.create(DefaultBorderStyleClass.prototype);
+  return BorderStyleClass;
 }
 
 /**
- * Update style properties of the highlight's border.
+ * Updates the border style class prototype of the current Selection instance with new configuration.
  *
- * @param InstanceBorder
- * @param {object} obj An object with optional `color` and `width` properties.
+ * @param {typeof BorderStyleClass} BorderStyleClass Border style class.
+ * @param {object} config The configuration object.
+ * @param {number} config.cell.borderWidth Optional. The border width of the cell highlight.
+ * @param {string} config.cell.borderColor Optional. The border color of the cell highlight.
+ * @param {number} config.area.borderWidth Optional. The border width of the area highlight.
+ * @param {string} config.area.borderColor Optional. The border color of the area highlight.
+ * @param {number} config.fill.borderWidth Optional. The border width of the fill highlight.
+ * @param {string} config.fill.borderColor Optional. The border color of the fill highlight.
  */
-export function updateBorderStyle(InstanceBorder, obj) {
-  if (obj.borderWidth) {
-    InstanceBorder.prototype.width = obj.borderWidth;
-  } else if (InstanceBorder.prototype.hasOwnProperty('width')) {
-    delete InstanceBorder.prototype.width;
+export function updateBorderStyle(BorderStyleClass, config) {
+  const classProto = BorderStyleClass.prototype;
+  if (config.borderWidth) {
+    classProto.width = config.borderWidth;
+    /* eslint-disable-next-line no-prototype-builtins */
+  } else if (classProto.hasOwnProperty('width')) {
+    delete classProto.width;
   }
-  if (obj.borderColor) {
-    InstanceBorder.prototype.color = obj.borderColor;
-  } else if (InstanceBorder.prototype.hasOwnProperty('color')) {
-    delete InstanceBorder.prototype.color;
+  if (config.borderColor) {
+    classProto.color = config.borderColor;
+    /* eslint-disable-next-line no-prototype-builtins */
+  } else if (classProto.hasOwnProperty('color')) {
+    delete classProto.color;
   }
 }
 
@@ -111,9 +125,9 @@ class Selection {
       disableHighlight: this.settings.disableVisualSelection,
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
-      CellBorderStyleClass: getBorderPrototype(CellDefaultBorderStyle),
-      AreaBorderStyleClass: getBorderPrototype(AreaDefaultBorderStyle),
-      FillBorderStyleClass: getBorderPrototype(FillDefaultBorderStyle)
+      CellBorderStyleClass: createBorderStyleClass(CellDefaultBorderStyle),
+      AreaBorderStyleClass: createBorderStyleClass(AreaDefaultBorderStyle),
+      FillBorderStyleClass: createBorderStyleClass(FillDefaultBorderStyle)
     });
 
     /**
@@ -140,8 +154,8 @@ class Selection {
   }
 
   /**
-   * 
-   * @param {object} obj Object with properties that configure selection styles
+   *
+   * @param {object} obj Object with properties that configure selection styles.
    */
   updateBorderStyleFromSettings(obj) {
     updateBorderStyle(this.highlight.options.CellBorderStyleClass, obj.cell || {});
