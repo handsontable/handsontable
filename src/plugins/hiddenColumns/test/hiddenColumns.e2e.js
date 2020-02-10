@@ -739,7 +739,31 @@ describe('HiddenColumns', () => {
       expect(errorThrown).toBe(false);
     });
 
-    it('should select entire table after call selectAll if all of columns ', () => {
+    it('should select entire table after call selectAll if some columns are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      selectAll();
+
+      expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(`
+      |   ║ * : * : * |
+      |===:===:===:===|
+      | * ║ A : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select entire table after call selectAll if all of columns are hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
