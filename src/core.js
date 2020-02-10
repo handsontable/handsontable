@@ -35,7 +35,7 @@ import { warnUserAboutLanguageRegistration, getValidLanguageCode, normalizeLangu
 import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DataMap } from './dataMap/index';
-import { updateBorderStyle } from './selection/selection';
+
 let activeGuid = null;
 
 /**

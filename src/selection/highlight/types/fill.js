@@ -1,7 +1,8 @@
 import { Selection } from './../../../3rdparty/walkontable/src';
 
 /**
- *
+ * Default border style used for single cell selection highlight. The instance single cell selection highlight uses this class as the fallback for
+ * the default values through prototypal inheritance.
  */
 export function DefaultBorderStyle() {
 
