@@ -15,18 +15,18 @@ import {
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
-import { defaults as CellDefaults } from './highlight/types/cell';
-import { defaults as AreaDefaults } from './highlight/types/area';
-import { defaults as FillDefaults } from './highlight/types/fill';
+import { DefaultBorderStyle as CellDefaultBorderStyle } from './highlight/types/cell';
+import { DefaultBorderStyle as AreaDefaultBorderStyle } from './highlight/types/area';
+import { DefaultBorderStyle as FillDefaultBorderStyle } from './highlight/types/fill';
 
 /**
- * @param defaults
+ * @param DefaultBorderStyle
  */
-function getBorderPrototype(defaults) {
+export function getBorderPrototype(DefaultBorderStyle) {
   const CellBorderInHandsontableInstance = class {
     iAmCellBorderInHandsontableInstance = () => {}
   };
-  CellBorderInHandsontableInstance.prototype = Object.create(defaults.prototype);
+  CellBorderInHandsontableInstance.prototype = Object.create(DefaultBorderStyle.prototype);
   updateBorderStyle(CellBorderInHandsontableInstance, {});
   return CellBorderInHandsontableInstance;
 }
@@ -113,9 +113,9 @@ class Selection {
       disableHighlight: this.settings.disableVisualSelection,
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
-      CellBorderPrototype: getBorderPrototype(CellDefaults),
-      AreaBorderPrototype: getBorderPrototype(AreaDefaults),
-      FillBorderPrototype: getBorderPrototype(FillDefaults)
+      CellBorderStyleClass: getBorderPrototype(CellDefaultBorderStyle),
+      AreaBorderStyleClass: getBorderPrototype(AreaDefaultBorderStyle),
+      FillBorderStyleClass: getBorderPrototype(FillDefaultBorderStyle)
     });
 
     /**

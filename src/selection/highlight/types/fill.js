@@ -3,10 +3,10 @@ import { Selection } from './../../../3rdparty/walkontable/src';
 /**
  *
  */
-export function defaults() {
+export function DefaultBorderStyle() {
 
 }
-defaults.prototype = {
+DefaultBorderStyle.prototype = {
   width: 1,
   color: '#ff0000',
   strokeAlignment: 'inside'
@@ -19,8 +19,8 @@ defaults.prototype = {
  * @param {object} options Options object.
  * @returns {Selection}
  */
-function createHighlight({ FillBorderPrototype }) {
-  const borderStyle = new FillBorderPrototype();
+function createHighlight({ FillBorderStyleClass }) {
+  const borderStyle = new FillBorderStyleClass();
 
   const s = new Selection({
     className: 'fill',

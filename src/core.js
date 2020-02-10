@@ -1888,21 +1888,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     if (settings.selectionStyle?.cell) {
-      updateBorderStyle(this.selection.highlight.options.CellBorderPrototype, settings.selectionStyle.cell);
+      updateBorderStyle(this.selection.highlight.options.CellBorderStyleClass, settings.selectionStyle.cell);
     } else {
-      updateBorderStyle(this.selection.highlight.options.CellBorderPrototype, {});
+      updateBorderStyle(this.selection.highlight.options.CellBorderStyleClass, {});
     }
 
     if (settings.selectionStyle?.area) {
-      updateBorderStyle(this.selection.highlight.options.AreaBorderPrototype, settings.selectionStyle.area);
+      updateBorderStyle(this.selection.highlight.options.AreaBorderStyleClass, settings.selectionStyle.area);
     } else {
-      updateBorderStyle(this.selection.highlight.options.AreaBorderPrototype, {});
+      updateBorderStyle(this.selection.highlight.options.AreaBorderStyleClass, {});
     }
 
     if (settings.selectionStyle?.fill) {
-      updateBorderStyle(this.selection.highlight.options.FillBorderPrototype, settings.selectionStyle.fill);
+      updateBorderStyle(this.selection.highlight.options.FillBorderStyleClass, settings.selectionStyle.fill);
     } else {
-      updateBorderStyle(this.selection.highlight.options.FillBorderPrototype, {});
+      updateBorderStyle(this.selection.highlight.options.FillBorderStyleClass, {});
     }
 
     if (!init) {

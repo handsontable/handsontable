@@ -3,10 +3,10 @@ import { Selection } from './../../../3rdparty/walkontable/src';
 /**
  *
  */
-export function defaults() {
+export function DefaultBorderStyle() {
 
 }
-defaults.prototype = {
+DefaultBorderStyle.prototype = {
   width: 1,
   color: '#4b89ff',
   strokeAlignment: 'inside'
@@ -18,8 +18,8 @@ defaults.prototype = {
  * @param {object} options Options object.
  * @returns {Selection}
  */
-function createHighlight({ AreaBorderPrototype, layerLevel, areaCornerVisible }) {
-  const borderStyle = new AreaBorderPrototype();
+function createHighlight({ AreaBorderStyleClass, layerLevel, areaCornerVisible }) {
+  const borderStyle = new AreaBorderStyleClass();
   borderStyle.cornerVisible = areaCornerVisible;
   const s = new Selection({
     className: 'area',
