@@ -216,6 +216,8 @@ class Autofill extends BasePlugin {
       const selectionData = this.getSelectionData();
 
       if (this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData) === false) {
+        this.hot.selection.highlight.getFill().clear();
+        this.hot.render();
         return false;
       }
 
