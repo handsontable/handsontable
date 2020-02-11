@@ -27,14 +27,13 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
 
       const firstHiddenColumn = columnsToHide[0];
       const lastHiddenColumn = columnsToHide[columnsToHide.length - 1];
-      const columnIndexMapper = this.columnIndexMapper;
-      const nextRenderableIndex = columnIndexMapper.getRenderableFromVisualIndex(lastHiddenColumn) + 1;
-      let columnToSelect = columnIndexMapper.getVisualFromRenderableIndex(nextRenderableIndex);
+      const nextRenderableIndex = this.columnIndexMapper.getRenderableFromVisualIndex(lastHiddenColumn) + 1;
+      let columnToSelect = this.columnIndexMapper.getVisualFromRenderableIndex(nextRenderableIndex);
 
       if (columnToSelect === null) {
-        const previousRenderableIndex = columnIndexMapper.getRenderableFromVisualIndex(firstHiddenColumn) - 1;
+        const previousRenderableIndex = this.columnIndexMapper.getRenderableFromVisualIndex(firstHiddenColumn) - 1;
 
-        columnToSelect = columnIndexMapper.getVisualFromRenderableIndex(previousRenderableIndex);
+        columnToSelect = this.columnIndexMapper.getVisualFromRenderableIndex(previousRenderableIndex);
       }
 
       hiddenColumnsPlugin.hideColumns(columnsToHide);

@@ -12,8 +12,17 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
+      const [, startVisualColumn, , endVisualColumn] = this.getSelectedLast();
+      const startPhysicalColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(startVisualColumn);
+      const endPhysicalColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(endVisualColumn);
+
       hiddenColumnsPlugin.showColumns(columns);
 
+      const startVisualColumnAfterAction = this.columnIndexMapper.getVisualFromPhysicalIndex(startPhysicalColumn);
+      const endVisualColumnAfterAction = this.columnIndexMapper.getVisualFromPhysicalIndex(endPhysicalColumn);
+
+      // Selection start and selection end coordinates might be changed after showing some items.
+      this.selectColumns(startVisualColumnAfterAction, endVisualColumnAfterAction);
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },

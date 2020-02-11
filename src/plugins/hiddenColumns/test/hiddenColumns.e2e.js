@@ -486,6 +486,7 @@ describe('HiddenColumns', () => {
           it('when there is no hidden column', () => {
             handsontable({
               data: Handsontable.helper.createSpreadsheetData(2, 5),
+              rowHeaders: true,
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: true,
@@ -496,11 +497,18 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
+            expect(`
+            |   ║   : * :   |
+            |===:===:===:===|
+            | - ║   : A :   |
+            | - ║   : 0 :   |
+            `).toBeMatchToSelectionPattern();
           });
 
           it('when there are hidden columns', () => {
             handsontable({
               data: Handsontable.helper.createSpreadsheetData(2, 10),
+              rowHeaders: true,
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: {
@@ -514,6 +522,12 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelectedLast()).toEqual([0, 8, 1, 8]);
+            expect(`
+            |   ║   : * :   |
+            |===:===:===:===|
+            | - ║   : A :   |
+            | - ║   : 0 :   |
+            `).toBeMatchToSelectionPattern();
           });
         });
 
@@ -522,6 +536,7 @@ describe('HiddenColumns', () => {
           it('there is no hidden column', () => {
             handsontable({
               data: Handsontable.helper.createSpreadsheetData(2, 5),
+              rowHeaders: true,
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: true,
@@ -532,11 +547,18 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
+            expect(`
+            |   ║   :   : * |
+            |===:===:===:===|
+            | - ║   :   : A |
+            | - ║   :   : 0 |
+            `).toBeMatchToSelectionPattern();
           });
 
           it('there are hidden columns', () => {
             handsontable({
               data: Handsontable.helper.createSpreadsheetData(2, 10),
+              rowHeaders: true,
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: {
@@ -556,6 +578,7 @@ describe('HiddenColumns', () => {
         it('should not preserve selection after hiding all columns', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 10),
+            rowHeaders: true,
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_HIDE],
             hiddenColumns: {
@@ -569,6 +592,12 @@ describe('HiddenColumns', () => {
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
           expect(getSelectedLast()).toBeUndefined();
+
+          expect(`
+          |   |
+          |   |
+          |   |
+          `).toBeMatchToSelectionPattern();
         });
       });
 
@@ -576,10 +605,12 @@ describe('HiddenColumns', () => {
         it('should unhide hidden columns in selection', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 5),
+            rowHeaders: true,
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [1, 3],
+              indicators: true
             },
           });
 
@@ -602,15 +633,23 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelectedLast()).toEqual([0, 0, 1, 4]);
+          expect(`
+          |   ║ * : * : * : * : * |
+          |===:===:===:===:===:===|
+          | - ║ A : 0 : 0 : 0 : 0 |
+          | - ║ 0 : 0 : 0 : 0 : 0 |
+          `).toBeMatchToSelectionPattern();
         });
 
         it('should unhide hidden columns before the first visible and selected column', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 5),
+            rowHeaders: true,
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [0, 1],
+              indicators: true
             },
           });
 
@@ -633,15 +672,23 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelectedLast()).toEqual([0, 0, 1, 2]);
+          expect(`
+          |   ║ * : * : * :   :   |
+          |===:===:===:===:===:===|
+          | - ║ A : 0 : 0 :   :   |
+          | - ║ 0 : 0 : 0 :   :   |
+          `).toBeMatchToSelectionPattern();
         });
 
         it('should unhide hidden columns after the last visible and selected column', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 5),
+            rowHeaders: true,
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [3, 4],
+              indicators: true
             },
           });
 
@@ -664,6 +711,12 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelectedLast()).toEqual([0, 2, 1, 4]);
+          expect(`
+          |   ║   :   : * : * : * |
+          |===:===:===:===:===:===|
+          | - ║   :   : A : 0 : 0 |
+          | - ║   :   : 0 : 0 : 0 |
+          `).toBeMatchToSelectionPattern();
         });
       });
     });
