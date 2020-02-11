@@ -1,10 +1,12 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import {offset, outerHeight, outerWidth} from './../../helpers/dom/element';
+import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
+import { arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
-import {registerPlugin} from './../../plugins';
-import {CellCoords} from './../../3rdparty/walkontable/src';
-import {getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting} from './utils';
+import { registerPlugin } from './../../plugins';
+import { CellCoords } from './../../3rdparty/walkontable/src';
+import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
@@ -14,14 +16,12 @@ const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
 /**
- * This plugin provides "drag-down" and "copy-down" functionalities, both operated
- * using the small square in the right bottom of the cell selection.
+ * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
+ * bottom of the cell selection.
  *
- * "Drag-down" expands the value of the selected cells to the neighbouring
- * cells when you drag the small square in the corner.
+ * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small square in the corner.
  *
- * "Copy-down" copies the value of the selection to all empty cells
- * below when you double click the small square.
+ * "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
  *
  * @class Autofill
  * @plugin Autofill
@@ -31,60 +31,66 @@ class Autofill extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Event manager
+     * Event manager instance.
      *
+     * @private
      * @type {EventManager}
      */
     this.eventManager = new EventManager(this);
     /**
      * Specifies if adding new row started.
      *
-     * @type {Boolean}
+     * @private
+     * @type {boolean}
      */
     this.addingStarted = false;
     /**
      * Specifies if there was mouse down on the cell corner.
      *
-     * @type {Boolean}
+     * @private
+     * @type {boolean}
      */
     this.mouseDownOnCellCorner = false;
     /**
      * Specifies if mouse was dragged outside Handsontable.
      *
-     * @type {Boolean}
+     * @private
+     * @type {boolean}
      */
     this.mouseDragOutside = false;
     /**
      * Specifies how many cell levels were dragged using the handle.
      *
-     * @type {Boolean}
+     * @private
+     * @type {boolean}
      */
     this.handleDraggedCells = 0;
     /**
-     * Specifies allowed directions of drag.
+     * Specifies allowed directions of drag (`'horizontal'` or '`vertical`').
      *
-     * @type {Array}
+     * @private
+     * @type {string[]}
      */
     this.directions = [];
     /**
      * Specifies if can insert new rows if needed.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.autoInsertRow = false;
   }
 
   /**
-   * Check if the plugin is enabled in the Handsontable settings.
+   * Checks if the plugin is enabled in the Handsontable settings.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().fillHandle;
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -94,15 +100,15 @@ class Autofill extends BasePlugin {
     this.mapSettings();
     this.registerEvents();
 
-    this.addHook('afterOnCellCornerMouseDown', (event) => this.onAfterCellCornerMouseDown(event));
-    this.addHook('afterOnCellCornerDblClick', (event) => this.onCellCornerDblClick(event));
-    this.addHook('beforeOnCellMouseOver', (event, coords, TD) => this.onBeforeCellMouseOver(coords));
+    this.addHook('afterOnCellCornerMouseDown', event => this.onAfterCellCornerMouseDown(event));
+    this.addHook('afterOnCellCornerDblClick', event => this.onCellCornerDblClick(event));
+    this.addHook('beforeOnCellMouseOver', (event, coords) => this.onBeforeCellMouseOver(coords));
 
     super.enablePlugin();
   }
 
   /**
-   * Update plugin for this Handsontable instance.
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
     this.disablePlugin();
@@ -111,7 +117,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     this.clearMappedSettings();
@@ -119,46 +125,101 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get selection data
+   * Prepares copyable ranges from the cells selection.
+   *
+   * @private
+   * @returns {object[]} Ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   */
+  getCopyableRanges() {
+    const selRange = this.hot.getSelectedRangeLast();
+    const topLeft = selRange.getTopLeftCorner();
+    const bottomRight = selRange.getBottomRightCorner();
+    const startRow = topLeft.row;
+    const startCol = topLeft.col;
+    const endRow = bottomRight.row;
+    const endCol = bottomRight.col;
+    let copyableRanges = [];
+
+    copyableRanges.push({
+      startRow,
+      startCol,
+      endRow,
+      endCol
+    });
+
+    copyableRanges = this.hot.runHooks('modifyCopyableRange', copyableRanges);
+
+    return copyableRanges;
+  }
+
+  /**
+   * Gets selection data.
    *
    * @private
    * @returns {Array} Array with the data.
    */
   getSelectionData() {
-    const selRange = {
-      from: this.hot.getSelectedRange().from,
-      to: this.hot.getSelectedRange().to,
-    };
+    const copyableRanges = this.getCopyableRanges();
+    const copyableRows = [];
+    const copyableColumns = [];
+    const data = [];
 
-    return this.hot.getData(selRange.from.row, selRange.from.col, selRange.to.row, selRange.to.col);
+    arrayEach(copyableRanges, (range) => {
+      rangeEach(range.startRow, range.endRow, (row) => {
+        if (copyableRows.indexOf(row) === -1) {
+          copyableRows.push(row);
+        }
+      });
+      rangeEach(range.startCol, range.endCol, (column) => {
+        if (copyableColumns.indexOf(column) === -1) {
+          copyableColumns.push(column);
+        }
+      });
+    });
+
+    arrayEach(copyableRows, (row) => {
+      const rowSet = [];
+
+      arrayEach(copyableColumns, (column) => {
+        rowSet.push(this.hot.getCopyableData(row, column));
+      });
+
+      data.push(rowSet);
+    });
+
+    return data;
   }
 
   /**
    * Try to apply fill values to the area in fill border, omitting the selection border.
    *
    * @private
-   * @returns {Boolean} reports if fill was applied.
+   * @returns {boolean} Reports if fill was applied.
+   *
+   * @fires Hooks#modifyAutofillRange
+   * @fires Hooks#beforeAutofill
    */
   fillIn() {
-    if (this.hot.view.wt.selections.fill.isEmpty()) {
+    if (this.hot.selection.highlight.getFill().isEmpty()) {
       return false;
     }
 
-    const cornersOfSelectionAndDragAreas = this.hot.view.wt.selections.fill.getCorners();
+    let cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getCorners();
 
     this.resetSelectionOfDraggedArea();
 
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
-    const {directionOfDrag, startOfDragCoords, endOfDragCoords} = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    cornersOfSelectionAndDragAreas = this.hot.runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
 
-    this.hot.runHooks('modifyAutofillRange', cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    const { directionOfDrag, startOfDragCoords, endOfDragCoords } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
-      const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
-      let fillData = selectionData;
 
       this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+
+      const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
+      let fillData = selectionData;
 
       if (['up', 'left'].indexOf(directionOfDrag) > -1) {
         fillData = [];
@@ -204,17 +265,17 @@ class Autofill extends BasePlugin {
 
     } else {
       // reset to avoid some range bug
-      this.hot.selection.refreshBorders();
+      this.hot._refreshBorders();
     }
 
     return true;
   }
 
   /**
-   * Reduce the selection area if the handle was dragged outside of the table or on headers.
+   * Reduces the selection area if the handle was dragged outside of the table or on headers.
    *
    * @private
-   * @param {CellCoords} coords indexes of selection corners.
+   * @param {CellCoords} coords Indexes of selection corners.
    * @returns {CellCoords}
    */
   reduceSelectionAreaIfNeeded(coords) {
@@ -229,16 +290,15 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get the coordinates of the drag & drop borders.
+   * Gets the coordinates of the drag & drop borders.
    *
    * @private
    * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
    * @returns {Array}
    */
-
   getCoordsOfDragAndDropBorders(coordsOfSelection) {
-    const topLeftCorner = this.hot.getSelectedRange().getTopLeftCorner();
-    const bottomRightCorner = this.hot.getSelectedRange().getBottomRightCorner();
+    const topLeftCorner = this.hot.getSelectedRangeLast().getTopLeftCorner();
+    const bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
     let coords;
 
     if (this.directions.includes(DIRECTIONS.vertical) &&
@@ -271,7 +331,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Add new row
+   * Add new row.
    *
    * @private
    */
@@ -289,9 +349,9 @@ class Autofill extends BasePlugin {
    * @private
    */
   addNewRowIfNeeded() {
-    if (this.hot.view.wt.selections.fill.cellRange && this.addingStarted === false && this.autoInsertRow) {
-      const cornersOfSelectedCells = this.hot.getSelected();
-      const cornersOfSelectedDragArea = this.hot.view.wt.selections.fill.getCorners();
+    if (this.hot.selection.highlight.getFill().cellRange && this.addingStarted === false && this.autoInsertRow) {
+      const cornersOfSelectedCells = this.hot.getSelectedLast();
+      const cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getCorners();
       const nrOfTableRows = this.hot.countRows();
 
       if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
@@ -310,20 +370,20 @@ class Autofill extends BasePlugin {
    */
   getCornersOfSelectedCells() {
     if (this.hot.selection.isMultiple()) {
-      return this.hot.view.wt.selections.area.getCorners();
+      return this.hot.selection.highlight.createOrGetArea().getCorners();
 
     }
-    return this.hot.view.wt.selections.current.getCorners();
+    return this.hot.selection.highlight.getCell().getCorners();
 
   }
 
   /**
-   * Get index of last adjacent filled in row
+   * Get index of last adjacent filled in row.
    *
    * @private
-   * @param {Array} cornersOfSelectedCells indexes of selection corners.
-   * @returns {Number} gives number greater than or equal to zero when selection adjacent can be applied.
-   * or -1 when selection adjacent can't be applied
+   * @param {Array} cornersOfSelectedCells Indexes of selection corners.
+   * @returns {number} Gives number greater than or equal to zero when selection adjacent can be applied.
+   *                   Or -1 when selection adjacent can't be applied.
    */
   getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells) {
     const data = this.hot.getData();
@@ -346,59 +406,54 @@ class Autofill extends BasePlugin {
         lastFilledInRowIndex = rowIndex;
       }
     }
+
     return lastFilledInRowIndex;
   }
 
   /**
-   * Add a selection from the start area to the specific row index.
+   * Adds a selection from the start area to the specific row index.
    *
    * @private
-   * @param {Array} selectStartArea selection area from which we start to create more comprehensive selection.
-   * @param {Number} rowIndex
+   * @param {Array} selectStartArea Selection area from which we start to create more comprehensive selection.
+   * @param {number} rowIndex The row index into the selection will be added.
    */
   addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {
-    this.hot.view.wt.selections.fill.clear();
-    this.hot.view.wt.selections.fill.add(new CellCoords(
-      selectStartArea[0],
-      selectStartArea[1])
-    );
-    this.hot.view.wt.selections.fill.add(new CellCoords(
-      rowIndex,
-      selectStartArea[3])
-    );
+    this.hot.selection.highlight.getFill()
+      .clear()
+      .add(new CellCoords(
+        selectStartArea[0],
+        selectStartArea[1])
+      )
+      .add(new CellCoords(
+        rowIndex,
+        selectStartArea[3])
+      );
   }
 
   /**
-   * Set selection based on passed corners.
+   * Sets selection based on passed corners.
    *
    * @private
-   * @param {Array} cornersOfArea
+   * @param {Array} cornersOfArea An array witch defines selection.
    */
   setSelection(cornersOfArea) {
-    this.hot.selection.setRangeStart(new CellCoords(
-      cornersOfArea[0],
-      cornersOfArea[1])
-    );
-    this.hot.selection.setRangeEnd(new CellCoords(
-      cornersOfArea[2],
-      cornersOfArea[3])
-    );
+    this.hot.selectCell(...cornersOfArea, false, false);
   }
 
   /**
    * Try to select cells down to the last row in the left column and then returns if selection was applied.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   selectAdjacent() {
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
-    if (lastFilledInRowIndex === -1) {
+    if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {
       return false;
-
     }
+
     this.addSelectionFromStartAreaToSpecificRowIndex(cornersOfSelectedCells, lastFilledInRowIndex);
 
     return true;
@@ -406,27 +461,29 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Reset selection of dragged area.
+   * Resets selection of dragged area.
    *
    * @private
    */
   resetSelectionOfDraggedArea() {
     this.handleDraggedCells = 0;
 
-    this.hot.view.wt.selections.fill.clear();
+    this.hot.selection.highlight.getFill().clear();
   }
 
   /**
-   * Redraw borders.
+   * Redraws borders.
    *
    * @private
    * @param {CellCoords} coords `CellCoords` coord object.
    */
   redrawBorders(coords) {
-    this.hot.view.wt.selections.fill.clear();
-    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().from);
-    this.hot.view.wt.selections.fill.add(this.hot.getSelectedRange().to);
-    this.hot.view.wt.selections.fill.add(coords);
+    this.hot.selection.highlight.getFill()
+      .clear()
+      .add(this.hot.getSelectedRangeLast().from)
+      .add(this.hot.getSelectedRangeLast().to)
+      .add(coords);
+
     this.hot.view.render();
   }
 
@@ -435,13 +492,14 @@ class Autofill extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event `mousemove` event properties.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   getIfMouseWasDraggedOutside(event) {
-    const tableBottom = offset(this.hot.table).top - (window.pageYOffset ||
-      document.documentElement.scrollTop) + outerHeight(this.hot.table);
-    const tableRight = offset(this.hot.table).left - (window.pageXOffset ||
-      document.documentElement.scrollLeft) + outerWidth(this.hot.table);
+    const { documentElement } = this.hot.rootDocument;
+    const tableBottom = offset(this.hot.table).top - (this.hot.rootWindow.pageYOffset ||
+      documentElement.scrollTop) + outerHeight(this.hot.table);
+    const tableRight = offset(this.hot.table).left - (this.hot.rootWindow.pageXOffset ||
+      documentElement.scrollLeft) + outerWidth(this.hot.table);
 
     return event.clientY > tableBottom && event.clientX <= tableRight;
   }
@@ -452,8 +510,10 @@ class Autofill extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.eventManager.addEventListener(document.documentElement, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(document.documentElement, 'mousemove', (event) => this.onMouseMove(event));
+    const { documentElement } = this.hot.rootDocument;
+
+    this.eventManager.addEventListener(documentElement, 'mouseup', () => this.onMouseUp());
+    this.eventManager.addEventListener(documentElement, 'mousemove', event => this.onMouseMove(event));
   }
 
   /**
@@ -487,7 +547,7 @@ class Autofill extends BasePlugin {
    */
   onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
-      this.handleDraggedCells++;
+      this.handleDraggedCells += 1;
 
       this.showBorder(coords);
       this.addNewRowIfNeeded();
@@ -533,7 +593,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Clear mapped settings.
+   * Clears mapped settings.
    *
    * @private
    */
@@ -554,7 +614,7 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();

@@ -1,7 +1,7 @@
 import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
 import localHooks from '../../mixins/localHooks';
-import {mixin} from '../../helpers/object';
-import {cleanPatches} from './utils';
+import { mixin } from '../../helpers/object';
+import { cleanPatches } from './utils';
 
 /**
  * @class DataObserver
@@ -18,13 +18,13 @@ class DataObserver {
     /**
      * JsonPatch observer.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.observer = null;
     /**
      * Flag which determines if observer is paused or not. Paused observer doesn't emit `change` hooks.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.paused = false;
@@ -35,20 +35,20 @@ class DataObserver {
   /**
    * Set data to observe.
    *
-   * @param {*} observedData
+   * @param {*} observedData Set an object to observe.
    */
   setObservedData(observedData) {
     if (this.observer) {
       jsonpatch.unobserve(this.observedData, this.observer);
     }
     this.observedData = observedData;
-    this.observer = jsonpatch.observe(this.observedData, (patches) => this.onChange(patches));
+    this.observer = jsonpatch.observe(this.observedData, patches => this.onChange(patches));
   }
 
   /**
    * Check if observer was paused.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isPaused() {
     return this.paused;

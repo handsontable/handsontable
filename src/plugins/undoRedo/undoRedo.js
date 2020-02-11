@@ -1,38 +1,55 @@
-/**
- * Handsontable UndoRedo class
- */
 import Hooks from './../../pluginHooks';
-import {arrayMap} from './../../helpers/array';
-import {rangeEach} from './../../helpers/number';
-import {inherit, deepClone} from './../../helpers/object';
-import {stopImmediatePropagation} from './../../helpers/dom/event';
-import {CellCoords} from './../../3rdparty/walkontable/src';
+import { arrayMap, arrayEach } from './../../helpers/array';
+import { rangeEach } from './../../helpers/number';
+import { inherit, deepClone } from './../../helpers/object';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../../helpers/dom/event';
+import { align } from './../contextMenu/utils';
 
 /**
  * @description
- * Handsontable UndoRedo plugin. It allows to undo and redo certain actions done in the table.
- * Please note, that not all actions are currently undo-able.
+ * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
+ * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
  * @example
  * ```js
- * ...
  * undo: true
- * ...
  * ```
  * @class UndoRedo
  * @plugin UndoRedo
+ * @param {Core} instance The Handsontable instance.
  */
 function UndoRedo(instance) {
-  let plugin = this;
+  const plugin = this;
   this.instance = instance;
   this.doneActions = [];
   this.undoneActions = [];
   this.ignoreNewActions = false;
 
-  instance.addHook('afterChange', (changes, source) => {
-    if (changes && source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
-      plugin.done(new UndoRedo.ChangeAction(changes));
+  instance.addHook('afterChange', function(changes, source) {
+    const changesLen = changes && changes.length;
+
+    if (!changesLen || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
+      return;
     }
+    const hasDifferences = changes.find((change) => {
+      const [,, oldValue, newValue] = change;
+
+      return oldValue !== newValue;
+    });
+
+    if (!hasDifferences) {
+      return;
+    }
+
+    const clonedChanges = changes.reduce((arr, change) => { arr.push([...change]); return arr; }, []);
+
+    arrayEach(clonedChanges, (change) => {
+      change[1] = instance.propToCol(change[1]);
+    });
+
+    const selected = changesLen > 1 ? this.getSelected() : [[clonedChanges[0][0], clonedChanges[0][1]]];
+
+    plugin.done(new UndoRedo.ChangeAction(clonedChanges, selected));
   });
 
   instance.addHook('afterCreateRow', (index, amount, source) => {
@@ -40,7 +57,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    let action = new UndoRedo.CreateRowAction(index, amount);
+    const action = new UndoRedo.CreateRowAction(index, amount);
     plugin.done(action);
   });
 
@@ -49,13 +66,12 @@ function UndoRedo(instance) {
       return;
     }
 
-    var originalData = plugin.instance.getSourceDataArray();
+    const originalData = plugin.instance.getSourceDataArray();
+    const rowIndex = (originalData.length + index) % originalData.length;
+    const physicalRowIndex = instance.toPhysicalRow(rowIndex);
+    const removedData = deepClone(originalData.slice(physicalRowIndex, physicalRowIndex + amount));
 
-    index = (originalData.length + index) % originalData.length;
-
-    var removedData = deepClone(originalData.slice(index, index + amount));
-
-    plugin.done(new UndoRedo.RemoveRowAction(index, removedData));
+    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData));
   });
 
   instance.addHook('afterCreateCol', (index, amount, source) => {
@@ -71,44 +87,40 @@ function UndoRedo(instance) {
       return;
     }
 
-    let originalData = plugin.instance.getSourceDataArray();
-
-    index = (plugin.instance.countCols() + index) % plugin.instance.countCols();
-
-    let removedData = [];
-    let headers = [];
-    let indexes = [];
+    const originalData = plugin.instance.getSourceDataArray();
+    const columnIndex = (plugin.instance.countCols() + index) % plugin.instance.countCols();
+    const removedData = [];
+    const headers = [];
+    const indexes = [];
 
     rangeEach(originalData.length - 1, (i) => {
-      let column = [];
-      let origRow = originalData[i];
+      const column = [];
+      const origRow = originalData[i];
 
-      rangeEach(index, index + (amount - 1), (j) => {
-        column.push(origRow[instance.runHooks('modifyCol', j)]);
+      rangeEach(columnIndex, columnIndex + (amount - 1), (j) => {
+        column.push(origRow[instance.toPhysicalColumn(j)]);
       });
       removedData.push(column);
     });
 
     rangeEach(amount - 1, (i) => {
-      indexes.push(instance.runHooks('modifyCol', index + i));
+      indexes.push(instance.toPhysicalColumn(columnIndex + i));
     });
 
     if (Array.isArray(instance.getSettings().colHeaders)) {
       rangeEach(amount - 1, (i) => {
-        headers.push(instance.getSettings().colHeaders[instance.runHooks('modifyCol', index + i)] || null);
+        headers.push(instance.getSettings().colHeaders[instance.toPhysicalColumn(columnIndex + i)] || null);
       });
     }
 
-    let manualColumnMovePlugin = plugin.instance.getPlugin('manualColumnMove');
-
-    let columnsMap = manualColumnMovePlugin.isEnabled() ? manualColumnMovePlugin.columnsMapper.__arrayMap : [];
-    let action = new UndoRedo.RemoveColumnAction(index, indexes, removedData, headers, columnsMap);
+    const columnsMap = instance.columnIndexMapper.getIndexesSequence();
+    const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
 
     plugin.done(action);
   });
 
   instance.addHook('beforeCellAlignment', (stateBefore, range, type, alignment) => {
-    let action = new UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
+    const action = new UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
     plugin.done(action);
   });
 
@@ -116,15 +128,35 @@ function UndoRedo(instance) {
     plugin.done(new UndoRedo.FiltersAction(conditionsStack));
   });
 
-  instance.addHook('beforeRowMove', (movedRows, target) => {
-    if (movedRows === false) {
+  instance.addHook('beforeRowMove', (rows, finalIndex) => {
+    if (rows === false) {
       return;
     }
 
-    plugin.done(new UndoRedo.RowMoveAction(movedRows, target));
+    plugin.done(new UndoRedo.RowMoveAction(rows, finalIndex));
   });
-};
 
+  instance.addHook('beforeMergeCells', (cellRange, auto) => {
+    if (auto) {
+      return;
+    }
+
+    plugin.done(new UndoRedo.MergeCellsAction(instance, cellRange));
+  });
+
+  instance.addHook('afterUnmergeCells', (cellRange, auto) => {
+    if (auto) {
+      return;
+    }
+
+    plugin.done(new UndoRedo.UnmergeCellsAction(instance, cellRange));
+  });
+
+}
+
+/**
+ * @param {object} action The action desciptor.
+ */
 UndoRedo.prototype.done = function(action) {
   if (!this.ignoreNewActions) {
     this.doneActions.push(action);
@@ -133,25 +165,27 @@ UndoRedo.prototype.done = function(action) {
 };
 
 /**
- * Undo last edit.
+ * Undo the last action performed to the table.
  *
  * @function undo
  * @memberof UndoRedo#
+ * @fires Hooks#beforeUndo
+ * @fires Hooks#afterUndo
  */
 UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
-    let action = this.doneActions.pop();
-    let actionClone = deepClone(action);
-    let instance = this.instance;
+    const action = this.doneActions.pop();
+    const actionClone = deepClone(action);
+    const instance = this.instance;
 
-    let continueAction = instance.runHooks('beforeUndo', actionClone);
+    const continueAction = instance.runHooks('beforeUndo', actionClone);
 
     if (continueAction === false) {
       return;
     }
 
     this.ignoreNewActions = true;
-    let that = this;
+    const that = this;
     action.undo(this.instance, () => {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
@@ -162,25 +196,27 @@ UndoRedo.prototype.undo = function() {
 };
 
 /**
- * Redo edit (used to reverse an undo).
+ * Redo the previous action performed to the table (used to reverse an undo).
  *
  * @function redo
  * @memberof UndoRedo#
+ * @fires Hooks#beforeRedo
+ * @fires Hooks#afterRedo
  */
 UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
-    let action = this.undoneActions.pop();
-    let actionClone = deepClone(action);
-    let instance = this.instance;
+    const action = this.undoneActions.pop();
+    const actionClone = deepClone(action);
+    const instance = this.instance;
 
-    let continueAction = instance.runHooks('beforeRedo', actionClone);
+    const continueAction = instance.runHooks('beforeRedo', actionClone);
 
     if (continueAction === false) {
       return;
     }
 
     this.ignoreNewActions = true;
-    let that = this;
+    const that = this;
     action.redo(this.instance, () => {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
@@ -191,22 +227,22 @@ UndoRedo.prototype.redo = function() {
 };
 
 /**
- * Check if undo action is available.
+ * Checks if undo action is available.
  *
  * @function isUndoAvailable
  * @memberof UndoRedo#
- * @return {Boolean} Return `true` if undo can be performed, `false` otherwise
+ * @returns {boolean} Return `true` if undo can be performed, `false` otherwise.
  */
 UndoRedo.prototype.isUndoAvailable = function() {
   return this.doneActions.length > 0;
 };
 
 /**
- * Check if redo action is available.
+ * Checks if redo action is available.
  *
  * @function isRedoAvailable
  * @memberof UndoRedo#
- * @return {Boolean} Return `true` if redo can be performed, `false` otherwise.
+ * @returns {boolean} Return `true` if redo can be performed, `false` otherwise.
  */
 UndoRedo.prototype.isRedoAvailable = function() {
   return this.undoneActions.length > 0;
@@ -229,17 +265,22 @@ UndoRedo.Action.prototype.redo = function() {};
 
 /**
  * Change action.
+ *
+ * @private
+ * @param {Array} changes 2D array containing information about each of the edited cells.
+ * @param {number[]} selected The cell selection.
  */
-UndoRedo.ChangeAction = function(changes) {
+UndoRedo.ChangeAction = function(changes, selected) {
   this.changes = changes;
+  this.selected = selected;
   this.actionType = 'change';
 };
 inherit(UndoRedo.ChangeAction, UndoRedo.Action);
 
 UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
-  let data = deepClone(this.changes),
-    emptyRowsAtTheEnd = instance.countEmptyRows(true),
-    emptyColsAtTheEnd = instance.countEmptyCols(true);
+  const data = deepClone(this.changes);
+  const emptyRowsAtTheEnd = instance.countEmptyRows(true);
+  const emptyColsAtTheEnd = instance.countEmptyCols(true);
 
   for (let i = 0, len = data.length; i < len; i++) {
     data[i].splice(3, 1);
@@ -247,39 +288,49 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
 
   instance.addHookOnce('afterChange', undoneCallback);
 
-  instance.setDataAtRowProp(data, null, null, 'UndoRedo.undo');
+  instance.setDataAtCell(data, null, null, 'UndoRedo.undo');
 
   for (let i = 0, len = data.length; i < len; i++) {
-    if (instance.getSettings().minSpareRows && data[i][0] + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
-        emptyRowsAtTheEnd == instance.getSettings().minSpareRows) {
+    const [row, column] = data[i];
 
-      instance.alter('remove_row', parseInt(data[i][0] + 1, 10), instance.getSettings().minSpareRows);
+    if (instance.getSettings().minSpareRows && row + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
+      emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
+
+      instance.alter('remove_row', parseInt(row + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
-
     }
 
-    if (instance.getSettings().minSpareCols && data[i][1] + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
-        emptyColsAtTheEnd == instance.getSettings().minSpareCols) {
+    if (instance.getSettings().minSpareCols && column + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
+      emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
 
-      instance.alter('remove_col', parseInt(data[i][1] + 1, 10), instance.getSettings().minSpareCols);
+      instance.alter('remove_col', parseInt(column + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
     }
   }
 
+  instance.selectCells(this.selected, false, false);
 };
 UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
-  let data = deepClone(this.changes);
+  const data = deepClone(this.changes);
 
   for (let i = 0, len = data.length; i < len; i++) {
     data[i].splice(2, 1);
   }
 
   instance.addHookOnce('afterChange', onFinishCallback);
-  instance.setDataAtRowProp(data, null, null, 'UndoRedo.redo');
+  instance.setDataAtCell(data, null, null, 'UndoRedo.redo');
+
+  if (this.selected) {
+    instance.selectCells(this.selected, false, false);
+  }
 };
 
 /**
  * Create row action.
+ *
+ * @private
+ * @param {number} index The visual row index.
+ * @param {number} amount The number of created rows.
  */
 UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
@@ -289,8 +340,8 @@ UndoRedo.CreateRowAction = function(index, amount) {
 inherit(UndoRedo.CreateRowAction, UndoRedo.Action);
 
 UndoRedo.CreateRowAction.prototype.undo = function(instance, undoneCallback) {
-  let rowCount = instance.countRows(),
-    minSpareRows = instance.getSettings().minSpareRows;
+  const rowCount = instance.countRows();
+  const minSpareRows = instance.getSettings().minSpareRows;
 
   if (this.index >= rowCount && this.index - minSpareRows < rowCount) {
     this.index -= minSpareRows; // work around the situation where the needed row was removed due to an 'undo' of a made change
@@ -306,6 +357,10 @@ UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Remove row action.
+ *
+ * @private
+ * @param {number} index The visual row index.
+ * @param {Array} data The removed data.
  */
 UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
@@ -326,6 +381,10 @@ UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Create column action.
+ *
+ * @private
+ * @param {number} index The visual column index.
+ * @param {number} amount The number of created columns.
  */
 UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
@@ -345,6 +404,13 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
 
 /**
  * Remove column action.
+ *
+ * @private
+ * @param {number} index The visual column index.
+ * @param {number[]} indexes The visual column indexes.
+ * @param {Array} data The removed data.
+ * @param {Array} headers The header values.
+ * @param {number[]} columnPositions The column position.
  */
 UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
   this.index = index;
@@ -359,10 +425,10 @@ inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
 UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
   let row;
-  let ascendingIndexes = this.indexes.slice(0).sort();
-  let sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
+  const ascendingIndexes = this.indexes.slice(0).sort();
+  const sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
 
-  let sortedData = [];
+  const sortedData = [];
   rangeEach(this.data.length - 1, (i) => {
     sortedData[i] = arrayMap(this.data[i], sortByIndexes);
   });
@@ -370,10 +436,10 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   let sortedHeaders = [];
   sortedHeaders = arrayMap(this.headers, sortByIndexes);
 
-  var changes = [];
+  const changes = [];
 
-  // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  // TODO Temporary hook for undo/redo mess
+  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   rangeEach(this.data.length - 1, (i) => {
     row = instance.getSourceDataAtRow(i);
@@ -384,7 +450,9 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   });
 
-  // TODO: Temporary hook for undo/redo mess
+  instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
+
+  // TODO Temporary hook for undo/redo mess
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
   }
@@ -395,14 +463,12 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   }
 
-  if (instance.getPlugin('manualColumnMove')) {
-    instance.getPlugin('manualColumnMove').columnsMapper.__arrayMap = this.columnPositions;
-  }
+  instance.columnIndexMapper.setIndexesSequence(this.columnPositions);
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  // TODO: Temporary hook for undo/redo mess
-  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes[this.indexes.length - 1], 'UndoRedo.undo');
+  // TODO Temporary hook for undo/redo mess
+  instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').recalculateFull();
@@ -418,6 +484,12 @@ UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) 
 
 /**
  * Cell alignment action.
+ *
+ * @private
+ * @param {Array} stateBefore The previous state.
+ * @param {object} range The cell range.
+ * @param {string} type The type of the alignment ("top", "left", "bottom" or "right").
+ * @param {string} alignment The alignment CSS class.
  */
 UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
@@ -426,24 +498,20 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-  for (var row = this.range.from.row; row <= this.range.to.row; row++) {
-    for (var col = this.range.from.col; col <= this.range.to.col; col++) {
-      instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+  arrayEach(this.range, ({ from, to }) => {
+    for (let row = from.row; row <= to.row; row += 1) {
+      for (let col = from.col; col <= to.col; col += 1) {
+        instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
+      }
     }
-  }
+  });
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
 };
 UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback) {
-  if (!instance.getPlugin('contextMenu').isEnabled()) {
-    return;
-  }
-  instance.selectCell(this.range.from.row, this.range.from.col, this.range.to.row, this.range.to.col);
-  instance.getPlugin('contextMenu').executeCommand(`alignment:${this.alignment.replace('ht', '').toLowerCase()}`);
+  align(this.range, this.type, this.alignment, (row, col) => instance.getCellMeta(row, col),
+    (row, col, key, value) => instance.setCellMeta(row, col, key, value));
 
   instance.addHookOnce('afterRender', undoneCallback);
   instance.render();
@@ -451,6 +519,9 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
 
 /**
  * Filters action.
+ *
+ * @private
+ * @param {Array} conditionsStack An array of the filter condition.
  */
 UndoRedo.FiltersAction = function(conditionsStack) {
   this.conditionsStack = conditionsStack;
@@ -459,7 +530,7 @@ UndoRedo.FiltersAction = function(conditionsStack) {
 inherit(UndoRedo.FiltersAction, UndoRedo.Action);
 
 UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
-  let filters = instance.getPlugin('filters');
+  const filters = instance.getPlugin('filters');
 
   instance.addHookOnce('afterRender', undoneCallback);
 
@@ -467,7 +538,7 @@ UndoRedo.FiltersAction.prototype.undo = function(instance, undoneCallback) {
   filters.filter();
 };
 UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
-  let filters = instance.getPlugin('filters');
+  const filters = instance.getPlugin('filters');
 
   instance.addHookOnce('afterRender', redoneCallback);
 
@@ -476,52 +547,120 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 };
 
 /**
- * ManualRowMove action.
- * @TODO: removeRow undo should works on logical index
+ * Merge Cells action.
+ *
+ * @util
  */
-UndoRedo.RowMoveAction = function(movedRows, target) {
-  this.rows = movedRows.slice();
-  this.target = target;
+class MergeCellsAction extends UndoRedo.Action {
+  constructor(instance, cellRange) {
+    super();
+    this.cellRange = cellRange;
+    this.rangeData = instance.getData(cellRange.from.row, cellRange.from.col, cellRange.to.row, cellRange.to.col);
+  }
+
+  undo(instance, undoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', undoneCallback);
+
+    mergeCellsPlugin.unmergeRange(this.cellRange, true);
+    instance.populateFromArray(this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
+  }
+
+  redo(instance, redoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', redoneCallback);
+
+    mergeCellsPlugin.mergeRange(this.cellRange);
+  }
+}
+UndoRedo.MergeCellsAction = MergeCellsAction;
+
+/**
+ * Unmerge Cells action.
+ *
+ * @util
+ */
+class UnmergeCellsAction extends UndoRedo.Action {
+  constructor(instance, cellRange) {
+    super();
+    this.cellRange = cellRange;
+  }
+
+  undo(instance, undoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', undoneCallback);
+
+    mergeCellsPlugin.mergeRange(this.cellRange, true);
+  }
+
+  redo(instance, redoneCallback) {
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+    instance.addHookOnce('afterRender', redoneCallback);
+
+    mergeCellsPlugin.unmergeRange(this.cellRange, true);
+    instance.render();
+  }
+}
+UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
+
+/**
+ * ManualRowMove action.
+ *
+ * @TODO removeRow undo should works on logical index
+ * @private
+ * @param {number[]} rows An array with moved rows.
+ * @param {number} finalIndex The destination index.
+ */
+UndoRedo.RowMoveAction = function(rows, finalIndex) {
+  this.rows = rows.slice();
+  this.finalIndex = finalIndex;
 };
 inherit(UndoRedo.RowMoveAction, UndoRedo.Action);
 
 UndoRedo.RowMoveAction.prototype.undo = function(instance, undoneCallback) {
-  let manualRowMove = instance.getPlugin('manualRowMove');
+  const manualRowMove = instance.getPlugin('manualRowMove');
+  const copyOfRows = [].concat(this.rows);
+  const rowsMovedUp = copyOfRows.filter(a => a > this.finalIndex);
+  const rowsMovedDown = copyOfRows.filter(a => a <= this.finalIndex);
+  const allMovedRows = rowsMovedUp.sort((a, b) => b - a).concat(rowsMovedDown.sort((a, b) => a - b));
 
   instance.addHookOnce('afterRender', undoneCallback);
-  let mod = this.rows[0] < this.target ? -1 * this.rows.length : 0;
-  let newTarget = this.rows[0] > this.target ? this.rows[0] + this.rows.length : this.rows[0];
-  let newRows = [];
-  let rowsLen = this.rows.length + mod;
 
-  for (let i = mod; i < rowsLen; i++) {
-    newRows.push(this.target + i);
+  // Moving rows from those with higher indexes to those with lower indexes when action was performed from bottom to top
+  // Moving rows from those with lower indexes to those with higher indexes when action was performed from top to bottom
+  for (let i = 0; i < allMovedRows.length; i += 1) {
+    const newPhysicalRow = instance.toVisualRow(allMovedRows[i]);
+
+    manualRowMove.moveRow(newPhysicalRow, allMovedRows[i]);
   }
-  manualRowMove.moveRows(newRows.slice(), newTarget);
+
   instance.render();
 
-  instance.selection.setRangeStartOnly(new CellCoords(this.rows[0], 0));
-  instance.selection.setRangeEnd(new CellCoords(this.rows[this.rows.length - 1], instance.countCols() - 1));
+  instance.deselectCell();
+  instance.selectRows(this.rows[0], this.rows[0] + this.rows.length - 1);
 };
 UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
-  let manualRowMove = instance.getPlugin('manualRowMove');
+  const manualRowMove = instance.getPlugin('manualRowMove');
 
   instance.addHookOnce('afterRender', redoneCallback);
-  manualRowMove.moveRows(this.rows.slice(), this.target);
+  manualRowMove.moveRows(this.rows.slice(), this.finalIndex);
   instance.render();
-  let startSelection = this.rows[0] < this.target ? this.target - this.rows.length : this.target;
-  instance.selection.setRangeStartOnly(new CellCoords(startSelection, 0));
-  instance.selection.setRangeEnd(new CellCoords(startSelection + this.rows.length - 1, instance.countCols() - 1));
+
+  instance.deselectCell();
+  instance.selectRows(this.finalIndex, this.finalIndex + this.rows.length - 1);
 };
 
+/**
+ *
+ */
 function init() {
-  let instance = this;
-  let pluginEnabled = typeof instance.getSettings().undo == 'undefined' || instance.getSettings().undo;
+  const instance = this;
+  const pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {
       /**
-       * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}
+       * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
        *
        * @alias undoRedo
        * @memberof! Handsontable.Core#
@@ -544,76 +683,121 @@ function init() {
   }
 }
 
+/**
+ * @param {Event} event The keyboard event object.
+ */
 function onBeforeKeyDown(event) {
-  let instance = this;
+  if (isImmediatePropagationStopped(event)) {
+    return;
+  }
 
-  let ctrlDown = (event.ctrlKey || event.metaKey) && !event.altKey;
+  const instance = this;
+  const editor = instance.getActiveEditor();
 
-  if (ctrlDown) {
-    if (event.keyCode === 89 || (event.shiftKey && event.keyCode === 90)) { // CTRL + Y or CTRL + SHIFT + Z
-      instance.undoRedo.redo();
-      stopImmediatePropagation(event);
-    } else if (event.keyCode === 90) { // CTRL + Z
-      instance.undoRedo.undo();
-      stopImmediatePropagation(event);
-    }
+  if (editor && editor.isOpened()) {
+    return;
+  }
+
+  const {
+    altKey,
+    ctrlKey,
+    keyCode,
+    metaKey,
+    shiftKey,
+  } = event;
+  const isCtrlDown = (ctrlKey || metaKey) && !altKey;
+
+  if (!isCtrlDown) {
+    return;
+  }
+
+  const isRedoHotkey = keyCode === 89 || (shiftKey && keyCode === 90);
+
+  if (isRedoHotkey) { // CTRL + Y or CTRL + SHIFT + Z
+    instance.undoRedo.redo();
+    stopImmediatePropagation(event);
+
+  } else if (keyCode === 90) { // CTRL + Z
+    instance.undoRedo.undo();
+    stopImmediatePropagation(event);
   }
 }
 
+/**
+ * @param {Array} changes 2D array containing information about each of the edited cells.
+ * @param {string} source String that identifies source of hook call.
+ * @returns {boolean}
+ */
 function onAfterChange(changes, source) {
-  let instance = this;
+  const instance = this;
   if (source === 'loadData') {
     return instance.undoRedo.clear();
   }
 }
 
+/**
+ * @param {Core} instance The Handsontable instance.
+ */
 function exposeUndoRedoMethods(instance) {
   /**
-   * {@link UndoRedo#undo}
+   * {@link UndoRedo#undo}.
+   *
    * @alias undo
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.undo = function() {
     return instance.undoRedo.undo();
   };
 
   /**
-   * {@link UndoRedo#redo}
+   * {@link UndoRedo#redo}.
+   *
    * @alias redo
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.redo = function() {
     return instance.undoRedo.redo();
   };
 
   /**
-   * {@link UndoRedo#isUndoAvailable}
+   * {@link UndoRedo#isUndoAvailable}.
+   *
    * @alias isUndoAvailable
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.isUndoAvailable = function() {
     return instance.undoRedo.isUndoAvailable();
   };
 
   /**
-   * {@link UndoRedo#isRedoAvailable}
+   * {@link UndoRedo#isRedoAvailable}.
+   *
    * @alias isRedoAvailable
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.isRedoAvailable = function() {
     return instance.undoRedo.isRedoAvailable();
   };
 
   /**
-   * {@link UndoRedo#clear}
+   * {@link UndoRedo#clear}.
+   *
    * @alias clearUndo
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.clearUndo = function() {
     return instance.undoRedo.clear();
   };
 }
 
+/**
+ * @param {Core} instance The Handsontable instance.
+ */
 function removeExposedUndoRedoMethods(instance) {
   delete instance.undo;
   delete instance.redo;
@@ -631,3 +815,5 @@ hook.register('beforeUndo');
 hook.register('afterUndo');
 hook.register('beforeRedo');
 hook.register('afterRedo');
+
+export default UndoRedo;

@@ -1,5 +1,5 @@
 describe('Core.toVisualRow', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,15 +13,14 @@ describe('Core.toVisualRow', () => {
   });
 
   it('should return valid visual row index', () => {
-    var hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
-      unmodifyRow(row) {
-        return row + 3;
-      }
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
 
-    expect(hot.toVisualRow(0)).toBe(3);
-    expect(hot.toVisualRow(1)).toBe(4);
-    expect(hot.toVisualRow(2)).toBe(5);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+    expect(hot.toVisualRow(0)).toBe(4);
+    expect(hot.toVisualRow(1)).toBe(3);
+    expect(hot.toVisualRow(2)).toBe(2);
   });
 });

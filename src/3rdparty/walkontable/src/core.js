@@ -1,16 +1,15 @@
 import {
   addClass,
   fastInnerText,
-  isVisible,
   removeClass,
 } from './../../../helpers/dom/element';
-import {objectEach} from './../../../helpers/object';
-import {toUpperCaseFirst, randomString} from './../../../helpers/string';
+import { objectEach } from './../../../helpers/object';
+import { randomString } from './../../../helpers/string';
 import Event from './event';
 import Overlays from './overlays';
 import Scroll from './scroll';
 import Settings from './settings';
-import Table from './table';
+import MasterTable from './table/master';
 import Viewport from './viewport';
 
 /**
@@ -18,27 +17,29 @@ import Viewport from './viewport';
  */
 class Walkontable {
   /**
-   * @param {Object} settings
+   * @param {object} settings The Walkontable settings.
    */
   constructor(settings) {
-    let originalHeaders = [];
+    const originalHeaders = [];
 
     // this is the namespace for global events
     this.guid = `wt_${randomString()}`;
+    this.rootDocument = settings.table.ownerDocument;
+    this.rootWindow = this.rootDocument.defaultView;
 
     // bootstrap from settings
     if (settings.cloneSource) {
       this.cloneSource = settings.cloneSource;
       this.cloneOverlay = settings.cloneOverlay;
       this.wtSettings = settings.cloneSource.wtSettings;
-      this.wtTable = new Table(this, settings.table, settings.wtRootElement);
+      this.wtTable = this.cloneOverlay.createTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = settings.cloneSource.wtViewport;
       this.wtEvent = new Event(this);
       this.selections = this.cloneSource.selections;
     } else {
       this.wtSettings = new Settings(this, settings);
-      this.wtTable = new Table(this, settings.table);
+      this.wtTable = new MasterTable(this, settings.table);
       this.wtScroll = new Scroll(this);
       this.wtViewport = new Viewport(this);
       this.wtEvent = new Event(this);
@@ -65,17 +66,17 @@ class Walkontable {
   }
 
   /**
-   * Force rerender of Walkontable
+   * Force rerender of Walkontable.
    *
-   * @param {Boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
-   *                                   rendering anyway
+   *                                   rendering anyway.
    * @returns {Walkontable}
    */
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!fastDraw && !isVisible(this.wtTable.TABLE)) {
+    if (!fastDraw && !this.wtTable.isVisible()) {
       // draw interrupted because TABLE is not visible
       this.drawInterrupted = true;
     } else {
@@ -89,19 +90,21 @@ class Walkontable {
    * Returns the TD at coords. If topmost is set to true, returns TD from the topmost overlay layer,
    * if not set or set to false, returns TD from the master table.
    *
-   * @param {CellCoords} coords
-   * @param {Boolean} [topmost=false]
-   * @returns {Object}
+   * @param {CellCoords} coords The cell coordinates.
+   * @param {boolean} [topmost=false] If set to `true`, it returns the TD element from the topmost overlay. For example,
+   *                                  if the wanted cell is in the range of fixed rows, it will return a TD element
+   *                                  from the top overlay.
+   * @returns {HTMLElement}
    */
   getCell(coords, topmost = false) {
     if (!topmost) {
       return this.wtTable.getCell(coords);
     }
 
-    let totalRows = this.wtSettings.getSetting('totalRows');
-    let fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
-    let fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    let fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
+    const totalRows = this.wtSettings.getSetting('totalRows');
+    const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+    const fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
       return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
@@ -117,7 +120,7 @@ class Walkontable {
     } else if (coords.col < fixedColumns) {
       return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
 
-    } else if (coords.row < totalRows && coords.row > totalRows - fixedRowsBottom) {
+    } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
       if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
         return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
       }
@@ -128,8 +131,8 @@ class Walkontable {
   }
 
   /**
-   * @param {Object} settings
-   * @param {*} value
+   * @param {object} settings The singular settings to update or if passed as object to merge with.
+   * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Walkontable}
    */
   update(settings, value) {
@@ -137,41 +140,50 @@ class Walkontable {
   }
 
   /**
-   * Scroll the viewport to a row at the given index in the data source
+   * Scrolls the viewport to a cell (rerenders if needed).
    *
-   * @param {Number} row
-   * @returns {Walkontable}
+   * @param {CellCoords} coords The cell coordinates to scroll to.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @returns {boolean}
    */
-  scrollVertical(row) {
-    this.wtOverlays.topOverlay.scrollTo(row);
-    this.getSetting('onScrollVertically');
-
-    return this;
+  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    if (coords.col < 0 || coords.row < 0) {
+      return false;
+    }
+    return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
   }
 
   /**
-   * Scroll the viewport to a column at the given index in the data source
+   * Scrolls the viewport to a column (rerenders if needed).
    *
-   * @param {Number} column
-   * @returns {Walkontable}
+   * @param {number} column Visual column index.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @returns {boolean}
    */
-  scrollHorizontal(column) {
-    this.wtOverlays.leftOverlay.scrollTo(column);
-    this.getSetting('onScrollHorizontally');
-
-    return this;
+  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+    if (column < 0) {
+      return false;
+    }
+    return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
   /**
-   * Scrolls the viewport to a cell (rerenders if needed)
+   * Scrolls the viewport to a row (rerenders if needed).
    *
-   * @param {CellCoords} coords
-   * @returns {Walkontable}
+   * @param {number} row Visual row index.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @returns {boolean}
    */
-  scrollViewport(coords) {
-    this.wtScroll.scrollViewport(coords);
-
-    return this;
+  scrollViewportVertically(row, snapToTop, snapToBottom) {
+    if (row < 0) {
+      return false;
+    }
+    return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 
   /**
@@ -187,57 +199,43 @@ class Walkontable {
   }
 
   /**
-   * Get overlay name
+   * Get overlay name.
    *
-   * @returns {String}
+   * @returns {string}
    */
   getOverlayName() {
     return this.cloneOverlay ? this.cloneOverlay.type : 'master';
   }
 
   /**
-   * Check overlay type of this Walkontable instance.
-   *
-   * @param {String} name Clone type @see {Overlay.CLONE_TYPES}.
-   * @returns {Boolean}
-   */
-  isOverlayName(name) {
-    if (this.cloneOverlay) {
-      return this.cloneOverlay.type === name;
-    }
-
-    return false;
-  }
-
-  /**
    * Export settings as class names added to the parent element of the table.
    */
   exportSettingsAsClassNames() {
-    let toExport = {
-      rowHeaders: ['array'],
-      columnHeaders: ['array']
+    const toExport = {
+      rowHeaders: 'htRowHeaders',
+      columnHeaders: 'htColumnHeaders'
     };
-    let allClassNames = [];
-    let newClassNames = [];
+    const allClassNames = [];
+    const newClassNames = [];
 
-    objectEach(toExport, (optionType, key) => {
-      if (optionType.indexOf('array') > -1 && this.getSetting(key).length) {
-        newClassNames.push(`ht${toUpperCaseFirst(key)}`);
+    objectEach(toExport, (className, key) => {
+      if (this.getSetting(key).length) {
+        newClassNames.push(className);
       }
-      allClassNames.push(`ht${toUpperCaseFirst(key)}`);
+      allClassNames.push(className);
     });
     removeClass(this.wtTable.wtRootElement.parentNode, allClassNames);
     addClass(this.wtTable.wtRootElement.parentNode, newClassNames);
   }
 
   /**
-   * Get/Set Walkontable instance setting
+   * Get/Set Walkontable instance setting.
    *
-   * @param {String} key
-   * @param {*} [param1]
-   * @param {*} [param2]
-   * @param {*} [param3]
-   * @param {*} [param4]
+   * @param {string} key The settings key to retrieve.
+   * @param {*} [param1] Additional parameter passed to the options defined as function.
+   * @param {*} [param2] Additional parameter passed to the options defined as function.
+   * @param {*} [param3] Additional parameter passed to the options defined as function.
+   * @param {*} [param4] Additional parameter passed to the options defined as function.
    * @returns {*}
    */
   getSetting(key, param1, param2, param3, param4) {
@@ -246,17 +244,17 @@ class Walkontable {
   }
 
   /**
-   * Checks if setting exists
+   * Checks if setting exists.
    *
-   * @param {String} key
-   * @returns {Boolean}
+   * @param {string} key The settings key to check.
+   * @returns {boolean}
    */
   hasSetting(key) {
     return this.wtSettings.has(key);
   }
 
   /**
-   * Destroy instance
+   * Destroy instance.
    */
   destroy() {
     this.wtOverlays.destroy();

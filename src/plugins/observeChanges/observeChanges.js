@@ -1,8 +1,7 @@
 import BasePlugin from './../_base';
-import jsonpatch from './../../../lib/jsonpatch/json-patch-duplex';
 import DataObserver from './dataObserver';
-import {arrayEach} from './../../helpers/array';
-import {registerPlugin} from './../../plugins';
+import { arrayEach } from './../../helpers/array';
+import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
 
@@ -10,18 +9,14 @@ import {registerPlugin} from './../../plugins';
  * @plugin ObserveChanges
  *
  * @description
- * This plugin allows to observe data source changes.
- *
- * By default, the plugin is declared as `undefined`, which makes it disabled.
- * Enabling this plugin switches the table into one-way data binding where changes are applied into the data source (outside from the table)
- * will be automatically reflected in the table.
+ * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
+ * disabled. Enabling this plugin switches the table into one-way data binding where changes are applied into the data
+ * source (outside from the table) will be automatically reflected in the table.
  *
  * ```js
- * ...
  * // as a boolean
  * observeChanges: true,
- * ...
- * ```
+ * ```.
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */
@@ -31,22 +26,24 @@ class ObserveChanges extends BasePlugin {
     /**
      * Instance of {@link DataObserver}.
      *
+     * @private
      * @type {DataObserver}
      */
     this.observer = null;
   }
 
   /**
-   * Check if the plugin is enabled in the handsontable settings.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link ObserveChanges#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().observeChanges;
   }
 
   /**
-   * Enable plugin for this Handsontable instance.
+   * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -57,19 +54,19 @@ class ObserveChanges extends BasePlugin {
       this._exposePublicApi();
     }
 
-    this.observer.addLocalHook('change', (patches) => this.onDataChange(patches));
+    this.observer.addLocalHook('change', patches => this.onDataChange(patches));
     this.addHook('afterCreateRow', () => this.onAfterTableAlter());
     this.addHook('afterRemoveRow', () => this.onAfterTableAlter());
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', (firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
+   * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
     if (this.observer) {
@@ -88,25 +85,37 @@ class ObserveChanges extends BasePlugin {
    * @param {Array} patches An array of objects which every item defines coordinates where data was changed.
    */
   onDataChange(patches) {
+    let render = false;
+
     if (!this.observer.isPaused()) {
       const sourceName = `${this.pluginName}.change`;
       const actions = {
         add: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterCreateRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.insertIndexes(visualRow, 1);
+            this.hot.runHooks('afterCreateRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterCreateCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.insertIndexes(visualColumn, 1);
+            this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);
           }
         },
         remove: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterRemoveRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.removeIndexes([visualRow]);
+            this.hot.runHooks('afterRemoveRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterRemoveCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.removeIndexes([visualColumn]);
+            this.hot.runHooks('afterRemoveCol', visualColumn, 1, sourceName);
           }
         },
         replace: (patch) => {
-          this.hot.runHooks('afterChange', [patch.row, patch.col, null, patch.value], sourceName);
+          this.hot.runHooks('afterChange', [[patch.row, patch.col, null, patch.value]], sourceName);
         },
       };
 
@@ -115,17 +124,22 @@ class ObserveChanges extends BasePlugin {
           actions[patch.op](patch);
         }
       });
-      this.hot.render();
+
+      render = true;
     }
 
     this.hot.runHooks('afterChangesObserved');
+
+    if (render) {
+      this.hot.render();
+    }
   }
 
   /**
    * On after table alter listener. Prevents infinity loop between internal and external data changing.
    *
    * @private
-   * @param source
+   * @param {string} source The identifier of the code that performed the action.
    */
   onAfterTableAlter(source) {
     if (source !== 'loadData') {
@@ -138,7 +152,7 @@ class ObserveChanges extends BasePlugin {
    * On after load data listener.
    *
    * @private
-   * @param {Boolean} firstRun `true` if event was fired first time.
+   * @param {boolean} firstRun `true` if event was fired first time.
    */
   onAfterLoadData(firstRun) {
     if (!firstRun) {
@@ -147,7 +161,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Destroy plugin instance.
+   * Destroys the plugin instance.
    */
   destroy() {
     if (this.observer) {
@@ -171,7 +185,7 @@ class ObserveChanges extends BasePlugin {
   }
 
   /**
-   * Delete all previously exposed methods.
+   * Deletes all previously exposed methods.
    *
    * @private
    */

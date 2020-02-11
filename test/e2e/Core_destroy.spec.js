@@ -1,26 +1,26 @@
 describe('Core_destroy', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
-  beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  beforeEach(() => {
+    spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(function() {
-    if (this.$container) {
+  afterEach(() => {
+    if (spec().$container) {
       destroy();
-      this.$container.remove();
+      spec().$container.remove();
     }
   });
 
-  it('should remove table from the root element', function() {
+  it('should remove table from the root element', () => {
     handsontable();
     destroy();
 
-    expect(this.$container.html()).toEqual('');
+    expect(spec().$container.html()).toEqual('');
   });
 
   it('should remove events from the root element, document element and window', () => {
-    var x = handsontable();
+    const x = handsontable();
 
     expect(x.eventListeners.length > 0).toBeTruthy();
     destroy();
@@ -32,7 +32,7 @@ describe('Core_destroy', () => {
     // test based on Core_selectionSpec.js (should deselect currently selected cell)
     handsontable();
 
-    var $tmp = $('<div id="tmp"></div>').appendTo(document.body);
+    const $tmp = $('<div id="tmp"></div>').appendTo(document.body);
     $tmp.handsontable();
     $tmp.handsontable('destroy');
     $tmp.remove();
@@ -42,5 +42,57 @@ describe('Core_destroy', () => {
     $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
+  });
+
+  it('should throw an exception when metod on destroyed instance is called', () => {
+    const hot = handsontable();
+
+    destroy();
+    spec().$container.remove();
+
+    expect(() => {
+      hot.getDataAtCell(0, 0);
+    }).toThrowError('The "getDataAtCell" method cannot be called because this Handsontable instance has been destroyed');
+    expect(() => {
+      hot.listen();
+    }).toThrowError('The "listen" method cannot be called because this Handsontable instance has been destroyed');
+  });
+
+  it('should set isDestroyed flag to `true` when instance is destroyed', () => {
+    const hot = handsontable();
+
+    expect(hot.isDestroyed).toBe(false);
+
+    destroy();
+
+    expect(hot.isDestroyed).toBe(true);
+  });
+
+  it('should update index mappers cache only when necessary', () => {
+    const hot = handsontable({
+      data: [['a'], ['b'], ['c']],
+      autoRowSize: true,
+      autoColumnSize: true,
+      bindRowsWithHeaders: 'strict',
+      columnSorting: true,
+      filters: true,
+      manualColumnResize: true,
+      manualRowResize: true,
+      nestedRows: true,
+      trimRows: true
+    });
+    const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+    const columnCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
+    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
+
+    destroy();
+
+    // There is at least one plugin registering map which can change cache by its own map.
+    expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
+
+    // There is no plugin which can change cache by its own map.
+    expect(columnCacheUpdatedCallback.calls.count()).toEqual(0);
   });
 });

@@ -1,5 +1,5 @@
-import {objectEach, isObject, extend} from './../../helpers/object';
-import {arrayEach} from './../../helpers/array';
+import { objectEach, isObject, extend } from './../../helpers/object';
+import { arrayEach } from './../../helpers/array';
 import {
   SEPARATOR,
   ITEMS,
@@ -22,14 +22,14 @@ class ItemsFactory {
   /**
    * Set predefined items.
    *
-   * @param {Array} predefinedItems Array of predefined items.
+   * @param {Array} predefinedItemsCollection Array of predefined items.
    */
-  setPredefinedItems(predefinedItems) {
-    let items = {};
+  setPredefinedItems(predefinedItemsCollection) {
+    const items = {};
 
     this.defaultOrderPattern.length = 0;
 
-    objectEach(predefinedItems, (value, key) => {
+    objectEach(predefinedItemsCollection, (value, key) => {
       let menuItemKey = '';
 
       if (value.name === SEPARATOR) {
@@ -54,7 +54,7 @@ class ItemsFactory {
   /**
    * Get all menu items based on pattern.
    *
-   * @param {Array|Object|Boolean} pattern Pattern which you can define by displaying menu items order. If `true` default
+   * @param {Array|object|boolean} pattern Pattern which you can define by displaying menu items order. If `true` default
    *                                       pattern will be used.
    * @returns {Array}
    */
@@ -63,8 +63,15 @@ class ItemsFactory {
   }
 }
 
-function getItems(pattern = null, defaultPattern = [], items = {}) {
-  let result = [];
+/**
+ * @param {object[]} itemsPattern The user defined menu items collection.
+ * @param {object[]} defaultPattern The menu default items collection.
+ * @param {object} items Additional options.
+ * @returns {object[]} Returns parsed and merged menu items collection ready to render.
+ */
+function getItems(itemsPattern = null, defaultPattern = [], items = {}) {
+  const result = [];
+  let pattern = itemsPattern;
 
   if (pattern && pattern.items) {
     pattern = pattern.items;
@@ -83,7 +90,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
         extend(item, value);
 
       } else if (typeof item === 'string') {
-        item = {name: item};
+        item = { name: item };
       }
       if (item.key === void 0) {
         item.key = key;
@@ -99,7 +106,7 @@ function getItems(pattern = null, defaultPattern = [], items = {}) {
         return;
       }
       if (!item) {
-        item = {name, key: `${key}`};
+        item = { name, key: `${key}` };
       }
       if (isObject(name)) {
         extend(item, name);

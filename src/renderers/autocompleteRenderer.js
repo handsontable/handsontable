@@ -1,57 +1,41 @@
-import {addClass, hasClass, empty} from './../helpers/dom/element';
+import { addClass, hasClass } from './../helpers/dom/element';
 import EventManager from './../eventManager';
-import {CellCoords} from './../3rdparty/walkontable/src';
-import {getRenderer} from './index';
-
-var clonableWRAPPER = document.createElement('DIV');
-clonableWRAPPER.className = 'htAutocompleteWrapper';
-
-var clonableARROW = document.createElement('DIV');
-clonableARROW.className = 'htAutocompleteArrow';
-// workaround for https://github.com/handsontable/handsontable/issues/1946
-// this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-clonableARROW.appendChild(document.createTextNode(String.fromCharCode(9660)));
-
-var wrapTdContentWithWrapper = function(TD, WRAPPER) {
-  WRAPPER.innerHTML = TD.innerHTML;
-  empty(TD);
-  TD.appendChild(WRAPPER);
-};
+import { CellCoords } from './../3rdparty/walkontable/src';
+import { getRenderer } from './index';
 
 /**
- * Autocomplete renderer
+ * Autocomplete renderer.
  *
  * @private
- * @renderer AutocompleteRenderer
- * @param {Object} instance Handsontable instance
- * @param {Element} TD Table cell where to render
- * @param {Number} row
- * @param {Number} col
- * @param {String|Number} prop Row object property name
- * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellProperties Cell properites (shared by cell renderer and editor)
+ * @param {Core} instance The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {number|string} prop The column property (passed when datasource is an array of objects).
+ * @param {*} value The rendered value.
+ * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
 function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  var WRAPPER = clonableWRAPPER.cloneNode(true); // this is faster than createElement
-  var ARROW = clonableARROW.cloneNode(true); // this is faster than createElement
+  const { rootDocument } = instance;
+  const rendererType = cellProperties.allowHtml ? 'html' : 'text';
+  const ARROW = rootDocument.createElement('DIV');
 
-  if (cellProperties.allowHtml) {
-    getRenderer('html').apply(this, arguments);
-  } else {
-    getRenderer('text').apply(this, arguments);
-  }
+  ARROW.className = 'htAutocompleteArrow';
+  ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
 
-  TD.appendChild(ARROW);
-  addClass(TD, 'htAutocomplete');
+  getRenderer(rendererType).apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)
-    TD.appendChild(document.createTextNode(String.fromCharCode(160))); // workaround for https://github.com/handsontable/handsontable/issues/1946
+    TD.appendChild(rootDocument.createTextNode(String.fromCharCode(160))); // workaround for https://github.com/handsontable/handsontable/issues/1946
     // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
   }
 
+  TD.insertBefore(ARROW, TD.firstChild);
+  addClass(TD, 'htAutocomplete');
+
   if (!instance.acArrowListener) {
-    var eventManager = new EventManager(instance);
+    const eventManager = new EventManager(instance);
 
     // not very elegant but easy and fast
     instance.acArrowListener = function(event) {

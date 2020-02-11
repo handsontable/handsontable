@@ -5,9 +5,9 @@ import {
 describe('Date helper', () => {
   describe('getNormalizedDate', () => {
     it('should return a proper date object, with time set to 00:00, when providing it with a date-only string', () => {
-      var date1 = getNormalizedDate('2016-02-02');
-      var date2 = getNormalizedDate('2016/02/02');
-      var date3 = getNormalizedDate('02/02/2016');
+      const date1 = getNormalizedDate('2016-02-02');
+      const date2 = getNormalizedDate('2016/02/02');
+      const date3 = getNormalizedDate('02/02/2016');
 
       expect(date1.getDate()).toEqual(2);
       expect(date2.getDate()).toEqual(2);

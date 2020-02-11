@@ -1,183 +1,230 @@
-import {KEY_CODES} from './../helpers/unicode';
-import {extend} from './../helpers/object';
-import {setCaretPosition} from './../helpers/dom/element';
-import {stopImmediatePropagation, isImmediatePropagationStopped} from './../helpers/dom/event';
+import { KEY_CODES } from './../helpers/unicode';
+import { extend } from './../helpers/object';
+import { setCaretPosition } from './../helpers/dom/element';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 import TextEditor from './textEditor';
-
-const HandsontableEditor = TextEditor.prototype.extend();
 
 /**
  * @private
- * @editor HandsontableEditor
  * @class HandsontableEditor
- * @dependencies TextEditor
  */
-HandsontableEditor.prototype.createElements = function() {
-  TextEditor.prototype.createElements.apply(this, arguments);
+class HandsontableEditor extends TextEditor {
+  /**
+   * Opens the editor and adjust its size.
+   */
+  open() {
+    // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
 
-  var DIV = document.createElement('DIV');
-  DIV.className = 'handsontableEditor';
-  this.TEXTAREA_PARENT.appendChild(DIV);
+    super.open();
 
-  this.htContainer = DIV;
-  this.assignHooks();
-};
-
-HandsontableEditor.prototype.prepare = function(td, row, col, prop, value, cellProperties) {
-  TextEditor.prototype.prepare.apply(this, arguments);
-
-  var parent = this;
-  var options = {
-    startRows: 0,
-    startCols: 0,
-    minRows: 0,
-    minCols: 0,
-    className: 'listbox',
-    copyPaste: false,
-    autoColumnSize: false,
-    autoRowSize: false,
-    readOnly: true,
-    fillHandle: false,
-    afterOnCellMouseDown(_, coords) {
-      var value = this.getSourceData(coords.row, coords.col);
-
-      // if the value is undefined then it means we don't want to set the value
-      if (value !== void 0) {
-        parent.setValue(value);
-      }
-      parent.instance.destroyEditor();
+    if (this.htEditor) {
+      this.htEditor.destroy();
     }
-  };
 
-  if (this.cellProperties.handsontable) {
-    extend(options, cellProperties.handsontable);
-  }
-  this.htOptions = options;
-};
-
-var onBeforeKeyDown = function(event) {
-  if (isImmediatePropagationStopped(event)) {
-    return;
-  }
-  var editor = this.getActiveEditor();
-
-  var innerHOT = editor.htEditor.getInstance();
-
-  var rowToSelect;
-  var selectedRow;
-
-  if (event.keyCode == KEY_CODES.ARROW_DOWN) {
-    if (!innerHOT.getSelected() && !innerHOT.flipped) {
-      rowToSelect = 0;
-    } else if (innerHOT.getSelected()) {
-      if (innerHOT.flipped) {
-        rowToSelect = innerHOT.getSelected()[0] + 1;
-      } else if (!innerHOT.flipped) {
-        selectedRow = innerHOT.getSelected()[0];
-        var lastRow = innerHOT.countRows() - 1;
-        rowToSelect = Math.min(lastRow, selectedRow + 1);
-      }
+    if (this.htContainer.style.display === 'none') {
+      this.htContainer.style.display = '';
     }
-  } else if (event.keyCode == KEY_CODES.ARROW_UP) {
-    if (!innerHOT.getSelected() && innerHOT.flipped) {
-      rowToSelect = innerHOT.countRows() - 1;
 
-    } else if (innerHOT.getSelected()) {
-      if (innerHOT.flipped) {
-        selectedRow = innerHOT.getSelected()[0];
-        rowToSelect = Math.max(0, selectedRow - 1);
-      } else {
-        selectedRow = innerHOT.getSelected()[0];
-        rowToSelect = selectedRow - 1;
-      }
-    }
-  }
+    // Construct and initialise a new Handsontable
+    this.htEditor = new this.hot.constructor(this.htContainer, this.htOptions);
+    this.htEditor.init();
+    this.htEditor.rootElement.style.display = '';
 
-  if (rowToSelect !== void 0) {
-    if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
-      innerHOT.deselectCell();
+    if (this.cellProperties.strict) {
+      this.htEditor.selectCell(0, 0);
     } else {
-      innerHOT.selectCell(rowToSelect, 0);
+      this.htEditor.deselectCell();
     }
-    if (innerHOT.getData().length) {
-      event.preventDefault();
-      stopImmediatePropagation(event);
 
-      editor.instance.listen();
-      editor.TEXTAREA.focus();
+    setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
+  }
+
+  /**
+   * Closes the editor.
+   */
+  close() {
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = 'none';
     }
-  }
-};
 
-HandsontableEditor.prototype.open = function() {
-  this.instance.addHook('beforeKeyDown', onBeforeKeyDown);
-
-  TextEditor.prototype.open.apply(this, arguments);
-
-  if (this.htEditor) {
-    this.htEditor.destroy();
-  }
-  // Construct and initialise a new Handsontable
-  this.htEditor = new this.instance.constructor(this.htContainer, this.htOptions);
-  this.htEditor.init();
-
-  if (this.cellProperties.strict) {
-    this.htEditor.selectCell(0, 0);
-    this.TEXTAREA.style.visibility = 'hidden';
-  } else {
-    this.htEditor.deselectCell();
-    this.TEXTAREA.style.visibility = 'visible';
+    this.removeHooksByKey('beforeKeyDown');
+    super.close();
   }
 
-  setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
-};
+  /**
+   * Prepares editor's meta data and configuration of the internal Handsontable's instance.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   */
+  prepare(row, col, prop, td, value, cellProperties) {
+    super.prepare(row, col, prop, td, value, cellProperties);
 
-HandsontableEditor.prototype.close = function() {
-  this.instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-  this.instance.listen();
+    const parent = this;
+    const options = {
+      startRows: 0,
+      startCols: 0,
+      minRows: 0,
+      minCols: 0,
+      className: 'listbox',
+      copyPaste: false,
+      autoColumnSize: false,
+      autoRowSize: false,
+      readOnly: true,
+      fillHandle: false,
+      autoWrapCol: false,
+      autoWrapRow: false,
+      afterOnCellMouseDown(_, coords) {
+        const sourceValue = this.getSourceData(coords.row, coords.col);
 
-  TextEditor.prototype.close.apply(this, arguments);
-};
+        // if the value is undefined then it means we don't want to set the value
+        if (sourceValue !== void 0) {
+          parent.setValue(sourceValue);
+        }
+        parent.instance.destroyEditor();
+      },
+      preventWheel: true,
+    };
 
-HandsontableEditor.prototype.focus = function() {
-  this.instance.listen();
-  TextEditor.prototype.focus.apply(this, arguments);
-};
-
-HandsontableEditor.prototype.beginEditing = function(initialValue) {
-  var onBeginEditing = this.instance.getSettings().onBeginEditing;
-
-  if (onBeginEditing && onBeginEditing() === false) {
-    return;
-  }
-  TextEditor.prototype.beginEditing.apply(this, arguments);
-};
-
-HandsontableEditor.prototype.finishEditing = function(isCancelled, ctrlDown) {
-  if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
-
-    this.instance.listen(); // return the focus to the parent HOT instance
-  }
-
-  if (this.htEditor && this.htEditor.getSelected()) {
-    var value = this.htEditor.getInstance().getValue();
-
-    if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
-      this.setValue(value);
+    if (this.cellProperties.handsontable) {
+      extend(options, cellProperties.handsontable);
     }
+    this.htOptions = options;
   }
 
-  return TextEditor.prototype.finishEditing.apply(this, arguments);
-};
+  /**
+   * Begins editing on a highlighted cell and hides fillHandle corner if was present.
+   *
+   * @param {*} newInitialValue The editor initial value.
+   * @param {*} event The keyboard event object.
+   */
+  beginEditing(newInitialValue, event) {
+    const onBeginEditing = this.hot.getSettings().onBeginEditing;
 
-HandsontableEditor.prototype.assignHooks = function() {
-  var _this = this;
-
-  this.instance.addHook('afterDestroy', () => {
-    if (_this.htEditor) {
-      _this.htEditor.destroy();
+    if (onBeginEditing && onBeginEditing() === false) {
+      return;
     }
-  });
-};
+
+    super.beginEditing(newInitialValue, event);
+  }
+
+  /**
+   * Creates an editor's elements and adds necessary CSS classnames.
+   */
+  createElements() {
+    super.createElements();
+
+    const DIV = this.hot.rootDocument.createElement('DIV');
+    DIV.className = 'handsontableEditor';
+    this.TEXTAREA_PARENT.appendChild(DIV);
+
+    this.htContainer = DIV;
+    this.assignHooks();
+  }
+
+  /**
+   * Finishes editing and start saving or restoring process for editing cell or last selected range.
+   *
+   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {Function} callback The callback function, fired after editor closing.
+   */
+  finishEditing(restoreOriginalValue, ctrlDown, callback) {
+    if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
+      this.hot.listen(); // return the focus to the parent HOT instance
+    }
+
+    if (this.htEditor && this.htEditor.getSelectedLast()) {
+      const value = this.htEditor.getInstance().getValue();
+
+      if (value !== void 0) { // if the value is undefined then it means we don't want to set the value
+        this.setValue(value);
+      }
+    }
+
+    super.finishEditing(restoreOriginalValue, ctrlDown, callback);
+  }
+
+  /**
+   * Assings afterDestroy callback to prevent memory leaks.
+   *
+   * @private
+   */
+  assignHooks() {
+    this.hot.addHook('afterDestroy', () => {
+      if (this.htEditor) {
+        this.htEditor.destroy();
+      }
+    });
+  }
+
+  /**
+   * OnBeforeKeyDown callback.
+   *
+   * @private
+   * @param {Event} event The keyboard event object.
+   */
+  onBeforeKeyDown(event) {
+    if (isImmediatePropagationStopped(event)) {
+      return;
+    }
+
+    const innerHOT = this.htEditor.getInstance();
+
+    let rowToSelect;
+    let selectedRow;
+
+    if (event.keyCode === KEY_CODES.ARROW_DOWN) {
+      if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
+        rowToSelect = 0;
+
+      } else if (innerHOT.getSelectedLast()) {
+        if (innerHOT.flipped) {
+          rowToSelect = innerHOT.getSelectedLast()[0] + 1;
+
+        } else if (!innerHOT.flipped) {
+          const lastRow = innerHOT.countRows() - 1;
+          selectedRow = innerHOT.getSelectedLast()[0];
+          rowToSelect = Math.min(lastRow, selectedRow + 1);
+        }
+      }
+
+    } else if (event.keyCode === KEY_CODES.ARROW_UP) {
+      if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
+        rowToSelect = innerHOT.countRows() - 1;
+
+      } else if (innerHOT.getSelectedLast()) {
+        if (innerHOT.flipped) {
+          selectedRow = innerHOT.getSelectedLast()[0];
+          rowToSelect = Math.max(0, selectedRow - 1);
+        } else {
+          selectedRow = innerHOT.getSelectedLast()[0];
+          rowToSelect = selectedRow - 1;
+        }
+      }
+    }
+
+    if (rowToSelect !== void 0) {
+      if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
+        innerHOT.deselectCell();
+      } else {
+        innerHOT.selectCell(rowToSelect, 0);
+      }
+      if (innerHOT.getData().length) {
+        event.preventDefault();
+        stopImmediatePropagation(event);
+
+        this.hot.listen();
+        this.TEXTAREA.focus();
+      }
+    }
+
+    super.onBeforeKeyDown(event);
+  }
+}
 
 export default HandsontableEditor;

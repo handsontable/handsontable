@@ -1,4 +1,4 @@
-import {addClass} from './../../helpers/dom/element';
+import { addClass } from './../../helpers/dom/element';
 
 /**
  * Comment editor for the Comments plugin.
@@ -23,7 +23,9 @@ class CommentEditor {
     return 'htCommentCell';
   }
 
-  constructor() {
+  constructor(rootDocument) {
+    this.container = null;
+    this.rootDocument = rootDocument;
     this.editor = this.createEditor();
     this.editorStyle = this.editor.style;
 
@@ -35,8 +37,8 @@ class CommentEditor {
   /**
    * Set position of the comments editor according to the  provided x and y coordinates.
    *
-   * @param {Number} x X position (in pixels).
-   * @param {Number} y Y position (in pixels).
+   * @param {number} x X position (in pixels).
+   * @param {number} y Y position (in pixels).
    */
   setPosition(x, y) {
     this.editorStyle.left = `${x}px`;
@@ -46,8 +48,8 @@ class CommentEditor {
   /**
    * Set the editor size according to the provided arguments.
    *
-   * @param {Number} width Width in pixels.
-   * @param {Number} height Height in pixels.
+   * @param {number} width Width in pixels.
+   * @param {number} height Height in pixels.
    */
   setSize(width, height) {
     if (width && height) {
@@ -71,7 +73,7 @@ class CommentEditor {
   /**
    * Set the read-only state for the comments editor.
    *
-   * @param {Boolean} state The new read only state.
+   * @param {boolean} state The new read only state.
    */
   setReadOnlyState(state) {
     const input = this.getInputElement();
@@ -98,7 +100,7 @@ class CommentEditor {
   /**
    * Checks if the editor is visible.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isVisible() {
     return this.editorStyle.display === 'block';
@@ -107,17 +109,18 @@ class CommentEditor {
   /**
    * Set the comment value.
    *
-   * @param {String} [value] The value to use.
+   * @param {string} [value] The value to use.
    */
   setValue(value = '') {
-    value = value || '';
-    this.getInputElement().value = value;
+    const comment = value || '';
+
+    this.getInputElement().value = comment;
   }
 
   /**
    * Get the comment value.
    *
-   * @returns {String}
+   * @returns {string}
    */
   getValue() {
     return this.getInputElement().value;
@@ -126,10 +129,10 @@ class CommentEditor {
   /**
    * Checks if the comment input element is focused.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isFocused() {
-    return document.activeElement === this.getInputElement();
+    return this.rootDocument.activeElement === this.getInputElement();
   }
 
   /**
@@ -145,23 +148,21 @@ class CommentEditor {
    * @returns {HTMLElement}
    */
   createEditor() {
-    let container = document.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
-    let editor;
-    let textArea;
+    const editor = this.rootDocument.createElement('div');
+    const textArea = this.rootDocument.createElement('textarea');
+    this.container = this.rootDocument.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
 
-    if (!container) {
-      container = document.createElement('div');
-      addClass(container, CommentEditor.CLASS_EDITOR_CONTAINER);
-      document.body.appendChild(container);
+    if (!this.container) {
+      this.container = this.rootDocument.createElement('div');
+      addClass(this.container, CommentEditor.CLASS_EDITOR_CONTAINER);
+      this.rootDocument.body.appendChild(this.container);
     }
-    editor = document.createElement('div');
-    addClass(editor, CommentEditor.CLASS_EDITOR);
 
-    textArea = document.createElement('textarea');
+    addClass(editor, CommentEditor.CLASS_EDITOR);
     addClass(textArea, CommentEditor.CLASS_INPUT);
 
     editor.appendChild(textArea);
-    container.appendChild(editor);
+    this.container.appendChild(editor);
 
     return editor;
   }
@@ -179,9 +180,15 @@ class CommentEditor {
    * Destroy the comments editor.
    */
   destroy() {
+    const containerParentElement = this.container ? this.container.parentNode : null;
+
     this.editor.parentNode.removeChild(this.editor);
     this.editor = null;
     this.editorStyle = null;
+
+    if (containerParentElement) {
+      containerParentElement.removeChild(this.container);
+    }
   }
 }
 

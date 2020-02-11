@@ -1,14 +1,17 @@
 .DS_Store
 .grunt
 .idea
-_SpecRunner.html
+.vscode
+.cache
 test/E2ERunner.html
 test/UnitRunner.html
+test/MobileRunner.html
 test/dist/
+src/3rdparty/walkontable/test/SpecRunner.html
 src/3rdparty/walkontable/test/dist/
 src/3rdparty/walkontable/dist/
-cars.sqlite
 dev*.html
+dev*.js
 npm-debug.log
 
 !dist/README.md

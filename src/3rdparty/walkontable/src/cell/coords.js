@@ -1,38 +1,42 @@
 /**
- * CellCoords holds cell coordinates (row, column) and few method to validate them and
- * retrieve as an array or an object
+ * CellCoords holds cell coordinates (row, column) and few method to validate them and retrieve as an array or an object.
  *
- * @class CellCoords
+ * @util
  */
 class CellCoords {
-  /**
-   * @param {Number} row Row index
-   * @param {Number} col Column index
-   */
-  constructor(row, col) {
-    if (typeof row !== 'undefined' && typeof col !== 'undefined') {
-      this.row = row;
-      this.col = col;
+  constructor(row, column) {
+    /**
+     * Row index.
+     *
+     * @type {number}
+     */
+    this.row = null;
+    /**
+     * Column index.
+     *
+     * @type {number}
+     */
+    this.col = null;
 
-    } else {
-      this.row = null;
-      this.col = null;
+    if (typeof row !== 'undefined' && typeof column !== 'undefined') {
+      this.row = row;
+      this.col = column;
     }
   }
 
   /**
-   * Checks if given set of coordinates is valid in context of a given Walkontable instance
+   * Checks if given set of coordinates is valid in context of a given Walkontable instance.
    *
-   * @param {Walkontable} wotInstance
-   * @returns {Boolean}
+   * @param {Walkontable} wot A Walkontable instance.
+   * @returns {boolean}
    */
-  isValid(wotInstance) {
+  isValid(wot) {
     // is it a valid cell index (0 or higher)
     if (this.row < 0 || this.col < 0) {
       return false;
     }
     // is selection within total rows and columns
-    if (this.row >= wotInstance.getSetting('totalRows') || this.col >= wotInstance.getSetting('totalColumns')) {
+    if (this.row >= wot.getSetting('totalRows') || this.col >= wot.getSetting('totalColumns')) {
       return false;
     }
 
@@ -40,10 +44,10 @@ class CellCoords {
   }
 
   /**
-   * Checks if this cell coords are the same as cell coords given as a parameter
+   * Checks if this cell coordinates are the same as cell coordinates given as an argument.
    *
-   * @param {CellCoords} cellCoords
-   * @returns {Boolean}
+   * @param {CellCoords} cellCoords Cell coordinates to equal.
+   * @returns {boolean}
    */
   isEqual(cellCoords) {
     if (cellCoords === this) {
@@ -54,43 +58,55 @@ class CellCoords {
   }
 
   /**
-   * Checks if tested coordinates are positioned in south-east from this cell coords
+   * Checks if tested coordinates are positioned in south-east from this cell coordinates.
    *
-   * @param {Object} testedCoords
-   * @returns {Boolean}
+   * @param {object} testedCoords Cell coordinates to check.
+   * @returns {boolean}
    */
   isSouthEastOf(testedCoords) {
     return this.row >= testedCoords.row && this.col >= testedCoords.col;
   }
 
   /**
-   * Checks if tested coordinates are positioned in north-east from this cell coords
+   * Checks if tested coordinates are positioned in north-east from this cell coordinates.
    *
-   * @param {Object} testedCoords
-   * @returns {Boolean}
+   * @param {object} testedCoords Cell coordinates to check.
+   * @returns {boolean}
    */
   isNorthWestOf(testedCoords) {
     return this.row <= testedCoords.row && this.col <= testedCoords.col;
   }
 
   /**
-   * Checks if tested coordinates are positioned in south-west from this cell coords
+   * Checks if tested coordinates are positioned in south-west from this cell coordinates.
    *
-   * @param {Object} testedCoords
-   * @returns {Boolean}
+   * @param {object} testedCoords Cell coordinates to check.
+   * @returns {boolean}
    */
   isSouthWestOf(testedCoords) {
     return this.row >= testedCoords.row && this.col <= testedCoords.col;
   }
 
   /**
-   * Checks if tested coordinates are positioned in north-east from this cell coords
+   * Checks if tested coordinates are positioned in north-east from this cell coordinates.
    *
-   * @param {Object} testedCoords
-   * @returns {Boolean}
+   * @param {object} testedCoords Cell coordinates to check.
+   * @returns {boolean}
    */
   isNorthEastOf(testedCoords) {
     return this.row <= testedCoords.row && this.col >= testedCoords.col;
+  }
+
+  /**
+   * Converts CellCoords to literal object with `row` and `col` properties.
+   *
+   * @returns {object} Returns a literal object with `row` and `col` properties.
+   */
+  toObject() {
+    return {
+      row: this.row,
+      col: this.col,
+    };
   }
 }
 

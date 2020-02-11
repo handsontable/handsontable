@@ -1,5 +1,5 @@
 describe('Core_listen', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,13 +13,13 @@ describe('Core_listen', () => {
   });
 
   it('should listen to changes when cell is selected', () => {
-    var hot = handsontable();
+    const hot = handsontable();
     hot.selectCell(0, 0);
     expect(hot.isListening()).toEqual(true);
   });
 
   it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', () => {
-    var hot = handsontable();
+    const hot = handsontable();
 
     hot.unlisten();
 
@@ -31,7 +31,7 @@ describe('Core_listen', () => {
   });
 
   it('should unlisten changes', () => {
-    var hot = handsontable();
+    const hot = handsontable();
     hot.selectCell(0, 0);
     expect(hot.isListening()).toEqual(true);
     hot.unlisten();
@@ -39,17 +39,50 @@ describe('Core_listen', () => {
   });
 
   it('should listen to changes, when called after unlisten', () => {
-    var hot = handsontable();
+    const hot = handsontable();
     hot.selectCell(0, 0);
     hot.unlisten();
     hot.listen();
     expect(hot.isListening()).toEqual(true);
   });
 
+  it('should change focus on active element, when listen without arguments was called', () => {
+    const hot = handsontable();
+    const input = document.createElement('input');
+
+    document.body.appendChild(input);
+
+    hot.selectCell(0, 0);
+    input.focus();
+    hot.listen();
+
+    expect(hot.isListening()).toEqual(true);
+    expect(document.activeElement).not.toBe(input);
+    expect(document.activeElement).toBe(document.body);
+
+    document.body.removeChild(input);
+  });
+
+  it('should not change focus on active element, when listen with first argument as `false` was called', () => {
+    const hot = handsontable();
+    const input = document.createElement('input');
+
+    document.body.appendChild(input);
+
+    hot.selectCell(0, 0);
+    input.focus();
+    hot.listen(false);
+
+    expect(hot.isListening()).toEqual(true);
+    expect(document.activeElement).toBe(input);
+
+    document.body.removeChild(input);
+  });
+
   it('when second instance is created, first should unlisten automatically', () => {
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
     $container2.handsontable('selectCell', 0, 0);
 
     expect($container1.handsontable('isListening')).toEqual(false);
@@ -62,9 +95,9 @@ describe('Core_listen', () => {
   });
 
   it('when listen is called on first instance, second should unlisten automatically', () => {
-    var $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
     $container1.handsontable('selectCell', 0, 0);
-    var $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
     $container2.handsontable('selectCell', 0, 0);
 
     $container1.handsontable('listen');
@@ -75,5 +108,37 @@ describe('Core_listen', () => {
     $container1.remove();
     $container2.handsontable('destroy');
     $container2.remove();
+  });
+
+  describe('hooks', () => {
+    it('should call `afterListen` after set listen on instance', () => {
+      const afterListenCallback = jasmine.createSpy('afterListenCallback');
+
+      handsontable({
+        afterListen: afterListenCallback
+      });
+
+      expect(afterListenCallback.calls.count()).toBe(0);
+
+      spec().$container.handsontable('listen');
+
+      expect(afterListenCallback.calls.count()).toBe(1);
+    });
+
+    it('should call `afterUnlisten` after unset listen on instance', () => {
+      const afterUnlistenCallback = jasmine.createSpy('afterListenCallback');
+
+      handsontable({
+        afterUnlisten: afterUnlistenCallback
+      });
+
+      spec().$container.handsontable('listen');
+
+      expect(afterUnlistenCallback.calls.count()).toBe(0);
+
+      spec().$container.handsontable('unlisten');
+
+      expect(afterUnlistenCallback.calls.count()).toBe(1);
+    });
   });
 });

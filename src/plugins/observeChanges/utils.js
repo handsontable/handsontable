@@ -1,9 +1,9 @@
-import {arrayFilter, arrayMap} from '../../helpers/array';
+import { arrayFilter, arrayMap } from '../../helpers/array';
 
 /**
  * Clean and extend patches from jsonpatch observer.
  *
- * @param {Array} patches
+ * @param {Array} patches The list of patches from jsonpatch lib to process.
  * @returns {Array}
  */
 export function cleanPatches(patches) {
@@ -13,7 +13,7 @@ export function cleanPatches(patches) {
    * If observeChanges uses native Object.observe method, then it produces patches for length property. Filter them.
    * If path can't be parsed. Filter it.
    */
-  patches = arrayFilter(patches, (patch) => {
+  let cleanedPatches = arrayFilter(patches, (patch) => {
     if (/[/]length/ig.test(patch.path)) {
       return false;
     }
@@ -24,9 +24,9 @@ export function cleanPatches(patches) {
     return true;
   });
   /**
-   * Extend patches with changed cells coords
+   * Extend patches with changed cells coords.
    */
-  patches = arrayMap(patches, (patch) => {
+  cleanedPatches = arrayMap(cleanedPatches, (patch) => {
     const coords = parsePath(patch.path);
 
     patch.row = coords.row;
@@ -38,7 +38,7 @@ export function cleanPatches(patches) {
    * Removing or adding column will produce one patch for each table row.
    * Leaves only one patch for each column add/remove operation.
    */
-  patches = arrayFilter(patches, (patch) => {
+  cleanedPatches = arrayFilter(cleanedPatches, (patch) => {
     if (['add', 'remove'].indexOf(patch.op) !== -1 && !isNaN(patch.col)) {
       if (newOrRemovedColumns.indexOf(patch.col) !== -1) {
         return false;
@@ -50,14 +50,14 @@ export function cleanPatches(patches) {
   });
   newOrRemovedColumns.length = 0;
 
-  return patches;
+  return cleanedPatches;
 }
 
 /**
  * Extract coordinates from path where data was changed.
  *
- * @param {String} path Path describing where data was changed.
- * @returns {Object|null} Returns an object with `row` and `col` properties or `null` if path doesn't have necessary information.
+ * @param {string} path Path describing where data was changed.
+ * @returns {object|null} Returns an object with `row` and `col` properties or `null` if path doesn't have necessary information.
  */
 export function parsePath(path) {
   const match = path.match(/^\/(\d+)\/?(.*)?$/);

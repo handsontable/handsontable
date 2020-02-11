@@ -1,5 +1,5 @@
-import {arrayEach} from './../../helpers/array';
-import {hasOwnProperty} from './../../helpers/object';
+import { arrayEach } from './../../helpers/array';
+import { hasOwnProperty } from './../../helpers/object';
 
 /**
  * Command executor for ContextMenu.
@@ -17,8 +17,8 @@ class CommandExecutor {
   /**
    * Register command.
    *
-   * @param {String} name Command name.
-   * @param {Object} commandDescriptor Command descriptor object with properties like `key` (command id),
+   * @param {string} name Command name.
+   * @param {object} commandDescriptor Command descriptor object with properties like `key` (command id),
    *                                   `callback` (task to execute), `name` (command name), `disabled` (command availability).
    */
   registerCommand(name, commandDescriptor) {
@@ -37,18 +37,18 @@ class CommandExecutor {
   /**
    * Execute command by its name.
    *
-   * @param {String} commandName Command id.
+   * @param {string} commandName Command id.
    * @param {*} params Arguments passed to command task.
    */
   execute(commandName, ...params) {
-    let commandSplit = commandName.split(':');
-    commandName = commandSplit[0];
+    const commandSplit = commandName.split(':');
+    const commandNamePrimary = commandSplit[0];
 
-    let subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
-    let command = this.commands[commandName];
+    const subCommandName = commandSplit.length === 2 ? commandSplit[1] : null;
+    let command = this.commands[commandNamePrimary];
 
     if (!command) {
-      throw new Error(`Menu command '${commandName}' not exists.`);
+      throw new Error(`Menu command '${commandNamePrimary}' not exists.`);
     }
     if (subCommandName && command.submenu) {
       command = findSubCommand(subCommandName, command.submenu.items);
@@ -56,13 +56,13 @@ class CommandExecutor {
     if (command.disabled === true) {
       return;
     }
-    if (typeof command.disabled == 'function' && command.disabled.call(this.hot) === true) {
+    if (typeof command.disabled === 'function' && command.disabled.call(this.hot) === true) {
       return;
     }
     if (hasOwnProperty(command, 'submenu')) {
       return;
     }
-    let callbacks = [];
+    const callbacks = [];
 
     if (typeof command.callback === 'function') {
       callbacks.push(command.callback);
@@ -71,15 +71,20 @@ class CommandExecutor {
       callbacks.push(this.commonCallback);
     }
     params.unshift(commandSplit.join(':'));
-    arrayEach(callbacks, (callback) => callback.apply(this.hot, params));
+    arrayEach(callbacks, callback => callback.apply(this.hot, params));
   }
 }
 
+/**
+ * @param {string} subCommandName The subcommand name.
+ * @param {string[]} subCommands The collection of the commands.
+ * @returns {boolean}
+ */
 function findSubCommand(subCommandName, subCommands) {
   let command;
 
   arrayEach(subCommands, (cmd) => {
-    let cmds = cmd.key ? cmd.key.split(':') : null;
+    const cmds = cmd.key ? cmd.key.split(':') : null;
 
     if (Array.isArray(cmds) && cmds[1] === subCommandName) {
       command = cmd;

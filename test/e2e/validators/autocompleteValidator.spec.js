@@ -1,5 +1,5 @@
 describe('autocompleteValidator', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -14,8 +14,8 @@ describe('autocompleteValidator', () => {
 
   describe('allowEmpty', () => {
     it('should validate empty cells positively (by default)', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],
@@ -48,8 +48,8 @@ describe('autocompleteValidator', () => {
     });
 
     it('should validate empty cells positively when allowEmpty is set to true', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],
@@ -83,8 +83,8 @@ describe('autocompleteValidator', () => {
     });
 
     it('should validate empty cells negatively when allowEmpty is set to false', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],
@@ -118,8 +118,8 @@ describe('autocompleteValidator', () => {
     });
 
     it('should respect the allowEmpty property for a single column', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+      handsontable({
         data: [
           ['some', 'sample', 'data']
         ],
@@ -157,8 +157,8 @@ describe('autocompleteValidator', () => {
     });
 
     it('should work for null and undefined values in cells', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+      handsontable({
         data: [
           ['some', 'sample', 'data']
         ],
@@ -197,8 +197,8 @@ describe('autocompleteValidator', () => {
   });
   describe('strict mode', () => {
     it('sshould validate negatively when chars have different size', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
-      var hot = handsontable({
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+      handsontable({
         data: [
           ['some', 'sample', 'data'],
         ],

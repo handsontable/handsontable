@@ -1,5 +1,5 @@
 describe('Core_init', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,17 +12,17 @@ describe('Core_init', () => {
     }
   });
 
-  it('should respect startRows and startCols when no data is provided', function() {
-    this.$container.remove();
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  it('should respect startRows and startCols when no data is provided', () => {
+    spec().$container.remove();
+    spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
     handsontable();
 
     expect(countRows()).toEqual(5); // as given in README.md
     expect(countCols()).toEqual(5); // as given in README.md
   });
 
-  it('should respect width provided in inline style', function() {
-    this.$container.css({
+  it('should respect width provided in inline style', () => {
+    spec().$container.css({
       overflow: 'auto',
       width: '200px'
     });
@@ -32,45 +32,58 @@ describe('Core_init', () => {
       ]
     });
 
-    expect(this.$container.width()).toEqual(200);
+    expect(spec().$container.width()).toEqual(200);
   });
 
-  it('should respect width provided in CSS class', function() {
+  it('should respect width provided in CSS class', () => {
     $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
-    this.$container.addClass('myTable');
+    spec().$container.addClass('myTable');
     handsontable({
       data: [
         ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
       ]
     });
 
-    expect(this.$container.width()).toEqual(200);
+    expect(spec().$container.width()).toEqual(200);
   });
 
-  it('should construct when container is not appended to document', function() {
-    this.$container.remove();
+  it('should construct when container is not appended to document', () => {
+    spec().$container.remove();
     handsontable();
     expect(getData()).toBeTruthy();
   });
 
-  it('Handsontable.Dom should be available as a helper to the plugins', () => {
-    // all public methods of Handsontable.Dom should be exposed here
-    expect(Handsontable.dom.closest).toBeDefined();
-    expect(Handsontable.dom.isChildOf).toBeDefined();
-    expect(Handsontable.dom.index).toBeDefined();
-    expect(Handsontable.dom.hasClass).toBeDefined();
-    expect(Handsontable.dom.addClass).toBeDefined();
-    expect(Handsontable.dom.removeClass).toBeDefined();
-    expect(Handsontable.dom.removeTextNodes).toBeDefined();
-    expect(Handsontable.dom.empty).toBeDefined();
-    expect(Handsontable.dom.fastInnerHTML).toBeDefined();
-    expect(Handsontable.dom.fastInnerText).toBeDefined();
-    expect(Handsontable.dom.isVisible).toBeDefined();
-    expect(Handsontable.dom.offset).toBeDefined();
-    expect(Handsontable.dom.getComputedStyle).toBeDefined();
-    expect(Handsontable.dom.outerWidth).toBeDefined();
-    expect(Handsontable.dom.outerHeight).toBeDefined();
-    expect(Handsontable.dom.getCaretPosition).toBeDefined();
-    expect(Handsontable.dom.setCaretPosition).toBeDefined();
+  it('should create an instance when the iframe is a container', () => {
+    const iframe = $('<iframe/>').appendTo(spec().$container);
+    const doc = iframe[0].contentDocument;
+
+    doc.open('text/html', 'replace');
+    doc.write(`
+      <!doctype html>
+      <head>
+        <link type="text/css" rel="stylesheet" href="../dist/handsontable.full.min.css">
+      </head>`);
+    doc.close();
+
+    const container = $('<div/>').appendTo(doc.body);
+    expect(() => {
+      container.handsontable({});
+      container.handsontable('destroy');
+    }).not.toThrow();
+  });
+
+  it('should create table even if is launched inside custom element', () => {
+    const onErrorSpy = spyOn(window, 'onerror');
+    spec().$container.remove();
+    spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
+
+    handsontable();
+
+    const cell = spec().$container.find('tr:eq(0) td:eq(1)');
+
+    mouseOver(cell);
+    mouseDown(cell);
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
   });
 });

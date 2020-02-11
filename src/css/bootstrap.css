@@ -13,12 +13,12 @@
   background-color: inherit;
 }
 
-.table caption + thead tr:first-child th,
-.table caption + thead tr:first-child td,
-.table colgroup + thead tr:first-child th,
-.table colgroup + thead tr:first-child td,
-.table thead:first-child tr:first-child th,
-.table thead:first-child tr:first-child td {
+.handsontable .table caption + thead tr:first-child th,
+.handsontable .table caption + thead tr:first-child td,
+.handsontable .table colgroup + thead tr:first-child th,
+.handsontable .table colgroup + thead tr:first-child td,
+.handsontable .table thead:first-child tr:first-child th,
+.handsontable .table thead:first-child tr:first-child td {
   border-top: 1px solid #CCCCCC;
 }
 
@@ -38,7 +38,12 @@
   border-left: 1px solid #CCCCCC;
 }
 
-.table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+.handsontable .table > tbody > tr > td,
+.handsontable .table > tbody > tr > th,
+.handsontable .table > tfoot > tr > td,
+.handsontable .table > tfoot > tr > th,
+.handsontable .table > thead > tr > td,
+.handsontable .table > thead > tr > th {
   line-height: 21px;
   padding: 0 4px;
 }
@@ -55,6 +60,6 @@
   padding-right: 0;
 }
 
-.table-striped > tbody > tr:nth-of-type(even) {
+.handsontable .table-striped > tbody > tr:nth-of-type(even) {
   background-color: #FFF;
 }

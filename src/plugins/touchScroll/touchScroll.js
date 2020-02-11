@@ -1,8 +1,8 @@
-import {addClass, removeClass} from './../../helpers/dom/element';
-import {arrayEach} from './../../helpers/array';
+import { addClass, removeClass } from './../../helpers/dom/element';
+import { arrayEach } from './../../helpers/array';
 import BasePlugin from './../_base';
-import {registerPlugin} from './../../plugins';
-import {isTouchSupported} from './../../helpers/feature';
+import { registerPlugin } from './../../plugins';
+import { isTouchSupported } from './../../helpers/feature';
 
 /**
  * @private
@@ -28,14 +28,14 @@ class TouchScroll extends BasePlugin {
     /**
      * Flag which determines if collection of overlays should be refilled on every table render.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.lockedCollection = false;
     /**
      * Flag which determines if walkontable should freeze overlays while scrolling.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.freezeOverlays = false;
@@ -44,7 +44,7 @@ class TouchScroll extends BasePlugin {
   /**
    * Check if plugin is enabled.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return isTouchSupported();
@@ -100,7 +100,7 @@ class TouchScroll extends BasePlugin {
       return;
     }
 
-    const {topOverlay, bottomOverlay, leftOverlay, topLeftCornerOverlay, bottomLeftCornerOverlay} = this.hot.view.wt.wtOverlays;
+    const { topOverlay, bottomOverlay, leftOverlay, topLeftCornerOverlay, bottomLeftCornerOverlay } = this.hot.view.wt.wtOverlays;
 
     this.lockedCollection = true;
     this.scrollbars.length = 0;

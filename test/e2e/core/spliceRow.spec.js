@@ -1,5 +1,5 @@
 describe('Core.spliceRow', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,11 +13,11 @@ describe('Core.spliceRow', () => {
   });
 
   it('should remove from the second row three columns starting from the beginning', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    var removedData = hot.spliceRow(1, 0, 3);
+    const removedData = hot.spliceRow(1, 0, 3);
 
     expect(removedData).toEqual(['A2', 'B2', 'C2']);
     expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -28,11 +28,11 @@ describe('Core.spliceRow', () => {
   });
 
   it('should remove from the third row three columns starting from the second column', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    var removedData = hot.spliceRow(2, 1, 3);
+    const removedData = hot.spliceRow(2, 1, 3);
 
     expect(removedData).toEqual(['B3', 'C3', 'D3']);
     expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -43,11 +43,11 @@ describe('Core.spliceRow', () => {
   });
 
   it('should replace and append new columns in the second row starting from the second column', () => {
-    var hot = handsontable({
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
 
-    var removedData = hot.spliceRow(1, 1, 3, 'X1', 'X2', 'X3', 'X4', 'X5');
+    const removedData = hot.spliceRow(1, 1, 3, 'X1', 'X2', 'X3', 'X4', 'X5');
 
     expect(removedData).toEqual(['B2', 'C2', 'D2']);
     expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', null, null]);
@@ -58,9 +58,9 @@ describe('Core.spliceRow', () => {
   });
 
   it('should trigger beforeChange and afterChange hook with proper arguments', () => {
-    var spyAfter = jasmine.createSpy('after');
-    var spyBefore = jasmine.createSpy('before');
-    var hot = handsontable({
+    const spyAfter = jasmine.createSpy('after');
+    const spyBefore = jasmine.createSpy('before');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       beforeChange: spyBefore,
       afterChange: spyAfter,
@@ -75,9 +75,9 @@ describe('Core.spliceRow', () => {
   });
 
   it('should trigger beforeCreateCol and afterCreateCol hook with proper arguments', () => {
-    var spyAfter = jasmine.createSpy('after');
-    var spyBefore = jasmine.createSpy('before');
-    var hot = handsontable({
+    const spyAfter = jasmine.createSpy('after');
+    const spyBefore = jasmine.createSpy('before');
+    const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
       beforeCreateCol: spyBefore,
       afterCreateCol: spyAfter,

@@ -25,7 +25,7 @@ describe('String helper', () => {
   //
   describe('substitute', () => {
     it('should properly substitute string to specified values', () => {
-      var vars = {
+      const vars = {
         zero: 0,
         empty: '',
         undef: void 0,

@@ -1,0 +1,26 @@
+.handsontable.ganttChart tr:first-child th div.relative {
+  padding-right: 21px;
+}
+.handsontable.ganttChart .colHeader {
+  display: block;
+}
+.handsontable.ganttChart td.rangeBar {
+  background: #48b703;
+  border-right-width: 0;
+  position: relative;
+  -webkit-box-shadow: inset 0 3px 0 #ffffff;
+  -moz-box-shadow: inset 0 3px 0 #ffffff;
+  box-shadow: inset 0 3px 0 #ffffff;
+}
+.handsontable.ganttChart td.rangeBar.last {
+  border-right-width: 1px;
+}
+.handsontable.ganttChart td.rangeBar.area {
+  background: #7EC481;
+}
+.handsontable.ganttChart td.rangeBar.partial {
+  background: #8edf5a;
+}
+.handsontable.ganttChart td.rangeBar.area.partial {
+  background: #A1D8AD;
+}

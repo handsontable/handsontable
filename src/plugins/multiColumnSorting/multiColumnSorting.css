@@ -1,0 +1,60 @@
+/* Column's number position */
+.handsontable span.colHeader.columnSorting::after {
+  /* Centering start */
+  top: 50%;
+  margin-top: -2px; /* Two extra pixels (-2 instead of -4) for purpose of proper positioning of numeric indicators, when `font-size` set to default */
+  /* Centering end */
+
+  position: absolute;
+  right: -15px;
+  padding-left: 5px; ; /* For purpose of continuous mouse over experience, when moving between the `::before` and the `::after` elements */
+
+  font-size: 8px;
+  height: 8px;
+  line-height: 1.1;
+  text-decoration: underline; /* Workaround for IE9 - IE11 */
+}
+
+/* Workaround for IE9 - IE11, https://stackoverflow.com/a/21902566, https://stackoverflow.com/a/32120247 */
+.handsontable span.colHeader.columnSorting::after {
+  text-decoration: none;
+}
+
+/* We support up to 7 numeric indicators, describing order of column in sorted columns queue */
+.handsontable span.colHeader.columnSorting[class^="sort-"]::after,
+.handsontable span.colHeader.columnSorting[class*=" sort-"]::after {
+  content: "+"
+}
+
+.handsontable span.colHeader.columnSorting.sort-1::after {
+  content: '1';
+}
+
+.handsontable span.colHeader.columnSorting.sort-2::after {
+  content: '2';
+}
+
+.handsontable span.colHeader.columnSorting.sort-3::after {
+  content: '3';
+}
+
+.handsontable span.colHeader.columnSorting.sort-4::after {
+  content: '4';
+}
+
+.handsontable span.colHeader.columnSorting.sort-5::after {
+  content: '5';
+}
+
+.handsontable span.colHeader.columnSorting.sort-6::after {
+  content: '6';
+}
+
+.handsontable span.colHeader.columnSorting.sort-7::after {
+  content: '7';
+}
+
+/* Drop-down menu widens header by 5 pixels, sort sequence numbers won't overlap the icon; mainly for the IE9+ */
+.htGhostTable th div button.changeType + span.colHeader.columnSorting:not(.indicatorDisabled) {
+  padding-right: 5px;
+}

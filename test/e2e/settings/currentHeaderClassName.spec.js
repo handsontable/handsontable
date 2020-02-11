@@ -1,5 +1,5 @@
 describe('settings', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -13,7 +13,7 @@ describe('settings', () => {
   });
 
   describe('currentHeaderClassName', () => {
-    it('should apply default currentHeaderClassName to cells in row where there is a selection', function() {
+    it('should apply default currentHeaderClassName to cells in row where there is a selection', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -22,10 +22,10 @@ describe('settings', () => {
 
       selectCell(2, 2);
 
-      expect(this.$container.find('.ht_master th.ht__highlight').length).toEqual(2);
+      expect(spec().$container.find('.ht_master th.ht__highlight').length).toEqual(2);
     });
 
-    it('should apply default currentHeaderClassName from cells after deselection', function() {
+    it('should apply default currentHeaderClassName from cells after deselection', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -35,9 +35,9 @@ describe('settings', () => {
       selectCell(2, 2);
       deselectCell();
 
-      expect(this.$container.find('.ht_master th.ht__highlight').length).toEqual(0);
+      expect(spec().$container.find('.ht_master th.ht__highlight').length).toEqual(0);
     });
-    it('should apply custom currentHeaderClassName to cells in row where there is a selection', function() {
+    it('should apply custom currentHeaderClassName to cells in row where there is a selection', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -47,7 +47,7 @@ describe('settings', () => {
 
       selectCell(2, 2);
 
-      expect(this.$container.find('.ht_master th.currentHeaderClassName').length).toEqual(2);
+      expect(spec().$container.find('.ht_master th.currentHeaderClassName').length).toEqual(2);
     });
   });
 });

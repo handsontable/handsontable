@@ -1,17 +1,16 @@
-import {defineGetter, objectEach} from './../helpers/object';
-import {arrayEach} from './../helpers/array';
-import {registerIdentity, getTranslator} from './../utils/recordTranslator';
-import {getRegistredPluginNames, getPluginName} from './../plugins';
+import { defineGetter, objectEach } from './../helpers/object';
+import { arrayEach } from './../helpers/array';
+import { getRegistredPluginNames, getPluginName } from './../plugins';
 
 const privatePool = new WeakMap();
 let initializedPlugins = null;
 
 /**
- * @private
+ * @util
  */
 class BasePlugin {
   /**
-   * @param {Object} hotInstance Handsontable instance.
+   * @param {object} hotInstance Handsontable instance.
    */
   constructor(hotInstance) {
     /**
@@ -22,11 +21,8 @@ class BasePlugin {
     defineGetter(this, 'hot', hotInstance, {
       writable: false
     });
-    defineGetter(this, 't', getTranslator(hotInstance), {
-      writable: false
-    });
 
-    privatePool.set(this, {hooks: {}});
+    privatePool.set(this, { hooks: {} });
     initializedPlugins = null;
 
     this.pluginName = null;
@@ -36,7 +32,7 @@ class BasePlugin {
     this.initialized = false;
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
-    this.hot.addHook('afterUpdateSettings', () => this.onUpdateSettings());
+    this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
     this.hot.addHook('beforeInit', () => this.init());
   }
 
@@ -79,8 +75,8 @@ class BasePlugin {
   /**
    * Add listener to plugin hooks system.
    *
-   * @param {String} name
-   * @param {Function} callback
+   * @param {string} name The hook name.
+   * @param {Function} callback The listener function to add.
    */
   addHook(name, callback) {
     privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
@@ -95,7 +91,7 @@ class BasePlugin {
   /**
    * Remove all hooks listeners by hook name.
    *
-   * @param {String} name
+   * @param {string} name The hook name.
    */
   removeHooks(name) {
     arrayEach(privatePool.get(this).hooks[name] || [], (callback) => {
@@ -116,7 +112,7 @@ class BasePlugin {
   /**
    * Register function which will be immediately called after all plugins initialized.
    *
-   * @param {Function} callback
+   * @param {Function} callback The listener function to call.
    */
   callOnPluginsReady(callback) {
     if (this.isPluginsReady) {
@@ -132,7 +128,7 @@ class BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    arrayEach(this.pluginsInitializedCallbacks, (callback) => callback());
+    arrayEach(this.pluginsInitializedCallbacks, callback => callback());
     this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
   }
@@ -175,7 +171,7 @@ class BasePlugin {
     this.clearHooks();
 
     objectEach(this, (value, property) => {
-      if (property !== 'hot' && property !== 't') {
+      if (property !== 'hot') {
         this[property] = null;
       }
     });

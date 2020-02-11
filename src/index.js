@@ -1,19 +1,20 @@
-import 'babel-polyfill';
-
 import './css/bootstrap.css';
+import './3rdparty/walkontable/css/walkontable.css';
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 
-import {getRegisteredEditorNames, registerEditor, getEditor} from './editors';
-import {getRegisteredRendererNames, getRenderer, registerRenderer} from './renderers';
-import {getRegisteredValidatorNames, getValidator, registerValidator} from './validators';
-import {getRegisteredCellTypeNames, getCellType, registerCellType} from './cellTypes';
+import { getRegisteredEditorNames, registerEditor, getEditor } from './editors';
+import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
+import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
+import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
 
 import Core from './core';
 import jQueryWrapper from './helpers/wrappers/jquery';
-import EventManager, {getListenersCounter} from './eventManager';
+import EventManager, { getListenersCounter } from './eventManager';
+import { getRegisteredMapsCounter } from './translations/mapCollection';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
+import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
 import * as browserHelpers from './helpers/browser';
 import * as dataHelpers from './helpers/data';
@@ -23,17 +24,26 @@ import * as functionHelpers from './helpers/function';
 import * as mixedHelpers from './helpers/mixed';
 import * as numberHelpers from './helpers/number';
 import * as objectHelpers from './helpers/object';
-import * as settingHelpers from './helpers/setting';
 import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
-import {registerPlugin} from './plugins';
-import DefaultSettings from './defaultSettings';
+import { registerPlugin } from './plugins';
+import { metaSchemaFactory } from './dataMap/index';
+import { rootInstanceSymbol } from './utils/rootInstance';
+import { getTranslatedPhrase } from './i18n';
+import * as constants from './i18n/constants';
 
+import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
+
+/**
+ * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * @param {object} userSettings The user defined options.
+ * @returns {Core}
+ */
 function Handsontable(rootElement, userSettings) {
-  const instance = new Core(rootElement, userSettings || {});
+  const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
 
   instance.init();
 
@@ -42,20 +52,17 @@ function Handsontable(rootElement, userSettings) {
 
 jQueryWrapper(Handsontable);
 
-Handsontable.Core = Core;
-Handsontable.DefaultSettings = DefaultSettings;
+Handsontable.Core = function(rootElement, userSettings = {}) {
+  return new Core(rootElement, userSettings, rootInstanceSymbol);
+};
+Handsontable.DefaultSettings = metaSchemaFactory();
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
+Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
 
-Handsontable.buildDate = __HOT_BUILD_DATE__;
-Handsontable.packageName = __HOT_PACKAGE_NAME__;
-Handsontable.version = __HOT_VERSION__;
-
-const baseVersion = __HOT_BASE_VERSION__;
-
-if (baseVersion) {
-  Handsontable.baseVersion = baseVersion;
-}
+Handsontable.packageName = 'handsontable';
+Handsontable.buildDate = process.env.HOT_BUILD_DATE;
+Handsontable.version = process.env.HOT_VERSION;
 
 // Export Hooks singleton
 Handsontable.hooks = Hooks.getSingleton();
@@ -75,9 +82,9 @@ const HELPERS = [
   mixedHelpers,
   numberHelpers,
   objectHelpers,
-  settingHelpers,
   stringHelpers,
   unicodeHelpers,
+  parseTableHelpers,
 ];
 const DOM = [
   domHelpers,
@@ -165,5 +172,13 @@ arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
 
 Handsontable.plugins.registerPlugin = registerPlugin;
 
-// Export Handsontable
-module.exports = Handsontable;
+Handsontable.languages = {};
+Handsontable.languages.dictionaryKeys = constants;
+Handsontable.languages.getLanguageDictionary = getLanguageDictionary;
+Handsontable.languages.getLanguagesDictionaries = getLanguagesDictionaries;
+Handsontable.languages.registerLanguageDictionary = registerLanguageDictionary;
+
+// Alias to `getTranslatedPhrase` function, for more information check it API.
+Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);
+
+export default Handsontable;

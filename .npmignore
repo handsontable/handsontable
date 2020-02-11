@@ -1,19 +1,18 @@
-.DS_Store
-.grunt
-.config
-.github
-.idea
-_SpecRunner.html
-cars.sqlite
-dev.html
-webpack.config.js
+# Ignore all files and directories in this repository...
+*
+*/
 
+# ...and add files and directories that are the only ones that match the pattern below
+!commonjs/**/*
+commonjs/3rdparty/walkontable/test
+!dist/*.js
+!dist/*.css
 !dist/README.md
-node_modules/
-
-# this directories are necessary for build PRO package
-#demo/
-#src/
-#lib/
-#test/
-#tasks/
+!dist/languages/*
+!es/**/*
+es/3rdparty/walkontable/test
+!languages/*
+!lib/**/*
+!handsontable-general-terms.pdf
+!handsontable-non-commercial-license.pdf
+!handsontable.d.ts

@@ -1,5 +1,5 @@
 describe('TextRenderer', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -56,12 +56,12 @@ describe('TextRenderer', () => {
   });
 
   it('should add class name `htDimmed` to a read only cell', () => {
-    var DIV = document.createElement('DIV');
-    var instance = new Handsontable.Core(DIV, {});
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable.Core(DIV, {});
 
-    var TD = document.createElement('TD');
+    const TD = document.createElement('TD');
     TD.className = 'someClass';
-    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {readOnly: true, readOnlyCellClassName: 'htDimmed'});
+    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', { readOnly: true, readOnlyCellClassName: 'htDimmed' });
     expect(TD.className).toEqual('someClass htDimmed');
 
     instance.destroy();
@@ -83,5 +83,26 @@ describe('TextRenderer', () => {
     setDataAtCell(1, 0, 'long long long long long long long text');
 
     expect($(getCell(1, 0)).height()).toBeGreaterThan($(getCell(0, 0)).height());
+  });
+
+  it('should wrap text when trimWhitespace option is false', () => {
+    const HOT = handsontable({
+      trimWhitespace: false,
+      wordWrap: true,
+      data: [
+        ['text', 'long long long long long text']
+      ],
+      colWidths: [100, 500]
+    });
+
+    const oldRowHeight = $(getCell(0, 1)).height();
+
+    HOT.updateSettings({
+      colWidths: [100, 100]
+    });
+
+    const newRowHeight = $(getCell(0, 1)).height();
+
+    expect(newRowHeight).toBeGreaterThan(oldRowHeight);
   });
 });

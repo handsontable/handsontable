@@ -1,5 +1,4 @@
-import {arrayEach} from './../helpers/array';
-import {defineGetter} from './../helpers/object';
+import { defineGetter } from './../helpers/object';
 
 const MIXIN_NAME = 'stateSaver';
 const STATE_PREFIX = 'state_';
@@ -16,7 +15,7 @@ const setState = function(object, stateId, value) {
 /**
  * Mixin object to extend functionality for save/restore object state.
  *
- * @type {Object}
+ * @type {object}
  */
 const stateSaver = {
   /**
@@ -27,7 +26,7 @@ const stateSaver = {
   /**
    * Get cached state.
    *
-   * @param {String|Number} stateId State identification.
+   * @param {string|number} stateId State identification.
    * @returns {*}
    */
   getCachedState(stateId) {
@@ -37,8 +36,8 @@ const stateSaver = {
   /**
    * Set state directly.
    *
-   * @param {String|Number} stateId State identification.
-   * @param {*} value
+   * @param {string|number} stateId State identification.
+   * @param {*} value Value to cache.
    */
   setCachedState(stateId, value) {
     setState(this, stateId, value);
@@ -47,7 +46,7 @@ const stateSaver = {
   /**
    * Save state object at given id.
    *
-   * @param {String|Number} stateId State identification.
+   * @param {string|number} stateId State identification.
    */
   saveState(stateId) {
     setState(this, stateId, this.getState());
@@ -56,7 +55,7 @@ const stateSaver = {
   /**
    * Restore state object from given id.
    *
-   * @param {String|Number} stateId State identification.
+   * @param {string|number} stateId State identification.
    */
   restoreState(stateId) {
     this.setState(getState(this, stateId));
@@ -65,8 +64,8 @@ const stateSaver = {
   /**
    * Returns `true` if state exists at given state id.
    *
-   * @param {String|Number} stateId State identification.
-   * @returns Boolean
+   * @param {string|number} stateId State identification.
+   * @returns {boolean}
    */
   hasSavedState(stateId) {
     return getState(this, stateId) !== void 0;
@@ -75,7 +74,7 @@ const stateSaver = {
   /**
    * Clear saved state.
    *
-   * @param {String|Number} stateId State identification.
+   * @param {string|number} stateId State identification.
    */
   clearState(stateId) {
     setState(this, stateId);

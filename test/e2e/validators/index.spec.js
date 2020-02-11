@@ -16,7 +16,7 @@ describe('validators', () => {
     }
   });
 
-  it('should register custom validator', async () => {
+  it('should register custom validator', async() => {
     registerValidator('myValidator', (value, cb) => {
       cb(value === 10);
     });

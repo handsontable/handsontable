@@ -1,517 +1,788 @@
 describe('WalkontableEvent', () => {
-  var $table,
-    debug = false;
+  const debug = false;
 
-  beforeEach(() => {
-    $table = $('<table></table>'); // create a table that is not attached to document
-    $table.appendTo('body');
-    createDataArray();
+  beforeEach(function() {
+    this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
+    this.$wrapper.width(500).height(201);
+    this.$container = $('<div></div>');
+    this.$table = $('<table></table>').addClass('htCore'); // create a table that is not attached to document
+    this.$wrapper.append(this.$container);
+    this.$container.append(this.$table);
+    this.$wrapper.appendTo('body');
+    createDataArray(100, 4);
   });
 
-  afterEach(() => {
+  afterEach(function() {
     if (!debug) {
       $('.wtHolder').remove();
     }
+
+    this.$wrapper.remove();
+    this.wotInstance.destroy();
   });
 
   it('should call `onCellMouseDown` callback', () => {
-    var
-      myCoords = null,
-      myTD = null,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        onCellMouseDown(event, coords, TD) {
-          myCoords = coords;
-          myTD = TD;
-        }
-      });
+    const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellMouseDown,
+    });
+
     wt.draw();
 
-    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.simulate('mousedown');
+    {
+      const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+      const button = 0;
 
-    expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
-    expect(myTD).toEqual($td[0]);
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseDown).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(2) td:eq(2)');
+      const button = 1;
+
+      onCellMouseDown.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseDown).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(3) td:eq(3)');
+      const button = 2;
+
+      onCellMouseDown.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseDown).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('should call `onCellMouseUp` callback', () => {
+    const onCellMouseUp = jasmine.createSpy('onCellMouseUp');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellMouseUp,
+    });
+
+    wt.draw();
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+      const button = 0;
+
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(2) td:eq(2)');
+      const button = 1;
+
+      onCellMouseUp.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(3) td:eq(3)');
+      const button = 2;
+
+      onCellMouseUp.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseUp).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('should call `onCellContextMenu` callback', () => {
+    const onCellContextMenu = jasmine.createSpy('onCellContextMenu');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellContextMenu,
+    });
+
+    wt.draw();
+
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
+    $td.simulate('contextmenu');
+
+    expect(onCellContextMenu).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellContextMenu).toHaveBeenCalledTimes(1);
   });
 
   it('should call `onCellMouseOver` callback', () => {
-    var
-      myCoords = null,
-      myTD = null,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        onCellMouseOver(event, coords, TD) {
-          myCoords = coords;
-          myTD = TD;
-        }
-      });
+    const onCellMouseOver = jasmine.createSpy('onCellMouseOver');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellMouseOver,
+    });
+
     wt.draw();
 
-    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.simulate('mouseover');
+    {
+      const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+      const button = 0;
 
-    expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
-    expect(myTD).toEqual($td[0]);
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOver).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(2) td:eq(2)');
+      const button = 1;
+
+      onCellMouseOver.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOver).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(3) td:eq(3)');
+      const button = 2;
+
+      onCellMouseOver.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+      ;
+
+      expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOver).toHaveBeenCalledTimes(1);
+    }
   });
 
   it('should call `onCellMouseOver` callback with correctly passed TD element when cell contains another table', () => {
-    var fn = jasmine.createSpy();
-    var wt = new Walkontable.Core({
-      table: $table[0],
+    const onCellMouseOver = jasmine.createSpy('onCellMouseOver');
+    const wt = walkontable({
       data: [['<table style="width: 50px;"><tr><td class="test">TEST</td></tr></table>']],
       totalRows: 1,
       totalColumns: 1,
-      onCellMouseOver: fn,
+      onCellMouseOver,
       cellRenderer(row, column, TD) {
         TD.innerHTML = wt.wtSettings.getSetting('data', row, column);
       },
     });
+
     wt.draw();
 
-    var outerTD = $table.find('tbody td:not(td.test)');
-    var innerTD = $table.find('tbody td.test');
+    const outerTD = spec().$table.find('tbody td:not(td.test)');
+    const innerTD = spec().$table.find('tbody td.test');
 
     innerTD.simulate('mouseover');
 
-    expect(fn.calls.argsFor(0)[2]).toBe(outerTD[0]);
+    expect(onCellMouseOver.calls.argsFor(0)[2]).toBe(outerTD[0]);
   });
 
-  it('should call `onCellMouseOut` callback', function () {
-    var myCoords = null,
-      myTD = null,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        onCellMouseOut: function (event, coords, TD) {
-          myCoords = coords;
-          myTD = TD;
-        }
-      });
+  it('should call `onCellMouseOut` callback', () => {
+    const onCellMouseOut = jasmine.createSpy('onCellMouseOut');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellMouseOut,
+    });
+
     wt.draw();
 
-    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.simulate('mouseover');
-    $td.simulate('mouseout');
+    {
+      const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+      const button = 0;
 
-    expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
-    expect(myTD).toEqual($td[0]);
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mouseout', { button })
+      ;
+
+      expect(onCellMouseOut).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOut).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(2) td:eq(2)');
+      const button = 1;
+
+      onCellMouseOut.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mouseout', { button })
+      ;
+
+      expect(onCellMouseOut).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOut).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      const $td = spec().$table.find('tbody tr:eq(3) td:eq(3)');
+      const button = 2;
+
+      onCellMouseOut.calls.reset();
+      $td
+        .simulate('mouseover', { button })
+        .simulate('mousemove', { button })
+        .simulate('mouseout', { button })
+      ;
+
+      expect(onCellMouseOut).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOut).toHaveBeenCalledTimes(1);
+    }
   });
 
-  it('should call `onCellMouseOut` callback with correctly passed TD element when cell contains another table', function () {
-    var fn = jasmine.createSpy();
-    var wt = new Walkontable.Core({
-      table: $table[0],
+  it('should call `onCellMouseOut` callback with correctly passed TD element when cell contains another table', () => {
+    const onCellMouseOut = jasmine.createSpy('onCellMouseOut');
+    const wt = walkontable({
       data: [['<table style="width: 50px;"><tr><td class="test">TEST</td></tr></table>']],
       totalRows: 1,
       totalColumns: 1,
-      onCellMouseOut: fn,
-      cellRenderer: function(row, column, TD) {
+      onCellMouseOut,
+      cellRenderer(row, column, TD) {
         TD.innerHTML = wt.wtSettings.getSetting('data', row, column);
       },
     });
+
     wt.draw();
 
-    var outerTD = $table.find('tbody td:not(td.test)');
-    var innerTD = $table.find('tbody td.test');
+    const outerTD = spec().$table.find('tbody td:not(td.test)');
 
-    innerTD.simulate('mouseover');
-    innerTD.simulate('mouseout');
+    spec().$table.find('tbody td.test')
+      .simulate('mouseover')
+      .simulate('mousemove')
+      .simulate('mouseout')
+    ;
 
-    expect(fn.calls.argsFor(0)[2]).toBe(outerTD[0]);
+    expect(onCellMouseOut.calls.argsFor(0)[2]).toBe(outerTD[0]);
   });
 
-  it('should call `onCellDblClick` callback', function () {
-    var myCoords = null,
-      myTD = null,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        onCellDblClick(event, coords, TD) {
-          myCoords = coords;
-          myTD = TD;
-        }
-      });
+  it('should call `onCellDblClick` callback but only for LMB', () => {
+    const onCellDblClick = jasmine.createSpy('onCellDblClick');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellDblClick,
+    });
+
     wt.draw();
 
-    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.simulate('mousedown');
-    $td.simulate('mouseup');
-    $td.simulate('mousedown');
-    $td.simulate('mouseup');
-    expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
-    expect(myTD).toEqual($td[0]);
+    {
+      const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+      const button = 0;
+
+      $td
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+        .simulate('dblclick', { button })
+      ;
+
+      expect(onCellDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellDblClick).toHaveBeenCalledTimes(1);
+    }
+
+    {
+      // Middle button click
+      const $td = spec().$table.find('tbody tr:eq(2) td:eq(2)');
+      const button = 1;
+
+      onCellDblClick.calls.reset();
+      $td
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+        .simulate('dblclick', { button })
+      ;
+
+      expect(onCellDblClick).toHaveBeenCalledTimes(0);
+    }
+
+    {
+      // Right button click
+      const $td = spec().$table.find('tbody tr:eq(3) td:eq(3)');
+      const button = 2;
+
+      onCellDblClick.calls.reset();
+      $td
+        .simulate('mousemove', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+        .simulate('mousedown', { button })
+        .simulate('mouseup', { button })
+        .simulate('click', { button })
+        .simulate('dblclick', { button })
+      ;
+
+      expect(onCellDblClick).toHaveBeenCalledTimes(0);
+    }
   });
 
   it('should call `onCellDblClick` callback, even when it is set only after first click', () => {
-    var
-      myCoords = null,
-      myTD = null,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns
-      });
+    const onCellDblClick = jasmine.createSpy('onCellDblClick');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+
     wt.draw();
 
-    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    $td.simulate('mousedown');
-    $td.simulate('mouseup');
-    $td.simulate('mousedown');
-    wt.update('onCellDblClick', (event, coords, TD) => {
-      myCoords = coords;
-      myTD = TD;
-    });
-    $td.simulate('mouseup');
-    expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
-    expect(myTD).toEqual($td[0]);
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
+    $td
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    wt.update('onCellDblClick', onCellDblClick);
+
+    $td
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    expect(onCellDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
   });
 
   it('should call `onCellMouseDown` callback when clicked on TH', () => {
-    var
-      called = false,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        columnHeaders: [function(col, TH) {
-          TH.innerHTML = col + 1;
-        }],
-        onCellMouseDown(event, coords, TD) {
-          called = true;
-        }
-      });
+    const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = col + 1;
+      }],
+      onCellMouseDown,
+    });
+
     wt.draw();
 
-    var $th = $table.find('th:first');
+    spec().$table.find('th:first')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
 
-    $th.simulate('mousedown');
-    expect(called).toEqual(true);
+    expect(onCellMouseDown).toHaveBeenCalledTimes(1);
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)', () => {
-    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((opt) => `<option value="${opt}">${opt}</option>`).join('');
-    var called = false;
-    var wt = new Walkontable.Core({
-      table: $table[0],
+    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
+    const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       columnHeaders: [function(col, TH) {
         TH.innerHTML = `#${col}<select>${opt}</select>`;
       }],
-      onCellMouseDown(event, coords, TD) {
-        called = true;
-      }
+      onCellMouseDown,
     });
+
     wt.draw();
 
-    var select = $table.find('th:first select');
+    spec().$table.find('.ht_clone_top th:first select')
+      .focus()
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
 
-    select.focus();
-    select.simulate('mousedown');
-
-    expect(called).toBe(false);
+    expect(onCellMouseDown).toHaveBeenCalledTimes(0);
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)', () => {
-    var opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map((opt) => `<option value="${opt}">${opt}</option>`).join('');
-    var called = false;
-    var wt = new Walkontable.Core({
-      table: $table[0],
+    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
+    const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
+    const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         TD.innerHTML = `<select>${opt}</select>`;
       },
-      onCellMouseDown(event, coords, TD) {
-        called = true;
-      }
+      onCellMouseDown,
     });
+
     wt.draw();
 
-    var select = $table.find('td:first select');
+    spec().$table.find('td:first select')
+      .focus()
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
 
-    select.focus();
-    select.simulate('mousedown');
-
-    expect(called).toBe(false);
+    expect(onCellMouseDown).toHaveBeenCalledTimes(0);
   });
 
   it('should call `onCellMouseOver` callback when clicked on TH', () => {
-    var
-      called = false,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        columnHeaders: [function(col, TH) {
-          TH.innerHTML = col + 1;
-        }],
-        onCellMouseOver(event, coords, TD) {
-          called = coords;
-        }
-      });
+    const onCellMouseOver = jasmine.createSpy('onCellMouseOver');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = col + 1;
+      }],
+      onCellMouseOver,
+    });
+
     wt.draw();
 
-    var $th = $table.find('th:first');
-    $th.simulate('mouseover');
-    expect(called.row).toEqual(-1);
-    expect(called.col).toEqual(0);
+    spec().$table.find('th:first')
+      .simulate('mouseover')
+      .simulate('mousemove')
+    ;
+
+    expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(-1, 0), jasmine.anything(), jasmine.any(wt.constructor));
   });
 
   it('should call `onCellDblClick` callback when clicked on TH', () => {
-    var
-      called = false,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        columnHeaders: [function(col, TH) {
-          TH.innerHTML = col + 1;
-        }],
-        onCellDblClick(event, coords, TD) {
-          called = true;
-        }
-      });
+    const onCellDblClick = jasmine.createSpy('onCellDblClick');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = col + 1;
+      }],
+      onCellDblClick,
+    });
+
     wt.draw();
 
-    var $th = $table.find('th:first');
+    spec().$table.find('th:first')
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+      .simulate('dblclick')
+    ;
 
-    $th.simulate('mousedown');
-    $th.simulate('mouseup');
-    $th.simulate('mousedown');
-    $th.simulate('mouseup');
-
-    expect(called).toEqual(true);
-  });
-
-  it('should not call `onCellDblClick` callback when right-clicked', () => {
-    var
-      called = false,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        onCellDblClick(event, coords, TD) {
-          called = true;
-        }
-      });
-    wt.draw();
-
-    var $td = $table.find('tbody tr:first td:first');
-    var options = {
-      button: 2
-    };
-
-    $td.simulate('mousedown', options);
-    $td.simulate('mouseup', options);
-    $td.simulate('mousedown', options);
-    $td.simulate('mouseup', options);
-
-    expect(called).toEqual(false);
+    expect(onCellDblClick).toHaveBeenCalledTimes(1);
   });
 
   it('should not call `onCellDblClick` when first mouse up came from mouse drag', () => {
-    var
-      called = false,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        onCellDblClick(event, coords, TD) {
-          called = true;
-        }
-      });
+    const onCellDblClick = jasmine.createSpy('onCellDblClick');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onCellDblClick,
+    });
+
     wt.draw();
 
-    var $td = $table.find('tbody tr:first td:first');
-    var $td2 = $table.find('tbody tr:first td:eq(1)');
+    spec().$table.find('tbody tr:first td:eq(1)')
+      .simulate('mousedown')
+    ;
+    spec().$table.find('tbody tr:first td:first')
+      .simulate('mouseup')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+      .simulate('dblclick')
+    ;
 
-    $td2.simulate('mousedown');
-    $td.simulate('mouseup');
-    $td.simulate('mousedown');
-    $td.simulate('mouseup');
-
-    expect(called).toEqual(false);
-  });
-
-  it('border click should call `onCellMouseDown` callback', () => {
-    var
-      myCoords = null,
-      myTD = null,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        selections: [
-          new Walkontable.Selection({
-            className: 'current',
-            border: {
-              width: 1,
-              color: 'red',
-              style: 'solid'
-            }
-          })
-        ],
-        onCellMouseDown(event, coords, TD) {
-          myCoords = coords;
-          myTD = TD;
-        }
-      });
-    shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(1, 1));
-    wt.draw();
-
-    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    var $border = $table.parents('.wtHolder').find('.wtBorder:first');
-
-    $border.simulate('mousedown');
-
-    expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
-    expect(myTD).toEqual($td[0]);
+    expect(onCellDblClick).toHaveBeenCalledTimes(0);
   });
 
   it('border click should call `onCellDblClick` callback', () => {
-    var
-      myCoords = null,
-      myTD = null,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        selections: [
-          new Walkontable.Selection({
-            className: 'current',
-            border: {
-              width: 1,
-              color: 'red',
-              style: 'solid'
-            }
-          })
-        ],
-        onCellDblClick(event, coords, TD) {
-          myCoords = coords;
-          myTD = TD;
-        }
-      });
-    shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(1, 1));
+    const onCellDblClick = jasmine.createSpy('onCellDblClick');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
+          border: {
+            width: 1,
+            color: 'red',
+            style: 'solid'
+          }
+        })
+      }),
+      onCellDblClick,
+    });
+
+    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
     wt.draw();
 
-    var $td = $table.find('tbody tr:eq(1) td:eq(1)');
-    var $border = $table.parents('.wtHolder').find('.wtBorder:first');
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
 
-    $border.simulate('mousedown');
-    $border.simulate('mouseup');
-    $border.simulate('mousedown');
-    $border.simulate('mouseup');
+    spec().$table.parents('.wtHolder')
+      .find('.current:first')
+      .simulate('mouseover')
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+      .simulate('dblclick')
+    ;
 
-    expect(myCoords).toEqual(new Walkontable.CellCoords(1, 1));
-    expect(myTD).toEqual($td[0]);
+    expect(onCellDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellDblClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('border click should call `onCellMouseDown` callback', () => {
+    const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
+          border: {
+            width: 1,
+            color: 'red',
+            style: 'solid'
+          }
+        })
+      }),
+      onCellMouseDown,
+    });
+
+    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
+    wt.draw();
+
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
+    spec().$table.parents('.wtHolder')
+      .find('.current:first')
+      .simulate('mouseover')
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellMouseDown).toHaveBeenCalledTimes(1);
+  });
+
+  it('border click should call `onCellMouseUp` callback', () => {
+    const onCellMouseUp = jasmine.createSpy('onCellMouseUp');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
+          border: {
+            width: 1,
+            color: 'red',
+            style: 'solid'
+          }
+        })
+      }),
+      onCellMouseUp,
+    });
+
+    wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
+    wt.draw();
+
+    const $td = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
+    spec().$table.parents('.wtHolder')
+      .find('.current:first')
+      .simulate('mouseover')
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellMouseUp).toHaveBeenCalledTimes(1);
   });
 
   // corner
+  it('border click should call `onCellCornerMouseDown` callback', () => {
+    const onCellCornerMouseDown = jasmine.createSpy('onCellCornerMouseDown');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
+          border: {
+            width: 1,
+            color: 'red',
+            style: 'solid'
+          }
+        })
+      }),
+      onCellCornerMouseDown,
+    });
 
-  it('should call `onCellCornerMouseDown` callback', () => {
-    var
-      clicked = false,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        selections: [
-          new Walkontable.Selection({
-            className: 'current',
-            border: {
-              width: 1,
-              color: 'red',
-              style: 'solid'
-            }
-          })
-        ],
-        onCellCornerMouseDown(event) {
-          clicked = true;
-        }
-      });
-    shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(10, 2));
+    wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
-    var $td = $table.parents('.wtHolder').find('.current.corner');
-    $td.simulate('mousedown');
+    const $el = spec().$table.parents('.wtHolder').find('.current.corner');
 
-    expect(clicked).toEqual(true);
+    $el
+      .simulate('mouseover')
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    expect(onCellCornerMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), $el[0], void 0, void 0);
+    expect(onCellCornerMouseDown).toHaveBeenCalledTimes(1);
   });
 
-  it('should call `onCellCornerDblClick` callback, even when it is set only after first click', () => {
-    var
-      clicked = false,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        selections: [
-          new Walkontable.Selection({
-            className: 'current',
-            border: {
-              width: 1,
-              color: 'red',
-              style: 'solid'
-            }
-          })
-        ]
-      });
-    shimSelectionProperties(wt);
-    wt.selections.current.add(new Walkontable.CellCoords(10, 2));
+  it('border click should call `onCellCornerDblClick` callback, even when it is set only after first click', () => {
+    const onCellCornerDblClick = jasmine.createSpy('onCellCornerDblClick');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        current: new Walkontable.Selection({
+          className: 'current',
+          border: {
+            width: 1,
+            color: 'red',
+            style: 'solid'
+          }
+        })
+      }),
+    });
+
+    wt.selections.getCell().add(new Walkontable.CellCoords(10, 2));
     wt.draw();
 
-    var $td = $table.parents('.wtHolder').find('.current.corner');
+    const $td = spec().$table.parents('.wtHolder').find('.current.corner');
 
-    $td.simulate('mousedown');
-    $td.simulate('mouseup');
-    $td.simulate('mousedown');
-    wt.update('onCellCornerDblClick', (event) => {
-      clicked = true;
-    });
-    $td.simulate('mouseup');
+    $td
+      .simulate('mousemove')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
 
-    expect(clicked).toEqual(true);
+    wt.update('onCellCornerDblClick', onCellCornerDblClick);
+
+    $td
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    expect(onCellCornerDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(10, 2), -2, jasmine.any(wt.constructor));
   });
 
   it('should call `onDraw` callback after render', () => {
-    var
-      count = 0,
-      wt = new Walkontable.Core({
-        table: $table[0],
-        data: getData,
-        totalRows: getTotalRows,
-        totalColumns: getTotalColumns,
-        onDraw() {
-          count++;
-        }
-      });
+    const onDraw = jasmine.createSpy('onDraw');
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      onDraw,
+    });
+
     wt.draw();
-    expect(count).toEqual(1);
+
+    expect(onDraw).toHaveBeenCalledTimes(1);
   });
 });

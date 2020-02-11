@@ -1,4 +1,4 @@
-import {requestAnimationFrame, cancelAnimationFrame} from './../helpers/feature';
+import { requestAnimationFrame, cancelAnimationFrame } from './../helpers/feature';
 
 /**
  * @class Interval
@@ -13,7 +13,7 @@ class Interval {
     /**
      * Animation frame request id.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.timer = null;
     /**
@@ -29,7 +29,7 @@ class Interval {
     /**
      * Flag which indicates if interval object was stopped.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default true
      */
     this.stopped = true;
@@ -37,7 +37,7 @@ class Interval {
      * Interval time (in milliseconds) of the last callback call.
      *
      * @private
-     * @type {Number}
+     * @type {number}
      */
     this._then = null;
     /**
@@ -103,10 +103,18 @@ class Interval {
 
 export default Interval;
 
+/**
+ * Convert delay from string format to milliseconds.
+ *
+ * @param {number|string} delay The delay in FPS (frame per second) or number format.
+ * @returns {number}
+ */
 export function parseDelay(delay) {
-  if (typeof delay === 'string' && /fps$/.test(delay)) {
-    delay = 1000 / parseInt(delay.replace('fps', '') || 0, 10);
+  let result = delay;
+
+  if (typeof result === 'string' && /fps$/.test(result)) {
+    result = 1000 / parseInt(result.replace('fps', '') || 0, 10);
   }
 
-  return delay;
+  return result;
 }

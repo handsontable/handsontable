@@ -1,5 +1,5 @@
 describe('Core_getDataType', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,7 +12,7 @@ describe('Core_getDataType', () => {
     }
   });
 
-  var arrayOfArrays = function() {
+  const arrayOfArrays = function() {
     return [
       ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
       ['2008', 10, 11, 12, 13],
@@ -30,15 +30,28 @@ describe('Core_getDataType', () => {
     expect(getDataType(0, 0, 1, 1)).toEqual('text');
   });
 
+  it('should iterate only for table cell range and ignore header coordinates (negative values)', () => {
+    const hot = handsontable({
+      data: arrayOfArrays()
+    });
+
+    spyOn(hot, 'getCellMeta').and.callThrough();
+
+    expect(getDataType(-1, -2, 2, 2)).toEqual('text');
+    expect(hot.getCellMeta.calls.count()).toBe(9);
+    expect(hot.getCellMeta.calls.first().args).toEqual([0, 0]);
+    expect(hot.getCellMeta.calls.mostRecent().args).toEqual([2, 2]);
+  });
+
   it('should return data type at specyfied range (type defined in columns)', () => {
     handsontable({
       data: arrayOfArrays(),
       columns: [
-        {type: 'numeric'},
-        {type: 'text'},
-        {type: 'date'},
-        {type: 'autocomplete'},
-        {type: 'dropdown'},
+        { type: 'numeric' },
+        { type: 'text' },
+        { type: 'date' },
+        { type: 'autocomplete' },
+        { type: 'dropdown' },
       ]
     });
 
@@ -54,7 +67,7 @@ describe('Core_getDataType', () => {
     handsontable({
       data: arrayOfArrays(),
       columns(column) {
-        var colMeta = {};
+        let colMeta = {};
 
         if (column === 0) {
           colMeta.type = 'numeric';
@@ -91,7 +104,7 @@ describe('Core_getDataType', () => {
     handsontable({
       data: arrayOfArrays(),
       cells(row, column) {
-        var cellMeta = {};
+        const cellMeta = {};
 
         if (row === 1 && column === 1) {
           cellMeta.type = 'date';

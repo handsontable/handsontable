@@ -1,5 +1,5 @@
 describe('Core.getCellsMeta', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -15,7 +15,7 @@ describe('Core.getCellsMeta', () => {
   it('should return all initialized cells meta as flatten array', () => {
     handsontable();
 
-    var metas = getCellsMeta();
+    const metas = getCellsMeta();
 
     expect(metas.length).toBe(25); // default data size
     expect(metas[0].row).toBe(0);

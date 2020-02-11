@@ -1,18 +1,17 @@
-import {empty} from './../helpers/dom/element';
+import { empty } from './../helpers/dom/element';
 import TextEditor from './textEditor';
 
 /**
  * @private
- * @editor PasswordEditor
  * @class PasswordEditor
- * @dependencies TextEditor
  */
 class PasswordEditor extends TextEditor {
   createElements() {
     super.createElements();
 
-    this.TEXTAREA = document.createElement('input');
+    this.TEXTAREA = this.hot.rootDocument.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
+    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.className = 'handsontableInput';
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;

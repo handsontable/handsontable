@@ -1,9 +1,17 @@
+import * as C from './../../../i18n/constants';
+
+/**
+ * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
+ * @returns {object}
+ */
 export default function freezeColumnItem(manualColumnFreezePlugin) {
   return {
     key: 'freeze_column',
-    name: 'Freeze this column',
-    callback() {
-      let selectedColumn = this.getSelectedRange().from.col;
+    name() {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_FREEZE_COLUMN);
+    },
+    callback(key, selected) {
+      const [{ start: { col: selectedColumn } }] = selected;
 
       manualColumnFreezePlugin.freezeColumn(selectedColumn);
 
@@ -11,13 +19,16 @@ export default function freezeColumnItem(manualColumnFreezePlugin) {
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
     hidden() {
-      let selection = this.getSelectedRange();
+      const selection = this.getSelectedRange();
       let hide = false;
 
       if (selection === void 0) {
         hide = true;
 
-      } else if ((selection.from.col !== selection.to.col) || (selection.from.col <= this.getSettings().fixedColumnsLeft - 1)) {
+      } else if (selection.length > 1) {
+        hide = true;
+
+      } else if ((selection[0].from.col !== selection[0].to.col) || (selection[0].from.col <= this.getSettings().fixedColumnsLeft - 1)) {
         hide = true;
       }
 

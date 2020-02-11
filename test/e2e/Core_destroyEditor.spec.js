@@ -1,5 +1,5 @@
 describe('Core_destroyEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -17,8 +17,8 @@ describe('Core_destroyEditor', () => {
     selectCell(1, 1);
 
     keyDownUp('enter');
-
     destroyEditor();
+
     expect(isEditorVisible()).toEqual(false);
   });
 
@@ -40,7 +40,7 @@ describe('Core_destroyEditor', () => {
     keyDownUp('enter');
 
     destroyEditor();
-    expect(getSelected()).toEqual([1, 1, 1, 1]);
+    expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
 
   it('should revert original value when param set to true', () => {
@@ -54,8 +54,8 @@ describe('Core_destroyEditor', () => {
     expect(getDataAtCell(1, 1)).toEqual(null);
   });
 
-  it('should not destroy editor on scroll', function() {
-    this.$container.css({
+  it('should not destroy editor on scroll', () => {
+    spec().$container.css({
       width: 200,
       height: 100
     });
@@ -67,11 +67,11 @@ describe('Core_destroyEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInputHolder');
+    const editor = $('.handsontableInputHolder');
 
     expect(editor.is(':visible')).toBe(true);
 
-    this.$container.scroll();
+    spec().$container.scroll();
 
     expect(editor.is(':visible')).toBe(true);
 

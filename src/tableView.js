@@ -1,805 +1,879 @@
 import {
   addClass,
+  clearTextSelection,
   empty,
   fastInnerHTML,
   fastInnerText,
-  getComputedStyle,
   getScrollbarWidth,
   hasClass,
   isChildOf,
   isInput,
-  isOutsideInput
+  isOutsideInput,
 } from './helpers/dom/element';
-import {isChrome, isSafari} from './helpers/browser';
 import EventManager from './eventManager';
-import {stopPropagation, isImmediatePropagationStopped, isRightClick, isLeftClick} from './helpers/dom/event';
-import Walkontable, {CellCoords, Selection} from './3rdparty/walkontable/src';
+import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import Walkontable from './3rdparty/walkontable/src';
+import { handleMouseEvent } from './selection/mouseEventHandler';
+
+const privatePool = new WeakMap();
 
 /**
- * Handsontable TableView constructor
- * @param {Object} instance
+ * @class TableView
+ * @private
  */
-function TableView(instance) {
-  var that = this;
+class TableView {
+  /**
+   * @param {Hanstontable} instance Instance of {@link Handsontable}.
+   */
+  constructor(instance) {
+    /**
+     * Instance of {@link Handsontable}.
+     *
+     * @private
+     * @type {Handsontable}
+     */
+    this.instance = instance;
+    /**
+     * Instance of {@link EventManager}.
+     *
+     * @private
+     * @type {EventManager}
+     */
+    this.eventManager = new EventManager(instance);
+    /**
+     * Current Handsontable's GridSettings object.
+     *
+     * @private
+     * @type {GridSettings}
+     */
+    this.settings = instance.getSettings();
+    /**
+     * Main <THEAD> element.
+     *
+     * @type {HTMLTableSectionElement}
+     */
+    this.THEAD = void 0;
+    /**
+     * Main <TBODY> element.
+     *
+     * @type {HTMLTableSectionElement}
+     */
+    this.TBODY = void 0;
+    /**
+     * Main Walkontable instance.
+     *
+     * @type {Walkontable}
+     */
+    this.wt = void 0;
+    /**
+     * Main Walkontable instance.
+     *
+     * @private
+     * @type {Walkontable}
+     */
+    this.activeWt = void 0;
 
-  this.eventManager = new EventManager(instance);
-  this.instance = instance;
-  this.settings = instance.getSettings();
-  this.selectionMouseDown = false;
+    privatePool.set(this, {
+      /**
+       * Defines if the text should be selected during mousemove.
+       *
+       * @private
+       * @type {boolean}
+       */
+      selectionMouseDown: false,
+      /**
+       * @private
+       * @type {boolean}
+       */
+      mouseDown: void 0,
+      /**
+       * Main <TABLE> element.
+       *
+       * @private
+       * @type {HTMLTableElement}
+       */
+      table: void 0,
+      /**
+       * Cached width of the rootElement.
+       *
+       * @type {number}
+       */
+      lastWidth: 0,
+      /**
+       * Cached height of the rootElement.
+       *
+       * @type {number}
+       */
+      lastHeight: 0,
+    });
 
-  var originalStyle = instance.rootElement.getAttribute('style');
-
-  if (originalStyle) {
-    instance.rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+    this.createElements();
+    this.registerEvents();
+    this.initializeWalkontable();
   }
 
-  addClass(instance.rootElement, 'handsontable');
-
-  var table = document.createElement('TABLE');
-  addClass(table, 'htCore');
-
-  if (instance.getSettings().tableClassName) {
-    addClass(table, instance.getSettings().tableClassName);
+  /**
+   * Renders WalkontableUI.
+   */
+  render() {
+    this.wt.draw(!this.instance.forceFullRender);
+    this.instance.forceFullRender = false;
+    this.instance.renderCall = false;
   }
-  this.THEAD = document.createElement('THEAD');
-  table.appendChild(this.THEAD);
-  this.TBODY = document.createElement('TBODY');
-  table.appendChild(this.TBODY);
 
-  instance.table = table;
+  /**
+   * Returns td object given coordinates.
+   *
+   * @param {CellCoords} coords The cell coordinates.
+   * @param {boolean} topmost Indicates whether the cell should be calculated from the topmost.
+   * @returns {HTMLTableCellElement|null}
+   */
+  getCellAtCoords(coords, topmost) {
+    const td = this.wt.getCell(coords, topmost);
 
-  instance.container.insertBefore(table, instance.container.firstChild);
-
-  this.eventManager.addEventListener(instance.rootElement, 'mousedown', function(event) {
-    this.selectionMouseDown = true;
-
-    if (!that.isTextSelectionAllowed(event.target)) {
-      clearTextSelection();
-      event.preventDefault();
-      window.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
-    }
-  });
-  this.eventManager.addEventListener(instance.rootElement, 'mouseup', function(event) {
-    this.selectionMouseDown = false;
-  });
-  this.eventManager.addEventListener(instance.rootElement, 'mousemove', function(event) {
-    if (this.selectionMouseDown && !that.isTextSelectionAllowed(event.target)) {
-      clearTextSelection();
-      event.preventDefault();
-    }
-  });
-
-  this.eventManager.addEventListener(document.documentElement, 'keyup', function(event) {
-    if (instance.selection.isInProgress() && !event.shiftKey) {
-      instance.selection.finish();
-    }
-  });
-
-  var isMouseDown;
-  this.isMouseDown = function() {
-    return isMouseDown;
-  };
-
-  this.eventManager.addEventListener(document.documentElement, 'mouseup', function(event) {
-    if (instance.selection.isInProgress() && event.which === 1) { // is left mouse button
-      instance.selection.finish();
+    if (td < 0) { // there was an exit code (cell is out of bounds)
+      return null;
     }
 
-    isMouseDown = false;
+    return td;
+  }
 
-    if (isOutsideInput(document.activeElement) || !instance.selection.isSelected()) {
-      instance.unlisten();
+  /**
+   * Scroll viewport to a cell.
+   *
+   * @param {CellCoords} coords The cell coordinates.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left side of the table.
+   * @returns {boolean}
+   */
+  scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
+    return this.wt.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
+  }
+
+  /**
+   * Scroll viewport to a column.
+   *
+   * @param {number} column Visual column index.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left side of the table.
+   * @returns {boolean}
+   */
+  scrollViewportHorizontally(column, snapToRight, snapToLeft) {
+    return this.wt.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+  }
+
+  /**
+   * Scroll viewport to a row.
+   *
+   * @param {number} row Visual row index.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
+   * @returns {boolean}
+   */
+  scrollViewportVertically(row, snapToTop, snapToBottom) {
+    return this.wt.scrollViewportVertically(row, snapToTop, snapToBottom);
+  }
+
+  /**
+   * Prepares DOMElements and adds correct className to the root element.
+   *
+   * @private
+   */
+  createElements() {
+    const priv = privatePool.get(this);
+    const { rootElement, rootDocument } = this.instance;
+    const originalStyle = rootElement.getAttribute('style');
+
+    if (originalStyle) {
+      rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
     }
-  });
 
-  this.eventManager.addEventListener(document.documentElement, 'mousedown', function(event) {
-    var originalTarget = event.target;
-    var next = event.target;
-    var eventX = event.x || event.clientX;
-    var eventY = event.y || event.clientY;
+    addClass(rootElement, 'handsontable');
 
-    if (isMouseDown || !instance.rootElement) {
-      return; // it must have been started in a cell
+    priv.table = rootDocument.createElement('TABLE');
+    addClass(priv.table, 'htCore');
+
+    if (this.instance.getSettings().tableClassName) {
+      addClass(priv.table, this.instance.getSettings().tableClassName);
     }
 
-    // immediate click on "holder" means click on the right side of vertical scrollbar
-    if (next === instance.view.wt.wtTable.holder) {
-      var scrollbarWidth = getScrollbarWidth();
+    this.THEAD = rootDocument.createElement('THEAD');
+    priv.table.appendChild(this.THEAD);
 
-      if (document.elementFromPoint(eventX + scrollbarWidth, eventY) !== instance.view.wt.wtTable.holder ||
-        document.elementFromPoint(eventX, eventY + scrollbarWidth) !== instance.view.wt.wtTable.holder) {
-        return;
+    this.TBODY = rootDocument.createElement('TBODY');
+    priv.table.appendChild(this.TBODY);
+
+    this.instance.table = priv.table;
+
+    this.instance.container.insertBefore(priv.table, this.instance.container.firstChild);
+  }
+
+  /**
+   * Attaches necessary listeners.
+   *
+   * @private
+   */
+  registerEvents() {
+    const priv = privatePool.get(this);
+    const { rootElement, rootDocument } = this.instance;
+    const documentElement = rootDocument.documentElement;
+
+    this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
+      priv.selectionMouseDown = true;
+
+      if (!this.isTextSelectionAllowed(event.target)) {
+        const { rootWindow } = this.instance;
+        clearTextSelection(rootWindow);
+        event.preventDefault();
+        rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
       }
-    } else {
-      while (next !== document.documentElement) {
-        if (next === null) {
-          if (event.isTargetWebComponent) {
-            break;
-          }
-          // click on something that was a row but now is detached (possibly because your click triggered a rerender)
-          return;
+    });
+
+    this.eventManager.addEventListener(rootElement, 'mouseup', () => {
+      priv.selectionMouseDown = false;
+    });
+    this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
+      if (priv.selectionMouseDown && !this.isTextSelectionAllowed(event.target)) {
+        // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breakes the IME editor.
+        if (this.settings.fragmentSelection) {
+          clearTextSelection(this.instance.rootWindow);
         }
-        if (next === instance.rootElement) {
-          // click inside container
+        event.preventDefault();
+      }
+    });
+
+    this.eventManager.addEventListener(documentElement, 'keyup', (event) => {
+      if (this.instance.selection.isInProgress() && !event.shiftKey) {
+        this.instance.selection.finish();
+      }
+    });
+
+    this.eventManager.addEventListener(documentElement, 'mouseup', (event) => {
+      if (this.instance.selection.isInProgress() && isLeftClick(event)) { // is left mouse button
+        this.instance.selection.finish();
+      }
+
+      priv.mouseDown = false;
+
+      if (isOutsideInput(rootDocument.activeElement) || (!this.instance.selection.isSelected() && !isRightClick(event))) {
+        this.instance.unlisten();
+      }
+    });
+
+    this.eventManager.addEventListener(documentElement, 'contextmenu', (event) => {
+      if (this.instance.selection.isInProgress() && isRightClick(event)) {
+        this.instance.selection.finish();
+
+        priv.mouseDown = false;
+      }
+    });
+
+    this.eventManager.addEventListener(documentElement, 'touchend', () => {
+      if (this.instance.selection.isInProgress()) {
+        this.instance.selection.finish();
+      }
+
+      priv.mouseDown = false;
+    });
+
+    this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
+      const originalTarget = event.target;
+      const eventX = event.x || event.clientX;
+      const eventY = event.y || event.clientY;
+      let next = event.target;
+
+      if (priv.mouseDown || !rootElement || !this.instance.view) {
+        return; // it must have been started in a cell
+      }
+
+      // immediate click on "holder" means click on the right side of vertical scrollbar
+      const { holder } = this.instance.view.wt.wtTable;
+
+      if (next === holder) {
+        const scrollbarWidth = getScrollbarWidth(rootDocument);
+
+        if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder ||
+          rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
           return;
-        }
-        next = next.parentNode;
-      }
-    }
-
-    // function did not return until here, we have an outside click!
-
-    var outsideClickDeselects = typeof that.settings.outsideClickDeselects === 'function' ?
-      that.settings.outsideClickDeselects(originalTarget) :
-      that.settings.outsideClickDeselects;
-
-    if (outsideClickDeselects) {
-      instance.deselectCell();
-    } else {
-      instance.destroyEditor();
-    }
-  });
-
-  this.eventManager.addEventListener(table, 'selectstart', function(event) {
-    if (that.settings.fragmentSelection || isInput(event.target)) {
-      return;
-    }
-    // https://github.com/handsontable/handsontable/issues/160
-    // Prevent text from being selected when performing drag down.
-    event.preventDefault();
-  });
-
-  var clearTextSelection = function() {
-    // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
-    if (window.getSelection) {
-      if (window.getSelection().empty) { // Chrome
-        window.getSelection().empty();
-      } else if (window.getSelection().removeAllRanges) { // Firefox
-        window.getSelection().removeAllRanges();
-      }
-    } else if (document.selection) { // IE?
-      document.selection.empty();
-    }
-  };
-
-  var selections = [
-    new Selection({
-      className: 'current',
-      border: {
-        width: 2,
-        color: '#5292F7',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && !instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'area',
-      border: {
-        width: 1,
-        color: '#89AFF9',
-        // style: 'solid', // not used
-        cornerVisible: function() {
-          return that.settings.fillHandle && !that.isCellEdited() && instance.selection.isMultiple();
-        },
-        multipleSelectionHandlesVisible: function() {
-          return !that.isCellEdited() && instance.selection.isMultiple();
-        },
-      },
-    }),
-    new Selection({
-      className: 'highlight',
-      highlightHeaderClassName: that.settings.currentHeaderClassName,
-      highlightRowClassName: that.settings.currentRowClassName,
-      highlightColumnClassName: that.settings.currentColClassName,
-    }),
-    new Selection({
-      className: 'fill',
-      border: {
-        width: 1,
-        color: 'red',
-        // style: 'solid' // not used
-      },
-    }),
-  ];
-  selections.current = selections[0];
-  selections.area = selections[1];
-  selections.highlight = selections[2];
-  selections.fill = selections[3];
-
-  var walkontableConfig = {
-    debug: function() {
-      return that.settings.debug;
-    },
-    externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
-    table: table,
-    preventOverflow: () => this.settings.preventOverflow,
-    stretchH: function() {
-      return that.settings.stretchH;
-    },
-    data: instance.getDataAtCell,
-    totalRows: () => instance.countRows(),
-    totalColumns: () => instance.countCols(),
-    fixedColumnsLeft: function() {
-      return that.settings.fixedColumnsLeft;
-    },
-    fixedRowsTop: function() {
-      return that.settings.fixedRowsTop;
-    },
-    fixedRowsBottom: function() {
-      return that.settings.fixedRowsBottom;
-    },
-    minSpareRows: function() {
-      return that.settings.minSpareRows;
-    },
-    renderAllRows: that.settings.renderAllRows,
-    rowHeaders: function() {
-      let headerRenderers = [];
-
-      if (instance.hasRowHeaders()) {
-        headerRenderers.push(function(row, TH) {
-          that.appendRowHeader(row, TH);
-        });
-      }
-      instance.runHooks('afterGetRowHeaderRenderers', headerRenderers);
-
-      return headerRenderers;
-    },
-    columnHeaders: function() {
-      let headerRenderers = [];
-
-      if (instance.hasColHeaders()) {
-        headerRenderers.push(function(column, TH) {
-          that.appendColHeader(column, TH);
-        });
-      }
-      instance.runHooks('afterGetColumnHeaderRenderers', headerRenderers);
-
-      return headerRenderers;
-    },
-    columnWidth: instance.getColWidth,
-    rowHeight: instance.getRowHeight,
-    cellRenderer: function(row, col, TD) {
-      const cellProperties = that.instance.getCellMeta(row, col);
-      const prop = that.instance.colToProp(col);
-      let value = that.instance.getDataAtRowProp(row, prop);
-
-      if (that.instance.hasHook('beforeValueRender')) {
-        value = that.instance.runHooks('beforeValueRender', value);
-      }
-
-      that.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
-      that.instance.getCellRenderer(cellProperties)(that.instance, TD, row, col, prop, value, cellProperties);
-      that.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
-
-    },
-    selections: selections,
-    hideBorderOnMouseDownOver: function() {
-      return that.settings.fragmentSelection;
-    },
-    onCellMouseDown: function(event, coords, TD, wt) {
-      let blockCalculations = {
-        row: false,
-        column: false,
-        cells: false
-      };
-
-      instance.listen();
-
-      that.activeWt = wt;
-      isMouseDown = true;
-
-      instance.runHooks('beforeOnCellMouseDown', event, coords, TD, blockCalculations);
-
-      if (isImmediatePropagationStopped(event)) {
-        return;
-      }
-
-      let actualSelection = instance.getSelectedRange();
-      let selection = instance.selection;
-      let selectedHeader = selection.selectedHeader;
-
-      if (event.shiftKey && actualSelection) {
-        if (coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
-          selection.setSelectedHeaders(false, false);
-          selection.setRangeEnd(coords);
-
-        } else if ((selectedHeader.cols || selectedHeader.rows) && coords.row >= 0 && coords.col >= 0 && !blockCalculations.cells) {
-          selection.setSelectedHeaders(false, false);
-          selection.setRangeEnd(new CellCoords(coords.row, coords.col));
-
-        } else if (selectedHeader.cols && coords.row < 0 && !blockCalculations.column) {
-          selection.setRangeEnd(new CellCoords(actualSelection.to.row, coords.col));
-
-        } else if (selectedHeader.rows && coords.col < 0 && !blockCalculations.row) {
-          selection.setRangeEnd(new CellCoords(coords.row, actualSelection.to.col));
-
-        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.col < 0) ||
-                   (selectedHeader.cols && coords.col < 0)) && !blockCalculations.row) {
-          selection.setSelectedHeaders(true, false);
-          selection.setRangeStartOnly(new CellCoords(actualSelection.from.row, 0));
-          selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1));
-
-        } else if (((!selectedHeader.cols && !selectedHeader.rows && coords.row < 0) ||
-                   (selectedHeader.rows && coords.row < 0)) && !blockCalculations.column) {
-          selection.setSelectedHeaders(false, true);
-          selection.setRangeStartOnly(new CellCoords(0, actualSelection.from.col));
-          selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col));
         }
       } else {
-        let doNewSelection = true;
-
-        if (actualSelection) {
-          let {from, to} = actualSelection;
-          let coordsNotInSelection = !selection.inInSelection(coords);
-
-          if (coords.row < 0 && selectedHeader.cols) {
-            let start = Math.min(from.col, to.col);
-            let end = Math.max(from.col, to.col);
-
-            doNewSelection = (coords.col < start || coords.col > end);
-
-          } else if (coords.col < 0 && selectedHeader.rows) {
-            let start = Math.min(from.row, to.row);
-            let end = Math.max(from.row, to.row);
-
-            doNewSelection = (coords.row < start || coords.row > end);
-
-          } else {
-            doNewSelection = coordsNotInSelection;
+        while (next !== documentElement) {
+          if (next === null) {
+            if (event.isTargetWebComponent) {
+              break;
+            }
+            // click on something that was a row but now is detached (possibly because your click triggered a rerender)
+            return;
           }
-        }
-
-        const rightClick = isRightClick(event);
-        const leftClick = isLeftClick(event) || event.type === 'touchstart';
-
-        // clicked row header and when some column was selected
-        if (coords.row < 0 && coords.col >= 0 && !blockCalculations.column) {
-          selection.setSelectedHeaders(false, true);
-
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setRangeStartOnly(new CellCoords(0, coords.col));
-            selection.setRangeEnd(new CellCoords(Math.max(instance.countRows() - 1, 0), coords.col), false);
+          if (next === rootElement) {
+            // click inside container
+            return;
           }
-
-        // clicked column header and when some row was selected
-        } else if (coords.col < 0 && coords.row >= 0 && !blockCalculations.row) {
-          selection.setSelectedHeaders(true, false);
-
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setRangeStartOnly(new CellCoords(coords.row, 0));
-            selection.setRangeEnd(new CellCoords(coords.row, Math.max(instance.countCols() - 1, 0)), false);
-          }
-
-        } else if (coords.col >= 0 && coords.row >= 0 && !blockCalculations.cells) {
-          if (leftClick || (rightClick && doNewSelection)) {
-            selection.setSelectedHeaders(false, false);
-            selection.setRangeStart(coords);
-          }
-        } else if (coords.col < 0 && coords.row < 0) {
-          coords.row = 0;
-          coords.col = 0;
-
-          selection.setSelectedHeaders(false, false, true);
-          selection.setRangeStart(coords);
+          next = next.parentNode;
         }
       }
 
-      instance.runHooks('afterOnCellMouseDown', event, coords, TD);
-      that.activeWt = that.wt;
-    },
-    onCellMouseOut: function(event, coords, TD, wt) {
-      that.activeWt = wt;
-      instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
+      // function did not return until here, we have an outside click!
+      const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
+        this.settings.outsideClickDeselects(originalTarget) :
+        this.settings.outsideClickDeselects;
 
-      if (isImmediatePropagationStopped(event)) {
+      if (outsideClickDeselects) {
+        this.instance.deselectCell();
+      } else {
+        this.instance.destroyEditor(false, false);
+      }
+    });
+
+    this.eventManager.addEventListener(priv.table, 'selectstart', (event) => {
+      if (this.settings.fragmentSelection || isInput(event.target)) {
         return;
       }
+      // https://github.com/handsontable/handsontable/issues/160
+      // Prevent text from being selected when performing drag down.
+      event.preventDefault();
+    });
+  }
 
-      instance.runHooks('afterOnCellMouseOut', event, coords, TD);
-      that.activeWt = that.wt;
-    },
-    onCellMouseOver: function(event, coords, TD, wt) {
-      let blockCalculations = {
-        row: false,
-        column: false,
-        cell: false
-      };
+  /**
+   * Defines default configuration and initializes WalkOnTable intance.
+   *
+   * @private
+   */
+  initializeWalkontable() {
+    const priv = privatePool.get(this);
+    const walkontableConfig = {
+      debug: () => this.settings.debug,
+      externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
+      table: priv.table,
+      preventOverflow: () => this.settings.preventOverflow,
+      preventWheel: () => this.settings.preventWheel,
+      stretchH: () => this.settings.stretchH,
+      data: this.instance.getDataAtCell,
+      totalRows: () => this.instance.countRows(),
+      totalColumns: () => this.instance.countCols(),
+      fixedColumnsLeft: () => this.settings.fixedColumnsLeft,
+      fixedRowsTop: () => this.settings.fixedRowsTop,
+      fixedRowsBottom: () => this.settings.fixedRowsBottom,
+      minSpareRows: () => this.settings.minSpareRows,
+      renderAllRows: this.settings.renderAllRows,
+      rowHeaders: () => {
+        const headerRenderers = [];
 
-      that.activeWt = wt;
-      instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+        if (this.instance.hasRowHeaders()) {
+          headerRenderers.push((row, TH) => this.appendRowHeader(row, TH));
+        }
 
-      if (isImmediatePropagationStopped(event)) {
-        return;
-      }
+        this.instance.runHooks('afterGetRowHeaderRenderers', headerRenderers);
 
-      if (event.button === 0 && isMouseDown) {
-        if (coords.row >= 0 && coords.col >= 0) { // is not a header
-          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
+        return headerRenderers;
+      },
+      columnHeaders: () => {
+        const headerRenderers = [];
 
-          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
+        if (this.instance.hasColHeaders()) {
+          headerRenderers.push((column, TH) => {
+            this.appendColHeader(column, TH);
+          });
+        }
 
-          } else if (!blockCalculations.cell) {
-            instance.selection.setRangeEnd(coords);
-          }
-        } else {
-          /* eslint-disable no-lonely-if */
-          if (instance.selection.selectedHeader.cols && !blockCalculations.column) {
-            instance.selection.setRangeEnd(new CellCoords(instance.countRows() - 1, coords.col), false);
+        this.instance.runHooks('afterGetColumnHeaderRenderers', headerRenderers);
 
-          } else if (instance.selection.selectedHeader.rows && !blockCalculations.row) {
-            instance.selection.setRangeEnd(new CellCoords(coords.row, instance.countCols() - 1), false);
+        return headerRenderers;
+      },
+      columnWidth: this.instance.getColWidth,
+      rowHeight: this.instance.getRowHeight,
+      cellRenderer: (row, col, TD) => {
+        const cellProperties = this.instance.getCellMeta(row, col);
+        const prop = this.instance.colToProp(col);
+        let value = this.instance.getDataAtRowProp(row, prop);
 
-          } else if (!blockCalculations.cell) {
-            instance.selection.setRangeEnd(coords);
+        if (this.instance.hasHook('beforeValueRender')) {
+          value = this.instance.runHooks('beforeValueRender', value, cellProperties);
+        }
+
+        this.instance.runHooks('beforeRenderer', TD, row, col, prop, value, cellProperties);
+        this.instance.getCellRenderer(cellProperties)(this.instance, TD, row, col, prop, value, cellProperties);
+        this.instance.runHooks('afterRenderer', TD, row, col, prop, value, cellProperties);
+      },
+      selections: this.instance.selection.highlight,
+      hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
+      onWindowResize: () => {
+        if (!this.instance || this.instance.isDestroyed) {
+          return;
+        }
+
+        this.instance.refreshDimensions();
+      },
+      onCellMouseDown: (event, coords, TD, wt) => {
+        const blockCalculations = {
+          row: false,
+          column: false,
+          cell: false
+        };
+
+        this.instance.listen();
+
+        this.activeWt = wt;
+        priv.mouseDown = true;
+
+        this.instance.runHooks('beforeOnCellMouseDown', event, coords, TD, blockCalculations);
+
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
+        handleMouseEvent(event, {
+          coords,
+          selection: this.instance.selection,
+          controller: blockCalculations,
+        });
+
+        this.instance.runHooks('afterOnCellMouseDown', event, coords, TD);
+        this.activeWt = this.wt;
+      },
+      onCellContextMenu: (event, coords, TD, wt) => {
+        this.activeWt = wt;
+        priv.mouseDown = false;
+
+        if (this.instance.selection.isInProgress()) {
+          this.instance.selection.finish();
+        }
+
+        this.instance.runHooks('beforeOnCellContextMenu', event, coords, TD);
+
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
+        this.instance.runHooks('afterOnCellContextMenu', event, coords, TD);
+
+        this.activeWt = this.wt;
+      },
+      onCellMouseOut: (event, coords, TD, wt) => {
+        this.activeWt = wt;
+        this.instance.runHooks('beforeOnCellMouseOut', event, coords, TD);
+
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
+        this.instance.runHooks('afterOnCellMouseOut', event, coords, TD);
+        this.activeWt = this.wt;
+      },
+      onCellMouseOver: (event, coords, TD, wt) => {
+        const blockCalculations = {
+          row: false,
+          column: false,
+          cell: false
+        };
+
+        this.activeWt = wt;
+
+        this.instance.runHooks('beforeOnCellMouseOver', event, coords, TD, blockCalculations);
+
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
+        if (priv.mouseDown) {
+          handleMouseEvent(event, {
+            coords,
+            selection: this.instance.selection,
+            controller: blockCalculations,
+          });
+        }
+
+        this.instance.runHooks('afterOnCellMouseOver', event, coords, TD);
+        this.activeWt = this.wt;
+      },
+      onCellMouseUp: (event, coords, TD, wt) => {
+        this.activeWt = wt;
+        this.instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
+
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
+        this.instance.runHooks('afterOnCellMouseUp', event, coords, TD);
+        this.activeWt = this.wt;
+      },
+      onCellCornerMouseDown: (event) => {
+        event.preventDefault();
+        this.instance.runHooks('afterOnCellCornerMouseDown', event);
+      },
+      onCellCornerDblClick: (event) => {
+        event.preventDefault();
+        this.instance.runHooks('afterOnCellCornerDblClick', event);
+      },
+      beforeDraw: (force, skipRender) => this.beforeRender(force, skipRender),
+      onDraw: force => this.onDraw(force),
+      onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
+      onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
+      onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
+      onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => this.instance.runHooks('afterDrawSelection',
+        currentRow, currentColumn, cornersOfSelection, layerLevel),
+      onBeforeDrawBorders: (corners, borderClassName) => this.instance.runHooks('beforeDrawBorders', corners, borderClassName),
+      onBeforeTouchScroll: () => this.instance.runHooks('beforeTouchScroll'),
+      onAfterMomentumScroll: () => this.instance.runHooks('afterMomentumScroll'),
+      onBeforeStretchingColumnWidth: (stretchedWidth, column) => this.instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column),
+      onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
+      onModifyGetCellCoords: (row, column, topmost) => this.instance.runHooks('modifyGetCellCoords', row, column, topmost),
+      viewportRowCalculatorOverride: (calc) => {
+        let viewportOffset = this.settings.viewportRowRenderingOffset;
+
+        if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
+          viewportOffset = 10;
+        }
+
+        if (viewportOffset > 0 || viewportOffset === 'auto') {
+          const rows = this.instance.countRows();
+
+          if (typeof viewportOffset === 'number') {
+            calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
+            calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+
+          } else if (viewportOffset === 'auto') {
+            const center = calc.startRow + calc.endRow - calc.startRow;
+            const offset = Math.ceil(center / rows * 12);
+
+            calc.startRow = Math.max(calc.startRow - offset, 0);
+            calc.endRow = Math.min(calc.endRow + offset, rows - 1);
           }
         }
+        this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
+      },
+      viewportColumnCalculatorOverride: (calc) => {
+        let viewportOffset = this.settings.viewportColumnRenderingOffset;
+
+        if (viewportOffset === 'auto' && this.settings.fixedColumnsLeft) {
+          viewportOffset = 10;
+        }
+
+        if (viewportOffset > 0 || viewportOffset === 'auto') {
+          const cols = this.instance.countCols();
+
+          if (typeof viewportOffset === 'number') {
+            calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
+            calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+          }
+          if (viewportOffset === 'auto') {
+            const center = calc.startColumn + calc.endColumn - calc.startColumn;
+            const offset = Math.ceil(center / cols * 12);
+
+            calc.startRow = Math.max(calc.startColumn - offset, 0);
+            calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+          }
+        }
+        this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
+      },
+      rowHeaderWidth: () => this.settings.rowHeaderWidth,
+      columnHeaderHeight: () => {
+        const columnHeaderHeight = this.instance.runHooks('modifyColumnHeaderHeight');
+        return this.settings.columnHeaderHeight || columnHeaderHeight;
       }
+    };
 
-      instance.runHooks('afterOnCellMouseOver', event, coords, TD);
-      that.activeWt = that.wt;
-    },
-    onCellMouseUp: function(event, coords, TD, wt) {
-      that.activeWt = wt;
-      instance.runHooks('beforeOnCellMouseUp', event, coords, TD);
+    this.instance.runHooks('beforeInitWalkontable', walkontableConfig);
 
-      instance.runHooks('afterOnCellMouseUp', event, coords, TD);
-      that.activeWt = that.wt;
-    },
-    onCellCornerMouseDown: function(event) {
-      event.preventDefault();
-      instance.runHooks('afterOnCellCornerMouseDown', event);
-    },
-    onCellCornerDblClick: function(event) {
-      event.preventDefault();
-      instance.runHooks('afterOnCellCornerDblClick', event);
-    },
-    beforeDraw: function(force, skipRender) {
-      that.beforeRender(force, skipRender);
-    },
-    onDraw: function(force) {
-      that.onDraw(force);
-    },
-    onScrollVertically: function() {
-      instance.runHooks('afterScrollVertically');
-    },
-    onScrollHorizontally: function() {
-      instance.runHooks('afterScrollHorizontally');
-    },
-    onBeforeDrawBorders: function(corners, borderClassName) {
-      instance.runHooks('beforeDrawBorders', corners, borderClassName);
-    },
-    onBeforeTouchScroll: function() {
-      instance.runHooks('beforeTouchScroll');
-    },
-    onAfterMomentumScroll: function() {
-      instance.runHooks('afterMomentumScroll');
-    },
-    onBeforeStretchingColumnWidth: function(stretchedWidth, column) {
-      return instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column);
-    },
-    onModifyRowHeaderWidth: function(rowHeaderWidth) {
-      return instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth);
-    },
-    viewportRowCalculatorOverride: function(calc) {
-      let rows = instance.countRows();
-      let viewportOffset = that.settings.viewportRowRenderingOffset;
+    this.wt = new Walkontable(walkontableConfig);
+    this.activeWt = this.wt;
 
-      if (viewportOffset === 'auto' && that.settings.fixedRowsTop) {
-        viewportOffset = 10;
+    const spreader = this.wt.wtTable.spreader;
+    // We have to cache width and height after Walkontable initialization.
+    const { width, height } = this.instance.rootElement.getBoundingClientRect();
+
+    this.setLastSize(width, height);
+
+    this.eventManager.addEventListener(spreader, 'mousedown', (event) => {
+      // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
+      if (event.target === spreader && event.which === 3) {
+        event.stopPropagation();
       }
-      if (typeof viewportOffset === 'number') {
-        calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-        calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+    });
+
+    this.eventManager.addEventListener(spreader, 'contextmenu', (event) => {
+      // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
+      if (event.target === spreader && event.which === 3) {
+        event.stopPropagation();
       }
-      if (viewportOffset === 'auto') {
-        let center = calc.startRow + calc.endRow - calc.startRow;
-        let offset = Math.ceil(center / rows * 12);
+    });
 
-        calc.startRow = Math.max(calc.startRow - offset, 0);
-        calc.endRow = Math.min(calc.endRow + offset, rows - 1);
-      }
-      instance.runHooks('afterViewportRowCalculatorOverride', calc);
-    },
-    viewportColumnCalculatorOverride: function(calc) {
-      let cols = instance.countCols();
-      let viewportOffset = that.settings.viewportColumnRenderingOffset;
-
-      if (viewportOffset === 'auto' && that.settings.fixedColumnsLeft) {
-        viewportOffset = 10;
-      }
-      if (typeof viewportOffset === 'number') {
-        calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-        calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
-      }
-      if (viewportOffset === 'auto') {
-        let center = calc.startColumn + calc.endColumn - calc.startColumn;
-        let offset = Math.ceil(center / cols * 12);
-
-        calc.startRow = Math.max(calc.startColumn - offset, 0);
-        calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
-      }
-      instance.runHooks('afterViewportColumnCalculatorOverride', calc);
-    },
-    rowHeaderWidth: function() {
-      return that.settings.rowHeaderWidth;
-    },
-    columnHeaderHeight: function() {
-      const columnHeaderHeight = instance.runHooks('modifyColumnHeaderHeight');
-      return that.settings.columnHeaderHeight || columnHeaderHeight;
-    }
-  };
-
-  instance.runHooks('beforeInitWalkontable', walkontableConfig);
-
-  this.wt = new Walkontable(walkontableConfig);
-  this.activeWt = this.wt;
-
-  if (!isChrome() && !isSafari()) {
-    this.eventManager.addEventListener(instance.rootElement, 'wheel', (event) => {
-      event.preventDefault();
-
-      const lineHeight = parseInt(getComputedStyle(document.body)['font-size'], 10);
-      const holder = that.wt.wtOverlays.scrollableElement;
-
-      let deltaY = event.wheelDeltaY || event.deltaY;
-      let deltaX = event.wheelDeltaX || event.deltaX;
-
-      switch (event.deltaMode) {
-        case 0:
-          holder.scrollLeft += deltaX;
-          holder.scrollTop += deltaY;
-          break;
-
-        case 1:
-          holder.scrollLeft += deltaX * lineHeight;
-          holder.scrollTop += deltaY * lineHeight;
-          break;
-
-        default:
-          break;
+    this.eventManager.addEventListener(this.instance.rootDocument.documentElement, 'click', () => {
+      if (this.settings.observeDOMVisibility) {
+        if (this.wt.drawInterrupted) {
+          this.instance.forceFullRender = true;
+          this.render();
+        }
       }
     });
   }
 
-  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'mousedown', function(event) {
-    // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
-    if (event.target === that.wt.wtTable.spreader && event.which === 3) {
-      stopPropagation(event);
+  /**
+   * Checks if it's possible to create text selection in element.
+   *
+   * @private
+   * @param {HTMLElement} el The element to check.
+   * @returns {boolean}
+   */
+  isTextSelectionAllowed(el) {
+    if (isInput(el)) {
+      return true;
     }
-  });
+    const isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
 
-  this.eventManager.addEventListener(that.wt.wtTable.spreader, 'contextmenu', function(event) {
-    // right mouse button exactly on spreader means right click on the right hand side of vertical scrollbar
-    if (event.target === that.wt.wtTable.spreader && event.which === 3) {
-      stopPropagation(event);
+    if (this.settings.fragmentSelection === true && isChildOfTableBody) {
+      return true;
     }
-  });
+    if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
+      return true;
+    }
+    if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
+      return true;
+    }
 
-  this.eventManager.addEventListener(document.documentElement, 'click', function() {
-    if (that.settings.observeDOMVisibility) {
-      if (that.wt.drawInterrupted) {
-        that.instance.forceFullRender = true;
-        that.render();
+    return false;
+  }
+
+  /**
+   * Checks if user's been called mousedown.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isMouseDown() {
+    return privatePool.get(this).mouseDown;
+  }
+
+  /**
+   * Check if selected only one cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isSelectedOnlyCell() {
+    const [row, col, rowEnd, colEnd] = this.instance.getSelectedLast() || [];
+
+    return row !== void 0 && row === rowEnd && col === colEnd;
+  }
+
+  /**
+   * Checks if active cell is editing.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isCellEdited() {
+    const activeEditor = this.instance.getActiveEditor();
+
+    return activeEditor && activeEditor.isOpened();
+  }
+
+  /**
+   * `beforeDraw` callback.
+   *
+   * @private
+   * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
+   *                        rendering was triggered by scrolling or moving selection.
+   * @param {boolean} skipRender Indicates whether the rendering is skipped.
+   */
+  beforeRender(force, skipRender) {
+    if (force) {
+      // this.instance.forceFullRender = did Handsontable request full render?
+      this.instance.runHooks('beforeRender', this.instance.forceFullRender, skipRender);
+    }
+  }
+
+  /**
+   * `onDraw` callback.
+   *
+   * @private
+   * @param {boolean} force If `true` rendering was triggered by a change of settings or data or `false` if
+   *                        rendering was triggered by scrolling or moving selection.
+   */
+  onDraw(force) {
+    if (force) {
+      // this.instance.forceFullRender = did Handsontable request full render?
+      this.instance.runHooks('afterRender', this.instance.forceFullRender);
+    }
+  }
+
+  /**
+   * Append row header to a TH element.
+   *
+   * @private
+   * @param {number} row The visual row index.
+   * @param {HTMLTableHeaderCellElement} TH The table header element.
+   */
+  appendRowHeader(row, TH) {
+    if (TH.firstChild) {
+      const container = TH.firstChild;
+
+      if (!hasClass(container, 'relative')) {
+        empty(TH);
+        this.appendRowHeader(row, TH);
+
+        return;
+      }
+
+      this.updateCellHeader(container.querySelector('.rowHeader'), row, this.instance.getRowHeader);
+
+    } else {
+      const { rootDocument, getRowHeader } = this.instance;
+      const div = rootDocument.createElement('div');
+      const span = rootDocument.createElement('span');
+
+      div.className = 'relative';
+      span.className = 'rowHeader';
+      this.updateCellHeader(span, row, getRowHeader);
+
+      div.appendChild(span);
+      TH.appendChild(div);
+    }
+
+    this.instance.runHooks('afterGetRowHeader', row, TH);
+  }
+
+  /**
+   * Append column header to a TH element.
+   *
+   * @private
+   * @param {number} col The visual column index.
+   * @param {HTMLTableHeaderCellElement} TH The table header element.
+   */
+  appendColHeader(col, TH) {
+    if (TH.firstChild) {
+      const container = TH.firstChild;
+
+      if (hasClass(container, 'relative')) {
+        this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
+      } else {
+        empty(TH);
+        this.appendColHeader(col, TH);
+      }
+
+    } else {
+      const { rootDocument } = this.instance;
+      const div = rootDocument.createElement('div');
+      const span = rootDocument.createElement('span');
+
+      div.className = 'relative';
+      span.className = 'colHeader';
+      this.updateCellHeader(span, col, this.instance.getColHeader);
+
+      div.appendChild(span);
+      TH.appendChild(div);
+    }
+
+    this.instance.runHooks('afterGetColHeader', col, TH);
+  }
+
+  /**
+   * Updates header cell content.
+   *
+   * @since 0.15.0-beta4
+   * @param {HTMLElement} element Element to update.
+   * @param {number} index Row index or column index.
+   * @param {Function} content Function which should be returns content for this cell.
+   */
+  updateCellHeader(element, index, content) {
+    let renderedIndex = index;
+    const parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
+
+    // prevent wrong calculations from SampleGenerator
+    if (element.parentNode) {
+      if (hasClass(element, 'colHeader')) {
+        renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+
+      } else if (hasClass(element, 'rowHeader')) {
+        renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
       }
     }
-  });
-}
 
-TableView.prototype.isTextSelectionAllowed = function(el) {
-  if (isInput(el)) {
-    return true;
-  }
-  let isChildOfTableBody = isChildOf(el, this.instance.view.wt.wtTable.spreader);
+    if (renderedIndex > -1) {
+      fastInnerHTML(element, content(index));
 
-  if (this.settings.fragmentSelection === true && isChildOfTableBody) {
-    return true;
-  }
-  if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
-    return true;
-  }
-  if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
-    return true;
-  }
-
-  return false;
-};
-
-/**
- * Check if selected only one cell.
- *
- * @returns {Boolean}
- */
-TableView.prototype.isSelectedOnlyCell = function() {
-  var [row, col, rowEnd, colEnd] = this.instance.getSelected() || [];
-
-  return row !== void 0 && row === rowEnd && col === colEnd;
-};
-
-TableView.prototype.isCellEdited = function() {
-  var activeEditor = this.instance.getActiveEditor();
-
-  return activeEditor && activeEditor.isOpened();
-};
-
-TableView.prototype.beforeRender = function(force, skipRender) {
-  if (force) {
-    // this.instance.forceFullRender = did Handsontable request full render?
-    this.instance.runHooks('beforeRender', this.instance.forceFullRender, skipRender);
-  }
-};
-
-TableView.prototype.onDraw = function(force) {
-  if (force) {
-    // this.instance.forceFullRender = did Handsontable request full render?
-    this.instance.runHooks('afterRender', this.instance.forceFullRender);
-  }
-};
-
-TableView.prototype.render = function() {
-  this.wt.draw(!this.instance.forceFullRender);
-  this.instance.forceFullRender = false;
-  this.instance.renderCall = false;
-};
-
-/**
- * Returns td object given coordinates
- *
- * @param {CellCoords} coords
- * @param {Boolean} topmost
- */
-TableView.prototype.getCellAtCoords = function(coords, topmost) {
-  var td = this.wt.getCell(coords, topmost);
-
-  if (td < 0) { // there was an exit code (cell is out of bounds)
-    return null;
-  }
-
-  return td;
-};
-
-/**
- * Scroll viewport to selection.
- *
- * @param {CellCoords} coords
- */
-TableView.prototype.scrollViewport = function(coords) {
-  this.wt.scrollViewport(coords);
-};
-
-/**
- * Append row header to a TH element
- * @param row
- * @param TH
- */
-TableView.prototype.appendRowHeader = function(row, TH) {
-  if (TH.firstChild) {
-    let container = TH.firstChild;
-
-    if (!hasClass(container, 'relative')) {
-      empty(TH);
-      this.appendRowHeader(row, TH);
-
-      return;
-    }
-    this.updateCellHeader(container.querySelector('.rowHeader'), row, this.instance.getRowHeader);
-
-  } else {
-    let div = document.createElement('div');
-    let span = document.createElement('span');
-
-    div.className = 'relative';
-    span.className = 'rowHeader';
-    this.updateCellHeader(span, row, this.instance.getRowHeader);
-
-    div.appendChild(span);
-    TH.appendChild(div);
-  }
-
-  this.instance.runHooks('afterGetRowHeader', row, TH);
-};
-
-/**
- * Append column header to a TH element
- * @param col
- * @param TH
- */
-TableView.prototype.appendColHeader = function(col, TH) {
-  if (TH.firstChild) {
-    let container = TH.firstChild;
-
-    if (hasClass(container, 'relative')) {
-      this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
     } else {
-      empty(TH);
-      this.appendColHeader(col, TH);
-    }
-
-  } else {
-    var div = document.createElement('div');
-    let span = document.createElement('span');
-
-    div.className = 'relative';
-    span.className = 'colHeader';
-    this.updateCellHeader(span, col, this.instance.getColHeader);
-
-    div.appendChild(span);
-    TH.appendChild(div);
-  }
-
-  this.instance.runHooks('afterGetColHeader', col, TH);
-};
-
-/**
- * Update header cell content
- *
- * @since 0.15.0-beta4
- * @param {HTMLElement} element Element to update
- * @param {Number} index Row index or column index
- * @param {Function} content Function which should be returns content for this cell
- */
-TableView.prototype.updateCellHeader = function(element, index, content) {
-  let renderedIndex = index;
-  let parentOverlay = this.wt.wtOverlays.getParentOverlay(element) || this.wt;
-
-  // prevent wrong calculations from SampleGenerator
-  if (element.parentNode) {
-    if (hasClass(element, 'colHeader')) {
-      renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
-    } else if (hasClass(element, 'rowHeader')) {
-      renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+      // workaround for https://github.com/handsontable/handsontable/issues/1946
+      fastInnerText(element, String.fromCharCode(160));
+      addClass(element, 'cornerHeader');
     }
   }
 
-  if (renderedIndex > -1) {
-    fastInnerHTML(element, content(index));
+  /**
+   * Given a element's left position relative to the viewport, returns maximum element width until the right
+   * edge of the viewport (before scrollbar).
+   *
+   * @private
+   * @param {number} leftOffset The left offset.
+   * @returns {number}
+   */
+  maximumVisibleElementWidth(leftOffset) {
+    const workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
+    const maxWidth = workspaceWidth - leftOffset;
 
-  } else {
-    // workaround for https://github.com/handsontable/handsontable/issues/1946
-    fastInnerText(element, String.fromCharCode(160));
-    addClass(element, 'cornerHeader');
+    return maxWidth > 0 ? maxWidth : 0;
   }
-};
 
-/**
- * Given a element's left position relative to the viewport, returns maximum element width until the right
- * edge of the viewport (before scrollbar)
- *
- * @param {Number} leftOffset
- * @return {Number}
- */
-TableView.prototype.maximumVisibleElementWidth = function(leftOffset) {
-  var workspaceWidth = this.wt.wtViewport.getWorkspaceWidth();
-  var maxWidth = workspaceWidth - leftOffset;
-  return maxWidth > 0 ? maxWidth : 0;
-};
+  /**
+   * Given a element's top position relative to the viewport, returns maximum element height until the bottom
+   * edge of the viewport (before scrollbar).
+   *
+   * @private
+   * @param {number} topOffset The top offset.
+   * @returns {number}
+   */
+  maximumVisibleElementHeight(topOffset) {
+    const workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
+    const maxHeight = workspaceHeight - topOffset;
 
-/**
- * Given a element's top position relative to the viewport, returns maximum element height until the bottom
- * edge of the viewport (before scrollbar)
- *
- * @param {Number} topOffset
- * @return {Number}
- */
-TableView.prototype.maximumVisibleElementHeight = function(topOffset) {
-  var workspaceHeight = this.wt.wtViewport.getWorkspaceHeight();
-  var maxHeight = workspaceHeight - topOffset;
-  return maxHeight > 0 ? maxHeight : 0;
-};
+    return maxHeight > 0 ? maxHeight : 0;
+  }
 
-TableView.prototype.mainViewIsActive = function() {
-  return this.wt === this.activeWt;
-};
+  /**
+   * Sets new dimensions of the container.
+   *
+   * @param {number} width The table width.
+   * @param {number} height The table height.
+   */
+  setLastSize(width, height) {
+    const priv = privatePool.get(this);
 
-TableView.prototype.destroy = function() {
-  this.wt.destroy();
-  this.eventManager.destroy();
-};
+    [priv.lastWidth, priv.lastHeight] = [width, height];
+  }
+
+  /**
+   * Returns cached dimensions.
+   *
+   * @returns {object}
+   */
+  getLastSize() {
+    const priv = privatePool.get(this);
+
+    return { width: priv.lastWidth, height: priv.lastHeight };
+  }
+
+  /**
+   * Checks if master overlay is active.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  mainViewIsActive() {
+    return this.wt === this.activeWt;
+  }
+
+  /**
+   * Destroyes internal WalkOnTable's instance. Detaches all of the bonded listeners.
+   *
+   * @private
+   */
+  destroy() {
+    this.wt.destroy();
+    this.eventManager.destroy();
+  }
+}
 
 export default TableView;

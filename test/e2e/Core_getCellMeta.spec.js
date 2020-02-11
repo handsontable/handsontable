@@ -1,5 +1,5 @@
 describe('Core_getCellMeta', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,12 +12,29 @@ describe('Core_getCellMeta', () => {
     }
   });
 
+  it('should get proper cell meta when indexes was modified', () => {
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5
+    });
+
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+    const cellMeta = getCellMeta(0, 1);
+
+    expect(cellMeta.row).toEqual(4);
+    expect(cellMeta.col).toEqual(3);
+    expect(cellMeta.visualRow).toEqual(0);
+    expect(cellMeta.visualCol).toEqual(1);
+  });
+
   it('should not allow manual editing of a read only cell', () => {
-    var allCellsReadOnly = false;
+    let allCellsReadOnly = false;
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
+        return { readOnly: allCellsReadOnly };
       }
     });
     allCellsReadOnly = true;
@@ -29,11 +46,11 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should allow manual editing of cell that is no longer read only', () => {
-    var allCellsReadOnly = true;
+    let allCellsReadOnly = true;
 
     handsontable({
       cells() {
-        return {readOnly: allCellsReadOnly};
+        return { readOnly: allCellsReadOnly };
       }
     });
     allCellsReadOnly = false;
@@ -48,14 +65,14 @@ describe('Core_getCellMeta', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       cells() {
-        return {readOnly: true};
+        return { readOnly: true };
       }
     });
 
     selectCell(0, 0);
     expect(getCellMeta(0, 0).readOnly).toBe(true);
     keyDown('enter');
-    expect(getSelected()).toEqual([1, 0, 1, 0]);
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
   });
 
@@ -63,9 +80,9 @@ describe('Core_getCellMeta', () => {
     handsontable({
       cells() {
         return {
-          renderer(instance, td, row, col, prop, value, cellProperties) {
+          renderer(instance, td, ...args) {
             // taken from demo/renderers.html
-            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
             $(td).css({
               background: 'yellow'
             });
@@ -92,9 +109,9 @@ describe('Core_getCellMeta', () => {
         if (row === 2 && col === 2) {
           return {
             type: 'checkbox',
-            renderer(instance, td, row, col, prop, value, cellProperties) {
+            renderer(instance, td, ...args) {
               // taken from demo/renderers.html
-              Handsontable.renderers.TextRenderer.apply(this, arguments);
+              Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
 
               td.style.backgroundColor = 'yellow';
             }
@@ -108,37 +125,37 @@ describe('Core_getCellMeta', () => {
   });
 
   it('this in cells should point to cellProperties', () => {
-    var called = 0,
-      _row,
-      _this;
+    let called = 0;
+    let _row;
+    let _this;
 
     handsontable({
-      cells(row, col, prop) {
-        called++;
+      cells(row) {
+        called += 1;
         _row = row;
         _this = this;
       }
     });
 
-    var HOT = getInstance();
+    const HOT = getInstance();
 
     expect(called).toBeGreaterThan(0);
     expect(_this.row).toEqual(_row);
     expect(_this.instance).toBe(HOT);
   });
 
-  it('should get proper cellProperties when order of displayed rows is different than order of stored data', function() {
-    var hot = handsontable({
+  it('should get proper cellProperties when order of displayed rows is different than order of stored data', () => {
+    handsontable({
       data: [
         ['C'],
         ['A'],
         ['B']
       ],
       minSpareRows: 1,
-      cells(row, col, prop) {
-        var cellProperties = {};
+      cells(row, col) {
+        const cellProperties = {};
 
-        if (getSourceData()[row][col] === 'A') {
+        if (this.instance.getSourceDataAtCell(row, col) === 'A') {
           cellProperties.readOnly = true;
         }
 
@@ -146,30 +163,116 @@ describe('Core_getCellMeta', () => {
       }
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
     // Column sorting changes the order of displayed rows while keeping table data unchanged
     updateSettings({
       columnSorting: {
-        column: 0,
-        sortOrder: true
+        initialConfig: {
+          column: 0,
+          sortOrder: 'asc'
+        }
       }
     });
 
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
-    expect(this.$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A');
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htDimmed')).toBe(true);
 
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
-    expect(this.$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('B');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
-    expect(this.$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('C');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
+  });
+
+  it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', () => {
+    let rowInsideHook;
+    let colInsideHook;
+
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
+      beforeGetCellMeta(row, col) {
+        rowInsideHook = row;
+        colInsideHook = col;
+      },
+    });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+    hot.getCellMeta(0, 1);
+
+    expect(rowInsideHook).toEqual(0);
+    expect(colInsideHook).toEqual(1);
+  });
+
+  it('should expand "type" property to cell meta when property is added in the `beforeGetCellMeta` hook', () => {
+    handsontable({
+      beforeGetCellMeta(row, col, cellProperties) {
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
+        }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+        }
+      },
+    });
+
+    expect(getCellMeta(0, 0).editor).toBeUndefined();
+    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
+    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
+    expect(getCellMeta(3, 0).editor).toBeUndefined();
+  });
+
+  it('should expand "type" property to cell meta when property is added in the "cells" function', () => {
+    handsontable({
+      cells(row, col) {
+        const cellProperties = {};
+
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
+        }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+        }
+
+        return cellProperties;
+      },
+    });
+
+    expect(getCellMeta(0, 0).editor).toBeUndefined();
+    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
+    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
+    expect(getCellMeta(3, 0).editor).toBeUndefined();
+  });
+
+  it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', () => {
+    let rowInsideHook;
+    let colInsideHook;
+
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
+      afterGetCellMeta(row, col) {
+        rowInsideHook = row;
+        colInsideHook = col;
+      }
+    });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+    hot.getCellMeta(0, 1);
+
+    expect(rowInsideHook).toEqual(0);
+    expect(colInsideHook).toEqual(1);
   });
 });

@@ -2,7 +2,7 @@
  * Handsontable ContextMenu
  */
 
-.htContextMenu {
+.htContextMenu:not(.htGhostTable) {
   display: none;
   position: absolute;
   z-index: 1060; /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */
@@ -10,12 +10,11 @@
 
 .htContextMenu .ht_clone_top,
 .htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner,
-.htContextMenu .ht_clone_debug {
+.htContextMenu .ht_clone_corner {
   display: none;
 }
 
-.htContextMenu table.htCore {
+.htContextMenu .ht_master table.htCore {
   border: 1px solid #ccc;
   border-bottom-width: 2px;
   border-right-width: 2px;
@@ -50,7 +49,7 @@
 }
 
 .htContextMenu table tbody tr td.htSeparator {
-  border-top: 1px solid #bbb;
+  border-top: 1px solid #e6e6e6;
   height: 0;
   padding: 0;
   cursor: default;

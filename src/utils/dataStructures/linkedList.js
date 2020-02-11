@@ -1,9 +1,9 @@
 /**
  * Refactored implementation of LinkedList (part of javascript-algorithms project) by Github users:
  * mgechev, AndriiHeonia, Microfed and Jakeh (part of javascript-algorithms project - all project contributors
- * at repository website)
+ * at repository website).
  *
- * Link to repository: https://github.com/mgechev/javascript-algorithms
+ * Link to repository: https://github.com/mgechev/javascript-algorithms.
  */
 
 /**
@@ -16,16 +16,19 @@ class NodeStructure {
   constructor(data) {
     /**
      * Data of the node.
-     * @member {Object}
+     *
+     * @member {object}
      */
     this.data = data;
     /**
      * Next node.
+     *
      * @member {NodeStructure}
      */
     this.next = null;
     /**
      * Previous node.
+     *
      * @member {NodeStructure}
      */
     this.prev = null;
@@ -47,7 +50,7 @@ class LinkedList {
   /**
    * Add data to the end of linked list.
    *
-   * @param {Object} data Data which should be added.
+   * @param {object} data Data which should be added.
    */
   push(data) {
     const node = new NodeStructure(data);
@@ -68,7 +71,7 @@ class LinkedList {
   /**
    * Add data to the beginning of linked list.
    *
-   * @param {Object} data Data which should be added.
+   * @param {object} data Data which should be added.
    */
   unshift(data) {
     const node = new NodeStructure(data);
@@ -103,8 +106,8 @@ class LinkedList {
   /**
    * Remove data from the linked list.
    *
-   * @param {Object} data Data which should be removed.
-   * @returns {Boolean} Returns true if data has been removed.
+   * @param {object} data Data which should be removed.
+   * @returns {boolean} Returns true if data has been removed.
    */
   remove(data) {
     if (this.first === null) {
@@ -148,7 +151,7 @@ class LinkedList {
   /**
    * Check if linked list contains cycle.
    *
-   * @returns {Boolean} Returns true if linked list contains cycle.
+   * @returns {boolean} Returns true if linked list contains cycle.
    */
   hasCycle() {
     let fast = this.first;
@@ -172,7 +175,7 @@ class LinkedList {
         return true;
       }
     }
-  };
+  }
 
   /**
    * Return last node from the linked list.
@@ -184,11 +187,11 @@ class LinkedList {
       return null;
     }
 
-    let temp = this.last;
+    const temp = this.last;
     this.last = this.last.prev;
 
     return temp;
-  };
+  }
 
   /**
    * Return first node from the linked list.
@@ -204,12 +207,16 @@ class LinkedList {
     this.first = this.first.next;
 
     return temp;
-  };
+  }
 
   /**
-   * Reverses the linked list recursively
+   * Reverses the linked list recursively.
    */
   recursiveReverse() {
+    /**
+     * @param {*} current The current value.
+     * @param {*} next The next value.
+     */
     function inverse(current, next) {
       if (!next) {
         return;
@@ -228,10 +235,10 @@ class LinkedList {
     const temp = this.first;
     this.first = this.last;
     this.last = temp;
-  };
+  }
 
   /**
-   * Reverses the linked list iteratively
+   * Reverses the linked list iteratively.
    */
   reverse() {
     if (!this.first || !this.first.next) {
@@ -255,8 +262,8 @@ class LinkedList {
     temp = this.first;
     this.first = prev;
     this.last = temp;
-  };
-};
+  }
+}
 
-export {NodeStructure};
+export { NodeStructure };
 export default LinkedList;

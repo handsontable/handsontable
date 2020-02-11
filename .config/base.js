@@ -1,47 +1,41 @@
-'use strict';
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const ProgressBarPlugin = require('progress-bar-webpack-plugin');
+const path = require('path');
+const fs = require('fs');
+const webpack = require('webpack');
 
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var ProgressBarPlugin = require('progress-bar-webpack-plugin');
-var path = require('path');
-var fs = require('fs');
-var webpack = require('webpack');
+let licenseBody = fs.readFileSync(path.resolve(__dirname, '../LICENSE.txt'), 'utf8');
 
-var licenseBody = fs.readFileSync(path.resolve(__dirname, '../LICENSE'), 'utf8');
-var packageBody = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'));
-
-var PACKAGE_VERSION = packageBody.version;
-var PACKAGE_NAME = packageBody.name;
-var BUILD_DATE = new Date();
-var BASE_VERSION = void 0;
-
-module.exports.PACKAGE_VERSION = PACKAGE_VERSION;
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
-module.exports.BUILD_DATE = BUILD_DATE;
-module.exports.BASE_VERSION = BASE_VERSION;
-
-licenseBody += '\nVersion: ' + PACKAGE_VERSION;
-licenseBody += '\nDate: ' + BUILD_DATE;
+licenseBody += '\nVersion: ' + process.env.HOT_VERSION;
+licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at ' + process.env.HOT_BUILD_DATE + ')';
 
 module.exports.create = function create(envArgs) {
-  var config = {
+  const config = {
     devtool: false,
+    performance: {
+      maxEntrypointSize: 2000000,
+      maxAssetSize: 2000000,
+    },
     output: {
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       library: 'Handsontable',
+      libraryExport: 'default',
       libraryTarget: 'umd',
-      umdNamedDefine: true,
       path: path.resolve(__dirname, '../dist'),
+      umdNamedDefine: true,
     },
     resolve: {
       alias: {},
     },
+    mode: 'none',
     module: {
       rules: [
         {
           test: /\.css$/,
-          loader: ExtractTextPlugin.extract({
-            fallback: 'style-loader',
-            use: 'css-loader',
-          }),
+          use: [
+            { loader: MiniCssExtractPlugin.loader },
+            { loader: 'css-loader' },
+          ]
         },
         {
           test: [
@@ -58,7 +52,7 @@ module.exports.create = function create(envArgs) {
             /node_modules/,
           ],
           options: {
-            cacheDirectory: true,
+            cacheDirectory: false, // Disable cache. Necessary for injected variables into source code via hot.config.js
           },
         },
       ]
@@ -72,10 +66,6 @@ module.exports.create = function create(envArgs) {
       new webpack.optimize.OccurrenceOrderPlugin(),
       new webpack.BannerPlugin(licenseBody),
       new webpack.DefinePlugin({
-        '__HOT_VERSION__': JSON.stringify(PACKAGE_VERSION),
-        '__HOT_PACKAGE_NAME__': JSON.stringify(PACKAGE_NAME),
-        '__HOT_BUILD_DATE__': JSON.stringify(BUILD_DATE),
-        '__HOT_BASE_VERSION__': JSON.stringify(BASE_VERSION),
         '__ENV_ARGS__': JSON.stringify(envArgs),
       }),
     ],

@@ -1,4 +1,4 @@
-import staticRegister, {collection} from 'handsontable/utils/staticRegister';
+import staticRegister, { collection } from 'handsontable/utils/staticRegister';
 
 describe('staticRegister', () => {
   describe('.register/.getItem', () => {
@@ -8,7 +8,7 @@ describe('staticRegister', () => {
 
     it('should register item to the collection and make it overwritable', () => {
       const sr = staticRegister();
-      const testObject = {foo: 'bar'};
+      const testObject = { foo: 'bar' };
 
       sr.register('name', 'baz');
       sr.register('name', testObject);
@@ -24,7 +24,7 @@ describe('staticRegister', () => {
 
     it('should return `true` when item exists in the collection', () => {
       const sr = staticRegister();
-      const testObject = {foo: 'bar'};
+      const testObject = { foo: 'bar' };
 
       sr.register('name', testObject);
 
@@ -33,7 +33,7 @@ describe('staticRegister', () => {
 
     it('should return `false` when item not exist in the collection', () => {
       const sr = staticRegister();
-      const testObject = {foo: 'bar'};
+      const testObject = { foo: 'bar' };
 
       sr.register('name', testObject);
 
@@ -55,7 +55,7 @@ describe('staticRegister', () => {
     it('should return an array of string as a list of registered names', () => {
       const sr = staticRegister();
 
-      sr.register('name', {foo: 'bar'});
+      sr.register('name', { foo: 'bar' });
       sr.register('number', 1);
       sr.register('string', 'baz');
 
@@ -77,11 +77,11 @@ describe('staticRegister', () => {
     it('should return an array of string as a list of registered items', () => {
       const sr = staticRegister();
 
-      sr.register('name', {foo: 'bar'});
+      sr.register('name', { foo: 'bar' });
       sr.register('number', 1);
       sr.register('string', 'baz');
 
-      expect(sr.getValues()).toEqual([{foo: 'bar'}, 1, 'baz']);
+      expect(sr.getValues()).toEqual([{ foo: 'bar' }, 1, 'baz']);
     });
   });
 

@@ -1,5 +1,5 @@
 describe('dateValidator', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -12,24 +12,24 @@ describe('dateValidator', () => {
     }
   });
 
-  var arrayOfObjects = function() {
+  const arrayOfObjects = function() {
     return [
-      {date: '01/01/2015', name: 'Ted', lastName: 'Right'},
-      {date: '01/01/15', name: 'Frank', lastName: 'Honest'},
-      {date: '41/01/2015', name: 'Joan', lastName: 'Well'},
-      {date: '01/51/2015', name: 'Sid', lastName: 'Strong'}
+      { date: '01/01/2015', name: 'Ted', lastName: 'Right' },
+      { date: '01/01/15', name: 'Frank', lastName: 'Honest' },
+      { date: '41/01/2015', name: 'Joan', lastName: 'Well' },
+      { date: '01/51/2015', name: 'Sid', lastName: 'Strong' }
     ];
   };
 
   it('should validate an empty string (default behavior)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -42,39 +42,34 @@ describe('dateValidator', () => {
     }, 100);
   });
 
-  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+  it('should rewrite an ISO 8601 string to the correct format if a date-string in different format is provided', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
-        {data: 'lastName'}
+        { data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
 
     setDataAtCell(1, 0, '2016-03-18');
+    await sleep(200);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date', undefined, undefined);
-    }, 100);
-
-    setTimeout(() => {
-      expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
-      done();
-    }, 130);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date', undefined, undefined);
+    expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
   });
 
   it('should not positively validate a non-date string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -87,15 +82,34 @@ describe('dateValidator', () => {
     }, 100);
   });
 
-  it('should not positively validate a incorrect date string', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+  it('should not positively validate a non-date string and rewrite to the correct format when `allowInvalid` is false', async() => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true, allowInvalid: false },
+        { data: 'lastName' }
+      ],
+      afterValidate: onAfterValidate
+    });
+
+    setDataAtCell(0, 0, '01/01/2015 ops');
+    await sleep(200);
+
+    expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015 ops', 0, 'date', undefined, undefined);
+    expect(getDataAtCell(0, 0)).toEqual('01/01/2015');
+  });
+
+  it('should not positively validate a incorrect date string', (done) => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+    handsontable({
+      data: arrayOfObjects(),
+      columns: [
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -109,14 +123,14 @@ describe('dateValidator', () => {
   });
 
   it('should not positively validate a date string in wrong format', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -130,14 +144,14 @@ describe('dateValidator', () => {
   });
 
   it('should not positively validate a date string in wrong format (if custom format is provided)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date', dateFormat: 'DD/MM/YY'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date', dateFormat: 'DD/MM/YY' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -151,14 +165,14 @@ describe('dateValidator', () => {
   });
 
   it('should positively validate a date string in correct format', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -172,14 +186,14 @@ describe('dateValidator', () => {
   });
 
   it('should positively validate a date string in correct format (if custom format is provided)', (done) => {
-    var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        {data: 'date', type: 'date', dateFormat: 'DD/MM/YY'},
-        {data: 'name'},
-        {data: 'lastName'}
+        { data: 'date', type: 'date', dateFormat: 'DD/MM/YY' },
+        { data: 'name' },
+        { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
@@ -194,14 +208,14 @@ describe('dateValidator', () => {
 
   describe('allowEmpty', () => {
     it('should not validate an empty string when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -215,14 +229,14 @@ describe('dateValidator', () => {
     });
 
     it('should not validate `null` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -236,14 +250,14 @@ describe('dateValidator', () => {
     });
 
     it('should not validate `undefined` when allowEmpty is set as `false`', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', allowEmpty: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -259,14 +273,14 @@ describe('dateValidator', () => {
 
   describe('correctFormat', () => {
     it('should not make any changes to entered string if correctFormat is not set', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'MM/DD/YY'},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'MM/DD/YY' },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -280,14 +294,14 @@ describe('dateValidator', () => {
     });
 
     it('should not make any changes to entered string if correctFormat is set to false', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'MM/DD/YY', correctFormat: false},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'MM/DD/YY', correctFormat: false },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -301,13 +315,13 @@ describe('dateValidator', () => {
     });
 
     it('should rewrite the string to the correct format if a date-string in different format is provided', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -324,14 +338,14 @@ describe('dateValidator', () => {
       }, 130);
     });
 
-    it('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+    xit('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', (done) => {
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD.MM.YYYY', correctFormat: true},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD.MM.YYYY', correctFormat: true },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });
@@ -346,17 +360,17 @@ describe('dateValidator', () => {
         expect(getDataAtCell(1, 0)).toEqual('05.03.2016');
         done();
       }, 130);
-    });
+    }).pend('Re-enable after fixing #6085');
 
     it('should not try to correct format of non-date strings', (done) => {
-      var onAfterValidate = jasmine.createSpy('onAfterValidate');
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
         data: arrayOfObjects(),
         columns: [
-          {data: 'date', type: 'date', dateFormat: 'DD/MM/YY', correctFormat: true},
-          {data: 'name'},
-          {data: 'lastName'}
+          { data: 'date', type: 'date', dateFormat: 'DD/MM/YY', correctFormat: true },
+          { data: 'name' },
+          { data: 'lastName' }
         ],
         afterValidate: onAfterValidate
       });

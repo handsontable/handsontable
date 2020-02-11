@@ -1,23 +1,15 @@
-'use strict';
-
 /**
  * Config responsible for building End-to-End test files (bundled into `test/dist/`). These tests testing `*.full.min.js` files:
  *  - e2e.entry.js
  *  - helpers.entry.js
  */
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./test-e2e');
-var JasmineHtml = require('./plugin/jasmine-html');
-
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const configFactory = require('./test-e2e');
+const JasmineHtml = require('./plugin/jasmine-html');
 
 module.exports.create = function create(envArgs) {
-  var config = configFactory.create(envArgs);
+  const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
     // Remove all 'JasmineHtml' instances
@@ -32,15 +24,15 @@ module.exports.create = function create(envArgs) {
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.full.min.css',
+          'helpers/common.css',
         ],
         externalJsFiles: [
-          '../test/lib/phantom-reporter.js',
+          'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'lib/lodash.underscore.js',
-          'lib/backbone.js',
           '../dist/handsontable.full.min.js',
-          '../dist/numbro/languages.js',
+          '../node_modules/numbro/dist/languages.min.js',
+          '../dist/languages/all.min.js',
         ],
       })
     );

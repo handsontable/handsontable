@@ -1,35 +1,44 @@
 import numbro from 'numbro';
-import {getRenderer} from './index';
-import {isNumeric} from './../helpers/number';
+import { getRenderer } from './index';
+import { isNumeric } from './../helpers/number';
 
 /**
- * Numeric cell renderer
+ * Numeric cell renderer.
  *
  * @private
- * @renderer NumericRenderer
- * @dependencies numbro
- * @param {Object} instance Handsontable instance
- * @param {Element} TD Table cell where to render
- * @param {Number} row
- * @param {Number} col
- * @param {String|Number} prop Row object property name
- * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
+ * @param {Core} instance The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {number|string} prop The column property (passed when datasource is an array of objects).
+ * @param {*} value The rendered value.
+ * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  if (isNumeric(value)) {
-    if (typeof cellProperties.language !== 'undefined') {
-      numbro.culture(cellProperties.language);
+  let newValue = value;
+
+  if (isNumeric(newValue)) {
+    const numericFormat = cellProperties.numericFormat;
+    const cellCulture = numericFormat && numericFormat.culture || '-';
+    const cellFormatPattern = numericFormat && numericFormat.pattern;
+    const className = cellProperties.className || '';
+    const classArr = className.length ? className.split(' ') : [];
+
+    if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
+      const shortTag = cellCulture.replace('-', '');
+      const langData = numbro.allLanguages ? numbro.allLanguages[cellCulture] : numbro[shortTag];
+
+      if (langData) {
+        numbro.registerLanguage(langData);
+      }
     }
 
-    value = numbro(value).format(cellProperties.format || '0');
+    numbro.setLanguage(cellCulture);
 
-    const className = cellProperties.className || '';
-
-    let classArr = className.length ? className.split(' ') : [];
+    newValue = numbro(newValue).format(cellFormatPattern || '0');
 
     if (classArr.indexOf('htLeft') < 0 && classArr.indexOf('htCenter') < 0 &&
-        classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
+      classArr.indexOf('htRight') < 0 && classArr.indexOf('htJustify') < 0) {
       classArr.push('htRight');
     }
 
@@ -40,7 +49,7 @@ function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
     cellProperties.className = classArr.join(' ');
   }
 
-  getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+  getRenderer('text')(instance, TD, row, col, prop, newValue, cellProperties);
 }
 
 export default numericRenderer;

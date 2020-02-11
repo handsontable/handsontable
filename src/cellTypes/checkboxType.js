@@ -1,5 +1,5 @@
-import {getEditor} from './../editors';
-import {getRenderer} from './../renderers';
+import { getEditor } from './../editors';
+import { getRenderer } from './../renderers';
 
 const CELL_TYPE = 'checkbox';
 

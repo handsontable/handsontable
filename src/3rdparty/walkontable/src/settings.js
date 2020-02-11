@@ -1,13 +1,13 @@
-import {fastInnerText} from './../../../helpers/dom/element';
-import {hasOwnProperty} from './../../../helpers/object';
+import { fastInnerText } from './../../../helpers/dom/element';
+import { objectEach } from './../../../helpers/object';
 
 /**
  * @class Settings
  */
 class Settings {
   /**
-   * @param {Walkontable} wotInstance
-   * @param {Object} settings
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {object} settings The user defined settings.
    */
   constructor(wotInstance, settings) {
     this.wot = wotInstance;
@@ -28,6 +28,7 @@ class Settings {
       preventOverflow() {
         return false;
       },
+      preventWheel: false,
 
       // data source
       data: void 0,
@@ -49,16 +50,16 @@ class Settings {
       totalRows: void 0,
       totalColumns: void 0,
       cellRenderer: (row, column, TD) => {
-        let cellData = this.getSetting('data', row, column);
+        const cellData = this.getSetting('data', row, column);
 
         fastInnerText(TD, cellData === void 0 || cellData === null ? '' : cellData);
       },
 
       // columnWidth: 50,
-      columnWidth(col) {
+      columnWidth() {
         // return undefined means use default size for the rendered cell content
       },
-      rowHeight(row) {
+      rowHeight() {
         // return undefined means use default size for the rendered cell content
       },
       defaultRowHeight: 23,
@@ -70,6 +71,7 @@ class Settings {
 
       // callbacks
       onCellMouseDown: null,
+      onCellContextMenu: null,
       onCellMouseOver: null,
       onCellMouseOut: null,
       onCellMouseUp: null,
@@ -80,13 +82,18 @@ class Settings {
       onCellCornerDblClick: null,
       beforeDraw: null,
       onDraw: null,
+      onBeforeRemoveCellClassNames: null,
+      onAfterDrawSelection: null,
       onBeforeDrawBorders: null,
       onScrollVertically: null,
       onScrollHorizontally: null,
       onBeforeTouchScroll: null,
       onAfterMomentumScroll: null,
-      onBeforeStretchingColumnWidth: (width) => width,
+      onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
+      onModifyGetCellCoords: null,
+
+      onWindowResize: null,
 
       // constants
       scrollbarWidth: 10,
@@ -102,35 +109,31 @@ class Settings {
     // reference to settings
     this.settings = {};
 
-    for (let i in this.defaults) {
-      if (hasOwnProperty(this.defaults, i)) {
-        if (settings[i] !== void 0) {
-          this.settings[i] = settings[i];
+    objectEach(this.defaults, (value, key) => {
+      if (settings[key] !== void 0) {
+        this.settings[key] = settings[key];
 
-        } else if (this.defaults[i] === void 0) {
-          throw new Error(`A required setting "${i}" was not provided`);
+      } else if (value === void 0) {
+        throw new Error(`A required setting "${key}" was not provided`);
 
-        } else {
-          this.settings[i] = this.defaults[i];
-        }
+      } else {
+        this.settings[key] = value;
       }
-    }
+    });
   }
 
   /**
-   * Update settings
+   * Update settings.
    *
-   * @param {Object} settings
-   * @param {*} value
+   * @param {object} settings The singular settings to update or if passed as object to merge with.
+   * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Walkontable}
    */
   update(settings, value) {
     if (value === void 0) { // settings is object
-      for (let i in settings) {
-        if (hasOwnProperty(settings, i)) {
-          this.settings[i] = settings[i];
-        }
-      }
+      objectEach(settings, (settingValue, key) => {
+        this.settings[key] = settingValue;
+      });
     } else { // if value is defined then settings is the key
       this.settings[settings] = value;
     }
@@ -138,13 +141,13 @@ class Settings {
   }
 
   /**
-   * Get setting by name
+   * Get setting by name.
    *
-   * @param {String} key
-   * @param {*} param1
-   * @param {*} param2
-   * @param {*} param3
-   * @param {*} param4
+   * @param {string} key The settings key to retrieve.
+   * @param {*} [param1] Additional parameter passed to the options defined as function.
+   * @param {*} [param2] Additional parameter passed to the options defined as function.
+   * @param {*} [param3] Additional parameter passed to the options defined as function.
+   * @param {*} [param4] Additional parameter passed to the options defined as function.
    * @returns {*}
    */
   getSetting(key, param1, param2, param3, param4) {
@@ -162,10 +165,10 @@ class Settings {
   }
 
   /**
-   * Checks if setting exists
+   * Checks if setting exists.
    *
-   * @param {Boolean} key
-   * @returns {Boolean}
+   * @param {boolean} key The settings key to check.
+   * @returns {boolean}
    */
   has(key) {
     return !!this.settings[key];

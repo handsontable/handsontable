@@ -5,16 +5,13 @@ describe('cellTypes', () => {
     getCellType,
   } = Handsontable.cellTypes;
   const {
-    registerEditor,
     getEditor,
     BaseEditor,
   } = Handsontable.editors;
   const {
-    registerRenderer,
     getRenderer,
   } = Handsontable.renderers;
   const {
-    registerValidator,
     getValidator,
   } = Handsontable.validators;
 
@@ -29,7 +26,7 @@ describe('cellTypes', () => {
     }
   });
 
-  it('should register custom cell type (with custom editor, renderer and validator)', async () => {
+  it('should register custom cell type (with custom editor, renderer and validator)', async() => {
     class MyEditor extends BaseEditor {
       init() {
         this.TEXTAREA = document.createElement('TEXTAREA');
@@ -52,7 +49,7 @@ describe('cellTypes', () => {
     }
     registerCellType('myCellType', {
       editor: MyEditor,
-      renderer: (hot, td, row, col, prop, value, cellProperties) => {
+      renderer: (hot, td, row, col, prop, value) => {
         td.innerHTML = `--${value}--`;
       },
       validator: (value, cb) => {
@@ -90,7 +87,7 @@ describe('cellTypes', () => {
   });
 
   it('should retrieve predefined cell types by its names', () => {
-    const {editors, renderers, validators} = Handsontable;
+    const { editors, renderers, validators } = Handsontable;
 
     expect(getCellType('autocomplete').editor).toBe(editors.AutocompleteEditor);
     expect(getCellType('autocomplete').renderer).toBe(renderers.AutocompleteRenderer);

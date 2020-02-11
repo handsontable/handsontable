@@ -1,5 +1,5 @@
 describe('PasswordEditor', () => {
-  var id = 'testContainer';
+  const id = 'testContainer';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 300px;"></div>`).appendTo('body');
@@ -30,7 +30,7 @@ describe('PasswordEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInput');
+    const editor = $('.handsontableInput');
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.is(':password')).toBe(true);
@@ -55,7 +55,7 @@ describe('PasswordEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editor = $('.handsontableInput');
+    const editor = $('.handsontableInput');
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.is(':password')).toBe(true);
@@ -80,8 +80,8 @@ describe('PasswordEditor', () => {
     selectCell(0, 0);
     keyDown('enter');
 
-    var editorHolder = $('.handsontableInputHolder');
-    var editor = editorHolder.find('.handsontableInput');
+    const editorHolder = $('.handsontableInputHolder');
+    const editor = editorHolder.find('.handsontableInput');
 
     expect(editorHolder.is(':visible')).toBe(true);
     expect(editor.is(':password')).toBe(true);
@@ -110,18 +110,67 @@ describe('PasswordEditor', () => {
 
     keyDown('enter');
 
-    var editorHolder = $('.handsontableInputHolder');
-    var editor = editorHolder.find('.handsontableInput');
+    const editorHolder = $('.handsontableInputHolder');
+    const editor = editorHolder.find('.handsontableInput');
 
-    expect(editorHolder.is(':visible')).toBe(true);
+    expect(parseInt(editorHolder.css('z-index'), 10)).toBeGreaterThan(0);
 
     editor.val('Edgar');
 
     selectCell(1, 0); // closes editor and saves current value
 
-    expect(editorHolder.is(':visible')).toBe(false);
+    expect(editorHolder.css('z-index')).toBe('-1');
 
     expect(getDataAtCell(0, 0)).toMatch('Edgar');
     expect(getRenderedValue(0, 0)).toMatch('Edgar');
+  });
+
+  // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
+  it('should not lose the focus on input element while inserting new characters (#839)', async() => {
+    let blured = false;
+    const listener = () => {
+      blured = true;
+    };
+    const hot = handsontable({
+      data: [
+        ['Joe'],
+        ['Timothy'],
+        ['Margaret'],
+        ['Jerry']
+      ],
+      columns: [
+        { data: 'id', type: 'password' },
+      ],
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+
+    await sleep(200);
+
+    hot.getActiveEditor().TEXTAREA.value = '1';
+    keyDownUp('1'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = '12';
+    keyDownUp('2'.charCodeAt(0));
+    hot.getActiveEditor().TEXTAREA.value = '123';
+    keyDownUp('3'.charCodeAt(0));
+
+    expect(blured).toBeFalsy();
+
+    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
+  });
+
+  describe('IME support', () => {
+    it('should focus editable element after selecting the cell', async() => {
+      handsontable({
+        type: 'password',
+      });
+      selectCell(0, 0, 0, 0, true, false);
+
+      await sleep(10);
+
+      expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
+    });
   });
 });

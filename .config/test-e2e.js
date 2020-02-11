@@ -3,18 +3,12 @@
  *  - e2e.entry.js
  *  - helpers.entry.js
  */
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./base');
-var JasmineHtml = require('./plugin/jasmine-html');
-
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const path = require('path');
+const configFactory = require('./base');
+const JasmineHtml = require('./plugin/jasmine-html');
 
 module.exports.create = function create(envArgs) {
-  var config = configFactory.create(envArgs);
+  const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
@@ -47,19 +41,19 @@ module.exports.create = function create(envArgs) {
         externalCssFiles: [
           'lib/normalize.css',
           '../dist/handsontable.css',
+          'helpers/common.css',
         ],
         externalJsFiles: [
-          '../test/lib/phantom-reporter.js',
+          'helpers/jasmine-bridge-reporter.js',
           'lib/jquery.min.js',
           'lib/jquery.simulate.js',
-          'lib/lodash.underscore.js',
-          'lib/backbone.js',
-          '../dist/numbro/numbro.js',
-          '../dist/numbro/languages.js',
-          '../dist/moment/moment.js',
-          '../dist/pikaday/pikaday.js',
-          '../dist/zeroclipboard/ZeroClipboard.js',
+          '../node_modules/numbro/dist/numbro.js',
+          '../node_modules/numbro/dist/languages.min.js',
+          '../node_modules/moment/moment.js',
+          '../node_modules/pikaday/pikaday.js',
+          '../node_modules/hot-formula-parser/dist/formula-parser.js',
           '../dist/handsontable.js',
+          '../dist/languages/all.js',
         ],
       })
     );

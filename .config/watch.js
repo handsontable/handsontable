@@ -1,26 +1,21 @@
-'use strict';
-
 /**
  * Config responsible for building Handsontable `dist/` files with enabled watching mode:
  *  - handsontable.js
  *  - handsontable.css
  */
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./base');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const path = require('path');
+const configFactory = require('./base');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
+const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
-  var config = configFactory.create(envArgs);
+  const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
-    c.devtool = '#cheap-module-eval-source-map';
-    c.output.filename = PACKAGE_NAME + '.js';
+    c.cache = true;
+    c.devtool = 'cheap-module-source-map';
+    c.output.filename = PACKAGE_FILENAME + '.js';
     // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css)
     c.externals = {
       numbro: {
@@ -40,6 +35,12 @@ module.exports.create = function create(envArgs) {
         commonjs2: 'pikaday',
         commonjs: 'pikaday',
         amd: 'pikaday',
+      },
+      'hot-formula-parser': {
+        root: 'formulaParser',
+        commonjs2: 'hot-formula-parser',
+        commonjs: 'hot-formula-parser',
+        amd: 'hot-formula-parser',
       }
     };
     c.module.rules.unshift({
@@ -50,7 +51,7 @@ module.exports.create = function create(envArgs) {
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
     c.plugins.push(
-      new ExtractTextPlugin(PACKAGE_NAME + '.css')
+      new MiniCssExtractPlugin({ filename: `${PACKAGE_FILENAME}.css` })
     );
   });
 

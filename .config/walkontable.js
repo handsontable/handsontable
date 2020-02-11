@@ -1,27 +1,21 @@
-'use strict';
-
 /**
  * Config responsible for building Walkontable (bundled into `src/3rdparty/walkontable/dist/`):
  *  - walkontable.js
  */
-var path = require('path');
-var webpack = require('webpack');
-var configFactory = require('./base');
-var JasmineHtml = require('./plugin/jasmine-html');
+const path = require('path');
+const webpack = require('webpack');
 
-var env = process.env.NODE_ENV;
-var PACKAGE_NAME = configFactory.PACKAGE_NAME;
-var wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
+const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
-module.exports.PACKAGE_NAME = PACKAGE_NAME;
-
-module.exports.create = function create(envArgs) {
-  var config = {
+module.exports.create = function create() {
+  const config = {
     devtool: 'cheap-module-source-map',
+    mode: 'none',
     output: {
+      filename: 'walkontable.js',
+      globalObject: `typeof self !== 'undefined' ? self : this`,
       library: 'Walkontable',
       libraryTarget: 'var',
-      filename: 'walkontable.js',
       path: path.resolve(wotPath, 'dist'),
     },
     module: {
