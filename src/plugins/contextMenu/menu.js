@@ -20,6 +20,7 @@ import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
 import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { isWindowsOS } from './../../helpers/browser';
 
 const MIN_WIDTH = 215;
 
@@ -190,6 +191,11 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
+        // On the Windows platform, the "contextmenu" is triggered after the "mouseup" so that's
+        // why the closing menu is here. (#6507#issuecomment-582392301).
+        if (isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {
+          this.close(true);
+        }
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
@@ -198,7 +204,9 @@ class Menu {
         }
       },
       afterOnCellMouseUp: () => {
-        if (shouldAutoCloseMenu && this.hasSelectedItem()) {
+        // If the code runs on the other platform than Windows, the "contextmenu" is triggered
+        // before the "mouseup". So then "mouseup" closes the menu (#6507#issuecomment-582392301).
+        if (!isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {
           this.close(true);
         }
       },

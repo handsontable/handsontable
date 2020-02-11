@@ -458,6 +458,36 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
+
+    it('should close menu after right click on menu item (#6507#issuecomment-582392301)', () => {
+      Handsontable.helper.setPlatformMeta({ platform: 'Win' }); // Let HoT think that it runs on Windows OS
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400,
+        beforeOnCellContextMenu(event) {
+          // Block event priopagation to test if the "contextmenu" handler closes the menu.
+          Handsontable.dom.stopImmediatePropagation(event);
+        }
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      // Order of events occurrence on Windows machines is "mousedown" -> "mouseup" -> "contextmenu" (other OS'
+      // have "mousedown" -> "contextmenu" -> "mouseup").
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(0)
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('contextmenu');
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      Handsontable.helper.setPlatformMeta(); // Reset platform
+    });
   });
 
   describe('menu disabled', () => {
