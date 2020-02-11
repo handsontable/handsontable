@@ -286,11 +286,11 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(210);
-    expect($columnHeaders.eq(1).width()).toBe(63);
-    expect($columnHeaders.eq(2).width()).toBe(210);
-    expect($columnHeaders.eq(3).width()).toBe(210);
-    expect($columnHeaders.eq(4).width()).toBe(211);
+    expect($columnHeaders.eq(0).width()).withContext('before: header at index 0').toBe(210);
+    expect($columnHeaders.eq(1).width()).withContext('before: header at index 0').toBe(63);
+    expect($columnHeaders.eq(2).width()).withContext('before: header at index 0').toBe(210);
+    expect($columnHeaders.eq(3).width()).withContext('before: header at index 0').toBe(210);
+    expect($columnHeaders.eq(4).width()).withContext('before: header at index 0').toBe(211);
 
     const $th = $columnHeaders.eq(1);
 
@@ -307,11 +307,11 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).toBe(181);
-    expect($columnHeaders.eq(1).width()).toBe(180);
-    expect($columnHeaders.eq(2).width()).toBe(181);
-    expect($columnHeaders.eq(3).width()).toBe(181);
-    expect($columnHeaders.eq(4).width()).toBe(181);
+    expect($columnHeaders.eq(0).width()).withContext('after: header at index 0').toBe(181);
+    expect($columnHeaders.eq(1).width()).withContext('after: header at index 1').toBe(181);
+    expect($columnHeaders.eq(2).width()).withContext('after: header at index 2').toBe(181);
+    expect($columnHeaders.eq(3).width()).withContext('after: header at index 3').toBe(181);
+    expect($columnHeaders.eq(4).width()).withContext('after: header at index 4').toBe(180);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
@@ -326,11 +326,11 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(64);
-    expect($columnHeaders.eq(1).width()).toBe(49);
-    expect($columnHeaders.eq(2).width()).toBe(49);
-    expect($columnHeaders.eq(3).width()).toBe(49);
-    expect($columnHeaders.eq(4).width()).toBe(693);
+    expect($columnHeaders.eq(0).width()).withContext('before: header at index 0').toBe(64);
+    expect($columnHeaders.eq(1).width()).withContext('before: header at index 1').toBe(49);
+    expect($columnHeaders.eq(2).width()).withContext('before: header at index 2').toBe(49);
+    expect($columnHeaders.eq(3).width()).withContext('before: header at index 3').toBe(49);
+    expect($columnHeaders.eq(4).width()).withContext('before: header at index 4').toBe(693);
 
     const $th = $columnHeaders.eq(0);
 
@@ -347,11 +347,11 @@ describe('manualColumnResize', () => {
 
     await sleep(1000);
 
-    expect($columnHeaders.eq(0).width()).toBeAroundValue(19);
-    expect($columnHeaders.eq(1).width()).toBe(48);
-    expect($columnHeaders.eq(2).width()).toBe(48);
-    expect($columnHeaders.eq(3).width()).toBe(49);
-    expect($columnHeaders.eq(4).width()).toBeAroundValue(738);
+    expect($columnHeaders.eq(0).width()).withContext('after: header at index 0').toBeAroundValue(19);
+    expect($columnHeaders.eq(1).width()).withContext('after: header at index 1').toBe(49);
+    expect($columnHeaders.eq(2).width()).withContext('after: header at index 2').toBe(49);
+    expect($columnHeaders.eq(3).width()).withContext('after: header at index 3').toBe(49);
+    expect($columnHeaders.eq(4).width()).withContext('after: header at index 4').toBeAroundValue(738);
   });
 
   it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', function() {
@@ -461,7 +461,7 @@ describe('manualColumnResize', () => {
 
     expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
 
-    resizeColumn(0, 50);
+    resizeColumn(0, 51);
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
@@ -523,7 +523,7 @@ describe('manualColumnResize', () => {
     expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toEqual(0);
     // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
     expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toBeInArray([29, 31, 32, 24, 25]);
-    expect(colWidth(spec().$container, 0)).toBeInArray([29, 31, 32, 24, 25]);
+    expect(colWidth(spec().$container, 0)).toBeInArray([30, 31, 32, 24, 25]);
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {

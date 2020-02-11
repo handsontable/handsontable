@@ -1,5 +1,6 @@
 describe('AutoColumnSize', () => {
   const id = 'testContainer';
+  const gridlineWidth = 1;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -44,7 +45,7 @@ describe('AutoColumnSize', () => {
 
     expect(colWidth(spec().$container, 0)).toBeAroundValue(50, 3);
     expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
-    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
+    expect([216, 228, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
 
     setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     setDataAtRowProp(0, 'name', 'foo');
@@ -53,7 +54,7 @@ describe('AutoColumnSize', () => {
 
     expect([165, 168, 169, 189, 191]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
     expect(colWidth(spec().$container, 1)).toBeAroundValue(50, 3);
-    expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
+    expect([216, 228, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
   });
 
   it('should correctly detect column widths with colHeaders', () => {
@@ -67,7 +68,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([149, 156, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', () => {
@@ -85,7 +86,7 @@ describe('AutoColumnSize', () => {
 
     updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([149, 156, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
     expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
   });
 
@@ -104,7 +105,7 @@ describe('AutoColumnSize', () => {
 
     updateSettings({ colHeaders: 'Identifier Longer text' });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([149, 156, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
     expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
   });
 
@@ -127,7 +128,7 @@ describe('AutoColumnSize', () => {
       },
     });
 
-    expect([149, 155, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([149, 156, 174, 178]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
     expect([226, 235, 263, 270]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
   });
 
@@ -145,7 +146,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(51);
   });
 
   it('should correctly detect column width with columns.title', () => {
@@ -157,7 +158,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([68, 70, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
   it('should correctly detect column widths after update columns.title', () => {
@@ -175,7 +176,7 @@ describe('AutoColumnSize', () => {
       ],
     });
 
-    expect([174, 182, 183, 208, 213]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([174, 182, 184, 208, 213]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
   // https://github.com/handsontable/handsontable/issues/2684
@@ -192,7 +193,7 @@ describe('AutoColumnSize', () => {
     spec().$container.css('display', 'block');
     hot.render();
 
-    expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+    expect([68, 70, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
   });
 
   it('should not wrap the cell values when the whole column has values with the same length', () => {
@@ -250,8 +251,8 @@ describe('AutoColumnSize', () => {
     width1 = colWidth(spec().$container, 1);
     width2 = colWidth(spec().$container, 2);
 
-    expect(width0).toEqual(width1);
-    expect(width0).toEqual(width2);
+    expect(width0 - gridlineWidth).toEqual(width1);
+    expect(width0 - gridlineWidth).toEqual(width2);
     expect(width1).toEqual(width2);
   });
 
@@ -297,8 +298,8 @@ describe('AutoColumnSize', () => {
     widths[2][1] = colWidth(spec().$container2, 1);
     widths[2][2] = colWidth(spec().$container2, 2);
 
-    expect(widths[1][0]).toEqual(widths[1][1]);
-    expect(widths[1][0]).toEqual(widths[1][2]);
+    expect(widths[1][0] - gridlineWidth).toEqual(widths[1][1]);
+    expect(widths[1][0] - gridlineWidth).toEqual(widths[1][2]);
     expect(widths[1][1]).toEqual(widths[1][2]);
 
     expect(widths[2][0]).toBeLessThan(widths[2][1]);
@@ -318,8 +319,8 @@ describe('AutoColumnSize', () => {
     let width1 = colWidth(spec().$container, 1);
     let width2 = colWidth(spec().$container, 2);
 
-    expect(width0).toEqual(width1);
-    expect(width0).toEqual(width2);
+    expect(width0 - gridlineWidth).toEqual(width1);
+    expect(width0 - gridlineWidth).toEqual(width2);
     expect(width1).toEqual(width2);
 
     updateSettings({
@@ -507,13 +508,13 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
     expect(colWidth(spec().$container, 1)).toBe(59);
     expect(colWidth(spec().$container, 2)).toBe(147);
 
     alter('insert_col', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
+    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth); // Added new row here.
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(59);
     expect(colWidth(spec().$container, 3)).toBe(147);
@@ -521,7 +522,7 @@ describe('AutoColumnSize', () => {
 
     alter('insert_col', 3);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(59);
     expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
@@ -530,7 +531,7 @@ describe('AutoColumnSize', () => {
 
     alter('insert_col', 5);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(59);
     expect(colWidth(spec().$container, 3)).toBe(50);
@@ -545,14 +546,14 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
     expect(colWidth(spec().$container, 1)).toBe(59);
     expect(colWidth(spec().$container, 2)).toBe(147);
     expect(colWidth(spec().$container, 3)).toBe(50);
 
     alter('remove_col', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(59);
+    expect(colWidth(spec().$container, 0)).toBe(59 + gridlineWidth);
     expect(colWidth(spec().$container, 1)).toBe(147);
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
@@ -746,17 +747,17 @@ describe('AutoColumnSize', () => {
         ]
       });
 
-      expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+      expect([68, 70, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
       expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
-      expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
+      expect([216, 228, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
 
       hot.alter('remove_row', 0);
 
       hot.undo();
 
-      expect([68, 70, 71, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
+      expect([68, 70, 72, 80, 82]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 0)]));
       expect([117, 120, 121, 129, 135]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)]));
-      expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
+      expect([216, 228, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
     });
   });
 });

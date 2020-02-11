@@ -100,8 +100,8 @@ describe('ContextMenu', () => {
 
       await sleep(300);
 
-      expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).toEqual(218);
+      expect($menu.find('.wtHider').width()).toEqual(216);
+      expect($menu.width()).toEqual(219);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
@@ -158,7 +158,7 @@ describe('ContextMenu', () => {
 
       const $contextSubMenu = $(`.htContextMenuSub_${$item.text()}`);
 
-      expect($contextSubMenu.find('.wtHider').width()).toEqual(215);
+      expect($contextSubMenu.find('.wtHider').width()).toEqual(216);
     });
   });
 

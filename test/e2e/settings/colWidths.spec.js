@@ -19,7 +19,7 @@ describe('settings', () => {
           colWidths: 123
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidths provided as string', () => {
@@ -27,7 +27,7 @@ describe('settings', () => {
           colWidths: '123'
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidths provided as array of numbers', () => {
@@ -35,7 +35,7 @@ describe('settings', () => {
           colWidths: [123]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidths provided as array of strings', () => {
@@ -43,7 +43,7 @@ describe('settings', () => {
           colWidths: ['123']
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidth provided as function that returns number', () => {
@@ -56,7 +56,7 @@ describe('settings', () => {
           }
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidth provided as function that returns string', () => {
@@ -69,7 +69,7 @@ describe('settings', () => {
           }
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
     });
 
@@ -80,7 +80,7 @@ describe('settings', () => {
           colWidths: 123
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidths provided as string', () => {
@@ -89,7 +89,7 @@ describe('settings', () => {
           colWidths: '123'
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidths provided as array of numbers', () => {
@@ -98,7 +98,7 @@ describe('settings', () => {
           colWidths: [123]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidths provided as array of strings', () => {
@@ -107,7 +107,7 @@ describe('settings', () => {
           colWidths: ['123']
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidth provided as function that returns number', () => {
@@ -121,7 +121,7 @@ describe('settings', () => {
           }
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider colWidth provided as function that returns string', () => {
@@ -135,7 +135,7 @@ describe('settings', () => {
           }
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
     });
 
@@ -149,7 +149,7 @@ describe('settings', () => {
           ]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider width provided as string', () => {
@@ -161,7 +161,7 @@ describe('settings', () => {
           ]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider width provided as array of numbers', () => {
@@ -173,7 +173,7 @@ describe('settings', () => {
           ]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider width provided as array of strings', () => {
@@ -185,7 +185,7 @@ describe('settings', () => {
           ]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider width provided as function that returns number', () => {
@@ -202,7 +202,7 @@ describe('settings', () => {
           ]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider width provided as function that returns string', () => {
@@ -219,7 +219,7 @@ describe('settings', () => {
           ]
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
     });
 
@@ -233,7 +233,7 @@ describe('settings', () => {
           }
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
 
       it('should consider width provided as string', () => {
@@ -245,7 +245,7 @@ describe('settings', () => {
           }
         });
 
-        expect(colWidth(spec().$container, 0)).toBe(123);
+        expect(colWidth(spec().$container, 0)).toBe(124);
       });
     });
   });
