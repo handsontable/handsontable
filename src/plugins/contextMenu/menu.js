@@ -19,7 +19,8 @@ import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, is
 import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
-import { stopImmediatePropagation } from './../../helpers/dom/event';
+import { stopImmediatePropagation, isRightClick } from './../../helpers/dom/event';
+import { isWindowsOS } from './../../helpers/browser';
 
 const MIN_WIDTH = 215;
 
@@ -190,6 +191,11 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
+        // On the Windows platform, the "contextmenu" is triggered after the "mouseup" so that's
+        // why the closing menu is here. (#6507#issuecomment-582392301).
+        if (isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {
+          this.close(true);
+        }
       },
       beforeOnCellMouseUp: (event) => {
         if (this.hasSelectedItem()) {
@@ -197,8 +203,11 @@ class Menu {
           this.executeCommand(event);
         }
       },
-      afterOnCellMouseUp: () => {
-        if (shouldAutoCloseMenu && this.hasSelectedItem()) {
+      afterOnCellMouseUp: (event) => {
+        // If the code runs on the other platform than Windows, the "mouseup" is triggered
+        // after the "contextmenu". So then "mouseup" closes the menu. Otherwise, the closing
+        // menu responsibility is forwarded to "afterOnCellContextMenu" callback (#6507#issuecomment-582392301).
+        if ((!isWindowsOS() || !isRightClick(event)) && shouldAutoCloseMenu && this.hasSelectedItem()) {
           this.close(true);
         }
       },
