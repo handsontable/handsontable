@@ -1,3 +1,5 @@
+import {selectAll} from '../../../../test/helpers/common';
+
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 
@@ -479,34 +481,94 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 4).innerText).toBe('E1');
         });
 
-        it('should select column on the right side after hide action', () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(2, 5),
-            colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
-            hiddenColumns: true,
+        describe('should select column on the right side after hide action ' +
+          'when on the right there is visible column and', () => {
+          it('when there is no hidden column', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 5),
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: true,
+            });
+
+            selectColumns(1, 2);
+
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
           });
 
-          selectColumns(1, 2);
+          it('when there are hidden columns', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 10),
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: {
+                indicators: true,
+                columns: [0, 1, 5, 6, 7]
+              }
+            });
 
-          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+            selectColumns(3, 4);
 
-          expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 8, 1, 8]);
+          });
         });
 
-        it('should select column on the left side after hide action if on the right is no more visible column', () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(2, 5),
-            colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
-            hiddenColumns: true,
+        describe('should select column on the left side after hide action ' +
+          'when on the right there is no more visible column and ', () => {
+          it('there is no hidden column', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 5),
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: true,
+            });
+
+            selectColumns(3, 4);
+
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
           });
 
-          selectColumns(3, 4);
+          it('there are hidden columns', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 10),
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: {
+                indicators: true,
+                columns: [0, 1, 5, 6, 7]
+              }
+            });
+
+            selectColumns(8, 9);
+
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 4, 1, 4]);
+          });
+        });
+
+        it('should not preserve selection after hiding all columns', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 10),
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: {
+              indicators: true,
+              columns: [0, 1, 5, 6, 7]
+            }
+          });
+
+          selectAll();
 
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-          expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
+          expect(getSelectedLast()).toBeUndefined();
         });
       });
 

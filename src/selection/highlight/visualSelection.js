@@ -68,6 +68,7 @@ class VisualSelection extends Selection {
         const singleCellRangeTranslated = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
 
         if (singleCellRangeTranslated !== null) {
+          this.cellRange.setHighlight(singleCellRangeTranslated);
           this.cellRange.setFrom(singleCellRangeTranslated);
           this.cellRange.setTo(singleCellRangeTranslated);
 
@@ -80,6 +81,7 @@ class VisualSelection extends Selection {
       return this;
     }
 
+    this.cellRange.setHighlight(fromRangeTranslated);
     this.cellRange.setFrom(fromRangeTranslated);
     this.cellRange.setTo(toRangeTranslated);
 
