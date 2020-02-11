@@ -89,6 +89,31 @@ describe('AutocompleteEditor', () => {
 
       window.onerror = prevError;
     });
+
+    it('should open editor with the proper width of the autocomplete list', async() => {
+      handsontable({
+        colWidths: 50,
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            visibleRows: 2,
+          }
+        ]
+      });
+      const scrollbarWidth = Handsontable.dom.getScrollbarWidth();
+      const expectedWidth = 50 + (scrollbarWidth === 0 ? 15 : scrollbarWidth);
+
+      selectCell(0, 0);
+
+      const editor = $('.autocompleteEditor');
+
+      keyDownUp('enter');
+
+      await sleep(100);
+
+      expect(editor.find('.ht_master .wtHolder').width()).toBe(expectedWidth);
+    });
   });
 
   describe('choices', () => {
@@ -1509,7 +1534,7 @@ describe('AutocompleteEditor', () => {
       }, 100);
     });
 
-    it('default filtering should be case sensitive when filteringCaseSensitive is false', (done) => {
+    it('default filtering should be case sensitive when filteringCaseSensitive is false', async() => {
       const hot = handsontable({
         columns: [
           {
@@ -1530,7 +1555,9 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
       keyDownUp(69); // e
 
-      setTimeout(() => {
+      await sleep(100);
+
+      {
         const ac = hot.getActiveEditor();
         const innerHot = ac.htEditor;
 
@@ -1548,16 +1575,17 @@ describe('AutocompleteEditor', () => {
 
         editorInput.val('E');
         keyDownUp(69); // E (same as 'e')
-      }, 50);
+      }
 
-      setTimeout(() => {
+      await sleep(100);
+
+      {
         const ac = hot.getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([]);
         expect(innerHot.getSourceData()).toEqual([]);
-        done();
-      }, 200);
+      }
     });
 
     it('typing in textarea should NOT filter the lookup list when filtering is disabled', (done) => {
@@ -2421,7 +2449,7 @@ describe('AutocompleteEditor', () => {
     expect(syncSources).not.toHaveBeenCalled();
   });
 
-  it('should not call the `source` method if cell is read only and the arrow has been clicked', (done) => {
+  it('should not call the `source` method if cell is read only and the arrow has been clicked', async() => {
     const syncSources = jasmine.createSpy('syncSources');
 
     syncSources.and.callFake((query, process) => {
@@ -2459,21 +2487,18 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    setTimeout(() => {
-      expect(syncSources).not.toHaveBeenCalled();
+    await sleep(150);
+    expect(syncSources).not.toHaveBeenCalled();
 
-      syncSources.calls.reset();
-      expect(getCellMeta(1, 0).readOnly).toBeFalsy();
+    syncSources.calls.reset();
+    expect(getCellMeta(1, 0).readOnly).toBeFalsy();
 
-      selectCell(1, 0);
-      $(getCell(1, 0)).find('.htAutocompleteArrow').simulate('mousedown');
-    }, 100);
+    selectCell(1, 0);
+    $(getCell(1, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    setTimeout(() => {
-      expect(syncSources).toHaveBeenCalled();
-      expect(syncSources.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    await sleep(150);
+    expect(syncSources).toHaveBeenCalled();
+    expect(syncSources.calls.count()).toEqual(1);
   });
 
   it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', async() => {

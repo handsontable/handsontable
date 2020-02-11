@@ -27,7 +27,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(4)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A4', 'A5']);
     });
@@ -46,7 +47,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(4)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(getDataAtCol(0)).toEqual(['A1', 'A2']);
     });
@@ -86,7 +88,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(4)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(getDataAtCol(0)).toEqual(['A7']);
     });
@@ -115,7 +118,7 @@ describe('ContextMenu', () => {
 
       hot.validateCells();
 
-      await sleep(100);
+      await sleep(150);
 
       selectCell(1, 1);
       contextMenu();
@@ -125,7 +128,8 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(4)
-        .simulate('mousedown');
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect($(hot.getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
     });

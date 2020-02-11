@@ -164,7 +164,7 @@ describe('noEditor', () => {
 
       await sleep(10);
 
-      expect(document.activeElement).toBe(document.querySelector('#HandsontableCopyPaste'));
+      expect(document.activeElement).toBe(document.querySelector('.HandsontableCopyPaste'));
     });
   });
 });

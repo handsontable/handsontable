@@ -1,6 +1,10 @@
 import * as C from '../../../i18n/constants';
 import MergedCellCoords from '../cellCoords';
 
+/**
+ * @param {*} plugin The plugin instance.
+ * @returns {object}
+ */
 export default function toggleMergeItem(plugin) {
   return {
     key: 'mergeCells',

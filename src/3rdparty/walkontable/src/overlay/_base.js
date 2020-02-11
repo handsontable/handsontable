@@ -1,9 +1,10 @@
 import {
   getScrollableElement,
-  getTrimmingContainer,
+  getTrimmingContainer
 } from './../../../../helpers/dom/element';
 import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
+import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
 import Walkontable from './../core';
 
@@ -17,49 +18,49 @@ const registeredOverlays = {};
  */
 class Overlay {
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_TOP() {
     return 'top';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_BOTTOM() {
     return 'bottom';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_LEFT() {
     return 'left';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_TOP_LEFT_CORNER() {
     return 'top_left_corner';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_BOTTOM_LEFT_CORNER() {
     return 'bottom_left_corner';
   }
 
   /**
-   * @type {String}
+   * @type {string}
    */
   static get CLONE_DEBUG() {
     return 'debug';
   }
 
   /**
-   * List of all availables clone types
+   * List of all availables clone types.
    *
    * @type {Array}
    */
@@ -77,8 +78,8 @@ class Overlay {
   /**
    * Register overlay class.
    *
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @param {Overlay} overlayClass Overlay class extended from base overlay class {@link Overlay}
+   * @param {string} type Overlay type, one of the CLONE_TYPES value.
+   * @param {Overlay} overlayClass Overlay class extended from base overlay class {@link Overlay}.
    */
   static registerOverlay(type, overlayClass) {
     if (Overlay.CLONE_TYPES.indexOf(type) === -1) {
@@ -90,8 +91,9 @@ class Overlay {
   /**
    * Create new instance of overlay type.
    *
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @param {Walkontable} wot Walkontable instance
+   * @param {string} type Overlay type, one of the CLONE_TYPES value.
+   * @param {Walkontable} wot The Walkontable instance.
+   * @returns {Overlay}
    */
   static createOverlay(type, wot) {
     return new registeredOverlays[type](wot);
@@ -100,8 +102,8 @@ class Overlay {
   /**
    * Check if specified overlay was registered.
    *
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @returns {Boolean}
+   * @param {string} type Overlay type, one of the CLONE_TYPES value.
+   * @returns {boolean}
    */
   static hasOverlay(type) {
     return registeredOverlays[type] !== void 0;
@@ -110,9 +112,9 @@ class Overlay {
   /**
    * Checks if overlay object (`overlay`) is instance of overlay type (`type`).
    *
-   * @param {Overlay} overlay Overlay object
-   * @param {String} type Overlay type, one of the CLONE_TYPES value
-   * @returns {Boolean}
+   * @param {Overlay} overlay Overlay object.
+   * @param {string} type Overlay type, one of the CLONE_TYPES value.
+   * @returns {boolean}
    */
   static isOverlayTypeOf(overlay, type) {
     if (!overlay || !registeredOverlays[type]) {
@@ -123,7 +125,7 @@ class Overlay {
   }
 
   /**
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     defineGetter(this, 'wot', wotInstance, {
@@ -156,7 +158,7 @@ class Overlay {
   /**
    * Update internal state of object with an information about the need of full rendering of the overlay.
    *
-   * @returns {Boolean} Returns `true` if the state has changed since the last check.
+   * @returns {boolean} Returns `true` if the state has changed since the last check.
    */
   updateStateOfRendering() {
     const previousState = this.needFullRender;
@@ -173,9 +175,9 @@ class Overlay {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   shouldBeRendered() {
     return true;
@@ -202,10 +204,126 @@ class Overlay {
   }
 
   /**
-   * Make a clone of table for overlay
+   * Calculates coordinates of the provided element, relative to the root Handsontable element.
+   * NOTE: The element needs to be a child of the overlay in order for the method to work correctly.
    *
-   * @param {String} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
-   *                           `Overlay.CLONE_TOP_LEFT_CORNER`, `Overlay.CLONE_DEBUG`
+   * @param {HTMLElement} element The cell element to calculate the position for.
+   * @param {number} rowIndex Visual row index.
+   * @param {number} columnIndex Visual column index.
+   * @returns {{top: number, left: number}|undefined}
+   */
+  getRelativeCellPosition(element, rowIndex, columnIndex) {
+    if (this.clone.wtTable.holder.contains(element) === false) {
+      warn(`The provided element is not a child of the ${this.type} overlay`);
+
+      return;
+    }
+    const windowScroll = this.mainTableScrollableElement === this.wot.rootWindow;
+    const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
+    const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
+    const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+    const spreaderOffset = {
+      left: this.clone.wtTable.spreader.offsetLeft,
+      top: this.clone.wtTable.spreader.offsetTop
+    };
+    const elementOffset = {
+      left: element.offsetLeft,
+      top: element.offsetTop
+    };
+    let offsetObject = null;
+
+    if (windowScroll) {
+      offsetObject = this.getRelativeCellPositionWithinWindow(fixedRowTop, fixedColumn, elementOffset, spreaderOffset);
+
+    } else {
+      offsetObject = this.getRelativeCellPositionWithinHolder(fixedRowTop, fixedRowBottom, fixedColumn, elementOffset, spreaderOffset);
+    }
+
+    return offsetObject;
+  }
+
+  /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
+   * as a scrollable element.
+   *
+   * @private
+   * @param {boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {number} elementOffset Offset position of the cell element.
+   * @param {number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: number, left: number}}
+   */
+  getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
+    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+    let horizontalOffset = 0;
+    let verticalOffset = 0;
+
+    if (!onFixedColumn) {
+      horizontalOffset = spreaderOffset.left;
+
+    } else {
+      horizontalOffset = absoluteRootElementPosition.left <= 0 ? (-1) * absoluteRootElementPosition.left : 0;
+    }
+
+    if (onFixedRowTop) {
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+
+      verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
+
+    } else {
+      verticalOffset = spreaderOffset.top;
+    }
+
+    return {
+      left: elementOffset.left + horizontalOffset,
+      top: elementOffset.top + verticalOffset
+    };
+  }
+
+  /**
+   * Calculates coordinates of the provided element, relative to the root Handsontable element within a table with window
+   * as a scrollable element.
+   *
+   * @private
+   * @param {boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {boolean} onFixedRowBottom `true` if the coordinates point to a place within the bottom fixed rows.
+   * @param {boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {number} elementOffset Offset position of the cell element.
+   * @param {number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: number, left: number}}
+   */
+  getRelativeCellPositionWithinHolder(onFixedRowTop, onFixedRowBottom, onFixedColumn, elementOffset, spreaderOffset) {
+    const tableScrollPosition = {
+      horizontal: this.clone.cloneSource.wtOverlays.leftOverlay.getScrollPosition(),
+      vertical: this.clone.cloneSource.wtOverlays.topOverlay.getScrollPosition()
+    };
+    let horizontalOffset = 0;
+    let verticalOffset = 0;
+
+    if (!onFixedColumn) {
+      horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.left;
+    }
+
+    if (onFixedRowBottom) {
+      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();
+      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
+
+    } else if (!onFixedRowTop) {
+      verticalOffset = tableScrollPosition.vertical - spreaderOffset.top;
+    }
+
+    return {
+      left: elementOffset.left - horizontalOffset,
+      top: elementOffset.top - verticalOffset,
+    };
+  }
+
+  /**
+   * Make a clone of table for overlay.
+   *
+   * @param {string} direction Can be `Overlay.CLONE_TOP`, `Overlay.CLONE_LEFT`,
+   *                           `Overlay.CLONE_TOP_LEFT_CORNER`, `Overlay.CLONE_DEBUG`.
    * @returns {Walkontable}
    */
   makeClone(direction) {
@@ -220,7 +338,7 @@ class Overlay {
     clone.style.position = 'absolute';
     clone.style.top = 0;
     clone.style.left = 0;
-    clone.style.overflow = 'hidden';
+    clone.style.overflow = 'visible';
 
     clonedTable.className = wtTable.TABLE.className;
     clone.appendChild(clonedTable);
@@ -231,8 +349,8 @@ class Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
-        preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
-        preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
+      preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
+      preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
       this.mainTableScrollableElement = rootWindow;
 
     } else if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
@@ -249,9 +367,11 @@ class Overlay {
   }
 
   /**
-   * Refresh/Redraw overlay
+   * Refresh/Redraw overlay.
    *
-   * @param {Boolean} [fastDraw=false]
+   * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   *                                   the data. It will only work if Table.draw() does not force
+   *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
     // When hot settings are changed we allow to refresh overlay once before blocking
@@ -283,7 +403,7 @@ class Overlay {
   }
 
   /**
-   * Destroy overlay instance
+   * Destroy overlay instance.
    */
   destroy() {
     (new EventManager(this.clone)).destroy();

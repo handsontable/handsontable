@@ -1,11 +1,16 @@
 import {
   isChrome,
   isEdge,
+  isFirefox,
   isIE,
   isMobileBrowser,
   isMSBrowser,
   isSafari,
+  isWindowsOS,
+  isMacOS,
+  isLinuxOS,
   setBrowserMeta,
+  setPlatformMeta,
 } from 'handsontable/helpers/browser';
 
 describe('Browser helper', () => {
@@ -382,6 +387,197 @@ describe('Browser helper', () => {
       });
 
       expect(isChrome()).toBeTruthy();
+    });
+  });
+
+  describe('isFirefox', () => {
+    it('should recognize browser properly', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefox()).toBeTruthy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefox()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefox()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefox()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefox()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4',
+        vendor: 'Apple Computer',
+      });
+
+      expect(isFirefox()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
+        vendor: 'Google Inc.',
+      });
+
+      expect(isFirefox()).toBeFalsy();
+    });
+  });
+
+  describe('isWindowsOS', () => {
+    it('should recognize platform correctly', () => {
+      setPlatformMeta({
+        platform: 'MacIntel'
+      });
+
+      expect(isWindowsOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux armv7l'
+      });
+
+      expect(isWindowsOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux i686'
+      });
+
+      expect(isWindowsOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux x86_64'
+      });
+
+      expect(isWindowsOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'HP-UX'
+      });
+
+      expect(isWindowsOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Win'
+      });
+
+      expect(isWindowsOS()).toBeTruthy();
+
+      setPlatformMeta({
+        platform: 'Win32'
+      });
+
+      expect(isWindowsOS()).toBeTruthy();
+    });
+  });
+
+  describe('isMacOS', () => {
+    it('should recognize platform correctly', () => {
+      setPlatformMeta({
+        platform: 'Win'
+      });
+
+      expect(isMacOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Win32'
+      });
+
+      expect(isMacOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux i686'
+      });
+
+      expect(isMacOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux x86_64'
+      });
+
+      expect(isMacOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'HP-UX'
+      });
+
+      expect(isMacOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Mac'
+      });
+
+      expect(isMacOS()).toBeTruthy();
+
+      setPlatformMeta({
+        platform: 'MacIntel'
+      });
+
+      expect(isMacOS()).toBeTruthy();
+    });
+  });
+
+  describe('isLinuxOS', () => {
+    it('should recognize platform correctly', () => {
+      setPlatformMeta({
+        platform: 'Win'
+      });
+
+      expect(isLinuxOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Win32'
+      });
+
+      expect(isLinuxOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Mac'
+      });
+
+      expect(isLinuxOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'MacIntel'
+      });
+
+      expect(isLinuxOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'HP-UX'
+      });
+
+      expect(isLinuxOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux i686'
+      });
+
+      expect(isLinuxOS()).toBeTruthy();
+
+      setPlatformMeta({
+        platform: 'Linux x86_64'
+      });
+
+      expect(isLinuxOS()).toBeTruthy();
     });
   });
 });

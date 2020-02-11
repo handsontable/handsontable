@@ -11,8 +11,7 @@
 
 .htFiltersConditionsMenu .ht_clone_top,
 .htFiltersConditionsMenu .ht_clone_left,
-.htFiltersConditionsMenu .ht_clone_corner,
-.htFiltersConditionsMenu .ht_clone_debug {
+.htFiltersConditionsMenu .ht_clone_corner {
   display: none;
 }
 
@@ -94,7 +93,7 @@
 
 /* Menu label */
 .handsontable .htFiltersMenuLabel {
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 /* Component action bar */
@@ -121,6 +120,8 @@
 }
 .handsontable .htFiltersMenuCondition .htUIInput input,
 .handsontable .htFiltersMenuValue .htUIMultipleSelectSearch input {
+  font-family: inherit;
+  font-size: 0.75em;
   padding: 4px;
   box-sizing: border-box;
   width: 100%;
@@ -146,7 +147,7 @@
 
 .handsontable .htUIClearAll a, .handsontable .htUISelectAll a {
   color: #3283D8;
-  font-size: 12px;
+  font-size: 0.75em;
 }
 
 .handsontable .htUISelectionControls {
@@ -186,8 +187,8 @@
   background-color: #eee;
   color: #000;
   cursor: pointer;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   height: 19px;
   min-width: 64px;
@@ -219,8 +220,8 @@
   background-color: #e8e8e8;
   border-radius: 2px;
   border: 1px solid #d2d1d1;
-  font-family: arial, sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 0.7em;
   font-weight: bold;
   padding: 3px 20px 3px 10px;
   text-overflow: ellipsis;
@@ -232,14 +233,14 @@
   border: 1px solid #b9b9b9;
 }
 .handsontable .htUISelectDropdown:after {
-  content: '▲';
+  content: '\25B2';
   font-size: 7px;
   position: absolute;
   right: 10px;
   top: 0;
 }
 .handsontable .htUISelectDropdown:before {
-  content: '▼';
+  content: '\25BC';
   font-size: 7px;
   position: absolute;
   right: 10px;
@@ -272,6 +273,10 @@
 
 .handsontable .htUIRadio > input[type=radio] {
   margin-right: 0.5ex;
+}
+
+.handsontable .htUIRadio label {
+  vertical-align: middle;
 }
 
 .handsontable .htFiltersMenuOperators {

@@ -3,6 +3,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'row_above';
 
+/**
+ * @returns {object}
+ */
 export default function rowAboveItem() {
   return {
     key: KEY,

@@ -43,8 +43,8 @@ class BaseCell {
   /**
    * Translate cell coordinates.
    *
-   * @param {Number} rowOffset Row offset to move.
-   * @param {Number} columnOffset Column offset to move.
+   * @param {number} rowOffset Row offset to move.
+   * @param {number} columnOffset Column offset to move.
    */
   translateTo(rowOffset, columnOffset) {
     this.row = this.row + rowOffset;
@@ -55,7 +55,7 @@ class BaseCell {
    * Check if cell is equal to provided one.
    *
    * @param {BaseCell} cell Cell object.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEqual(cell) {
     return cell.row === this.row && cell.column === this.column;
@@ -64,7 +64,7 @@ class BaseCell {
   /**
    * Stringify object.
    *
-   * @returns {String}
+   * @returns {string}
    */
   toString() {
     return toLabel(

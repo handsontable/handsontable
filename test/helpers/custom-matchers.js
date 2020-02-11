@@ -1,4 +1,5 @@
 import { generateASCIITable } from './asciiTable';
+import { normalize, pretty } from './htmlNormalize';
 
 // http://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes
 const scrollbarWidth = (function calculateScrollbarWidth() {
@@ -38,6 +39,9 @@ const scrollbarWidth = (function calculateScrollbarWidth() {
 beforeEach(function() {
   const currentSpec = this;
 
+  /**
+   * @returns {Handsontable}
+   */
   function hot() {
     return currentSpec.$container.data('handsontable');
   }
@@ -80,8 +84,33 @@ beforeEach(function() {
         }
       };
     },
+    toMatchHTML() {
+      return {
+        compare(actual, expected) {
+          const actualHTML = pretty(normalize(actual));
+          const expectedHTML = pretty(normalize(expected));
+
+          const result = {
+            pass: actualHTML === expectedHTML,
+          };
+
+          result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
+
+          if (typeof jest === 'object') {
+            /* eslint-disable global-require */
+            const jestMatcherUtils = require('jest-matcher-utils');
+
+            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
+          }
+
+          return result;
+        }
+      };
+    },
     /**
      * The matcher checks if the passed cell element is contained in the table viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleInViewport() {
       return {
@@ -102,6 +131,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible at the top of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtTopOfViewport() {
       return {
@@ -118,6 +149,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible at the bottom of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtBottomOfViewport() {
       return {
@@ -134,6 +167,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible on the left of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtLeftOfViewport() {
       return {
@@ -150,6 +185,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible on the right of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtRightOfViewport() {
       return {
@@ -203,6 +240,7 @@ beforeEach(function() {
         }
       };
     },
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
      * the appropriate CSS class name was added.
@@ -247,7 +285,10 @@ beforeEach(function() {
      * '===' - This symbol separates the column headers from the table content.
      * '|'   - The symbol which indicates the left overlay edge.
      * '---' - The symbol which indicates the top overlay edge.
+     *
+     * @returns {object}
      */
+    /* eslint-enable jsdoc/require-description-complete-sentence */
     toBeMatchToSelectionPattern() {
       return {
         compare(actualPattern) {

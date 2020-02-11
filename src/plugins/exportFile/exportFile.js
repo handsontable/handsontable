@@ -5,13 +5,12 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
 /**
  * @plugin ExportFile
- * @pro
  *
  * @description
  * The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
  * CSV format.
  *
- * See [the export file demo](https://docs.handsontable.com/demo-export-file.html) for examples.
+ * See [the export file demo](https://handsontable.com/docs/demo-export-file.html) for examples.
  *
  * @example
  * ```js
@@ -48,7 +47,7 @@ class ExportFile extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return true;
@@ -69,9 +68,10 @@ class ExportFile extends BasePlugin {
   /**
    * Exports table data as a string.
    *
-   * @param {String} format Export format type eq. `'csv'`.
+   * @param {string} format Export format type eq. `'csv'`.
    * @param {ExportOptions} options Export options.
-  */
+   * @returns {string}
+   */
   exportAsString(format, options = {}) {
     return this._createTypeFormatter(format, options).export();
   }
@@ -79,9 +79,10 @@ class ExportFile extends BasePlugin {
   /**
    * Exports table data as a blob object.
    *
-   * @param {String} format Export format type eq. `'csv'`.
+   * @param {string} format Export format type eq. `'csv'`.
    * @param {ExportOptions} options Export options.
-  */
+   * @returns {Blob}
+   */
   exportAsBlob(format, options = {}) {
     return this._createBlob(this._createTypeFormatter(format, options));
   }
@@ -89,7 +90,7 @@ class ExportFile extends BasePlugin {
   /**
    * Exports table data as a downloadable file.
    *
-   * @param {String} format Export format type eq. `'csv'`.
+   * @param {string} format Export format type eq. `'csv'`.
    * @param {ExportOptions} options Export options.
    */
   downloadFile(format, options = {}) {
@@ -124,8 +125,9 @@ class ExportFile extends BasePlugin {
    * Creates and returns class formatter for specified export type.
    *
    * @private
-   * @param {String} format Export format type eq. `'csv'`.
+   * @param {string} format Export format type eq. `'csv'`.
    * @param {ExportOptions} options Export options.
+   * @returns {BaseType}
    */
   _createTypeFormatter(format, options = {}) {
     if (!EXPORT_TYPES[format]) {
@@ -139,7 +141,7 @@ class ExportFile extends BasePlugin {
    * Creates blob object based on provided type formatter class.
    *
    * @private
-   * @param {BaseType} typeFormatter
+   * @param {BaseType} typeFormatter The instance of the specyfic formatter/exporter.
    * @returns {Blob}
    */
   _createBlob(typeFormatter) {

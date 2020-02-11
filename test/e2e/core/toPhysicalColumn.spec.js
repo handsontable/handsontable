@@ -12,13 +12,12 @@ describe('Core.toPhysicalColumn', () => {
     }
   });
 
-  it('should return valid physical row index', () => {
+  it('should return valid physical column index', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
-      modifyCol(column) {
-        return column + 3;
-      }
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
+    hot.columnIndexMapper.setIndexesSequence([3, 4, 5, 6, 7]);
 
     expect(hot.toPhysicalColumn(0)).toBe(3);
     expect(hot.toPhysicalColumn(1)).toBe(4);

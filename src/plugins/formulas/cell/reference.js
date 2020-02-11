@@ -12,7 +12,7 @@ class CellReference extends BaseCell {
   /**
    * Stringify object.
    *
-   * @returns {String}
+   * @returns {string}
    */
   toString() {
     return toLabel(

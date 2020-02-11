@@ -4,9 +4,11 @@ import {
   fastInnerHTML,
   getComputedStyle,
   getCssTransform,
+  hasClass,
   offset,
   outerHeight,
   outerWidth,
+  removeClass,
   resetCssTransform,
 } from './../helpers/dom/element';
 import { stopImmediatePropagation } from './../helpers/dom/event';
@@ -14,9 +16,10 @@ import { KEY_CODES } from './../helpers/unicode';
 import BaseEditor, { EditorState } from './_baseEditor';
 import { objectEach } from '../helpers/object';
 
+const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+
 /**
  * @private
- * @editor SelectEditor
  * @class SelectEditor
  */
 class SelectEditor extends BaseEditor {
@@ -66,6 +69,10 @@ class SelectEditor extends BaseEditor {
   close() {
     this._opened = false;
     this.select.style.display = 'none';
+
+    if (hasClass(this.select, EDITOR_VISIBLE_CLASS_NAME)) {
+      removeClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
+    }
     this.clearHooks();
   }
 
@@ -91,15 +98,15 @@ class SelectEditor extends BaseEditor {
   /**
    * Prepares editor's meta data and a list of available options.
    *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number|String} prop
-   * @param {HTMLTableCellElement} td
-   * @param {*} originalValue
-   * @param {Object} cellProperties
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, originalValue, cellProperties) {
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+  prepare(row, col, prop, td, value, cellProperties) {
+    super.prepare(row, col, prop, td, value, cellProperties);
 
     const selectOptions = this.cellProperties.selectOptions;
     let options;
@@ -112,11 +119,11 @@ class SelectEditor extends BaseEditor {
 
     empty(this.select);
 
-    objectEach(options, (value, key) => {
+    objectEach(options, (optionValue, key) => {
       const optionElement = this.hot.rootDocument.createElement('OPTION');
       optionElement.value = key;
 
-      fastInnerHTML(optionElement, value);
+      fastInnerHTML(optionElement, optionValue);
       this.select.appendChild(optionElement);
     });
   }
@@ -125,8 +132,8 @@ class SelectEditor extends BaseEditor {
    * Creates consistent list of available options.
    *
    * @private
-   * @param {Array|Object} optionsToPrepare
-   * @returns {Object}
+   * @param {Array|object} optionsToPrepare The list of the values to render in the select eleemnt.
+   * @returns {object}
    */
   prepareOptions(optionsToPrepare) {
     let preparedOptions = {};
@@ -234,52 +241,12 @@ class SelectEditor extends BaseEditor {
     selectStyle.top = `${editTop}px`;
     selectStyle.left = `${editLeft}px`;
     selectStyle.margin = '0px';
+
+    addClass(this.select, EDITOR_VISIBLE_CLASS_NAME);
   }
 
   /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
-   *
-   * @private
-   * @returns {HTMLTableCellElement|undefined}
-   */
-  getEditedCell() {
-    const { wtOverlays } = this.hot.view.wt;
-    const editorSection = this.checkEditorSection();
-    let editedCell;
-
-    switch (editorSection) {
-      case 'top':
-        editedCell = wtOverlays.topOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 101;
-        break;
-      case 'corner':
-        editedCell = wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 103;
-        break;
-      case 'left':
-        editedCell = wtOverlays.leftOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.select.style.zIndex = 102;
-        break;
-      default:
-        editedCell = this.hot.getCell(this.row, this.col);
-        this.select.style.zIndex = '';
-        break;
-    }
-
-    return editedCell < 0 ? void 0 : editedCell;
-  }
-
-  /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
    * @private
    */

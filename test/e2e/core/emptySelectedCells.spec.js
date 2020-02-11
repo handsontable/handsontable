@@ -39,14 +39,14 @@ describe('Core.emptySelectedCells', () => {
     /* eslint-disable no-multi-spaces, comma-spacing */
     const snapshot = [
       ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1'],
-      ['A2',  '',   '',   '',   '',  'F2', 'G2', 'H2'],
-      ['A3',  '',   '',   '',   '',  'F3', 'G3', 'H3'],
-      ['A4',  '',   '',   '',   '',  'F4', 'G4', 'H4'],
-      ['A5',  '',   '',   '',   '',  'F5', 'G5', 'H5'],
-      ['A6',  '',   '',   '',   '',  'F6', 'G6', 'H6'],
-      ['A7', 'B7',  '',  'D7', 'E7', 'F7', 'G7', 'H7'],
-      ['A8', 'B8',  '',  'D8', 'E8', 'F8',  '',   '',],
-      ['A9', 'B9', 'C9', 'D9', 'E9', 'F9',  '',   '',],
+      ['A2',  null,   null,   null,   null,  'F2', 'G2', 'H2'],
+      ['A3',  null,   null,   null,   null,  'F3', 'G3', 'H3'],
+      ['A4',  null,   null,   null,   null,  'F4', 'G4', 'H4'],
+      ['A5',  null,   null,   null,   null,  'F5', 'G5', 'H5'],
+      ['A6',  null,   null,   null,   null,  'F6', 'G6', 'H6'],
+      ['A7', 'B7',  null,  'D7', 'E7', 'F7', 'G7', 'H7'],
+      ['A8', 'B8',  null,  'D8', 'E8', 'F8',  null,   null,],
+      ['A9', 'B9', 'C9', 'D9', 'E9', 'F9',  null,   null,],
     ];
     /* eslint-enable no-multi-spaces, comma-spacing */
 

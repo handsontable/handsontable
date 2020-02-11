@@ -1,6 +1,10 @@
 describe('HiddenRows', () => {
   const id = 'testContainer';
 
+  /**
+   * @param rows
+   * @param cols
+   */
   function getMultilineData(rows, cols) {
     const data = Handsontable.helper.createSpreadsheetData(rows, cols);
 
@@ -304,6 +308,9 @@ describe('HiddenRows', () => {
       }
     }
 
+    /**
+     *
+     */
     function getClipboardEventMock() {
       const event = {};
       event.clipboardData = new DataTransferObject();
@@ -516,7 +523,10 @@ describe('HiddenRows', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      expect(actions.length).toEqual(0);
+      expect(actions.length).toEqual(1);
+      expect(actions.text()).toEqual([
+        'No available options',
+      ].join(''));
     });
 
     it('should hide selected columns by "Hide row" in context menu', () => {
@@ -540,7 +550,7 @@ describe('HiddenRows', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getRowHeight(3)).toBe(0.1);
       expect(hot.getRowHeight(4)).toBe(0.1);
@@ -570,7 +580,7 @@ describe('HiddenRows', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getRowHeight(2)).toBe(30);
       expect(hot.getRowHeight(3)).toBe(30);
@@ -591,7 +601,7 @@ describe('HiddenRows', () => {
       const hiddenRows = hot.getPlugin('hiddenRows');
       const manualRowMove = hot.getPlugin('manualRowMove');
 
-      manualRowMove.moveRows([0, 1], 4);
+      manualRowMove.moveRows([0, 1], 3);
       hot.render();
 
       expect(hiddenRows.hiddenRows[0]).toEqual(3);

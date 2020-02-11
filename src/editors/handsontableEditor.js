@@ -6,9 +6,7 @@ import TextEditor from './textEditor';
 
 /**
  * @private
- * @editor HandsontableEditor
  * @class HandsontableEditor
- * @dependencies TextEditor
  */
 class HandsontableEditor extends TextEditor {
   /**
@@ -45,7 +43,10 @@ class HandsontableEditor extends TextEditor {
    * Closes the editor.
    */
   close() {
-    this.htEditor.rootElement.style.display = 'none';
+    if (this.htEditor) {
+      this.htEditor.rootElement.style.display = 'none';
+    }
+
     this.removeHooksByKey('beforeKeyDown');
     super.close();
   }
@@ -53,15 +54,15 @@ class HandsontableEditor extends TextEditor {
   /**
    * Prepares editor's meta data and configuration of the internal Handsontable's instance.
    *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number|String} prop
-   * @param {HTMLTableCellElement} td
-   * @param {*} originalValue
-   * @param {Object} cellProperties
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(td, row, col, prop, value, cellProperties) {
-    super.prepare(td, row, col, prop, value, cellProperties);
+  prepare(row, col, prop, td, value, cellProperties) {
+    super.prepare(row, col, prop, td, value, cellProperties);
 
     const parent = this;
     const options = {
@@ -85,7 +86,8 @@ class HandsontableEditor extends TextEditor {
           parent.setValue(sourceValue);
         }
         parent.instance.destroyEditor();
-      }
+      },
+      preventWheel: true,
     };
 
     if (this.cellProperties.handsontable) {
@@ -97,8 +99,8 @@ class HandsontableEditor extends TextEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
-   * @param {*} newInitialValue
-   * @param {*} event
+   * @param {*} newInitialValue The editor initial value.
+   * @param {*} event The keyboard event object.
    */
   beginEditing(newInitialValue, event) {
     const onBeginEditing = this.hot.getSettings().onBeginEditing;
@@ -108,13 +110,6 @@ class HandsontableEditor extends TextEditor {
     }
 
     super.beginEditing(newInitialValue, event);
-  }
-
-  /**
-   * Sets focus state on the select element.
-   */
-  focus() {
-    super.focus();
   }
 
   /**
@@ -134,9 +129,9 @@ class HandsontableEditor extends TextEditor {
   /**
    * Finishes editing and start saving or restoring process for editing cell or last selected range.
    *
-   * @param {Boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {Boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
-   * @param {Function} callback
+   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
     if (this.htEditor && this.htEditor.isListening()) { // if focus is still in the HOT editor
@@ -151,7 +146,7 @@ class HandsontableEditor extends TextEditor {
       }
     }
 
-    return super.finishEditing(restoreOriginalValue, ctrlDown, callback);
+    super.finishEditing(restoreOriginalValue, ctrlDown, callback);
   }
 
   /**
@@ -168,10 +163,10 @@ class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The keyboard event object.
    */
   onBeforeKeyDown(event) {
     if (isImmediatePropagationStopped(event)) {

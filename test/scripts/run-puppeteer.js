@@ -6,13 +6,32 @@ const JasmineReporter = require('jasmine-terminal-reporter');
 const PORT = 8086;
 const DEFAULT_INACTIVITY_TIMEOUT = 10000;
 
-const [,, path] = process.argv;
+const [,, originalPath, flags] = process.argv;
+let path = originalPath;
+let verboseReporting = false;
 
-if (!path) {
+if (!originalPath) {
   /* eslint-disable no-console */
   console.log('The `path` argument is missing.');
 
   return;
+}
+
+if (flags) {
+  const seed = flags.match(/(--seed=)\d{1,}/g);
+  const random = flags.includes('random');
+  const params = [];
+
+  verboseReporting = flags.includes('verbose');
+
+  if (seed) {
+    params.push(`seed=${seed[0].replace('--seed=', '')}`);
+  }
+  if (seed || random) {
+    params.push('random=true');
+  }
+
+  path = `${path}?${params.join('&')}`;
 }
 
 const cleanupFactory = (browser, server) => async(exitCode) => {
@@ -32,6 +51,9 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   });
 
   const page = await browser.newPage();
+  // To emulate slower CPU you can uncomment next two lines. Docs: https://chromedevtools.github.io/devtools-protocol/tot/Emulation#method-setCPUThrottlingRate
+  // const client = await page.target().createCDPSession();
+  // await client.send('Emulation.setCPUThrottlingRate', { rate: 2 });
 
   page.setCacheEnabled(false);
   page.setViewport({
@@ -54,12 +76,18 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
     verbosity: 4,
     listStyle: 'flat',
     activity: true,
-    isVerbose: false,
+    isVerbose: verboseReporting,
     includeStackTrace: true,
   });
   let errorCount = 0;
 
-  await page.exposeFunction('jasmineStarted', specInfo => reporter.jasmineStarted(specInfo));
+  await page.exposeFunction('jasmineStarted', (specInfo) => {
+    if (specInfo.order.random) {
+      process.stdout.write(`Randomized with seed ${specInfo.order.seed}\n`);
+    }
+
+    reporter.jasmineStarted(specInfo);
+  });
   await page.exposeFunction('jasmineSpecStarted', () => {});
   await page.exposeFunction('jasmineSuiteStarted', suite => reporter.suiteStarted(suite));
   await page.exposeFunction('jasmineSuiteDone', () => reporter.suiteDone());

@@ -131,6 +131,27 @@ describe('HandsontableEditor', () => {
     expect(container.clientHeight).toBeGreaterThan(2);
   });
 
+  it('should change container z-index after open editor to 200', () => {
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ]
+    });
+
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const container = spec().$container.find('.handsontableInputHolder');
+
+    expect(container.css('zIndex')).toBe('200');
+  });
+
   it('should destroy the editor when Esc is pressed', () => {
     handsontable({
       columns: [
@@ -173,6 +194,34 @@ describe('HandsontableEditor', () => {
     keyDownUp('enter');
 
     expect(spy.test.calls.count()).toBe(0);
+
+    window.onerror = prevError;
+  });
+
+  it('should not throw error while close no open editor by hitting delete key and `beforeChange` return false', () => {
+    const spy = jasmine.createSpyObj('error', ['test']);
+    const prevError = window.onerror;
+
+    window.onerror = function() {
+      spy.test();
+    };
+    handsontable({
+      columns: [{
+        type: 'handsontable',
+        handsontable: {
+          data: [['Marque'], ['Country'], ['Parent company']]
+        }
+      }],
+      beforeChange: () => false
+    });
+
+    selectCell(0, 0);
+    keyDownUp('delete');
+
+    expect(spy.test.calls.count()).toBe(0);
+    expect(() => {
+      keyDownUp('delete');
+    }).not.toThrowError('Uncaught TypeError: Cannot read property "rootElement" of undefined');
 
     window.onerror = prevError;
   });

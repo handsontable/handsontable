@@ -1,9 +1,6 @@
 import Handsontable from 'handsontable';
 
-const gridSettings: Handsontable.GridSettings = {
-  valid: true,
-  className: 'foo'
-};
+const gridSettings: Handsontable.GridSettings = { };
 
 Handsontable.helper.arrayAvg([1, 3, 4]);
 Handsontable.helper.arrayEach([1, 2, 3], (value, index, array) => {});
@@ -42,6 +39,7 @@ Handsontable.helper.getProperty({key: 'foo'}, 'key');
 Handsontable.helper.getPrototypeOf({key: 'foo'});
 Handsontable.helper.hasCaptionProblem();
 Handsontable.helper.inherit({key: 'foo'}, {key2: 'bar'});
+const testInstanceToString: string = Handsontable.helper.instanceToHTML(new Handsontable(document.createElement('div'), {}));
 Handsontable.helper.isChrome();
 Handsontable.helper.isCtrlKey(1);
 Handsontable.helper.isDefined(1);
@@ -49,7 +47,6 @@ Handsontable.helper.isEdge();
 Handsontable.helper.isEmpty(1);
 Handsontable.helper.isFunction(1);
 Handsontable.helper.isIE();
-Handsontable.helper.isIE8();
 Handsontable.helper.isIE9();
 Handsontable.helper.isKey(1, 'foo');
 Handsontable.helper.isMetaKey(1);
@@ -63,7 +60,6 @@ Handsontable.helper.isPrintableChar(1);
 Handsontable.helper.isSafari();
 Handsontable.helper.isTouchSupported();
 Handsontable.helper.isUndefined(null);
-Handsontable.helper.isWebComponentSupportedNatively();
 Handsontable.helper.mixin({}, {key: 'foo'}, {key2: 'bar'});
 Handsontable.helper.objectEach({key: 'foo'}, (value, key, object) => {});
 Handsontable.helper.padStart('foo', 1, 'bar');
@@ -80,6 +76,8 @@ Handsontable.helper.startsWith('foo', 'bar');
 Handsontable.helper.stringify(1);
 Handsontable.helper.stripTags('<a>foo</a>');
 Handsontable.helper.substitute('foo', {});
+const testTableToSettings: Handsontable.GridSettings = Handsontable.helper.htmlToGridSettings('');
+const testTableToSettings2: Handsontable.GridSettings = Handsontable.helper.htmlToGridSettings(document.createElement('table'));
 Handsontable.helper.throttle(() => {}, 1);
 Handsontable.helper.throttleAfterHits(() => {}, 0, 1);
 Handsontable.helper.to2dArray([1, 'foo', true]);

@@ -3,6 +3,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'clear_column';
 
+/**
+ * @returns {object}
+ */
 export default function clearColumnItem() {
   return {
     key: KEY,

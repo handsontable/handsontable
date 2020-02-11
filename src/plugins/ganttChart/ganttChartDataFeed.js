@@ -23,11 +23,11 @@ class GanttChartDataFeed {
   /**
    * Parse data accordingly to it's type (HOT instance / data object).
    *
-   * @param {Object} data The source Handsontable instance or a data object.
-   * @param {Number} startDateColumn Index of the column containing the start dates.
-   * @param {Number} endDateColumn Index of the column containing the end dates.
-   * @param {Object} additionalData Object containing column and label information about additional data passed to the Gantt Plugin.
-   * @param {Boolean} asyncUpdates If set to true, the source instance updates will be applied asynchronously.
+   * @param {object} data The source Handsontable instance or a data object.
+   * @param {number} startDateColumn Index of the column containing the start dates.
+   * @param {number} endDateColumn Index of the column containing the end dates.
+   * @param {object} additionalData Object containing column and label information about additional data passed to the Gantt Plugin.
+   * @param {boolean} asyncUpdates If set to true, the source instance updates will be applied asynchronously.
    */
   applyData(data, startDateColumn, endDateColumn, additionalData, asyncUpdates) {
     if (Object.prototype.toString.call(data) === '[object Array]') {
@@ -51,12 +51,12 @@ class GanttChartDataFeed {
   /**
    * Make another Handsontable instance be a live feed for the gantt chart.
    *
-   * @param {Object} instance The source Handsontable instance.
-   * @param {Number} startDateColumn Index of the column containing the start dates.
-   * @param {Number} endDateColumn Index of the column containing the end dates.
-   * @param {Object} additionalData Object containing column and label information about additional data passed to the
-   * Gantt Plugin. See the example for more details.
-   * @param {Boolean} asyncUpdates If set to true, the source instance updates will be applied asynchronously.
+   * @param {object} instance The source Handsontable instance.
+   * @param {number} startDateColumn Index of the column containing the start dates.
+   * @param {number} endDateColumn Index of the column containing the end dates.
+   * @param {object} additionalData Object containing column and label information about additional data
+   *                 passed to the Gantt Plugin. See the example for more details.
+   * @param {boolean} asyncUpdates If set to true, the source instance updates will be applied asynchronously.
    *
    * @example
    * ```js
@@ -84,7 +84,7 @@ class GanttChartDataFeed {
   /**
    * Run the provided function asynchronously.
    *
-   * @param {Function} func
+   * @param {Function} func The function to call.
    */
   asyncCall(func) {
 
@@ -132,7 +132,7 @@ class GanttChartDataFeed {
    * Remove hooks from the source Handsontable instance.
    *
    * @private
-   * @param {Object} hotSource The source Handsontable instance object.
+   * @param {object} hotSource The source Handsontable instance object.
    */
   removeSourceHotHooks(hotSource) {
     if (this.sourceHooks.afterLoadData) {
@@ -151,7 +151,7 @@ class GanttChartDataFeed {
   /**
    * Get data from the source Handsontable instance.
    *
-   * @param {Number} [row] Source Handsontable instance row.
+   * @param {number} [row] Source Handsontable instance row.
    * @returns {Array}
    */
   getDataFromSource(row) {
@@ -193,7 +193,7 @@ class GanttChartDataFeed {
   /**
    * Update the Gantt Chart-enabled Handsontable instance with the data from the source Handsontable instance.
    *
-   * @param {Number} [row] Index of the row which needs updating.
+   * @param {number} [row] Index of the row which needs updating.
    */
   updateFromSource(row) {
     const dataFromSource = this.getDataFromSource(row);
@@ -249,8 +249,8 @@ class GanttChartDataFeed {
   /**
    * Split the provided range into maximum-year-long chunks.
    *
-   * @param {Object} bar The range bar object.
-   * @returns {Array} An array of slip chunks (or a single-element array, if no splicing occured)
+   * @param {object} bar The range bar object.
+   * @returns {Array} An array of slip chunks (or a single-element array, if no splicing occured).
    */
   splitRangeIfNeeded(bar) {
     const splitBars = [];
@@ -286,7 +286,7 @@ class GanttChartDataFeed {
   }
 
   /**
-   * afterChange hook callback for the source Handsontable instance.
+   * AfterChange hook callback for the source Handsontable instance.
    *
    * @private
    * @param {Array} changes List of changes.
@@ -324,7 +324,7 @@ class GanttChartDataFeed {
   }
 
   /**
-   * afterLoadData hook callback for the source Handsontable instance.
+   * AfterLoadData hook callback for the source Handsontable instance.
    *
    * @private
    */
@@ -336,7 +336,7 @@ class GanttChartDataFeed {
   }
 
   /**
-   * afterColumnSort hook callback for the source Handsontable instance.
+   * AfterColumnSort hook callback for the source Handsontable instance.
    *
    * @private
    */

@@ -93,20 +93,14 @@ class Event {
 
       initMouseEvents();
     }
-
-    this.eventManager.addEventListener(this.instance.rootWindow, 'resize', () => {
-      if (this.instance.getSetting('stretchH') !== 'none') {
-        this.instance.draw();
-      }
-    });
   }
 
   /**
    * Checks if an element is already selected.
    *
    * @private
-   * @param {Element} touchTarget
-   * @returns {Boolean}
+   * @param {Element} touchTarget An element to check.
+   * @returns {boolean}
    */
   selectedCellWasTouched(touchTarget) {
     const priv = privatePool.get(this);
@@ -127,8 +121,8 @@ class Event {
    * Gets closest TD or TH element.
    *
    * @private
-   * @param {Element} elem
-   * @returns {Object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+   * @param {Element} elem An element from the traversing starts.
+   * @returns {object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
    */
   parentCell(elem) {
     const cell = {};
@@ -154,16 +148,16 @@ class Event {
   }
 
   /**
-   * onMouseDown callback.
+   * OnMouseDown callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseDown(event) {
     const priv = privatePool.get(this);
     const activeElement = this.instance.rootDocument.activeElement;
-    const getParentNode = partial(getParent, event.realTarget);
-    const realTarget = event.realTarget;
+    const getParentNode = partial(getParent, event.target);
+    const realTarget = event.target;
 
     // ignore focusable element from mouse down processing (https://github.com/handsontable/handsontable/issues/3555)
     if (realTarget === activeElement ||
@@ -180,7 +174,8 @@ class Event {
       this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
     }
 
-    if (event.button !== 2 && cell.TD) { // if not right mouse button
+    // doubleclick reacts only for left mouse button
+    if (event.button === 0 && cell.TD) {
       priv.dblClickOrigin[0] = cell.TD;
 
       clearTimeout(priv.dblClickTimeout[0]);
@@ -192,14 +187,14 @@ class Event {
   }
 
   /**
-   * onContextMenu callback.
+   * OnContextMenu callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
     if (this.instance.hasSetting('onCellContextMenu')) {
-      const cell = this.parentCell(event.realTarget);
+      const cell = this.parentCell(event.target);
 
       if (cell.TD) {
         this.instance.getSetting('onCellContextMenu', event, cell.coords, cell.TD, this.instance);
@@ -208,10 +203,10 @@ class Event {
   }
 
   /**
-   * onMouseOver callback.
+   * OnMouseOver callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOver(event) {
     if (!this.instance.hasSetting('onCellMouseOver')) {
@@ -219,7 +214,7 @@ class Event {
     }
 
     const table = this.instance.wtTable.TABLE;
-    const td = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const td = closestDown(event.target, ['TD', 'TH'], table);
     const mainWOT = this.instance.cloneSource || this.instance;
 
     if (td && td !== mainWOT.lastMouseOver && isChildOf(td, table)) {
@@ -230,10 +225,10 @@ class Event {
   }
 
   /**
-   * onMouseOut callback.
+   * OnMouseOut callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOut(event) {
     if (!this.instance.hasSetting('onCellMouseOut')) {
@@ -241,7 +236,7 @@ class Event {
     }
 
     const table = this.instance.wtTable.TABLE;
-    const lastTD = closestDown(event.realTarget, ['TD', 'TH'], table);
+    const lastTD = closestDown(event.target, ['TD', 'TH'], table);
     const nextTD = closestDown(event.relatedTarget, ['TD', 'TH'], table);
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
@@ -250,26 +245,26 @@ class Event {
   }
 
   /**
-   * onMouseUp callback.
+   * OnMouseUp callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseUp(event) {
-    if (event.button === 2) {
-      return;
-    }
-
-    // if not right mouse button
     const priv = privatePool.get(this);
-    const cell = this.parentCell(event.realTarget);
+    const cell = this.parentCell(event.target);
 
     if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
       this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
     }
 
+    // if not left mouse button, then ignore
+    if (event.button !== 0) {
+      return;
+    }
+
     if (cell.TD === priv.dblClickOrigin[0] && cell.TD === priv.dblClickOrigin[1]) {
-      if (hasClass(event.realTarget, 'corner')) {
+      if (hasClass(event.target, 'corner')) {
         this.instance.getSetting('onCellCornerDblClick', event, cell.coords, cell.TD, this.instance);
       } else {
         this.instance.getSetting('onCellDblClick', event, cell.coords, cell.TD, this.instance);
@@ -290,10 +285,10 @@ class Event {
   }
 
   /**
-   * onTouchStart callback. Simulates mousedown event.
+   * OnTouchStart callback. Simulates mousedown event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchStart(event) {
     const priv = privatePool.get(this);
@@ -305,10 +300,10 @@ class Event {
   }
 
   /**
-   * onTouchEnd callback. Simulates mouseup event.
+   * OnTouchEnd callback. Simulates mouseup event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchEnd(event) {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];

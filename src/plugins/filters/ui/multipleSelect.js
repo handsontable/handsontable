@@ -115,7 +115,7 @@ class MultipleSelectUI extends BaseUI {
   /**
    * Check if all values listed in element are selected.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSelectedAllValues() {
     return this.items.length === this.getValue().length;
@@ -274,7 +274,7 @@ class MultipleSelectUI extends BaseUI {
    * On click listener for "Select all" link.
    *
    * @private
-   * @param {DOMEvent} event
+   * @param {DOMEvent} event The mouse event object.
    */
   onSelectAllClick(event) {
     event.preventDefault();
@@ -288,7 +288,7 @@ class MultipleSelectUI extends BaseUI {
    * On click listener for "Clear" link.
    *
    * @private
-   * @param {DOMEvent} event
+   * @param {DOMEvent} event The mouse event object.
    */
   onClearAllClick(event) {
     event.preventDefault();
@@ -305,7 +305,7 @@ export default MultipleSelectUI;
  * Pick up object items based on selected values.
  *
  * @param {Array} availableItems Base collection to compare values.
- * @param selectedValue Flat array with selected values.
+ * @param {Array} selectedValue Flat array with selected values.
  * @returns {Array}
  */
 function valueToItems(availableItems, selectedValue) {

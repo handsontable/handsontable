@@ -16,7 +16,7 @@ import { registerPlugin } from './../../plugins';
  * ```js
  * // as a boolean
  * observeChanges: true,
- * ```
+ * ```.
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */
@@ -36,7 +36,7 @@ class ObserveChanges extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ObserveChanges#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().observeChanges;
@@ -60,7 +60,7 @@ class ObserveChanges extends BasePlugin {
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
   }
@@ -85,21 +85,33 @@ class ObserveChanges extends BasePlugin {
    * @param {Array} patches An array of objects which every item defines coordinates where data was changed.
    */
   onDataChange(patches) {
+    let render = false;
+
     if (!this.observer.isPaused()) {
       const sourceName = `${this.pluginName}.change`;
       const actions = {
         add: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterCreateRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.insertIndexes(visualRow, 1);
+            this.hot.runHooks('afterCreateRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterCreateCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.insertIndexes(visualColumn, 1);
+            this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);
           }
         },
         remove: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterRemoveRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.removeIndexes([visualRow]);
+            this.hot.runHooks('afterRemoveRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterRemoveCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.removeIndexes([visualColumn]);
+            this.hot.runHooks('afterRemoveCol', visualColumn, 1, sourceName);
           }
         },
         replace: (patch) => {
@@ -112,17 +124,22 @@ class ObserveChanges extends BasePlugin {
           actions[patch.op](patch);
         }
       });
-      this.hot.render();
+
+      render = true;
     }
 
     this.hot.runHooks('afterChangesObserved');
+
+    if (render) {
+      this.hot.render();
+    }
   }
 
   /**
    * On after table alter listener. Prevents infinity loop between internal and external data changing.
    *
    * @private
-   * @param source
+   * @param {string} source The identifier of the code that performed the action.
    */
   onAfterTableAlter(source) {
     if (source !== 'loadData') {
@@ -135,7 +152,7 @@ class ObserveChanges extends BasePlugin {
    * On after load data listener.
    *
    * @private
-   * @param {Boolean} firstRun `true` if event was fired first time.
+   * @param {boolean} firstRun `true` if event was fired first time.
    */
   onAfterLoadData(firstRun) {
     if (!firstRun) {

@@ -10,24 +10,28 @@ import {
   setCaretPosition,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  selectElementIfAllowed
+  selectElementIfAllowed,
+  hasClass,
+  removeClass
 } from './../helpers/dom/element';
+import { rangeEach } from './../helpers/number';
 import autoResize from './../../lib/autoResize/autoResize';
-import { isMobileBrowser } from './../helpers/browser';
+import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
-import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+
+const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 
 /**
  * @private
- * @editor TextEditor
  * @class TextEditor
- * @dependencies autoResize
  */
 class TextEditor extends BaseEditor {
   /**
-   * @param {Handsontable} instance
+   * @param {Core} instance The Handsontable instance.
    */
   constructor(instance) {
     super(instance);
@@ -45,13 +49,6 @@ class TextEditor extends BaseEditor {
      * @type {autoResize}
      */
     this.autoResize = autoResize();
-    /**
-     * Contains  `z-index` of the editor. Helps display editor on overlays on correct elevation.
-     *
-     * @private
-     * @type {Number}
-     */
-    this.holderZIndex = -1;
     /**
      * An TEXTAREA element.
      *
@@ -80,6 +77,13 @@ class TextEditor extends BaseEditor {
      * @type {CSSStyleDeclaration}
      */
     this.textareaParentStyle = void 0;
+    /**
+     * Z-index class style for the editor.
+     *
+     * @private
+     * @type {string}
+     */
+    this.layerClass = void 0;
 
     this.createElements();
     this.bindEvents();
@@ -90,7 +94,7 @@ class TextEditor extends BaseEditor {
   /**
    * Gets current value from editable element.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getValue() {
     return this.TEXTAREA.value;
@@ -99,7 +103,7 @@ class TextEditor extends BaseEditor {
   /**
    * Sets new value into editable element.
    *
-   * @param {*} newValue
+   * @param {*} newValue The editor value.
    */
   setValue(newValue) {
     this.TEXTAREA.value = newValue;
@@ -132,17 +136,17 @@ class TextEditor extends BaseEditor {
   /**
    * Prepares editor's meta data.
    *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number|String} prop
-   * @param {HTMLTableCellElement} td
-   * @param {*} originalValue
-   * @param {Object} cellProperties
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, originalValue, cellProperties) {
+  prepare(row, col, prop, td, value, cellProperties) {
     const previousState = this.state;
 
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+    super.prepare(row, col, prop, td, value, cellProperties);
 
     if (!cellProperties.readOnly) {
       this.refreshDimensions(true);
@@ -173,8 +177,8 @@ class TextEditor extends BaseEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
-   * @param {*} newInitialValue
-   * @param {*} event
+   * @param {*} newInitialValue The editor initial value.
+   * @param {Event} event The keyboard event object.
    */
   beginEditing(newInitialValue, event) {
     if (this.state !== EditorState.VIRGIN) {
@@ -188,7 +192,7 @@ class TextEditor extends BaseEditor {
   /**
    * Sets focus state on the select element.
    *
-   * @param {Boolean} [safeFocus=false] If `true` select element only when is handsontableInput. Otherwise sets focus on this element.
+   * @param {boolean} [safeFocus=false] If `true` select element only when is handsontableInput. Otherwise sets focus on this element.
    * If focus is calling without param textarea need be select and set caret position.
    */
   focus(safeFocus = false) {
@@ -207,7 +211,10 @@ class TextEditor extends BaseEditor {
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
-    this.TEXTAREA = this.hot.rootDocument.createElement('TEXTAREA');
+    const { rootDocument } = this.hot;
+
+    this.TEXTAREA = rootDocument.createElement('TEXTAREA');
+    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');
@@ -215,71 +222,22 @@ class TextEditor extends BaseEditor {
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = 0;
     this.textareaStyle.height = 0;
+    this.textareaStyle.overflowY = 'visible';
 
-    this.TEXTAREA_PARENT = this.hot.rootDocument.createElement('DIV');
+    this.TEXTAREA_PARENT = rootDocument.createElement('DIV');
     addClass(this.TEXTAREA_PARENT, 'handsontableInputHolder');
 
+    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
+
+    addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
+
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
-    this.textareaParentStyle.zIndex = '-1';
 
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
 
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
-  }
-
-  /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
-   *
-   * @private
-   * @returns {HTMLTableCellElement|undefined}
-   */
-  getEditedCell() {
-    const editorSection = this.checkEditorSection();
-    let editedCell;
-
-    switch (editorSection) {
-      case 'top':
-        editedCell = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 101;
-        break;
-      case 'top-left-corner':
-        editedCell = this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 103;
-        break;
-      case 'bottom-left-corner':
-        editedCell = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 103;
-        break;
-      case 'left':
-        editedCell = this.hot.view.wt.wtOverlays.leftOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 102;
-        break;
-      case 'bottom':
-        editedCell = this.hot.view.wt.wtOverlays.bottomOverlay.clone.wtTable.getCell({
-          row: this.row,
-          col: this.col
-        });
-        this.holderZIndex = 102;
-        break;
-      default:
-        editedCell = this.hot.getCell(this.row, this.col);
-        this.holderZIndex = -1;
-        break;
-    }
-
-    return editedCell < 0 ? void 0 : editedCell;
   }
 
   /**
@@ -288,10 +246,19 @@ class TextEditor extends BaseEditor {
    * @private
    */
   hideEditableElement() {
-    this.textareaParentStyle.top = '-9999px';
-    this.textareaParentStyle.left = '-9999px';
-    this.textareaParentStyle.zIndex = '-1';
-    this.textareaParentStyle.position = 'fixed';
+    if (isIE() || isEdge()) {
+      this.textareaStyle.textIndent = '-99999px';
+    }
+    this.textareaStyle.overflowY = 'visible';
+
+    this.textareaParentStyle.opacity = '0';
+    this.textareaParentStyle.height = '1px';
+
+    if (hasClass(this.TEXTAREA_PARENT, this.layerClass)) {
+      removeClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
+
+    addClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
   }
 
   /**
@@ -300,8 +267,42 @@ class TextEditor extends BaseEditor {
    * @private
    */
   showEditableElement() {
-    this.textareaParentStyle.zIndex = this.holderZIndex >= 0 ? this.holderZIndex : '';
+    this.textareaParentStyle.height = '';
+    this.textareaParentStyle.overflow = '';
     this.textareaParentStyle.position = '';
+    this.textareaParentStyle.right = 'auto';
+    this.textareaParentStyle.opacity = '1';
+
+    this.textareaStyle.textIndent = '';
+    this.textareaStyle.overflowY = 'hidden';
+
+    const childNodes = this.TEXTAREA_PARENT.childNodes;
+    let hasClassHandsontableEditor = false;
+
+    rangeEach(childNodes.length - 1, (index) => {
+      const childNode = childNodes[index];
+
+      if (hasClass(childNode, 'handsontableEditor')) {
+        hasClassHandsontableEditor = true;
+
+        return false;
+      }
+    });
+
+    if (hasClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME)) {
+      removeClass(this.TEXTAREA_PARENT, EDITOR_HIDDEN_CLASS_NAME);
+    }
+
+    if (hasClassHandsontableEditor) {
+      this.layerClass = EDITOR_VISIBLE_CLASS_NAME;
+
+      addClass(this.TEXTAREA_PARENT, this.layerClass);
+
+    } else {
+      this.layerClass = this.getEditedCellsLayerClass();
+
+      addClass(this.TEXTAREA_PARENT, this.layerClass);
+    }
   }
 
   /**
@@ -322,7 +323,7 @@ class TextEditor extends BaseEditor {
    * Refreshes editor's size and position.
    *
    * @private
-   * @param {Boolean} force
+   * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
    */
   refreshDimensions(force = false) {
     if (this.state !== EditorState.EDITING && !force) {
@@ -333,7 +334,7 @@ class TextEditor extends BaseEditor {
     // TD is outside of the viewport.
     if (!this.TD) {
       if (!force) {
-        this.close();
+        this.close(); // TODO shouldn't it be this.finishEditing() ?
       }
 
       return;
@@ -439,8 +440,8 @@ class TextEditor extends BaseEditor {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => stopPropagation(event));
-    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => stopPropagation(event));
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
@@ -474,9 +475,9 @@ class TextEditor extends BaseEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
-   * @param {Event} event
+   * @param {Event} event The keyboard event object.
    */
   onBeforeKeyDown(event) {
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)

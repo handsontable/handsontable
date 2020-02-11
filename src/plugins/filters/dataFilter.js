@@ -3,7 +3,6 @@ import { arrayEach } from '../../helpers/array';
 /**
  * @class DataFilter
  * @plugin Filters
- * @pro
  */
 class DataFilter {
   constructor(conditionCollection, columnDataFactory = () => []) {
@@ -47,7 +46,7 @@ class DataFilter {
   /**
    * Filter data based on specified column index.
    *
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @param {Array} [dataSource] Data source as array of objects with `value` and `meta` keys (e.g. `{value: 'foo', meta: {}}`).
    * @returns {Array} Returns filtered data.
    */
@@ -67,8 +66,8 @@ class DataFilter {
    * Intersect data.
    *
    * @private
-   * @param {Array} data
-   * @param {Array} needles
+   * @param {Array} data The data to intersect.
+   * @param {Array} needles The collection intersected rows with the data.
    * @returns {Array}
    */
   _getIntersectData(data, needles) {
