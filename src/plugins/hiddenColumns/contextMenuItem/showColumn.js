@@ -13,13 +13,28 @@ export default function showColumnItem(hiddenColumnsPlugin) {
     },
     callback() {
       const [, startVisualColumn, , endVisualColumn] = this.getSelectedLast();
-      const startPhysicalColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(startVisualColumn);
-      const endPhysicalColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(endVisualColumn);
+      const onlyFirstVisibleColumnSelected =
+        this.columnIndexMapper.getRenderableFromVisualIndex(startVisualColumn) === 0 &&
+        startVisualColumn === endVisualColumn;
+      const onlyLastVisibleColumnSelected =
+        this.columnIndexMapper.getRenderableFromVisualIndex(endVisualColumn) === this.countRenderableColumns() - 1 &&
+        startVisualColumn === endVisualColumn;
+
+      let startPhysicalColumn = this.toPhysicalColumn(startVisualColumn);
+      let endPhysicalColumn = this.toPhysicalColumn(endVisualColumn);
+
+      if (onlyFirstVisibleColumnSelected) {
+        startPhysicalColumn = 0;
+      }
+
+      if (onlyLastVisibleColumnSelected) {
+        endPhysicalColumn = this.countSourceCols() - 1;
+      }
 
       hiddenColumnsPlugin.showColumns(columns);
 
-      const startVisualColumnAfterAction = this.columnIndexMapper.getVisualFromPhysicalIndex(startPhysicalColumn);
-      const endVisualColumnAfterAction = this.columnIndexMapper.getVisualFromPhysicalIndex(endPhysicalColumn);
+      const startVisualColumnAfterAction = this.toVisualColumn(startPhysicalColumn);
+      const endVisualColumnAfterAction = this.toVisualColumn(endPhysicalColumn);
 
       // Selection start and selection end coordinates might be changed after showing some items.
       this.selectColumns(startVisualColumnAfterAction, endVisualColumnAfterAction);
