@@ -440,26 +440,53 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should close menu after click under the menu', () => {
+    it('should close menu after left click on menu item (Windows OS simulation)', () => {
+      Handsontable.helper.setPlatformMeta({ platform: 'Win' }); // Let HoT think that it runs on Windows OS
       handsontable({
-        data: createSpreadsheetData(500, 10),
-        contextMenu: true,
-        height: 500
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400,
       });
 
+      selectCell(0, 0);
       contextMenu();
 
-      expect($('.htContextMenu').is(':visible')).toBe(true);
-
-      const rect = $('.htContextMenu')[0].getBoundingClientRect();
-      const x = parseInt(rect.left + (rect.width / 2), 10);
-      const y = parseInt(rect.top + rect.height, 10);
-      mouseDown(document.elementFromPoint(x, y));
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(0)
+        .simulate('mousedown')
+        .simulate('mouseup')
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      Handsontable.helper.setPlatformMeta(); // Reset platform
     });
 
-    it('should close menu after right click on menu item (#6507#issuecomment-582392301)', () => {
+    it('should close menu after left click on menu item (macOS and others OS simulation)', () => {
+      Handsontable.helper.setPlatformMeta({ platform: 'MacIntel' }); // Let HoT think that it runs on macOS
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400,
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(0)
+        .simulate('mousedown')
+        .simulate('mouseup')
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      Handsontable.helper.setPlatformMeta(); // Reset platform
+    });
+
+    it('should close menu after right click on menu item (Windows OS simulation, #6507#issuecomment-582392301)', () => {
       Handsontable.helper.setPlatformMeta({ platform: 'Win' }); // Let HoT think that it runs on Windows OS
       handsontable({
         data: createSpreadsheetData(4, 4),
@@ -480,13 +507,57 @@ describe('ContextMenu', () => {
         .find('tbody td')
         .not('.htSeparator')
         .eq(0)
-        .simulate('mousedown')
-        .simulate('mouseup')
+        .simulate('mousedown', { button: 2 })
+        .simulate('mouseup', { button: 2 })
         .simulate('contextmenu');
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       Handsontable.helper.setPlatformMeta(); // Reset platform
+    });
+
+    it('should close menu after right click on menu item (mac OS and others OS simulation, #6507#issuecomment-582392301)', () => {
+      Handsontable.helper.setPlatformMeta({ platform: 'MacIntel' }); // Let HoT think that it runs on macOS
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: ['row_above', 'remove_row', '---------', 'alignment'],
+        height: 400,
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      // Order of events occurrence on macOS machines is "mousedown" -> "contextmenu" -> "mouseup"
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(0)
+        .simulate('mousedown', { button: 2 })
+        .simulate('contextmenu')
+        .simulate('mouseup', { button: 2 });
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      Handsontable.helper.setPlatformMeta(); // Reset platform
+    });
+
+    it('should close menu after click under the menu', () => {
+      handsontable({
+        data: createSpreadsheetData(500, 10),
+        contextMenu: true,
+        height: 500
+      });
+
+      contextMenu();
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+
+      const rect = $('.htContextMenu')[0].getBoundingClientRect();
+      const x = parseInt(rect.left + (rect.width / 2), 10);
+      const y = parseInt(rect.top + rect.height, 10);
+      mouseDown(document.elementFromPoint(x, y));
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
     });
   });
 
@@ -3256,7 +3327,8 @@ describe('ContextMenu', () => {
       expect(callback.calls.count()).toBe(0);
     });
 
-    it('should not open another instance of ContextMenu after fireing command by the RMB', () => {
+    it('should not open another instance of ContextMenu after fireing command by the RMB (Windows OS simulation)', () => {
+      Handsontable.helper.setPlatformMeta({ platform: 'Win' }); // Let HoT think that it runs on Windows OS
       handsontable({
         contextMenu: {
           items: {
@@ -3271,12 +3343,44 @@ describe('ContextMenu', () => {
 
       contextMenu();
 
+      // Order of events occurrence on Windows machines is "mousedown" -> "mouseup" -> "contextmenu"
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)')
         .simulate('mousedown', { button: 2 })
+        .simulate('mouseup', { button: 2 })
+        .simulate('contextmenu')
+      ;
+
+      expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      Handsontable.helper.setPlatformMeta(); // Reset platform
+    });
+
+    it('should not open another instance of ContextMenu after fireing command by the RMB (macOS and others simulation)', () => {
+      Handsontable.helper.setPlatformMeta({ platform: 'MacIntel' }); // Let HoT think that it runs on macOS
+      handsontable({
+        contextMenu: {
+          items: {
+            item1: {
+              name: 'Item',
+              callback: () => {},
+            },
+          },
+        },
+        height: 100
+      });
+
+      contextMenu();
+
+      // Order of events occurrence on macOS machines is "mousedown" -> "contextmenu" -> "mouseup"
+      $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)')
+        .simulate('mousedown', { button: 2 })
+        .simulate('contextmenu')
         .simulate('mouseup', { button: 2 })
       ;
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
+
+      Handsontable.helper.setPlatformMeta(); // Reset platform
     });
   });
 
