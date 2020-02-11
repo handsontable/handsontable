@@ -456,7 +456,7 @@ describe('ContextMenu', () => {
         .not('.htSeparator')
         .eq(0)
         .simulate('mousedown')
-        .simulate('mouseup')
+        .simulate('mouseup');
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
@@ -479,7 +479,7 @@ describe('ContextMenu', () => {
         .not('.htSeparator')
         .eq(0)
         .simulate('mousedown')
-        .simulate('mouseup')
+        .simulate('mouseup');
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
