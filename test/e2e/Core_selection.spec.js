@@ -1592,8 +1592,8 @@ describe('Core_selection', () => {
 
     const mobileBrowserUAS = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B411 Safari/600.1.4';
 
-    const pathOfColorAndWidth = (color, width) => {
-      return spec().$container.find(`path[stroke='${color}'][stroke-width='${width}']`)[0];
+    const pathOfWidthAndColor = (width, color) => {
+      return spec().$container.find(`path[stroke-width='${width}'][stroke='${color}']`)[0];
     };
 
     const borderOfSelector = (selector) => {
@@ -1614,9 +1614,9 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
         expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(builtins.cell._borderColorRgb);
-        expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
       });
 
       it('should fall back to default configuration if selectionStyle is partially provided', () => {
@@ -1633,9 +1633,9 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
         expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(customs.cell._borderColorRgb);
-        expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
       });
 
       it('should use selectionStyle if all properties are provided', () => {
@@ -1648,9 +1648,9 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
         expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(customs.cell._borderColorRgb);
-        expect(pathOfColorAndWidth(customs.fill.borderColor, customs.fill.borderWidth)).withContext('fill').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.fill.borderWidth, customs.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
       });
     });
 
@@ -1665,7 +1665,7 @@ describe('Core_selection', () => {
         });
         selectCell(1, 1);
 
-        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
         expect(borderOfSelector('.topLeftSelectionHandle'))
           .withContext('top left selection handle').toBe(builtins.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
@@ -1689,7 +1689,7 @@ describe('Core_selection', () => {
         });
         selectCell(1, 1);
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
         expect(borderOfSelector('.topLeftSelectionHandle'))
           .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
@@ -1709,7 +1709,7 @@ describe('Core_selection', () => {
         });
         selectCell(1, 1);
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
         expect(borderOfSelector('.topLeftSelectionHandle'))
           .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
@@ -1729,10 +1729,10 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
-        expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
         expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(builtins.area._borderColorRgb);
-        expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
       });
 
       it('should fall back to default configuration if selectionStyle is partially provided', () => {
@@ -1749,10 +1749,10 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
-        expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
         expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(builtins.area._borderColorRgb);
-        expect(pathOfColorAndWidth(builtins.fill.borderColor, builtins.fill.borderWidth)).withContext('fill').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
       });
 
       it('should use selectionStyle if all properties are provided', () => {
@@ -1765,10 +1765,10 @@ describe('Core_selection', () => {
         spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
-        expect(pathOfColorAndWidth(customs.area.borderColor, customs.area.borderWidth)).withContext('area').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.area.borderWidth, customs.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
         expect(backgroundOfSelector('.wtBorder.area.corner')).withContext('fill handle').toBe(customs.area._borderColorRgb);
-        expect(pathOfColorAndWidth(customs.fill.borderColor, customs.fill.borderWidth)).withContext('fill').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.fill.borderWidth, customs.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
       });
     });
 
@@ -1783,8 +1783,8 @@ describe('Core_selection', () => {
         });
         selectCell(0, 0, 1, 1);
 
-        expect(pathOfColorAndWidth(builtins.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
-        expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
         expect(borderOfSelector('.topLeftSelectionHandle'))
           .withContext('top left selection handle').toBe(builtins.area._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
@@ -1808,8 +1808,8 @@ describe('Core_selection', () => {
         });
         selectCell(0, 0, 1, 1);
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, builtins.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
-        expect(pathOfColorAndWidth(builtins.area.borderColor, builtins.area.borderWidth)).withContext('area').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(builtins.area.borderWidth, builtins.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
         expect(borderOfSelector('.topLeftSelectionHandle'))
           .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))
@@ -1829,8 +1829,8 @@ describe('Core_selection', () => {
         });
         selectCell(0, 0, 1, 1);
 
-        expect(pathOfColorAndWidth(customs.cell.borderColor, customs.cell.borderWidth)).withContext('current').toBeNonEmptySVGPath();
-        expect(pathOfColorAndWidth(customs.area.borderColor, customs.area.borderWidth)).withContext('area').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.cell.borderWidth, customs.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(pathOfWidthAndColor(customs.area.borderWidth, customs.area.borderColor)).withContext('area').toBeNonEmptySVGPath();
         expect(borderOfSelector('.topLeftSelectionHandle'))
           .withContext('top left selection handle').toBe(customs.cell._borderColorRgb);
         expect(borderOfSelector('.bottomRightSelectionHandle'))

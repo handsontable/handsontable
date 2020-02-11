@@ -84,7 +84,6 @@ class Selection {
       AreaBorderStyleClass: createBorderStyleClass(AreaDefaultBorderStyle),
       FillBorderStyleClass: createBorderStyleClass(FillDefaultBorderStyle)
     });
-
     /**
      * The module for modifying coordinates.
      *
