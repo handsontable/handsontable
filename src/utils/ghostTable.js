@@ -3,6 +3,13 @@ import { arrayEach } from './../helpers/array';
 import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src/utils/gridline';
 
 /**
+ * Classname for <tbody> when there are no column headers (<thead> is empty).
+ *
+ * @type {string}
+ */
+const TBODY_AFTER_EMPTY_THEAD_CLASSNAME = 'afterEmptyThead';
+
+/**
  * @class GhostTable
  * @util
  */
@@ -103,6 +110,9 @@ class GhostTable {
       this.container.container.appendChild(this.table.fragment);
 
       rowObject.table = this.table.table;
+      this.table.tBody.classList.remove(TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
+    } else {
+      this.table.tBody.classList.add(TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
     }
   }
 
@@ -408,6 +418,7 @@ class GhostTable {
     if (this.isVertical()) {
       tBody.appendChild(tr);
     }
+    tBody.classList.add(TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
     table.appendChild(tBody);
     addClass(table, className);
     fragment.appendChild(table);
