@@ -1,4 +1,4 @@
-import {selectAll} from '../../../../test/helpers/common';
+import {getSelected} from '../../../../test/helpers/common';
 
 describe('HiddenColumns', () => {
   const id = 'testContainer';
@@ -833,6 +833,44 @@ describe('HiddenColumns', () => {
       |   ║   :   |
       |   ║   :   |
       |   ║   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select non-contiguous columns properly when there are some hidden columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 8),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      const startColumn = getCell(-1, 4);
+      const endColumn = getCell(-1, 6);
+
+      mouseDown(startColumn, 'LMB');
+      mouseUp(startColumn);
+
+      keyDown('ctrl');
+
+      mouseDown(endColumn, 'LMB');
+      mouseUp(endColumn);
+
+      keyUp('ctrl');
+
+      expect(getSelected()).toEqual([
+        [0, 4, 4, 4],
+        [0, 6, 4, 6],
+      ]);
+      expect(`
+      |   ║   :   : * :   : * :   |
+      |===:===:===:===:===:===:===|
+      | - ║   :   : 0 :   : A :   |
+      | - ║   :   : 0 :   : 0 :   |
+      | - ║   :   : 0 :   : 0 :   |
+      | - ║   :   : 0 :   : 0 :   |
+      | - ║   :   : 0 :   : 0 :   |
       `).toBeMatchToSelectionPattern();
     });
   });
