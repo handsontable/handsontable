@@ -572,6 +572,12 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelectedLast()).toEqual([0, 4, 1, 4]);
+            expect(`
+            |   ║   :   : * |
+            |===:===:===:===|
+            | - ║   :   : A |
+            | - ║   :   : 0 |
+            `).toBeMatchToSelectionPattern();
           });
         });
 
