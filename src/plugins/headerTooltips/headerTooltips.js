@@ -41,6 +41,7 @@ class HeaderTooltips extends BasePlugin {
      * @type {boolean|object}
      */
     this.settings = null;
+    this.THs = new Set();
   }
 
   /**
@@ -65,6 +66,7 @@ class HeaderTooltips extends BasePlugin {
 
     this.parseSettings();
 
+    this.addHook('afterRender', () => this.onAfterRender());
     this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetHeader(col, TH));
     this.addHook('afterGetRowHeader', (col, TH) => this.onAfterGetHeader(col, TH));
 
@@ -129,13 +131,32 @@ class HeaderTooltips extends BasePlugin {
   }
 
   /**
-   * Adds a tooltip to the headers.
+   * After Handsontable is rendered, measure the columns and apply titles. This action must be performed after the rendering is finished,
+   * because in Walkontable `TableRenderer.Render`, `columnHeaders.render()` and `rowHeaders.render()` are called before `colGroup.render()`.
+   */
+  onAfterRender() {
+    this.THs.forEach(TH => this.applyTitlesToTH(TH));
+    this.THs.clear();
+  }
+
+  /**
+   * After a header is rendered, add it the the set of headers waiting for measurements.
    *
    * @private
    * @param {number} index Visual column index.
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetHeader(index, TH) {
+    this.THs.add(TH);
+  }
+
+  /**
+   * Adds a tooltip to the headers.
+   *
+   * @private
+   * @param {HTMLElement} TH Header's TH element.
+   */
+  applyTitlesToTH(TH) {
     const innerSpan = TH.querySelector('span');
     const isColHeader = TH.parentNode.parentNode.nodeName === 'THEAD';
 
