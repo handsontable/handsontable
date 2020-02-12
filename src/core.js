@@ -961,8 +961,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const waitingForValidator = new ValidatorsQueue();
     const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
+    const validateInOrder = instance.getSettings().validateInOrder;
+    const toSplice = [];
 
     waitingForValidator.onQueueEmpty = (isValid) => {
+      for (let i = toSplice.length - 1; i >= 0; i--) {
+        const index = toSplice[i];
+        changes.splice(index, 1);
+      }
+
       if (activeEditor && shouldBeCanceled) {
         activeEditor.cancelChanges();
       }
@@ -970,9 +977,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       callback(isValid); // called when async validators are resolved and beforeChange was not async
     };
 
-    for (let i = changes.length - 1; i >= 0; i--) {
+    /**
+     * Validates the change at the given index.
+     *
+     * @param {number} i The current index of the changes array being validated.
+     * @returns {boolean} Whether or not the index is valid.
+     */
+    function validateChange(i) {
+      let returnValue = true;
+
       if (changes[i] === null) {
-        changes.splice(i, 1);
+        returnValue = false;
       } else {
         const [row, prop, , newValue] = changes[i];
         const col = datamap.propToCol(prop);
@@ -993,7 +1008,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               if (result === false && cellPropertiesReference.allowInvalid === false) {
                 shouldBeCanceled = false;
-                changes.splice(index, 1); // cancel the change
+                returnValue = false; // cancel the change
                 cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
 
                 const cell = instance.getCell(cellPropertiesReference.visualRow, cellPropertiesReference.visualCol);
@@ -1001,14 +1016,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 if (cell !== null) {
                   removeClass(cell, tableMeta.invalidCellClassName);
                 }
-                // index -= 1;
               }
               waitingForValidator.removeValidatorFormQueue();
             };
           }(i, cellProperties)), source);
         }
       }
+
+      return returnValue;
     }
+
+    if (validateInOrder === true) {
+      for (let i = 0; i < changes.length; i++) {
+        if (validateChange(i) === false) {
+          toSplice.push(i);
+        }
+      }
+    } else {
+      for (let i = changes.length - 1; i >= 0; i--) {
+        if (validateChange(i) === false) {
+          changes.splice(i, 1);
+        }
+      }
+    }
+
     waitingForValidator.checkIfQueueIsEmpty();
   }
 

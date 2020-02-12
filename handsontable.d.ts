@@ -1755,6 +1755,7 @@ declare namespace Handsontable {
     type?: CellType | string;
     uncheckedTemplate?: boolean | string | number;
     undo?: boolean;
+    validateInOrder?: boolean;
     validator?: validators.Base | RegExp | ValidatorType | string;
     viewportColumnRenderingOffset?: number | 'auto';
     viewportRowRenderingOffset?: number | 'auto';

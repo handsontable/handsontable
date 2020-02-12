@@ -338,6 +338,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   type: oneOf('autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'numeric', 'password', 'text', 'time', 'custom.cell.type'),
   uncheckedTemplate: oneOf(true, 'foo', 123),
   undo: true,
+  validateInOrder: false,
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
@@ -364,7 +365,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterContextMenuHide: (context) => {},
   afterContextMenuShow: (context) => {},
   afterCopy: (data, coords) => {},
-  afterCopyLimit: (selectedRows, selectedColumnds, copyRowsLimit, copyColumnsLimit) => {},
+  afterCopyLimit: (selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit) => {},
   afterCreateCol: (index, amount, source) => {},
   afterCreateRow: (index, amount, source) => {},
   afterCut: (data, coords) => {},

@@ -418,6 +418,68 @@ describe('Core_validate', () => {
     }, 200);
   });
 
+  it('should validate cells in reverse if validateInOrder is not specified', (done) => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const validateOrder = [];
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator(value, callb) {
+        validateOrder.push(value);
+        callb(true);
+      },
+      afterValidate: onAfterValidate
+    });
+
+    expect(() => hot.populateFromArray(0, 0, [['A', 'B', 'C', 'D']])).not.toThrow();
+
+    setTimeout(() => {
+      expect(validateOrder).toEqual(['D', 'C', 'B', 'A']);
+      done();
+    }, 200);
+  });
+
+  it('should validate cells in reverse if validateInOrder is false', (done) => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const validateOrder = [];
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator(value, callb) {
+        validateOrder.push(value);
+        callb(true);
+      },
+      afterValidate: onAfterValidate,
+      validateInOrder: false
+    });
+
+    expect(() => hot.populateFromArray(0, 0, [['A', 'B', 'C', 'D']])).not.toThrow();
+
+    setTimeout(() => {
+      expect(validateOrder).toEqual(['D', 'C', 'B', 'A']);
+      done();
+    }, 200);
+  });
+
+  it('should validate cells in reverse if validateInOrder is true', (done) => {
+    const onAfterValidate = jasmine.createSpy('onAfterValidate');
+    const validateOrder = [];
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      validator(value, callb) {
+        validateOrder.push(value);
+        callb(true);
+      },
+      afterValidate: onAfterValidate,
+      validateInOrder: true
+    });
+
+    expect(() => hot.populateFromArray(0, 0, [['A', 'B', 'C', 'D']])).not.toThrow();
+
+    setTimeout(() => {
+      expect(validateOrder).toEqual(['A', 'B', 'C', 'D']);
+      done();
+    }, 200);
+  });
+
   it('should throw error after calling validateRows first argument not array', (done) => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const hot = handsontable({
