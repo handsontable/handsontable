@@ -910,4 +910,33 @@ describe('AutoFill', () => {
       $container2.remove();
     });
   });
+
+  it('should run afterAutofill once after each set of autofill changes have been applied', () => {
+    let count = 0;
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      afterAutofill: () => {
+        count += 1;
+      }
+    });
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 1)).toEqual(1);
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(1, 0)).toEqual(1);
+
+    expect(count).toEqual(2);
+  });
 });

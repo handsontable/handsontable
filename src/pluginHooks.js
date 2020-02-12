@@ -640,6 +640,17 @@ const REGISTERED_HOOKS = [
   'beforeAutofill',
 
   /**
+   * Fired by {@link Autofill} plugin after populating the data in the autofill feature. This hook is fired when
+   * {@link Options#fillHandle} option is enabled.
+   *
+   * @event Hooks#afterAutofill
+   * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
+   * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
+   * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   */
+  'afterAutofill',
+
+  /**
    * Fired before aligning the cell contents.
    *
    * @event Hooks#beforeCellAlignment
