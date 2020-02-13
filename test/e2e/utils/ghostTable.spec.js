@@ -111,11 +111,11 @@ describe('GhostTable', () => {
 
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(heightSpy.calls.argsFor(0)[1]).toBe(22);
+      expect(heightSpy.calls.argsFor(0)[1]).toBe(23);
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(heightSpy.calls.argsFor(1)[1]).toBe(63);
+      expect(heightSpy.calls.argsFor(1)[1]).toBe(64);
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(heightSpy.calls.argsFor(2)[1]).toBe(42);
+      expect(heightSpy.calls.argsFor(2)[1]).toBe(43);
     });
   });
 
