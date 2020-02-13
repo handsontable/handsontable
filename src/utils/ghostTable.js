@@ -168,7 +168,7 @@ class GhostTable {
       this.injectTable();
     }
     arrayEach(this.columns, (column) => {
-      callback(column.col, outerWidth(column.table) - GRIDLINE_WIDTH); // subtract left gridline
+      callback(column.col, outerWidth(column.table));
     });
   }
 
