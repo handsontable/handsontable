@@ -1,4 +1,4 @@
-import {arrayFilter, arrayMap, arrayReduce} from './../helpers/array';
+import { arrayFilter, arrayMap } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexToIndexMap from './maps/visualIndexToPhysicalIndexMap';
@@ -83,7 +83,7 @@ class IndexMapper {
     this.hiddenCollection = new MapCollection();
     this.flattenHiddenList = [];
     this.notHiddenIndexesCache = [];
-    this.renderedIndexesCache = [];
+    this.renderableIndexesCache = [];
 
     this.indexesSequence.addLocalHook('change', () => {
       this.cachedIndexesChange = true;
@@ -205,7 +205,7 @@ class IndexMapper {
    * @TODO Description
    */
   getPhysicalFromRenderableIndex(renderableIndex) {
-    const renderableIndexes = this.getRenderedIndexes();
+    const renderableIndexes = this.getRenderableIndexes();
     const numberOfVisibleIndexes = renderableIndexes.length;
     let physicalIndex = null;
 
@@ -354,9 +354,9 @@ class IndexMapper {
    * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getRenderedIndexes(readFromCache = true) {
+  getRenderableIndexes(readFromCache = true) {
     if (readFromCache === true) {
-      return this.renderedIndexesCache;
+      return this.renderableIndexesCache;
     }
 
     return arrayFilter(this.getNotSkippedIndexes(), (physicalIndex) => {
@@ -369,8 +369,8 @@ class IndexMapper {
    *
    * @returns {Number}
    */
-  getRenderedIndexesLength() {
-    return this.getRenderedIndexes().length;
+  getRenderableIndexesLength() {
+    return this.getRenderableIndexes().length;
   }
 
   /**
@@ -537,7 +537,7 @@ class IndexMapper {
       this.flattenHiddenList = this.getFlattenHiddenList(false);
       this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
-      this.renderedIndexesCache = this.getRenderedIndexes(false);
+      this.renderableIndexesCache = this.getRenderableIndexes(false);
       this.cachedIndexesChange = false;
 
       this.runLocalHooks('cacheUpdated');

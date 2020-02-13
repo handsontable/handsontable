@@ -1090,7 +1090,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select columns after the `selectColumns` call if range is partially hidden at the begining of selection #1', () => {
+    it('should select columns after the `selectColumns` call if range is partially hidden at the beginning of selection #1', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1114,7 +1114,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select columns after the `selectColumns` call if range is partially hidden at the begining of selection #2', () => {
+    it('should select columns after the `selectColumns` call if range is partially hidden at the beginning of selection #2', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
