@@ -1,4 +1,4 @@
-import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
+import { addClass, outerHeight, outerWidth, removeClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src/utils/gridline';
 
@@ -110,9 +110,9 @@ class GhostTable {
       this.container.container.appendChild(this.table.fragment);
 
       rowObject.table = this.table.table;
-      this.table.tBody.classList.remove(TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
+      removeClass(this.table.tBody, TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
     } else {
-      this.table.tBody.classList.add(TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
+      addClass(this.table.tBody, TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
     }
   }
 
@@ -418,7 +418,7 @@ class GhostTable {
     if (this.isVertical()) {
       tBody.appendChild(tr);
     }
-    tBody.classList.add(TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
+    addClass(tBody, TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
     table.appendChild(tBody);
     addClass(table, className);
     fragment.appendChild(table);
