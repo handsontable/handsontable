@@ -598,7 +598,6 @@ describe('HiddenColumns', () => {
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
           expect(getSelectedLast()).toBeUndefined();
-
           expect(`
           |   |
           |   |
@@ -885,11 +884,11 @@ describe('HiddenColumns', () => {
         },
       });
 
-      $(getCell(1, 1)).simulate('mousedown');
-      $(getCell(4, 4)).simulate('mouseover');
-      $(getCell(4, 4)).simulate('mouseup');
+      $(getCell(1, 3)).simulate('mousedown');
+      $(getCell(4, 6)).simulate('mouseover');
+      $(getCell(4, 6)).simulate('mouseup');
 
-      expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+      expect(getSelected()).toEqual([[1, 3, 4, 6]]);
       expect(`
       |   ║   : - : - : - : - :   :   :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|
@@ -905,11 +904,11 @@ describe('HiddenColumns', () => {
 
       keyDown('ctrl');
 
-      $(getCell(3, 3)).simulate('mousedown');
-      $(getCell(5, 6)).simulate('mouseover');
-      $(getCell(5, 6)).simulate('mouseup');
+      $(getCell(3, 5)).simulate('mousedown');
+      $(getCell(5, 8)).simulate('mouseover');
+      $(getCell(5, 8)).simulate('mouseup');
 
-      expect(getSelected()).toEqual([[1, 1, 4, 4], [3, 3, 5, 6]]);
+      expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8]]);
       expect(`
       |   ║   : - : - : - : - : - : - :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|

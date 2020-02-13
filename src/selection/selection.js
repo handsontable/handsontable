@@ -462,10 +462,11 @@ class Selection {
    */
   selectAll() {
     this.clear();
-    this.setRangeStart(new CellCoords(-1, -1));
+    this.setRangeStartOnly(new CellCoords(-1, -1));
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1));
+    this.finish();
   }
 
   /**
