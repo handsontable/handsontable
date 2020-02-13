@@ -24,8 +24,8 @@ describe('Core.selectAll', () => {
 
     selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
 
-    hot.view.wt.wtTable.holder.scrollTop = 149;
-    hot.view.wt.wtTable.holder.scrollLeft = 149;
+    hot.view.wt.wtTable.holder.scrollTop = 151;
+    hot.view.wt.wtTable.holder.scrollLeft = 151;
 
     selectAll();
     // TODO the below expectation fails for an unknown reason
