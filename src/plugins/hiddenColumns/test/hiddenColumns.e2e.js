@@ -873,6 +873,56 @@ describe('HiddenColumns', () => {
       | - ║   :   : 0 :   : 0 :   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should select cells by using two layers when CTRL key is pressed and some columns are hidden', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 8,
+        startCols: 12,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      $(getCell(1, 1)).simulate('mousedown');
+      $(getCell(4, 4)).simulate('mouseover');
+      $(getCell(4, 4)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+      expect(`
+      |   ║   : - : - : - : - :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : A : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      keyDown('ctrl');
+
+      $(getCell(3, 3)).simulate('mousedown');
+      $(getCell(5, 6)).simulate('mouseover');
+      $(getCell(5, 6)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 1, 4, 4], [3, 3, 5, 6]]);
+      expect(`
+      |   ║   : - : - : - : - : - : - :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : B : 1 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 0 : 1 : 1 : 0 : 0 :   :   :   |
+      | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
   });
 
   describe('cell selection (API)', () => {
