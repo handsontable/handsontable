@@ -189,10 +189,10 @@ class MasterTable extends Table {
           this.tableRenderer.renderer.colGroup.render();
         }
 
-        this.wot.getSetting('onDraw', true);
-
         wtOverlays.refreshClones(false);
         this.refreshSelections(false);
+
+        this.wot.getSetting('onDraw', true);
       }
     }
   }

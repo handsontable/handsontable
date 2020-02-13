@@ -1035,4 +1035,35 @@ describe('Core_view', () => {
       expect(callbackSpy.calls.argsFor(9)[0]).toBe(75);
     });
   });
+
+  describe('hook order', () => {
+    it('should not fire any rendering-related hooks after afterRender', () => {
+      const originalRun = Handsontable.hooks.run;
+      const observedRuns = [];
+
+      Handsontable.hooks.run = function(context, key, ...args) {
+        observedRuns.push(key);
+
+        if (key === 'afterRender') {
+          observedRuns.length = 0;
+        }
+
+        return originalRun.call(Handsontable.hooks, context, key, ...args);
+      };
+
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        rowHeaders: true,
+        colHeaders: true,
+        fixedRowsTop: 1,
+        fixedColumnsLeft: 1,
+        autoColumnSize: false
+      });
+
+      expect(observedRuns).toEqual(['afterChange', 'afterInit']);
+
+      Handsontable.hooks.run = originalRun;
+    });
+  });
 });
