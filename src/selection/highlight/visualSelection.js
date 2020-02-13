@@ -1,6 +1,43 @@
 import { Selection, CellCoords } from './../../3rdparty/walkontable/src';
+import CellRange from '../../3rdparty/walkontable/src/cell/range';
 
 class VisualSelection extends Selection {
+  constructor(...args) {
+    super(...args);
+    /**
+     * Range of selection visually. Visual representation may have representation in a rendered selection.
+     *
+     * @type {null|Selection}
+     */
+    this.visualCellRange = null;
+  }
+  /**
+   * Adds a cell coords to the selection
+   *
+   * @param {CellCoords} coords Visual coordinates of a cell.
+   */
+  add(coords) {
+    if (this.visualCellRange === null) {
+      this.visualCellRange = new CellRange(coords);
+
+    } else {
+      this.visualCellRange.expand(coords);
+    }
+
+    return this;
+  }
+
+  /**
+   * Clears selection
+   *
+   * @returns {Selection}
+   */
+  clear() {
+    this.visualCellRange = null;
+
+    return super.clear();
+  }
+
   /**
    * Search for the first visible coordinates in the range as range may start and/or end with the hidden index.
    *
@@ -59,8 +96,8 @@ class VisualSelection extends Selection {
    * @return {VisualSelection}
    */
   commit(broaderCellRange) {
-    const fromRangeTranslated = this.findVisibleCoordsInRange(this.cellRange.from, this.cellRange.to, 1);
-    const toRangeTranslated = this.findVisibleCoordsInRange(this.cellRange.to, this.cellRange.from, -1);
+    const fromRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
+    const toRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.to, this.visualCellRange.from, -1);
 
     // There is no visual start point (and also visual end point) in the range. We are looking for the first visible cell in a broader range.
     if (fromRangeTranslated === null) {
@@ -68,9 +105,7 @@ class VisualSelection extends Selection {
         const singleCellRangeTranslated = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
 
         if (singleCellRangeTranslated !== null) {
-          this.cellRange.setHighlight(singleCellRangeTranslated);
-          this.cellRange.setFrom(singleCellRangeTranslated);
-          this.cellRange.setTo(singleCellRangeTranslated);
+          this.cellRange = new CellRange(singleCellRangeTranslated);
 
           return this;
         }
@@ -81,9 +116,7 @@ class VisualSelection extends Selection {
       return this;
     }
 
-    this.cellRange.setHighlight(fromRangeTranslated);
-    this.cellRange.setFrom(fromRangeTranslated);
-    this.cellRange.setTo(toRangeTranslated);
+    this.cellRange = new CellRange(fromRangeTranslated, fromRangeTranslated, toRangeTranslated);
 
     return this;
   }
