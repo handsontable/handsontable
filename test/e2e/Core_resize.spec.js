@@ -82,4 +82,16 @@ describe('Core resize', () => {
     expect(getLeftClone().height()).toBe(200);
     expect(getBottomLeftClone().height()).toBe(24);
   });
+
+  // Unfortunately, it doesn't test as expected in headless chromium :(
+  it('should not throw an error if `hot-table` element is the container', () => {
+    spec().$container.html('<hot-table></hot-table>');
+
+    expect(() => {
+      const hot = new Handsontable(document.querySelector('hot-table'), {});
+      window.dispatchEvent(new Event('resize'));
+      hot.destroy();
+
+    }).not.toThrow();
+  });
 });

@@ -1,5 +1,6 @@
 import {
   addClass,
+  closest,
   closestDown,
   getParent,
   hasClass,
@@ -25,6 +26,114 @@ describe('DomElement helper', () => {
       div.contentEditable = 'true';
 
       expect(isInput(div)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.closest
+  //
+  describe('closest', () => {
+    describe('catching errors', () => {
+      it('should throw an error if element is falsy (null, undefined)', () => {
+        expect(() => {
+          closest();
+        }).toThrow('Element has to be defined');
+      });
+
+      it('shoult throw an error if element is not an valid Node element', () => {
+        const element = 123;
+
+        expect(() => {
+          closest(element);
+        }).toThrow('Element has to be valid "Node" element');
+      });
+
+      it('should throw an error if nodes is not defined', () => {
+        const element = document.createElement('div');
+
+        expect(() => {
+          closest(element);
+        }).toThrow('Nodes list has to be defined');
+      });
+
+      it('should throw an error if nodes is an empty array', () => {
+        const element = document.createElement('div');
+
+        expect(() => {
+          closest(element, []);
+        }).toThrow('Nodes list has to has at least one element');
+      });
+    });
+
+    describe('lookup for the closest element', () => {
+      let wrapper = null;
+
+      beforeEach(() => {
+        wrapper = document.createElement('div');
+      });
+
+      afterEach(() => {
+        wrapper = null;
+      });
+
+      it('should return element itself if the searched elment is the same one', () => {
+        wrapper.innerHTML = '<a><b><c></c></b></a>';
+
+        const element = wrapper.querySelector('c');
+        const nodes = [element];
+
+        expect(closest(element, nodes)).toBe(element);
+      });
+
+      it('should return null if the searched element is also an until element', () => {
+        wrapper.innerHTML = '<a><b><c></c></b></a>';
+
+        const element = wrapper.querySelector('c');
+        const nodes = ['a', 'b'];
+        const until = element;
+
+        expect(closest(element, nodes, until)).toBe(null);
+      });
+
+      it('should return null if doesn\'t find any element fitting to the nodes\' list', () => {
+        wrapper.innerHTML = '<a><b><c></c></b></a>';
+
+        const element = wrapper.querySelector('c');
+        const nodes = ['x', 'y', 'z'];
+
+        expect(closest(element, nodes)).toBe(null);
+      });
+
+      it('should return null if the searched element lies over until element', () => {
+        wrapper.innerHTML = '<a><b><c></c></b></a>';
+
+        const element = wrapper.querySelector('c');
+        const nodes = ['a'];
+        const until = wrapper.querySelector('b');
+
+        expect(closest(element, nodes, until)).toBe(null);
+      });
+
+      it('should return the closest parent from the starting element', () => {
+        wrapper.innerHTML = '<a><b><c></c></b></a>';
+
+        const parentA = wrapper.querySelector('a');
+        const parentB = wrapper.querySelector('b');
+        const element = wrapper.querySelector('c');
+        const nodes = [parentA, parentB];
+
+        expect(closest(element, nodes)).toBe(parentB);
+      });
+
+      it('should not throw an error if window is starting element', () => {
+        wrapper.innerHTML = '<a><b><c></c></b></a>';
+
+        const element = window;
+        const nodes = ['a'];
+        const until = wrapper.querySelector('b');
+
+        expect(closest(element, nodes, until)).toBe(null);
+      });
     });
   });
 

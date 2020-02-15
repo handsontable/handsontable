@@ -67,23 +67,50 @@ export function hasAccessToParentWindow(frame) {
 }
 
 /**
- * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ * Goes up the DOM tree (including given element) until it finds an parent element that matches the nodes or nodes name.
  * This method goes up through web components.
  *
- * @param {HTMLElement} element Element from which traversing is started.
- * @param {Array} nodes Array of elements or Array of elements name.
- * @param {HTMLElement} [until] The element until the traversing ends.
- * @returns {HTMLElement|null}
+ * @param {Node} element Element from which traversing is started.
+ * @param {(string | Node)[]} nodes Array of elements or Array of elements name.
+ * @param {EventTarget} [until] The element until the traversing ends.
+ * @returns {EventTarget|null}
  */
 export function closest(element, nodes, until) {
+  if (!element) {
+    throw new Error('Element has to be defined');
+  }
+
+  // support for Window
+  if (element.frameElement !== void 0) {
+    return null;
+  }
+
+  if (!element.cloneNode) {
+    throw new Error('Element has to be valid "Node" element');
+  }
+
+  if (!nodes) {
+    throw new Error('Nodes list has to be defined');
+  }
+
+  if (nodes.length === 0) {
+    throw new Error('Nodes list has to has at least one element');
+  }
+
+  const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck = element;
 
-  while (elementToCheck !== null && elementToCheck !== until) {
-    if (elementToCheck.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(elementToCheck.nodeName) > -1 || nodes.indexOf(elementToCheck) > -1)) {
+  while (elementToCheck && elementToCheck !== until) {
+    const { nodeType, nodeName } = elementToCheck;
+
+    if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
       return elementToCheck;
     }
-    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = elementToCheck.host;
+
+    const { host } = elementToCheck;
+
+    if (host && nodeType === DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = host;
 
     } else {
       elementToCheck = elementToCheck.parentNode;
