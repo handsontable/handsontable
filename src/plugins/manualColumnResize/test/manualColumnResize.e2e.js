@@ -522,8 +522,8 @@ describe('manualColumnResize', () => {
     expect(afterColumnResizeCallback.calls.count()).toEqual(1);
     expect(afterColumnResizeCallback.calls.argsFor(0)[1]).toEqual(0);
     // All modern browsers returns width = 25px, but IE8 seems to compute width differently and returns 24px
-    expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toBeInArray([29, 31, 32, 24, 25]);
-    expect(colWidth(spec().$container, 0)).toBeInArray([30, 31, 32, 24, 25]);
+    expect(afterColumnResizeCallback.calls.argsFor(0)[0]).toEqual(30);
+    expect(colWidth(spec().$container, 0)).toEqual(31);
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {

@@ -1,4 +1,4 @@
-import { addClass, outerHeight, outerWidth, removeClass } from './../helpers/dom/element';
+import { addClass, outerHeight, removeClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src/utils/gridline';
 
@@ -168,7 +168,9 @@ class GhostTable {
       this.injectTable();
     }
     arrayEach(this.columns, (column) => {
-      callback(column.col, outerWidth(column.table));
+      const width = column.table.getBoundingClientRect().width;
+      const rounded = Math.ceil(width);
+      callback(column.col, rounded);
     });
   }
 
