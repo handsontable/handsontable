@@ -120,7 +120,7 @@
 
 .handsontable span.colHeader {
   display: inline-block;
-  line-height: 1.1;
+  line-height: 1.082; /* was 1.1 before, but that resulted in different line-height in FF and Ch on Windows */
 }
 
 /* Selection */
