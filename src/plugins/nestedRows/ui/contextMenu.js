@@ -10,7 +10,7 @@ const privatePool = new WeakMap();
  *
  * @class ContextMenuUI
  * @util
- * @extends BaseUI
+ * @augments BaseUI
  */
 class ContextMenuUI extends BaseUI {
   constructor(nestedRowsPlugin, hotInstance) {
@@ -33,9 +33,10 @@ class ContextMenuUI extends BaseUI {
   }
   /**
    * Append options to the context menu. (Propagated from the `afterContextMenuDefaultOptions` hook callback)
-   * f
+   * f.
+   *
    * @private
-   * @param {Object} defaultOptions Default context menu options.
+   * @param {object} defaultOptions Default context menu options.
    * @returns {*}
    */
   appendOptions(defaultOptions) {
@@ -96,7 +97,7 @@ class ContextMenuUI extends BaseUI {
    * Modify how the row inserting options work.
    *
    * @private
-   * @param {Object} defaultOptions Default context menu items.
+   * @param {object} defaultOptions Default context menu items.
    * @returns {*}
    */
   modifyRowInsertingOptions(defaultOptions) {

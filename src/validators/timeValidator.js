@@ -8,12 +8,11 @@ const STRICT_FORMATS = [
 ];
 
 /**
- * Time cell validator
+ * The Time cell validator.
  *
  * @private
- * @validator TimeValidator
- * @param {*} value - Value of edited cell
- * @param {Function} callback - Callback called with validation result
+ * @param {*} value Value of edited cell.
+ * @param {Function} callback Callback called with validation result.
  */
 export default function timeValidator(value, callback) {
   const timeFormat = this.timeFormat || 'h:mm:ss a';

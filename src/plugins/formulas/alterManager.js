@@ -59,8 +59,8 @@ class AlterManager {
    * Prepare to execute an alter algorithm. This preparation can be useful for collecting some variables and
    * states before specific algorithm will be executed.
    *
-   * @param  {String} action One of the action defined in alterOperation.
-   * @param  {*} args Arguments pass to alter operation.
+   * @param {string} action One of the action defined in alterOperation.
+   * @param {*} args Arguments pass to alter operation.
    */
   prepareAlter(action, ...args) {
     if (!operations.has(action)) {
@@ -72,7 +72,7 @@ class AlterManager {
   /**
    * Trigger an alter algorithm and after executing code trigger local hook ("afterAlter").
    *
-   * @param {String} action One of the action defined in alterOperation.
+   * @param {string} action One of the action defined in alterOperation.
    * @param {*} args Arguments pass to alter operation.
    */
   triggerAlter(action, ...args) {
@@ -100,6 +100,10 @@ export default AlterManager;
 
 const empty = () => {};
 
+/**
+ * @param {string} name The ID of the operation to register.
+ * @param {object} descriptor The object with `prepare` and `operate` methods which holds the operation logic.
+ */
 export function registerOperation(name, descriptor) {
   if (!operations.has(name)) {
     operations.set(name, {

@@ -1,6 +1,9 @@
 import DataFilter from 'handsontable/plugins/filters/dataFilter';
 
 describe('DataFilter', () => {
+  /**
+   * @param column
+   */
   function columnDataMock(column) {
     const data = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9],

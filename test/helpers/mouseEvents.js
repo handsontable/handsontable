@@ -10,9 +10,10 @@ function getMouseButton(key) {
 }
 
 /**
- * Returns a function that triggers a mouse event
- * @param {String} type Event type
- * @return {Function}
+ * Returns a function that triggers a mouse event.
+ *
+ * @param {string} type Event type.
+ * @returns {Function}
  */
 export function handsontableMouseTriggerFactory(type, button) {
   return function(element) {

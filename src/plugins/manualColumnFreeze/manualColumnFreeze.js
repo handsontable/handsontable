@@ -31,7 +31,7 @@ class ManualColumnFreeze extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualColumnFreeze#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().manualColumnFreeze;
@@ -75,7 +75,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Freezes the given column (add it to fixed columns).
    *
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    */
   freezeColumn(column) {
     const priv = privatePool.get(this);
@@ -97,7 +97,7 @@ class ManualColumnFreeze extends BasePlugin {
   /**
    * Unfreezes the given column (remove it from fixed columns and bring to it's previous position).
    *
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    */
   unfreezeColumn(column) {
     const priv = privatePool.get(this);
@@ -120,7 +120,7 @@ class ManualColumnFreeze extends BasePlugin {
    * Adds the manualColumnFreeze context menu entries.
    *
    * @private
-   * @param {Object} options Context menu options.
+   * @param {object} options Context menu options.
    */
   addContextMenuEntry(options) {
     options.items.push(
@@ -135,7 +135,8 @@ class ManualColumnFreeze extends BasePlugin {
    *
    * @private
    * @param {Array} columns Array of visual column indexes to be moved.
-   * @param {Number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
+   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
+   * @returns {boolean|undefined}
    */
   onBeforeColumnMove(columns, finalIndex) {
     const priv = privatePool.get(this);

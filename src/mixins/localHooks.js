@@ -6,7 +6,7 @@ const MIXIN_NAME = 'localHooks';
 /**
  * Mixin object to extend objects functionality for local hooks.
  *
- * @type {Object}
+ * @type {object}
  */
 const localHooks = {
   /**
@@ -17,9 +17,9 @@ const localHooks = {
   /**
    * Add hook to the collection.
    *
-   * @param {String} key Hook name.
-   * @param {Function} callback Hook callback
-   * @returns {Object}
+   * @param {string} key The hook name.
+   * @param {Function} callback The hook callback.
+   * @returns {object}
    */
   addLocalHook(key, callback) {
     if (!this._localHooks[key]) {
@@ -33,8 +33,8 @@ const localHooks = {
   /**
    * Run hooks.
    *
-   * @param {String} key Hook name.
-   * @param {*} params
+   * @param {string} key The hook name.
+   * @param {*} params Additional parameters passed to callback function.
    */
   runLocalHooks(key, ...params) {
     if (this._localHooks[key]) {
@@ -45,7 +45,7 @@ const localHooks = {
   /**
    * Clear all added hooks.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   clearLocalHooks() {
     this._localHooks = {};

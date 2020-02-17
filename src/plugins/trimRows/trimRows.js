@@ -60,7 +60,7 @@ class TrimRows extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link AutoRowSize#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().trimRows;
@@ -126,7 +126,7 @@ class TrimRows extends BasePlugin {
   /**
    * Trims the rows provided in the array.
    *
-   * @param {Number[]} rows Array of physical row indexes.
+   * @param {number[]} rows Array of physical row indexes.
    * @fires Hooks#beforeTrimRow
    * @fires Hooks#afterTrimRow
    */
@@ -161,7 +161,7 @@ class TrimRows extends BasePlugin {
   /**
    * Trims the row provided as physical row index (counting from 0).
    *
-   * @param {...Number} row Physical row index.
+   * @param {...number} row Physical row index.
    */
   trimRow(...row) {
     this.trimRows(row);
@@ -170,7 +170,7 @@ class TrimRows extends BasePlugin {
   /**
    * Untrims the rows provided in the array.
    *
-   * @param {Number[]} rows Array of physical row indexes.
+   * @param {number[]} rows Array of physical row indexes.
    * @fires Hooks#beforeUntrimRow
    * @fires Hooks#afterUntrimRow
    */
@@ -204,7 +204,7 @@ class TrimRows extends BasePlugin {
   /**
    * Untrims the row provided as row index (counting from 0).
    *
-   * @param {...Number} row Physical row index.
+   * @param {...number} row Physical row index.
    */
   untrimRow(...row) {
     this.untrimRows(row);
@@ -213,8 +213,8 @@ class TrimRows extends BasePlugin {
   /**
    * Checks if given row is hidden.
    *
-   * @param physicalRow Physical row index.
-   * @returns {Boolean}
+   * @param {number} physicalRow Physical row index.
+   * @returns {boolean}
    */
   isTrimmed(physicalRow) {
     return this.trimmedRowsMap.getValueAtIndex(physicalRow);
@@ -231,7 +231,7 @@ class TrimRows extends BasePlugin {
    * Get if trim config is valid.
    *
    * @param {Array} trimmedRows List of physical row indexes.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isValidConfig(trimmedRows) {
     const sourceRows = this.hot.countSourceRows();

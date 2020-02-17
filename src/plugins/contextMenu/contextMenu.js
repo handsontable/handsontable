@@ -6,7 +6,6 @@ import EventManager from './../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
 import { registerPlugin } from './../../plugins';
-import { stopPropagation, pageX, pageY } from './../../helpers/dom/event';
 import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
 import {
   ROW_ABOVE,
@@ -30,6 +29,7 @@ Hooks.getSingleton().register('afterContextMenuShow');
 Hooks.getSingleton().register('afterContextMenuHide');
 Hooks.getSingleton().register('afterContextMenuExecute');
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  * This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
@@ -37,7 +37,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * Possible values:
  * * `true` (to enable default options),
  * * `false` (to disable completely)
- * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in)
+ * * `{ uiContainer: containerDomElement }` (to declare a container for all of the Context Menu's dom elements to be placed in).
  *
  * or array of any available strings:
  * * `'row_above'`
@@ -53,7 +53,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * * `'---------'` (menu item separator)
  * * `'borders'` (with {@link Options#customBorders} turned on)
  * * `'commentsAddEdit'` (with {@link Options#comments} turned on)
- * * `'commentsRemove'` (with {@link Options#comments} turned on)
+ * * `'commentsRemove'` (with {@link Options#comments} turned on).
  *
  * See [the context menu demo](https://handsontable.com/docs/demo-context-menu.html) for examples.
  *
@@ -67,11 +67,12 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  *
  * @plugin ContextMenu
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class ContextMenu extends BasePlugin {
   /**
    * Context menu default items order when `contextMenu` options is set as `true`.
    *
-   * @returns {String[]}
+   * @returns {string[]}
    */
   static get DEFAULT_ITEMS() {
     return [
@@ -125,7 +126,7 @@ class ContextMenu extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ContextMenu#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().contextMenu;
@@ -187,12 +188,7 @@ class ContextMenu extends BasePlugin {
   /**
    * Opens menu and re-position it based on the passed coordinates.
    *
-   * @param {Object|Event} position An object with `pageX` and `pageY` properties which contains values relative to
-   *                                the top left of the fully rendered content area in the browser or with `clientX`
-   *                                and `clientY` properties which contains values relative to the upper left edge
-   *                                of the content area (the viewport) of the browser window. `target` property is
-   *                                also required. This object is structurally compatible with the native mouse event
-   *                                so it can be used either.
+   * @param {Event} event The mouse event object.
    */
   open(event) {
     if (!this.menu) {
@@ -222,12 +218,9 @@ class ContextMenu extends BasePlugin {
     }
 
     this.menu.setPosition({
-      top: parseInt(pageY(event), 10) + offsetTop,
-      left: parseInt(pageX(event), 10) + offsetLeft,
+      top: parseInt(event.pageY, 10) + offsetTop,
+      left: parseInt(event.pageX, 10) + offsetLeft,
     });
-
-    // ContextMenu is not detected HotTableEnv correctly because is injected outside hot-table
-    this.menu.hotMenu.isHotTableEnv = this.hot.isHotTableEnv;
   }
 
   /**
@@ -261,12 +254,12 @@ class ContextMenu extends BasePlugin {
    *  * `'alignment:right'` - Alignment to the right
    *  * `'alignment:bottom'` - Alignment to the bottom
    *  * `'alignment:middle'` - Alignment to the middle
-   *  * `'alignment:center'` - Alignment to the center (justify)
+   *  * `'alignment:center'` - Alignment to the center (justify).
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
-   * @param {String} commandName The command name to be executed.
-   * @param {...*} params
+   * @param {string} commandName The command name to be executed.
+   * @param {*} params Additional paramteres passed to command executor module.
    */
   executeCommand(commandName, ...params) {
     if (this.itemsFactory === null) {
@@ -308,18 +301,21 @@ class ContextMenu extends BasePlugin {
    * On contextmenu listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
    */
   onAfterOnCellContextMenu(event) {
     const settings = this.hot.getSettings();
     const showRowHeaders = settings.rowHeaders;
     const showColHeaders = settings.colHeaders;
 
+    /**
+     * @param {HTMLElement} element The element to validate.
+     * @returns {boolean}
+     */
     function isValidElement(element) {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }
-    // if event is from hot-table we must get web component element not element inside him
-    const element = event.realTarget;
+    const element = event.target;
     this.close();
 
     if (hasClass(element, 'handsontableInput')) {
@@ -327,7 +323,7 @@ class ContextMenu extends BasePlugin {
     }
 
     event.preventDefault();
-    stopPropagation(event);
+    event.stopPropagation();
 
     if (!(showRowHeaders || showColHeaders)) {
       if (!isValidElement(element) && !(hasClass(element, 'current') && hasClass(element, 'wtBorder'))) {

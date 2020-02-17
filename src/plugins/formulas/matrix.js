@@ -40,8 +40,8 @@ class Matrix {
   /**
    * Get cell value at given row and column index.
    *
-   * @param {Number} row Physical row index.
-   * @param {Number} column Physical column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Physical column index.
    * @returns {CellValue|null} Returns CellValue instance or `null` if cell not found.
    */
   getCellAt(row, column) {
@@ -70,7 +70,7 @@ class Matrix {
   /**
    * Add cell value to the collection.
    *
-   * @param {CellValue|Object} cellValue Cell value object.
+   * @param {CellValue|object} cellValue Cell value object.
    */
   add(cellValue) {
     if (!arrayFilter(this.data, cell => cell.isEqual(cellValue)).length) {
@@ -81,7 +81,7 @@ class Matrix {
   /**
    * Remove cell value from the collection.
    *
-   * @param {CellValue|Object|Array} cellValue Cell value object.
+   * @param {CellValue|object|Array} cellValue Cell value object.
    */
   remove(cellValue) {
     const isArray = Array.isArray(cellValue);
@@ -108,7 +108,8 @@ class Matrix {
   /**
    * Get cell dependencies using visual coordinates.
    *
-   * @param {Object} cellCoord Visual cell coordinates object.
+   * @param {object} cellCoord Visual cell coordinates object.
+   * @returns {Array}
    */
   getDependencies(cellCoord) {
     /* eslint-disable arrow-body-style */
@@ -142,7 +143,7 @@ class Matrix {
   /**
    * Register cell reference to the collection.
    *
-   * @param {CellReference|Object} cellReference Cell reference object.
+   * @param {CellReference|object} cellReference Cell reference object.
    */
   registerCellRef(cellReference) {
     if (!arrayFilter(this.cellReferences, cell => cell.isEqual(cellReference)).length) {
@@ -153,8 +154,8 @@ class Matrix {
   /**
    * Remove cell references from the collection.
    *
-   * @param {Object} start Start visual coordinate.
-   * @param {Object} end End visual coordinate.
+   * @param {object} start Start visual coordinate.
+   * @param {object} end End visual coordinate.
    * @returns {Array} Returns removed cell references.
    */
   removeCellRefsAtRange({ row: startRow, column: startColumn }, { row: endRow, column: endColumn }) {

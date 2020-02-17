@@ -8,7 +8,7 @@ export default class NodesPool {
     /**
      * Node type to generate (ew 'th', 'td').
      *
-     * @type {String}
+     * @type {string}
      */
     this.nodeType = nodeType.toUpperCase();
   }
@@ -16,7 +16,7 @@ export default class NodesPool {
   /**
    * Set document owner for this instance.
    *
-   * @param {HTMLDocument} rootDocument
+   * @param {HTMLDocument} rootDocument The document window owner.
    */
   setRootDocument(rootDocument) {
     this.rootDocument = rootDocument;

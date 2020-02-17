@@ -1,5 +1,3 @@
-import {getSelected} from '../../../../test/helpers/common';
-
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 

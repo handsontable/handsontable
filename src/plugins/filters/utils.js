@@ -6,9 +6,9 @@ const sortCompare = getComparisonFunction();
 /**
  * Comparison function for sorting purposes.
  *
- * @param {*} a
- * @param {*} b
- * @returns {Number} Returns number from -1 to 1.
+ * @param {*} a The first value to compare.
+ * @param {*} b The second value to compare.
+ * @returns {number} Returns number from -1 to 1.
  */
 export function sortComparison(a, b) {
   if (typeof a === 'number' && typeof b === 'number') {
@@ -21,8 +21,8 @@ export function sortComparison(a, b) {
 /**
  * Convert raw value into visual value.
  *
- * @param {*} value
- * @param {String} defaultEmptyValue Default value for empty cells.
+ * @param {*} value The value to convert.
+ * @param {string} defaultEmptyValue Default value for empty cells.
  * @returns {*}
  */
 export function toVisualValue(value, defaultEmptyValue) {
@@ -68,8 +68,8 @@ export function createArrayAssertion(initialData) {
 /**
  * Convert empty-ish values like null and undefined to an empty string.
  *
- * @param value Value to check.
- * @returns {String}
+ * @param {*} value Value to check.
+ * @returns {string}
  */
 export function toEmptyString(value) {
   return value === null || value === void 0 ? '' : value;
@@ -109,7 +109,7 @@ export function unifyColumnValues(values) {
  *
  * @param {Array} base An array of base values.
  * @param {Array} selected An array of selected values.
- * @param {String} defaultEmptyValue Default value for empty cells.
+ * @param {string} defaultEmptyValue Default value for empty cells.
  * @param {Function} [callback] A callback function which is invoked for every item in an array.
  * @returns {Array}
  */

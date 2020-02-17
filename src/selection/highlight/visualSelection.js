@@ -51,7 +51,7 @@ class VisualSelection extends Selection {
    * other way around (decreasing indexes, then variable should have the value -1)
    * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
    * or other way around (decreasing indexes, then variable should have the value -1)
-   * @return {null|CellCoords}
+   * @returns {null|CellCoords}
    */
   findVisibleCoordsInRange(startCoords, endCoords, incrementBy) {
     const { row: startRow, col: startCol } = startCoords;
@@ -93,7 +93,7 @@ class VisualSelection extends Selection {
    *
    * @param {CellRange} broaderCellRange Actual cell range may be contained in the broader cell range. When there is
    * no way to represent some cell range visually we try to find range containing just the first visible cell.
-   * @return {VisualSelection}
+   * @returns {VisualSelection}
    */
   commit(broaderCellRange) {
     const fromRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
@@ -124,7 +124,7 @@ class VisualSelection extends Selection {
   /**
    * Get visual corners indexes for the internally stored renderable indexes.
    *
-   * @return {Number[]}
+   * @returns {Number[]}
    */
   getVisualCorners() {
     const topLeft = this.settings.untranslateCoords(this.cellRange.getTopLeftCorner());

@@ -6,11 +6,11 @@ import { isUndefined } from '../helpers/mixed';
 /**
  * Get phrase for specified dictionary key.
  *
- * @param {String} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
- * @param {String} dictionaryKey Constant which is dictionary key.
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @param {string} dictionaryKey Constant which is dictionary key.
  * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
  *
- * @returns {String}
+ * @returns {string}
  */
 // eslint-disable-next-line import/prefer-default-export
 export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {

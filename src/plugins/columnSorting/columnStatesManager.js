@@ -25,19 +25,19 @@ export class ColumnStatesManager {
     /**
      * Determines whether we should sort empty cells.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
     /**
      * Determines whether indicator should be visible (for sorted columns).
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.indicator = SHOW_SORT_INDICATOR_DEFAULT;
     /**
      * Determines whether click on the header perform sorting.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.headerAction = HEADER_ACTION_DEFAULT;
     /**
@@ -51,7 +51,7 @@ export class ColumnStatesManager {
    *
    * **Note**: All column properties can be overwritten by [columns](https://handsontable.com/docs/Options.html#columns) option.
    *
-   * @param {Object} allSortSettings Column sorting plugin's configuration object.
+   * @param {object} allSortSettings Column sorting plugin's configuration object.
    */
   updateAllColumnsProperties(allSortSettings) {
     if (!isObject(allSortSettings)) {
@@ -68,7 +68,7 @@ export class ColumnStatesManager {
   /**
    * Get all column properties which affect the sorting result.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getAllColumnsProperties() {
     const columnProperties = {
@@ -87,7 +87,7 @@ export class ColumnStatesManager {
   /**
    * Get index of first sorted column.
    *
-   * @returns {Number|undefined}
+   * @returns {number|undefined}
    */
   getFirstSortedColumn() {
     let firstSortedColumn;
@@ -102,8 +102,8 @@ export class ColumnStatesManager {
   /**
    * Get sort order of column.
    *
-   * @param {Number} searchedColumn Physical column index.
-   * @returns {String|undefined} Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
+   * @param {number} searchedColumn Physical column index.
+   * @returns {string|undefined} Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
    */
   getSortOrderOfColumn(searchedColumn) {
     const searchedState = this.sortedColumnsStates.find(({ column }) => searchedColumn === column);
@@ -128,8 +128,8 @@ export class ColumnStatesManager {
   /**
    * Get order of particular column in the states queue.
    *
-   * @param {Number} column Physical column index.
-   * @returns {Number}
+   * @param {number} column Physical column index.
+   * @returns {number}
    */
   getIndexOfColumnInSortQueue(column) {
     return this.getSortedColumns().indexOf(column);
@@ -138,7 +138,7 @@ export class ColumnStatesManager {
   /**
    * Get number of sorted columns.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getNumberOfSortedColumns() {
     return this.sortedColumnsStates.length;
@@ -147,7 +147,7 @@ export class ColumnStatesManager {
   /**
    * Get if list of sorted columns is empty.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isListOfSortedColumnsEmpty() {
     return this.getNumberOfSortedColumns() === 0;
@@ -156,8 +156,8 @@ export class ColumnStatesManager {
   /**
    * Get if particular column is sorted.
    *
-   * @param {Number} column Physical column index.
-   * @returns {Boolean}
+   * @param {number} column Physical column index.
+   * @returns {boolean}
    */
   isColumnSorted(column) {
     return this.getSortedColumns().includes(column);
@@ -177,8 +177,8 @@ export class ColumnStatesManager {
    *
    * **Note**: Please keep in mind that returned objects expose **physical** column index under the `column` key.
    *
-   * @param {Number} column Physical column index.
-   * @returns {Object|undefined}
+   * @param {number} column Physical column index.
+   * @returns {object|undefined}
    */
   getColumnSortState(column) {
     if (this.isColumnSorted(column)) {
@@ -189,7 +189,7 @@ export class ColumnStatesManager {
   /**
    * Set all sorted columns states.
    *
-   * @param {Array} sortStates
+   * @param {Array} sortStates The sort state.
    */
   setSortStates(sortStates) {
     this.sortedColumnsStates = sortStates;

@@ -6,9 +6,9 @@ import { arrayEach } from './../../helpers/array';
 /**
  * Create separated id for borders for each cell.
  *
- * @param {Number} row Visual row index.
- * @param {Number} col Visual column index.
- * @returns {String}
+ * @param {number} row Visual row index.
+ * @param {number} col Visual column index.
+ * @returns {string}
  */
 export function createId(row, col) {
   return `border_row${row}col${col}`;
@@ -17,7 +17,7 @@ export function createId(row, col) {
 /**
  * Create default single border for each position (top/right/bottom/left).
  *
- * @returns {Object} `{{width: number, color: string}}`
+ * @returns {object} `{{width: number, color: string}}`.
  */
 export function createDefaultCustomBorder() {
   return {
@@ -29,7 +29,7 @@ export function createDefaultCustomBorder() {
 /**
  * Create default object for empty border.
  *
- * @returns {Object} `{{hide: boolean}}`
+ * @returns {object} `{{hide: boolean}}`.
  */
 export function createSingleEmptyBorder() {
   return { hide: true };
@@ -38,7 +38,7 @@ export function createSingleEmptyBorder() {
 /**
  * Create default Handsontable border object.
  *
- * @returns {Object} `{{width: number, color: string, cornerVisible: boolean}}`
+ * @returns {object} `{{width: number, color: string, cornerVisible: boolean}}`.
  */
 export function createDefaultHtBorder() {
   return {
@@ -51,9 +51,9 @@ export function createDefaultHtBorder() {
 /**
  * Prepare empty border for each cell with all custom borders hidden.
  *
- * @param {Number} row Visual row index.
- * @param {Number} col Visual column index.
- * @returns {Object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`
+ * @param {number} row Visual row index.
+ * @param {number} col Visual column index.
+ * @returns {object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
 export function createEmptyBorders(row, col) {
   return {
@@ -68,6 +68,11 @@ export function createEmptyBorders(row, col) {
   };
 }
 
+/**
+ * @param {object} defaultBorder The default border object.
+ * @param {object} customBorder The border object with custom settings.
+ * @returns {object}
+ */
 export function extendDefaultBorder(defaultBorder, customBorder) {
   if (hasOwnProperty(customBorder, 'border')) {
     defaultBorder.border = customBorder.border;
@@ -135,8 +140,9 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
 /**
  * Check if selection has border.
  *
- * @param hot
- * @param direction
+ * @param {Core} hot The Handsontable instance.
+ * @param {string} [direction] If set ('left' or 'top') then only the specyfied border side will be checked.
+ * @returns {boolean}
  */
 export function checkSelectionBorders(hot, direction) {
   let atLeastOneHasBorder = false;
@@ -165,7 +171,7 @@ export function checkSelectionBorders(hot, direction) {
 /**
  * Mark label in contextMenu as selected.
  *
- * @param label
+ * @param {string} label The label text.
  * @returns {string}
  */
 export function markSelected(label) {

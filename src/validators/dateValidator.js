@@ -3,12 +3,11 @@ import { getNormalizedDate } from '../helpers/date';
 import { getEditorInstance } from '../editors';
 
 /**
- * Date cell validator
+ * The Date cell validator.
  *
  * @private
- * @validator DateValidator
- * @param {*} value - Value of edited cell
- * @param {Function} callback - Callback called with validation result
+ * @param {*} value Value of edited cell.
+ * @param {Function} callback Callback called with validation result.
  */
 export default function dateValidator(value, callback) {
   const dateEditor = getEditorInstance('date', this.instance);
@@ -50,11 +49,11 @@ export default function dateValidator(value, callback) {
 }
 
 /**
- * Format the given string using moment.js' format feature
+ * Format the given string using moment.js' format feature.
  *
- * @param {String} value
- * @param {String} dateFormat
- * @returns {String}
+ * @param {string} value The value to format.
+ * @param {string} dateFormat The date pattern to format to.
+ * @returns {string}
  */
 export function correctFormat(value, dateFormat) {
   const dateFromDate = moment(getNormalizedDate(value));

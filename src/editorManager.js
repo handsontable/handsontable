@@ -1,6 +1,6 @@
 import { CellCoords } from './3rdparty/walkontable/src';
 import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
-import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
 import { EditorState } from './editors/_baseEditor';
@@ -8,13 +8,13 @@ import { getParentWindow } from './helpers/dom/element';
 
 class EditorManager {
   /**
-   * @param {Handsontable} instance
-   * @param {GridSettings} priv
-   * @param {Selection} selection
+   * @param {Core} instance The Handsontable instance.
+   * @param {TableMeta} tableMeta The table meta instance.
+   * @param {Selection} selection The selection instance.
    */
-  constructor(instance, priv, selection) {
+  constructor(instance, tableMeta, selection) {
     /**
-     * Instance of {@link Handsontable}
+     * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
@@ -26,9 +26,9 @@ class EditorManager {
      * @private
      * @type {GridSettings}
      */
-    this.priv = priv;
+    this.tableMeta = tableMeta;
     /**
-     * Instance of {@link Selection}
+     * Instance of {@link Selection}.
      *
      * @private
      * @type {Selection}
@@ -45,14 +45,14 @@ class EditorManager {
      * Determines if EditorManager is destroyed.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.destroyed = false;
     /**
      * Determines if EditorManager is locked.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.lock = false;
     /**
@@ -65,9 +65,15 @@ class EditorManager {
     /**
      * Keeps a reference to the cell's properties object.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.cellProperties = void 0;
+    /**
+     * Keeps last keyCode pressed from the keydown event.
+     *
+     * @type {number}
+     */
+    this.lastKeyCode = void 0;
 
     this.instance.addHook('afterDocumentKeyDown', event => this.onAfterDocumentKeyDown(event));
 
@@ -112,7 +118,8 @@ class EditorManager {
   /**
    * Destroy current editor, if exists.
    *
-   * @param {Boolean} revertOriginal
+   * @param {boolean} revertOriginal If `false` and the cell using allowInvalid option,
+   *                                 then an editor won't be closed until validation is passed.
    */
   destroyEditor(revertOriginal) {
     if (!this.lock) {
@@ -175,7 +182,7 @@ class EditorManager {
   /**
    * Check is editor is opened/showed.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEditorOpened() {
     return this.activeEditor && this.activeEditor.isOpened();
@@ -184,8 +191,8 @@ class EditorManager {
   /**
    * Open editor with initial value.
    *
-   * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
-   * @param {Event} event
+   * @param {null|string} newInitialValue New value from which editor will start if handled property it's not the `null`.
+   * @param {Event} event The event object.
    */
   openEditor(newInitialValue, event) {
     if (!this.activeEditor) {
@@ -198,9 +205,9 @@ class EditorManager {
   /**
    * Close editor, finish editing cell.
    *
-   * @param {Boolean} restoreOriginalValue
-   * @param {Boolean} [isCtrlPressed]
-   * @param {Function} [callback]
+   * @param {boolean} restoreOriginalValue If `true`, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {Function} callback The callback function, fired after editor closing.
    */
   closeEditor(restoreOriginalValue, isCtrlPressed, callback) {
     if (this.activeEditor) {
@@ -214,7 +221,7 @@ class EditorManager {
   /**
    * Close editor and save changes.
    *
-   * @param {Boolean} isCtrlPressed
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
    */
   closeEditorAndSaveChanges(isCtrlPressed) {
     this.closeEditor(false, isCtrlPressed);
@@ -223,10 +230,10 @@ class EditorManager {
   /**
    * Close editor and restore original value.
    *
-   * @param {Boolean} isCtrlPressed
+   * @param {boolean} isCtrlPressed Indication of whether the CTRL button is pressed.
    */
   closeEditorAndRestoreOriginalValue(isCtrlPressed) {
-    return this.closeEditor(true, isCtrlPressed);
+    this.closeEditor(true, isCtrlPressed);
   }
 
   /**
@@ -242,10 +249,10 @@ class EditorManager {
    * Controls selection's behaviour after clicking `Enter`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
    */
   moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.priv.settings.enterMoves === 'function' ? this.priv.settings.enterMoves(event) : this.priv.settings.enterMoves;
+    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ? this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
 
     if (isShiftPressed) {
       // move selection up
@@ -260,7 +267,7 @@ class EditorManager {
    * Controls selection behaviour after clicking `arrow up`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand up.
    */
   moveSelectionUp(isShiftPressed) {
     if (isShiftPressed) {
@@ -274,7 +281,7 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow down`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand down.
    */
   moveSelectionDown(isShiftPressed) {
     if (isShiftPressed) {
@@ -289,7 +296,7 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow right`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand right.
    */
   moveSelectionRight(isShiftPressed) {
     if (isShiftPressed) {
@@ -303,7 +310,7 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow left`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand left.
    */
   moveSelectionLeft(isShiftPressed) {
     if (isShiftPressed) {
@@ -314,10 +321,10 @@ class EditorManager {
   }
 
   /**
-   * onAfterDocumentKeyDown callback.
+   * OnAfterDocumentKeyDown callback.
    *
    * @private
-   * @param {KeyboardEvent} event
+   * @param {KeyboardEvent} event The keyboard event object.
    */
   onAfterDocumentKeyDown(event) {
     if (!this.instance.isListening()) {
@@ -334,7 +341,7 @@ class EditorManager {
     if (isImmediatePropagationStopped(event)) {
       return;
     }
-    this.priv.lastKeyCode = event.keyCode;
+    this.lastKeyCode = event.keyCode;
 
     if (!this.selection.isSelected()) {
       return;
@@ -361,7 +368,7 @@ class EditorManager {
           this.instance.selectAll();
 
           event.preventDefault();
-          stopPropagation(event);
+          event.stopPropagation();
         }
         break;
 
@@ -372,7 +379,7 @@ class EditorManager {
         this.moveSelectionUp(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.ARROW_DOWN:
@@ -383,7 +390,7 @@ class EditorManager {
         this.moveSelectionDown(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.ARROW_RIGHT:
@@ -394,7 +401,7 @@ class EditorManager {
         this.moveSelectionRight(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.ARROW_LEFT:
@@ -405,11 +412,11 @@ class EditorManager {
         this.moveSelectionLeft(isShiftPressed);
 
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.TAB:
-        tabMoves = typeof this.priv.settings.tabMoves === 'function' ? this.priv.settings.tabMoves(event) : this.priv.settings.tabMoves;
+        tabMoves = typeof this.tableMeta.tabMoves === 'function' ? this.tableMeta.tabMoves(event) : this.tableMeta.tabMoves;
 
         if (isShiftPressed) {
           // move selection left
@@ -419,7 +426,7 @@ class EditorManager {
           this.selection.transformStart(tabMoves.row, tabMoves.col, true);
         }
         event.preventDefault();
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.BACKSPACE:
@@ -480,7 +487,7 @@ class EditorManager {
           rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, 0));
         }
         event.preventDefault(); // don't scroll the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.END:
@@ -490,19 +497,19 @@ class EditorManager {
           rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, this.instance.countCols() - 1));
         }
         event.preventDefault(); // don't scroll the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.PAGE_UP:
         this.selection.transformStart(-this.instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page up the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       case KEY_CODES.PAGE_DOWN:
         this.selection.transformStart(this.instance.countVisibleRows(), 0);
         event.preventDefault(); // don't page down the window
-        stopPropagation(event);
+        event.stopPropagation();
         break;
 
       default:
@@ -511,12 +518,12 @@ class EditorManager {
   }
 
   /**
-   * onCellDblClick callback.
+   * OnCellDblClick callback.
    *
    * @private
-   * @param {MouseEvent} event
-   * @param {Object} coords
-   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem
+   * @param {MouseEvent} event The mouse event object.
+   * @param {object} coords The cell coordinates.
+   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
    */
   onCellDblClick(event, coords, elem) {
     // may be TD or TH
@@ -540,16 +547,16 @@ class EditorManager {
 const instances = new WeakMap();
 
 /**
- * @param {Handsontable} hotInstance
- * @param {GridSettings} hotSettings
- * @param {Selection} selection
- * @param {DataMap} datamap
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {TableMeta} tableMeta The table meta class instance.
+ * @param {Selection} selection The selection instance.
+ * @returns {EditorManager}
  */
-EditorManager.getInstance = function(hotInstance, hotSettings, selection, datamap) {
+EditorManager.getInstance = function(hotInstance, tableMeta, selection) {
   let editorManager = instances.get(hotInstance);
 
   if (!editorManager) {
-    editorManager = new EditorManager(hotInstance, hotSettings, selection, datamap);
+    editorManager = new EditorManager(hotInstance, tableMeta, selection);
     instances.set(hotInstance, editorManager);
   }
 

@@ -5,7 +5,7 @@ export const rootInstanceSymbol = Symbol('rootInstance');
 /**
  * Register an object as a root instance.
  *
- * @param  {Object} object An object to associate with root instance flag.
+ * @param  {object} object An object to associate with root instance flag.
  */
 export function registerAsRootInstance(object) {
   holder.set(object, true);
@@ -14,8 +14,8 @@ export function registerAsRootInstance(object) {
 /**
  * Check if the source of the root indication call is valid.
  *
- * @param  {Symbol} rootSymbol A symbol as a source of truth.
- * @return {Boolean}
+ * @param  {symbol} rootSymbol A symbol as a source of truth.
+ * @returns {boolean}
  */
 export function hasValidParameter(rootSymbol) {
   return rootSymbol === rootInstanceSymbol;
@@ -24,8 +24,8 @@ export function hasValidParameter(rootSymbol) {
 /**
  * Check if passed an object was flagged as a root instance.
  *
- * @param  {Object} object An object to check.
- * @return {Boolean}
+ * @param  {object} object An object to check.
+ * @returns {boolean}
  */
 export function isRootInstance(object) {
   return holder.has(object);

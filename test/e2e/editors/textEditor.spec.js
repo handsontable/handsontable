@@ -669,35 +669,105 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toEqual(true);
   });
 
-  it('should open editor after double clicking on a cell', (done) => {
-    const hot = handsontable({
+  it('should open editor after double clicking on a cell', async() => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2)
     });
     const cell = $(getCell(0, 0));
-    let clicks = 0;
 
+    selectCell(0, 0);
     window.scrollTo(0, cell.offset().top);
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks += 1;
-    }, 0);
+    await sleep(0);
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks += 1;
-    }, 100);
+    cell
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
 
-    setTimeout(() => {
-      const editor = hot.getActiveEditor();
+    await sleep(100);
 
-      expect(clicks).toBe(2);
-      expect(editor.isOpened()).toBe(true);
-      expect(editor.isInFullEditMode()).toBe(true);
-      done();
-    }, 200);
+    cell
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    await sleep(100);
+
+    const editor = getActiveEditor();
+
+    expect(editor.isOpened()).toBe(true);
+    expect(editor.isInFullEditMode()).toBe(true);
+  });
+
+  it('should not open editor after double clicking on a cell using the middle mouse button', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2)
+    });
+    const cell = $(getCell(0, 0));
+    const button = 1;
+
+    selectCell(0, 0);
+    window.scrollTo(0, cell.offset().top);
+
+    await sleep(0);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    const editor = getActiveEditor();
+
+    expect(editor.isOpened()).toBe(false);
+    expect(editor.isInFullEditMode()).toBe(false);
+  });
+
+  it('should not open editor after double clicking on a cell using the right mouse button', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2)
+    });
+    const cell = $(getCell(0, 0));
+    const button = 2;
+
+    selectCell(0, 0);
+    window.scrollTo(0, cell.offset().top);
+
+    await sleep(0);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    const editor = getActiveEditor();
+
+    expect(editor.isOpened()).toBe(false);
+    expect(editor.isInFullEditMode()).toBe(false);
   });
 
   it('should call editor focus() method after opening an editor', () => {

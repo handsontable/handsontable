@@ -28,14 +28,14 @@ class TouchScroll extends BasePlugin {
     /**
      * Flag which determines if collection of overlays should be refilled on every table render.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.lockedCollection = false;
     /**
      * Flag which determines if walkontable should freeze overlays while scrolling.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.freezeOverlays = false;
@@ -44,7 +44,7 @@ class TouchScroll extends BasePlugin {
   /**
    * Check if plugin is enabled.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return isTouchSupported();

@@ -1,7 +1,6 @@
 import BasePlugin from './../_base';
 import { addClass, hasClass, removeClass, outerWidth } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
-import { pageY } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
@@ -67,7 +66,7 @@ class ManualRowResize extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualRowResize#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().manualRowResize;
@@ -139,9 +138,9 @@ class ManualRowResize extends BasePlugin {
   /**
    * Sets the new height for specified row index.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} height Row height.
-   * @returns {Number} Returns new height.
+   * @param {number} row Visual row index.
+   * @param {number} height Row height.
+   * @returns {number} Returns new height.
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
@@ -275,7 +274,7 @@ class ManualRowResize extends BasePlugin {
    *
    * @private
    * @param {HTMLElement} element HTML element.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   checkIfRowHeader(element) {
     if (element !== this.hot.rootElement) {
@@ -314,7 +313,7 @@ class ManualRowResize extends BasePlugin {
    * 'mouseover' event callback - set the handle position.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
     if (this.checkIfRowHeader(event.target)) {
@@ -379,7 +378,7 @@ class ManualRowResize extends BasePlugin {
    * 'mousedown' event callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualRowResizer')) {
@@ -393,7 +392,7 @@ class ManualRowResize extends BasePlugin {
       }
 
       this.dblclick += 1;
-      this.startY = pageY(event);
+      this.startY = event.pageY;
       this.newSize = this.startHeight;
     }
   }
@@ -402,11 +401,11 @@ class ManualRowResize extends BasePlugin {
    * 'mousemove' event callback - refresh the handle and guide positions, cache the new row height.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseMove(event) {
     if (this.pressed) {
-      this.currentHeight = this.startHeight + (pageY(event) - this.startY);
+      this.currentHeight = this.startHeight + (event.pageY - this.startY);
 
       arrayEach(this.selectedRows, (selectedRow) => {
         this.newSize = this.setManualSize(selectedRow, this.currentHeight);
@@ -482,9 +481,9 @@ class ManualRowResize extends BasePlugin {
    * Modifies the provided row height, based on the plugin settings.
    *
    * @private
-   * @param {Number} height Row height.
-   * @param {Number} row Visual row index.
-   * @returns {Number}
+   * @param {number} height Row height.
+   * @param {number} row Visual row index.
+   * @returns {number}
    */
   onModifyRowHeight(height, row) {
     let newHeight = height;
