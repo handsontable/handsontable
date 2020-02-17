@@ -338,7 +338,11 @@ class TableView {
   }
 
   /**
-   * @TODO Description
+   * Translate renderable row and column indexes to visual row and column indexes.
+   *
+   * @param {number} renderableRow Renderable row index.
+   * @param {number} renderableColumn Renderable columnIndex.
+   * @returns {CellCoords}
    */
   translateFromRenderableToVisualCoords(renderableRow, renderableColumn) {
     let visualRow = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);

@@ -202,7 +202,10 @@ class IndexMapper {
   }
 
   /**
-   * @TODO Description
+   * Get an physical index from an renderable index.
+   *
+   * @param {number} renderableIndex Renderable index.
+   * @returns {null|number}
    */
   getPhysicalFromRenderableIndex(renderableIndex) {
     const renderableIndexes = this.getRenderableIndexes();
@@ -234,14 +237,20 @@ class IndexMapper {
   }
 
   /**
-   * @TODO Description
+   * Get an visual index from an renderable index.
+   *
+   * @param {number} renderableIndex Renderable index.
+   * @returns {null|number}
    */
   getVisualFromRenderableIndex(renderableIndex) {
     return this.getVisualFromPhysicalIndex(this.getPhysicalFromRenderableIndex(renderableIndex));
   }
 
   /**
-   * @TODO Description
+   * Get an renderable index from an visual index.
+   *
+   * @param {number} visualIndex Visual index.
+   * @returns {null|number}
    */
   getRenderableFromVisualIndex(visualIndex) {
     if (visualIndex >= this.getNotSkippedIndexesLength()) {
@@ -328,7 +337,7 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
   getNotHiddenIndexes(readFromCache = true) {
@@ -342,7 +351,7 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getNotHiddenIndexesLength() {
     return this.getNotHiddenIndexes().length;
@@ -351,7 +360,7 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
   getRenderableIndexes(readFromCache = true) {
@@ -367,7 +376,7 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getRenderableIndexesLength() {
     return this.getRenderableIndexes().length;
@@ -419,7 +428,7 @@ class IndexMapper {
    * Get flat list of values, which are result whether index was skipped in any of skip collection's element.
    *
    * @private
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
   getFlattenHiddenList(readFromCache = true) {
@@ -455,8 +464,8 @@ class IndexMapper {
    * Get whether index is skipped in the process of rendering.
    *
    * @private
-   * @param {Number} physicalIndex Physical index.
-   * @returns {Boolean}
+   * @param {number} physicalIndex Physical index.
+   * @returns {noolean}
    */
   isHidden(physicalIndex) {
     return this.getFlattenHiddenList()[physicalIndex] || false;

@@ -259,6 +259,7 @@ class HiddenColumns extends BasePlugin {
    * Check whether all of the provided column indexes are within the bounds of the table.
    *
    * @param {Array} columns Array of column indexes.
+   * @returns {boolean}
    */
   isColumnDataValid(columns) {
     return columns.every(column => Number.isInteger(column) && column >= 0 && column < this.hot.countCols());
@@ -277,19 +278,20 @@ class HiddenColumns extends BasePlugin {
     });
   }
 
+  // @TODO: Check type of the column index. Maybe checking hidden indexes is redundant?
   /**
    * Adds the additional column width for the hidden column indicators.
    *
    * @private
-   * @param {number} width
-   * @param {number} col
+   * @param {number} width Column width.
+   * @param {number} column Column index.
    * @returns {number}
    */
-  onModifyColWidth(width, col) {
-    if (this.isHidden(col)) {
+  onModifyColWidth(width, column) {
+    if (this.isHidden(column)) {
       return 0.1;
 
-    } else if (this.settings.indicators && (this.isHidden(col + 1) || this.isHidden(col - 1))) {
+    } else if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
       // add additional space for hidden column indicator
       return width + (this.hot.hasColHeaders() ? 15 : 0);
@@ -356,7 +358,7 @@ class HiddenColumns extends BasePlugin {
    * Modifies the copyable range, accordingly to the provided config.
    *
    * @private
-   * @param {Array} ranges
+   * @param {Array} ranges An array of objects defining copyable cells.
    * @returns {Array}
    */
   onModifyCopyableRange(ranges) {
@@ -427,7 +429,7 @@ class HiddenColumns extends BasePlugin {
    * Add Show-hide columns to context menu.
    *
    * @private
-   * @param {object} options
+   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
    */
   onAfterContextMenuDefaultOptions(options) {
     options.items.push(

@@ -12,9 +12,10 @@ class VisualSelection extends Selection {
     this.visualCellRange = null;
   }
   /**
-   * Adds a cell coords to the selection
+   * Adds a cell coords to the selection.
    *
    * @param {CellCoords} coords Visual coordinates of a cell.
+   * @returns {VisualSelection}
    */
   add(coords) {
     if (this.visualCellRange === null) {
@@ -28,9 +29,9 @@ class VisualSelection extends Selection {
   }
 
   /**
-   * Clears selection
+   * Clears selection.
    *
-   * @returns {Selection}
+   * @returns {VisualSelection}
    */
   clear() {
     this.visualCellRange = null;
@@ -45,12 +46,12 @@ class VisualSelection extends Selection {
    * @param {CellCoords} startCoords Start coordinates for the range. Starting point for finding destination coordinates
    * with visible coordinates (we are going from the starting coordinates to the end coordinates until the criteria are met).
    * @param {CellCoords} endCoords End coordinates for the range.
-   * @param {Number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
+   * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
    * This variable represent indexes shift. We are looking for an index:
    * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
    * other way around (decreasing indexes, then variable should have the value -1)
    * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
-   * or other way around (decreasing indexes, then variable should have the value -1)
+   * or other way around (decreasing indexes, then variable should have the value -1).
    * @returns {null|CellCoords}
    */
   findVisibleCoordsInRange(startCoords, endCoords, incrementBy) {
@@ -122,9 +123,9 @@ class VisualSelection extends Selection {
   }
 
   /**
-   * Get visual corners indexes for the internally stored renderable indexes.
+   * Returns the top left (TL) and bottom right (BR) selection coordinates (visual indexes).
    *
-   * @returns {Number[]}
+   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getVisualCorners() {
     const topLeft = this.settings.untranslateCoords(this.cellRange.getTopLeftCorner());

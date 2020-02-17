@@ -2139,8 +2139,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return datamap.get(row, datamap.colToProp(column));
   };
 
+  // @TODO: Maybe it can be removed?
   /**
-   * @TODO Description
+   * Get data at cell basing on the renderable row and column indexes.
+   *
+   * @param {number} row Renderable row index.
+   * @param {number} column Renderable column index.
+   * @returns {*} Data at cell.
    */
   this.getRenderableDataAtCell = function(row, column) {
     return datamap.get(row, this.colToProp(this.columnIndexMapper.getVisualFromRenderableIndex(column)));
@@ -3044,12 +3049,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return datamap.getLength();
   };
 
+  // @TODO: Maybe it can be removed?
   /**
    * Returns the number of renderable columns.
    *
    * @memberof Core#
    * @function countRenderableColumns
-   * @returns {Number}
+   * @returns {number}
    */
   this.countRenderableColumns = function() {
     const numberOfNotSkippedColumns = this.columnIndexMapper.getNotSkippedIndexesLength();
