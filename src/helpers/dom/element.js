@@ -66,23 +66,29 @@ export function hasAccessToParentWindow(frame) {
 }
 
 /**
- * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ * Goes up the DOM tree (including given element) until it finds an parent element that matches the nodes or nodes name.
  * This method goes up through web components.
  *
- * @param {HTMLElement} element Element from which traversing is started
- * @param {Array} nodes Array of elements or Array of elements name
- * @param {HTMLElement} [until]
- * @returns {HTMLElement|null}
+ * @param {Node} element Element from which traversing is started.
+ * @param {(string | Node)[]} [nodes] Array of elements or Array of elements name (in uppercase form).
+ * @param {Node} [until] The element until the traversing ends.
+ * @returns {Node|null}
  */
-export function closest(element, nodes, until) {
+export function closest(element, nodes = [], until) {
+  const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck = element;
 
-  while (elementToCheck !== null && elementToCheck !== until) {
-    if (elementToCheck.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(elementToCheck.nodeName) > -1 || nodes.indexOf(elementToCheck) > -1)) {
+  while (elementToCheck !== null && elementToCheck !== void 0 && elementToCheck !== until) {
+    const { nodeType, nodeName } = elementToCheck;
+
+    if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
       return elementToCheck;
     }
-    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = elementToCheck.host;
+
+    const { host } = elementToCheck;
+
+    if (host && nodeType === DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = host;
 
     } else {
       elementToCheck = elementToCheck.parentNode;
