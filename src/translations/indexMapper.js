@@ -202,7 +202,7 @@ class IndexMapper {
   }
 
   /**
-   * Get an physical index from an renderable index.
+   * Get a physical index from an renderable index.
    *
    * @param {number} renderableIndex Renderable index.
    * @returns {null|number}
@@ -237,7 +237,7 @@ class IndexMapper {
   }
 
   /**
-   * Get an visual index from an renderable index.
+   * Get a visual index from an renderable index.
    *
    * @param {number} renderableIndex Renderable index.
    * @returns {null|number}
@@ -247,7 +247,7 @@ class IndexMapper {
   }
 
   /**
-   * Get an renderable index from an visual index.
+   * Get a renderable index from an visual index.
    *
    * @param {number} visualIndex Visual index.
    * @returns {null|number}

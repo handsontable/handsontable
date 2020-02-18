@@ -94,6 +94,9 @@ class VisualSelection extends Selection {
    *
    * @param {CellRange} broaderCellRange Actual cell range may be contained in the broader cell range. When there is
    * no way to represent some cell range visually we try to find range containing just the first visible cell.
+   *
+   * Warn: Please keep in mind that this function may change coordinates of the handled broader range.
+   *
    * @returns {VisualSelection}
    */
   commit(broaderCellRange) {
@@ -107,6 +110,8 @@ class VisualSelection extends Selection {
 
         if (singleCellRangeTranslated !== null) {
           this.cellRange = new CellRange(singleCellRangeTranslated);
+
+          broaderCellRange.setHighlight(this.settings.untranslateCoords(singleCellRangeTranslated));
 
           return this;
         }

@@ -741,6 +741,7 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -767,6 +768,7 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -793,6 +795,7 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ - : - |
       |===:===:===|
@@ -822,6 +825,7 @@ describe('HiddenColumns', () => {
       mouseUp(endCell);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ - : - |
       |===:===:===|
@@ -860,6 +864,7 @@ describe('HiddenColumns', () => {
         [0, 4, 4, 4],
         [0, 6, 4, 6],
       ]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
       expect(`
       |   ║   :   : * :   : * :   |
       |===:===:===:===:===:===:===|
@@ -887,6 +892,7 @@ describe('HiddenColumns', () => {
       $(getCell(4, 6)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 3, 4, 6]]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
       expect(`
       |   ║   : - : - : - : - :   :   :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|
@@ -907,6 +913,7 @@ describe('HiddenColumns', () => {
       $(getCell(5, 8)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8]]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(5);
       expect(`
       |   ║   : - : - : - : - : - : - :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|
@@ -958,6 +965,7 @@ describe('HiddenColumns', () => {
       selectAll();
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
       expect(`
       |   ║ * : * : * |
       |===:===:===:===|
@@ -1005,6 +1013,7 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -1029,6 +1038,7 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -1053,6 +1063,7 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ - : - |
       |===:===:===|
@@ -1101,6 +1112,7 @@ describe('HiddenColumns', () => {
       selectColumns(1, 4);
 
       expect(getSelectedLast()).toEqual([0, 1, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
       expect(`
       |   ║   : * |
       |===:===:===|
@@ -1125,6 +1137,7 @@ describe('HiddenColumns', () => {
       selectColumns(2, 4);
 
       expect(getSelectedLast()).toEqual([0, 2, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
       expect(`
       |   ║   : * |
       |===:===:===|
@@ -1149,6 +1162,7 @@ describe('HiddenColumns', () => {
       selectColumns(0, 2);
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 2]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ * :   |
       |===:===:===|
@@ -1173,6 +1187,7 @@ describe('HiddenColumns', () => {
       selectColumns(0, 3);
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 3]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ * :   |
       |===:===:===|
@@ -1197,6 +1212,7 @@ describe('HiddenColumns', () => {
       selectColumns(0, 4);
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
       |   ║ * : * |
       |===:===:===|
