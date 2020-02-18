@@ -281,7 +281,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(MEDIUM_RED_BORDER);
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23.5 150 23.5', 'M 49 23 49 70 M 149 23 149 70']);
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 50 23.5 151 23.5', 'M 50 23 50 70 M 150 23 150 70']);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px solid green', '2px solid red']);
   });
 
@@ -321,8 +321,8 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(EMPTY);
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23.5 150 23.5 M 49 46.5 150 46.5',
-      'M 49 46 150 46 M 49 23 49 70 M 99 23 99 70 M 49 69 150 69', '', '']);
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 50 23.5 151 23.5 M 50 46.5 151 46.5',
+      'M 50 46 151 46 M 50 23 50 70 M 100 23 100 70 M 50 69 151 69', '', '']);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px solid green',
       '2px solid red', '1px solid #4b89ff', '2px solid #4b89ff']);
   });
@@ -361,7 +361,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(EMPTY);
 
-    expect(getRenderedBorderPaths(document.body)).toEqual(['M 49 23.5 150 23.5 M 49 46.5 150 46.5', 'M 49 46 150 46 M 49 23 49 70 M 99 23 99 70 M 49 69 150 69']);
+    expect(getRenderedBorderPaths(document.body)).toEqual(['M 50 23.5 151 23.5 M 50 46.5 151 46.5', 'M 50 46 151 46 M 50 23 50 70 M 100 23 100 70 M 50 69 151 69']);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px solid green', '2px solid red']);
   });
 
@@ -1002,7 +1002,7 @@ describe('CustomBorders', () => {
   describe('virtual rendering', () => {
     // based on tests in Core_count.spec.js
 
-    const expectedBorders = ['M 0 0.5 50 0.5 M 0 23.5 50 23.5 M 0 46.5 50 46.5 M 0 69.5 50 69.5 M 0 92.5 50 92.5'];
+    const expectedBorders = ['M 0 0.5 51 0.5 M 0 23.5 51 23.5 M 0 46.5 51 46.5 M 0 69.5 51 69.5 M 0 92.5 51 92.5'];
 
     it('should render borders only for rendered rows', () => {
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
@@ -1044,7 +1044,7 @@ describe('CustomBorders', () => {
       });
       expect(instance.countRenderedRows()).toEqual(10);
       expect(getRenderedBorderPaths(document.body)).toEqual([`${expectedBorders
-      } M 0 115.5 50 115.5 M 0 138.5 50 138.5 M 0 161.5 50 161.5 M 0 184.5 50 184.5 M 0 207.5 50 207.5`]);
+      } M 0 115.5 51 115.5 M 0 138.5 51 138.5 M 0 161.5 51 161.5 M 0 184.5 51 184.5 M 0 207.5 51 207.5`]);
     });
 
     it('should not render borders when the table is not rendered', async() => {

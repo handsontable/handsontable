@@ -7,6 +7,7 @@ import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base';
+import { GRIDLINE_WIDTH } from './utils/gridline';
 
 /**
  * @class Overlays
@@ -474,8 +475,11 @@ class Overlays {
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
     const hiderStyle = wtTable.hider.style;
 
-    hiderStyle.width = `${headerRowSize + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
-    hiderStyle.height = `${headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1}px`;
+    const widthBeforeColumns = headerRowSize || GRIDLINE_WIDTH;
+    const heightBeforeRows = headerColumnSize || GRIDLINE_WIDTH;
+
+    hiderStyle.width = `${widthBeforeColumns + this.leftOverlay.sumCellSizes(0, totalColumns)}px`;
+    hiderStyle.height = `${heightBeforeRows + this.topOverlay.sumCellSizes(0, totalRows)}px`;
 
     if (this.scrollbarSize > 0) {
       const {

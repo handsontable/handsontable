@@ -15,6 +15,7 @@ import {
   setCaretPosition,
 } from './../helpers/dom/element';
 import HandsontableEditor from './handsontableEditor';
+import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src/utils/gridline';
 
 const privatePool = new WeakMap();
 
@@ -103,7 +104,7 @@ class AutocompleteEditor extends HandsontableEditor {
     }
 
     choicesListHot.updateSettings({
-      colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
+      colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2 - GRIDLINE_WIDTH] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
         getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);

@@ -1,5 +1,4 @@
 import {
-  getComputedStyle,
   innerWidth,
   innerHeight,
   offset,
@@ -420,17 +419,6 @@ class SelectionHandle {
       }
     }
 
-    const style = getComputedStyle(fromTD, rootWindow);
-
-    if (parseInt(style.borderTopWidth, 10) > 0) {
-      top += 1;
-      height = height > 0 ? height - 1 : 0;
-    }
-    if (parseInt(style.borderLeftWidth, 10) > 0) {
-      left += 1;
-      width = width > 0 ? width - 1 : 0;
-    }
-
     let cornerVisibleSetting = this.settings.border.cornerVisible;
 
     cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
@@ -439,7 +427,7 @@ class SelectionHandle {
     let [checkRow, checkCol] = [toRow, toColumn];
 
     if (hookResult && Array.isArray(hookResult)) {
-      [,, checkRow, checkCol] = hookResult;
+      [, , checkRow, checkCol] = hookResult;
     }
 
     if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
@@ -465,7 +453,8 @@ class SelectionHandle {
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
         const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
         const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
-        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
+        const columnUtils = this.wot.overlay ? this.wot.overlay.master.columnUtils : this.wot.columnUtils;
+        const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer) - columnUtils.scrollbarCompensation;
 
         if (cornerOverlappingContainer) {
           this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;

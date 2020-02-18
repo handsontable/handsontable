@@ -129,17 +129,6 @@ class MasterTable extends Table {
     this.holderOffset = offset(this.holder);
     runFastDraw = wtViewport.createRenderCalculators(runFastDraw);
 
-    if (rowHeadersCount && !wot.getSetting('fixedColumnsLeft')) {
-      const leftScrollPos = wtOverlays.leftOverlay.getScrollPosition();
-      const previousState = this.correctHeaderWidth;
-
-      this.correctHeaderWidth = leftScrollPos > 0;
-
-      if (previousState !== this.correctHeaderWidth) {
-        runFastDraw = false;
-      }
-    }
-
     if (runFastDraw) {
       // in case we only scrolled without redraw, update visible rows information in oldRowsCalculator
       wtViewport.createVisibleCalculators();
@@ -200,10 +189,10 @@ class MasterTable extends Table {
           this.tableRenderer.renderer.colGroup.render();
         }
 
-        this.wot.getSetting('onDraw', true);
-
         wtOverlays.refreshClones(false);
         this.refreshSelections(false);
+
+        this.wot.getSetting('onDraw', true);
       }
     }
   }

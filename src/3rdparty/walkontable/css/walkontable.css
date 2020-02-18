@@ -60,20 +60,14 @@
   max-height: none;
 }
 
-.handsontable col {
-  width: 50px;
-}
-
-.handsontable col.rowHeader {
-  width: 50px;
-}
-
 .handsontable th,
 .handsontable td {
+  border-style: solid;
+  border-color: #ccc;
   border-top-width: 0;
   border-left-width: 0;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
   height: 22px;
   empty-cells: show;
   line-height: 21px;
@@ -89,35 +83,20 @@
 
 .handsontable th:last-child {
   /*Foundation framework fix*/
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
 }
 
 .handsontable th:first-child,
-.handsontable th:nth-child(2),
-.handsontable td:first-of-type {
-  border-left: 1px solid #ccc;
+.handsontable td:first-child {
+  border-left-width: 1px;
 }
 
-.handsontable.htRowHeaders thead tr th:nth-child(2) {
-  border-left: 1px solid #ccc;
-}
-
-.handsontable tr:first-child th,
-.handsontable tr:first-child td {
-  border-top: 1px solid #ccc;
-}
-
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft):not(.emptyColumns) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
-  border-right-width: 0;
-}
-
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
+.handsontable thead tr:first-child th,
+.handsontable thead tr:first-child td,
+.handsontable tbody.afterEmptyThead tr:first-child th,
+.handsontable tbody.afterEmptyThead tr:first-child td {
+  border-top-width: 1px;
 }
 
 .handsontable th {
@@ -141,7 +120,7 @@
 
 .handsontable span.colHeader {
   display: inline-block;
-  line-height: 1.1;
+  line-height: 1.082; /* was 1.1 before, but that resulted in different line-height in FF and Ch on Windows */
 }
 
 /* Selection */
@@ -202,11 +181,11 @@
   Cell borders
   */
 .handsontable tbody tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
+  border-right-width: 1px;
 }
 
 .ht_clone_top_left_corner thead tr th:nth-last-child(2) {
-  border-right: 1px solid #ccc;
+  border-right-width: 1px;
 }
 
 .handsontable col.hidden {
@@ -228,12 +207,6 @@
 
 .ht_master .wtHolder {
   overflow: auto;
-}
-
-.handsontable .ht_master thead,
-.handsontable .ht_master tr th,
-.handsontable .ht_clone_left thead {
-  visibility: hidden;
 }
 
 .ht_clone_top .wtHolder,
@@ -259,15 +232,15 @@
 .ht_clone_top_left_corner td:last-child,
 .ht_clone_bottom_left_corner td:last-child,
 .ht_clone_left td:last-child {
-  border-right: 1px solid #969696;
+  border-right: 1px solid #5d6365;
 }
 .ht_clone_top tbody tr:last-child td,
 .ht_clone_top_left_corner tbody tr:last-child th,
 .ht_clone_top_left_corner tbody tr:last-child td {
-  border-bottom: 1px solid #969696;
+  border-bottom: 1px solid #5d6365;
 }
-.ht_clone_bottom_left_corner tr:first-child th,
-.ht_clone_bottom_left_corner tr:first-child td,
-.ht_clone_bottom tr:first-child td {
-  border-top: 1px solid #969696;
+.ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child th,
+.ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child td,
+.ht_clone_bottom tbody.afterEmptyThead tr:first-child td {
+  border-top: 1px solid #5d6365;
 }

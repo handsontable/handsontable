@@ -1,5 +1,13 @@
-import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
+import { addClass, outerHeight, removeClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
+import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src/utils/gridline';
+
+/**
+ * Classname for <tbody> when there are no column headers (<thead> is empty).
+ *
+ * @type {string}
+ */
+const TBODY_AFTER_EMPTY_THEAD_CLASSNAME = 'afterEmptyThead';
 
 /**
  * @class GhostTable
@@ -102,6 +110,9 @@ class GhostTable {
       this.container.container.appendChild(this.table.fragment);
 
       rowObject.table = this.table.table;
+      removeClass(this.table.tBody, TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
+    } else {
+      addClass(this.table.tBody, TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
     }
   }
 
@@ -143,8 +154,7 @@ class GhostTable {
       this.injectTable();
     }
     arrayEach(this.rows, (row) => {
-      // -1 <- reduce border-top from table
-      callback(row.row, outerHeight(row.table) - 1);
+      callback(row.row, outerHeight(row.table) - GRIDLINE_WIDTH); // subtract top gridline
     });
   }
 
@@ -158,7 +168,9 @@ class GhostTable {
       this.injectTable();
     }
     arrayEach(this.columns, (column) => {
-      callback(column.col, outerWidth(column.table));
+      const width = column.table.getBoundingClientRect().width;
+      const rounded = Math.ceil(width);
+      callback(column.col, rounded);
     });
   }
 
@@ -408,6 +420,7 @@ class GhostTable {
     if (this.isVertical()) {
       tBody.appendChild(tr);
     }
+    addClass(tBody, TBODY_AFTER_EMPTY_THEAD_CLASSNAME);
     table.appendChild(tBody);
     addClass(table, className);
     fragment.appendChild(table);

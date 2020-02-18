@@ -64,7 +64,7 @@ describe('DropdownMenu', () => {
 
       dropdownMenu(0);
 
-      expect($menu.find('.wtHider').width()).toEqual(215);
+      expect($menu.find('.wtHider').width()).toEqual(216);
     });
 
     it('should display a submenu with the minimum width', async() => {
@@ -97,7 +97,7 @@ describe('DropdownMenu', () => {
 
       const $contextSubMenu = $(`.htDropdownMenuSub_${$item.text()}`);
 
-      expect($contextSubMenu.find('.wtHider').width()).toEqual(215);
+      expect($contextSubMenu.find('.wtHider').width()).toEqual(216);
     });
   });
 

@@ -12,6 +12,7 @@ import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
+import { GRIDLINE_WIDTH } from './utils/gridline';
 
 /**
  * @class Viewport
@@ -224,9 +225,13 @@ class Viewport {
   }
 
   /**
+   * Returns total width for all row header cells.
+   *
    * @returns {number}
    */
   getRowHeaderWidth() {
+    // TODO simply sum this.headerWidths instead of this logic
+
     const rowHeadersWidthSetting = this.wot.getSetting('rowHeaderWidth');
     const rowHeaders = this.wot.getSetting('rowHeaders');
 
@@ -236,10 +241,6 @@ class Viewport {
       for (let i = 0, len = rowHeaders.length; i < len; i++) {
         this.rowHeaderWidth += rowHeadersWidthSetting[i] || rowHeadersWidthSetting;
       }
-    }
-
-    if (this.wot.overlay) {
-      return this.wot.overlay.master.wtViewport.getRowHeaderWidth();
     }
 
     if (isNaN(this.rowHeaderWidth)) {
@@ -285,7 +286,8 @@ class Viewport {
       return containerWidth - rowHeaderWidth;
     }
 
-    return containerWidth;
+    const compensateForLeftGridline = GRIDLINE_WIDTH; // traditionally, all cell widths contain the right gridline, but not the left gridline. We need to subtract the first gridline on the left, because it is not common with any right gridline.
+    return containerWidth - compensateForLeftGridline;
   }
 
   /**
@@ -411,7 +413,7 @@ class Viewport {
       const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
 
       if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
-          this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
+        this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
         runFastDraw = false;
       }
     }
@@ -456,7 +458,7 @@ class Viewport {
       return false;
 
     } else if (endRow > renderedEndRow ||
-              (endRow === renderedEndRow && endRow < this.wot.getSetting('totalRows') - 1)) {
+      (endRow === renderedEndRow && endRow < this.wot.getSetting('totalRows') - 1)) {
       return false;
     }
 
@@ -483,7 +485,7 @@ class Viewport {
       return false;
 
     } else if (endColumn > renderedEndColumn ||
-              (endColumn === renderedEndColumn && endColumn < this.wot.getSetting('totalColumns') - 1)) {
+      (endColumn === renderedEndColumn && endColumn < this.wot.getSetting('totalColumns') - 1)) {
       return false;
     }
 

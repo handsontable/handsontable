@@ -8,7 +8,6 @@ import {
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
-import { isFunction } from './../../../helpers/function';
 import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
@@ -65,11 +64,6 @@ class Table {
     this.columnFilter = null;
     this.correctHeaderWidth = false;
 
-    const origRowHeaderWidth = this.wot.wtSettings.settings.rowHeaderWidth;
-
-    // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
-    this.wot.wtSettings.settings.rowHeaderWidth = () => this._modifyRowHeaderWidth(origRowHeaderWidth);
-
     this.tableRenderer = new Renderer({
       TABLE: this.TABLE,
       THEAD: this.THEAD,
@@ -80,7 +74,11 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.borderRenderer = new BorderRenderer(this.spreader, this.createBorderPaddingObject());
+    this.borderRenderer = new BorderRenderer(this.spreader,
+      this.createBorderPaddingObject(),
+      `${this.wot.guid}-border-renderer`,
+      this.isMaster ? 'master' : this.wot.getOverlayName(),
+      this.getCell.bind(this));
   }
 
   /**
@@ -101,16 +99,22 @@ class Table {
    */
   createBorderPaddingObject() {
     let top = 0;
-    const left = 0;
+    let left = 0;
     let bottom = 0;
     let right = 0;
     const frozenLineWidth = 1;
 
     if (this.is(Overlay.CLONE_LEFT) || this.is(Overlay.CLONE_TOP_LEFT_CORNER) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       right = frozenLineWidth;
+      if (this.wot.getSetting('rowHeaders').length > 0) {
+        left = frozenLineWidth;
+      }
     }
     if (this.is(Overlay.CLONE_TOP) || this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
       bottom = frozenLineWidth;
+      if (this.wot.getSetting('columnHeaders').length > 0) {
+        top = frozenLineWidth;
+      }
     }
     if (this.is(Overlay.CLONE_BOTTOM) || this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       top = frozenLineWidth;
@@ -142,10 +146,6 @@ class Table {
     if (!this.COLGROUP) {
       this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
-    }
-
-    if (this.wot.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
-      this.THEAD.appendChild(rootDocument.createElement('TR'));
     }
   }
 
@@ -818,46 +818,6 @@ class Table {
    */
   isVisible() {
     return isVisible(this.TABLE);
-  }
-
-  /**
-   * Modify row header widths provided by user in class contructor.
-   *
-   * @private
-   * @param {Function} rowHeaderWidthFactory The function which can provide default width values for rows..
-   * @returns {number}
-   */
-  _modifyRowHeaderWidth(rowHeaderWidthFactory) {
-    let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
-
-    if (Array.isArray(widths)) {
-      widths = [...widths];
-      widths[widths.length - 1] = this._correctRowHeaderWidth(widths[widths.length - 1]);
-    } else {
-      widths = this._correctRowHeaderWidth(widths);
-    }
-
-    return widths;
-  }
-
-  /**
-   * Correct row header width if necessary.
-   *
-   * @private
-   * @param {number} width The width to process.
-   * @returns {number}
-   */
-  _correctRowHeaderWidth(width) {
-    let rowHeaderWidth = width;
-
-    if (typeof width !== 'number') {
-      rowHeaderWidth = this.wot.getSetting('defaultColumnWidth');
-    }
-    if (this.correctHeaderWidth) {
-      rowHeaderWidth += 1;
-    }
-
-    return rowHeaderWidth;
   }
 }
 

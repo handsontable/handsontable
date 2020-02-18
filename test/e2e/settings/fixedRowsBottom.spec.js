@@ -22,15 +22,14 @@ describe('settings', () => {
         expect(getBottomClone().find('tbody tr').length).toEqual(3);
       });
 
-      it('should show rows headers when headers are enabled', () => {
+      it('should not show rows headers when headers are enabled', () => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
           fixedRowsBottom: 2
         });
 
-        expect(getBottomClone().find('thead tr').length).toEqual(1);
-        expect(getBottomClone().find('thead tr').height()).toEqual(0); // header is always invisible
+        expect(getBottomClone().find('thead tr').length).toEqual(0);
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
     });

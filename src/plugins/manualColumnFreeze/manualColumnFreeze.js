@@ -3,8 +3,6 @@ import { registerPlugin } from './../../plugins';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
-import './manualColumnFreeze.css';
-
 const privatePool = new WeakMap();
 /**
  * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.

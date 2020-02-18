@@ -10,7 +10,7 @@ describe('Core.selectAll', () => {
     }
   });
 
-  it('should select all cells and clear previous selection', () => {
+  it('should select all cells and clear previous selection', async() => {
     const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
 
     const hot = handsontable({
@@ -29,14 +29,20 @@ describe('Core.selectAll', () => {
 
     selectAll();
 
+    await sleep(50);
+
+    /*
+    Before scrolling, Walkontable wants to render rows from 0 to 4. Handsontable's setting
+    `viewportRowRenderingOffset` "auto" causes extending that to: from 0 to 8.
+
+    After scrolling, Walkontable wants to render rows from 2 to 5. Handsontable's setting
+    `viewportRowRenderingOffset` "auto" causes extending that to: from 0 to 9.
+
+    Hence, it is expected to render 10 rows in total.
+    */
     expect(`
       |   ║ * : * : * : * : * : * |
       |===:===:===:===:===:===:===|
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |

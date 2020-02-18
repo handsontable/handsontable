@@ -57,15 +57,16 @@ describe('columnHeaders option', () => {
     });
     wt.draw();
 
-    expect(spec().$wrapper.find('.ht_clone_left colgroup col').length).toBe(0);
-    expect(spec().$wrapper.find('.ht_clone_left thead tr').length).toBe(1);
-    expect(spec().$wrapper.find('.ht_clone_left tbody tr').length).toBe(0);
-    expect(spec().$wrapper.find('.ht_clone_top colgroup col').length).toBe(4);
-    expect(spec().$wrapper.find('.ht_clone_top thead tr').length).toBe(1);
-    expect(spec().$wrapper.find('.ht_clone_top tbody tr').length).toBe(0);
-    expect(spec().$wrapper.find('.ht_master colgroup col').length).toBe(4);
-    expect(spec().$wrapper.find('.ht_master thead tr').length).toBe(1);
-    expect(spec().$wrapper.find('.ht_master tbody tr').length).toBe(9);
+    let ctx;
+    expect(spec().$wrapper.find(ctx = '.ht_clone_left colgroup col').length).withContext(ctx).toBe(0);
+    expect(spec().$wrapper.find(ctx = '.ht_clone_left thead tr').length).withContext(ctx).toBe(0);
+    expect(spec().$wrapper.find(ctx = '.ht_clone_left tbody tr').length).withContext(ctx).toBe(0);
+    expect(spec().$wrapper.find(ctx = '.ht_clone_top colgroup col').length).withContext(ctx).toBe(4);
+    expect(spec().$wrapper.find(ctx = '.ht_clone_top thead tr').length).withContext(ctx).toBe(1);
+    expect(spec().$wrapper.find(ctx = '.ht_clone_top tbody tr').length).withContext(ctx).toBe(0);
+    expect(spec().$wrapper.find(ctx = '.ht_master colgroup col').length).withContext(ctx).toBe(4);
+    expect(spec().$wrapper.find(ctx = '.ht_master thead tr').length).withContext(ctx).toBe(1);
+    expect(spec().$wrapper.find(ctx = '.ht_master tbody tr').length).withContext(ctx).toBe(9);
   });
 
   it('should create column headers with correct height when th has css `white-space: normal`', () => {
@@ -81,7 +82,7 @@ describe('columnHeaders option', () => {
     });
     wt.draw();
 
-    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(43);
+    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(44);
     style.remove();
   });
 
@@ -97,7 +98,7 @@ describe('columnHeaders option', () => {
     });
     wt.draw();
 
-    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(23);
+    expect(spec().$wrapper.find('.ht_clone_top thead tr').height()).toBe(24);
   });
 
   it('should generate column headers from function', () => {

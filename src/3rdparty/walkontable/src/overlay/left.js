@@ -3,7 +3,6 @@ import {
   getScrollbarWidth,
   getScrollLeft,
   getWindowScrollTop,
-  hasClass,
   outerWidth,
   removeClass,
   setOverlayPosition,
@@ -78,7 +77,6 @@ class LeftOverlay extends Overlay {
     }
 
     const overlayRootElement = this.clone.wtTable.wtRootElement;
-    let headerPosition = 0;
     const preventOverflow = master.getSetting('preventOverflow');
 
     if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
@@ -96,16 +94,22 @@ class LeftOverlay extends Overlay {
       } else {
         finalLeft = 0;
       }
-      headerPosition = finalLeft;
       finalLeft += 'px';
 
       setOverlayPosition(overlayRootElement, finalLeft, finalTop);
 
     } else {
-      headerPosition = this.getScrollPosition();
       resetCssTransform(overlayRootElement);
     }
-    this.adjustHeaderBordersPosition(headerPosition);
+
+    const masterRootElement = master.wtTable.wtRootElement;
+    const totalRows = master.getSetting('totalRows');
+
+    if (totalRows) {
+      removeClass(masterRootElement, 'emptyRows');
+    } else {
+      addClass(masterRootElement, 'emptyRows');
+    }
   }
 
   /**
@@ -251,41 +255,6 @@ class LeftOverlay extends Overlay {
    */
   getScrollPosition() {
     return getScrollLeft(this.mainTableScrollableElement, this.master.rootWindow);
-  }
-
-  /**
-   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
-   *
-   * @param {number} position Header X position if trimming container is window or scroll top if not.
-   */
-  adjustHeaderBordersPosition(position) {
-    const { master } = this;
-    const masterRootElement = master.wtTable.wtRootElement;
-    const rowHeaders = master.getSetting('rowHeaders');
-    const fixedColumnsLeft = master.getSetting('fixedColumnsLeft');
-    const totalRows = master.getSetting('totalRows');
-
-    if (totalRows) {
-      removeClass(masterRootElement, 'emptyRows');
-    } else {
-      addClass(masterRootElement, 'emptyRows');
-    }
-
-    if (fixedColumnsLeft && !rowHeaders.length) {
-      addClass(masterRootElement, 'innerBorderLeft');
-
-    } else if (!fixedColumnsLeft && rowHeaders.length) {
-      const previousState = hasClass(masterRootElement, 'innerBorderLeft');
-
-      if (position) {
-        addClass(masterRootElement, 'innerBorderLeft');
-      } else {
-        removeClass(masterRootElement, 'innerBorderLeft');
-      }
-      if (!previousState && position || previousState && !position) {
-        master.wtOverlays.adjustElementsSizes();
-      }
-    }
   }
 }
 

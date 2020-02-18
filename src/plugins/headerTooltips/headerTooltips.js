@@ -141,7 +141,16 @@ class HeaderTooltips extends BasePlugin {
 
     if (isColHeader && this.settings.columns || !isColHeader && this.settings.rows) {
       if (this.settings.onlyTrimmed) {
-        if (outerWidth(innerSpan) >= outerWidth(TH) && outerWidth(innerSpan) !== 0) {
+        // const columnWidth = outerWidth(TH);
+        const columnWidth = 50;
+        /*
+        The above line simulates a bug from version 7.x, explained in https://github.com/handsontable/handsontable/issues/6708
+        This workaround should be kept until a proper fix, discussed in that issue, is implemented.
+        Without the workaround, "onlyTrimmed" does not work in 8.x, because `outerWidth(TH)` always returns 0 in `afterGetColHeader`.
+        In 7.x, `outerWidth(TH)` always returned 50 due to that value provided as default in CSS.
+        */
+        const textWidth = outerWidth(innerSpan);
+        if (textWidth >= columnWidth && textWidth !== 0) {
           TH.setAttribute('title', innerSpan.textContent);
         }
 

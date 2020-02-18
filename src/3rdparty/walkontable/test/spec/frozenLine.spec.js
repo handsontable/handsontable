@@ -3,7 +3,7 @@ function getAllCells() {
 }
 
 function cellFrozenLineSummary(elem) {
-  const frozenLineColor = 'rgb(150, 150, 150)'; // must be in RGB, because that's the format returned by getComputedStyle
+  const frozenLineColor = 'rgb(93, 99, 101)'; // Color #5d6365 == rgb(93, 99, 101). Must be in RGB, because that's the format returned by getComputedStyle
   const computedStyle = window.getComputedStyle(elem);
   let suffix = '';
 
@@ -21,7 +21,7 @@ function cellFrozenLineSummary(elem) {
   }
 
   if (suffix) {
-    return elem.innerText + suffix;
+    return elem.textContent + suffix;
   }
   return null;
 }

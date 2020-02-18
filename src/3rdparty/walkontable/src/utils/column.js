@@ -2,6 +2,8 @@ import {
   getScrollbarWidth,
 } from './../../../../helpers/dom/element';
 
+const defaultRowHeaderWidth = 50;
+
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *
@@ -11,6 +13,7 @@ export default class ColumnUtils {
   constructor(wot) {
     this.wot = wot;
     this.headerWidths = new Map();
+    this.scrollbarCompensation = NaN;
   }
 
   /**
@@ -88,14 +91,18 @@ export default class ColumnUtils {
     const { wot } = this;
     const { wtTable, wtViewport, overlay } = wot;
     const mainHolder = overlay ? overlay.master.wtTable.holder : wtTable.holder;
-    const scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
+    this.scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
     let rowHeaderWidthSetting = wot.getSetting('rowHeaderWidth');
 
-    wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - scrollbarCompensation);
+    wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - this.scrollbarCompensation);
 
     rowHeaderWidthSetting = wot.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
-    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== void 0) {
+    if (rowHeaderWidthSetting === null || rowHeaderWidthSetting === void 0) {
+      rowHeaderWidthSetting = defaultRowHeaderWidth;
+    }
+
+    {
       const rowHeadersCount = wot.getSetting('rowHeaders').length;
       const defaultColumnWidth = wot.getSetting('defaultColumnWidth');
 
