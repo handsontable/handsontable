@@ -1457,6 +1457,355 @@ describe('HiddenColumns', () => {
 
       expect(getSelectedLast()).toEqual([4, 0, 4, 0]);
     });
+
+    describe('should not change position and call hook when single hidden cell was selected and navigating by any arrow key', () => {
+      describe('without shift key pressed', () => {
+        it('hidden cell at the table start', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [0],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('beforeModifyTransformStart');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
+
+          hot.addHook('modifyTransformStart', hookSpy1);
+          hot.addHook('afterModifyTransformStart', hookSpy2);
+
+          selectCell(1, 0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell in the table middle', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [2],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformStart');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
+
+          hot.addHook('modifyTransformStart', hookSpy1);
+          hot.addHook('afterModifyTransformStart', hookSpy2);
+
+          selectCell(1, 2);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell at the table end', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [4],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformStart');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
+
+          hot.addHook('modifyTransformStart', hookSpy1);
+          hot.addHook('afterModifyTransformStart', hookSpy2);
+
+          selectCell(1, 4);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+      });
+
+      describe('with shift key pressed', () => {
+        it('hidden cell at the table start', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [0],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
+
+          hot.addHook('modifyTransformEnd', hookSpy1);
+          hot.addHook('afterModifyTransformEnd', hookSpy2);
+
+          selectCell(1, 0);
+
+          keyDownUp('shift+arrow_up');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_down');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_left');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_right');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell in the table middle', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [2],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
+
+          hot.addHook('modifyTransformEnd', hookSpy1);
+          hot.addHook('afterModifyTransformEnd', hookSpy2);
+
+          selectCell(1, 2);
+
+          keyDownUp('shift+arrow_up');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_down');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_left');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_right');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell at the table end', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [4],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
+
+          hot.addHook('modifyTransformEnd', hookSpy1);
+          hot.addHook('afterModifyTransformEnd', hookSpy2);
+
+          selectCell(1, 4);
+
+          keyDownUp('shift+arrow_up');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_down');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_left');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_right');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+      });
+    });
   });
 
   describe('manualColumnMove', () => {
