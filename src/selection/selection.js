@@ -223,7 +223,7 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight).commit(cellRange);
+      this.highlight.getCell().add(this.selectedRange.current().highlight).commit().adjustCoordinates(cellRange);
     }
 
     const layerLevel = this.getLayerLevel();

@@ -92,6 +92,28 @@ class VisualSelection extends Selection {
    * Override internally stored visual indexes added by the Selection's `add` function. It should be executed
    * at the end of process of adding visual selection coordinates.
    *
+   * @returns {VisualSelection}
+   */
+  commit() {
+    const fromRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
+    const toRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.to, this.visualCellRange.from, -1);
+
+    // There is no visual start point (and also visual end point) in the range. We are looking for the first visible cell in a broader range.
+    if (fromRangeTranslated === null) {
+      this.cellRange = null;
+
+      return this;
+    }
+
+    this.cellRange = new CellRange(fromRangeTranslated, fromRangeTranslated, toRangeTranslated);
+
+    return this;
+  }
+
+  /**
+   * Some selection may be a part of broader cell range. This function adjusting coordinates of current selection
+   * and the broader cell range when needed (current selection can't be presented visually).
+   *
    * @param {CellRange} broaderCellRange Actual cell range may be contained in the broader cell range. When there is
    * no way to represent some cell range visually we try to find range containing just the first visible cell.
    *
@@ -99,30 +121,17 @@ class VisualSelection extends Selection {
    *
    * @returns {VisualSelection}
    */
-  commit(broaderCellRange) {
-    const fromRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
-    const toRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.to, this.visualCellRange.from, -1);
+  adjustCoordinates(broaderCellRange) {
+    // We can't show selection visually now, but we try to find fist visible range in the broader cell range.
+    if (this.cellRange === null && broaderCellRange) {
+      const singleCellRangeTranslated = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
 
-    // There is no visual start point (and also visual end point) in the range. We are looking for the first visible cell in a broader range.
-    if (fromRangeTranslated === null) {
-      if (broaderCellRange) {
-        const singleCellRangeTranslated = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
+      if (singleCellRangeTranslated !== null) {
+        this.cellRange = new CellRange(singleCellRangeTranslated);
 
-        if (singleCellRangeTranslated !== null) {
-          this.cellRange = new CellRange(singleCellRangeTranslated);
-
-          broaderCellRange.setHighlight(this.settings.untranslateCoords(singleCellRangeTranslated));
-
-          return this;
-        }
+        broaderCellRange.setHighlight(this.settings.untranslateCoords(singleCellRangeTranslated));
       }
-
-      this.cellRange = null;
-
-      return this;
     }
-
-    this.cellRange = new CellRange(fromRangeTranslated, fromRangeTranslated, toRangeTranslated);
 
     return this;
   }
