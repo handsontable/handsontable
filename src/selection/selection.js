@@ -31,31 +31,31 @@ class Selection {
     /**
      * An additional object with dynamically defined properties which describes table state.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.tableProps = tableProps;
     /**
      * The flag which determines if the selection is in progress.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.inProgress = false;
     /**
      * The flag indicates that selection was performed by clicking the corner overlay.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.selectedByCorner = false;
     /**
      * The collection of the selection layer levels where the whole row was selected using the row header.
      *
-     * @type {Set.<Number>}
+     * @type {Set.<number>}
      */
     this.selectedByRowHeader = new Set();
     /**
      * The collection of the selection layer levels where the whole column was selected using the column header.
      *
-     * @type {Set.<Number>}
+     * @type {Set.<number>}
      */
     this.selectedByColumnHeader = new Set();
     /**
@@ -108,7 +108,7 @@ class Selection {
   /**
    * Get data layer for current selection.
    *
-   * @return {SelectionRange}
+   * @returns {SelectionRange}
    */
   getSelectedRange() {
     return this.selectedRange;
@@ -132,7 +132,7 @@ class Selection {
   /**
    * Check if the process of selecting the cell/cells is in progress.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isInProgress() {
     return this.inProgress;
@@ -142,10 +142,10 @@ class Selection {
    * Starts selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
+   * @param {boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
    *                                      the default trigger will be used (isPressedCtrlKey() helper).
-   * @param {Boolean} [fragment=false] If `true`, the selection will be treated as a partial selection where the
+   * @param {boolean} [fragment=false] If `true`, the selection will be treated as a partial selection where the
    *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
    */
   setRangeStart(coords, multipleSelection, fragment = false) {
@@ -192,7 +192,7 @@ class Selection {
    * Starts selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
-   * @param {Boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
+   * @param {boolean} [multipleSelection] If `true`, selection will be worked in 'multiple' mode. This option works
    *                                      only when 'selectionMode' is set as 'multiple'. If the argument is not defined
    *                                      the default trigger will be used (isPressedCtrlKey() helper).
    */
@@ -223,7 +223,7 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight);
+      this.highlight.getCell().add(this.selectedRange.current().highlight).commit().adjustCoordinates(cellRange);
     }
 
     const layerLevel = this.getLayerLevel();
@@ -249,7 +249,8 @@ class Selection {
     if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
         .add(cellRange.from)
-        .add(cellRange.to);
+        .add(cellRange.to)
+        .commit();
 
       if (layerLevel === 1) {
         // For single cell selection in the same layer, we do not create area selection to prevent blue background.
@@ -258,7 +259,8 @@ class Selection {
         this.highlight
           .useLayerLevel(layerLevel - 1)
           .createOrGetArea()
-          .add(this.selectedRange.previous().from);
+          .add(this.selectedRange.previous().from)
+          .commit();
 
         this.highlight.useLayerLevel(layerLevel);
       }
@@ -266,12 +268,13 @@ class Selection {
 
     if (this.highlight.isEnabledFor(HEADER_TYPE)) {
       if (this.settings.selectionMode === 'single') {
-        headerHighlight.add(cellRange.highlight);
+        headerHighlight.add(cellRange.highlight).commit();
 
       } else {
         headerHighlight
           .add(cellRange.from)
-          .add(cellRange.to);
+          .add(cellRange.to)
+          .commit();
       }
     }
 
@@ -282,7 +285,8 @@ class Selection {
       if (isRowSelected) {
         activeHeaderHighlight
           .add(new CellCoords(cellRange.from.row, -1))
-          .add(new CellCoords(cellRange.to.row, -1));
+          .add(new CellCoords(cellRange.to.row, -1))
+          .commit();
       }
     }
 
@@ -293,7 +297,8 @@ class Selection {
       if (isColumnSelected) {
         activeHeaderHighlight
           .add(new CellCoords(-1, cellRange.from.col))
-          .add(new CellCoords(-1, cellRange.to.col));
+          .add(new CellCoords(-1, cellRange.to.col))
+          .commit();
       }
     }
 
@@ -304,7 +309,7 @@ class Selection {
    * Returns information if we have a multiselection. This method check multiselection only on the latest layer of
    * the selection.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isMultiple() {
     const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
@@ -317,9 +322,9 @@ class Selection {
   /**
    * Selects cell relative to the current cell (if possible).
    *
-   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
-   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
-   * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   * @param {number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, force) {
@@ -329,8 +334,8 @@ class Selection {
   /**
    * Sets selection end cell relative to the current selection end cell (if possible).
    *
-   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
-   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
     this.setRangeEnd(this.transformation.transformEnd(rowDelta, colDelta));
@@ -339,7 +344,7 @@ class Selection {
   /**
    * Returns currently used layer level.
    *
-   * @return {Number} Returns layer level starting from 0. If no selection was added to the table -1 is returned.
+   * @returns {number} Returns layer level starting from 0. If no selection was added to the table -1 is returned.
    */
   getLayerLevel() {
     return this.selectedRange.size() - 1;
@@ -348,7 +353,7 @@ class Selection {
   /**
    * Returns `true` if currently there is a selection on the screen, `false` otherwise.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSelected() {
     return !this.selectedRange.isEmpty();
@@ -359,8 +364,8 @@ class Selection {
    * argument is passed then only that layer will be checked. Otherwise, it checks if any row header
    * was clicked on any selection layer level.
    *
-   * @param {Number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
-   * @return {Boolean}
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
    */
   isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
@@ -371,8 +376,8 @@ class Selection {
    * argument is passed then only that layer will be checked. Otherwise, it checks if any column header
    * was clicked on any selection layer level.
    *
-   * @param {Number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
-   * @return {Boolean}
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
    */
   isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
@@ -381,7 +386,7 @@ class Selection {
   /**
    * Returns `true` if the selection was applied by clicking on the row or column header on any layer level.
    *
-   * @return {Boolean}
+   * @returns {boolean}
    */
   isSelectedByAnyHeader() {
     return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1);
@@ -390,7 +395,7 @@ class Selection {
   /**
    * Returns `true` if the selection was applied by clicking on the left-top corner overlay.
    *
-   * @return {Boolean}
+   * @returns {boolean}
    */
   isSelectedByCorner() {
     return this.selectedByCorner;
@@ -401,7 +406,7 @@ class Selection {
    * the coords object is within selection range.
    *
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   inInSelection(coords) {
     return this.selectedRange.includes(coords);
@@ -411,7 +416,7 @@ class Selection {
    * Returns `true` if the cell corner should be visible.
    *
    * @private
-   * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
+   * @returns {boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isCellCornerVisible() {
     return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
@@ -420,8 +425,8 @@ class Selection {
   /**
    * Returns `true` if the area corner should be visible.
    *
-   * @param {Number} layerLevel The layer level.
-   * @return {Boolean} `true` if the corner element has to be visible, `false` otherwise.
+   * @param {number} layerLevel The layer level.
+   * @returns {boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isAreaCornerVisible(layerLevel) {
     if (Number.isInteger(layerLevel) && layerLevel !== this.getLayerLevel()) {
@@ -457,10 +462,11 @@ class Selection {
    */
   selectAll() {
     this.clear();
-    this.setRangeStart(new CellCoords(-1, -1));
+    this.setRangeStartOnly(new CellCoords(-1, -1));
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1));
+    this.finish();
   }
 
   /**
@@ -470,7 +476,7 @@ class Selection {
    * If the passed ranges have another format the exception will be thrown.
    *
    * @param {Array[]|CellRange[]} selectionRanges The coordinates which define what the cells should be selected.
-   * @return {Boolean} Returns `true` if selection was successful, `false` otherwise.
+   * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectCells(selectionRanges) {
     const selectionType = detectSelectionType(selectionRanges);
@@ -479,8 +485,8 @@ class Selection {
       return false;
 
     } else if (selectionType === SELECTION_TYPE_UNRECOGNIZED) {
-      throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass 
-        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]]) 
+      throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
+        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]])\x20
         or as an array of CellRange objects.`);
     }
 
@@ -520,16 +526,17 @@ class Selection {
   /**
    * Select column specified by `startColumn` visual index or column property or a range of columns finishing at `endColumn`.
    *
-   * @param {Number|String} startColumn Visual column index or column property from which the selection starts.
-   * @param {Number|String} [endColumn] Visual column index or column property from to the selection finishes.
-   * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
+   * @param {number|string} startColumn Visual column index or column property from which the selection starts.
+   * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
+   * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectColumns(startColumn, endColumn = startColumn) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
     const countCols = this.tableProps.countCols();
-    const isValid = isValidCoord(start, countCols) && isValidCoord(end, countCols);
+    const countRows = this.tableProps.countRows();
+    const isValid = countRows > 0 && isValidCoord(start, countCols) && isValidCoord(end, countCols);
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(-1, start));
@@ -543,9 +550,9 @@ class Selection {
   /**
    * Select row specified by `startRow` visual index or a range of rows finishing at `endRow`.
    *
-   * @param {Number} startRow Visual row index from which the selection starts.
-   * @param {Number} [endRow] Visual row index from to the selection finishes.
-   * @returns {Boolean} Returns `true` if selection was successful, `false` otherwise.
+   * @param {number} startRow Visual row index from which the selection starts.
+   * @param {number} [endRow] Visual row index from to the selection finishes.
+   * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectRows(startRow, endRow = startRow) {
     const countRows = this.tableProps.countRows();

@@ -1,6 +1,3 @@
-/**
- * Handsontable UndoRedo class
- */
 import Hooks from './../../pluginHooks';
 import { arrayMap, arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
@@ -13,13 +10,13 @@ import { align } from './../contextMenu/utils';
  * Handsontable UndoRedo plugin allows to undo and redo certain actions done in the table.
  *
  * __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
- *
  * @example
  * ```js
  * undo: true
  * ```
  * @class UndoRedo
  * @plugin UndoRedo
+ * @param {Core} instance The Handsontable instance.
  */
 function UndoRedo(instance) {
   const plugin = this;
@@ -157,6 +154,9 @@ function UndoRedo(instance) {
 
 }
 
+/**
+ * @param {object} action The action desciptor.
+ */
 UndoRedo.prototype.done = function(action) {
   if (!this.ignoreNewActions) {
     this.doneActions.push(action);
@@ -231,7 +231,7 @@ UndoRedo.prototype.redo = function() {
  *
  * @function isUndoAvailable
  * @memberof UndoRedo#
- * @return {Boolean} Return `true` if undo can be performed, `false` otherwise.
+ * @returns {boolean} Return `true` if undo can be performed, `false` otherwise.
  */
 UndoRedo.prototype.isUndoAvailable = function() {
   return this.doneActions.length > 0;
@@ -242,7 +242,7 @@ UndoRedo.prototype.isUndoAvailable = function() {
  *
  * @function isRedoAvailable
  * @memberof UndoRedo#
- * @return {Boolean} Return `true` if redo can be performed, `false` otherwise.
+ * @returns {boolean} Return `true` if redo can be performed, `false` otherwise.
  */
 UndoRedo.prototype.isRedoAvailable = function() {
   return this.undoneActions.length > 0;
@@ -267,6 +267,8 @@ UndoRedo.Action.prototype.redo = function() {};
  * Change action.
  *
  * @private
+ * @param {Array} changes 2D array containing information about each of the edited cells.
+ * @param {number[]} selected The cell selection.
  */
 UndoRedo.ChangeAction = function(changes, selected) {
   this.changes = changes;
@@ -327,6 +329,8 @@ UndoRedo.ChangeAction.prototype.redo = function(instance, onFinishCallback) {
  * Create row action.
  *
  * @private
+ * @param {number} index The visual row index.
+ * @param {number} amount The number of created rows.
  */
 UndoRedo.CreateRowAction = function(index, amount) {
   this.index = index;
@@ -355,6 +359,8 @@ UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
  * Remove row action.
  *
  * @private
+ * @param {number} index The visual row index.
+ * @param {Array} data The removed data.
  */
 UndoRedo.RemoveRowAction = function(index, data) {
   this.index = index;
@@ -377,6 +383,8 @@ UndoRedo.RemoveRowAction.prototype.redo = function(instance, redoneCallback) {
  * Create column action.
  *
  * @private
+ * @param {number} index The visual column index.
+ * @param {number} amount The number of created columns.
  */
 UndoRedo.CreateColumnAction = function(index, amount) {
   this.index = index;
@@ -398,6 +406,11 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * Remove column action.
  *
  * @private
+ * @param {number} index The visual column index.
+ * @param {number[]} indexes The visual column indexes.
+ * @param {Array} data The removed data.
+ * @param {Array} headers The header values.
+ * @param {number[]} columnPositions The column position.
  */
 UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
   this.index = index;
@@ -425,7 +438,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   const changes = [];
 
-  // TODO: Temporary hook for undo/redo mess
+  // TODO Temporary hook for undo/redo mess
   instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   rangeEach(this.data.length - 1, (i) => {
@@ -439,7 +452,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
 
-  // TODO: Temporary hook for undo/redo mess
+  // TODO Temporary hook for undo/redo mess
   if (instance.getPlugin('formulas')) {
     instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
   }
@@ -454,7 +467,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   instance.addHookOnce('afterRender', undoneCallback);
 
-  // TODO: Temporary hook for undo/redo mess
+  // TODO Temporary hook for undo/redo mess
   instance.runHooks('afterCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   if (instance.getPlugin('formulas')) {
@@ -473,6 +486,10 @@ UndoRedo.RemoveColumnAction.prototype.redo = function(instance, redoneCallback) 
  * Cell alignment action.
  *
  * @private
+ * @param {Array} stateBefore The previous state.
+ * @param {object} range The cell range.
+ * @param {string} type The type of the alignment ("top", "left", "bottom" or "right").
+ * @param {string} alignment The alignment CSS class.
  */
 UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.stateBefore = stateBefore;
@@ -504,6 +521,7 @@ UndoRedo.CellAlignmentAction.prototype.redo = function(instance, undoneCallback)
  * Filters action.
  *
  * @private
+ * @param {Array} conditionsStack An array of the filter condition.
  */
 UndoRedo.FiltersAction = function(conditionsStack) {
   this.conditionsStack = conditionsStack;
@@ -530,6 +548,7 @@ UndoRedo.FiltersAction.prototype.redo = function(instance, redoneCallback) {
 
 /**
  * Merge Cells action.
+ *
  * @util
  */
 class MergeCellsAction extends UndoRedo.Action {
@@ -558,6 +577,7 @@ UndoRedo.MergeCellsAction = MergeCellsAction;
 
 /**
  * Unmerge Cells action.
+ *
  * @util
  */
 class UnmergeCellsAction extends UndoRedo.Action {
@@ -586,8 +606,10 @@ UndoRedo.UnmergeCellsAction = UnmergeCellsAction;
 /**
  * ManualRowMove action.
  *
+ * @TODO removeRow undo should works on logical index
  * @private
- * @TODO: removeRow undo should works on logical index
+ * @param {number[]} rows An array with moved rows.
+ * @param {number} finalIndex The destination index.
  */
 UndoRedo.RowMoveAction = function(rows, finalIndex) {
   this.rows = rows.slice();
@@ -628,6 +650,9 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
   instance.selectRows(this.finalIndex, this.finalIndex + this.rows.length - 1);
 };
 
+/**
+ *
+ */
 function init() {
   const instance = this;
   const pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
@@ -635,7 +660,7 @@ function init() {
   if (pluginEnabled) {
     if (!instance.undoRedo) {
       /**
-       * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}
+       * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
        *
        * @alias undoRedo
        * @memberof! Handsontable.Core#
@@ -658,6 +683,9 @@ function init() {
   }
 }
 
+/**
+ * @param {Event} event The keyboard event object.
+ */
 function onBeforeKeyDown(event) {
   if (isImmediatePropagationStopped(event)) {
     return;
@@ -695,6 +723,11 @@ function onBeforeKeyDown(event) {
   }
 }
 
+/**
+ * @param {Array} changes 2D array containing information about each of the edited cells.
+ * @param {string} source String that identifies source of hook call.
+ * @returns {boolean}
+ */
 function onAfterChange(changes, source) {
   const instance = this;
   if (source === 'loadData') {
@@ -702,53 +735,69 @@ function onAfterChange(changes, source) {
   }
 }
 
+/**
+ * @param {Core} instance The Handsontable instance.
+ */
 function exposeUndoRedoMethods(instance) {
   /**
-   * {@link UndoRedo#undo}
+   * {@link UndoRedo#undo}.
+   *
    * @alias undo
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.undo = function() {
     return instance.undoRedo.undo();
   };
 
   /**
-   * {@link UndoRedo#redo}
+   * {@link UndoRedo#redo}.
+   *
    * @alias redo
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.redo = function() {
     return instance.undoRedo.redo();
   };
 
   /**
-   * {@link UndoRedo#isUndoAvailable}
+   * {@link UndoRedo#isUndoAvailable}.
+   *
    * @alias isUndoAvailable
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.isUndoAvailable = function() {
     return instance.undoRedo.isUndoAvailable();
   };
 
   /**
-   * {@link UndoRedo#isRedoAvailable}
+   * {@link UndoRedo#isRedoAvailable}.
+   *
    * @alias isRedoAvailable
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.isRedoAvailable = function() {
     return instance.undoRedo.isRedoAvailable();
   };
 
   /**
-   * {@link UndoRedo#clear}
+   * {@link UndoRedo#clear}.
+   *
    * @alias clearUndo
    * @memberof! Handsontable.Core#
+   * @returns {boolean}
    */
   instance.clearUndo = function() {
     return instance.undoRedo.clear();
   };
 }
 
+/**
+ * @param {Core} instance The Handsontable instance.
+ */
 function removeExposedUndoRedoMethods(instance) {
   delete instance.undo;
   delete instance.redo;

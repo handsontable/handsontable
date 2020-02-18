@@ -25,6 +25,7 @@ const META_COMMENT_VALUE = 'value';
 const META_STYLE = 'style';
 const META_READONLY = 'readOnly';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin Comments
  *
@@ -35,7 +36,7 @@ const META_READONLY = 'readOnly';
  * To enable the plugin, you'll need to set the comments property of the config object to `true`:
  * ```js
  * comments: true
- * ```
+ * ```.
  *
  * or an object with extra predefined plugin config:
  *
@@ -43,7 +44,7 @@ const META_READONLY = 'readOnly';
  * comments: {
  *   displayDelay: 1000
  * }
- * ```
+ * ```.
  *
  * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
  *
@@ -74,6 +75,7 @@ const META_READONLY = 'readOnly';
  * commentsPlugin.removeComment();
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class Comments extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
@@ -101,17 +103,17 @@ class Comments extends BasePlugin {
     /**
      * Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
      *
-     * @type {Object}
+     * @type {object}
      */
     this.range = {};
     /**
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.mouseDown = false;
     /**
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.contextMenuEvent = false;
     /**
@@ -130,7 +132,7 @@ class Comments extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Comments#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().comments;
@@ -207,7 +209,7 @@ class Comments extends BasePlugin {
   /**
    * Sets the current cell range to be able to use general methods like {@link Comments#setComment}, {@link Comments#removeComment}, {@link Comments#show}.
    *
-   * @param {Object} range Object with `from` property, each with `row` and `col` properties.
+   * @param {object} range Object with `from` property, each with `row` and `col` properties.
    */
   setRange(range) {
     this.range = range;
@@ -224,8 +226,8 @@ class Comments extends BasePlugin {
    * Checks if the event target is a cell containing a comment.
    *
    * @private
-   * @param {Event} event DOM event
-   * @returns {Boolean}
+   * @param {Event} event DOM event.
+   * @returns {boolean}
    */
   targetIsCellWithComment(event) {
     const closestCell = closest(event.target, 'TD', 'TBODY');
@@ -238,7 +240,7 @@ class Comments extends BasePlugin {
    *
    * @private
    * @param {Event} event DOM event.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   targetIsCommentTextArea(event) {
     return this.editor.getInputElement() === event.target;
@@ -247,7 +249,7 @@ class Comments extends BasePlugin {
   /**
    * Sets a comment for a cell according to the previously set range (see {@link Comments#setRange}).
    *
-   * @param {String} value Comment contents.
+   * @param {string} value Comment contents.
    */
   setComment(value) {
     if (!this.range.from) {
@@ -272,9 +274,9 @@ class Comments extends BasePlugin {
   /**
    * Sets a comment for a specified cell.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {String} value Comment contents.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} value Comment contents.
    */
   setCommentAtCell(row, column, value) {
     this.setRange({
@@ -286,7 +288,7 @@ class Comments extends BasePlugin {
   /**
    * Removes a comment from a cell according to previously set range (see {@link Comments#setRange}).
    *
-   * @param {Boolean} [forceRender=true] If set to `true`, the table will be re-rendered at the end of the operation.
+   * @param {boolean} [forceRender=true] If set to `true`, the table will be re-rendered at the end of the operation.
    */
   removeComment(forceRender = true) {
     if (!this.range.from) {
@@ -305,9 +307,9 @@ class Comments extends BasePlugin {
   /**
    * Removes a comment from a specified cell.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {Boolean} [forceRender=true] If `true`, the table will be re-rendered at the end of the operation.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {boolean} [forceRender=true] If `true`, the table will be re-rendered at the end of the operation.
    */
   removeCommentAtCell(row, column, forceRender = true) {
     this.setRange({
@@ -319,7 +321,7 @@ class Comments extends BasePlugin {
   /**
    * Gets comment from a cell according to previously set range (see {@link Comments#setRange}).
    *
-   * @returns {String|undefined} Returns a content of the comment.
+   * @returns {string|undefined} Returns a content of the comment.
    */
   getComment() {
     const row = this.range.from.row;
@@ -331,9 +333,9 @@ class Comments extends BasePlugin {
   /**
    * Gets comment from a cell at the provided coordinates.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @returns {String|undefined} Returns a content of the comment.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {string|undefined} Returns a content of the comment.
    */
   getCommentAtCell(row, column) {
     return this.getCommentMeta(row, column, META_COMMENT_VALUE);
@@ -342,7 +344,7 @@ class Comments extends BasePlugin {
   /**
    * Shows the comment editor accordingly to the previously set range (see {@link Comments#setRange}).
    *
-   * @returns {Boolean} Returns `true` if comment editor was shown.
+   * @returns {boolean} Returns `true` if comment editor was shown.
    */
   show() {
     if (!this.range.from) {
@@ -363,9 +365,9 @@ class Comments extends BasePlugin {
   /**
    * Shows comment editor according to cell coordinates.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @returns {Boolean} Returns `true` if comment editor was shown.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {boolean} Returns `true` if comment editor was shown.
    */
   showAtCell(row, column) {
     this.setRange({
@@ -387,7 +389,7 @@ class Comments extends BasePlugin {
   /**
    * Refreshes comment editor position and styling.
    *
-   * @param {Boolean} [force=false] If `true` then recalculation will be forced.
+   * @param {boolean} [force=false] If `true` then recalculation will be forced.
    */
   refreshEditor(force = false) {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
@@ -433,7 +435,7 @@ class Comments extends BasePlugin {
    * Checks if there is a comment for selected range.
    *
    * @private
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   checkSelectionCommentsConsistency() {
     const selected = this.hot.getSelectedRangeLast();
@@ -454,9 +456,9 @@ class Comments extends BasePlugin {
   /**
    * Sets or update the comment-related cell meta.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {Object} metaObject Object defining all the comment-related meta information.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object} metaObject Object defining all the comment-related meta information.
    */
   updateCommentMeta(row, column, metaObject) {
     const oldComment = this.hot.getCellMeta(row, column)[META_COMMENT];
@@ -475,9 +477,9 @@ class Comments extends BasePlugin {
   /**
    * Gets the comment related meta information.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} column Visual column index.
-   * @param {String} property Cell meta property.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} property Cell meta property.
    * @returns {Mixed}
    */
   getCommentMeta(row, column, property) {
@@ -557,12 +559,12 @@ class Comments extends BasePlugin {
     this.mouseDown = false;
   }
 
-  /** *
-   * The `afterRenderer` hook callback..
+  /**
+   * The `afterRenderer` hook callback.
    *
    * @private
    * @param {HTMLTableCellElement} TD The rendered `TD` element.
-   * @param {Object} cellProperties The rendered cell's property object.
+   * @param {object} cellProperties The rendered cell's property object.
    */
   onAfterRenderer(TD, cellProperties) {
     if (cellProperties[META_COMMENT] && cellProperties[META_COMMENT][META_COMMENT_VALUE]) {
@@ -679,7 +681,7 @@ class Comments extends BasePlugin {
    * Add Comments plugin options to the Context Menu.
    *
    * @private
-   * @param {Object} defaultOptions
+   * @param {object} defaultOptions The menu options.
    */
   addToContextMenu(defaultOptions) {
     defaultOptions.items.push(
@@ -739,7 +741,7 @@ class Comments extends BasePlugin {
    * Get `displayDelay` setting of comment plugin.
    *
    * @private
-   * @returns {Number|undefined}
+   * @returns {number|undefined}
    */
   getDisplayDelaySetting() {
     const commentSetting = this.hot.getSettings().comments;

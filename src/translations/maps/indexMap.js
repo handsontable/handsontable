@@ -36,7 +36,7 @@ class IndexMap {
   /**
    * Get value for the particular index.
    *
-   * @param {Number} index Index for which value is got.
+   * @param {number} index Index for which value is got.
    * @returns {*}
    */
   getValueAtIndex(index) {
@@ -61,9 +61,9 @@ class IndexMap {
   /**
    * Set new value for the particular index.
    *
-   * @param {Number} index
-   * @param {*} value
-   * @returns {Boolean}
+   * @param {number} index The index.
+   * @param {*} value The value to save.
+   * @returns {boolean}
    */
   setValueAtIndex(index, value) {
     if (index < this.getLength()) {
@@ -87,7 +87,7 @@ class IndexMap {
   /**
    * Get length of index map.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLength() {
     return this.getValues().length;
@@ -97,7 +97,7 @@ class IndexMap {
    * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
    *
    * @private
-   * @param {Number} [length] Length of list.
+   * @param {number} [length] Length of list.
    */
   setDefaultValues(length = this.indexedValues.length) {
     this.indexedValues.length = 0;
@@ -116,7 +116,7 @@ class IndexMap {
    * Initialize list with default values for particular indexes.
    *
    * @private
-   * @param {Number} length New length of indexed list.
+   * @param {number} length New length of indexed list.
    * @returns {Array}
    */
   init(length) {

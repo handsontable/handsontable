@@ -4,6 +4,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_row';
 
+/**
+ * @returns {object}
+ */
 export default function removeRowItem() {
   return {
     key: KEY,

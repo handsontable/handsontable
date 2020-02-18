@@ -37,40 +37,6 @@ describe('EventManager', () => {
     expect(instance2.eventListeners.length).toEqual(0);
   });
 
-  it('should detect event when fired from hot-table (web component)', () => {
-    // skip if browser not support Shadow DOM natively
-    if (!document.createElement('div').createShadowRoot) {
-      // Fix for "no exceptations" warnings
-      expect(true).toBe(true);
-
-      return;
-    }
-    EventManager.isHotTableEnv = true;
-    const instance = {};
-    const em = new EventManager(instance);
-    const classicHost = document.createElement('div');
-    const hotTable = document.createElement('hot-table');
-
-    const shadowHotTable = hotTable.createShadowRoot();
-    shadowHotTable.innerHTML = '<span>shadow <inner-custom><p></p></inner-custom></span>';
-
-    const test1 = jasmine.createSpy('test1');
-    const test2 = jasmine.createSpy('test2');
-
-    em.addEventListener(classicHost, 'click', test1);
-    em.addEventListener(shadowHotTable.querySelector('p'), 'click', test2);
-    em.fireEvent(classicHost, 'click');
-    em.fireEvent(shadowHotTable.querySelector('p'), 'click');
-    em.clear();
-
-    expect(test1.calls.mostRecent().args[0].isTargetWebComponent).toEqual(true);
-    expect(test1.calls.count()).toEqual(1);
-    expect(test2.calls.count()).toEqual(1);
-    expect(test2.calls.mostRecent().args[0].target).toEqual(shadowHotTable.querySelector('p'));
-
-    EventManager.isHotTableEnv = false;
-  });
-
   it('should clear all events', () => {
     const instance = {};
     const em = new EventManager(instance);

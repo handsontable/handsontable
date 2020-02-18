@@ -1,4 +1,4 @@
-import {arrayFilter, arrayMap, arrayReduce} from './../helpers/array';
+import { arrayFilter, arrayMap } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexToIndexMap from './maps/visualIndexToPhysicalIndexMap';
@@ -68,14 +68,14 @@ class IndexMapper {
      * Flag determining whether operations performed on index mapper were batched.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.isBatched = false;
     /**
      * Flag determining whether any action on indexes sequence or skipped indexes was performed.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.cachedIndexesChange = false;
 
@@ -83,7 +83,7 @@ class IndexMapper {
     this.hiddenCollection = new MapCollection();
     this.flattenHiddenList = [];
     this.notHiddenIndexesCache = [];
-    this.renderedIndexesCache = [];
+    this.renderableIndexesCache = [];
 
     this.indexesSequence.addLocalHook('change', () => {
       this.cachedIndexesChange = true;
@@ -138,7 +138,7 @@ class IndexMapper {
   /**
    * Register map which provide some index mappings.
    *
-   * @param {String} uniqueName Name of the index map. It should be unique.
+   * @param {string} uniqueName Name of the index map. It should be unique.
    * @param {IndexMap} indexMap Registered index map updated on items removal and insertion.
    * @returns {IndexMap}
    */
@@ -175,7 +175,7 @@ class IndexMapper {
   /**
    * Unregister a map with given name.
    *
-   * @param {String} name Name of the index map.
+   * @param {string} name Name of the index map.
    */
   unregisterMap(name) {
     this.skipMapsCollection.unregister(name);
@@ -186,8 +186,8 @@ class IndexMapper {
   /**
    * Get physical index by its visual index.
    *
-   * @param {Number} visualIndex Visual index.
-   * @return {Number|null} Returns translated index mapped by passed visual index.
+   * @param {number} visualIndex Visual index.
+   * @returns {number|null} Returns translated index mapped by passed visual index.
    */
   getPhysicalFromVisualIndex(visualIndex) {
     const visibleIndexes = this.getNotSkippedIndexes();
@@ -202,10 +202,13 @@ class IndexMapper {
   }
 
   /**
-   * @TODO Description
+   * Get a physical index from an renderable index.
+   *
+   * @param {number} renderableIndex Renderable index.
+   * @returns {null|number}
    */
   getPhysicalFromRenderableIndex(renderableIndex) {
-    const renderableIndexes = this.getRenderedIndexes();
+    const renderableIndexes = this.getRenderableIndexes();
     const numberOfVisibleIndexes = renderableIndexes.length;
     let physicalIndex = null;
 
@@ -219,8 +222,8 @@ class IndexMapper {
   /**
    * Get visual index by its physical index.
    *
-   * @param {Number} physicalIndex Physical index to search.
-   * @returns {Number|null} Returns a visual index of the index mapper.
+   * @param {number} physicalIndex Physical index to search.
+   * @returns {number|null} Returns a visual index of the index mapper.
    */
   getVisualFromPhysicalIndex(physicalIndex) {
     const visibleIndexes = this.getNotSkippedIndexes();
@@ -234,14 +237,20 @@ class IndexMapper {
   }
 
   /**
-   * @TODO Description
+   * Get a visual index from an renderable index.
+   *
+   * @param {number} renderableIndex Renderable index.
+   * @returns {null|number}
    */
   getVisualFromRenderableIndex(renderableIndex) {
     return this.getVisualFromPhysicalIndex(this.getPhysicalFromRenderableIndex(renderableIndex));
   }
 
   /**
-   * @TODO Description
+   * Get a renderable index from an visual index.
+   *
+   * @param {number} visualIndex Visual index.
+   * @returns {null|number}
    */
   getRenderableFromVisualIndex(visualIndex) {
     if (visualIndex >= this.getNotSkippedIndexesLength()) {
@@ -260,7 +269,7 @@ class IndexMapper {
   /**
    * Set default values for all stored index maps.
    *
-   * @param {Number} [length] Destination length for all stored index maps.
+   * @param {number} [length] Destination length for all stored index maps.
    */
   initToLength(length = this.getNumberOfIndexes()) {
     this.flattenSkipList = [];
@@ -305,7 +314,7 @@ class IndexMapper {
   /**
    * Get all indexes NOT skipped in the process of rendering.
    *
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} Physical indexes.
    */
   getNotSkippedIndexes(readFromCache = true) {
@@ -319,7 +328,7 @@ class IndexMapper {
   /**
    * Get length of all indexes NOT skipped in the process of rendering.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getNotSkippedIndexesLength() {
     return this.getNotSkippedIndexes().length;
@@ -328,7 +337,7 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
   getNotHiddenIndexes(readFromCache = true) {
@@ -342,7 +351,7 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getNotHiddenIndexesLength() {
     return this.getNotHiddenIndexes().length;
@@ -351,12 +360,12 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getRenderedIndexes(readFromCache = true) {
+  getRenderableIndexes(readFromCache = true) {
     if (readFromCache === true) {
-      return this.renderedIndexesCache;
+      return this.renderableIndexesCache;
     }
 
     return arrayFilter(this.getNotSkippedIndexes(), (physicalIndex) => {
@@ -367,16 +376,16 @@ class IndexMapper {
   /**
    * @TODO Description.
    *
-   * @returns {Number}
+   * @returns {number}
    */
-  getRenderedIndexesLength() {
-    return this.getRenderedIndexes().length;
+  getRenderableIndexesLength() {
+    return this.getRenderableIndexes().length;
   }
 
   /**
    * Get number of all indexes.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getNumberOfIndexes() {
     return this.getIndexesSequence().length;
@@ -385,8 +394,8 @@ class IndexMapper {
   /**
    * Move indexes in the index mapper.
    *
-   * @param {Number|Array} movedIndexes Visual index(es) to move.
-   * @param {Number} finalIndex Visual index index being a start index for the moved element.
+   * @param {number|Array} movedIndexes Visual index(es) to move.
+   * @param {number} finalIndex Visual index index being a start index for the moved element.
    */
   moveIndexes(movedIndexes, finalIndex) {
     if (typeof movedIndexes === 'number') {
@@ -419,7 +428,7 @@ class IndexMapper {
    * Get flat list of values, which are result whether index was skipped in any of skip collection's element.
    *
    * @private
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
   getFlattenHiddenList(readFromCache = true) {
@@ -444,8 +453,8 @@ class IndexMapper {
   /**
    * Get whether index is skipped in the process of rendering.
    *
-   * @param {Number} physicalIndex Physical index.
-   * @returns {Boolean}
+   * @param {number} physicalIndex Physical index.
+   * @returns {boolean}
    */
   isSkipped(physicalIndex) {
     return this.getFlattenSkipList()[physicalIndex] || false;
@@ -455,8 +464,8 @@ class IndexMapper {
    * Get whether index is skipped in the process of rendering.
    *
    * @private
-   * @param {Number} physicalIndex Physical index.
-   * @returns {Boolean}
+   * @param {number} physicalIndex Physical index.
+   * @returns {noolean}
    */
   isHidden(physicalIndex) {
     return this.getFlattenHiddenList()[physicalIndex] || false;
@@ -466,8 +475,8 @@ class IndexMapper {
    * Insert new indexes and corresponding mapping and update values of the others, for all stored index maps.
    *
    * @private
-   * @param {Number} firstInsertedVisualIndex First inserted visual index.
-   * @param {Number} amountOfIndexes Amount of inserted indexes.
+   * @param {number} firstInsertedVisualIndex First inserted visual index.
+   * @param {number} amountOfIndexes Amount of inserted indexes.
    */
   insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
@@ -502,7 +511,7 @@ class IndexMapper {
    * Get list of values, which represent result if index was skipped in any of skip collections.
    *
    * @private
-   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
   getFlattenSkipList(readFromCache = true) {
@@ -528,7 +537,7 @@ class IndexMapper {
    * Rebuild cache for some indexes. Every action on indexes sequence or skipped indexes by default reset cache,
    * thus batching some index maps actions is recommended.
    *
-   * @param {Boolean} [force=false] Determine if force cache update.
+   * @param {boolean} [force=false] Determine if force cache update.
    * @private
    */
   updateCache(force = false) {
@@ -537,7 +546,7 @@ class IndexMapper {
       this.flattenHiddenList = this.getFlattenHiddenList(false);
       this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
-      this.renderedIndexesCache = this.getRenderedIndexes(false);
+      this.renderableIndexesCache = this.getRenderableIndexes(false);
       this.cachedIndexesChange = false;
 
       this.runLocalHooks('cacheUpdated');

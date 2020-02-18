@@ -1,3 +1,6 @@
+/**
+ * @returns {object}
+ */
 export function conditionMenuRootElements() {
   const plugin = hot().getPlugin('filters');
   const root = {
@@ -18,6 +21,9 @@ export function conditionMenuRootElements() {
   return root;
 }
 
+/**
+ * @returns {object}
+ */
 export function conditionSelectRootElements() {
   const plugin = hot().getPlugin('filters');
   const root = {
@@ -38,6 +44,10 @@ export function conditionSelectRootElements() {
   return root;
 }
 
+/**
+ * @param {number} index The 0-based index, which tells what input element we want to retrieve.
+ * @returns {HTMLElement}
+ */
 export function conditionRadioInput(index) {
   const plugin = hot().getPlugin('filters');
   let root;
@@ -49,6 +59,9 @@ export function conditionRadioInput(index) {
   return root;
 }
 
+/**
+ * @returns {HTMLElement}
+ */
 export function byValueBoxRootElement() {
   const plugin = hot().getPlugin('filters');
   let root;
@@ -60,6 +73,9 @@ export function byValueBoxRootElement() {
   return root;
 }
 
+/**
+ * @returns {BaseComponent}
+ */
 export function byValueMultipleSelect() {
   const plugin = hot().getPlugin('filters');
   let root;
@@ -71,6 +87,10 @@ export function byValueMultipleSelect() {
   return root;
 }
 
+/**
+ * @param {object} meta The cell meta object.
+ * @returns {Function}
+ */
 export function dateRowFactory(meta) {
   const options = { meta: meta || {} };
 
@@ -81,6 +101,10 @@ export function dateRowFactory(meta) {
   };
 }
 
+/**
+ * @param {Function} funcForCall The function with custom condition.
+ * @returns {Function}
+ */
 export function conditionFactory(funcForCall) {
   return function(args = []) {
     return {

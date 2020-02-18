@@ -19,7 +19,7 @@ class BaseComponent {
     /**
      * Flag which determines if element is hidden.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.hidden = false;
   }
@@ -48,7 +48,7 @@ class BaseComponent {
   /**
    * Check if component is hidden.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isHidden() {
     return this.hidden;

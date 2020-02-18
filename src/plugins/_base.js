@@ -10,7 +10,7 @@ let initializedPlugins = null;
  */
 class BasePlugin {
   /**
-   * @param {Object} hotInstance Handsontable instance.
+   * @param {object} hotInstance Handsontable instance.
    */
   constructor(hotInstance) {
     /**
@@ -75,8 +75,8 @@ class BasePlugin {
   /**
    * Add listener to plugin hooks system.
    *
-   * @param {String} name
-   * @param {Function} callback
+   * @param {string} name The hook name.
+   * @param {Function} callback The listener function to add.
    */
   addHook(name, callback) {
     privatePool.get(this).hooks[name] = (privatePool.get(this).hooks[name] || []);
@@ -91,7 +91,7 @@ class BasePlugin {
   /**
    * Remove all hooks listeners by hook name.
    *
-   * @param {String} name
+   * @param {string} name The hook name.
    */
   removeHooks(name) {
     arrayEach(privatePool.get(this).hooks[name] || [], (callback) => {
@@ -112,7 +112,7 @@ class BasePlugin {
   /**
    * Register function which will be immediately called after all plugins initialized.
    *
-   * @param {Function} callback
+   * @param {Function} callback The listener function to call.
    */
   callOnPluginsReady(callback) {
     if (this.isPluginsReady) {

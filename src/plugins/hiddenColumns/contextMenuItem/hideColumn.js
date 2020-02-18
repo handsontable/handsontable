@@ -1,6 +1,10 @@
 import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
+/**
+ * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
+ * @returns {object}
+ */
 export default function hideColumnItem(hiddenColumnsPlugin) {
   return {
     key: 'hidden_columns_hide',
@@ -25,15 +29,28 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
       const columnsToHide = [];
       rangeEach(start, end, column => columnsToHide.push(column));
 
+      const firstHiddenColumn = columnsToHide[0];
+      const lastHiddenColumn = columnsToHide[columnsToHide.length - 1];
+      const nextRenderableIndex = this.columnIndexMapper.getRenderableFromVisualIndex(lastHiddenColumn) + 1;
+      let columnToSelect = this.columnIndexMapper.getVisualFromRenderableIndex(nextRenderableIndex);
+
+      if (columnToSelect === null) {
+        const previousRenderableIndex = this.columnIndexMapper.getRenderableFromVisualIndex(firstHiddenColumn) - 1;
+
+        columnToSelect = this.columnIndexMapper.getVisualFromRenderableIndex(previousRenderableIndex);
+      }
+
       hiddenColumnsPlugin.hideColumns(columnsToHide);
 
-      const countedRenderableColumns = this.countRenderableColumns();
-      const columnToSelect = start >= countedRenderableColumns ? countedRenderableColumns - 1 : start;
+      if (columnToSelect !== null) {
+        this.selectColumns(columnToSelect);
 
-      this.selectColumns(columnToSelect);
+      } else {
+        this.deselectCell();
+      }
+
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
-
     },
     disabled: false,
     hidden() {

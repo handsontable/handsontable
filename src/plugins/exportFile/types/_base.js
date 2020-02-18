@@ -9,7 +9,7 @@ class BaseType {
   /**
    * Default options.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   static get DEFAULT_OPTIONS() {
     return {
@@ -36,7 +36,7 @@ class BaseType {
     /**
      * Format type class options.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.options = this._mergeOptions(options);
 
@@ -46,7 +46,8 @@ class BaseType {
   /**
    * Merge options provided by users with defaults.
    *
-   * @return {Object} Returns new options object.
+   * @param {object} options An object with options to merge with.
+   * @returns {object} Returns new options object.
    */
   _mergeOptions(options) {
     let _options = clone(this.constructor.DEFAULT_OPTIONS);

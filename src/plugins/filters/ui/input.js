@@ -84,7 +84,7 @@ class InputUI extends BaseUI {
   /**
    * OnKeyup listener.
    *
-   * @param {Event} event
+   * @param {Event} event The mouse event object.
    */
   onKeyup(event) {
     this.options.value = event.target.value;

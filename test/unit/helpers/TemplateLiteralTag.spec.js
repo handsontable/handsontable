@@ -2,16 +2,23 @@ import { toSingleLine } from 'handsontable/helpers/templateLiteralTag';
 
 describe('Helpers for template literals', () => {
   describe('toSingleLine', () => {
-    it('should strip two line string (string with whitespace at end of first line and indention at second one)', () => {
-      const text = toSingleLine`Hello world 
+    it('should strip two line string (string with whitespace in both lines)', () => {
+      const text = toSingleLine`Hello world\x20
         Hello world`;
 
       expect(text).toEqual('Hello world Hello world');
     });
 
-    it('should strip two line string (string without whitespace at end of first line and indention at second one)', () => {
+    it('should strip two line string (string with whitespace only in the second line)', () => {
       const text = toSingleLine`Hello world
         Hello world`;
+
+      expect(text).toEqual('Hello worldHello world');
+    });
+
+    it('should strip two line string (string without whitespace in both lines)', () => {
+      const text = toSingleLine`Hello world
+Hello world`;
 
       expect(text).toEqual('Hello worldHello world');
     });

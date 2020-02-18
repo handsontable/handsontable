@@ -14,7 +14,7 @@ import localHooks from './../mixins/localHooks';
 class Transformation {
   constructor(range, options) {
     /**
-     * Instance of the SelectionRange, holder for coordinates applied to the table.
+     * Instance of the SelectionRange, holder for visual coordinates applied to the table.
      *
      * @type {SelectionRange}
      */
@@ -22,7 +22,7 @@ class Transformation {
     /**
      * Additional options which define the state of the settings which can infer transformation.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.options = options;
   }
@@ -30,16 +30,24 @@ class Transformation {
   /**
    * Selects cell relative to current cell (if possible).
    *
-   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
-   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
-   * @param {Boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
+   * @param {number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    * @returns {CellCoords}
    */
   transformStart(rowDelta, colDelta, force) {
     const delta = new CellCoords(rowDelta, colDelta);
+    const highlightCoords = this.range.current().highlight;
+    const { row, col } = this.options.translateCoords(highlightCoords);
 
     this.runLocalHooks('beforeTransformStart', delta);
+
+    if (row === null || col === null) {
+      this.runLocalHooks('afterTransformStart', highlightCoords, 0, 0);
+
+      return highlightCoords;
+    }
 
     let totalRows = this.options.countRows();
     let totalCols = this.options.countCols();
@@ -48,8 +56,6 @@ class Transformation {
     const minSpareCols = this.options.minSpareCols();
     const autoWrapRow = this.options.autoWrapRow();
     const autoWrapCol = this.options.autoWrapCol();
-    const highlightCoords = this.range.current().highlight;
-    const { row, col } = this.options.translateCoords(highlightCoords);
 
     if (row + rowDelta > totalRows - 1) {
       if (force && minSpareRows > 0 && !(fixedRowsBottom && row >= totalRows - fixedRowsBottom - 1)) {
@@ -111,21 +117,29 @@ class Transformation {
   /**
    * Sets selection end cell relative to current selection end cell (if possible).
    *
-   * @param {Number} rowDelta Rows number to move, value can be passed as negative number.
-   * @param {Number} colDelta Columns number to move, value can be passed as negative number.
+   * @param {number} rowDelta Rows number to move, value can be passed as negative number.
+   * @param {number} colDelta Columns number to move, value can be passed as negative number.
    * @returns {CellCoords}
    */
   transformEnd(rowDelta, colDelta) {
     const delta = new CellCoords(rowDelta, colDelta);
+    const cellRange = this.range.current();
 
     this.runLocalHooks('beforeTransformEnd', delta);
 
+    const { row: rowHighlight, col: colHighlight } = this.options.translateCoords(cellRange.highlight);
+
+    // We have no highlight (start point for the selection).
+    if (rowHighlight === null || colHighlight === null) {
+      this.runLocalHooks('afterTransformEnd', cellRange.to, 0, 0);
+
+      return cellRange.to;
+    }
+
     const totalRows = this.options.countRows();
     const totalCols = this.options.countCols();
-    const cellRange = this.range.current();
-    const { row, col } = this.options.translateCoords(cellRange.to);
-
-    const coords = new CellCoords(row + delta.row, col + delta.col);
+    const { row: rowTo, col: colTo } = this.options.translateCoords(cellRange.to);
+    const coords = new CellCoords(rowTo + delta.row, colTo + delta.col);
 
     let rowTransformDir = 0;
     let colTransformDir = 0;

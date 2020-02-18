@@ -1,7 +1,7 @@
 import VisualSelection from '../visualSelection';
 
 /**
- * @return {Selection}
+ * @returns {Selection}
  */
 function createHighlight({ translateCoords, untranslateCoords, activeHeaderClassName }) {
   const s = new VisualSelection({

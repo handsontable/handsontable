@@ -4,6 +4,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'alignment';
 
+/**
+ * @returns {object}
+ */
 export default function alignmentItem() {
   return {
     key: KEY,

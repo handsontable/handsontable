@@ -409,7 +409,7 @@ describe('HiddenColumns', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [1, 3],
             },
@@ -434,9 +434,9 @@ describe('HiddenColumns', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
-              columns: [1, 2, 3],
+              columns: [1],
             },
           });
 
@@ -479,34 +479,128 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 4).innerText).toBe('E1');
         });
 
-        it('should select column on the right side after hide action', () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(2, 5),
-            colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
-            hiddenColumns: true,
+        describe('should select column on the right side after hide action ' +
+          'when on the right there is visible column and', () => {
+          it('when there is no hidden column', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 5),
+              rowHeaders: true,
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: true,
+            });
+
+            selectColumns(1, 2);
+
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
+            expect(`
+            |   ║   : * :   |
+            |===:===:===:===|
+            | - ║   : A :   |
+            | - ║   : 0 :   |
+            `).toBeMatchToSelectionPattern();
           });
 
-          selectColumns(1, 2);
+          it('when there are hidden columns', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 10),
+              rowHeaders: true,
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: {
+                indicators: true,
+                columns: [0, 1, 5, 6, 7]
+              }
+            });
 
-          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+            selectColumns(3, 4);
 
-          expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 8, 1, 8]);
+            expect(`
+            |   ║   : * :   |
+            |===:===:===:===|
+            | - ║   : A :   |
+            | - ║   : 0 :   |
+            `).toBeMatchToSelectionPattern();
+          });
         });
 
-        it('should select column on the left side after hide action if on the right is no more visible column', () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(2, 5),
-            colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
-            hiddenColumns: true,
+        describe('should select column on the left side after hide action ' +
+          'when on the right there is no more visible column and ', () => {
+          it('there is no hidden column', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 5),
+              rowHeaders: true,
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: true,
+            });
+
+            selectColumns(3, 4);
+
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
+            expect(`
+            |   ║   :   : * |
+            |===:===:===:===|
+            | - ║   :   : A |
+            | - ║   :   : 0 |
+            `).toBeMatchToSelectionPattern();
           });
 
-          selectColumns(3, 4);
+          it('there are hidden columns', () => {
+            handsontable({
+              data: Handsontable.helper.createSpreadsheetData(2, 10),
+              rowHeaders: true,
+              colHeaders: true,
+              contextMenu: [CONTEXTMENU_ITEM_HIDE],
+              hiddenColumns: {
+                indicators: true,
+                columns: [0, 1, 5, 6, 7]
+              }
+            });
+
+            selectColumns(8, 9);
+
+            getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+            expect(getSelectedLast()).toEqual([0, 4, 1, 4]);
+            expect(`
+            |   ║   :   : * |
+            |===:===:===:===|
+            | - ║   :   : A |
+            | - ║   :   : 0 |
+            `).toBeMatchToSelectionPattern();
+          });
+        });
+
+        it('should not preserve selection after hiding all columns', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 10),
+            rowHeaders: true,
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_HIDE],
+            hiddenColumns: {
+              indicators: true,
+              columns: [0, 1, 5, 6, 7]
+            }
+          });
+
+          selectAll();
 
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-          expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
+          expect(getSelectedLast()).toBeUndefined();
+          expect(`
+          |   |
+          |   |
+          |   |
+          `).toBeMatchToSelectionPattern();
         });
       });
 
@@ -514,10 +608,12 @@ describe('HiddenColumns', () => {
         it('should unhide hidden columns in selection', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 5),
+            rowHeaders: true,
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [1, 3],
+              indicators: true
             },
           });
 
@@ -530,6 +626,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(0, 4);
 
+          contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
@@ -539,15 +636,23 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelectedLast()).toEqual([0, 0, 1, 4]);
+          expect(`
+          |   ║ * : * : * : * : * |
+          |===:===:===:===:===:===|
+          | - ║ A : 0 : 0 : 0 : 0 |
+          | - ║ 0 : 0 : 0 : 0 : 0 |
+          `).toBeMatchToSelectionPattern();
         });
 
         it('should unhide hidden columns before the first visible and selected column', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 5),
+            rowHeaders: true,
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [0, 1],
+              indicators: true
             },
           });
 
@@ -560,6 +665,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(2);
 
+          contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
@@ -569,15 +675,23 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelectedLast()).toEqual([0, 0, 1, 2]);
+          expect(`
+          |   ║ * : * : * :   :   |
+          |===:===:===:===:===:===|
+          | - ║ A : 0 : 0 :   :   |
+          | - ║ 0 : 0 : 0 :   :   |
+          `).toBeMatchToSelectionPattern();
         });
 
         it('should unhide hidden columns after the last visible and selected column', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 5),
+            rowHeaders: true,
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [3, 4],
+              indicators: true
             },
           });
 
@@ -590,6 +704,7 @@ describe('HiddenColumns', () => {
 
           selectColumns(2);
 
+          contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(countRenderableColumns()).toBe(5);
@@ -599,6 +714,12 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelectedLast()).toEqual([0, 2, 1, 4]);
+          expect(`
+          |   ║   :   : * : * : * |
+          |===:===:===:===:===:===|
+          | - ║   :   : A : 0 : 0 |
+          | - ║   :   : 0 : 0 : 0 |
+          `).toBeMatchToSelectionPattern();
         });
       });
     });
@@ -609,6 +730,7 @@ describe('HiddenColumns', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [0],
         },
@@ -619,12 +741,23 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row by header if last column is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [4],
         },
@@ -635,12 +768,23 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row by header if any column in the middle is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -651,12 +795,23 @@ describe('HiddenColumns', () => {
       simulateClick(header, 'LMB');
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ - : - |
+      |===:===:===|
+      | * ║ A : 0 |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should keep hidden columns in cell range', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -670,6 +825,107 @@ describe('HiddenColumns', () => {
       mouseUp(endCell);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ - : - |
+      |===:===:===|
+      | - ║ A : 0 |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select non-contiguous columns properly when there are some hidden columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 8),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      const startColumn = getCell(-1, 4);
+      const endColumn = getCell(-1, 6);
+
+      mouseDown(startColumn, 'LMB');
+      mouseUp(startColumn);
+
+      keyDown('ctrl');
+
+      mouseDown(endColumn, 'LMB');
+      mouseUp(endColumn);
+
+      keyUp('ctrl');
+
+      expect(getSelected()).toEqual([
+        [0, 4, 4, 4],
+        [0, 6, 4, 6],
+      ]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+      expect(`
+      |   ║   :   : * :   : * :   |
+      |===:===:===:===:===:===:===|
+      | - ║   :   : 0 :   : A :   |
+      | - ║   :   : 0 :   : 0 :   |
+      | - ║   :   : 0 :   : 0 :   |
+      | - ║   :   : 0 :   : 0 :   |
+      | - ║   :   : 0 :   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select cells by using two layers when CTRL key is pressed and some columns are hidden', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 8,
+        startCols: 12,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      $(getCell(1, 3)).simulate('mousedown');
+      $(getCell(4, 6)).simulate('mouseover');
+      $(getCell(4, 6)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 3, 4, 6]]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+      expect(`
+      |   ║   : - : - : - : - :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : A : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      keyDown('ctrl');
+
+      $(getCell(3, 5)).simulate('mousedown');
+      $(getCell(5, 8)).simulate('mouseover');
+      $(getCell(5, 8)).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8]]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(5);
+      expect(`
+      |   ║   : - : - : - : - : - : - :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : B : 1 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 0 : 1 : 1 : 0 : 0 :   :   :   |
+      | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
   });
 
@@ -696,10 +952,36 @@ describe('HiddenColumns', () => {
       expect(errorThrown).toBe(false);
     });
 
-    it('should select entire table after call selectAll if all of columns ', () => {
+    it('should select entire table after call selectAll if some columns are hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      selectAll();
+
+      expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+      expect(`
+      |   ║ * : * : * |
+      |===:===:===:===|
+      | * ║ A : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      | * ║ 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select entire table after call selectAll if all of columns are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [0, 1, 2, 3, 4],
         },
@@ -708,12 +990,21 @@ describe('HiddenColumns', () => {
       selectAll();
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(`
+      |   |
+      | * |
+      | * |
+      | * |
+      | * |
+      | * |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row after call selectRows if the first column is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [0],
         },
@@ -722,12 +1013,23 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row after call selectRows if the last column is hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [4],
         },
@@ -736,12 +1038,23 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select entire row after call selectRows if columns between the first and the last are hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -750,12 +1063,23 @@ describe('HiddenColumns', () => {
       selectRows(0);
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ - : - |
+      |===:===:===|
+      | * ║ A : 0 |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
-    it('should select hidden column after call selectColumns', () => {
+    it('should select hidden column internally after the `selectColumns` call (no visual effect)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1],
         },
@@ -764,12 +1088,47 @@ describe('HiddenColumns', () => {
       selectColumns(1);
 
       expect(getSelectedLast()).toEqual([0, 1, 4, 1]);
+      expect(`
+      |   ║   :   :   :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
-    it('should select columns after call selectColumns if range is partially hidden at the begining of selection', () => {
+    it('should select columns after the `selectColumns` call if range is partially hidden at the beginning of selection #1', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectColumns(1, 4);
+
+      expect(getSelectedLast()).toEqual([0, 1, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(`
+      |   ║   : * |
+      |===:===:===|
+      | - ║   : A |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select columns after the `selectColumns` call if range is partially hidden at the beginning of selection #2', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -778,12 +1137,23 @@ describe('HiddenColumns', () => {
       selectColumns(2, 4);
 
       expect(getSelectedLast()).toEqual([0, 2, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(`
+      |   ║   : * |
+      |===:===:===|
+      | - ║   : A |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      `).toBeMatchToSelectionPattern();
     });
 
-    it('should select columns after call selectColumns if range is partially hidden at the end of selection', () => {
+    it('should select columns after the `selectColumns` call if range is partially hidden at the end of selection #1', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -792,12 +1162,48 @@ describe('HiddenColumns', () => {
       selectColumns(0, 2);
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 2]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ * :   |
+      |===:===:===|
+      | - ║ A :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select columns after the `selectColumns` call if range is partially hidden at the end of selection #2', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+        },
+      });
+
+      selectColumns(0, 3);
+
+      expect(getSelectedLast()).toEqual([0, 0, 4, 3]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ * :   |
+      |===:===:===|
+      | - ║ A :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      | - ║ 0 :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should select columns after call selectColumns if range is partially hidden in the middle of selection', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
+        colHeaders: true,
         hiddenColumns: {
           columns: [1, 2, 3],
         },
@@ -806,6 +1212,16 @@ describe('HiddenColumns', () => {
       selectColumns(0, 4);
 
       expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║ * : * |
+      |===:===:===|
+      | - ║ A : 0 |
+      | - ║ 0 : 0 |
+      | - ║ 0 : 0 |
+      | - ║ 0 : 0 |
+      | - ║ 0 : 0 |
+      `).toBeMatchToSelectionPattern();
     });
   });
 
@@ -1040,6 +1456,355 @@ describe('HiddenColumns', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
 
       expect(getSelectedLast()).toEqual([4, 0, 4, 0]);
+    });
+
+    describe('should not change position and call hook when single hidden cell was selected and navigating by any arrow key', () => {
+      describe('without shift key pressed', () => {
+        it('hidden cell at the table start', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [0],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('beforeModifyTransformStart');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
+
+          hot.addHook('modifyTransformStart', hookSpy1);
+          hot.addHook('afterModifyTransformStart', hookSpy2);
+
+          selectCell(1, 0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell in the table middle', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [2],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformStart');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
+
+          hot.addHook('modifyTransformStart', hookSpy1);
+          hot.addHook('afterModifyTransformStart', hookSpy2);
+
+          selectCell(1, 2);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell at the table end', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [4],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformStart');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
+
+          hot.addHook('modifyTransformStart', hookSpy1);
+          hot.addHook('afterModifyTransformStart', hookSpy2);
+
+          selectCell(1, 4);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+      });
+
+      describe('with shift key pressed', () => {
+        it('hidden cell at the table start', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [0],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
+
+          hot.addHook('modifyTransformEnd', hookSpy1);
+          hot.addHook('afterModifyTransformEnd', hookSpy2);
+
+          selectCell(1, 0);
+
+          keyDownUp('shift+arrow_up');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_down');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_left');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_right');
+
+          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell in the table middle', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [2],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
+
+          hot.addHook('modifyTransformEnd', hookSpy1);
+          hot.addHook('afterModifyTransformEnd', hookSpy2);
+
+          selectCell(1, 2);
+
+          keyDownUp('shift+arrow_up');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_down');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_left');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_right');
+
+          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(2);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+
+        it('hidden cell at the table end', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            hiddenColumns: {
+              columns: [4],
+            },
+          });
+
+          const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
+          const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
+
+          hot.addHook('modifyTransformEnd', hookSpy1);
+          hot.addHook('afterModifyTransformEnd', hookSpy2);
+
+          selectCell(1, 4);
+
+          keyDownUp('shift+arrow_up');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_down');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_left');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+
+          keyDownUp('shift+arrow_right');
+
+          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
+          expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
+          expect(hookSpy2.calls.mostRecent().args[0]?.col).toEqual(4);
+          expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
+          expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
+        });
+      });
     });
   });
 

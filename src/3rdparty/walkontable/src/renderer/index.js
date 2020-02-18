@@ -32,8 +32,8 @@ class Renderer {
    * Sets filter calculators for newly calculated row and column position. The filters are used to transform visual
    * indexes (0 to N) to source indexes provided by Handsontable.
    *
-   * @param {RowFilter} rowFilter
-   * @param {ColumnFilter} columnFilter
+   * @param {RowFilter} rowFilter The row filter instance.
+   * @param {ColumnFilter} columnFilter The column filter instance.
    * @returns {Renderer}
    */
   setFilters(rowFilter, columnFilter) {
@@ -45,9 +45,9 @@ class Renderer {
   /**
    * Sets the viewport size of the rendered table.
    *
-   * @param {Number} rowsCount An amount of rows to render.
-   * @param {Number} columnsCount An amount of columns to render.
-   * @return {Renderer}
+   * @param {number} rowsCount An amount of rows to render.
+   * @param {number} columnsCount An amount of columns to render.
+   * @returns {Renderer}
    */
   setViewportSize(rowsCount, columnsCount) {
     this.renderer.setViewportSize(rowsCount, columnsCount);

@@ -75,7 +75,7 @@ class MergeCells extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link MergeCells#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().mergeCells;
@@ -146,8 +146,8 @@ class MergeCells extends BasePlugin {
    * Validates a single setting object, represented by a single merged cell information object.
    *
    * @private
-   * @param {Object} setting An object with `row`, `col`, `rowspan` and `colspan` properties.
-   * @return {Boolean}
+   * @param {object} setting An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @returns {boolean}
    */
   validateSetting(setting) {
     let valid = true;
@@ -184,7 +184,7 @@ class MergeCells extends BasePlugin {
    * Generates the merged cells from the settings provided to the plugin.
    *
    * @private
-   * @param {Array|Boolean} settings The settings provided to the plugin.
+   * @param {Array|boolean} settings The settings provided to the plugin.
    */
   generateFromSettings(settings) {
     if (Array.isArray(settings)) {
@@ -216,7 +216,7 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {Array} populationArgumentsList Array in a form of `[row, column, dataUnderCollection]`.
-   * @return {Array} Array in a form of `[row, column, dataOfAllCollections]`.
+   * @returns {Array} Array in a form of `[row, column, dataOfAllCollections]`.
    */
   getBulkCollectionData(populationArgumentsList) {
     const populationDataRange = this.getBulkCollectionDataRange(populationArgumentsList);
@@ -237,11 +237,11 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   * Gets the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection])
+   * Gets the range of combined data ranges provided in a form of an array of arrays ([row, column, dataUnderCollection]).
    *
    * @private
    * @param {Array} populationArgumentsList Array containing argument lists for the `populateFromArray` method - row, column and data for population.
-   * @return {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex])
+   * @returns {Array[]} Start and end coordinates of the merged cell range. (in a form of [rowIndex, columnIndex]).
    */
   getBulkCollectionDataRange(populationArgumentsList) {
     const start = [0, 0];
@@ -275,9 +275,9 @@ class MergeCells extends BasePlugin {
    * Returns `true` if a range is mergeable.
    *
    * @private
-   * @param {Object} newMergedCellInfo Merged cell information object to test.
-   * @param {Boolean} [auto=false] `true` if triggered at initialization.
-   * @returns {Boolean}
+   * @param {object} newMergedCellInfo Merged cell information object to test.
+   * @param {boolean} [auto=false] `true` if triggered at initialization.
+   * @returns {boolean}
    */
   canMergeRange(newMergedCellInfo, auto = false) {
     return auto ? true : this.validateSetting(newMergedCellInfo);
@@ -343,9 +343,9 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {CellRange} cellRange Cell range to merge.
-   * @param {Boolean} [auto=false] `true` if is called automatically, e.g. at initialization.
-   * @param {Boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end, but rather return its arguments.
-   * @returns {Array|Boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to true. If the the merging process went successful, it returns `true`, otherwise - `false`.
+   * @param {boolean} [auto=false] `true` if is called automatically, e.g. At initialization.
+   * @param {boolean} [preventPopulation=false] `true`, if the method should not run `populateFromArray` at the end, but rather return its arguments.
+   * @returns {Array|boolean} Returns an array of [row, column, dataUnderCollection] if preventPopulation is set to true. If the the merging process went successful, it returns `true`, otherwise - `false`.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
    */
@@ -411,7 +411,7 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {CellRange} cellRange Selection cell range.
-   * @param {Boolean} [auto=false] `true` if called automatically by the plugin.
+   * @param {boolean} [auto=false] `true` if called automatically by the plugin.
    *
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
@@ -463,10 +463,10 @@ class MergeCells extends BasePlugin {
   /**
    * Merges the specified range.
    *
-   * @param {Number} startRow Start row of the merged cell.
-   * @param {Number} startColumn Start column of the merged cell.
-   * @param {Number} endRow End row of the merged cell.
-   * @param {Number} endColumn End column of the merged cell.
+   * @param {number} startRow Start row of the merged cell.
+   * @param {number} startColumn Start column of the merged cell.
+   * @param {number} endRow End row of the merged cell.
+   * @param {number} endColumn End column of the merged cell.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
    */
@@ -480,10 +480,10 @@ class MergeCells extends BasePlugin {
   /**
    * Unmerges the merged cell in the provided range.
    *
-   * @param {Number} startRow Start row of the merged cell.
-   * @param {Number} startColumn Start column of the merged cell.
-   * @param {Number} endRow End row of the merged cell.
-   * @param {Number} endColumn End column of the merged cell.
+   * @param {number} startRow Start row of the merged cell.
+   * @param {number} startColumn Start column of the merged cell.
+   * @param {number} endRow End row of the merged cell.
+   * @param {number} endColumn End column of the merged cell.
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */
@@ -525,8 +525,8 @@ class MergeCells extends BasePlugin {
    * Modifies the information on whether the current selection contains multiple cells. The `afterIsMultipleSelection` hook callback.
    *
    * @private
-   * @param {Boolean} isMultiple
-   * @returns {Boolean}
+   * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
+   * @returns {boolean}
    */
   onAfterIsMultipleSelection(isMultiple) {
     if (isMultiple) {
@@ -550,7 +550,7 @@ class MergeCells extends BasePlugin {
    * `modifyTransformStart` hook callback.
    *
    * @private
-   * @param {Object} delta The transformation delta.
+   * @param {object} delta The transformation delta.
    */
   onModifyTransformStart(delta) {
     const priv = privatePool.get(this);
@@ -618,7 +618,7 @@ class MergeCells extends BasePlugin {
    * `modifyTransformEnd` hook callback. Needed to handle "jumping over" merged merged cells, while selecting.
    *
    * @private
-   * @param {Object} delta The transformation delta.
+   * @param {object} delta The transformation delta.
    */
   onModifyTransformEnd(delta) {
     const currentSelectionRange = this.hot.getSelectedRangeLast();
@@ -646,8 +646,8 @@ class MergeCells extends BasePlugin {
    * `modifyGetCellCoords` hook callback. Swaps the `getCell` coords with the merged parent coords.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
+   * @param {number} row Row index.
+   * @param {number} column Column index.
    * @returns {Array}
    */
   onModifyGetCellCoords(row, column) {
@@ -663,7 +663,7 @@ class MergeCells extends BasePlugin {
    * `afterContextMenuDefaultOptions` hook callback.
    *
    * @private
-   * @param {Object} defaultOptions The default context menu options.
+   * @param {object} defaultOptions The default context menu options.
    */
   addMergeActionsToContextMenu(defaultOptions) {
     defaultOptions.items.push(
@@ -679,8 +679,8 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {HTMLElement} TD The cell to be modified.
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
    */
   onAfterRenderer(TD, row, col) {
     const mergedCell = this.mergedCellsCollection.get(row, col);
@@ -690,10 +690,10 @@ class MergeCells extends BasePlugin {
 
   /**
    * `beforeSetRangeEnd` hook callback.
-   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell
+   * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell.
    *
    * @private
-   * @param {Object} coords Cell coords.
+   * @param {object} coords Cell coords.
    */
   onBeforeSetRangeEnd(coords) {
     const selRange = this.hot.getSelectedRangeLast();
@@ -726,9 +726,9 @@ class MergeCells extends BasePlugin {
    * The `afterGetCellMeta` hook callback.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} col Column index.
-   * @param {Object} cellProperties The cell properties object.
+   * @param {number} row Row index.
+   * @param {number} col Column index.
+   * @param {object} cellProperties The cell properties object.
    */
   onAfterGetCellMeta(row, col, cellProperties) {
     const mergeParent = this.mergedCellsCollection.get(row, col);
@@ -748,7 +748,7 @@ class MergeCells extends BasePlugin {
    * `afterViewportRowCalculatorOverride` hook callback.
    *
    * @private
-   * @param {Object} calc The row calculator object.
+   * @param {object} calc The row calculator object.
    */
   onAfterViewportRowCalculatorOverride(calc) {
     const colCount = this.hot.countCols();
@@ -781,7 +781,7 @@ class MergeCells extends BasePlugin {
    * `afterViewportColumnCalculatorOverride` hook callback.
    *
    * @private
-   * @param {Object} calc The column calculator object.
+   * @param {object} calc The column calculator object.
    */
   onAfterViewportColumnCalculatorOverride(calc) {
     const rowCount = this.hot.countRows();
@@ -815,7 +815,7 @@ class MergeCells extends BasePlugin {
    * @private
    * @param {Array} drag The drag area coordinates.
    * @param {Array} select The selection information.
-   * @return {Array} The new drag area.
+   * @returns {Array} The new drag area.
    */
   onModifyAutofillRange(drag, select) {
     this.autofillCalculations.correctSelectionAreaSize(select);
@@ -846,8 +846,8 @@ class MergeCells extends BasePlugin {
    * `afterCreateCol` hook callback.
    *
    * @private
-   * @param {Number} column Column index.
-   * @param {Number} count Number of created columns.
+   * @param {number} column Column index.
+   * @param {number} count Number of created columns.
    */
   onAfterCreateCol(column, count) {
     this.mergedCellsCollection.shiftCollections('right', column, count);
@@ -857,8 +857,8 @@ class MergeCells extends BasePlugin {
    * `afterRemoveCol` hook callback.
    *
    * @private
-   * @param {Number} column Column index.
-   * @param {Number} count Number of removed columns.
+   * @param {number} column Column index.
+   * @param {number} count Number of removed columns.
    */
   onAfterRemoveCol(column, count) {
     this.mergedCellsCollection.shiftCollections('left', column, count);
@@ -868,9 +868,9 @@ class MergeCells extends BasePlugin {
    * `afterCreateRow` hook callback.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} count Number of created rows.
-   * @param {String} source Source of change.
+   * @param {number} row Row index.
+   * @param {number} count Number of created rows.
+   * @param {string} source Source of change.
    */
   onAfterCreateRow(row, count, source) {
     if (source === 'auto') {
@@ -884,8 +884,8 @@ class MergeCells extends BasePlugin {
    * `afterRemoveRow` hook callback.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} count Number of removed rows.
+   * @param {number} row Row index.
+   * @param {number} count Number of removed rows.
    */
   onAfterRemoveRow(row, count) {
     this.mergedCellsCollection.shiftCollections('up', row, count);
@@ -896,7 +896,7 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {Array} changes The changes array.
-   * @param {String} source Determines the source of the change.
+   * @param {string} source Determines the source of the change.
    */
   onAfterChange(changes, source) {
     if (source !== 'Autofill.fill') {
@@ -911,7 +911,7 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {Array} corners Coordinates of the area corners.
-   * @param {String} className Class name for the area.
+   * @param {string} className Class name for the area.
    */
   onBeforeDrawAreaBorders(corners, className) {
     if (className && className === 'area') {
@@ -933,8 +933,8 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {CellCoords} coords Coordinates of the to-be-selected cell.
-   * @param {Number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down)
-   * @param {Number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down)
+   * @param {number} rowTransformDir Row transformation direction (negative value = up, 0 = none, positive value = down).
+   * @param {number} colTransformDir Column transformation direction (negative value = up, 0 = none, positive value = down).
    */
   onAfterModifyTransformStart(coords, rowTransformDir, colTransformDir) {
     if (!this.enabled) {
@@ -967,11 +967,11 @@ class MergeCells extends BasePlugin {
    * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
    *
    * @private
-   * @param {Number} currentRow Row index of the currently processed cell.
-   * @param {Number} currentColumn Column index of the currently cell.
+   * @param {number} currentRow Row index of the currently processed cell.
+   * @param {number} currentColumn Column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
-   * @param {Number|undefined} layerLevel Number indicating which layer of selection is currently processed.
-   * @returns {String|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
+   * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
+   * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
   onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
     return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
@@ -981,7 +981,7 @@ class MergeCells extends BasePlugin {
    * `beforeRemoveCellClassNames` hook callback. Used to remove additional class name from all cells in the table.
    *
    * @private
-   * @returns {String[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
+   * @returns {string[]} An `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
    */
   onBeforeRemoveCellClassNames() {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();

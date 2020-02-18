@@ -39,7 +39,7 @@ class PersistentState extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link PersistentState#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().persistentState;
@@ -86,8 +86,8 @@ class PersistentState extends BasePlugin {
   /**
    * Loads the value from local storage.
    *
-   * @param {String} key Storage key.
-   * @param {Object} saveTo Saved value from local storage.
+   * @param {string} key Storage key.
+   * @param {object} saveTo Saved value from local storage.
    */
   loadValue(key, saveTo) {
     saveTo.value = this.storage.loadValue(key);
@@ -96,7 +96,7 @@ class PersistentState extends BasePlugin {
   /**
    * Saves the data to local storage.
    *
-   * @param {String} key Storage key.
+   * @param {string} key Storage key.
    * @param {Mixed} value Value to save.
    */
   saveValue(key, value) {
@@ -106,7 +106,7 @@ class PersistentState extends BasePlugin {
   /**
    * Resets the data or all data from local storage.
    *
-   * @param {String} key [optional] Storage key.
+   * @param {string} key [optional] Storage key.
    */
   resetValue(key) {
     if (typeof key === 'undefined') {
