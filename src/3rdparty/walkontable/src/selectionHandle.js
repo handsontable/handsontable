@@ -1,5 +1,4 @@
 import {
-  getComputedStyle,
   innerWidth,
   innerHeight,
   offset,
@@ -418,19 +417,6 @@ class SelectionHandle {
       if (fromTH) {
         fromTD = fromTH;
       }
-    }
-
-    const style = getComputedStyle(fromTD, rootWindow);
-
-    if (parseInt(style.borderTopWidth, 10) > 0) {
-      // TODO this can be safely removed, because after fe829b29124b7ed9f249e6825492f0cfbcedf5e7 no TD has a top or left border
-      top += 1;
-      height = height > 0 ? height - 1 : 0;
-    }
-    if (parseInt(style.borderLeftWidth, 10) > 0) {
-      // TODO this can be safely removed, because after fe829b29124b7ed9f249e6825492f0cfbcedf5e7 no TD has a top or left border
-      left += 1;
-      width = width > 0 ? width - 1 : 0;
     }
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;

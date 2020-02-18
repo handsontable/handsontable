@@ -147,10 +147,6 @@ class Table {
       this.COLGROUP = rootDocument.createElement('colgroup');
       this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
     }
-
-    if (this.wot.getSetting('columnHeaders').length && !this.THEAD.childNodes.length) {
-      // this.THEAD.appendChild(rootDocument.createElement('TR'));
-    }
   }
 
   /**

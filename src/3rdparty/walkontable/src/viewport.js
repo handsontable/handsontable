@@ -230,11 +230,6 @@ class Viewport {
    * @returns {number}
    */
   getRowHeaderWidth() {
-    if (this.wot.overlay) {
-      // TODO remove this line, because wtViewport is a singleton for all instances, so this condition is never met
-      return this.wot.overlay.master.wtViewport.getRowHeaderWidth();
-    }
-
     // TODO simply sum this.headerWidths instead of this logic
 
     const rowHeadersWidthSetting = this.wot.getSetting('rowHeaderWidth');

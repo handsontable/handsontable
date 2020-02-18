@@ -2,7 +2,6 @@ import {
   addClass,
   empty,
   fastInnerHTML,
-  getComputedStyle,
   getCssTransform,
   hasClass,
   offset,
@@ -186,8 +185,8 @@ class SelectEditor extends BaseEditor {
     const containerOffset = offset(this.hot.rootElement);
     const scrollableContainer = wtOverlays.scrollableElement;
     const editorSection = this.checkEditorSection();
-    let width = outerWidth(this.TD) + 1;
-    let height = outerHeight(this.TD) + 1;
+    const width = outerWidth(this.TD) + 1;
+    const height = outerHeight(this.TD) + 1;
     let editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
     let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
     let cssTransformOffset;
@@ -225,17 +224,6 @@ class SelectEditor extends BaseEditor {
       selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
     } else {
       resetCssTransform(this.select);
-    }
-
-    const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
-
-    if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
-      // TODO this can be safely removed, because after fe829b29124b7ed9f249e6825492f0cfbcedf5e7 no TD has a top or left border
-      height -= 1;
-    }
-    if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
-      // TODO this can be safely removed, because after fe829b29124b7ed9f249e6825492f0cfbcedf5e7 no TD has a top or left border
-      width -= 1;
     }
 
     selectStyle.height = `${height}px`;
