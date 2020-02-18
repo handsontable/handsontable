@@ -21,7 +21,7 @@ function cellFrozenLineSummary(elem) {
   }
 
   if (suffix) {
-    return elem.innerText + suffix;
+    return elem.textContent + suffix;
   }
   return null;
 }
