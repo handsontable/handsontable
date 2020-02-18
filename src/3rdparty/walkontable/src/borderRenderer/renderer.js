@@ -92,16 +92,14 @@ export default class BorderRenderer {
     parentElement.appendChild(svg);
 
     const defs = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'defs');
-
     const clipPath = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
-    clipPath.setAttribute('id', `${this.uniqueDomId}-inner-clip`);
-
     const rect = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    this.clipPathShape = rect;
 
+    clipPath.setAttribute('id', `${this.uniqueDomId}-inner-clip`);
     clipPath.appendChild(rect);
     defs.appendChild(clipPath);
     svg.appendChild(defs);
+    this.clipPathShape = rect;
 
     return svg;
   }
