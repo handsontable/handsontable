@@ -603,7 +603,6 @@ class CollapsibleColumns extends BasePlugin {
       }
 
       stopImmediatePropagation(event);
-      return false;
     }
   }
 
