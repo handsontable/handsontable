@@ -26,6 +26,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
     let TR = this.rootNode.firstChild;
 
     const { columnsToRender } = this.table;
+
     if (columnHeadersCount || columnsToRender) {
       const allColumnsToRender = columnsToRender + rowHeadersCount;
 
@@ -47,6 +48,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
           this.renderedNodes -= 1;
         }
       }
+
       const theadChildrenLength = this.rootNode.childNodes.length;
 
       if (theadChildrenLength > columnHeadersCount) {

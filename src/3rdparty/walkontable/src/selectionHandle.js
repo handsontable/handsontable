@@ -441,7 +441,7 @@ class SelectionHandle {
     let [checkRow, checkCol] = [toRow, toColumn];
 
     if (hookResult && Array.isArray(hookResult)) {
-      [,, checkRow, checkCol] = hookResult;
+      [, , checkRow, checkCol] = hookResult;
     }
 
     if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {

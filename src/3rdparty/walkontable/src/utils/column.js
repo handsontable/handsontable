@@ -2,7 +2,7 @@ import {
   getScrollbarWidth,
 } from './../../../../helpers/dom/element';
 
-const defaultRowHeight = 50;
+const defaultRowHeaderWidth = 50;
 
 /**
  * Column utils class contains all necessary information about sizes of the columns.
@@ -99,7 +99,7 @@ export default class ColumnUtils {
     rowHeaderWidthSetting = wot.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
     if (rowHeaderWidthSetting === null || rowHeaderWidthSetting === void 0) {
-      rowHeaderWidthSetting = defaultRowHeight;
+      rowHeaderWidthSetting = defaultRowHeaderWidth;
     }
 
     {

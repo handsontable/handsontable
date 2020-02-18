@@ -1,6 +1,5 @@
 describe('manualColumnResize', () => {
   const id = 'testContainer';
-  const gridlineWidth = 1;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -18,7 +17,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(101);
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
@@ -47,7 +46,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: true
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(51);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
 
@@ -55,7 +54,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: [60, 50, 80]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(60 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(61);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(80);
   });
@@ -65,7 +64,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(101);
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
 
@@ -73,7 +72,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: [60, 50, 80]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(60 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(61);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(80);
   });
@@ -83,7 +82,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(101);
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
 
@@ -91,7 +90,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: void 0
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(51);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
@@ -101,7 +100,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: [100, 150, 180]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(101);
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
 
@@ -109,7 +108,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: true
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(101);
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
@@ -119,7 +118,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: [void 0, void 0, 120]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(51);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(120);
     expect(colWidth(spec().$container, 3)).toBe(50);
@@ -127,7 +126,7 @@ describe('manualColumnResize', () => {
 
     alter('insert_col', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth); // Added new row here.
+    expect(colWidth(spec().$container, 0)).toBe(51); // Added new row here.
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
     expect(colWidth(spec().$container, 3)).toBe(120);
@@ -136,7 +135,7 @@ describe('manualColumnResize', () => {
 
     alter('insert_col', 3);
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(51);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
     expect(colWidth(spec().$container, 3)).toBe(50); // Added new row here.
@@ -146,7 +145,7 @@ describe('manualColumnResize', () => {
 
     alter('insert_col', 5);
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(51);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
     expect(colWidth(spec().$container, 3)).toBe(50);
@@ -161,14 +160,14 @@ describe('manualColumnResize', () => {
       manualColumnResize: [void 0, void 0, 120]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(51);
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(120);
     expect(colWidth(spec().$container, 3)).toBe(50);
 
     alter('remove_col', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toBe(51);
     expect(colWidth(spec().$container, 1)).toBe(120);
     expect(colWidth(spec().$container, 2)).toBe(50);
     expect(colWidth(spec().$container, 3)).toBe(50);
@@ -373,7 +372,7 @@ describe('manualColumnResize', () => {
     const $resizedTh = $columnHeaders.eq(0);
 
     expect($resizedTh.text()).toEqual('Third');
-    expect($resizedTh.outerWidth()).toEqual(100 + gridlineWidth);
+    expect($resizedTh.outerWidth()).toEqual(101);
 
     // Sizes of remaining columns should stay the same
     for (let i = 1; i < $columnHeaders.length; i++) {
@@ -391,12 +390,12 @@ describe('manualColumnResize', () => {
       beforeColumnResize: beforeColumnResizeCallback
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
 
     resizeColumn(0, 100);
 
     expect(beforeColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
-    expect(colWidth(spec().$container, 0)).toEqual(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(101);
   });
 
   it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
@@ -406,7 +405,7 @@ describe('manualColumnResize', () => {
       manualColumnResize: true
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
 
     hot.addHook('beforeColumnResize', () => 100);
     hot.addHook('beforeColumnResize', () => 200);
@@ -428,7 +427,7 @@ describe('manualColumnResize', () => {
 
     await sleep(700);
 
-    expect(colWidth(spec().$container, 0)).toEqual(200 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(201);
   });
 
   it('should trigger an afterColumnResize event after column size changes', () => {
@@ -441,12 +440,12 @@ describe('manualColumnResize', () => {
       afterColumnResize: afterColumnResizeCallback
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
 
     resizeColumn(0, 100);
 
     expect(afterColumnResizeCallback).toHaveBeenCalledWith(100, 0, false, void 0, void 0, void 0);
-    expect(colWidth(spec().$container, 0)).toEqual(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(101);
   });
 
   it('should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)', () => {
@@ -459,12 +458,12 @@ describe('manualColumnResize', () => {
       afterColumnResize: afterColumnResizeCallback
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
 
     resizeColumn(0, 51);
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
   });
 
   it('should not trigger an afterColumnResize event if column size does not change (no mouseMove event)', () => {
@@ -477,7 +476,7 @@ describe('manualColumnResize', () => {
       afterColumnResize: afterColumnResizeCallback
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
 
     const $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
     $th.simulate('mouseover');
@@ -489,7 +488,7 @@ describe('manualColumnResize', () => {
     $resizer.simulate('mouseup');
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
   });
 
   it('should trigger an afterColumnResize after column size changes, after double click', async() => {
@@ -502,7 +501,7 @@ describe('manualColumnResize', () => {
       afterColumnResize: afterColumnResizeCallback
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(50 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(51);
 
     const $th = spec().$container.find('thead tr:eq(0) th:eq(0)');
 
@@ -534,7 +533,7 @@ describe('manualColumnResize', () => {
       columns: [{ width: 100 }, { width: 200 }, {}]
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(101);
     expect(colWidth(spec().$container, 1)).toEqual(200);
     expect(colWidth(spec().$container, 2)).toEqual(50);
 
@@ -562,7 +561,7 @@ describe('manualColumnResize', () => {
       colWidths: 100
     });
 
-    expect(colWidth(spec().$container, 0)).toEqual(100 + gridlineWidth);
+    expect(colWidth(spec().$container, 0)).toEqual(101);
     expect(colWidth(spec().$container, 1)).toEqual(100);
     expect(colWidth(spec().$container, 2)).toEqual(100);
 

@@ -198,7 +198,7 @@ describe('WalkontableSelectionHandle', () => {
     expect(spec().$table.css('height')).toBe('116px');
     expect($corner.position().top).toBe(109); // table.height - corner.height - corner.borderTop
     expect($corner.position().left).toBe(46);
-    expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true); // TODO why is this not true
+    expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
 
   it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
@@ -246,7 +246,7 @@ describe('WalkontableSelectionHandle', () => {
     expect(spec().$table.css('height')).toBe('24px');
     expect($corner.position().top).toBe(17); // table.height - corner.height - corner.borderTop
     expect($corner.position().left).toBe(44);
-    expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true); // TODO why is this not true
-    expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true); // TODO why is this not true
+    expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
+    expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 });

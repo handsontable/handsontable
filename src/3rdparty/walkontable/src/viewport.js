@@ -418,7 +418,7 @@ class Viewport {
       const proposedColumnsVisibleCalculator = this.createColumnsCalculator(FULLY_VISIBLE_TYPE);
 
       if (!(this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) &&
-          this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
+        this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator))) {
         runFastDraw = false;
       }
     }
@@ -463,7 +463,7 @@ class Viewport {
       return false;
 
     } else if (endRow > renderedEndRow ||
-              (endRow === renderedEndRow && endRow < this.wot.getSetting('totalRows') - 1)) {
+      (endRow === renderedEndRow && endRow < this.wot.getSetting('totalRows') - 1)) {
       return false;
     }
 
@@ -490,7 +490,7 @@ class Viewport {
       return false;
 
     } else if (endColumn > renderedEndColumn ||
-              (endColumn === renderedEndColumn && endColumn < this.wot.getSetting('totalColumns') - 1)) {
+      (endColumn === renderedEndColumn && endColumn < this.wot.getSetting('totalColumns') - 1)) {
       return false;
     }
 

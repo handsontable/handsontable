@@ -168,6 +168,7 @@ export default class BorderRenderer {
     // batch all DOM writes
     let width = Math.min(this.maxWidth, this.containerBoundingRect.width);
     let height = Math.min(this.maxHeight, this.containerBoundingRect.height);
+
     if (width < 0) {
       width = 0;
     }
@@ -460,9 +461,11 @@ export default class BorderRenderer {
     const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
 
     if (this.clipLeft === Infinity) {
-      const veryFirstTd = firstTd.parentElement.parentElement.querySelector('td');
-      if (veryFirstTd) {
-        const rect = veryFirstTd.getBoundingClientRect();
+      const firstTdInTbody = firstTd.parentElement.parentElement.querySelector('td');
+
+      if (firstTdInTbody) {
+        const rect = firstTdInTbody.getBoundingClientRect();
+
         this.clipLeft = Math.max(0, rect.left - this.containerBoundingRect.left + offsetToOverLapPrecedingGridline);
         this.clipTop = Math.max(0, rect.top - this.containerBoundingRect.top + offsetToOverLapPrecedingGridline);
       }

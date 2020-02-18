@@ -239,9 +239,6 @@
 .ht_clone_top_left_corner tbody tr:last-child td {
   border-bottom: 1px solid #5d6365;
 }
-/* .ht_clone_bottom_left_corner tbody tr:first-child th,
-.ht_clone_bottom_left_corner tbody tr:first-child td,
-.ht_clone_bottom tbody tr:first-child td, */
 .ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child th,
 .ht_clone_bottom_left_corner tbody.afterEmptyThead tr:first-child td,
 .ht_clone_bottom tbody.afterEmptyThead tr:first-child td {
