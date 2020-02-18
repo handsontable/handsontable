@@ -262,7 +262,7 @@ describe('NestedHeadersSettings', () => {
       ]);
     });
 
-    it(`should throw an exception when the first retrieved column settings overlaps the passed "columnIndex" argument`, () => {
+    it('should throw an exception when the first retrieved column settings overlaps the passed "columnIndex" argument', () => {
       const settings = new NestedHeadersSettings([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
@@ -290,7 +290,7 @@ describe('NestedHeadersSettings', () => {
       }).toThrowError('The first column settings cannot overlap the other header layers');
     });
 
-    it(`should throw an exception when the last retrieved column settings overlaps the passed "columnIndex"+"columnsLength" arguments`, () => {
+    it('should throw an exception when the last retrieved column settings overlaps the passed "columnIndex"+"columnsLength" arguments', () => {
       const settings = new NestedHeadersSettings([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],

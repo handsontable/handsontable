@@ -118,7 +118,7 @@ export default class SettingsNormalizer {
     // Normalize the length of each header layer to the same columns length
     arrayEach(nestedHeadersState, (columnsSettings) => {
       if (columnsSettings.length < columnsLength) {
-        const defaultSettings = arrayMap(new Array(columnsLength - columnsSettings.length), () => ({...headerDefaultSettings}));
+        const defaultSettings = arrayMap(new Array(columnsLength - columnsSettings.length), () => ({ ...headerDefaultSettings }));
 
         columnsSettings.splice(columnsSettings.length, 0, ...defaultSettings);
       }

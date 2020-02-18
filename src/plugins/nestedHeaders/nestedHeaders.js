@@ -5,20 +5,20 @@ import {
   empty,
 } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayMap } from '../../helpers/array';
-import { objectEach } from '../../helpers/object';
-import { toSingleLine } from '../../helpers/templateLiteralTag';
-import { warn } from '../../helpers/console';
+import { arrayEach } from '../../helpers/array';
+// import { objectEach } from '../../helpers/object';
+// import { toSingleLine } from '../../helpers/templateLiteralTag';
+// import { warn } from '../../helpers/console';
 import { registerPlugin } from '../../plugins';
 import BasePlugin from '../_base';
-import { CellCoords } from '../../3rdparty/walkontable/src';
-import GhostTable from './utils/ghostTable';
-import { HiddenMap } from '../../translations';
+// import { CellCoords } from '../../3rdparty/walkontable/src';
+// import GhostTable from './utils/ghostTable';
+// import { HiddenMap } from '../../translations';
 import { ColumnStatesManager } from './columnStatesManager';
 
 import './nestedHeaders.css';
 
-const PLUGIN_NAME = 'nestedHeaders';
+// const PLUGIN_NAME = 'nestedHeaders';
 
 /**
  * @plugin NestedHeaders
@@ -67,9 +67,9 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Check if plugin is enabled
+   * Check if plugin is enabled.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().nestedHeaders;
@@ -165,9 +165,8 @@ class NestedHeaders extends BasePlugin {
    * Generates the appropriate header renderer for a header row.
    *
    * @private
-   * @param {Number} headerRow The header row.
+   * @param {number} headerRow The header row.
    * @returns {Function}
-   *
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerRow) {
@@ -299,7 +298,7 @@ class NestedHeaders extends BasePlugin {
    * Make the renderer render the first nested column in its entirety.
    *
    * @private
-   * @param {Object} calc Viewport column calculator.
+   * @param {object} calc Viewport column calculator.
    */
   onAfterViewportColumnCalculatorOverride(calc) {
     // let newStartColumn = calc.startColumn;
@@ -320,7 +319,7 @@ class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event Mouse event.
-   * @param {Object} coords Clicked cell coords.
+   * @param {object} coords Clicked cell coords.
    */
   onAfterOnCellMouseDown(event, coords) {
     // if (coords.row < 0) {
@@ -340,7 +339,7 @@ class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event Mouse event.
-   * @param {Object} coords Clicked cell coords.
+   * @param {object} coords Clicked cell coords.
    * @param {HTMLElement} TD
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
@@ -410,7 +409,7 @@ class NestedHeaders extends BasePlugin {
    * `afterGetColumnHeader` hook callback - prepares the header structure.
    *
    * @private
-   * @param {Array} renderersArray Array of renderers.
+   * @param {array} renderersArray Array of renderers.
    */
   onAfterGetColumnHeaderRenderers(renderersArray) {
     if (renderersArray) {
@@ -431,7 +430,7 @@ class NestedHeaders extends BasePlugin {
    * @private
    * @param width Width from hook.
    * @param column Visual index of an column.
-   * @returns {Number}
+   * @returns {number}
    */
   onModifyColWidth(width, column) {
     // const cachedWidth = this.ghostTable.widthsCache[column];

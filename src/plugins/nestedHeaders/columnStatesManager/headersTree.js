@@ -7,7 +7,7 @@ export default class HeadersTree {
   buildTree() {
     const columnsCount = this.headersSettings.getColumnsCount();
 
-    let columnIndex = 0
+    let columnIndex = 0;
 
     while (columnIndex < columnsCount) {
       const columnSettings = this.headersSettings.getColumnSettings(0, columnIndex);

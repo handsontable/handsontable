@@ -138,29 +138,25 @@ describe('HeadersTree', () => {
         expect(childs.length).toBe(2);
 
         // tree depth 2 (the left leaf)
-        {
-          const childs = root.childs[0].childs;
+        const childs2left = root.childs[0].childs;
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'C1',
-            colspan: 2,
-          }));
-          expect(childs[1].data).toEqual(expect.objectContaining({
-            label: 'C2',
-            colspan: 1,
-          }));
-          expect(childs.length).toBe(2);
-        }
+        expect(childs2left[0].data).toEqual(expect.objectContaining({
+          label: 'C1',
+          colspan: 2,
+        }));
+        expect(childs2left[1].data).toEqual(expect.objectContaining({
+          label: 'C2',
+          colspan: 1,
+        }));
+        expect(childs2left.length).toBe(2);
         // tree depth 2 (the right leaf)
-        {
-          const childs = root.childs[1].childs;
+        const childs2right = root.childs[1].childs;
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'C3',
-            colspan: 1,
-          }));
-          expect(childs.length).toBe(1);
-        }
+        expect(childs2right[0].data).toEqual(expect.objectContaining({
+          label: 'C3',
+          colspan: 1,
+        }));
+        expect(childs2right.length).toBe(1);
       }
     });
 
@@ -176,9 +172,9 @@ describe('HeadersTree', () => {
        *   +----+----+----+----+
        */
       const tree = createTree([
-        ['A1', {label: 'A2', colspan: 8}, 'A3'],
-        ['B1', {label: 'B2', colspan: 4}, {label: 'B3', colspan: 4}, 'B4'],
-        ['C1', 'C2', {label: 'C3', colspan: 3}, {label: 'C4', colspan: 2}, {label: 'C5', colspan: 2}, 'C6'],
+        ['A1', { label: 'A2', colspan: 8 }, 'A3'],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 4 }, 'B4'],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }, { label: 'C5', colspan: 2 }, 'C6'],
         ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9'],
       ]);
 
@@ -256,90 +252,83 @@ describe('HeadersTree', () => {
         }));
         expect(childs.length).toBe(2);
 
-        // tree depth 2 (left leaf)
-        {
-          const childs = root.childs[0].childs; // B2
+        // tree depth 2 (left-left leaf)
+        const childs2Left = root.childs[0].childs; // B2
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'C2',
-            colspan: 1,
-          }));
-          expect(childs[1].data).toEqual(expect.objectContaining({
-            label: 'C3',
-            colspan: 3,
-          }));
-          expect(childs.length).toBe(2);
-        }
+        expect(childs2Left[0].data).toEqual(expect.objectContaining({
+          label: 'C2',
+          colspan: 1,
+        }));
+        expect(childs2Left[1].data).toEqual(expect.objectContaining({
+          label: 'C3',
+          colspan: 3,
+        }));
+        expect(childs2Left.length).toBe(2);
+
         // tree depth 2 (right leaf)
-        {
-          const childs = root.childs[1].childs; // B3
+        const childs2Right = root.childs[1].childs; // B3
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'C4',
-            colspan: 2,
-          }));
-          expect(childs[1].data).toEqual(expect.objectContaining({
-            label: 'C5',
-            colspan: 2,
-          }));
-          expect(childs.length).toBe(2);
-        }
-        // tree depth 3 (left leaf)
-        {
-          const childs = root.childs[0].childs[0].childs; // C2
+        expect(childs2Right[0].data).toEqual(expect.objectContaining({
+          label: 'C4',
+          colspan: 2,
+        }));
+        expect(childs2Right[1].data).toEqual(expect.objectContaining({
+          label: 'C5',
+          colspan: 2,
+        }));
+        expect(childs2Right.length).toBe(2);
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'D2',
-            colspan: 1,
-          }));
-          expect(childs.length).toBe(1);
-        }
-        // tree depth 3 (right leaf)
-        {
-          const childs = root.childs[0].childs[1].childs; // C3
+        // tree depth 3 (left-left leaf)
+        const childs3LeftLeft = root.childs[0].childs[0].childs; // C2
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'D3',
-            colspan: 1,
-          }));
-          expect(childs[1].data).toEqual(expect.objectContaining({
-            label: 'D4',
-            colspan: 1,
-          }));
-          expect(childs[2].data).toEqual(expect.objectContaining({
-            label: 'D5',
-            colspan: 1,
-          }));
-          expect(childs.length).toBe(3);
-        }
-        // tree depth 3 (left leaf)
-        {
-          const childs = root.childs[1].childs[0].childs; // C4
+        expect(childs3LeftLeft[0].data).toEqual(expect.objectContaining({
+          label: 'D2',
+          colspan: 1,
+        }));
+        expect(childs3LeftLeft.length).toBe(1);
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'D6',
-            colspan: 1,
-          }));
-          expect(childs[1].data).toEqual(expect.objectContaining({
-            label: 'D7',
-            colspan: 1,
-          }));
-          expect(childs.length).toBe(2);
-        }
-        // tree depth 3 (right leaf)
-        {
-          const childs = root.childs[1].childs[1].childs; // C5
+        // tree depth 3 (left-right leaf)
+        const childs3LeftRight = root.childs[0].childs[1].childs; // C3
 
-          expect(childs[0].data).toEqual(expect.objectContaining({
-            label: 'D8',
-            colspan: 1,
-          }));
-          expect(childs[1].data).toEqual(expect.objectContaining({
-            label: 'D9',
-            colspan: 1,
-          }));
-          expect(childs.length).toBe(2);
-        }
+        expect(childs3LeftRight[0].data).toEqual(expect.objectContaining({
+          label: 'D3',
+          colspan: 1,
+        }));
+        expect(childs3LeftRight[1].data).toEqual(expect.objectContaining({
+          label: 'D4',
+          colspan: 1,
+        }));
+        expect(childs3LeftRight[2].data).toEqual(expect.objectContaining({
+          label: 'D5',
+          colspan: 1,
+        }));
+        expect(childs3LeftRight.length).toBe(3);
+
+        // tree depth 3 (right-left leaf)
+        const childs3RightLeft = root.childs[1].childs[0].childs; // C4
+
+        expect(childs3RightLeft[0].data).toEqual(expect.objectContaining({
+          label: 'D6',
+          colspan: 1,
+        }));
+        expect(childs3RightLeft[1].data).toEqual(expect.objectContaining({
+          label: 'D7',
+          colspan: 1,
+        }));
+        expect(childs3RightLeft.length).toBe(2);
+
+        // tree depth 3 (right-right leaf)
+        const childs3RightRight = root.childs[1].childs[1].childs; // C5
+
+        expect(childs3RightRight[0].data).toEqual(expect.objectContaining({
+          label: 'D8',
+          colspan: 1,
+        }));
+        expect(childs3RightRight[1].data).toEqual(expect.objectContaining({
+          label: 'D9',
+          colspan: 1,
+        }));
+        expect(childs3RightRight.length).toBe(2);
       }
       {
         const root = tree.rootNodes.get(9);
