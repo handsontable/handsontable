@@ -2,6 +2,7 @@ import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand, compa
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 import { GRIDLINE_WIDTH } from '../utils/gridline';
+import { isMSBrowser } from '../../../../../src/helpers/browser';
 
 const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
 
@@ -174,6 +175,18 @@ export default class BorderRenderer {
       height = 0;
     }
     this.svgResizer(width, height);
+
+    if (isMSBrowser()) {
+      // This section fixes blurry appearence with REM units in IE/Edge (EdgeHTML)
+      // See: https://github.com/handsontable/handsontable/issues/6667
+      const flooredTop = Math.round(this.containerBoundingRect.top);
+      const flooredLeft = Math.round(this.containerBoundingRect.left);
+      const diffY = this.containerBoundingRect.top - flooredTop;
+      const diffX = this.containerBoundingRect.left - flooredLeft;
+      if (diffY !== 0 || diffX !== 0) {
+        this.svg.style.transform = `translate(${-diffX}px, ${-diffY}px)`;
+      }
+    }
 
     this.clipLeft += this.padding.left;
     this.clipTop += this.padding.top;
