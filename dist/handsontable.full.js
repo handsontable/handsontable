@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.4.0
- * Release date: 12/02/2020 (built at 11/02/2020 14:39:58)
+ * Version: 7.4.1
+ * Release date: 19/02/2020 (built at 18/02/2020 08:18:04)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -1060,26 +1060,38 @@ function hasAccessToParentWindow(frame) {
   return !!Object.getPrototypeOf(frame.parent);
 }
 /**
- * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ * Goes up the DOM tree (including given element) until it finds an parent element that matches the nodes or nodes name.
  * This method goes up through web components.
  *
- * @param {HTMLElement} element Element from which traversing is started
- * @param {Array} nodes Array of elements or Array of elements name
- * @param {HTMLElement} [until]
- * @returns {HTMLElement|null}
+ * @param {Node} element Element from which traversing is started.
+ * @param {(string | Node)[]} [nodes] Array of elements or Array of elements name (in uppercase form).
+ * @param {Node} [until] The element until the traversing ends.
+ * @returns {Node|null}
  */
 
 
-function closest(element, nodes, until) {
+function closest(element) {
+  var nodes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  var until = arguments.length > 2 ? arguments[2] : undefined;
+  var _Node = Node,
+      ELEMENT_NODE = _Node.ELEMENT_NODE,
+      DOCUMENT_FRAGMENT_NODE = _Node.DOCUMENT_FRAGMENT_NODE;
   var elementToCheck = element;
 
-  while (elementToCheck !== null && elementToCheck !== until) {
-    if (elementToCheck.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(elementToCheck.nodeName) > -1 || nodes.indexOf(elementToCheck) > -1)) {
+  while (elementToCheck !== null && elementToCheck !== void 0 && elementToCheck !== until) {
+    var _elementToCheck = elementToCheck,
+        nodeType = _elementToCheck.nodeType,
+        nodeName = _elementToCheck.nodeName;
+
+    if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
       return elementToCheck;
     }
 
-    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = elementToCheck.host;
+    var _elementToCheck2 = elementToCheck,
+        host = _elementToCheck2.host;
+
+    if (host && nodeType === DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = host;
     } else {
       elementToCheck = elementToCheck.parentNode;
     }
@@ -4088,7 +4100,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "7.4.0";
+  var hotVersion = "7.4.1";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -4098,7 +4110,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("12/02/2020", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("19/02/2020", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -49549,10 +49561,10 @@ function () {
         this.instance.getSetting('onCellCornerMouseDown', event, realTarget);
       } else if (cell.TD && this.instance.hasSetting('onCellMouseDown')) {
         this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
-      } // doubleclick reacts only for left mouse button
+      } // doubleclick reacts only for left mouse button or from touch events
 
 
-      if (event.button === 0 && cell.TD) {
+      if ((event.button === 0 || this.instance.touchApplied) && cell.TD) {
         priv.dblClickOrigin[0] = cell.TD;
         clearTimeout(priv.dblClickTimeout[0]);
         priv.dblClickTimeout[0] = setTimeout(function () {
@@ -49638,10 +49650,10 @@ function () {
 
       if (cell.TD && this.instance.hasSetting('onCellMouseUp')) {
         this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
-      } // if not left mouse button, then ignore
+      } // if not left mouse button, and the origin event is not comes from touch
 
 
-      if (event.button !== 0) {
+      if (event.button !== 0 && !this.instance.touchApplied) {
         return;
       }
 
@@ -49688,8 +49700,7 @@ function () {
     key: "onTouchEnd",
     value: function onTouchEnd(event) {
       var excludeTags = ['A', 'BUTTON', 'INPUT'];
-      var target = event.target;
-      this.instance.touchApplied = false; // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
+      var target = event.target; // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
       // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
       // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
 
@@ -49698,6 +49709,7 @@ function () {
       }
 
       this.onMouseUp(event);
+      this.instance.touchApplied = false;
     }
     /**
      * Clears double-click timeouts and destroys the internal eventManager instance.
@@ -60992,8 +61004,8 @@ Handsontable.EventManager = _eventManager.default;
 Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "11/02/2020 14:39:58";
-Handsontable.version = "7.4.0"; // Export Hooks singleton
+Handsontable.buildDate = "18/02/2020 08:18:04";
+Handsontable.version = "7.4.1"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
