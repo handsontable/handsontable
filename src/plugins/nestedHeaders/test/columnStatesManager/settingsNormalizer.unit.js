@@ -1,20 +1,20 @@
-import NestedHeadersSettings from 'handsontable/plugins/nestedHeaders/utils/settings';
+import SettingsNormalizer from 'handsontable/plugins/nestedHeaders/columnStatesManager/settingsNormalizer';
 
-describe('NestedHeadersSettings', () => {
+describe('SettingsNormalizer', () => {
   describe('constructor', () => {
     it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
       {
-        const settings = new NestedHeadersSettings();
+        const settings = new SettingsNormalizer();
 
         expect(settings.data).toEqual([]);
       }
       {
-        const settings = new NestedHeadersSettings([]);
+        const settings = new SettingsNormalizer([]);
 
         expect(settings.data).toEqual([]);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           ['A1'],
           [{ label: true }, 'B2', 4],
           [],
@@ -41,7 +41,7 @@ describe('NestedHeadersSettings', () => {
     });
 
     it('should normalize user-defined settings into known uniform structure data (advanced settings, inconsistent columns length)', () => {
-      const settings = new NestedHeadersSettings([
+      const settings = new SettingsNormalizer([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -101,7 +101,7 @@ describe('NestedHeadersSettings', () => {
     });
 
     it('should normalize user-defined settings even when it contains overlapping headers', () => {
-      const settings = new NestedHeadersSettings([
+      const settings = new SettingsNormalizer([
         ['A1', 'A2'],
         [{ label: 'B1' }, { label: 'B2', colspan: 4 }],
         ['C1', { label: 'C2', colspan: 3 }, { label: 'C3', colspan: 2 }, 'C4'],
@@ -142,19 +142,19 @@ describe('NestedHeadersSettings', () => {
   describe('getColumnSettings', () => {
     it('should return null when user-defined settings are empty', () => {
       {
-        const settings = new NestedHeadersSettings();
+        const settings = new SettingsNormalizer();
 
         expect(settings.getColumnSettings(0, 0)).toBe(null);
       }
       {
-        const settings = new NestedHeadersSettings([[]]);
+        const settings = new SettingsNormalizer([[]]);
 
         expect(settings.getColumnSettings(0, 0)).toBe(null);
       }
     });
 
     it('should return null when passed header level exceeds the user-defined nested headers array settings', () => {
-      const settings = new NestedHeadersSettings([[
+      const settings = new SettingsNormalizer([[
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
@@ -164,7 +164,7 @@ describe('NestedHeadersSettings', () => {
     });
 
     it('should return null when passed column index exceeds the user-defined nested headers array settings', () => {
-      const settings = new NestedHeadersSettings([[
+      const settings = new SettingsNormalizer([[
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
@@ -174,7 +174,7 @@ describe('NestedHeadersSettings', () => {
     });
 
     it('should return column settings for specified coordinates', () => {
-      const settings = new NestedHeadersSettings([
+      const settings = new SettingsNormalizer([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -192,19 +192,19 @@ describe('NestedHeadersSettings', () => {
   describe('getColumnsSettings', () => {
     it('should return an empty array when user-defined settings are empty', () => {
       {
-        const settings = new NestedHeadersSettings();
+        const settings = new SettingsNormalizer();
 
         expect(settings.getColumnsSettings(0, 0).length).toBe(0);
       }
       {
-        const settings = new NestedHeadersSettings([[]]);
+        const settings = new SettingsNormalizer([[]]);
 
         expect(settings.getColumnsSettings(0, 0).length).toBe(0);
       }
     });
 
     it('should return columns settings for specified header level', () => {
-      const settings = new NestedHeadersSettings([
+      const settings = new SettingsNormalizer([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -232,7 +232,7 @@ describe('NestedHeadersSettings', () => {
     });
 
     it('should return columns settings for specified header level and column length', () => {
-      const settings = new NestedHeadersSettings([
+      const settings = new SettingsNormalizer([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -263,7 +263,7 @@ describe('NestedHeadersSettings', () => {
     });
 
     it('should throw an exception when the first retrieved column settings overlaps the passed "columnIndex" argument', () => {
-      const settings = new NestedHeadersSettings([
+      const settings = new SettingsNormalizer([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -291,7 +291,7 @@ describe('NestedHeadersSettings', () => {
     });
 
     it('should throw an exception when the last retrieved column settings overlaps the passed "columnIndex"+"columnsLength" arguments', () => {
-      const settings = new NestedHeadersSettings([
+      const settings = new SettingsNormalizer([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -316,17 +316,17 @@ describe('NestedHeadersSettings', () => {
   describe('getLayersCount', () => {
     it('should return proper layers count based on user-defined settings', () => {
       {
-        const settings = new NestedHeadersSettings();
+        const settings = new SettingsNormalizer();
 
         expect(settings.getLayersCount()).toBe(0);
       }
       {
-        const settings = new NestedHeadersSettings([]);
+        const settings = new SettingsNormalizer([]);
 
         expect(settings.getLayersCount()).toBe(0);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           ['A1', 'A2'],
           [],
           [],
@@ -335,7 +335,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getLayersCount()).toBe(3);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [{ label: 'A1' }, { label: 'A2', colspan: 1 }],
           [],
           [],
@@ -344,7 +344,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getLayersCount()).toBe(3);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }],
           [],
           [],
@@ -358,17 +358,17 @@ describe('NestedHeadersSettings', () => {
   describe('getColumnsCount', () => {
     it('should return proper columns count based on user-defined settings', () => {
       {
-        const settings = new NestedHeadersSettings();
+        const settings = new SettingsNormalizer();
 
         expect(settings.getColumnsCount()).toBe(0);
       }
       {
-        const settings = new NestedHeadersSettings([]);
+        const settings = new SettingsNormalizer([]);
 
         expect(settings.getColumnsCount()).toBe(0);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [],
           [],
           [],
@@ -377,7 +377,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(0);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           ['A1', 'A2'],
           [],
           [],
@@ -386,7 +386,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(2);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [{ label: 'A1' }, { label: 'A2', colspan: 1 }],
           [],
           [],
@@ -395,7 +395,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(2);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }],
           [],
           [],
@@ -404,7 +404,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(5);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [],
           ['A1', 'A2', 'A3'],
           [],
@@ -413,7 +413,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(3);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [],
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }, 'A3'],
           [],
@@ -422,7 +422,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(6);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [],
           [],
           ['A1', 'A2', 'A3', 'A4'],
@@ -431,7 +431,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(4);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [],
           [],
           [{ label: 'A1' }, { label: 'A2', colspan: 1 }, { label: 'A3', colspan: 1, foo: 'bar' }, 'A4'],
@@ -440,7 +440,7 @@ describe('NestedHeadersSettings', () => {
         expect(settings.getColumnsCount()).toBe(4);
       }
       {
-        const settings = new NestedHeadersSettings([
+        const settings = new SettingsNormalizer([
           [],
           [],
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2, foo: 'bar' }, 'A4'],

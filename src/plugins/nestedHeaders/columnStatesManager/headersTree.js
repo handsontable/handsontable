@@ -4,6 +4,10 @@ export default class HeadersTree {
     this.headersSettings = nestedHeadersSettings;
   }
 
+  getRoots() {
+    return Array.from(this.rootNodes.values());
+  }
+
   buildTree() {
     const columnsCount = this.headersSettings.getColumnsCount();
 

@@ -1,6 +1,7 @@
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import { isObject } from '../../../helpers/object';
 import { stringify } from '../../../helpers/mixed';
+import { HEADER_DEFAULT_SETTINGS } from './constants';
 
 export default class SettingsNormalizer {
   constructor(nestedHeadersSettings = []) {
@@ -68,11 +69,6 @@ export default class SettingsNormalizer {
   }
 
   normalize(nestedHeadersSettings) {
-    const headerDefaultSettings = {
-      label: '',
-      colspan: 1,
-      hidden: false,
-    };
     const nestedHeadersState = [];
 
     // Normalize array items (header settings) into one shape - literal object with default props
@@ -83,7 +79,7 @@ export default class SettingsNormalizer {
 
       arrayEach(columnsSettings, (columnSettings) => {
         const headerSettings = {
-          ...headerDefaultSettings,
+          ...HEADER_DEFAULT_SETTINGS,
         };
 
         if (isObject(columnSettings)) {
@@ -105,7 +101,7 @@ export default class SettingsNormalizer {
         if (headerSettings.colspan > 1) {
           for (let i = 0; i < headerSettings.colspan - 1; i++) {
             columns.push({
-              ...headerDefaultSettings,
+              ...HEADER_DEFAULT_SETTINGS,
               hidden: true,
             });
           }
@@ -118,7 +114,7 @@ export default class SettingsNormalizer {
     // Normalize the length of each header layer to the same columns length
     arrayEach(nestedHeadersState, (columnsSettings) => {
       if (columnsSettings.length < columnsLength) {
-        const defaultSettings = arrayMap(new Array(columnsLength - columnsSettings.length), () => ({ ...headerDefaultSettings }));
+        const defaultSettings = arrayMap(new Array(columnsLength - columnsSettings.length), () => ({ ...HEADER_DEFAULT_SETTINGS }));
 
         columnsSettings.splice(columnsSettings.length, 0, ...defaultSettings);
       }

@@ -1,8 +1,8 @@
 import HeadersTree from 'handsontable/plugins/nestedHeaders/columnStatesManager/headersTree';
-import NestedHeadersSettings from 'handsontable/plugins/nestedHeaders/utils/settings';
+import SettingsNormalizer from 'handsontable/plugins/nestedHeaders/columnStatesManager/settingsNormalizer';
 
 function createTree(nestedHeadersSettings) {
-  return new HeadersTree(new NestedHeadersSettings(nestedHeadersSettings));
+  return new HeadersTree(new SettingsNormalizer(nestedHeadersSettings));
 }
 
 describe('HeadersTree', () => {

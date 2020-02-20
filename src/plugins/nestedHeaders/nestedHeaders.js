@@ -92,8 +92,6 @@ class NestedHeaders extends BasePlugin {
     this.addHook('afterViewportColumnCalculatorOverride', calc => this.onAfterViewportColumnCalculatorOverride(calc));
     this.addHook('modifyColWidth', (width, column) => this.onModifyColWidth(width, column));
 
-    this.columnHeaderLevelCount = this.hot.view ? this.hot.view.wt.getSetting('columnHeaders').length : 0;
-
     super.enablePlugin();
   }
 
@@ -103,7 +101,6 @@ class NestedHeaders extends BasePlugin {
   disablePlugin() {
     this.clearColspans();
 
-    this.columnHeaderLevelCount = 0;
     this.columnStatesManager.clear();
     // this.ghostTable.clear();
 
@@ -170,66 +167,43 @@ class NestedHeaders extends BasePlugin {
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerRow) {
-    const _this = this;
+    const colspanMatrix = this.columnStatesManager.generateColspanMatrix();
 
-    return function(renderedColumnIndex, TH) {
+    return (renderedColumnIndex, TH) => {
       // let visualColumnsIndex = renderedColumnIndex;
-      let visualColumnsIndex = _this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+      let visualColumnsIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
       if (visualColumnsIndex === null) {
         visualColumnsIndex = renderedColumnIndex;
       }
 
-      // console.log(renderedColumnIndex, visualColumnsIndex);
-      return;
+      // console.log(headerRow, renderedColumnIndex, visualColumnsIndex, colspanMatrix[headerRow][visualColumnsIndex]);
 
-      const { rootDocument } = _this.hot;
-
-      TH.removeAttribute('colspan');
-      TH.removeAttribute('data-collapsible');
-      removeClass(TH, 'hiddenHeader');
-
-      const colspanDescriptor = _this.colspanArray[headerRow][visualColumnsIndex];
-
-      // console.log(colspanDescriptor);
-
+      const { rootDocument } = this.hot;
       // header row is the index of header row counting from the top (=> positive values)
-      if (colspanDescriptor && colspanDescriptor.origColspan > 1) {
-        const colspan = colspanDescriptor.colspan;
-        const fixedColumnsLeft = _this.hot.getSettings().fixedColumnsLeft || 0;
-        const { leftOverlay, topLeftCornerOverlay } = _this.hot.view.wt.wtOverlays;
-        const isInTopLeftCornerOverlay = topLeftCornerOverlay ? topLeftCornerOverlay.clone.wtTable.THEAD.contains(TH) : false;
-        const isInLeftOverlay = leftOverlay ? leftOverlay.clone.wtTable.THEAD.contains(TH) : false;
+      const { colspan, label, hidden } = colspanMatrix[headerRow][visualColumnsIndex] ?? { label: '' };
 
-        TH.setAttribute('data-collapsible', '');
+      TH.setAttribute('colspan', colspan);
 
-        if (!colspanDescriptor.isCollapsed && colspan > 1) {
-          TH.setAttribute('colspan', isInTopLeftCornerOverlay || isInLeftOverlay ? Math.min(colspan, fixedColumnsLeft - visualColumnsIndex) : colspan);
-        }
-
-        if (isInTopLeftCornerOverlay || isInLeftOverlay && visualColumnsIndex !== fixedColumnsLeft - 1) {
-          addClass(TH, 'overlayEdge');
-        }
-      }
-
-      if (colspanDescriptor && colspanDescriptor.hidden) {
+      if (hidden) {
         addClass(TH, 'hiddenHeader');
+      } else {
+        removeClass(TH, 'hiddenHeader');
       }
 
       empty(TH);
 
       const divEl = rootDocument.createElement('div');
-      addClass(divEl, 'relative');
       const spanEl = rootDocument.createElement('span');
-      addClass(spanEl, 'colHeader');
 
-      fastInnerHTML(spanEl, colspanDescriptor ? colspanDescriptor.label || '' : '');
+      addClass(divEl, 'relative');
+      addClass(spanEl, 'colHeader');
+      fastInnerHTML(spanEl, label);
 
       divEl.appendChild(spanEl);
-
       TH.appendChild(divEl);
 
-      _this.hot.runHooks('afterGetColHeader', visualColumnsIndex, TH);
+      this.hot.runHooks('afterGetColHeader', visualColumnsIndex, TH);
     };
   }
 
@@ -245,13 +219,14 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
-    return; // TODO
+    return;
 
     const { wtOverlays } = this.hot.view.wt;
     const selectionByHeader = this.hot.selection.isSelectedByColumnHeader();
+    const columnHeaderLevelCount = this.columnStatesManager.getLayersCount();
     const from = Math.min(selection[1], selection[3]);
     const to = Math.max(selection[1], selection[3]);
-    const levelLimit = selectionByHeader ? -1 : this.columnHeaderLevelCount - 1;
+    const levelLimit = selectionByHeader ? -1 : columnHeaderLevelCount - 1;
 
     const changes = [];
     const classNameModifier = className => (TH, modifier) => () => modifier(TH, className);
@@ -259,12 +234,12 @@ class NestedHeaders extends BasePlugin {
     const activeHeader = classNameModifier('ht__active_highlight');
 
     rangeEach(from, to, (column) => {
-      for (let level = this.columnHeaderLevelCount - 1; level > -1; level--) {
+      for (let level = columnHeaderLevelCount - 1; level > -1; level--) {
         const visibleColumnIndex = this.getNestedParent(level, column);
         const topTH = wtOverlays.topOverlay ? wtOverlays.topOverlay.clone.wtTable.getColumnHeader(visibleColumnIndex, level) : void 0;
         const topLeftTH = wtOverlays.topLeftCornerOverlay ? wtOverlays.topLeftCornerOverlay.clone.wtTable.getColumnHeader(visibleColumnIndex, level) : void 0;
         const listTH = [topTH, topLeftTH];
-        const colspanLen = this.getColspan(level - this.columnHeaderLevelCount, visibleColumnIndex);
+        const colspanLen = this.getColspan(level - columnHeaderLevelCount, visibleColumnIndex);
         const isInSelection = visibleColumnIndex >= from && (visibleColumnIndex + colspanLen - 1) <= to;
 
         arrayEach(listTH, (TH) => {
@@ -400,8 +375,6 @@ class NestedHeaders extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    this.columnHeaderLevelCount = this.hot.view.wt.getSetting('columnHeaders').length;
-
     // this.ghostTable.buildWidthsMapper();
   }
 
@@ -443,8 +416,7 @@ class NestedHeaders extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.columnHeaderLevelCount = null;
-    this.columnStatesManager.destroy();
+    this.columnStatesManager.clear();
     this.columnStatesManager = null;
 
     super.destroy();

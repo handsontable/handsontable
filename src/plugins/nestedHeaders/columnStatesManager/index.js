@@ -1,5 +1,6 @@
 import SettingsNormalizer from './settingsNormalizer';
 import HeadersTree from './headersTree';
+import { colspanGenerator } from './colspanGenerator';
 
 export class ColumnStatesManager {
   constructor() {
@@ -19,8 +20,8 @@ export class ColumnStatesManager {
     }
   }
 
-  generate() {
-
+  generateColspanMatrix() {
+    return colspanGenerator(this.headersTree.getRoots());
   }
 
   getLayersCount() {
@@ -29,5 +30,9 @@ export class ColumnStatesManager {
 
   getColumnsCount() {
     return this.settings.getColumnsCount();
+  }
+
+  clear() {
+
   }
 }
