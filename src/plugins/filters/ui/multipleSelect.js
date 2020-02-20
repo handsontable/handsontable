@@ -278,12 +278,16 @@ class MultipleSelectUI extends BaseUI {
    * @param {DOMEvent} event The mouse event object.
    */
   onSelectAllClick(event) {
+    const changes = [];
+
     event.preventDefault();
     arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = true;
 
-      this.itemsBox.setSourceDataAtRowProp(dataRowToChangesArray(row, rowIndex));
+      changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
+
+    this.itemsBox.setSourceDataAtRowProp(changes);
     this.itemsBox.render();
   }
 
@@ -294,12 +298,16 @@ class MultipleSelectUI extends BaseUI {
    * @param {DOMEvent} event The mouse event object.
    */
   onClearAllClick(event) {
+    const changes = [];
+
     event.preventDefault();
     arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = false;
 
-      this.itemsBox.setSourceDataAtRowProp(dataRowToChangesArray(row, rowIndex));
+      changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
+
+    this.itemsBox.setSourceDataAtRowProp(changes);
     this.itemsBox.render();
   }
 }

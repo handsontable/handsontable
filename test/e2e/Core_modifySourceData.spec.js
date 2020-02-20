@@ -118,6 +118,8 @@ describe('Core_modifySourceData', () => {
         const data = [
           { a: { test: 1, x: 'c' }, b: 2, c: 3 },
           { a: { test: 4, x: 'd' }, b: 5, c: 6 },
+          { a: { test: 7, x: 'e' }, b: 8, c: 9 },
+          { a: { test: 10, x: 'f' }, b: 11, c: 12 },
         ];
         const msdCallback = jasmine.createSpy('msdCallback');
 

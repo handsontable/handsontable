@@ -52,17 +52,7 @@ describe('Object helper', () => {
     it('should returns valid schema object (deeply)', () => {
       expect(duckSchema({ test: { a: { b: 11 } } })).toEqual({ test: { a: { b: null } } });
       expect(duckSchema({ test: { a: { b: [] } } })).toEqual({ test: { a: { b: [] } } });
-      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({
-        test: {
-          a: {
-            b: [
-              {
-                q: null,
-                w: null
-              }]
-          }
-        }
-      });
+      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
     });
   });
 
@@ -71,8 +61,7 @@ describe('Object helper', () => {
   //
   describe('mixin', () => {
     it('should mix base object from one object', () => {
-      const Base = function() {
-      };
+      const Base = function() {};
       const MixinFoo = {
         local: 'value',
         myFunction() {
@@ -103,8 +92,7 @@ describe('Object helper', () => {
     });
 
     it('should mix base object from multiple objects', () => {
-      const Base = function() {
-      };
+      const Base = function() {};
       const MixinFoo = {
         local: 'value',
         myFunction() {
@@ -137,10 +125,8 @@ describe('Object helper', () => {
     });
 
     it('mixed object should not interfere with properties from another mixed objects', () => {
-      const Base = function() {
-      };
-      const Base1 = function() {
-      };
+      const Base = function() {};
+      const Base1 = function() {};
       const MixinFoo = {
         local: {},
         myFunction() {
@@ -168,8 +154,7 @@ describe('Object helper', () => {
   //
   describe('clone', () => {
     it('should returns cloned object', () => {
-      const function1 = function() {
-      };
+      const function1 = function() {};
       const object1 = {};
       const object2 = {
         foo: false,

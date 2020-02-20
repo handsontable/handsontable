@@ -1,5 +1,8 @@
 import SheetClip from './../lib/SheetClip/SheetClip';
-import { cellMethodLookupFactory } from './helpers/data';
+import {
+  cellMethodLookupFactory,
+  countFirstRowKeys
+} from './helpers/data';
 import {
   createObjectPropListener,
   deepClone,
@@ -68,12 +71,6 @@ class DataMap {
      */
     this.dataSource = data;
     /**
-     * Cached sourceData rows number.
-     *
-     * @type {number}
-     */
-    this.latestSourceRowsCount = 0;
-    /**
      * Generated schema based on the first row from the source data.
      *
      * @type {object}
@@ -100,27 +97,32 @@ class DataMap {
    */
   createMap() {
     const schema = this.getSchema();
-    let i;
 
     if (typeof schema === 'undefined') {
       throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
     }
 
+    const columns = this.tableMeta.columns;
+    let i;
+
     this.colToPropCache = [];
     this.propToColCache = new Map();
 
-    const columns = this.tableMeta.columns;
-
     if (columns) {
-      const maxCols = this.tableMeta.maxCols;
-      let columnsLen = Math.min(maxCols, columns.length);
+      let columnsLen = null;
       let filteredIndex = 0;
       let columnsAsFunc = false;
-      const schemaLen = deepObjectSize(schema);
 
       if (typeof columns === 'function') {
-        columnsLen = schemaLen > 0 ? schemaLen : this.countRowColumns();
+        const schemaLen = deepObjectSize(schema);
+
+        columnsLen = schemaLen > 0 ? schemaLen : this.countFirstRowKeys();
         columnsAsFunc = true;
+
+      } else {
+        const maxCols = this.tableMeta.maxCols;
+
+        columnsLen = Math.min(maxCols, columns.length);
       }
 
       for (i = 0; i < columnsLen; i++) {
@@ -147,19 +149,8 @@ class DataMap {
    *
    * @returns {number} Amount of physical columns in the first data row.
    */
-  countRowColumns() {
-    let result = 0;
-
-    if (Array.isArray(this.dataSource)) {
-      if (this.dataSource[0] && Array.isArray(this.dataSource[0])) {
-        result = this.dataSource[0].length;
-
-      } else if (this.dataSource[0] && isObject(this.dataSource[0])) {
-        result = deepObjectSize(this.dataSource[0]);
-      }
-    }
-
-    return result;
+  countFirstRowKeys() {
+    return countFirstRowKeys(this.dataSource);
   }
 
   /**

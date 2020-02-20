@@ -1638,7 +1638,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
      * (ie. `data` may be empty, `columns` may be a function).
      */
-    this.columnIndexMapper.initToLength(Math.max(this.countDataRowCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
+    this.columnIndexMapper.initToLength(Math.max(datamap.countFirstRowKeys(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
     this.rowIndexMapper.initToLength(this.countSourceRows());
 
     grid.adjustRowsAndCols();
@@ -1752,7 +1752,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let columnsAsFunc = false;
     let i;
     let j;
-    let clen;
 
     if (isDefined(settings.rows)) {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
@@ -1795,13 +1794,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.createMap();
     }
 
-    clen = instance.countCols();
-
+    const clen = instance.countCols();
     const columnSetting = tableMeta.columns;
 
     // Init columns constructors configuration
     if (columnSetting && isFunction(columnSetting)) {
-      clen = instance.countSourceCols();
       columnsAsFunc = true;
     }
 
@@ -2158,7 +2155,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the source data object (the same that was passed by `data` configuration option or `loadData` method).
+   * Returns a clone of the source data object.
    * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
    * fragment of the table data.
    *
@@ -2238,18 +2235,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.setSourceDataAtRowProp = function(row, prop, value) {
     const input = setDataInputToArray(row, prop, value);
-    const changes = [];
 
-    input.forEach((change, i) => {
-      const [changeRow, changeProp, changeValue] = change;
-      changes.push([
-        input[i][0],
-        input[i][1],
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
-      ]);
-
-      dataSource.setAtCell(changeRow, changeProp, changeValue);
+    input.forEach((change) => {
+      dataSource.setAtCell(...change);
     });
 
     this.render();
@@ -2830,13 +2818,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|string|number} The column header(s).
    */
   this.getColHeader = function(column) {
-    const columnsAsFunc = tableMeta.columns && isFunction(tableMeta.columns);
     const columnIndex = instance.runHooks('modifyColHeader', column);
     let result = tableMeta.colHeaders;
 
     if (columnIndex === void 0) {
       const out = [];
-      const ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+      const ilen = instance.countCols();
 
       for (let i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
@@ -2847,7 +2834,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     } else {
       const translateVisualIndexToColumns = function(visualColumnIndex) {
         const arr = [];
-        const columnsLen = instance.countSourceCols();
+        const columnsLen = instance.countCols();
         let index = 0;
 
         for (; index < columnsLen; index++) {
@@ -3012,13 +2999,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Total number of rows.
    */
   this.countSourceRows = function() {
-    let sourceLength = null;
-
-    if (instance.hasHook('modifySourceLength')) {
-      sourceLength = instance.runHooks('modifySourceLength');
-    }
-
-    return sourceLength !== null ? sourceLength : dataSource.countRows();
+    return dataSource.countRows();
   };
 
   /**
@@ -3029,18 +3010,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Total number of columns.
    */
   this.countSourceCols = function() {
-    return dataSource.countColumns();
-  };
-
-  /**
-   * Returns the total number of columns in the data source.
-   *
-   * @memberof Core#
-   * @function countDataRowCols
-   * @returns {number} Total number of columns.
-   */
-  this.countDataRowCols = function() {
-    return datamap.countRowColumns();
+    return dataSource.countFirstRowKeys();
   };
 
   /**

@@ -45,7 +45,7 @@ describe('Core.getSourceData', () => {
     expect(getSourceData()[0].a).toEqual(1);
   });
 
-  it('should return the entire source dataset, when no arguments are provided (where the dataset is an array of arrays)', () => {
+  it('should return the entire source dataset, when no arguments are provided (where the dataset is an array of arrays), regardless of the `columns` option', () => {
     const dataset = [
       ['a1', 'a2', 'a3'],
       ['b1', 'b2', 'b3'],
@@ -62,7 +62,7 @@ describe('Core.getSourceData', () => {
     expect(getSourceData()).toEqual(dataset);
   });
 
-  it('should return the entire source dataset, when no arguments are provided (where the dataset is an array of objects)', () => {
+  it('should return the entire source dataset, when no arguments are provided (where the dataset is an array of objects), regardless of the `columns` option', () => {
     const dataset = [
       { a: 1, b: 2, c: 3, d: { e: 'nested1', f: 'nested2_1' } },
       { a: 4, b: 5, c: 6, d: { e: 'nested2', f: 'nested2_2' } },
@@ -72,7 +72,7 @@ describe('Core.getSourceData', () => {
     handsontable({
       data: dataset,
       columns: [
-        {}
+        { data: 'a' }
       ]
     });
 

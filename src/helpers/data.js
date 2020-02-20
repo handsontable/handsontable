@@ -1,5 +1,5 @@
 import { getCellType } from './../cellTypes';
-import { hasOwnProperty } from './object';
+import { deepObjectSize, hasOwnProperty, isObject } from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -225,4 +225,25 @@ export function dataRowToChangesArray(dataRow, rowOffset = 0) {
   });
 
   return changesArray;
+}
+
+/**
+ * Count the number of keys (or, basically, columns when the data is an array or arrays) in the first row of the provided dataset.
+ *
+ * @param {Array} data The dataset.
+ * @returns {number} Number of keys in the first row of the dataset.
+ */
+export function countFirstRowKeys(data) {
+  let result = 0;
+
+  if (Array.isArray(data)) {
+    if (data[0] && Array.isArray(data[0])) {
+      result = data[0].length;
+
+    } else if (data[0] && isObject(data[0])) {
+      result = deepObjectSize(data[0]);
+    }
+  }
+
+  return result;
 }

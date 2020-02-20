@@ -433,7 +433,6 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     sortedData[i] = arrayMap(this.data[i], sortByIndexes);
   });
 
-  let row;
   let sortedHeaders = [];
   sortedHeaders = arrayMap(this.headers, sortByIndexes);
 
@@ -442,7 +441,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   instance.alter('insert_col', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   rangeEach(this.data.length - 1, (i) => {
-    row = instance.getSourceDataAtRow(i);
+    const row = instance.getSourceDataAtRow(i);
 
     rangeEach(ascendingIndexes.length - 1, (j) => {
       row[ascendingIndexes[j]] = sortedData[i][j];

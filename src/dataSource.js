@@ -1,11 +1,11 @@
 import {
   createObjectPropListener,
-  deepObjectSize,
   getProperty,
   isObject,
   objectEach,
   setProperty
 } from './helpers/object';
+import { countFirstRowKeys } from './helpers/data';
 import { arrayEach } from './helpers/array';
 import { rangeEach } from './helpers/number';
 import { isFunction } from './helpers/function';
@@ -41,16 +41,6 @@ class DataSource {
   }
 
   /**
-   * Get the reference to the original dataset passed to the instance.
-   *
-   * @private
-   * @returns {Array} Reference to the original dataset.
-   */
-  getRawData() {
-    return this.data;
-  }
-
-  /**
    * Get all data.
    *
    * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
@@ -59,7 +49,7 @@ class DataSource {
    */
   getData(toArray = false) {
     if (!this.data || this.data.length === 0) {
-      return this.getRawData();
+      return this.data;
     }
 
     return this.getByRange(
@@ -142,7 +132,7 @@ class DataSource {
 
       if (!getAllProps || toArray) {
         const rangeStart = 0;
-        const rangeEnd = this.countRowKeys() - 1;
+        const rangeEnd = this.countFirstRowKeys() - 1;
 
         rangeEach(rangeStart, rangeEnd, (column) => {
           const prop = this.colToProp(column);
@@ -176,7 +166,7 @@ class DataSource {
    * @param {*} value The value to be set at the provided coordinates.
    */
   setAtCell(row, column, value) {
-    if (row >= this.countRows() || column >= this.countColumns()) {
+    if (row >= this.countRows() || column >= this.countFirstRowKeys()) {
       // Not enough rows and/or columns.
       return;
     }
@@ -259,13 +249,13 @@ class DataSource {
   /**
    * Returns source data by passed range.
    *
-   * @param {object} start Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
-   * @param {object} end Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
+   * @param {object} [start] Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
+   * @param {object} [end] Object with physical `row` and `col` keys (or visual column index, if data type is an array of objects).
    * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
    *                                  in another format.
    * @returns {Array}
    */
-  getByRange(start, end, toArray = false) {
+  getByRange(start = null, end = null, toArray = false) {
     let getAllProps = false;
     let startRow = null;
     let startCol = null;
@@ -275,9 +265,7 @@ class DataSource {
     if (start === null && end === null) {
       getAllProps = true;
       startRow = 0;
-      startCol = 0;
       endRow = this.countRows() - 1;
-      endCol = this.countColumns() - 1;
 
     } else {
       startRow = Math.min(start.row, end.row);
@@ -316,32 +304,12 @@ class DataSource {
   }
 
   /**
-   * Count the number of columns (cached in `colToPropCache`), falls back to the physical number of columns in the first data row.
-   *
-   * @returns {number}
-   */
-  countColumns() {
-    return this.countCachedColumns() || this.countRowKeys();
-  }
-
-  /**
    * Count number of columns.
    *
    * @returns {number}
    */
-  countRowKeys() {
-    let result = 0;
-
-    if (Array.isArray(this.data)) {
-      if (this.data[0] && Array.isArray(this.data[0])) {
-        result = this.data[0].length;
-
-      } else if (this.data[0] && isObject(this.data[0])) {
-        result = deepObjectSize(this.data[0]);
-      }
-    }
-
-    return result;
+  countFirstRowKeys() {
+    return countFirstRowKeys(this.data);
   }
 
   /**

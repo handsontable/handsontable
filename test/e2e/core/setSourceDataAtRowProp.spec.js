@@ -95,7 +95,9 @@ describe('Core.setSourceDataAtRowPropProp', () => {
       });
 
       setSourceDataAtRowProp(0, 'b.c', 'it worked!');
+      setSourceDataAtRowProp(0, 0, 'it worked!');
 
+      expect(getSourceDataAtRow(0)[0]).toEqual('it worked!');
       expect(getSourceDataAtCell(0, 1)).toEqual('it worked!');
       expect(getSourceDataAtCell(0, 'b.c')).toEqual('it worked!');
     });
