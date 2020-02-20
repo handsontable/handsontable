@@ -219,8 +219,6 @@ describe('Formulas general', () => {
   });
 
   it('should recalculate table after changing cell value (by reference)', () => {
-    let sourceDataReference = null;
-
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -228,12 +226,9 @@ describe('Formulas general', () => {
       width: 500,
       height: 300,
       afterChange,
-      beforeLoadData: (data) => {
-        sourceDataReference = data;
-      }
     });
 
-    sourceDataReference[1][1] = 20;
+    hot.setSourceDataAtCell(1, 1, 20);
     hot.getPlugin('formulas').recalculateFull();
     hot.render();
 
