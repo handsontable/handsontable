@@ -84,9 +84,6 @@ module.exports = {
           allowedModules: allowedE2EModules
         }]
       ],
-      ignore: [
-        'src/plugins/**/test/**'
-      ]
     },
   },
 

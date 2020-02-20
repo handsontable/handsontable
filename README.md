@@ -9,7 +9,7 @@ Handsontable works with [Vue](//github.com/handsontable/vue-handsontable-officia
 <br><br>
 [![npm](https://img.shields.io/npm/dt/handsontable.svg)](//npmjs.com/package/handsontable)
 [![npm](https://img.shields.io/npm/dm/handsontable.svg)](//npmjs.com/package/handsontable)
-[![Build status](https://travis-ci.org/handsontable/handsontable.png?branch=master)](//travis-ci.org/handsontable/handsontable)
+[![Build status](https://app.codeship.com/projects/1ec34290-ed0a-0131-911c-1a47c8fbcce0/status?branch=master)](https://app.codeship.com/projects/26649)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
 [![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json)
 [![](https://data.jsdelivr.com/v1/package/npm/handsontable/badge?style=rounded)](https://www.jsdelivr.com/package/npm/handsontable)

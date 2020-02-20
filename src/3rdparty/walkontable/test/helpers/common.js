@@ -153,13 +153,6 @@ beforeEach(function() {
 
           result.message = `Expected ${actualHTML} to be equal HTML to ${expectedHTML}`;
 
-          if (typeof jest === 'object') {
-            /* eslint-disable global-require */
-            const jestMatcherUtils = require('jest-matcher-utils');
-
-            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
-          }
-
           return result;
         }
       };
