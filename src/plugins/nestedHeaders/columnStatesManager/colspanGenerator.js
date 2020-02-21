@@ -1,40 +1,44 @@
 import { arrayEach } from '../../../helpers/array';
 import { HEADER_DEFAULT_SETTINGS } from './constants';
+import { TRAVERSAL_BF } from '../../../utils/dataStructures/tree';
 
 export function colspanGenerator(headerRoots) {
   const colspanMatrix = [];
 
-  generateNodesColspan(colspanMatrix, headerRoots);
+  arrayEach(headerRoots, (rootNode) => {
+    rootNode.walk((node) => {
+      const { data: { colspan, label, hidden, headerLevel } } = node;
+      const colspanHeaderLayer = createNestedArrayIfNecessary(colspanMatrix, headerLevel);
+
+      colspanHeaderLayer.push({
+        colspan,
+        label,
+        hidden,
+      });
+
+      if (colspan > 1) {
+        for (let i = 0; i < colspan - 1; i++) {
+          colspanHeaderLayer.push({
+            ...HEADER_DEFAULT_SETTINGS,
+            hidden: true,
+          });
+        }
+      }
+    }, TRAVERSAL_BF);
+  });
 
   return colspanMatrix;
 }
 
-function generateNodesColspan(colspanMatrix, nodes, headerLayer = 0) {
-  if (nodes.length === 0) {
-    return;
+function createNestedArrayIfNecessary(array, index) {
+  let subArray;
+
+  if (Array.isArray(array[index])) {
+    subArray = array[index];
+  } else {
+    subArray = [];
+    array[index] = subArray;
   }
 
-  const nodeChilds = [];
-
-  colspanMatrix.push([]);
-
-  arrayEach(nodes, (node) => {
-    const { data: nodeData, childs } = node;
-    const colspanHeaderLayer = colspanMatrix[headerLayer];
-
-    nodeChilds.push(...childs);
-    colspanHeaderLayer.push({ ...nodeData });
-
-    if (nodeData.colspan > 1) {
-      for (let i = 0; i < nodeData.colspan - 1; i++) {
-        colspanHeaderLayer.push({
-          ...HEADER_DEFAULT_SETTINGS,
-          hidden: true,
-        });
-      }
-    }
-  });
-
-  headerLayer += 1;
-  generateNodesColspan(colspanMatrix, nodeChilds, headerLayer);
+  return subArray;
 }

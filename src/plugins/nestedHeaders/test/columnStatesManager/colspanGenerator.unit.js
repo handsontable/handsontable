@@ -1,9 +1,9 @@
 import HeadersTree from 'handsontable/plugins/nestedHeaders/columnStatesManager/headersTree';
-import SettingsNormalizer from 'handsontable/plugins/nestedHeaders/columnStatesManager/settingsNormalizer';
+import SourceSettings from 'handsontable/plugins/nestedHeaders/columnStatesManager/sourceSettings';
 import { colspanGenerator } from 'handsontable/plugins/nestedHeaders/columnStatesManager/colspanGenerator';
 
 function generateColspanMatrix(nestedHeadersSettings) {
-  const tree = new HeadersTree(new SettingsNormalizer(nestedHeadersSettings));
+  const tree = new HeadersTree(new SourceSettings(nestedHeadersSettings));
 
   tree.buildTree();
 
@@ -82,13 +82,15 @@ describe('colspanGenerator', () => {
     it('nested headers defined without overlapping columns (variation #2)', () => {
       /**
        * The column headers visualisation:
-       *   +----+----+----+----+
-       *   | A1                |
-       *   +----+----+----+----+
-       *   | B1           | B2 |
-       *   +----+----+----+----+
-       *   | C1      | C2 | C3 |
-       *   +----+----+----+----+
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | A1 | A2                                    | A3 |
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3                | B4 |
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      | C5      | C6 |
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
+       *   +----+----+----+----+----+----+----+----+----+----+
        */
       const colspans = generateColspanMatrix([
         ['A1', { label: 'A2', colspan: 8 }, 'A3'],

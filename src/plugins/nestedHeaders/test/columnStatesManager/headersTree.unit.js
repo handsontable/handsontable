@@ -1,8 +1,8 @@
 import HeadersTree from 'handsontable/plugins/nestedHeaders/columnStatesManager/headersTree';
-import SettingsNormalizer from 'handsontable/plugins/nestedHeaders/columnStatesManager/settingsNormalizer';
+import SourceSettings from 'handsontable/plugins/nestedHeaders/columnStatesManager/sourceSettings';
 
 function createTree(nestedHeadersSettings) {
-  return new HeadersTree(new SettingsNormalizer(nestedHeadersSettings));
+  return new HeadersTree(new SourceSettings(nestedHeadersSettings));
 }
 
 describe('HeadersTree', () => {
@@ -29,7 +29,7 @@ describe('HeadersTree', () => {
        *        (A2)
        */
       {
-        const root = tree.rootNodes.get(0);
+        const root = tree.getRootByColumn(0);
 
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A1',
@@ -51,7 +51,7 @@ describe('HeadersTree', () => {
        *        (B2)
        */
       {
-        const root = tree.rootNodes.get(1);
+        const root = tree.getRootByColumn(1);
 
         expect(root.data).toEqual(expect.objectContaining({
           label: 'B1',
@@ -73,7 +73,7 @@ describe('HeadersTree', () => {
        *        (C2)
        */
       {
-        const root = tree.rootNodes.get(2);
+        const root = tree.getRootByColumn(2);
 
         expect(root.data).toEqual(expect.objectContaining({
           label: 'C1',
@@ -117,7 +117,7 @@ describe('HeadersTree', () => {
        *  (C1)     (C2)              (C3)
        */
       {
-        const root = tree.rootNodes.get(0);
+        const root = tree.getRootByColumn(0);
 
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A1',
@@ -163,13 +163,15 @@ describe('HeadersTree', () => {
     it('nested headers defined without overlapping columns (variation #2)', () => {
       /**
        * The column headers visualisation:
-       *   +----+----+----+----+
-       *   | A1                |
-       *   +----+----+----+----+
-       *   | B1           | B2 |
-       *   +----+----+----+----+
-       *   | C1      | C2 | C3 |
-       *   +----+----+----+----+
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | A1 | A2                                    | A3 |
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3                | B4 |
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      | C5      | C6 |
+       *   +----+----+----+----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
+       *   +----+----+----+----+----+----+----+----+----+----+
        */
       const tree = createTree([
         ['A1', { label: 'A2', colspan: 8 }, 'A3'],
@@ -190,7 +192,7 @@ describe('HeadersTree', () => {
        *               (D1)       (D2)     (D3)   (D4) (D5)      (D6)       (D7)  (D8)     (D9)              ( )
        */
       {
-        const root = tree.rootNodes.get(0);
+        const root = tree.getRootByColumn(0);
 
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A1',
@@ -231,7 +233,7 @@ describe('HeadersTree', () => {
         expect(childs.length).toBe(0);
       }
       {
-        const root = tree.rootNodes.get(1);
+        const root = tree.getRootByColumn(1);
 
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A2',
@@ -331,7 +333,7 @@ describe('HeadersTree', () => {
         expect(childs3RightRight.length).toBe(2);
       }
       {
-        const root = tree.rootNodes.get(9);
+        const root = tree.getRootByColumn(9);
 
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A3',
