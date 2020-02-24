@@ -1297,23 +1297,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function listen
-   * @param {boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
-   *                                             to the document.body). Otherwise the active element does not lose its focus.
    * @fires Hooks#afterListen
    */
-  this.listen = function(modifyDocumentFocus = true) {
-    const { rootDocument } = instance;
-    if (modifyDocumentFocus) {
-      const invalidActiveElement = !rootDocument.activeElement || (rootDocument.activeElement && rootDocument.activeElement.nodeName === void 0);
-
-      if (rootDocument.activeElement && rootDocument.activeElement !== rootDocument.body && !invalidActiveElement) {
-        rootDocument.activeElement.blur();
-
-      } else if (invalidActiveElement) { // IE
-        rootDocument.body.focus();
-      }
-    }
-
+  this.listen = function() {
     if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
