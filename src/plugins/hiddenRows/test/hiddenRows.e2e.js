@@ -272,7 +272,8 @@ describe('HiddenRows', () => {
       const plugin = hot.getPlugin('hiddenRows');
       hot.alter('insert_row', 0, 2);
 
-      expect(plugin.hiddenRows[0]).toEqual(5);
+      expect(plugin.isHidden(3)).toBeFalsy();
+      expect(plugin.isHidden(5)).toBeTruthy();
     });
 
     it('should recalculate index of the hidden rows after remove rows', () => {
@@ -288,7 +289,8 @@ describe('HiddenRows', () => {
       const plugin = hot.getPlugin('hiddenRows');
       hot.alter('remove_row', 0, 2);
 
-      expect(plugin.hiddenRows[0]).toEqual(1);
+      expect(plugin.isHidden(3)).toBeFalsy();
+      expect(plugin.isHidden(1)).toBeTruthy();
     });
   });
 
@@ -604,7 +606,8 @@ describe('HiddenRows', () => {
       manualRowMove.moveRows([0, 1], 3);
       hot.render();
 
-      expect(hiddenRows.hiddenRows[0]).toEqual(3);
+      expect(hiddenRows.isHidden(3)).toBeFalsy();
+      expect(hiddenRows.isHidden(1)).toBeTruthy();
       expect(hot.getRowHeight(1)).toEqual(0.1);
     });
   });

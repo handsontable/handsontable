@@ -81,7 +81,7 @@ class HiddenRows extends BasePlugin {
      * @private
      * @type {number[]}
      */
-    this.hiddenRows = [];
+    this.hiddenRows = new Set();
     /**
      * Last selected row index.
      *
@@ -152,7 +152,7 @@ class HiddenRows extends BasePlugin {
    */
   disablePlugin() {
     this.settings = {};
-    this.hiddenRows = [];
+    this.hiddenRows = new Set();
     this.lastSelectedRow = -1;
 
     super.disablePlugin();
@@ -165,28 +165,23 @@ class HiddenRows extends BasePlugin {
    * @param {number[]} rows Array of visual row indexes.
    */
   showRows(rows) {
-    const currentHideConfig = this.hiddenRows;
+    const currentHideConfig = Array.from(this.hiddenRows);
     const validRows = this.isRowDataValid(rows);
     const physicalRows = arrayMap(rows, visualRowIndex => this.hot.toPhysicalRow(visualRowIndex));
 
-    let destinationHideConfig = currentHideConfig;
-
     if (validRows) {
-      destinationHideConfig = this.hiddenRows.filter(hiddenRow => physicalRows.includes(hiddenRow) === false);
+      arrayEach(physicalRows, this.hiddenRows.delete.bind(this.hiddenRows));
     }
 
-    const continueHiding = this.hot.runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, validRows);
+    const continueHiding = this.hot.runHooks('beforeUnhideRows', currentHideConfig, Array.from(this.hiddenRows), validRows);
 
     if (continueHiding === false) {
+      this.hiddenRows = new Set(currentHideConfig);
       return;
     }
 
-    if (validRows) {
-      this.hiddenRows = destinationHideConfig;
-    }
-
-    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, validRows,
-      validRows && destinationHideConfig.length < currentHideConfig.length);
+    this.hot.runHooks('afterUnhideRows', currentHideConfig, Array.from(this.hiddenRows), validRows,
+      validRows && this.hiddenRows.size < currentHideConfig.length);
   }
 
   /**
@@ -204,28 +199,23 @@ class HiddenRows extends BasePlugin {
    * @param {number[]} rows Array of visual row indexes.
    */
   hideRows(rows) {
-    const currentHideConfig = this.hiddenRows;
+    const currentHideConfig = Array.from(this.hiddenRows);
     const validRows = this.isRowDataValid(rows);
     const physicalRows = arrayMap(rows, visualRowIndex => this.hot.toPhysicalRow(visualRowIndex));
-    let destinationHideConfig = currentHideConfig;
 
     if (validRows) {
-      // Creating unique list of indexes.
-      destinationHideConfig = Array.from(new Set(currentHideConfig.concat(physicalRows)));
+      arrayEach(physicalRows, this.hiddenRows.add.bind(this.hiddenRows));
     }
 
-    const continueHiding = this.hot.runHooks('beforeHideRows', currentHideConfig, destinationHideConfig, validRows);
+    const continueHiding = this.hot.runHooks('beforeHideRows', currentHideConfig, Array.from(this.hiddenRows), validRows);
 
     if (continueHiding === false) {
+      this.hiddenRows = new Set(currentHideConfig);
       return;
     }
 
-    if (validRows) {
-      this.hiddenRows = destinationHideConfig;
-    }
-
-    this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, validRows,
-      validRows && destinationHideConfig.length > currentHideConfig.length);
+    this.hot.runHooks('afterHideRows', currentHideConfig, Array.from(this.hiddenRows), validRows,
+      validRows && this.hiddenRows.size > currentHideConfig.length);
   }
 
   /**
@@ -251,7 +241,7 @@ class HiddenRows extends BasePlugin {
       physicalRow = this.hot.toPhysicalRow(row);
     }
 
-    return this.hiddenRows.includes(physicalRow);
+    return this.hiddenRows.has(physicalRow);
   }
 
   /**
@@ -561,15 +551,15 @@ class HiddenRows extends BasePlugin {
    * @param {number} amount Number of newly created rows in the data source array.
    */
   onAfterCreateRow(index, amount) {
-    const tempHidden = [];
+    const tempHidden = new Set();
 
-    arrayEach(this.hiddenRows, (row) => {
+    this.hiddenRows.forEach((row) => {
       let visualRow = row;
 
       if (visualRow >= index) {
         visualRow += amount;
       }
-      tempHidden.push(visualRow);
+      tempHidden.add(visualRow);
     });
     this.hiddenRows = tempHidden;
   }
@@ -582,15 +572,15 @@ class HiddenRows extends BasePlugin {
    * @param {number} amount Number of removed rows in the data source array.
    */
   onAfterRemoveRow(index, amount) {
-    const tempHidden = [];
+    const tempHidden = new Set();
 
-    arrayEach(this.hiddenRows, (row) => {
+    this.hiddenRows.forEach((row) => {
       let visualRow = row;
 
       if (visualRow >= index) {
         visualRow -= amount;
       }
-      tempHidden.push(visualRow);
+      tempHidden.add(visualRow);
     });
     this.hiddenRows = tempHidden;
   }

@@ -829,7 +829,7 @@ class Filters extends BasePlugin {
    * @param {number} rowIndex Physical row index.
    */
   saveHiddenRowsCache(rowIndex) {
-    this.hiddenRowsCache.set(rowIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').hiddenRows);
+    this.hiddenRowsCache.set(rowIndex, Array.from(this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').hiddenRows));
   }
 
   /**

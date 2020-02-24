@@ -64,7 +64,7 @@ export default function showRowItem(hiddenRowsPlugin) {
     },
     disabled: false,
     hidden() {
-      if (!hiddenRowsPlugin.hiddenRows.length || !this.selection.isSelectedByRowHeader()) {
+      if (!hiddenRowsPlugin.hiddenRows.size || !this.selection.isSelectedByRowHeader()) {
         return true;
       }
 
@@ -83,7 +83,7 @@ export default function showRowItem(hiddenRowsPlugin) {
         rangeEach(0, totalRowsLength, (i) => {
           const partedHiddenLength = beforeHiddenRows.length + afterHiddenRows.length;
 
-          if (partedHiddenLength === hiddenRowsPlugin.hiddenRows.length) {
+          if (partedHiddenLength === hiddenRowsPlugin.hiddenRows.size) {
             return false;
           }
 
