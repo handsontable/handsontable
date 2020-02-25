@@ -1248,14 +1248,30 @@ describe('HiddenColumns', () => {
       return event;
     }
 
+    it('should allow to copy hidden cell', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [2, 4]
+        }
+      });
+
+      const copyEvent = getClipboardEventMock('copy');
+      const plugin = hot.getPlugin('CopyPaste');
+
+      selectCell(0, 4);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('E1');
+    });
+
     it('should allow to copy hidden columns, when "copyPasteEnabled" property is not set', () => {
       const hot = handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
-          columns: [
-            2,
-            4
-          ]
+          columns: [2, 4]
         },
         width: 500,
         height: 300,
