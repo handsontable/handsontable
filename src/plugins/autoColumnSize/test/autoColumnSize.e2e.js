@@ -576,6 +576,25 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 2)).toBe(147);
   });
 
+  it('should keep appropriate column size when columns order is changed and some column is cleared', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 3),
+      autoColumnSize: true,
+      colHeaders: ['Short', 'Longer', 'The longest header']
+    });
+
+    hot.columnIndexMapper.moveIndexes(2, 1);
+    render();
+
+    expect(colWidth(spec().$container, 1)).toBe(147);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+
+    hot.populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
+
+    expect(colWidth(spec().$container, 1)).toBe(147);
+    expect(colWidth(spec().$container, 2)).toBe(59);
+  });
+
   describe('should cooperate with the `UndoRedo` plugin properly ', () => {
     it('when removing single column', () => {
       const hot = handsontable({

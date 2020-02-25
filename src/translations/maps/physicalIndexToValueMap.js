@@ -9,7 +9,7 @@ class PhysicalIndexToValueMap extends IndexMap {
    * Add values to list and reorganize.
    *
    * @private
-   * @param {Number} insertionIndex Position inside the list.
+   * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {

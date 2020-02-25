@@ -1266,6 +1266,9 @@ describe('ColumnSorting', () => {
       { a: 'bbbb', b: 10, c: 11 }
     ];
 
+    /**
+     * @param row
+     */
     function customIsEmptyRow(row) {
       const data = this.getSourceData();
       return data[row].isNew;

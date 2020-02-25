@@ -1,3 +1,6 @@
+/**
+ * @param {Core} Handsontable The Handsontable instance.
+ */
 export default function jQueryWrapper(Handsontable) {
   // eslint-disable-next-line
   const jQuery = typeof window === 'undefined' ? false : window.jQuery;

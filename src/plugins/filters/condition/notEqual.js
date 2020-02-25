@@ -4,6 +4,11 @@ import { CONDITION_NAME as CONDITION_EQUAL } from './equal';
 
 export const CONDITION_NAME = 'neq';
 
+/**
+ * @param {object} dataRow The object which holds and describes the single cell value.
+ * @param {Array} inputValues An array of values to compare with.
+ * @returns {boolean}
+ */
 export function condition(dataRow, inputValues) {
   return !getCondition(CONDITION_EQUAL, inputValues)(dataRow);
 }

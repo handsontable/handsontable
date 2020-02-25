@@ -8,7 +8,6 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack');
 const configFactory = require('./development');
 
@@ -25,21 +24,6 @@ module.exports.create = function create(envArgs) {
 
     c.optimization = {
       minimize: true,
-      minimizer: [
-        new UglifyJsPlugin({
-          parallel: true,
-          uglifyOptions: {
-            compressor: {
-              pure_getters: true,
-              warnings: false,
-            },
-            mangle: {},
-            output: {
-              comments: /^!|@preserve|@license|@cc_on/i,
-            },
-          },
-        }),
-      ]
     };
     // Remove all 'MiniCssExtractPlugin' instances
     c.plugins = c.plugins.filter(function(plugin) {

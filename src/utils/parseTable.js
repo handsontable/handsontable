@@ -13,7 +13,7 @@ const regEscapedChars = new RegExp(Object.keys(ESCAPED_HTML_CHARS).map(key => `(
  * Verifies if node is an HTMLTable element.
  *
  * @param {Node} element Node to verify if it's an HTMLTable.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function isHTMLTable(element) {
   return (element && element.nodeName || '') === 'TABLE';
@@ -22,8 +22,8 @@ function isHTMLTable(element) {
 /**
  * Converts Handsontable into HTMLTableElement.
  *
- * @param {Core} instance
- * @returns {String} outerHTML of the HTMLTableElement
+ * @param {Core} instance The Handsontable instance.
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 export function instanceToHTML(instance) {
   const hasColumnHeaders = instance.hasColHeaders();
@@ -74,6 +74,8 @@ export function instanceToHTML(instance) {
             cell = `<td ${attrs.join(' ')}></td>`;
           } else {
             const value = cellData.toString()
+              .replace('<', '&lt;')
+              .replace('>', '&gt;')
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
               .replace(/\x20/gi, '&nbsp;')
               .replace(/\t/gi, '&#9;');
@@ -102,8 +104,8 @@ export function instanceToHTML(instance) {
 /**
  * Converts 2D array into HTMLTableElement.
  *
- * @param {Array} input Input array which will be converted to HTMLTable
- * @returns {String} outerHTML of the HTMLTableElement
+ * @param {Array} input Input array which will be converted to HTMLTable.
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 // eslint-disable-next-line no-restricted-globals
 export function _dataToHTML(input) {
@@ -123,7 +125,12 @@ export function _dataToHTML(input) {
       const cellData = rowData[column];
       const parsedCellData = isEmpty(cellData) ?
         '' :
-        cellData.toString().replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n').replace(/\x20/gi, '&nbsp;').replace(/\t/gi, '&#9;');
+        cellData.toString()
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
+          .replace(/\x20/gi, '&nbsp;')
+          .replace(/\t/gi, '&#9;');
 
       columnsResult.push(`<td>${parsedCellData}</td>`);
     }
@@ -143,9 +150,9 @@ export function _dataToHTML(input) {
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
- * @param {Element|String} element Node element which should contain `<table>...</table>`.
- * @param {Document} [rootDocument]
- * @returns {Object} Return configuration object. Contains keys as DefaultSettings.
+ * @param {Element|string} element Node element which should contain `<table>...</table>`.
+ * @param {Document} [rootDocument] The document window owner.
+ * @returns {object} Return configuration object. Contains keys as DefaultSettings.
  */
 // eslint-disable-next-line no-restricted-globals
 export function htmlToGridSettings(element, rootDocument = document) {
@@ -157,7 +164,15 @@ export function htmlToGridSettings(element, rootDocument = document) {
   let checkElement = element;
 
   if (typeof checkElement === 'string') {
-    tempElem.insertAdjacentHTML('afterbegin', `${checkElement}`);
+    const escapedAdjacentHTML = checkElement.replace(/<td\b[^>]*?>([\s\S]*?)<\/\s*td>/g, (cellFragment) => {
+      const openingTag = cellFragment.match(/<td\b[^>]*?>/g)[0];
+      const cellValue = cellFragment.substring(openingTag.length, cellFragment.lastIndexOf('<')).replace(/(<(?!br)([^>]+)>)/gi, '');
+      const closingTag = '</td>';
+
+      return `${openingTag}${cellValue}${closingTag}`;
+    });
+
+    tempElem.insertAdjacentHTML('afterbegin', `${escapedAdjacentHTML}`);
     checkElement = tempElem.querySelector('table');
   }
 

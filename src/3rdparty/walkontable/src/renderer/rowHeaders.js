@@ -10,7 +10,7 @@ import BaseRenderer from './_base';
  *     ├ <td>    \
  *     ├ <td>     - CellsRenderer
  *     ├ <td>    /
- *     └ <td>   /
+ *     └ <td>   /.
  *
  * @class {CellsRenderer}
  */
@@ -26,7 +26,7 @@ export default class RowHeadersRenderer extends BaseRenderer {
     /**
      * Row index which specifies the row position of the processed row header.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.sourceRowIndex = 0;
   }
@@ -35,7 +35,7 @@ export default class RowHeadersRenderer extends BaseRenderer {
    * Obtains the instance of the SharedOrderView class which is responsible for rendering the nodes to the root node.
    *
    * @param {HTMLTableRowElement} rootNode The TR element, which is root element for row headers (TH).
-   * @return {SharedOrderView}
+   * @returns {SharedOrderView}
    */
   obtainOrderView(rootNode) {
     let orderView;

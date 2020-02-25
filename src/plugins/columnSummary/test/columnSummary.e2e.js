@@ -250,6 +250,9 @@ describe('ColumnSummarySpec', () => {
               const hotInstance = this.hot;
 
               // helper function
+              /**
+               * @param rowRange
+               */
               function checkRange(rowRange) {
                 let i = rowRange[1] || rowRange[0];
                 let counter = 0;
@@ -588,6 +591,9 @@ describe('ColumnSummarySpec', () => {
         });
 
         const nestedRowsPlugin = hot.getPlugin('nestedRows');
+        /**
+         * @param row
+         */
         function toggle(row) {
           const rowIndex = parseInt(row, 10);
           if (isNaN(rowIndex)) {

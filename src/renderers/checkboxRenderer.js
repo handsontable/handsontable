@@ -11,20 +11,20 @@ const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
 
 /**
- * Checkbox renderer
+ * Checkbox renderer.
  *
  * @private
- * @param {Object} instance Handsontable instance
- * @param {Element} TD Table cell where to render
- * @param {Number} row
- * @param {Number} col
- * @param {String|Number} prop Row object property name
- * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
+ * @param {Core} instance The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {number|string} prop The column property (passed when datasource is an array of objects).
+ * @param {*} value The rendered value.
+ * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
+function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
-  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   registerEvents(instance);
 
   let input = createInput(rootDocument);
@@ -94,7 +94,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
    * On before key down DOM listener.
    *
    * @private
-   * @param {Event} event
+   * @param {Event} event The keyboard event object.
    */
   function onBeforeKeyDown(event) {
     const toggleKeys = 'SPACE|ENTER';
@@ -119,10 +119,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
   }
 
   /**
-   * Change checkbox checked property
+   * Change checkbox checked property.
    *
    * @private
-   * @param {Boolean} [uncheckCheckbox=false]
+   * @param {boolean} [uncheckCheckbox=false] The new "checked" state for the checkbox elements.
    */
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
     const selRange = instance.getSelectedRangeLast();
@@ -180,7 +180,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
    * Call callback for each found selected cell with checkbox type.
    *
    * @private
-   * @param {Function} callback
+   * @param {Function} callback The callback function.
    */
   function eachSelectedCheckboxCell(callback) {
     const selRange = instance.getSelectedRangeLast();
@@ -219,7 +219,7 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties, .
 /**
  * Register checkbox listeners.
  *
- * @param {Handsontable} instance Handsontable instance.
+ * @param {Core} instance The Handsontable instance.
  * @returns {EventManager}
  */
 function registerEvents(instance) {
@@ -242,7 +242,7 @@ function registerEvents(instance) {
 /**
  * Create input element.
  *
- * @param {Document} rootDocument
+ * @param {Document} rootDocument The document owner.
  * @returns {Node}
  */
 function createInput(rootDocument) {
@@ -259,8 +259,8 @@ function createInput(rootDocument) {
 /**
  * Create label element.
  *
- * @param {Document} rootDocument
- * @param {String} text
+ * @param {Document} rootDocument The document owner.
+ * @param {string} text The label text.
  * @returns {Node}
  */
 function createLabel(rootDocument, text) {
@@ -277,7 +277,7 @@ function createLabel(rootDocument, text) {
  *
  * @private
  * @param {Event} event `mouseup` event.
- * @param {Object} instance Handsontable instance.
+ * @param {Core} instance The Handsontable instance.
  */
 function onMouseUp(event, instance) {
   if (!isCheckboxInput(event.target)) {
@@ -291,7 +291,8 @@ function onMouseUp(event, instance) {
  *
  * @private
  * @param {Event} event `click` event.
- * @param {Object} instance Handsontable instance.
+ * @param {Core} instance The Handsontable instance.
+ * @returns {boolean|undefined}
  */
 function onClick(event, instance) {
   if (!isCheckboxInput(event.target)) {
@@ -311,9 +312,8 @@ function onClick(event, instance) {
  * `change` callback.
  *
  * @param {Event} event `change` event.
- * @param {Object} instance Handsontable instance.
- * @param {Object} cellProperties Reference to cell properties.
- * @returns {Boolean}
+ * @param {Core} instance The Handsontable instance.
+ * @returns {boolean}
  */
 function onChange(event, instance) {
   if (!isCheckboxInput(event.target)) {
@@ -342,7 +342,7 @@ function onChange(event, instance) {
  *
  * @private
  * @param {HTMLElement} element The element in question.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function isCheckboxInput(element) {
   return element.tagName === 'INPUT' && element.getAttribute('type') === 'checkbox';

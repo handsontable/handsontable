@@ -1,6 +1,10 @@
 import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
+/**
+ * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
+ * @returns {object}
+ */
 export default function showColumnItem(hiddenColumnsPlugin) {
   const beforeHiddenColumns = [];
   const afterHiddenColumns = [];

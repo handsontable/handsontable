@@ -3,17 +3,16 @@ import { getRenderer } from './index';
 import { isNumeric } from './../helpers/number';
 
 /**
- * Numeric cell renderer
+ * Numeric cell renderer.
  *
  * @private
- * @renderer NumericRenderer
- * @param {Object} instance Handsontable instance
- * @param {Element} TD Table cell where to render
- * @param {Number} row
- * @param {Number} col
- * @param {String|Number} prop Row object property name
- * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
+ * @param {Core} instance The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {number|string} prop The column property (passed when datasource is an array of objects).
+ * @param {*} value The rendered value.
+ * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
 function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   let newValue = value;
