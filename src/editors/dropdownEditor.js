@@ -3,13 +3,19 @@ import Hooks from './../pluginHooks';
 
 /**
  * @private
- * @editor DropdownEditor
  * @class DropdownEditor
- * @dependencies AutocompleteEditor
  */
 class DropdownEditor extends AutocompleteEditor {
-  prepare(row, col, prop, td, originalValue, cellProperties) {
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+  /**
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
+   */
+  prepare(row, col, prop, td, value, cellProperties) {
+    super.prepare(row, col, prop, td, value, cellProperties);
     this.cellProperties.filter = false;
     this.cellProperties.strict = true;
   }

@@ -16,7 +16,7 @@ class Storage {
     /**
      * Prefix for key (id element).
      *
-     * @type {String}
+     * @type {string}
      */
     this.prefix = prefix;
 
@@ -32,7 +32,7 @@ class Storage {
   /**
    * Save data to localStorage.
    *
-   * @param {String} key Key string.
+   * @param {string} key Key string.
    * @param {Mixed} value Value to save.
    */
   saveValue(key, value) {
@@ -47,10 +47,10 @@ class Storage {
   /**
    * Load data from localStorage.
    *
-   * @param {String} key Key string.
-   * @param {Object} defaultValue Object containing the loaded data.
+   * @param {string} key Key string.
+   * @param {object} defaultValue Object containing the loaded data.
    *
-   * @returns {}
+   * @returns {object|undefined}
    */
   loadValue(key, defaultValue) {
     const itemKey = typeof key === 'undefined' ? defaultValue : key;
@@ -62,7 +62,7 @@ class Storage {
   /**
    * Reset given data from localStorage.
    *
-   * @param {String} key Key string.
+   * @param {string} key Key string.
    */
   reset(key) {
     this.rootWindow.localStorage.removeItem(`${this.prefix}_${key}`);

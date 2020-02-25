@@ -4,7 +4,7 @@
  * @param {Array} phrasePropositions List of phrases propositions.
  * @param {number} pluralForm Number determining which phrase form should be used.
  *
- * @returns {String|Array} One particular phrase if it's possible, list of unchanged phrase propositions otherwise.
+ * @returns {string|Array} One particular phrase if it's possible, list of unchanged phrase propositions otherwise.
  */
 export default function pluralize(phrasePropositions, pluralForm) {
   const isPluralizable = Array.isArray(phrasePropositions) && Number.isInteger(pluralForm);

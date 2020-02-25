@@ -14,7 +14,7 @@ class Csv extends BaseType {
   /**
    * Default options for exporting CSV format.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   static get DEFAULT_OPTIONS() {
     return {
@@ -29,8 +29,8 @@ class Csv extends BaseType {
   /**
    * Create string body in desired format.
    *
-   * @return {String}
-  */
+   * @returns {string}
+   */
   export() {
     const options = this.options;
     const data = this.dataProvider.getData();
@@ -67,8 +67,8 @@ class Csv extends BaseType {
    * Escape cell value.
    *
    * @param {*} value Cell value.
-   * @param {Boolean} [force=false] Indicates if cell value will be escaped forcefully.
-   * @return {String}
+   * @param {boolean} [force=false] Indicates if cell value will be escaped forcefully.
+   * @returns {string}
    */
   _escapeCell(value, force = false) {
     let escapedValue = stringify(value);

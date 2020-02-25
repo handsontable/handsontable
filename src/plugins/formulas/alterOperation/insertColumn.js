@@ -15,9 +15,9 @@ export const OPERATION_NAME = 'insert_column';
 /**
  * Execute changes.
  *
- * @param {Number} start Index column from which the operation starts.
- * @param {Number} amount Count of columns to be inserted.
- * @param {Boolean} [modifyFormula=true] If `true` all formula expressions will be modified according to the changes.
+ * @param {number} start Index column from which the operation starts.
+ * @param {number} amount Count of columns to be inserted.
+ * @param {boolean} [modifyFormula=true] If `true` all formula expressions will be modified according to the changes.
  *                                       `false` value is used by UndoRedo plugin which saves snapshoots before alter
  *                                       operation so it doesn't have to modify formulas if "undo" action was triggered.
  */
@@ -56,6 +56,13 @@ export function operate(start, amount, modifyFormula = true) {
   });
 }
 
+/**
+ * @param {cellCoord} cell The cell coordinates.
+ * @param {string} axis The axis defined as "row" or "column".
+ * @param {number} delta The shift/delta betwen old and new position.
+ * @param {number} startFromIndex The index from the operation was performed.
+ * @returns {Array}
+ */
 function customTranslateModifier(cell, axis, delta, startFromIndex) {
   const { start, end } = cell;
   const startIndex = start[axis].index;

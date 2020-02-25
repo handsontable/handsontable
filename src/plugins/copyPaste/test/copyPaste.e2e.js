@@ -276,7 +276,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
         '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td>!@#$%^&*()_+-={[</td>',
-        '<td>]};:\'"\\|,<.>/?~</td></tr></tbody></table>'
+        '<td>]};:\'"\\|,&lt;.&gt;/?~</td></tr></tbody></table>'
       ].join(''));
     });
 

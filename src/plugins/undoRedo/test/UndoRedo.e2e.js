@@ -885,6 +885,9 @@ describe('UndoRedo', () => {
             minSpareRows: 1
           });
 
+          /**
+           * @param opts
+           */
           function model(opts) {
             const _pub = {};
             const _priv = $.extend({
@@ -905,6 +908,9 @@ describe('UndoRedo', () => {
             return _pub;
           }
 
+          /**
+           * @param attr
+           */
           function property(attr) {
             return function(row, value) {
               return row.attr(attr, value);
@@ -1503,6 +1509,9 @@ describe('UndoRedo', () => {
 
     describe('Object data', () => {
 
+      /**
+       *
+       */
       function createObjectData() {
         return [
           { name: 'Timothy', surname: 'Dalton' },

@@ -24,6 +24,7 @@ class BaseEditor {
     this.hot = instance;
     /**
      * A reference to the source instance of the Handsontable.
+     *
      * @deprecated
      *
      * @type {Handsontable}
@@ -32,21 +33,23 @@ class BaseEditor {
     /**
      * Editor's state.
      *
-     * @type {String}
+     * @type {string}
      */
     this.state = EditorState.VIRGIN;
     /**
      * Flag to store information about editor's opening status.
+     *
      * @private
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this._opened = false;
     /**
      * Defines the editor's editing mode. When false, then an editor works in fast editing mode.
+     *
      * @private
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this._fullEditMode = false;
     /**
@@ -64,19 +67,19 @@ class BaseEditor {
     /**
      * Visual row index.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.row = null;
     /**
      * Visual column index.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.col = null;
     /**
      * Column property name or a column index, if datasource is an array of arrays.
      *
-     * @type {Number|String}
+     * @type {number|string}
      */
     this.prop = null;
     /**
@@ -88,7 +91,7 @@ class BaseEditor {
     /**
      * Object containing the cell's properties.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.cellProperties = null;
 
@@ -99,7 +102,7 @@ class BaseEditor {
    * Fires callback after closing editor.
    *
    * @private
-   * @param {Boolean} result
+   * @param {boolean} result The editor value.
    */
   _fireCallbacks(result) {
     if (this._closeCallback) {
@@ -144,25 +147,27 @@ class BaseEditor {
   /**
    * Prepares editor's meta data.
    *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number|String} prop
-   * @param {HTMLTableCellElement} td
-   * @param {*} originalValue
-   * @param {Object} cellProperties
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, originalValue, cellProperties) {
+  prepare(row, col, prop, td, value, cellProperties) {
     this.TD = td;
     this.row = row;
     this.col = col;
     this.prop = prop;
-    this.originalValue = originalValue;
+    this.originalValue = value;
     this.cellProperties = cellProperties;
     this.state = EditorState.VIRGIN;
   }
 
   /**
    * Fallback method to provide extendable editors in ES5.
+   *
+   * @returns {Function}
    */
   extend() {
     return (class Editor extends this.constructor {});
@@ -171,8 +176,8 @@ class BaseEditor {
   /**
    * Saves value from editor into data storage.
    *
-   * @param {*} value
-   * @param {Boolean} ctrlDown If true, applies value to each cell in the last selected range.
+   * @param {*} value The editor value.
+   * @param {boolean} ctrlDown If `true`, applies value to each cell in the last selected range.
    */
   saveValue(value, ctrlDown) {
     let selection;
@@ -202,8 +207,8 @@ class BaseEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
-   * @param {*} newInitialValue
-   * @param {*} event
+   * @param {*} newInitialValue The initial editor value.
+   * @param {Event} event The keyboard event object.
    */
   beginEditing(newInitialValue, event) {
     if (this.state !== EditorState.VIRGIN) {
@@ -233,9 +238,9 @@ class BaseEditor {
   /**
    * Finishes editing and start saving or restoring process for editing cell or last selected range.
    *
-   * @param {Boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {Boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
-   * @param {Function} callback
+   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {Function} callback The callback function, fired after editor closing.
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
     let val;
@@ -312,7 +317,8 @@ class BaseEditor {
   /**
    * Verifies result of validation or closes editor if user's cancelled changes.
    *
-   * @param {Boolean|undefined} result
+   * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
+   *                                   then an editor won't be closed until validation is passed.
    */
   discardEditor(result) {
     if (this.state !== EditorState.FINISHED) {
@@ -346,7 +352,7 @@ class BaseEditor {
   /**
    * Checks if editor is in full edit mode.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isInFullEditMode() {
     return this._fullEditMode;
@@ -354,6 +360,8 @@ class BaseEditor {
 
   /**
    * Returns information whether the editor is open.
+   *
+   * @returns {boolean}
    */
   isOpened() {
     return this._opened;
@@ -361,6 +369,8 @@ class BaseEditor {
 
   /**
    * Returns information whether the editor is waiting, eg.: for async validation.
+   *
+   * @returns {boolean}
    */
   isWaiting() {
     return this.state === EditorState.WAITING;
@@ -409,6 +419,7 @@ class BaseEditor {
    * Returns name of the overlay, where editor is placed.
    *
    * @private
+   * @returns {string}
    */
   checkEditorSection() {
     const totalRows = this.hot.countRows();
