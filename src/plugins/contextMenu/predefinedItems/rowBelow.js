@@ -1,4 +1,5 @@
 import { getValidSelection } from './../utils';
+import { isDefined } from './../../../helpers/mixed';
 import * as C from './../../../i18n/constants';
 
 export const KEY = 'row_below';
@@ -16,7 +17,7 @@ export default function rowBelowItem() {
       const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
       const selectedRow = latestSelection?.end?.row;
       // If there is no selection we have clicked on the corner and there is no data.
-      const rowBelow = selectedRow ? selectedRow + 1 : 0;
+      const rowBelow = isDefined(selectedRow) ? selectedRow + 1 : 0;
 
       this.alter('insert_row', rowBelow, 1, 'ContextMenu.rowBelow');
     },

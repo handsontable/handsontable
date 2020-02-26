@@ -3974,4 +3974,74 @@ describe('ContextMenu', () => {
       expect($('.htMenu').size()).toEqual(0);
     });
   });
+
+  describe('Changing selection after alter actions from context-menu', () => {
+    describe('should keep the row selection in the same position as before inserting the row', () => {
+      it('above the selected row', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true
+        });
+
+        const header = $('.ht_clone_left .htCore')
+          .find('tbody')
+          .find('th')
+          .eq(0);
+        simulateClick(header, 'RMB');
+        contextMenu(header);
+
+        $('.htContextMenu .ht_master .htCore')
+          .find('tbody td')
+          .not('.htSeparator')
+          .eq(0)
+          .simulate('mousedown')
+          .simulate('mouseup'); // Insert row above
+
+        expect(`
+        |   ║ - : - : - : - |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        | * ║ A : 0 : 0 : 0 |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('below the selected row', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true
+        });
+
+        const header = $('.ht_clone_left .htCore')
+          .find('tbody')
+          .find('th')
+          .eq(0);
+        simulateClick(header, 'RMB');
+        contextMenu(header);
+
+        $('.htContextMenu .ht_master .htCore')
+          .find('tbody td')
+          .not('.htSeparator')
+          .eq(1)
+          .simulate('mousedown')
+          .simulate('mouseup'); // Insert row below
+
+        expect(`
+        |   ║ - : - : - : - |
+        |===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+  });
 });

@@ -1,5 +1,6 @@
 import { getValidSelection } from './../utils';
 import * as C from './../../../i18n/constants';
+import { isDefined } from './../../../helpers/mixed';
 
 export const KEY = 'col_right';
 
@@ -16,7 +17,7 @@ export default function columnRightItem() {
       const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
       const selectedColumn = latestSelection?.end?.col;
       // If there is no selection we have clicked on the corner and there is no data.
-      const columnsRight = selectedColumn ? selectedColumn + 1 : 0;
+      const columnsRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
 
       this.alter('insert_col', columnsRight, 1, 'ContextMenu.columnRight');
     },
