@@ -14,11 +14,20 @@ export default function rowBelowItem() {
     },
     callback(key, normalizedSelection) {
       const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+      const selectedRow = latestSelection?.end?.row;
+      // If there is no selection we have clicked on the corner and there is no data.
+      const rowBelow = selectedRow ? selectedRow + 1 : 0;
 
-      this.alter('insert_row', latestSelection.end.row + 1, 1, 'ContextMenu.rowBelow');
+      this.alter('insert_row', rowBelow, 1, 'ContextMenu.rowBelow');
     },
     disabled() {
       const selected = getValidSelection(this);
+      const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
+
+      // We have clicked on the corner and there is no data.
+      if (!anyCellVisible) {
+        return false;
+      }
 
       if (!selected) {
         return true;
