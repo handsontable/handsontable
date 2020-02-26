@@ -8,8 +8,9 @@ import {
   isInput,
   removeClass,
   getParentWindow,
+  hasClass,
 } from './../../helpers/dom/element';
-import { arrayEach, arrayFilter } from './../../helpers/array';
+import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
 import Cursor from './cursor';
 import EventManager from './../../eventManager';
 import { mixin, hasOwnProperty } from './../../helpers/object';
@@ -70,6 +71,7 @@ class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
 
       frame = getParentWindow(frame);
     }
@@ -429,7 +431,7 @@ class Menu {
     let top = this.offset.above + cursor.top - this.container.offsetHeight;
 
     if (this.isSubMenu()) {
-      top = cursor.top + cursor.cellHeight - this.container.offsetHeight;
+      top = cursor.top + cursor.cellHeight - this.container.offsetHeight + 3;
     }
     this.container.style.top = `${top}px`;
   }
@@ -457,9 +459,9 @@ class Menu {
     let left;
 
     if (this.isSubMenu()) {
-      left = cursor.left + cursor.cellWidth;
+      left = 1 + cursor.left + cursor.cellWidth;
     } else {
-      left = this.offset.right + cursor.left;
+      left = this.offset.right + 1 + cursor.left;
     }
 
     this.container.style.left = `${left}px`;
@@ -471,7 +473,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument);
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument) + 4;
 
     this.container.style.left = `${left}px`;
   }
@@ -767,12 +769,16 @@ class Menu {
    */
   onAfterInit() {
     const { wtTable } = this.hotMenu.view.wt;
+    const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
     const holderStyle = wtTable.holder.style;
-    const realHeight = wtTable.spreader.offsetHeight;
+    const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
-    holderStyle.width = hiderStyle.width;
-    holderStyle.height = `${realHeight}px`;
+    const realHeight = arrayReduce(data, (accumulator, value) => accumulator + (value.name === SEPARATOR ? 1 : 26), 0);
+
+    // Additional 3px to menu's size because of additional border around its `table.htCore`.
+    holderStyle.width = `${currentHiderWidth + 3}px`;
+    holderStyle.height = `${realHeight + 3}px`;
     hiderStyle.height = holderStyle.height;
   }
 
@@ -810,6 +816,22 @@ class Menu {
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
         (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) || isChildOf(event.target, this.hot.rootDocument)))) {
       this.close(true);
+    }
+  }
+
+  /**
+   * Document's contextmenu listener.
+   *
+   * @private
+   * @param {MouseEvent} event The mouse event object.
+   */
+  onDocumentContextMenu(event) {
+    if (!this.isOpened()) {
+      return;
+    }
+
+    if (hasClass(event.target, 'htCore') && isChildOf(event.target, this.hotMenu.rootElement)) {
+      event.preventDefault();
     }
   }
 }
