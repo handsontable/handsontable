@@ -3999,6 +3999,11 @@ describe('ContextMenu', () => {
           .simulate('mousedown')
           .simulate('mouseup'); // Insert row above
 
+        expect(getSelected()).toEqual([
+          [1, 0, 1, 3]
+        ]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
         expect(`
         |   ║ - : - : - : - |
         |===:===:===:===:===|
@@ -4032,6 +4037,11 @@ describe('ContextMenu', () => {
           .simulate('mousedown')
           .simulate('mouseup'); // Insert row below
 
+        expect(getSelected()).toEqual([
+          [0, 0, 0, 3]
+        ]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
         expect(`
         |   ║ - : - : - : - |
         |===:===:===:===:===|

@@ -723,6 +723,180 @@ describe('HiddenColumns', () => {
         });
       });
     });
+
+    describe('Changing selection after alter actions from context-menu', () => {
+      describe('should keep the row selection in the same position as before inserting the row', () => {
+        describe('above the selected row', () => {
+          it('when the first column is hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0],
+                indicators: true
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(0)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row above
+
+            expect(getSelected()).toEqual([
+              [1, 0, 1, 3]
+            ]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+            expect(`
+            |   ║ - : - : - |
+            |===:===:===:===|
+            |   ║   :   :   |
+            | * ║ A : 0 : 0 |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            `).toBeMatchToSelectionPattern();
+          });
+
+          it('when all columns are hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0, 1, 2, 3],
+                indicators: true
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(0)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row above
+
+            expect(getSelected()).toEqual([
+              [1, 0, 1, 3]
+            ]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+            expect(`
+            |   |
+            |   |
+            | * |
+            |   |
+            |   |
+            |   |
+            `).toBeMatchToSelectionPattern();
+          });
+        });
+
+        describe('below the selected row', () => {
+          it('the first column is hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0],
+                indicators: true
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(1)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row below
+
+            expect(getSelected()).toEqual([
+              [0, 0, 0, 3]
+            ]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+            expect(`
+            |   ║ - : - : - |
+            |===:===:===:===|
+            | * ║ A : 0 : 0 |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            `).toBeMatchToSelectionPattern();
+          });
+
+          it('when all columns are hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0, 1, 2, 3],
+                indicators: true
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(1)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row below
+
+            expect(getSelected()).toEqual([
+              [0, 0, 0, 3]
+            ]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+            expect(`
+            |   |
+            | * |
+            |   |
+            |   |
+            |   |
+            |   |
+            `).toBeMatchToSelectionPattern();
+          });
+        });
+      });
+    });
   });
 
   describe('cell selection UI', () => {
