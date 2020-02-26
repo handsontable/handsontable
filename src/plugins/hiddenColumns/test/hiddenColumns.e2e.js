@@ -807,6 +807,34 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should select entire row by header if all columns are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2, 3, 4],
+        },
+      });
+
+      const header = $('.ht_clone_left .htCore')
+        .find('tbody')
+        .find('th')
+        .eq(0);
+      simulateClick(header, 'LMB');
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   |
+      | * |
+      |   |
+      |   |
+      |   |
+      |   |
+      `).toBeMatchToSelectionPattern();
+    });
+
     it('should keep hidden columns in cell range', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -926,6 +954,63 @@ describe('HiddenColumns', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
+    });
+
+    describe('should select entire table after the corner was clicked and', () => {
+      it('just some columns were hidden', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2],
+          },
+        });
+
+        const corner = $('.ht_clone_top_left_corner .htCore')
+          .find('thead')
+          .find('th')
+          .eq(0);
+        simulateClick(corner, 'LMB');
+
+        expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+        expect(`
+        |   ║ * : * |
+        |===:===:===|
+        | * ║ A : 0 |
+        | * ║ 0 : 0 |
+        | * ║ 0 : 0 |
+        | * ║ 0 : 0 |
+        | * ║ 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('all columns were hidden', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2, 3, 4],
+          },
+        });
+
+        const corner = $('.ht_clone_top_left_corner .htCore')
+          .find('thead')
+          .find('th')
+          .eq(0);
+        simulateClick(corner, 'LMB');
+
+        expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+        expect(`
+        |   |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
+        `).toBeMatchToSelectionPattern();
+      });
     });
   });
 
