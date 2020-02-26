@@ -112,6 +112,7 @@ class NestedHeaders extends BasePlugin {
   /**
    * Gets a total number of headers levels.
    *
+   * @private
    * @returns {number}
    */
   getLayersCount() {
