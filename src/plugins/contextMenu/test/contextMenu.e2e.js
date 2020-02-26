@@ -1183,7 +1183,32 @@ describe('ContextMenu', () => {
       ].join(''));
     });
 
-    describe('should disable proper options when corner header was selected and there are visible cells and', () => {
+    // This test should be removed when some changes in handling such data set will be done. Regression check.
+    it('should disable proper options when row header was selected and there are no visible cells #6733', () => {
+      handsontable({
+        data: [null],
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      const header = $('.ht_clone_left .htCore')
+        .find('tbody')
+        .find('th')
+        .eq(0);
+      simulateClick(header, 'RMB');
+      contextMenu(header);
+
+      expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+        'Insert column left',
+        'Insert column right',
+        'Remove column',
+        'Undo',
+        'Redo'
+      ].join(''));
+    });
+
+    describe('should disable proper options when corner header was selected and there are no visible cells and', () => {
       it('data schema was defined', () => {
         handsontable({
           data: [],
