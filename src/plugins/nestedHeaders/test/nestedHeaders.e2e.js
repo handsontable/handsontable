@@ -304,7 +304,6 @@ describe('NestedHeaders', () => {
       expect(levels[3][2].getAttribute('colspan')).toEqual(null);
       expect(levels[3][3].getAttribute('colspan')).toEqual(null);
     });
-
   });
 
   describe('Selection:', () => {
@@ -320,13 +319,14 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
         '',
-        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader',
         'hiddenHeader',
         'hiddenHeader',
         'hiddenHeader',
@@ -349,7 +349,7 @@ describe('NestedHeaders', () => {
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
         '',
         'hiddenHeader',
@@ -361,8 +361,8 @@ describe('NestedHeaders', () => {
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
         '',
         '',
         '',
@@ -374,15 +374,16 @@ describe('NestedHeaders', () => {
 
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 2]]);
 
-      this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)').simulate('mouseup');
+      this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
         '',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
         'hiddenHeader',
         'hiddenHeader',
         'hiddenHeader',
@@ -391,7 +392,7 @@ describe('NestedHeaders', () => {
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
         'hiddenHeader',
         'hiddenHeader',
@@ -403,9 +404,9 @@ describe('NestedHeaders', () => {
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
         '',
         'hiddenHeader',
@@ -415,10 +416,10 @@ describe('NestedHeaders', () => {
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
         '',
         '',
         '',
@@ -428,28 +429,29 @@ describe('NestedHeaders', () => {
 
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 4]]);
 
-      this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)').simulate('mouseup');
+      this.$container.find('.ht_clone_top thead tr:eq(0) th:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
         'ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
-        'hiddenHeader ht__highlight ht__active_highlight',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
+        'hiddenHeader',
         '',
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
         'hiddenHeader',
         'hiddenHeader',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
         'hiddenHeader',
         'hiddenHeader',
@@ -457,26 +459,26 @@ describe('NestedHeaders', () => {
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
         'hiddenHeader',
         '',
       ]);
       expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
         '',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
-        'ht__highlight ht__active_highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
+        'ht__active_highlight ht__highlight',
         '',
       ]);
 

@@ -504,4 +504,99 @@ describe('HeadersTree', () => {
       }
     });
   });
+
+  describe('getRoots', () => {
+    it('should return root nodes as array', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      tree.buildTree();
+
+      const roots = tree.getRoots();
+
+      expect(roots[0].data).toEqual({ label: 'A1', colspan: 1, hidden: false, columnIndex: 0, headerLevel: 0 });
+      expect(roots[1].data).toEqual({ label: 'A2', colspan: 4, hidden: false, columnIndex: 1, headerLevel: 0 });
+      expect(roots[2].data).toEqual({ label: 'A3', colspan: 2, hidden: false, columnIndex: 5, headerLevel: 0 });
+    });
+  });
+
+  describe('getRootByColumn', () => {
+    it('should return root node at specified column index', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      tree.buildTree();
+
+      expect(tree.getRootByColumn(0).data).toEqual({ label: 'A1', colspan: 1, hidden: false, columnIndex: 0, headerLevel: 0 });
+      expect(tree.getRootByColumn(1).data).toEqual({ label: 'A2', colspan: 4, hidden: false, columnIndex: 1, headerLevel: 0 });
+      expect(tree.getRootByColumn(2)).toBe(null);
+      expect(tree.getRootByColumn(3)).toBe(null);
+      expect(tree.getRootByColumn(4)).toBe(null);
+      expect(tree.getRootByColumn(5).data).toEqual({ label: 'A3', colspan: 2, hidden: false, columnIndex: 5, headerLevel: 0 });
+      expect(tree.getRootByColumn(6)).toBe(null);
+    });
+  });
+
+  describe('clear', () => {
+    it('should clear root nodes collection', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      tree.buildTree();
+
+      expect(tree.getRoots().length).toBe(3);
+
+      tree.clear();
+
+      expect(tree.getRoots().length).toBe(0);
+    });
+  });
 });

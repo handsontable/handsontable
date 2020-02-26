@@ -1,53 +1,15 @@
 /**
- * Depth-first pre-order
- *
- * https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_(NLR)
+ * Depth-first pre-order strategy (https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_(NLR)).
  *
  * @type {string}
  */
 export const TRAVERSAL_DF_PRE = 'DF-pre-order';
 /**
- * Depth-first post-order
- *
- * https://en.wikipedia.org/wiki/Tree_traversal#Post-order_(NLR)
- *
- * @type {string}
+ * @param {Function} callback A callback which will be called on each visited node.
+ * @param {*} context A context to pass through.
+ * @returns {boolean}
  */
-export const TRAVERSAL_DF_POST = 'DF-post-order';
-/**
- * Breadth-first traversal
- *
- * https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search_/_level_order
- *
- * @type {string}
- */
-export const TRAVERSAL_BF = 'BF';
-
-const DEFAULT_TRAVERSAL_STRATEGY = TRAVERSAL_DF_PRE;
-const TRAVERSAL_STRATEGIES = new Map([
-  [TRAVERSAL_DF_PRE, depthFirstPreOrder],
-  [TRAVERSAL_DF_POST, depthFirstPostOrder],
-  [TRAVERSAL_BF, breadthFirst],
-]);
-
-export class TreeNode {
-  data;
-  childs = [];
-
-  constructor(data) {
-    this.data = data;
-  }
-
-  walk(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
-    if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
-      throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
-    }
-
-    TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);
-  }
-}
-
-function depthFirstPreOrder(callback, context) {
+export function depthFirstPreOrder(callback, context) {
   let continueTraverse = callback.call(context, this);
 
   for (let i = 0; i < this.childs.length; i++) {
@@ -61,6 +23,17 @@ function depthFirstPreOrder(callback, context) {
   return continueTraverse;
 }
 
+/**
+ * Depth-first post-order strategy (https://en.wikipedia.org/wiki/Tree_traversal#Post-order_(NLR)).
+ *
+ * @type {string}
+ */
+export const TRAVERSAL_DF_POST = 'DF-post-order';
+/**
+ * @param {Function} callback A callback which will be called on each visited node.
+ * @param {*} context A context to pass through.
+ * @returns {boolean}
+ */
 function depthFirstPostOrder(callback, context) {
   for (let i = 0; i < this.childs.length; i++) {
     const continueTraverse = depthFirstPostOrder.call(this.childs[i], callback, context);
@@ -73,22 +46,88 @@ function depthFirstPostOrder(callback, context) {
   return callback.call(context, this);
 }
 
+/**
+ * Breadth-first traversal strategy (https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search_/_level_order).
+ *
+ * @type {string}
+ */
+export const TRAVERSAL_BF = 'BF';
+/**
+ * @param {Function} callback A callback which will be called on each visited node.
+ * @param {*} context A context to pass through.
+ */
 function breadthFirst(callback, context) {
   const queue = [this];
 
-  (function processQueue() {
+  /**
+   * Internal processor.
+   */
+  function process() {
     if (queue.length === 0) {
       return;
     }
 
     const node = queue.shift();
 
-    for (let i = 0; i < node.childs.length; i++) {
-      queue.push(node.childs[i]);
-    }
+    queue.push(...node.childs);
 
     if (callback.call(context, node) !== false) {
-      processQueue();
+      process();
     }
-  })();
+  }
+
+  process();
+}
+
+/**
+ * Default strategy for tree traversal.
+ *
+ * @type {string}
+ */
+const DEFAULT_TRAVERSAL_STRATEGY = TRAVERSAL_DF_PRE;
+/**
+ * Collection of all available tree traversal strategies.
+ *
+ * @type {Map<string, Function>}
+ */
+const TRAVERSAL_STRATEGIES = new Map([
+  [TRAVERSAL_DF_PRE, depthFirstPreOrder],
+  [TRAVERSAL_DF_POST, depthFirstPostOrder],
+  [TRAVERSAL_BF, breadthFirst],
+]);
+
+/**
+ * @class {TreeNode}
+ */
+export class TreeNode {
+  /**
+   * A tree data.
+   *
+   * @type {object}
+   */
+  data = {};
+  /**
+   * A tree leaves.
+   *
+   * @type {TreeNode[]}
+   */
+  childs = [];
+
+  constructor(data) {
+    this.data = data;
+  }
+
+  /**
+   * Nodes traversing method which supports several strategies.
+   *
+   * @param {Function} callback The callback function which will be called for each node.
+   * @param {string} [traversalStrategy=DEFAULT_TRAVERSAL_STRATEGY] Traversing strategy.
+   */
+  walk(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
+    if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
+      throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
+    }
+
+    TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);
+  }
 }

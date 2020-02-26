@@ -9,7 +9,65 @@ describe('settingsNormalizer', () => {
         [],
       ]);
 
-      expect(settings.data).toEqual([
+      expect(settings.getData()).toEqual([
+        [
+          { label: 'A1', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+        ],
+        [
+          { label: 'true', colspan: 1, hidden: false },
+          { label: 'B2', colspan: 1, hidden: false },
+          { label: '4', colspan: 1, hidden: false },
+        ],
+        [
+          { label: '', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+        ],
+      ]);
+    });
+  });
+
+  describe('setData', () => {
+    it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
+      const settings = new SourceSettings();
+
+      settings.setData([
+        ['A1'],
+        [{ label: true }, 'B2', 4],
+        [],
+      ]);
+
+      expect(settings.getData()).toEqual([
+        [
+          { label: 'A1', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+        ],
+        [
+          { label: 'true', colspan: 1, hidden: false },
+          { label: 'B2', colspan: 1, hidden: false },
+          { label: '4', colspan: 1, hidden: false },
+        ],
+        [
+          { label: '', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+          { label: '', colspan: 1, hidden: false },
+        ],
+      ]);
+    });
+  });
+
+  describe('getData', () => {
+    it('should return normalized settings', () => {
+      const settings = new SourceSettings([
+        ['A1'],
+        [{ label: true }, 'B2', 4],
+        [],
+      ]);
+
+      expect(settings.getData()).toEqual([
         [
           { label: 'A1', colspan: 1, hidden: false },
           { label: '', colspan: 1, hidden: false },
@@ -338,6 +396,22 @@ describe('settingsNormalizer', () => {
 
         expect(settings.getColumnsCount()).toBe(8);
       }
+    });
+  });
+
+  describe('clear', () => {
+    it('should clear the data', () => {
+      const settings = new SourceSettings([
+        ['A1'],
+        [{ label: true }, 'B2', 4],
+        [],
+      ]);
+
+      settings.clear();
+
+      expect(settings.getData()).toEqual([]);
+      expect(settings.getLayersCount()).toBe(0);
+      expect(settings.getColumnsCount()).toBe(0);
     });
   });
 });

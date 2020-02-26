@@ -583,7 +583,6 @@ class CollapsibleColumns extends BasePlugin {
    * @private
    * @param {object} event Mouse event.
    * @param {object} coords Event coordinates.
-   * @returns {boolean}
    */
   onBeforeOnCellMouseDown(event, coords) {
     if (hasClass(event.target, 'collapsibleIndicator')) {

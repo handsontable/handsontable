@@ -28,14 +28,14 @@ describe('colspanGenerator', () => {
 
       expect(colspans).toEqual([
         [
-          { label: 'A1', colspan: 1, hidden: false },
-          { label: 'B1', colspan: 1, hidden: false },
-          { label: 'C1', colspan: 1, hidden: false },
+          { label: 'A1', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'B1', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'C1', colspan: 1, origColspan: 1, hidden: false },
         ],
         [
-          { label: 'A2', colspan: 1, hidden: false },
-          { label: 'B2', colspan: 1, hidden: false },
-          { label: 'C2', colspan: 1, hidden: false },
+          { label: 'A2', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'B2', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'C2', colspan: 1, origColspan: 1, hidden: false },
         ],
       ]);
     });
@@ -59,22 +59,22 @@ describe('colspanGenerator', () => {
 
       expect(colspans).toEqual([
         [
-          { label: 'A1', colspan: 4, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true }
+          { label: 'A1', colspan: 4, origColspan: 4, hidden: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: '', colspan: 1, origColspan: 4, hidden: true }
         ],
         [
-          { label: 'B1', colspan: 3, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'B2', colspan: 1, hidden: false }
+          { label: 'B1', colspan: 3, origColspan: 3, hidden: false },
+          { label: '', colspan: 1, origColspan: 3, hidden: true },
+          { label: '', colspan: 1, origColspan: 3, hidden: true },
+          { label: 'B2', colspan: 1, origColspan: 1, hidden: false }
         ],
         [
-          { label: 'C1', colspan: 2, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'C2', colspan: 1, hidden: false },
-          { label: 'C3', colspan: 1, hidden: false }
+          { label: 'C1', colspan: 2, origColspan: 2, hidden: false },
+          { label: '', colspan: 1, origColspan: 2, hidden: true },
+          { label: 'C2', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'C3', colspan: 1, origColspan: 1, hidden: false }
         ]
       ]);
     });
@@ -101,52 +101,52 @@ describe('colspanGenerator', () => {
 
       expect(colspans).toEqual([
         [
-          { label: 'A1', colspan: 1, hidden: false },
-          { label: 'A2', colspan: 8, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'A3', colspan: 1, hidden: false }
+          { label: 'A1', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'A2', colspan: 8, origColspan: 8, hidden: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true },
+          { label: '', colspan: 1, origColspan: 8, hidden: true },
+          { label: '', colspan: 1, origColspan: 8, hidden: true },
+          { label: '', colspan: 1, origColspan: 8, hidden: true },
+          { label: '', colspan: 1, origColspan: 8, hidden: true },
+          { label: '', colspan: 1, origColspan: 8, hidden: true },
+          { label: '', colspan: 1, origColspan: 8, hidden: true },
+          { label: 'A3', colspan: 1, origColspan: 1, hidden: false }
         ],
         [
-          { label: 'B1', colspan: 1, hidden: false },
-          { label: 'B2', colspan: 4, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'B3', colspan: 4, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'B4', colspan: 1, hidden: false }
+          { label: 'B1', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'B2', colspan: 4, origColspan: 4, hidden: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: 'B3', colspan: 4, origColspan: 4, hidden: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: '', colspan: 1, origColspan: 4, hidden: true },
+          { label: 'B4', colspan: 1, origColspan: 1, hidden: false }
         ],
         [
-          { label: 'C1', colspan: 1, hidden: false },
-          { label: 'C2', colspan: 1, hidden: false },
-          { label: 'C3', colspan: 3, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'C4', colspan: 2, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'C5', colspan: 2, hidden: false },
-          { label: '', colspan: 1, hidden: true },
-          { label: 'C6', colspan: 1, hidden: false }
+          { label: 'C1', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'C2', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'C3', colspan: 3, origColspan: 3, hidden: false },
+          { label: '', colspan: 1, origColspan: 3, hidden: true },
+          { label: '', colspan: 1, origColspan: 3, hidden: true },
+          { label: 'C4', colspan: 2, origColspan: 2, hidden: false },
+          { label: '', colspan: 1, origColspan: 2, hidden: true },
+          { label: 'C5', colspan: 2, origColspan: 2, hidden: false },
+          { label: '', colspan: 1, origColspan: 2, hidden: true },
+          { label: 'C6', colspan: 1, origColspan: 1, hidden: false }
         ],
         [
-          { label: 'D1', colspan: 1, hidden: false },
-          { label: 'D2', colspan: 1, hidden: false },
-          { label: 'D3', colspan: 1, hidden: false },
-          { label: 'D4', colspan: 1, hidden: false },
-          { label: 'D5', colspan: 1, hidden: false },
-          { label: 'D6', colspan: 1, hidden: false },
-          { label: 'D7', colspan: 1, hidden: false },
-          { label: 'D8', colspan: 1, hidden: false },
-          { label: 'D9', colspan: 1, hidden: false },
-          { label: '', colspan: 1, hidden: false }
+          { label: 'D1', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D2', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D3', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D4', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D5', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D6', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D7', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D8', colspan: 1, origColspan: 1, hidden: false },
+          { label: 'D9', colspan: 1, origColspan: 1, hidden: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false }
         ]
       ]);
     });

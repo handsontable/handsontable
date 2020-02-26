@@ -1,48 +1,215 @@
 import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
+import { HEADER_DEFAULT_SETTINGS } from './constants';
 import { colspanGenerator } from './colspanGenerator';
 
-export class ColumnStatesManager {
-  constructor() {
-    this.settings = new SourceSettings();
-    this.headersTree = null;
-  }
+const defaultColspanDescriptor = { ...HEADER_DEFAULT_SETTINGS };
 
+/**
+ * The column state manager is a source of truth for nested headers configuration.
+ * The state generation process is divided into three stages.
+ *
+ *   +---------------------+  1. User-defined configuration normalization;
+ *   │                     │  The source settings class normalizes and shares API for
+ *   │   SourceSettings    │  raw settings passed by the developer. It is only consumed by
+ *   │                     │  the header tree module.
+ *   +---------------------+
+ *             │
+ *            \│/
+ *   +---------------------+  2. Building a tree structure for validation and easier node manipulation;
+ *   │                     │  The header tree generates a tree based on source settings for future
+ *   │     HeadersTree     │  node manipulation (such as collapsible columns feature). While generating a tree
+ *   │                     │  the source settings is checked to see if the configuration has overlapping headers.
+ *   +---------------------+  If `true` the colspan matrix generation is skipped, overlapped headers are not supported.
+ *             │
+ *            \│/
+ *   +---------------------+  3. Colspan matrix generation;
+ *   │                     │  Based on built trees the colspan matrix generation is performed. That part of code
+ *   │    colspan matrix   │  generates an array structure similar to normalized data from the SourceSettings
+ *   │                     │  but with the difference that this structure contains column settings which changed
+ *   +---------------------+  during runtime (after the tree manipulation) e.q after collapse or expand column.
+ *                            That settings describes how the TH element should be modified (colspan attribute,
+ *                            CSS classes) for a specific column and layer level.
+ *
+ * @type {SourceSettings}
+ */
+export default class ColumnStatesManager {
+  /**
+   * The instance of the source settings class.
+   *
+   * @type {SourceSettings}
+   */
+  #settings = new SourceSettings();
+  /**
+   * The instance of the headers tree. The tree is generated after setting new confuguration data.
+   *
+   * @type {HeadersTree|null}
+   */
+  #headersTree = null;
+  /**
+   * Cached colspan matrix which is generated from the tree structure.
+   *
+   * @type {Array[]}
+   */
+  #colspanMatrix = [];
+
+  /**
+   * Sets a new state for the nested headers plugin based on settings passed
+   * directly to the plugin.
+   *
+   * @param {Array[]} nestedHeadersSettings The user-defined settings.
+   */
   setState(nestedHeadersSettings) {
-    this.settings.setData(nestedHeadersSettings);
-    this.headersTree = new HeadersTree(this.settings);
+    this.#settings.setData(nestedHeadersSettings);
+    this.#headersTree = new HeadersTree(this.#settings);
 
     try {
-      this.headersTree.buildTree();
+      this.#headersTree.buildTree();
     } catch (ex) {
-      console.log(ex);
-      this.headersTree.clear();
+      this.#headersTree.clear();
+      this.#settings.clear();
     }
+
+    this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
   }
 
-  getColumnSettings(columnIndex, headerLevel) {
-    const rootNode = this.headersTree.getRootByColumn(columnIndex);
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Translates row coordinates into header level. The row coordinates counts from -1 to -N
+   * and describes headers counting from most closest to most distant from the table.
+   * The header levels are counted from 0 to N where 0 describes most distant header
+   * from the table.
+   *
+   *  Row coords             Header level
+   *           +--------------+
+   *       -3  │ A1 │ A1      │  0
+   *           +--------------+
+   *       -2  │ B1 │ B2 │ B3 │  1
+   *           +--------------+
+   *       -1  │ C1 │ C2 │ C3 │  2
+   *           +==============+
+   *           │    │    │    │
+   *           +--------------+
+   *           │    │    │    │
+   *
+   * @param {number} rowIndex Visual row index.
+   * @returns {number} Returns unsigned number.
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+  rowCoordsToLevel(rowIndex) {
+    const layersCount = Math.max(this.getLayersCount(), 1);
+    const highestPossibleLevel = layersCount - 1;
+    const lowestPossibleLevel = 0;
 
-    if (rootNode === null) {
+    return Math.min(Math.max(rowIndex + layersCount, lowestPossibleLevel), highestPossibleLevel);
+  }
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Translates header level into row coordinates. The row coordinates counts from -1 to -N
+   * and describes headers counting from most closest to most distant from the table.
+   * The header levels are counted from 0 to N where 0 describes most distant header
+   * from the table.
+   *
+   *  Header level            Row coords
+   *           +--------------+
+   *        0  │ A1 │ A1      │  -3
+   *           +--------------+
+   *        1  │ B1 │ B2 │ B3 │  -2
+   *           +--------------+
+   *        2  │ C1 │ C2 │ C3 │  -1
+   *           +==============+
+   *           │    │    │    │
+   *           +--------------+
+   *           │    │    │    │
+   *
+   * @param {number} headerLevel Header level index.
+   * @returns {number} Returns negative number.
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+  levelToRowCoords(headerLevel) {
+    const layersCount = Math.max(this.getLayersCount(), 1);
+    const highestPossibleRow = -1;
+    const lowestPossibleRow = -layersCount;
+
+    return Math.min(Math.max(headerLevel - layersCount, lowestPossibleRow), highestPossibleRow);
+  }
+
+  /**
+   * Gets column settings for a specified column and header index. The returned object contains
+   * all information necessary for header renderers. It contains header label, colspan length, or hidden
+   * flag.
+   *
+   * @param {number} columnIndex A visual column index.
+   * @param {number} headerLevel Header level.
+   * @returns {object}
+   */
+  getColumnSettings(columnIndex, headerLevel) {
+    if (headerLevel < 0) {
+      headerLevel = this.rowCoordsToLevel(headerLevel);
+    }
+
+    if (headerLevel >= this.#settings.getLayersCount()) {
       return null;
     }
 
-    rootNode.walk((node) => {
-      const { headerLevel: nodeHeaderLevel } = node;
-
-
-    });
+    return this.#colspanMatrix[headerLevel][columnIndex] ?? defaultColspanDescriptor;
   }
 
-  generateColspanMatrix() {
-    return colspanGenerator(this.headersTree.getRoots());
+  /**
+   * The method is helpful in cases where the column index targets in-between currently
+   * collapsed column. In that case, the method returns the left-most column index
+   * where the nested header begins.
+   *
+   * @param {number} columnIndex A visual column index.
+   * @param {number} headerLevel Header level.
+   * @returns {number}
+   */
+  findLeftMostColumnIndex(columnIndex, headerLevel) {
+    const { hidden } = this.getColumnSettings(columnIndex, headerLevel);
+
+    if (hidden === false) {
+      return columnIndex;
+    }
+
+    let parentCol = columnIndex - 1;
+
+    do {
+      const { hidden: isHidden } = this.getColumnSettings(parentCol, headerLevel);
+
+      if (isHidden === false) {
+        break;
+      }
+
+      parentCol -= 1;
+    } while (columnIndex >= 0);
+
+    return parentCol;
   }
 
+  /**
+   * Gets a total number of headers levels.
+   *
+   * @returns {number}
+   */
   getLayersCount() {
-    return this.settings.getLayersCount();
+    return this.#settings.getLayersCount();
   }
 
+  /**
+   * Gets a total number of columns count.
+   *
+   * @returns {number}
+   */
   getColumnsCount() {
-    return this.settings.getColumnsCount();
+    return this.#settings.getColumnsCount();
+  }
+
+  /**
+   * Cleares the state.
+   */
+  clear() {
+    this.#colspanMatrix = [];
+    this.#headersTree.clear();
   }
 }

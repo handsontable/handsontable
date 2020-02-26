@@ -1,40 +1,95 @@
 import { settingsNormalizer } from './settingsNormalizer';
 
+/**
+ * The class manages and normalizes settings passed by the developer
+ * into the nested headers plugin. The SourceSettings class is a
+ * source of truth for tree builder (HeaderTree) module.
+ *
+ * @class {SourceSettings}
+ */
 export default class SourceSettings {
+  /**
+   * The normalized source data (normalized user-defined settings for nested headers).
+   *
+   * @private
+   * @type {Array[]}
+   */
+  #data = [];
+  /**
+   * The total length of the nested header layers.
+   *
+   * @private
+   * @type {number}
+   */
+  #dataLength = 0;
+
   constructor(nestedHeadersSettings = []) {
     this.setData(nestedHeadersSettings);
   }
 
+  /**
+   * Sets a new nested header configuration.
+   *
+   * @param {Array[]} [nestedHeadersSettings=[]] The user-defined nested headers settings.
+   */
   setData(nestedHeadersSettings = []) {
-    this.data = settingsNormalizer(nestedHeadersSettings);
-    this.dataLength = this.data.length;
+    this.#data = settingsNormalizer(nestedHeadersSettings);
+    this.#dataLength = this.#data.length;
   }
 
-  getColumnSettings(headerLevel, columnIndex) {
-    if (headerLevel >= this.dataLength) {
+  /**
+   * Gets normalized source settings.
+   *
+   * @returns {Array[]}
+   */
+  getData() {
+    return this.#data;
+  }
+
+  /**
+   * Gets source column settings for a specified header. The returned object contains
+   * information about the header label, its colspan length, or if it is hidden
+   * in the header renderers.
+   *
+   * @param {number} headerLevel Header level (0 = most distant to the table).
+   * @param {number} visibleColumnIndex A visual column index.
+   * @returns {object|null}
+   */
+  getColumnSettings(headerLevel, visibleColumnIndex) {
+    if (headerLevel >= this.#dataLength) {
       return null;
     }
 
-    const columnsSettings = this.data[headerLevel];
+    const columnsSettings = this.#data[headerLevel];
 
-    if (columnIndex >= columnsSettings.length) {
+    if (visibleColumnIndex >= columnsSettings.length) {
       return null;
     }
 
-    return columnsSettings[columnIndex];
+    return columnsSettings[visibleColumnIndex];
   }
 
-  getColumnsSettings(headerLevel, columnIndex, columnsLength = 1) {
+  /**
+   * Gets source columns settings for specified headers. If the retrieved column
+   * settings overlap the range "box" determined by "visibleColumnIndex" and "columnsLength"
+   * the exception will be thrown.
+   *
+   * @param {number} headerLevel Header level (0 = most distant to the table).
+   * @param {number} visibleColumnIndex A visual column index from which the settings will be extracted.
+   * @param {number} [columnsLength=1] The number of columns involved in the extraction of settings.
+   * @returns {object}
+   */
+  getColumnsSettings(headerLevel, visibleColumnIndex, columnsLength = 1) {
     const columnsSettingsChunks = [];
 
-    if (headerLevel >= this.dataLength) {
+    if (headerLevel >= this.#dataLength) {
       return columnsSettingsChunks;
     }
 
-    const columnsSettings = this.data[headerLevel];
+    const columnsSettings = this.#data[headerLevel];
     let currentLength = 0;
 
-    for (let i = columnIndex; i < columnsSettings.length; i++) {
+    for (let i = visibleColumnIndex; i < columnsSettings.length; i++) {
       const columnSettings = columnsSettings[i];
 
       if (columnSettings.hidden === true) {
@@ -61,11 +116,29 @@ export default class SourceSettings {
     return columnsSettingsChunks;
   }
 
+  /**
+   * Gets a total number of headers levels.
+   *
+   * @returns {number}
+   */
   getLayersCount() {
-    return this.data.length;
+    return this.#dataLength;
   }
 
+  /**
+   * Gets a total number of columns count.
+   *
+   * @returns {number}
+   */
   getColumnsCount() {
-    return this.data.length > 0 ? this.data[0].length : 0;
+    return this.#dataLength > 0 ? this.#data[0].length : 0;
+  }
+
+  /**
+   * Cleares the data.
+   */
+  clear() {
+    this.#data = [];
+    this.#dataLength = 0;
   }
 }

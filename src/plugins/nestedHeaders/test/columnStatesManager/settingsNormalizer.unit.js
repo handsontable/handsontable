@@ -2,30 +2,30 @@ import { settingsNormalizer } from 'handsontable/plugins/nestedHeaders/columnSta
 
 describe('settingsNormalizer', () => {
   it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
-      expect(settingsNormalizer([])).toEqual([]);
-      expect(settingsNormalizer([[]])).toEqual([[]]);
-      expect(settingsNormalizer([['A1']])).toEqual([[{ label: 'A1', colspan: 1, hidden: false }]]);
-      expect(settingsNormalizer([
-        ['A1'],
-        [{ label: true }, 'B2', 4],
-        [],
-      ])).toEqual([
-        [
-          { label: 'A1', colspan: 1, hidden: false },
-          { label: '', colspan: 1, hidden: false },
-          { label: '', colspan: 1, hidden: false },
-        ],
-        [
-          { label: 'true', colspan: 1, hidden: false },
-          { label: 'B2', colspan: 1, hidden: false },
-          { label: '4', colspan: 1, hidden: false },
-        ],
-        [
-          { label: '', colspan: 1, hidden: false },
-          { label: '', colspan: 1, hidden: false },
-          { label: '', colspan: 1, hidden: false },
-        ],
-      ]);
+    expect(settingsNormalizer([])).toEqual([]);
+    expect(settingsNormalizer([[]])).toEqual([[]]);
+    expect(settingsNormalizer([['A1']])).toEqual([[{ label: 'A1', colspan: 1, hidden: false }]]);
+    expect(settingsNormalizer([
+      ['A1'],
+      [{ label: true }, 'B2', 4],
+      [],
+    ])).toEqual([
+      [
+        { label: 'A1', colspan: 1, hidden: false },
+        { label: '', colspan: 1, hidden: false },
+        { label: '', colspan: 1, hidden: false },
+      ],
+      [
+        { label: 'true', colspan: 1, hidden: false },
+        { label: 'B2', colspan: 1, hidden: false },
+        { label: '4', colspan: 1, hidden: false },
+      ],
+      [
+        { label: '', colspan: 1, hidden: false },
+        { label: '', colspan: 1, hidden: false },
+        { label: '', colspan: 1, hidden: false },
+      ],
+    ]);
   });
 
   it('should normalize user-defined settings into known uniform structure data (advanced settings, inconsistent columns length)', () => {

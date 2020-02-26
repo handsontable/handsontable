@@ -59,7 +59,7 @@ class GhostTable {
     const table = rootDocument.createElement('table');
     let lastRowColspan = false;
     const isDropdownEnabled = !!this.nestedHeaders.hot.getSettings().dropdownMenu;
-    const maxRows = this.nestedHeaders.colspanArray.length;
+    const maxRows = this.nestedHeaders.getLayersCount();
     const maxCols = this.nestedHeaders.hot.countCols();
     const lastRowIndex = maxRows - 1;
 
@@ -70,7 +70,7 @@ class GhostTable {
 
       for (let col = 0; col < maxCols; col++) {
         const td = rootDocument.createElement('th');
-        const headerObj = clone(this.nestedHeaders.colspanArray[row][col]);
+        const headerObj = clone(this.nestedHeaders.getColumnSettings(col, row));
 
         if (headerObj && !headerObj.hidden) {
           if (row === lastRowIndex) {
