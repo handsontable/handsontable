@@ -5,6 +5,8 @@ import {
   empty,
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { warn } from '../../helpers/console';
 import { registerPlugin } from '../../plugins';
 import BasePlugin from '../_base';
 import ColumnStatesManager from './columnStatesManager';
@@ -52,7 +54,7 @@ class NestedHeaders extends BasePlugin {
    * @type {GhostTable}
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
-  #ghostTable = new GhostTable(this);
+  ghostTable = new GhostTable(this);
 
   /**
    * Check if plugin is enabled.
@@ -74,7 +76,12 @@ class NestedHeaders extends BasePlugin {
     const nestedHeaders = this.hot.getSettings().nestedHeaders;
 
     if (Array.isArray(nestedHeaders)) {
-      this.#columnStatesManager.setState(nestedHeaders);
+      const hasError = this.#columnStatesManager.setState(nestedHeaders);
+
+      if (hasError) {
+        warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
+                          is currently not supported.`);
+      }
     }
 
     this.addHook('afterInit', () => this.onAfterInit());
@@ -91,9 +98,9 @@ class NestedHeaders extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#columnStatesManager.clear();
-    this.#ghostTable.clear();
     this.clearColspans();
+    this.#columnStatesManager.clear();
+    this.ghostTable.clear();
 
     super.disablePlugin();
   }
@@ -106,7 +113,7 @@ class NestedHeaders extends BasePlugin {
     this.enablePlugin();
 
     super.updatePlugin();
-    this.#ghostTable.buildWidthsMapper();
+    this.ghostTable.buildWidthsMapper();
   }
 
   /**
@@ -145,12 +152,10 @@ class NestedHeaders extends BasePlugin {
   getColumnHeaders(visualColumnIndex, headerLevel) {
     const { wtOverlays } = this.hot.view.wt;
 
-    const headers = [
+    return [
       wtOverlays.topOverlay?.clone.wtTable.getColumnHeader(visualColumnIndex, headerLevel),
       wtOverlays.topLeftCornerOverlay?.clone.wtTable.getColumnHeader(visualColumnIndex, headerLevel),
     ].filter(element => element !== void 0);
-
-    return headers;
   }
 
   /**
@@ -163,11 +168,12 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const headerLevels = this.hot.view.wt.getSetting('columnHeaders').length;
-    const mainHeaders = this.hot.view.wt.wtTable.THEAD;
-    const topHeaders = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = this.hot.view.wt.wtOverlays.topLeftCornerOverlay ?
-      this.hot.view.wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
+    const { wt } = this.hot.view;
+    const headerLevels = wt.getSetting('columnHeaders').length;
+    const mainHeaders = wt.wtTable.THEAD;
+    const topHeaders = wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
+    const topLeftCornerHeaders = wt.wtOverlays.topLeftCornerOverlay ?
+      wt.wtOverlays.topLeftCornerOverlay.clone.wtTable.THEAD : null;
 
     for (let i = 0; i < headerLevels; i++) {
       const masterLevel = mainHeaders.childNodes[i];
@@ -181,13 +187,16 @@ class NestedHeaders extends BasePlugin {
 
       for (let j = 0, masterNodes = masterLevel.childNodes.length; j < masterNodes; j++) {
         masterLevel.childNodes[j].removeAttribute('colspan');
+        removeClass(masterLevel.childNodes[j], 'hiddenHeader');
 
         if (topLevel && topLevel.childNodes[j]) {
           topLevel.childNodes[j].removeAttribute('colspan');
+          removeClass(topLevel.childNodes[j], 'hiddenHeader');
         }
 
         if (topLeftCornerHeaders && topLeftCornerLevel && topLeftCornerLevel.childNodes[j]) {
           topLeftCornerLevel.childNodes[j].removeAttribute('colspan');
+          removeClass(topLeftCornerLevel.childNodes[j], 'hiddenHeader');
         }
       }
     }
@@ -202,8 +211,12 @@ class NestedHeaders extends BasePlugin {
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerLevel) {
+    const fixedColumnsLeft = this.hot.getSettings().fixedColumnsLeft || 0;
+
     return (renderedColumnIndex, TH) => {
-      let visualColumnsIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+      const { rootDocument, columnIndexMapper, view } = this.hot;
+
+      let visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
       if (visualColumnsIndex === null) {
         visualColumnsIndex = renderedColumnIndex;
@@ -212,7 +225,6 @@ class NestedHeaders extends BasePlugin {
       TH.removeAttribute('colspan');
       removeClass(TH, 'hiddenHeader');
 
-      const { rootDocument } = this.hot;
       const { colspan, label, hidden } = this.#columnStatesManager.getColumnSettings(visualColumnsIndex, headerLevel);
 
       if (hidden) {
@@ -220,7 +232,9 @@ class NestedHeaders extends BasePlugin {
       }
 
       if (colspan > 1) {
-        TH.setAttribute('colspan', colspan);
+        const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
+
+        TH.setAttribute('colspan', isTopLeftOverlay ? Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan);
       }
 
       const divEl = rootDocument.createElement('div');
@@ -252,9 +266,10 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
+    const hotSettings = this.hot.getSettings();
     const classNameModifier = className => (TH, modifier) => () => modifier(TH, className);
-    const highlightHeader = classNameModifier('ht__highlight');
-    const activeHeader = classNameModifier('ht__active_highlight');
+    const highlightHeader = classNameModifier(hotSettings.currentHeaderClassName);
+    const activeHeader = classNameModifier(hotSettings.activeHeaderClassName);
 
     const selectionByHeader = hot.selection.isSelectedByColumnHeader();
     const layersCount = this.#columnStatesManager.getLayersCount();
@@ -269,10 +284,17 @@ class NestedHeaders extends BasePlugin {
       // Traverse header layers from bottom to top.
       for (let level = layersCount - 1; level > -1; level--) {
         const { origColspan, hidden } = this.#columnStatesManager.getColumnSettings(column, level);
-        const isOutOfRange = (columnWalker + origColspan) > columnSelectionWidth;
+        const isFirstLayer = level === layersCount - 1;
+        let isOutOfRange = (columnWalker + origColspan) > columnSelectionWidth;
+
+        // If the selection doesn't overlap, the whole colspaned header. Correct the
+        // visual column index to the TH element, which is not hidden (most left column index).
+        if (columnWalker === 0 && isFirstLayer && hidden) {
+          isOutOfRange = false;
+          column = this.#columnStatesManager.findLeftMostColumnIndex(column, level);
+        }
 
         const THs = this.getColumnHeaders(column, level);
-        const isFirstLayer = level === layersCount - 1;
 
         arrayEach(THs, (TH) => {
           if (isOutOfRange) {
@@ -283,7 +305,7 @@ class NestedHeaders extends BasePlugin {
             changes.push(activeHeader(TH, addClass));
             changes.push(highlightHeader(TH, addClass));
 
-          } else if (isFirstLayer && !hidden) {
+          } else if (isFirstLayer) {
             changes.push(highlightHeader(TH, addClass));
 
           } else {
@@ -304,7 +326,7 @@ class NestedHeaders extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    this.#ghostTable.buildWidthsMapper();
+    this.ghostTable.buildWidthsMapper();
   }
 
   /**
@@ -433,7 +455,7 @@ class NestedHeaders extends BasePlugin {
    * @returns {number}
    */
   onModifyColWidth(width, column) {
-    const cachedWidth = this.#ghostTable.widthsCache[column];
+    const cachedWidth = this.ghostTable.widthsCache[column];
 
     return width > cachedWidth ? width : cachedWidth;
   }
@@ -443,7 +465,7 @@ class NestedHeaders extends BasePlugin {
    */
   destroy() {
     this.#columnStatesManager = null;
-    this.#ghostTable = null;
+    this.ghostTable = null;
 
     super.destroy();
   }

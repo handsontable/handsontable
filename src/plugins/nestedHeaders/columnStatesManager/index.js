@@ -3,8 +3,6 @@ import HeadersTree from './headersTree';
 import { HEADER_DEFAULT_SETTINGS } from './constants';
 import { colspanGenerator } from './colspanGenerator';
 
-const defaultColspanDescriptor = { ...HEADER_DEFAULT_SETTINGS };
-
 /**
  * The column state manager is a source of truth for nested headers configuration.
  * The state generation process is divided into three stages.
@@ -58,19 +56,24 @@ export default class ColumnStatesManager {
    * directly to the plugin.
    *
    * @param {Array[]} nestedHeadersSettings The user-defined settings.
+   * @returns {boolean} Returns `true` if the settings are processed correctly, `false` otherwise.
    */
   setState(nestedHeadersSettings) {
     this.#settings.setData(nestedHeadersSettings);
     this.#headersTree = new HeadersTree(this.#settings);
+    let hasError = false;
 
     try {
       this.#headersTree.buildTree();
     } catch (ex) {
       this.#headersTree.clear();
       this.#settings.clear();
+      hasError = true;
     }
 
     this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+
+    return hasError;
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -153,7 +156,7 @@ export default class ColumnStatesManager {
       return null;
     }
 
-    return this.#colspanMatrix[headerLevel][columnIndex] ?? defaultColspanDescriptor;
+    return this.#colspanMatrix[headerLevel][columnIndex] ?? { ...HEADER_DEFAULT_SETTINGS };
   }
 
   /**
@@ -210,6 +213,7 @@ export default class ColumnStatesManager {
    */
   clear() {
     this.#colspanMatrix = [];
+    this.#settings.clear();
     this.#headersTree.clear();
   }
 }

@@ -1,12 +1,25 @@
 describe('NestedHeaders', () => {
   const id = 'testContainer';
 
+  function extractDOMStructure(element) {
+    const clone = (element instanceof jQuery ? element[0] : element).cloneNode(true);
+
+    Array.from(clone.querySelectorAll('th')).forEach((TH) => {
+      // Remove header content
+      TH.firstElementChild.parentNode.removeChild(TH.firstElementChild);
+      TH.removeAttribute('style');
+    });
+
+    return clone.outerHTML;
+  }
+
   /**
    * @param hot
    * @param row
    */
   function nonHiddenTHs(hot, row) {
     const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
+
     return headerRows[row].querySelectorAll('th:not(.hiddenHeader)');
   }
 
@@ -79,12 +92,54 @@ describe('NestedHeaders', () => {
 
       const plugin = hot.getPlugin('nestedHeaders');
 
-      expect($('TH[colspan=3]').size()).toBeGreaterThan(0);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="3"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
 
       plugin.disablePlugin();
       hot.render();
 
-      expect($('TH[colspan=3]').size()).toEqual(0);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
     });
 
     it('should be possible to re-enable the plugin using the enablePlugin method', () => {
@@ -104,7 +159,34 @@ describe('NestedHeaders', () => {
       plugin.enablePlugin();
       hot.render();
 
-      expect($('TH[colspan=3]').size()).toBeGreaterThan(0);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="3"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
     });
 
     it('should be possible to initialize the plugin using the updateSettings method', () => {
@@ -113,8 +195,6 @@ describe('NestedHeaders', () => {
         colHeaders: true
       });
 
-      expect($('TH[colspan=3]').size()).toEqual(0);
-
       hot.updateSettings({
         nestedHeaders: [
           ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
@@ -122,9 +202,56 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      expect($('TH[colspan=3]').size()).toBeGreaterThan(0);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="3"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
     });
 
+    it('should warn the developer when the settings contains overlaping headers', () => {
+      console.warn = jasmine.createSpy('warn'); // eslint-disable-line no-console
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        nestedHeaders: [
+          ['a', { label: 'b', colspan: 2 }, 'c'],
+          ['a', { label: 'b', colspan: 3 }, 'c']
+        ],
+      });
+
+      expect(console.warn).toHaveBeenCalledWith('Your Nested Headers plugin setup contains overlapping headers. This kind of configuration is currently not supported.'); // eslint-disable-line no-console
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead></thead>
+        `);
+      expect(extractDOMStructure(getMaster().find('thead'))).toMatchHTML(`
+        <thead></thead>
+        `);
+    });
   });
 
   describe('Basic functionality:', () => {
@@ -181,30 +308,72 @@ describe('NestedHeaders', () => {
 
     });
 
-    it('should allow creating a more complex nested setup', () => {
-      const hot = handsontable({
+    it('should allow creating a more complex nested setup when fixedColumnsLeft option is enabled', () => {
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
+        fixedColumnsLeft: 2,
         nestedHeaders: [
           ['a', { label: 'b', colspan: 4 }, 'c', 'd'],
           ['a', { label: 'b', colspan: 2 }, { label: 'c', colspan: 2 }, 'd', 'e']
         ]
       });
 
-      const firstLevel = nonHiddenTHs(hot, 0);
-      const secondLevel = nonHiddenTHs(hot, 1);
+      expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="1"></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="1"></th>
+          </tr>
+        </thead>
+        `);
 
-      expect(firstLevel[0].getAttribute('colspan')).toEqual(null);
-      expect(firstLevel[1].getAttribute('colspan')).toEqual('4');
-      expect(firstLevel[2].getAttribute('colspan')).toEqual(null);
+      updateSettings({ fixedColumnsLeft: 3 });
 
-      expect(secondLevel[0].getAttribute('colspan')).toEqual(null);
-      expect(secondLevel[1].getAttribute('colspan')).toEqual('2');
-      expect(secondLevel[2].getAttribute('colspan')).toEqual('2');
-      expect(secondLevel[3].getAttribute('colspan')).toEqual(null);
+      expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+        </thead>
+        `);
+
+      updateSettings({ fixedColumnsLeft: 6 });
+
+      expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th
+          </tr>
+        </thead>
+        `);
     });
 
-    it('should return a relevant nested header element in hot.getCell', () => {
+    it('should return a relevant nested header element in hot.getCell()', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 90),
         colHeaders: true,
@@ -255,58 +424,384 @@ describe('NestedHeaders', () => {
         viewportColumnRenderingOffset: 15
       });
 
-      let levels = [nonHiddenTHs(hot, 0), nonHiddenTHs(hot, 1), nonHiddenTHs(hot, 2), nonHiddenTHs(hot, 3)];
-
       // not scrolled
-      expect(levels[0][0].getAttribute('colspan')).toEqual(null);
-      expect(levels[0][1].getAttribute('colspan')).toEqual('8');
-      expect(levels[0][2].getAttribute('colspan')).toEqual(null);
-      expect(levels[0][3].getAttribute('colspan')).toEqual('8');
-
-      expect(levels[1][0].getAttribute('colspan')).toEqual(null);
-      expect(levels[1][1].getAttribute('colspan')).toEqual('4');
-      expect(levels[1][2].getAttribute('colspan')).toEqual('4');
-      expect(levels[1][3].getAttribute('colspan')).toEqual(null);
-
-      expect(levels[2][0].getAttribute('colspan')).toEqual(null);
-      expect(levels[2][1].getAttribute('colspan')).toEqual('2');
-      expect(levels[2][2].getAttribute('colspan')).toEqual('2');
-      expect(levels[2][3].getAttribute('colspan')).toEqual('2');
-
-      expect(levels[3][0].getAttribute('colspan')).toEqual(null);
-      expect(levels[3][1].getAttribute('colspan')).toEqual(null);
-      expect(levels[3][2].getAttribute('colspan')).toEqual(null);
-      expect(levels[3][3].getAttribute('colspan')).toEqual(null);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
 
       hot.scrollViewportTo(void 0, 40);
       hot.render();
 
-      levels = [nonHiddenTHs(hot, 0), nonHiddenTHs(hot, 1), nonHiddenTHs(hot, 2), nonHiddenTHs(hot, 3)];
-
       // scrolled
-      expect(levels[0][0].getAttribute('colspan')).toEqual('8');
-      expect(levels[0][1].getAttribute('colspan')).toEqual(null);
-      expect(levels[0][2].getAttribute('colspan')).toEqual('8');
-      expect(levels[0][3].getAttribute('colspan')).toEqual(null);
-
-      expect(levels[1][0].getAttribute('colspan')).toEqual('4');
-      expect(levels[1][1].getAttribute('colspan')).toEqual('4');
-      expect(levels[1][2].getAttribute('colspan')).toEqual(null);
-      expect(levels[1][3].getAttribute('colspan')).toEqual('4');
-
-      expect(levels[2][0].getAttribute('colspan')).toEqual('2');
-      expect(levels[2][1].getAttribute('colspan')).toEqual('2');
-      expect(levels[2][2].getAttribute('colspan')).toEqual('2');
-      expect(levels[2][3].getAttribute('colspan')).toEqual('2');
-
-      expect(levels[3][0].getAttribute('colspan')).toEqual(null);
-      expect(levels[3][1].getAttribute('colspan')).toEqual(null);
-      expect(levels[3][2].getAttribute('colspan')).toEqual(null);
-      expect(levels[3][3].getAttribute('colspan')).toEqual(null);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
     });
   });
 
   describe('Selection:', () => {
+    it('should generate class names based on "currentHeaderClassName" and "activeHeaderClassName" settings', function() {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        currentHeaderClassName: 'my-current-header',
+        activeHeaderClassName: 'my-active-header',
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ]
+      });
+
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="my-active-header my-current-header" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="my-active-header my-current-header"></th>
+            <th class="my-active-header my-current-header"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
+    });
+
     it('should select every column under the extended header', function() {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -323,54 +818,58 @@ describe('NestedHeaders', () => {
         .simulate('mousedown')
         .simulate('mouseup');
 
-      expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        '',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        '',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        '',
-        'hiddenHeader',
-        '',
-        'hiddenHeader',
-        '',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-      ]);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
 
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 2]]);
 
@@ -378,54 +877,58 @@ describe('NestedHeaders', () => {
         .simulate('mousedown')
         .simulate('mouseup');
 
-      expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        '',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        '',
-        'hiddenHeader',
-        '',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        '',
-        '',
-        '',
-        '',
-        '',
-      ]);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
 
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 4]]);
 
@@ -433,54 +936,58 @@ describe('NestedHeaders', () => {
         .simulate('mousedown')
         .simulate('mouseup');
 
-      expect(this.$container.find('.ht_clone_top thead tr:eq(0) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__highlight ht__active_highlight',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(1) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        'hiddenHeader',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(2) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        'ht__active_highlight ht__highlight',
-        'hiddenHeader',
-        '',
-      ]);
-      expect(this.$container.find('.ht_clone_top thead tr:eq(3) th').map((_, el) => $(el).attr('class')).toArray()).toEqual([
-        '',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        'ht__active_highlight ht__highlight',
-        '',
-      ]);
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="ht__highlight ht__active_highlight" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
 
       expect(hot.getSelected()).toEqual([[0, 1, hot.countRows() - 1, 8]]);
     });
@@ -497,15 +1004,19 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseover');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseup');
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)')
+        .simulate('mousedown');
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)')
+        .simulate('mouseover')
+        .simulate('mouseup');
 
       expect(hot.getSelected()).toEqual([[0, 3, hot.countRows() - 1, 6]]);
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseover');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)')
+        .simulate('mousedown');
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+        .simulate('mouseover')
+        .simulate('mouseup');
 
       expect(hot.getSelected()).toEqual([[0, 4, hot.countRows() - 1, 1]]);
 
@@ -530,14 +1041,119 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_master tbody tr:eq(2) td:eq(1)').simulate('mousedown');
-      this.$container.find('.ht_master tbody tr:eq(2) td:eq(1)').simulate('mouseup');
+      this.$container.find('.ht_master tbody tr:eq(2) td:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
 
-      const headerLvl3 = this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)');
-      const headerLvl4 = this.$container.find('.ht_clone_top thead tr:eq(3) th:eq(1)');
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__highlight"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
+    });
 
-      expect(headerLvl3.hasClass('ht__highlight')).toBeFalsy();
-      expect(headerLvl4.hasClass('ht__highlight')).toBeTruthy();
+    it('should highlight colspaned header on cell selection even when the selection doesn\'t cover the whole header', function() {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'A1', colspan: 4 }, 'A2'],
+          [{ label: 'B1', colspan: 3 }, 'B2'],
+          [{ label: 'C1', colspan: 2 }, 'C2', 'C3'],
+        ]
+      });
+
+      this.$container.find('.ht_master tbody tr:eq(2) td:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="" colspan="3"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
     });
 
     it('should highlight every header which was in selection on headers selection', function() {
@@ -552,18 +1168,62 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
 
-      const headerLvl2 = this.$container.find('.ht_clone_top thead tr:eq(1) th:eq(1)');
-      const headerLvl3 = this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)');
-      const headerLvl41 = this.$container.find('.ht_clone_top thead tr:eq(3) th:eq(1)');
-      const headerLvl42 = this.$container.find('.ht_clone_top thead tr:eq(3) th:eq(2)');
-
-      expect(headerLvl2.hasClass('ht__highlight')).toBeFalsy();
-      expect(headerLvl3.hasClass('ht__highlight')).toBeTruthy();
-      expect(headerLvl41.hasClass('ht__highlight')).toBeTruthy();
-      expect(headerLvl42.hasClass('ht__highlight')).toBeTruthy();
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class=""></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class="ht__active_highlight ht__highlight"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
     });
 
     it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
@@ -578,8 +1238,9 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
 
       const $headerLvl3 = this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)');
       const $firstRow = this.$container.find('.ht_master tbody tr:eq(0)');

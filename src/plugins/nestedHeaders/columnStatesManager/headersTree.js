@@ -1,5 +1,5 @@
 import { arrayEach } from '../../../helpers/array';
-import { TreeNode } from '../../../utils/dataStructures/tree';
+import TreeNode from '../../../utils/dataStructures/tree';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
