@@ -379,9 +379,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           if (delta) {
             metaManager.createRow(instance.toPhysicalRow(index), amount);
 
-            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
-              selection.selectedRange.current().from.row += delta;
-              selection.transformEnd(delta, 0); // will call render() internally
+            const currentSelectedRange = selection?.selectedRange?.current();
+            const currentFromRange = currentSelectedRange?.from;
+            const currentFromRow = currentFromRange?.row;
+
+            // Moving down the selection (when it exist). It should be present on the "old" row.
+            if (isDefined(currentFromRow) && currentFromRow >= index) {
+              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
+              let currentFromColumn = currentFromRange.col;
+
+              // Workaround: headers are not stored inside selection.
+              if (selection.isSelectedByRowHeader()) {
+                currentFromColumn = -1;
+              }
+
+              // I can't use transforms as they don't work in negative indexes.
+              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn));
+              selection.setRangeEnd(new CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
