@@ -1675,6 +1675,15 @@ describe('HiddenColumns', () => {
 
       expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
       expect(getCell(0, 4)).toHaveClass('current');
+      expect(`
+      |   : # |
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
     });
 
     it('should go to the closest not hidden cell on the left side while navigating by left arrow', () => {
@@ -1691,6 +1700,15 @@ describe('HiddenColumns', () => {
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
       expect(getCell(0, 0)).toHaveClass('current');
+      expect(`
+      | # :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
     });
 
     it('should go to the first visible cell in the next row while navigating by right arrow if all column on the right side are hidden', () => {
@@ -1707,6 +1725,15 @@ describe('HiddenColumns', () => {
 
       expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
       expect(getCell(1, 0)).toHaveClass('current');
+      expect(`
+      |   :   :   |
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
     });
 
     it('should go to the last visible cell in the previous row while navigating by left arrow if all column on the left side are hidden', () => {
@@ -1722,6 +1749,16 @@ describe('HiddenColumns', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
       expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+      expect(getCell(0, 4)).toHaveClass('current');
+      expect(`
+      |   :   : # |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
     });
 
     it('should go to the first cell in the next visible column while navigating by down arrow if column on the right side is hidden', () => {
@@ -1737,6 +1774,16 @@ describe('HiddenColumns', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
       expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+      expect(getCell(0, 4)).toHaveClass('current');
+      expect(`
+      |   : # |
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
     });
 
     it('should go to the last cell in the previous visible column while navigating by up arrow if column on the left side is hidden', () => {
@@ -1752,6 +1799,16 @@ describe('HiddenColumns', () => {
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
 
       expect(getSelectedLast()).toEqual([4, 0, 4, 0]);
+      expect(getCell(4, 0)).toHaveClass('current');
+      expect(`
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      | # :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
     });
 
     describe('should go to the proper cell while navigating if row header is selected and', () => {
@@ -1811,6 +1868,316 @@ describe('HiddenColumns', () => {
         `).toBeMatchToSelectionPattern();
         expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
         expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+      });
+
+      it('just one column is visible (column at the start is not hidden)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1, 2, 3, 4],
+          },
+        });
+
+        let header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(getSelectedLast()).toEqual([4, 0, 4, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(getSelectedLast()).toEqual([4, 0, 4, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(getSelectedLast()).toEqual([3, 0, 3, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(getSelectedLast()).toEqual([3, 0, 3, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      });
+
+      it('just one column is visible (column at the end is not hidden)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2, 3],
+          },
+        });
+
+        let header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(getSelectedLast()).toEqual([4, 4, 4, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(getSelectedLast()).toEqual([4, 4, 4, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(getSelectedLast()).toEqual([3, 4, 3, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(getSelectedLast()).toEqual([3, 4, 3, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
       });
     });
 
