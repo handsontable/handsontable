@@ -1,6 +1,8 @@
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand, compareStrokePriority } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
+import SvgElement from './svgElement';
+import ClientRect from './clientRect';
 import { GRIDLINE_WIDTH } from '../utils/gridline';
 
 const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
@@ -10,18 +12,6 @@ const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
  */
 export default class BorderRenderer {
   constructor(parentElement, padding, uniqueDomId, overlayName, getCellFn) {
-    /**
-     * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
-     *
-     * @type {object} Object with properties top, left, bottom, right
-     */
-    this.padding = padding;
-    /**
-     * String that can be used to uniquely identify the SVG border element in the window DOM.
-     *
-     * @type {string}
-     */
-    this.uniqueDomId = uniqueDomId;
     /**
      * Overlay name.
      *
@@ -35,17 +25,19 @@ export default class BorderRenderer {
      */
     this.getCellFn = getCellFn;
     /**
-     * The SVG container element, where all SVG groups are rendered.
-     *
-     * @type {HTMLElement}
+     * @type {SvgElement}
      */
-    this.svg = this.createSvgContainer(parentElement);
+    this.svgElement = new SvgElement(parentElement.ownerDocument, uniqueDomId);
+    /**
+     * @type {ClientRect}
+     */
+    this.clientRect = new ClientRect(padding);
     /**
      * The function used to resize the SVG container when needed.
      *
      * @type {Function}
      */
-    this.svgResizer = getSvgResizer(this.svg);
+    this.svgResizer = getSvgResizer(this.svgElement.svg);
     /**
      * Array that holds pathGroup metadata objects keyed by the layer number.
      *
@@ -53,55 +45,17 @@ export default class BorderRenderer {
      */
     this.pathGroups = [];
     /**
-     * Desired width for the SVG container.
-     *
-     * @type {number}
+     * @type {DOMRect|null}
      */
-    this.maxWidth = 0;
-    /**
-     * Desired height for the SVG container.
-     *
-     * @type {number}
-     */
-    this.maxHeight = 0;
+    this.containerBoundingRect = null;
     /**
      * Context for getComputedStyle.
      *
      * @type {object}
      */
     this.rootWindow = parentElement.ownerDocument.defaultView;
-  }
 
-  /**
-   * Creates and configures the SVG container element, where all SVG paths are rendered.
-   *
-   * @param {HTMLElement} parentElement Parent element where the SVG element will be inserted.
-   * @returns {HTMLElement}
-   */
-  createSvgContainer(parentElement) {
-    const svg = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
-
-    svg.style.top = '0';
-    svg.style.left = '0';
-    svg.style.width = '0';
-    svg.style.height = '0';
-    svg.style.position = 'absolute';
-    svg.style.zIndex = '5';
-    svg.setAttribute('pointer-events', 'none');
-    svg.setAttribute('class', 'wtBorders'); // in IE, classList is not defined on SVG elements and className is read-only
-    parentElement.appendChild(svg);
-
-    const defs = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'defs');
-    const clipPath = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
-    const rect = parentElement.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'rect');
-
-    clipPath.setAttribute('id', `${this.uniqueDomId}-inner-clip`);
-    clipPath.appendChild(rect);
-    defs.appendChild(clipPath);
-    svg.appendChild(defs);
-    this.clipPathShape = rect;
-
-    return svg;
+    parentElement.appendChild(this.svgElement.svg);
   }
 
   /**
@@ -122,7 +76,7 @@ export default class BorderRenderer {
 
       const isCustomBorder = index === 0;
       const pathGroup = {
-        svgPathsRenderer: this.getSvgPathsRendererForGroup(this.svg, isCustomBorder),
+        svgPathsRenderer: this.getSvgPathsRendererForGroup(isCustomBorder),
         stylesAndLines: new Map(),
         styles: [],
         commands: []
@@ -143,51 +97,37 @@ export default class BorderRenderer {
    * @param {object[]} borderEdgesDescriptors Array of border edge descriptors.
    */
   render(table, borderEdgesDescriptors) {
-    this.clipLeft = Infinity;
-    this.clipTop = Infinity;
-    this.clipRight = 0;
-    this.clipBottom = 0;
     this.containerBoundingRect = table.getBoundingClientRect();
-
-    this.maxWidth = 0;
-    this.maxHeight = 0;
+    this.clientRect.reset();
 
     // batch all calculations
     this.pathGroups.forEach(pathGroup => pathGroup.stylesAndLines.clear());
+
     for (let i = 0; i < borderEdgesDescriptors.length; i++) {
       this.convertBorderEdgesDescriptorToLines(borderEdgesDescriptors[i]);
     }
-    this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
 
-    if (this.clipLeft === Infinity) {
-      this.clipLeft = 0;
-      this.clipTop = 0;
-    }
+    this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
+    this.clientRect.normalize(this.containerBoundingRect);
+
+    const {
+      svgWidth,
+      svgHeight,
+      clipWidth,
+      clipHeight,
+      clipLeft,
+      clipTop,
+    } = this.clientRect;
 
     // batch all DOM writes
-    let width = Math.min(this.maxWidth, this.containerBoundingRect.width);
-    let height = Math.min(this.maxHeight, this.containerBoundingRect.height);
+    this.svgResizer(svgWidth, svgHeight);
 
-    if (width < 0) {
-      width = 0;
-    }
-    if (height < 0) {
-      height = 0;
-    }
-    this.svgResizer(width, height);
-
-    this.clipLeft += this.padding.left;
-    this.clipTop += this.padding.top;
-    this.clipRight += this.padding.right;
-    this.clipBottom += this.padding.bottom;
-
-    const clipWidth = width - this.clipLeft - this.clipRight;
-    const clipHeight = height - this.clipTop - this.clipBottom;
-
-    this.clipPathShape.setAttribute('width', Math.max(clipWidth, 0));
-    this.clipPathShape.setAttribute('height', Math.max(clipHeight, 0));
-    this.clipPathShape.setAttribute('x', this.clipLeft);
-    this.clipPathShape.setAttribute('y', this.clipTop);
+    this.svgElement.setClipAttributes({
+      width: clipWidth,
+      height: clipHeight,
+      x: clipLeft,
+      y: clipTop,
+    });
 
     this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
@@ -311,11 +251,11 @@ export default class BorderRenderer {
       const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForBoldStroke;
       const currentMaxHeight = this.sumArrayElementAtIndex(lines, 3) + marginForBoldStroke;
 
-      if (currentMaxWidth > this.maxWidth) {
-        this.maxWidth = currentMaxWidth;
+      if (currentMaxWidth > this.clientRect.svgWidth) {
+        this.clientRect.svgWidth = currentMaxWidth;
       }
-      if (currentMaxHeight > this.maxHeight) {
-        this.maxHeight = currentMaxHeight;
+      if (currentMaxHeight > this.clientRect.svgHeight) {
+        this.clientRect.svgHeight = currentMaxHeight;
       }
 
       commands.push(optimizedCommand);
@@ -330,15 +270,7 @@ export default class BorderRenderer {
    * @returns {HTMLElement}
    */
   getSvgPathsRendererForGroup(svg, useInnerClipping) {
-    const group = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-    if (useInnerClipping) {
-      group.setAttribute('clip-path', `url(#${this.uniqueDomId}-inner-clip)`);
-    }
-
-    svg.appendChild(group);
-
-    return getSvgPathsRenderer(group);
+    return getSvgPathsRenderer(this.svgElement.createSvgGroup(useInnerClipping));
   }
 
   /**
@@ -459,14 +391,14 @@ export default class BorderRenderer {
     const firstTdBoundingRect = firstTd.getBoundingClientRect();
     const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
 
-    if (this.clipLeft === Infinity) {
+    if (this.clientRect.clipLeft === Infinity) {
       const firstTdInTbody = firstTd.parentElement.parentElement.querySelector('td');
 
       if (firstTdInTbody) {
         const rect = firstTdInTbody.getBoundingClientRect();
 
-        this.clipLeft = Math.max(0, rect.left - this.containerBoundingRect.left + offsetToOverLapPrecedingGridline);
-        this.clipTop = Math.max(0, rect.top - this.containerBoundingRect.top + offsetToOverLapPrecedingGridline);
+        this.clientRect.clipLeft = Math.max(0, rect.left - this.containerBoundingRect.left + offsetToOverLapPrecedingGridline);
+        this.clientRect.clipTop = Math.max(0, rect.top - this.containerBoundingRect.top + offsetToOverLapPrecedingGridline);
       }
     }
 
