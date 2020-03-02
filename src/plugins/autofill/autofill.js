@@ -198,6 +198,7 @@ class Autofill extends BasePlugin {
    *
    * @fires Hooks#modifyAutofillRange
    * @fires Hooks#beforeAutofill
+   * @fires Hooks#afterAutofill
    */
   fillIn() {
     if (this.hot.selection.highlight.getFill().isEmpty()) {
