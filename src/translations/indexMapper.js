@@ -72,12 +72,26 @@ class IndexMapper {
      */
     this.isBatched = false;
     /**
-     * Flag determining whether any action on indexes sequence or skipped indexes was performed.
+     * Flag determining whether any action on indexes sequence was performed.
      *
      * @private
      * @type {boolean}
      */
-    this.cachedIndexesChange = false;
+    this.indexesSequenceChanged = false;
+    /**
+     * Flag determining whether any action on skipped indexes was performed.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this.skippedIndexesChanged = false;
+    /**
+     * Flag determining whether any action on hidden indexes was performed.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this.hiddenIndexesChanged = false;
 
     // TODO: comments needed.
     this.hiddenCollection = new MapCollection();
@@ -86,7 +100,7 @@ class IndexMapper {
     this.renderableIndexesCache = [];
 
     this.indexesSequence.addLocalHook('change', () => {
-      this.cachedIndexesChange = true;
+      this.indexesSequenceChanged = true;
 
       // Sequence of visible indexes might change.
       this.updateCache();
@@ -95,7 +109,7 @@ class IndexMapper {
     });
 
     this.skipMapsCollection.addLocalHook('change', (changedMap) => {
-      this.cachedIndexesChange = true;
+      this.skippedIndexesChanged = true;
 
       // TODO: comment may be changed.
       // Number of visible indexes might change.
@@ -105,7 +119,7 @@ class IndexMapper {
     });
 
     this.hiddenCollection.addLocalHook('change', (changedMap) => {
-      this.cachedIndexesChange = true;
+      this.hiddenIndexesChanged = true;
 
       // TODO: comment needed.
       this.updateCache();
@@ -541,7 +555,9 @@ class IndexMapper {
    * @private
    */
   updateCache(force = false) {
-    if (force === true || (this.isBatched === false && this.cachedIndexesChange === true)) {
+    const cachedIndexesChanged = this.indexesSequenceChanged || this.skippedIndexesChanged || this.hiddenIndexesChanged;
+
+    if (force === true || (this.isBatched === false && cachedIndexesChanged === true)) {
       this.flattenSkipList = this.getFlattenSkipList(false);
       this.flattenHiddenList = this.getFlattenHiddenList(false);
       this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
@@ -549,7 +565,7 @@ class IndexMapper {
       this.renderableIndexesCache = this.getRenderableIndexes(false);
       this.cachedIndexesChange = false;
 
-      this.runLocalHooks('cacheUpdated');
+      this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.skippedIndexesChanged, this.hiddenIndexesChanged);
     }
   }
 }

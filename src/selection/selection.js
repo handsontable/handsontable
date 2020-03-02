@@ -5,6 +5,7 @@ import { isPressedCtrlKey } from './../utils/keyStateObserver';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { arrayEach } from './../helpers/array';
+import { rangeEach } from './../helpers/number';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 import {
@@ -585,6 +586,44 @@ class Selection {
     }
 
     return isValid;
+  }
+
+  /**
+   * Refresh the rendered state of the selection as visual selection may have new representation in DOM.
+   */
+  refresh() {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const cellHighlight = this.highlight.getCell();
+    const currentLayer = this.getLayerLevel();
+
+    cellHighlight.commit().adjustCoordinates(this.selectedRange.current());
+
+    // Rewriting rendered ranges going through all layers.
+    rangeEach(this.selectedRange.size(), (layerLevel) => {
+      this.highlight.useLayerLevel(layerLevel);
+
+      const areaHighlight = this.highlight.createOrGetArea();
+      const headerHighlight = this.highlight.createOrGetHeader();
+      const activeHeaderHighlight = this.highlight.createOrGetActiveHeader();
+
+      if (!areaHighlight.isEmpty()) {
+        areaHighlight.commit();
+      }
+
+      if (!headerHighlight.isEmpty()) {
+        headerHighlight.commit();
+      }
+
+      if (!activeHeaderHighlight.isEmpty()) {
+        activeHeaderHighlight.commit();
+      }
+    });
+
+    // Reverting starting layer for the Highlight.
+    this.highlight.useLayerLevel(currentLayer);
   }
 }
 
