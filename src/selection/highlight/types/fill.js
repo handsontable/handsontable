@@ -1,17 +1,17 @@
 import { Selection } from './../../../3rdparty/walkontable/src';
 
 /**
- * Default border style used for single cell selection highlight. The instance single cell selection highlight uses this class as the fallback for
- * the default values through prototypal inheritance.
+ * Default border style used for single cell selection highlight. The instance single
+ * cell selection highlight uses this class as the fallback for the default values
+ * through prototypal inheritance.
  */
-export function DefaultBorderStyle() {
-
-}
-DefaultBorderStyle.prototype = {
+const defaultBorderStyle = {
   width: 1,
   color: '#ff0000',
-  strokeAlignment: 'inside'
+  strokeAlignment: 'inside',
 };
+
+export { defaultBorderStyle };
 
 /**
  * Creates the new instance of Selection, responsible for highlighting cells which are covered by fill handle
@@ -20,9 +20,8 @@ DefaultBorderStyle.prototype = {
  * @param {object} options Options object.
  * @returns {Selection}
  */
-function createHighlight({ FillBorderStyleClass }) {
-  const borderStyle = new FillBorderStyleClass();
-
+function createHighlight({ BorderStyle }) {
+  const borderStyle = new BorderStyle();
   const s = new Selection({
     className: 'fill',
     border: borderStyle,

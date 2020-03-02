@@ -1887,7 +1887,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
-    this.selection.updateBorderStyleFromSettings(settings.selectionStyle || {});
+    if (isObject(settings.selectionStyle)) {
+      this.selection.updateBorderStyle(settings.selectionStyle);
+    }
 
     if (!init) {
       if (instance.view) {
