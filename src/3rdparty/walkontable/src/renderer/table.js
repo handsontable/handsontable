@@ -1,3 +1,5 @@
+import { addClass, removeClass } from '../../../../helpers/dom/element';
+
 /**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
  * responsible for adjusting and rendering each renderer.
@@ -264,7 +266,14 @@ export default class TableRenderer {
 
     this.colGroup.render();
 
-    const { rowsToRender, rows } = this;
+    const { rowsToRender, rows, columnHeadersCount } = this;
+
+    if (columnHeadersCount === 0) {
+      // rows.rootNode === TBODY
+      addClass(rows.rootNode, 'afterEmptyThead');
+    } else {
+      removeClass(rows.rootNode, 'afterEmptyThead');
+    }
 
     // Fix for multi-line content and for supporting `rowHeights` option.
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
