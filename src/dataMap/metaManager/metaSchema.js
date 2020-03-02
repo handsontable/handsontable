@@ -2926,5 +2926,33 @@ export default () => {
      * @default false
      */
     nestedRows: void 0,
+
+    /**
+     * @description
+     * Updates the border style class prototype of the cell, area and fill type selection
+     * instances with new configuration. Possible properties which can be changed are
+     * `borderWidth` and `borderColor`.
+     *
+     * @example
+     * ```js
+     * selectionStyle: {
+     *   cell: {
+     *     borderColor: 'pink'
+     *   },
+     *   fill: {
+     *     borderWidth: 2
+     *   }
+     *   area: {
+     *     borderColor: 'blue'
+     *   }
+     * }
+     * ```
+     *
+     * @since 8.0.0
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     */
+    selectionStyle: void 0
   };
 };

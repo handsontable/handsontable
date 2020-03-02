@@ -224,3 +224,31 @@ export function transformSelectionToRowDistance(selectionRanges) {
 export function isValidCoord(coord, maxTableItemsCount = Infinity) {
   return typeof coord === 'number' && coord >= 0 && coord < maxTableItemsCount;
 }
+
+/**
+ * Updates the border style class prototype of the current Selection instance with new configuration.
+ *
+ * @param {object} borderStyleProto Border style class prototype.
+ * @param {object} config The configuration object.
+ * @param {number} config.cell.borderWidth Optional. The border width of the cell highlight.
+ * @param {string} config.cell.borderColor Optional. The border color of the cell highlight.
+ * @param {number} config.area.borderWidth Optional. The border width of the area highlight.
+ * @param {string} config.area.borderColor Optional. The border color of the area highlight.
+ * @param {number} config.fill.borderWidth Optional. The border width of the fill highlight.
+ * @param {string} config.fill.borderColor Optional. The border color of the fill highlight.
+ */
+export function updateBorderStyle(borderStyleProto, config) {
+  if (config.borderWidth) {
+    borderStyleProto.width = config.borderWidth;
+    /* eslint-disable-next-line no-prototype-builtins */
+  } else if (borderStyleProto.hasOwnProperty('width')) {
+    delete borderStyleProto.width;
+  }
+
+  if (config.borderColor) {
+    borderStyleProto.color = config.borderColor;
+    /* eslint-disable-next-line no-prototype-builtins */
+  } else if (borderStyleProto.hasOwnProperty('color')) {
+    delete borderStyleProto.color;
+  }
+}

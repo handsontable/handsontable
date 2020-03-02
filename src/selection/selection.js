@@ -1,8 +1,8 @@
-import Highlight, { AREA_TYPE, HEADER_TYPE, CELL_TYPE } from './highlight/highlight';
+import Highlight, { AREA_TYPE, HEADER_TYPE, CELL_TYPE, FILL_TYPE } from './highlight/highlight';
 import SelectionRange from './range';
 import { CellCoords } from './../3rdparty/walkontable/src';
 import { isPressedCtrlKey } from './../utils/keyStateObserver';
-import { createObjectPropListener, mixin } from './../helpers/object';
+import { createObjectPropListener, mixin, isObject } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { arrayEach } from './../helpers/array';
 import localHooks from './../mixins/localHooks';
@@ -11,13 +11,11 @@ import {
   detectSelectionType,
   isValidCoord,
   normalizeSelectionFactory,
+  updateBorderStyle,
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_UNRECOGNIZED,
 } from './utils';
 import { toSingleLine } from './../helpers/templateLiteralTag';
-import { DefaultBorderStyle as CellDefaultBorderStyle } from './highlight/types/cell';
-import { DefaultBorderStyle as AreaDefaultBorderStyle } from './highlight/types/area';
-import { DefaultBorderStyle as FillDefaultBorderStyle } from './highlight/types/fill';
 
 /**
  * @class Selection
@@ -77,12 +75,9 @@ class Selection {
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
-      disableHighlight: this.settings.disableVisualSelection,
+      disableHighlight: settings.disableVisualSelection,
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
-      CellBorderStyleClass: createBorderStyleClass(CellDefaultBorderStyle),
-      AreaBorderStyleClass: createBorderStyleClass(AreaDefaultBorderStyle),
-      FillBorderStyleClass: createBorderStyleClass(FillDefaultBorderStyle)
     });
     /**
      * The module for modifying coordinates.
@@ -108,13 +103,34 @@ class Selection {
   }
 
   /**
+   * Updates the border style class prototype of the cell, area and fill type selection
+   * instances with new configuration. Possible properties which can be changed are
+   * `borderWidth` and `borderColor`.
    *
-   * @param {object} obj Object with properties that configure selection styles.
+   * @example
+   * ```js
+   * {
+   *   cell: {
+   *     borderColor: 'pink',
+   *   },
+   *   fill: {
+   *     borderWidth: 2,
+   *   },
+   *   area: {
+   *     borderColor: 'blue',
+   *   },
+   * }
+   * ```
+   * @param {object} borderStyles Object with properties that configure selection styles.
    */
-  updateBorderStyleFromSettings(obj) {
-    updateBorderStyle(this.highlight.options.CellBorderStyleClass, obj.cell || {});
-    updateBorderStyle(this.highlight.options.AreaBorderStyleClass, obj.area || {});
-    updateBorderStyle(this.highlight.options.FillBorderStyleClass, obj.fill || {});
+  updateBorderStyle(borderStyles) {
+    arrayEach([CELL_TYPE, AREA_TYPE, FILL_TYPE], (fillType) => {
+      const borderStylesForType = borderStyles[fillType];
+
+      if (isObject(borderStylesForType)) {
+        updateBorderStyle(this.highlight.getCommonBorderStyle(fillType), borderStylesForType);
+      }
+    });
   }
 
   /**
@@ -576,48 +592,3 @@ class Selection {
 mixin(Selection, localHooks);
 
 export default Selection;
-
-/**
- * Dynamically creates and returns a border style class for the current Selection instance, based on the provided default border style class.
- * The prototype properties of the returned class can be updated with custom values that will be used for the current Selection instance.
- * The provided default border style is used as fallback for the default values. This architecture allows to swap the border style properties
- * for already created highlights.
- *
- * Note the {typeof Class} syntax based on https://github.com/jsdoc/jsdoc/issues/1349.
- *
- * @param {typeof DefaultBorderStyleClass} DefaultBorderStyleClass The class type used to create a border style.
- * @returns {typeof BorderStyleClass}
- */
-function createBorderStyleClass(DefaultBorderStyleClass) {
-  const BorderStyleClass = class {};
-  BorderStyleClass.prototype = Object.create(DefaultBorderStyleClass.prototype);
-  return BorderStyleClass;
-}
-
-/**
- * Updates the border style class prototype of the current Selection instance with new configuration.
- *
- * @param {typeof BorderStyleClass} BorderStyleClass Border style class.
- * @param {object} config The configuration object.
- * @param {number} config.cell.borderWidth Optional. The border width of the cell highlight.
- * @param {string} config.cell.borderColor Optional. The border color of the cell highlight.
- * @param {number} config.area.borderWidth Optional. The border width of the area highlight.
- * @param {string} config.area.borderColor Optional. The border color of the area highlight.
- * @param {number} config.fill.borderWidth Optional. The border width of the fill highlight.
- * @param {string} config.fill.borderColor Optional. The border color of the fill highlight.
- */
-function updateBorderStyle(BorderStyleClass, config) {
-  const classProto = BorderStyleClass.prototype;
-  if (config.borderWidth) {
-    classProto.width = config.borderWidth;
-    /* eslint-disable-next-line no-prototype-builtins */
-  } else if (classProto.hasOwnProperty('width')) {
-    delete classProto.width;
-  }
-  if (config.borderColor) {
-    classProto.color = config.borderColor;
-    /* eslint-disable-next-line no-prototype-builtins */
-  } else if (classProto.hasOwnProperty('color')) {
-    delete classProto.color;
-  }
-}
