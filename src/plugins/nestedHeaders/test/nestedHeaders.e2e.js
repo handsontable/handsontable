@@ -244,7 +244,9 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      expect(console.warn).toHaveBeenCalledWith('Your Nested Headers plugin setup contains overlapping headers. This kind of configuration is currently not supported.'); // eslint-disable-line no-console
+      // eslint-disable-next-line no-console
+      expect(console.warn).toHaveBeenCalledWith('Your Nested Headers plugin setup contains overlapping headers. ' +
+                                                'This kind of configuration is currently not supported.');
       expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
         <thead></thead>
         `);
@@ -305,7 +307,6 @@ describe('NestedHeaders', () => {
       expect(headerRows[1].querySelector('th:nth-child(1)').getAttribute('colspan')).toEqual(null);
       expect(headerRows[1].querySelector('th:nth-child(2)').getAttribute('colspan')).toEqual(null);
       expect(headerRows[1].querySelector('th:nth-child(3)').getAttribute('colspan')).toEqual(null);
-
     });
 
     it('should allow creating a more complex nested setup when fixedColumnsLeft option is enabled', () => {
@@ -319,58 +320,70 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class=""></th>
-            <th class="" colspan="1"></th>
-          </tr>
-          <tr>
-            <th class=""></th>
-            <th class="" colspan="1"></th>
-          </tr>
-        </thead>
-        `);
+      {
+        const htmlPattern = `
+          <thead>
+            <tr>
+              <th class=""></th>
+              <th class="" colspan="1"></th>
+            </tr>
+            <tr>
+              <th class=""></th>
+              <th class="" colspan="1"></th>
+            </tr>
+          </thead>
+          `;
+        expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getLeftClone().find('thead'))).toMatchHTML(htmlPattern);
+      }
 
       updateSettings({ fixedColumnsLeft: 3 });
 
-      expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class=""></th>
-            <th class="" colspan="2"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class=""></th>
-            <th class="" colspan="2"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-        </thead>
-        `);
+      {
+        const htmlPattern = `
+          <thead>
+            <tr>
+              <th class=""></th>
+              <th class="" colspan="2"></th>
+              <th class="hiddenHeader"></th>
+            </tr>
+            <tr>
+              <th class=""></th>
+              <th class="" colspan="2"></th>
+              <th class="hiddenHeader"></th>
+            </tr>
+          </thead>
+          `;
+        expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getLeftClone().find('thead'))).toMatchHTML(htmlPattern);
+      }
 
       updateSettings({ fixedColumnsLeft: 6 });
 
-      expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class=""></th>
-            <th class="" colspan="4"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class=""></th>
-          </tr>
-          <tr>
-            <th class=""></th>
-            <th class="" colspan="2"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2"></th>
-            <th class="hiddenHeader"></th>
-            <th class=""></th
-          </tr>
-        </thead>
-        `);
+      {
+        const htmlPattern = `
+          <thead>
+            <tr>
+              <th class=""></th>
+              <th class="" colspan="4"></th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class=""></th>
+            </tr>
+            <tr>
+              <th class=""></th>
+              <th class="" colspan="2"></th>
+              <th class="hiddenHeader"></th>
+              <th class="" colspan="2"></th>
+              <th class="hiddenHeader"></th>
+              <th class=""></th
+            </tr>
+          </thead>
+          `;
+        expect(extractDOMStructure(getTopLeftClone().find('thead'))).toMatchHTML(htmlPattern);
+        expect(extractDOMStructure(getLeftClone().find('thead'))).toMatchHTML(htmlPattern);
+      }
     });
 
     it('should return a relevant nested header element in hot.getCell()', () => {
@@ -1037,10 +1050,10 @@ describe('NestedHeaders', () => {
           ['A', { label: 'B', colspan: 8 }, 'C'],
           ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
           ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
-          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
 
+      // cell B3
       this.$container.find('.ht_master tbody tr:eq(2) td:eq(1)')
         .simulate('mousedown')
         .simulate('mouseup');
@@ -1073,7 +1086,7 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class=""></th>
-            <th class="" colspan="2"></th>
+            <th class="ht__highlight" colspan="2"></th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2"></th>
             <th class="hiddenHeader"></th>
@@ -1083,16 +1096,50 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class=""></th>
           </tr>
+        </thead>
+        `);
+
+      // cell C3
+      this.$container.find('.ht_master tbody tr:eq(2) td:eq(1)')
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+        <thead>
           <tr>
             <th class=""></th>
-            <th class="ht__highlight"></th>
+            <th class="" colspan="8"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
             <th class=""></th>
+          </tr>
+          <tr>
             <th class=""></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
             <th class=""></th>
+          </tr>
+          <tr>
             <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
-            <th class=""></th>
+            <th class="ht__highlight" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2"></th>
+            <th class="hiddenHeader"></th>
             <th class=""></th>
           </tr>
         </thead>

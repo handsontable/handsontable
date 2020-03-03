@@ -233,8 +233,9 @@ class NestedHeaders extends BasePlugin {
 
       if (colspan > 1) {
         const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
+        const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
 
-        TH.setAttribute('colspan', isTopLeftOverlay ? Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan);
+        TH.setAttribute('colspan', isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan);
       }
 
       const divEl = rootDocument.createElement('div');
@@ -289,7 +290,7 @@ class NestedHeaders extends BasePlugin {
 
         // If the selection doesn't overlap, the whole colspaned header. Correct the
         // visual column index to the TH element, which is not hidden (most left column index).
-        if (columnWalker === 0 && isFirstLayer && hidden) {
+        if (columnWalker === 0 && isFirstLayer) {
           isOutOfRange = false;
           column = this.#columnStatesManager.findLeftMostColumnIndex(column, level);
         }

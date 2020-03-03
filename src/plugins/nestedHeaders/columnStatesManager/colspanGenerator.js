@@ -14,19 +14,19 @@ import { TRAVERSAL_BF } from '../../../utils/dataStructures/tree';
  * Output example:
  *   [
  *     [
- *       { label: 'A1', colspan: 2, hidden: false },
- *       { label: '', colspan: 1, hidden: true },
- *       { label: '', colspan: 1, hidden: false },
+ *       { label: 'A1', colspan: 2, origColspan: 2, hidden: false },
+ *       { label: '', colspan: 1, origColspan: 1, hidden: true },
+ *       { label: '', colspan: 1, origColspan: 1, hidden: false },
  *     ],
  *     [
- *       { label: 'true', colspan: 1, hidden: false },
- *       { label: 'B2', colspan: 1, hidden: false },
- *       { label: '4', colspan: 1, hidden: false },
+ *       { label: 'true', colspan: 1, origColspan: 1, hidden: false },
+ *       { label: 'B2', colspan: 1, origColspan: 1, hidden: false },
+ *       { label: '4', colspan: 1, origColspan: 1, hidden: false },
  *     ],
  *     [
- *       { label: '', colspan: 1, hidden: false },
- *       { label: '', colspan: 1, hidden: false },
- *       { label: '', colspan: 1, hidden: false },
+ *       { label: '', colspan: 1, origColspan: 1, hidden: false },
+ *       { label: '', colspan: 1, origColspan: 1, hidden: false },
+ *       { label: '', colspan: 1, origColspan: 1, hidden: false },
  *     ],
  *   ]
  *
