@@ -589,9 +589,9 @@ class Selection {
   }
 
   /**
-   * Refresh the rendered state of the selection as visual selection may have new representation in DOM.
+   * Rewrite the rendered state of the selection as visual selection may have new representation in the DOM.
    */
-  refresh() {
+  rewrite() {
     if (!this.isSelected()) {
       return;
     }

@@ -182,7 +182,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   instance.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
     if (hiddenIndexesChanged) {
-      selection.refresh();
+      selection.rewrite();
     }
   });
 

@@ -326,7 +326,9 @@ describe('HiddenColumns', () => {
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
-            hiddenColumns: [1, 2, 3],
+            hiddenColumns: {
+              columns: [1, 2, 3],
+            },
           });
 
           const header = getCell(-1, 4);
@@ -346,7 +348,9 @@ describe('HiddenColumns', () => {
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
-            hiddenColumns: [1, 3],
+            hiddenColumns: {
+              columns: [1, 3],
+            },
           });
 
           const header = getCell(-1, 2);
@@ -1501,6 +1505,631 @@ describe('HiddenColumns', () => {
       | - ║ 0 : 0 |
       | - ║ 0 : 0 |
       | - ║ 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+  });
+
+  describe('redrawing rendered selection when the selected range has been changed', () => {
+    describe('by showing columns placed before the current selection', () => {
+      it('single cell was selected', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          hiddenColumns: {
+            columns: [0, 1, 2],
+          },
+        });
+
+        selectCell(3, 3);
+
+        getPlugin('hiddenColumns').showColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(`
+        |   ║   : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║   : # :   |
+        |   ║   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(`
+        |   ║   :   :   : - :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   :   : # :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      describe('entire row was selected and', () => {
+        it('columns at the start had been hidden and were showed', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            colHeaders: true,
+            hiddenColumns: {
+              columns: [0, 1],
+            },
+          });
+
+          selectRows(0);
+
+          getPlugin('hiddenColumns').showColumns([1]);
+          render();
+
+          expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+          expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+          expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+          expect(`
+          |   ║ - : - : - : - |
+          |===:===:===:===:===|
+          | * ║ A : 0 : 0 : 0 |
+          |   ║   :   :   :   |
+          |   ║   :   :   :   |
+          |   ║   :   :   :   |
+          |   ║   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+
+          getPlugin('hiddenColumns').showColumns([0]);
+          render();
+
+          expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+          expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+          expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+          expect(`
+          |   ║ - : - : - : - : - |
+          |===:===:===:===:===:===|
+          | * ║ A : 0 : 0 : 0 : 0 |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+        });
+      });
+
+      it('non-contiguous selection', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 8,
+          startCols: 12,
+          hiddenColumns: {
+            columns: [0, 1, 2],
+          },
+        });
+
+        $(getCell(1, 3)).simulate('mousedown');
+        $(getCell(4, 6)).simulate('mouseover');
+        $(getCell(4, 6)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 5)).simulate('mousedown');
+        $(getCell(5, 8)).simulate('mouseover');
+        $(getCell(5, 8)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 6)).simulate('mousedown');
+        $(getCell(6, 9)).simulate('mouseover');
+        $(getCell(6, 9)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(`
+        |   ║ - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║ 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(`
+        |   ║   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(`
+        |   ║   :   :   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    describe('by hiding columns placed before the current selection', () => {
+      it('single cell was selected', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          hiddenColumns: true,
+        });
+
+        selectCell(3, 3);
+
+        getPlugin('hiddenColumns').hideColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(`
+        |   ║   : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║   : # :   |
+        |   ║   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(`
+        |   ║ - :   |
+        |===:===:===|
+        |   ║   :   |
+        |   ║   :   |
+        |   ║   :   |
+        | - ║ # :   |
+        |   ║   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('non-contiguous selection', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 8,
+          startCols: 12,
+          hiddenColumns: true,
+        });
+
+        $(getCell(1, 3)).simulate('mousedown');
+        $(getCell(4, 6)).simulate('mouseover');
+        $(getCell(4, 6)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 5)).simulate('mousedown');
+        $(getCell(5, 8)).simulate('mouseover');
+        $(getCell(5, 8)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 6)).simulate('mousedown');
+        $(getCell(6, 9)).simulate('mouseover');
+        $(getCell(6, 9)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(`
+        |   ║   :   :   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(`
+        |   ║   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(`
+        |   ║ - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║ 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    describe('by showing hidden, ', () => {
+      it('selected columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1, 2],
+          },
+        });
+
+        selectColumns(1, 2);
+
+        getPlugin('hiddenColumns').showColumns([2]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+        expect(getSelectedLast()).toEqual([0, 1, 4, 2]);
+        expect(`
+        |   ║   : * :   :   |
+        |===:===:===:===:===|
+        | - ║   : A :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([1]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedLast()).toEqual([0, 1, 4, 2]);
+        expect(`
+        |   ║   : * : * :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : A : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cell', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1],
+          },
+        });
+
+        selectCell(3, 1);
+
+        getPlugin('hiddenColumns').showColumns([1]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedLast()).toEqual([3, 1, 3, 1]);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cells (just a few)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1],
+          },
+        });
+
+        selectCells([[3, 1], [0, 1], [0, 1]]);
+
+        getPlugin('hiddenColumns').showColumns([1]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelected()).toEqual([[3, 1, 3, 1], [0, 1, 0, 1], [0, 1, 0, 1]]);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : B :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cells (all of them)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2, 3, 4],
+          },
+        });
+
+        selectAll();
+
+        getPlugin('hiddenColumns').showColumns([0, 1, 2, 3, 4]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+        expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    describe('by hiding ', () => {
+      it('selected columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectColumns(1, 2);
+
+        getPlugin('hiddenColumns').hideColumns([1]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+        expect(getSelectedLast()).toEqual([0, 1, 4, 2]);
+        expect(`
+        |   ║   : * :   :   |
+        |===:===:===:===:===|
+        | - ║   : A :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([2]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedLast()).toEqual([0, 1, 4, 2]);
+        expect(`
+        |   ║   :   :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cell', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectCell(3, 1);
+
+        getPlugin('hiddenColumns').hideColumns([1]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedLast()).toEqual([3, 1, 3, 1]);
+        expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cells', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectCells([[3, 1], [0, 1], [0, 1]]);
+
+        getPlugin('hiddenColumns').hideColumns([1]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelected()).toEqual([[3, 1, 3, 1], [0, 1, 0, 1], [0, 1, 0, 1]]);
+        expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('all selected cells', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectAll();
+
+        getPlugin('hiddenColumns').hideColumns([0, 1, 2, 3, 4]);
+        render();
+
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+        expect(`
+        |   |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    it('showed columns on a table with all columns hidden and with selected entire row', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2, 3, 4],
+        },
+      });
+
+      selectRows(0);
+
+      getPlugin('hiddenColumns').showColumns([4]);
+      render();
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(`
+      |   ║   |
+      |===:===|
+      | * ║ # |
+      |   ║   |
+      |   ║   |
+      |   ║   |
+      |   ║   |
+      `).toBeMatchToSelectionPattern();
+
+      getPlugin('hiddenColumns').showColumns([1, 2, 3]);
+      render();
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(`
+      |   ║   :   :   :   |
+      |===:===:===:===:===|
+      | * ║ # :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getPlugin('hiddenColumns').showColumns([0]);
+      render();
+
+      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(`
+      |   ║   :   :   :   :   |
+      |===:===:===:===:===:===|
+      | * ║ # :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
   });
