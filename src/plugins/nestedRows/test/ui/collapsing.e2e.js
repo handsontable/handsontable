@@ -76,14 +76,11 @@ describe('NestedRows Collapsing UI', () => {
       });
 
       it('should collapse all children nodes of the row provided as an object', () => {
-        let sourceDataReference = null;
+        const sourceDataReference = getMoreComplexNestedData();
 
         const hot = handsontable({
-          data: getMoreComplexNestedData(),
-          nestedRows: true,
-          beforeLoadData: (data) => {
-            sourceDataReference = data;
-          }
+          data: sourceDataReference,
+          nestedRows: true
         });
 
         const plugin = getPlugin('nestedRows');

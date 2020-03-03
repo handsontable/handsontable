@@ -34,6 +34,7 @@ describe('Core.getSourceDataAtRow', () => {
 
     getSourceDataAtRow(0)[0] = 'changed!';
 
+    expect(getSourceDataAtRow(0)).not.toBe(datasetAoA[0]);
     expect(getSourceDataAtRow(0)[0]).toEqual('a1');
 
     updateSettings({
@@ -42,6 +43,7 @@ describe('Core.getSourceDataAtRow', () => {
 
     getSourceDataAtRow(0).a = 'changed!';
 
+    expect(getSourceDataAtRow(0)).not.toBe(datasetAoO[0]);
     expect(getSourceDataAtRow(0).a).toEqual(1);
   });
 

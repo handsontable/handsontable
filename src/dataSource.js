@@ -91,8 +91,8 @@ class DataSource {
    * operates only on the columns declared by the `columns` setting or the data schema.
    *
    * @param {number} row Physical row index.
-   * @param {number|null} [startColumn] Starting index for the column range (optional).
-   * @param {number|null} [endColumn] Ending index for the column range (optional).
+   * @param {number} [startColumn] Starting index for the column range (optional).
+   * @param {number} [endColumn] Ending index for the column range (optional).
    * @param {boolean} [toArray] `true` if the returned value should be forced to be presented as an array.
    * @returns {Array|object}
    */
@@ -181,7 +181,7 @@ class DataSource {
       }
     }
 
-    if (isNaN(column)) {
+    if (!Number.isInteger(column)) {
       // column argument is the prop name
       setProperty(this.data[row], column, value);
 
@@ -241,7 +241,7 @@ class DataSource {
       modifyRowData = this.hot.runHooks('modifyRowData', row);
     }
 
-    const dataRow = modifyRowData !== null && isNaN(modifyRowData) ? modifyRowData : this.data[row];
+    const dataRow = modifyRowData !== null && !Number.isInteger(modifyRowData) ? modifyRowData : this.data[row];
 
     return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
   }
@@ -262,7 +262,7 @@ class DataSource {
     let endRow = null;
     let endCol = null;
 
-    if (start === null && end === null) {
+    if (start === null || end === null) {
       getAllProps = true;
       startRow = 0;
       endRow = this.countRows() - 1;
@@ -296,8 +296,9 @@ class DataSource {
     if (this.hot.hasHook('modifySourceLength')) {
       const modifiedSourceLength = this.hot.runHooks('modifySourceLength');
 
-      return isNaN(modifiedSourceLength) ? (this.data.length || 0) : modifiedSourceLength;
-
+      if (Number.isInteger(modifiedSourceLength)) {
+        return modifiedSourceLength;
+      }
     }
 
     return this.data.length || 0;

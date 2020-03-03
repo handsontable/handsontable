@@ -109,7 +109,7 @@ class DataMap {
     this.propToColCache = new Map();
 
     if (columns) {
-      let columnsLen = null;
+      let columnsLen = 0;
       let filteredIndex = 0;
       let columnsAsFunc = false;
 
