@@ -130,8 +130,12 @@ class VisualSelection extends Selection {
         this.cellRange = new CellRange(singleCellRangeTranslated);
 
         broaderCellRange.setHighlight(this.settings.untranslateCoords(singleCellRangeTranslated));
+
+        return this;
       }
     }
+
+    broaderCellRange.setHighlight(broaderCellRange.from); // Fallback to the start of the range.
 
     return this;
   }
