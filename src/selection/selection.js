@@ -589,7 +589,7 @@ class Selection {
   }
 
   /**
-   * Rewrite the rendered state of the selection as visual selection may have new representation in the DOM.
+   * Rewrite the rendered state of the selection as visual selection may have a new representation in the DOM.
    */
   rewrite() {
     if (!this.isSelected()) {
@@ -609,15 +609,15 @@ class Selection {
       const headerHighlight = this.highlight.createOrGetHeader();
       const activeHeaderHighlight = this.highlight.createOrGetActiveHeader();
 
-      if (!areaHighlight.isEmpty()) {
+      if (areaHighlight.visualCellRange !== null) {
         areaHighlight.commit();
       }
 
-      if (!headerHighlight.isEmpty()) {
+      if (headerHighlight.visualCellRange !== null) {
         headerHighlight.commit();
       }
 
-      if (!activeHeaderHighlight.isEmpty()) {
+      if (activeHeaderHighlight.visualCellRange !== null) {
         activeHeaderHighlight.commit();
       }
     });

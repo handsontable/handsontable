@@ -1507,6 +1507,32 @@ describe('HiddenColumns', () => {
       | - ║ 0 : 0 |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should select columns after call selectColumns if range is partially hidden at the start and at the end of the range', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+
+      selectColumns(1, 3);
+
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+      expect(getSelectedLast()).toEqual([0, 1, 4, 3]);
+      expect(`
+      |   ║   : * :   |
+      |===:===:===:===|
+      | - ║   : A :   |
+      | - ║   : 0 :   |
+      | - ║   : 0 :   |
+      | - ║   : 0 :   |
+      | - ║   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
   });
 
   describe('redrawing rendered selection when the selected range has been changed', () => {
@@ -1938,13 +1964,58 @@ describe('HiddenColumns', () => {
         expect(`
         |   ║ * : * : * : * : * |
         |===:===:===:===:===:===|
-        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ A : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
         | * ║ 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
       });
+    });
+
+    it('by showing columns from a selection containing hidden columns at the start and at the end of the range', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+
+      selectColumns(1, 3);
+
+      getPlugin('hiddenColumns').showColumns([3]);
+      render();
+
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+      expect(getSelectedLast()).toEqual([0, 1, 4, 3]);
+      expect(`
+      |   ║   : * : * :   |
+      |===:===:===:===:===|
+      | - ║   : A : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getPlugin('hiddenColumns').showColumns([1]);
+      render();
+
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedLast()).toEqual([0, 1, 4, 3]);
+      expect(`
+      |   ║   : * : * : * :   |
+      |===:===:===:===:===:===|
+      | - ║   : A : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     describe('by hiding ', () => {
@@ -2091,9 +2162,9 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
       expect(`
-      |   ║   |
+      |   ║ - |
       |===:===|
-      | * ║ # |
+      | * ║ A |
       |   ║   |
       |   ║   |
       |   ║   |
@@ -2107,9 +2178,9 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
       expect(`
-      |   ║   :   :   :   |
+      |   ║ - : - : - : - |
       |===:===:===:===:===|
-      | * ║ # :   :   :   |
+      | * ║ A : 0 : 0 : 0 |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
@@ -2123,9 +2194,9 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
       expect(`
-      |   ║   :   :   :   :   |
+      |   ║ - : - : - : - : - |
       |===:===:===:===:===:===|
-      | * ║ # :   :   :   :   |
+      | * ║ A : 0 : 0 : 0 : 0 |
       |   ║   :   :   :   :   |
       |   ║   :   :   :   :   |
       |   ║   :   :   :   :   |
