@@ -288,7 +288,6 @@ class MultipleSelectUI extends BaseUI {
     });
 
     this.itemsBox.setSourceDataAtRowProp(changes);
-    this.itemsBox.render();
   }
 
   /**
@@ -308,7 +307,6 @@ class MultipleSelectUI extends BaseUI {
     });
 
     this.itemsBox.setSourceDataAtRowProp(changes);
-    this.itemsBox.render();
   }
 }
 
