@@ -91,9 +91,9 @@ export default class ColumnUtils {
     const { wot } = this;
     const { wtTable, wtViewport, overlay } = wot;
     const mainHolder = overlay ? overlay.master.wtTable.holder : wtTable.holder;
-    
+
     this.scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
-    
+
     let rowHeaderWidthSetting = wot.getSetting('rowHeaderWidth');
 
     wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - this.scrollbarCompensation);

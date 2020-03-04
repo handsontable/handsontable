@@ -150,7 +150,7 @@ class HeaderTooltips extends BasePlugin {
         In 7.x, `outerWidth(TH)` always returned 50 due to that value provided as default in CSS.
         */
         const textWidth = outerWidth(innerSpan);
-        
+
         if (textWidth >= columnWidth && textWidth !== 0) {
           TH.setAttribute('title', innerSpan.textContent);
         }
