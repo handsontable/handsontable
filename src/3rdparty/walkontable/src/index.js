@@ -31,6 +31,7 @@ import getSvgResizer from './borderRenderer/svg/resizer';
 import { setCurrentWindowContext, convertCssColorToRGBA, getLuminance, compareLuminance } from './borderRenderer/svg/color';
 
 import { setBrowserMeta } from '../../../helpers/browser';
+import { GRIDLINE_WIDTH } from './utils/gridline';
 
 /**
  * The export `Walkontable as default` is intended for external use (i.e. In Handsontable). Other named exports
@@ -77,5 +78,6 @@ export {
   compareLuminance,
   compareStrokePriority,
 
-  setBrowserMeta
+  setBrowserMeta,
+  GRIDLINE_WIDTH
 };
