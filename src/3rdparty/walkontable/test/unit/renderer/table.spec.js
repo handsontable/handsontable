@@ -163,6 +163,9 @@ describe('TableRenderer', () => {
       render() {}
     })();
     const rowsRenderer = new (class RowsRenderer {
+      constructor() {
+        this.rootNode = document.createElement('tbody');
+      }
       adjust() {}
       render() {}
     })();
