@@ -286,7 +286,10 @@ class Viewport {
       return containerWidth - rowHeaderWidth;
     }
 
-    const compensateForLeftGridline = GRIDLINE_WIDTH; // traditionally, all cell widths contain the right gridline, but not the left gridline. We need to subtract the first gridline on the left, because it is not common with any right gridline.
+    // traditionally, all cell widths contain the right gridline, but not the left gridline.
+    // We need to subtract the first gridline on the left, because it is not common with any right gridline.
+    const compensateForLeftGridline = GRIDLINE_WIDTH;
+    
     return containerWidth - compensateForLeftGridline;
   }
 

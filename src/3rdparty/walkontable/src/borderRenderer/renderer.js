@@ -158,6 +158,7 @@ export default class BorderRenderer {
       this.convertBorderEdgesDescriptorToLines(borderEdgesDescriptors[i]);
     }
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
+    
     if (this.clipLeft === Infinity) {
       this.clipLeft = 0;
       this.clipTop = 0;
@@ -481,8 +482,10 @@ export default class BorderRenderer {
     x2 += addLastTdWidth * lastTdBoundingRect.width;
     y2 += addLastTdHeight * lastTdBoundingRect.height;
 
-    const firstTdIncludesGridlineOnTheLeft = !(firstTd.nodeName === 'TH' || firstTd.previousElementSibling); // if there is a row header, the left gridline of column 0 comes from the row header. If firstTD is the first child, we know that there is no row header
-    const firstTdIncludesGridlineOnTheTop = !firstTd.parentNode.previousElementSibling && !firstTd.parentNode.parentNode.previousElementSibling.firstElementChild; // if there is a column header, the top gridline of row 0 comes from the column header. If the table table has an empty thead, we know that there is no row header
+    // if there is a row header, the left gridline of column 0 comes from the row header. If firstTD is the first child, we know that there is no row header
+    const firstTdIncludesGridlineOnTheLeft = !(firstTd.nodeName === 'TH' || firstTd.previousElementSibling);
+    // if there is a column header, the top gridline of row 0 comes from the column header. If the table has an empty thead, we know that there is no row header
+    const firstTdIncludesGridlineOnTheTop = !firstTd.parentNode.previousElementSibling && !firstTd.parentNode.parentNode.previousElementSibling.firstElementChild; 
 
     // adjustments needed to render the border directly on the gridline, depending on the surrounding CSS
     if (!firstTdIncludesGridlineOnTheLeft) {

@@ -15,7 +15,7 @@ import {
   setCaretPosition,
 } from './../helpers/dom/element';
 import HandsontableEditor from './handsontableEditor';
-import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src/utils/gridline';
+import { GRIDLINE_WIDTH } from '../3rdparty/walkontable/src';
 
 const privatePool = new WeakMap();
 

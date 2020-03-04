@@ -170,6 +170,7 @@ class GhostTable {
     arrayEach(this.columns, (column) => {
       const width = column.table.getBoundingClientRect().width;
       const rounded = Math.ceil(width);
+      
       callback(column.col, rounded);
     });
   }
