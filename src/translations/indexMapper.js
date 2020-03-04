@@ -563,11 +563,12 @@ class IndexMapper {
       this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
       this.renderableIndexesCache = this.getRenderableIndexes(false);
+
+      this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.skippedIndexesChanged, this.hiddenIndexesChanged);
+
       this.indexesSequenceChanged = false;
       this.skippedIndexesChanged = false;
       this.hiddenIndexesChanged = false;
-
-      this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.skippedIndexesChanged, this.hiddenIndexesChanged);
     }
   }
 }
