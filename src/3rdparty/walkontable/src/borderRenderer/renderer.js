@@ -266,11 +266,10 @@ export default class BorderRenderer {
   /**
    * Creates and configures the SVG group element, where all SVG paths are rendered.
    *
-   * @param {HTMLElement} svg SVG container element.
    * @param {boolean} useInnerClipping Whether to use inner clipping.
    * @returns {HTMLElement}
    */
-  getSvgPathsRendererForGroup(svg, useInnerClipping) {
+  getSvgPathsRendererForGroup(useInnerClipping) {
     return getSvgPathsRenderer(this.svgElement.createSvgGroup(useInnerClipping));
   }
 
