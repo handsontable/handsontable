@@ -1,3 +1,5 @@
+import { randomString } from '../../../../helpers/string';
+
 /**
  *
  */
@@ -7,9 +9,11 @@ export default class SvgElement {
    */
   rootDocument;
   /**
+   * Value of the id of the clipPath element. Must be unique in the whole document.
+   *
    * @type {string}
    */
-  uniqueDomId;
+  uniqueDomInnerClipId;
   /**
    * @type {SVGElement|undefined}
    */
@@ -19,9 +23,9 @@ export default class SvgElement {
    */
   rect;
 
-  constructor(rootDocument, uniqueDomId) {
+  constructor(rootDocument) {
     this.rootDocument = rootDocument;
-    this.uniqueDomId = uniqueDomId;
+    this.uniqueDomInnerClipId = `${randomString()}-inner-clip`;
 
     this.createElement();
   }
@@ -34,7 +38,7 @@ export default class SvgElement {
     const group = this.rootDocument.createElementNS('http://www.w3.org/2000/svg', 'g');
 
     if (useInnerClipping) {
-      group.setAttribute('clip-path', `url(#${this.uniqueDomId}-inner-clip)`);
+      group.setAttribute('clip-path', `url(#${this.uniqueDomInnerClipId}`);
     }
 
     this.svg.appendChild(group);
@@ -71,7 +75,7 @@ export default class SvgElement {
     const clipPath = this.rootDocument.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
     const rect = this.rootDocument.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
-    clipPath.setAttribute('id', `${this.uniqueDomId}-inner-clip`);
+    clipPath.setAttribute('id', this.uniqueDomInnerClipId);
     clipPath.appendChild(rect);
     defs.appendChild(clipPath);
     svg.appendChild(defs);

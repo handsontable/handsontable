@@ -11,7 +11,7 @@ const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`.
  */
 export default class BorderRenderer {
-  constructor(parentElement, uniqueDomId, overlayName, getCellFn) {
+  constructor(parentElement, overlayName, getCellFn) {
     /**
      * Overlay name.
      *
@@ -27,7 +27,7 @@ export default class BorderRenderer {
     /**
      * @type {SvgElement}
      */
-    this.svgElement = new SvgElement(parentElement.ownerDocument, uniqueDomId);
+    this.svgElement = new SvgElement(parentElement.ownerDocument);
     /**
      * @type {ClientRect}
      */

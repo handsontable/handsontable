@@ -76,7 +76,6 @@ class Table {
 
     this.borderRenderer = new BorderRenderer(
       this.spreader,
-      `${this.wot.guid}-border-renderer`,
       this.isMaster ? 'master' : this.wot.getOverlayName(),
       this.getCell.bind(this),
     );
