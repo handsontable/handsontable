@@ -1847,7 +1847,7 @@ declare namespace Handsontable {
       afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
       beforeAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
-      beforeAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void;
+      beforeAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void | boolean;
       beforeAutofillInsidePopulate?: (index: wot.CellCoords, direction: 'up' | 'down' | 'left' | 'right', input: CellValue[][], deltas: any[]) => void;
       beforeCellAlignment?: (stateBefore: { [row: number]: string[] }, range: wot.CellRange[], type: 'horizontal' | 'vertical', alignmentClass: 'htLeft' | 'htCenter' | 'htRight' | 'htJustify' | 'htTop' | 'htMiddle' | 'htBottom') => void;
       beforeChange?: (changes: CellChange[], source: ChangeSource) => void | boolean;

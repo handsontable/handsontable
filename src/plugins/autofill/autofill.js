@@ -194,7 +194,6 @@ class Autofill extends BasePlugin {
    * Try to apply fill values to the area in fill border, omitting the selection border.
    *
    * @private
-   * @returns {boolean} Reports if fill was applied.
    *
    * @fires Hooks#modifyAutofillRange
    * @fires Hooks#beforeAutofill
@@ -202,7 +201,7 @@ class Autofill extends BasePlugin {
    */
   fillIn() {
     if (this.hot.selection.highlight.getFill().isEmpty()) {
-      return false;
+      return;
     }
 
     let cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getCorners();
@@ -216,8 +215,13 @@ class Autofill extends BasePlugin {
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
+      const beforeAutofillHook = this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
 
-      this.hot.runHooks('beforeAutofill', startOfDragCoords, endOfDragCoords, selectionData);
+      if (beforeAutofillHook === false) {
+        this.hot.selection.highlight.getFill().clear();
+        this.hot.render();
+        return;
+      }
 
       const deltas = getDeltas(startOfDragCoords, endOfDragCoords, selectionData, directionOfDrag);
       let fillData = selectionData;
@@ -268,8 +272,6 @@ class Autofill extends BasePlugin {
       // reset to avoid some range bug
       this.hot._refreshBorders();
     }
-
-    return true;
   }
 
   /**

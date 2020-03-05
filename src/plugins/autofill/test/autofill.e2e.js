@@ -296,6 +296,29 @@ describe('AutoFill', () => {
     expect(getDataAtCell(1, 0)).toEqual('test');
   });
 
+  it('should cancel autofill if beforeAutofill returns false', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill() {
+        return false;
+      }
+    });
+    selectCell(0, 0);
+
+    spec().$container.find('.wtBorder.corner').simulate('mousedown');
+    spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+    spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+    spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getDataAtCell(1, 0)).toEqual(1);
+  });
+
   it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', () => {
     const $table = $('<table><tr><td></td></tr></table>').appendTo('body');
     spec().$container.appendTo($table.find('td'));
