@@ -145,20 +145,6 @@ export default class BorderRenderer {
   }
 
   /**
-   * Get a value stored in a 2D map (key1->key2->value).
-   *
-   * @param {Map.<number, Map.<number, number>>} map Map.
-   * @param {number} key1 Key 1.
-   * @param {number} key2 Key 2.
-   * @returns {number} Value.
-   */
-  getFrom2dMap(map, key1, key2) {
-    const subMap = map.get(key1);
-
-    return subMap ? subMap.get(key2) : undefined;
-  }
-
-  /**
    * Store a value in a 2D map key1->key2->value).
    *
    * @param {Map.<number, Map.<number, number>>} map Map.
@@ -203,8 +189,8 @@ export default class BorderRenderer {
       const endX = lineLength - 2;
       const endY = lineLength - 1;
       const endIndex = isVertical ? endY : endX;
-      const cachedStartPointSize = this.getFrom2dMap(lookupPointSizeMap, line[beginX], line[beginY]);
-      const cachedEndPointSize = this.getFrom2dMap(lookupPointSizeMap, line[endX], line[endY]);
+      const cachedStartPointSize = lookupPointSizeMap.get(line[beginX])?.get(line[beginY]);
+      const cachedEndPointSize = lookupPointSizeMap.get(line[endX])?.get(line[endY]);
 
       if (width > 1) {
         for (let p = 0; p < lineLength; p += 2) {
