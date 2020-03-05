@@ -125,11 +125,10 @@ class Selection {
    */
   updateBorderStyle(borderStyles) {
     arrayEach([CELL_TYPE, AREA_TYPE, FILL_TYPE], (fillType) => {
-      const borderStylesForType = borderStyles[fillType];
+      // if the provided value is not an object, fall back to use an empty object, which sets all styles to default
+      const borderStylesForType = isObject(borderStyles[fillType]) ? borderStyles[fillType] : {};
 
-      if (isObject(borderStylesForType)) {
-        updateBorderStyle(this.highlight.getCommonBorderStyle(fillType), borderStylesForType);
-      }
+      updateBorderStyle(this.highlight.getCommonBorderStyle(fillType), borderStylesForType);
     });
   }
 

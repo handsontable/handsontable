@@ -1887,8 +1887,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
-    if (isObject(settings.selectionStyle)) {
-      this.selection.updateBorderStyle(settings.selectionStyle);
+    if (settings.selectionStyle !== undefined) {
+      if (isObject(settings.selectionStyle)) {
+        this.selection.updateBorderStyle(settings.selectionStyle);
+      } else {
+        throw new Error('The value of the option `selectionStyle` must be an object. To reset `selectionStyle` to the defaults, provide an empty object as the value.');
+      }
     }
 
     if (!init) {

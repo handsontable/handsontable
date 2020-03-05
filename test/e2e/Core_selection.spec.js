@@ -1604,6 +1604,24 @@ describe('Core_selection', () => {
       return spec().$container.find(selector).css('background-color');
     };
 
+    describe('disabling', () => {
+      it('should revert to default configuration if selectionStyle is changed to an empty object in updateSettings', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+          selectionStyle: customs
+        });
+        updateSettings({ selectionStyle: {} });
+        selectCell(1, 1);
+
+        spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+        spec().$container.find('tbody tr:eq(2) td:eq(1)').simulate('mouseover');
+
+        expect(pathOfWidthAndColor(builtins.cell.borderWidth, builtins.cell.borderColor)).withContext('current').toBeNonEmptySVGPath();
+        expect(backgroundOfSelector('.wtBorder.current.corner')).withContext('fill handle').toBe(builtins.cell._borderColorRgb);
+        expect(pathOfWidthAndColor(builtins.fill.borderWidth, builtins.fill.borderColor)).withContext('fill').toBeNonEmptySVGPath();
+      });
+    });
+
     describe('desktop, single selection', () => {
       it('should use default configuration if selectionStyle is not provided', () => {
         handsontable({

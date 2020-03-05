@@ -1,8 +1,8 @@
 import { Selection } from './../../../3rdparty/walkontable/src';
 
 /**
- * Default border style used for single cell selection highlight. The instance single
- * cell selection highlight uses this class as the fallback for the default values
+ * Default border style used for fill selection highlight. The instance of
+ * fill selection highlight uses this class as the fallback for the default values
  * through prototypal inheritance.
  */
 const defaultBorderStyle = {
