@@ -1766,6 +1766,7 @@ declare namespace Handsontable {
   namespace Hooks {
     interface Events {
       afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
+      afterAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void;
       afterBeginEditing?: (row: number, column: number) => void;
       afterCellMetaReset?: () => void;
       afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
