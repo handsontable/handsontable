@@ -10,16 +10,6 @@ export default class ClientRect {
   clipTop = Infinity;
   clipRight = 0;
   clipBottom = 0;
-  padding = {};
-
-  constructor(padding) {
-    /**
-     * SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
-     *
-     * @type {object} Object with properties top, left, bottom, right
-     */
-    this.padding = padding;
-  }
 
   reset() {
     this.svgWidth = 0;
@@ -32,7 +22,13 @@ export default class ClientRect {
     this.clipBottom = 0;
   }
 
-  normalize({ width: containerWidth, height: containerHeight }) {
+  /**
+   *
+   *
+   * @param {object} dimensions Object with properties width, height.
+   * @param {object} padding Object with properties top, left, bottom, right. SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
+   */
+  normalize({ width: containerWidth, height: containerHeight }, padding) {
     this.svgWidth = Math.max(Math.min(this.svgWidth, containerWidth), 0);
     this.svgHeight = Math.max(Math.min(this.svgHeight, containerHeight), 0);
 
@@ -43,10 +39,10 @@ export default class ClientRect {
       this.clipTop = 0;
     }
 
-    this.clipLeft += this.padding.left;
-    this.clipTop += this.padding.top;
-    this.clipRight += this.padding.right;
-    this.clipBottom += this.padding.bottom;
+    this.clipLeft += padding.left;
+    this.clipTop += padding.top;
+    this.clipRight += padding.right;
+    this.clipBottom += padding.bottom;
 
     this.clipLeft = Math.max(this.clipLeft, 0);
     this.clipTop = Math.max(this.clipTop, 0);

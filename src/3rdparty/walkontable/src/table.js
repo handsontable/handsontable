@@ -76,7 +76,6 @@ class Table {
 
     this.borderRenderer = new BorderRenderer(
       this.spreader,
-      this.createBorderPaddingObject(),
       `${this.wot.guid}-border-renderer`,
       this.isMaster ? 'master' : this.wot.getOverlayName(),
       this.getCell.bind(this),
@@ -449,7 +448,7 @@ class Table {
 
     this.wot.getSetting('columnHeaders'); // TODO If this line is removed, an e2e test fails: NestedHeaders > Selection > should highlight only last line of headers on cell selection
 
-    this.borderRenderer.render(this.TABLE, borderEdgesDescriptors);
+    this.borderRenderer.render(this.TABLE, this.createBorderPaddingObject(), borderEdgesDescriptors);
   }
 
   /**

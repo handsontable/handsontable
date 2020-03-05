@@ -11,7 +11,7 @@ const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
  * Manages rendering of cell borders using SVG. Creates a single instance of SVG for each `Table`.
  */
 export default class BorderRenderer {
-  constructor(parentElement, padding, uniqueDomId, overlayName, getCellFn) {
+  constructor(parentElement, uniqueDomId, overlayName, getCellFn) {
     /**
      * Overlay name.
      *
@@ -31,7 +31,7 @@ export default class BorderRenderer {
     /**
      * @type {ClientRect}
      */
-    this.clientRect = new ClientRect(padding);
+    this.clientRect = new ClientRect();
     /**
      * The function used to resize the SVG container when needed.
      *
@@ -94,9 +94,10 @@ export default class BorderRenderer {
    * Draws the paths according to configuration passed in `argArrays`.
    *
    * @param {HTMLTableElement} table HTML table element used for position measurements.
+   * @param {object} padding Object with properties top, left, bottom, right. SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
    * @param {object[]} borderEdgesDescriptors Array of border edge descriptors.
    */
-  render(table, borderEdgesDescriptors) {
+  render(table, padding, borderEdgesDescriptors) {
     this.containerBoundingRect = table.getBoundingClientRect();
     this.clientRect.reset();
 
@@ -108,7 +109,7 @@ export default class BorderRenderer {
     }
 
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
-    this.clientRect.normalize(this.containerBoundingRect);
+    this.clientRect.normalize(this.containerBoundingRect, padding);
 
     const {
       svgWidth,
