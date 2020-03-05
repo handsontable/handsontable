@@ -9,6 +9,9 @@ export default function getSvgResizer(svg) {
   let lastTotalHeight;
 
   return (totalWidth, totalHeight) => {
+    totalWidth = Math.max(totalWidth, 0);
+    totalHeight = Math.max(totalHeight, 0);
+
     if (totalWidth !== lastTotalWidth || totalHeight !== lastTotalHeight) {
       svg.setAttribute('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
 

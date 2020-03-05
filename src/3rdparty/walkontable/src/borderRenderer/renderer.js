@@ -2,7 +2,6 @@ import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand, compa
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 import SvgElement from './svgElement';
-import ClientRect from './clientRect';
 import { GRIDLINE_WIDTH } from '../utils/gridline';
 
 const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
@@ -29,10 +28,6 @@ export default class BorderRenderer {
      */
     this.svgElement = new SvgElement(parentElement.ownerDocument);
     /**
-     * @type {ClientRect}
-     */
-    this.clientRect = new ClientRect();
-    /**
      * The function used to resize the SVG container when needed.
      *
      * @type {Function}
@@ -48,6 +43,18 @@ export default class BorderRenderer {
      * @type {DOMRect|null}
      */
     this.containerBoundingRect = null;
+    /**
+     * Desired width for the SVG container.
+     *
+     * @type {number}
+     */
+    this.maxSvgWidth = 0;
+    /**
+     * Desired height for the SVG container.
+     *
+     * @type {number}
+     */
+    this.maxSvgHeight = 0;
     /**
      * Context for getComputedStyle.
      *
@@ -94,41 +101,37 @@ export default class BorderRenderer {
    * Draws the paths according to configuration passed in `argArrays`.
    *
    * @param {HTMLTableElement} table HTML table element used for position measurements.
-   * @param {object} padding Object with properties top, left, bottom, right. SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings.
+   * @param {object} padding Object with properties top, left, bottom, right. SVG graphic will cover the area of the table element (element passed to the render function), minus the specified paddings. Only special borders can write on paddings.
    * @param {object[]} borderEdgesDescriptors Array of border edge descriptors.
    */
   render(table, padding, borderEdgesDescriptors) {
     this.containerBoundingRect = table.getBoundingClientRect();
-    this.clientRect.reset();
-
-    // batch all calculations
     this.pathGroups.forEach(pathGroup => pathGroup.stylesAndLines.clear());
+
+    // batch all DOM reads
+    const firstTdInTbodyBoundingRect = table.querySelector('tbody td')?.getBoundingClientRect();
 
     for (let i = 0; i < borderEdgesDescriptors.length; i++) {
       this.convertBorderEdgesDescriptorToLines(borderEdgesDescriptors[i]);
     }
 
     this.pathGroups.forEach(pathGroup => this.convertLinesToCommands(pathGroup));
-    this.clientRect.normalize(this.containerBoundingRect, padding);
-
-    const {
-      svgWidth,
-      svgHeight,
-      clipWidth,
-      clipHeight,
-      clipLeft,
-      clipTop,
-    } = this.clientRect;
 
     // batch all DOM writes
+    const svgWidth = Math.min(this.maxSvgWidth, this.containerBoundingRect.width);
+    const svgHeight = Math.min(this.maxSvgHeight, this.containerBoundingRect.height);
     this.svgResizer(svgWidth, svgHeight);
 
-    this.svgElement.setClipAttributes({
-      width: clipWidth,
-      height: clipHeight,
-      x: clipLeft,
-      y: clipTop,
-    });
+    if (firstTdInTbodyBoundingRect) {
+      const x = padding.left + firstTdInTbodyBoundingRect.left - this.containerBoundingRect.left + offsetToOverLapPrecedingGridline;
+      const y = padding.top + firstTdInTbodyBoundingRect.top - this.containerBoundingRect.top + offsetToOverLapPrecedingGridline;
+      this.svgElement.setClipAttributes({
+        width: Math.max(svgWidth - x - padding.right, 0),
+        height: Math.max(svgHeight - y - padding.bottom, 0),
+        x,
+        y,
+      });
+    }
 
     this.pathGroups.forEach(pathGroup => pathGroup.svgPathsRenderer(pathGroup.styles, pathGroup.commands));
   }
@@ -213,7 +216,7 @@ export default class BorderRenderer {
 
   /**
    * Serializes `stylesAndLines` map into into a 1D array of SVG path commands (`commands`) within a pathGroup.
-   * Sets `this.maxWidth` and `this.maxHeight` to the highest observed value.
+   * Sets `this.maxSvgWidth` and `this.maxSvgHeight` to the highest observed value.
    *
    * @param {object} pathGroup PathGroup metadata object.
    */
@@ -238,11 +241,11 @@ export default class BorderRenderer {
       const currentMaxWidth = this.sumArrayElementAtIndex(lines, 2) + marginForBoldStroke;
       const currentMaxHeight = this.sumArrayElementAtIndex(lines, 3) + marginForBoldStroke;
 
-      if (currentMaxWidth > this.clientRect.svgWidth) {
-        this.clientRect.svgWidth = currentMaxWidth;
+      if (currentMaxWidth > this.maxSvgWidth) {
+        this.maxSvgWidth = currentMaxWidth;
       }
-      if (currentMaxHeight > this.clientRect.svgHeight) {
-        this.clientRect.svgHeight = currentMaxHeight;
+      if (currentMaxHeight > this.maxSvgHeight) {
+        this.maxSvgHeight = currentMaxHeight;
       }
 
       commands.push(optimizedCommand);
@@ -376,17 +379,6 @@ export default class BorderRenderer {
 
     const firstTdBoundingRect = firstTd.getBoundingClientRect();
     const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
-
-    if (this.clientRect.clipLeft === Infinity) {
-      const firstTdInTbody = firstTd.parentElement.parentElement.querySelector('td');
-
-      if (firstTdInTbody) {
-        const rect = firstTdInTbody.getBoundingClientRect();
-
-        this.clientRect.clipLeft = Math.max(0, rect.left - this.containerBoundingRect.left + offsetToOverLapPrecedingGridline);
-        this.clientRect.clipTop = Math.max(0, rect.top - this.containerBoundingRect.top + offsetToOverLapPrecedingGridline);
-      }
-    }
 
     // initial coordinates are termined by the position of the top-left and bottom-right cell
     let x1 = firstTdBoundingRect.left;
