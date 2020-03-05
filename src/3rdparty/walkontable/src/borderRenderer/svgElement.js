@@ -43,16 +43,7 @@ export default class SvgElement {
   }
 
   /**
-   * @param {object} attrHolder
-   */
-  setSvgAttributes(attrHolder) {
-    Object.keys(attrHolder).forEach((attrName) => {
-      this.svg.setAttribute(attrName, attrHolder[attrName]);
-    });
-  }
-
-  /**
-   * @param {object} attrHolder
+   * @param {object} attrHolder Object with any properties that should be added to clip rectangle.
    */
   setClipAttributes(attrHolder) {
     Object.keys(attrHolder).forEach((attrName) => {
@@ -60,9 +51,6 @@ export default class SvgElement {
     });
   }
 
-  /**
-   * @returns {HTMLElement}
-   */
   createElement() {
     if (this.svg !== void 0) {
       return;
