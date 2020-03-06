@@ -586,6 +586,15 @@ const REGISTERED_HOOKS = [
   'afterSetDataAtRowProp',
 
   /**
+   * Fired after cell source data was changed.
+   *
+   * @event Hooks#afterSetSourceDataAtCell
+   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {string} [source] String that identifies source of hook call.
+   */
+  'afterSetSourceDataAtCell',
+
+  /**
    * Fired after calling the `updateSettings` method.
    *
    * @event Hooks#afterUpdateSettings

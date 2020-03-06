@@ -448,7 +448,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
       changes.push([i, ascendingIndexes[j], null, sortedData[i][j]]);
     });
 
-    instance.setSourceDataAtRowProp(dataRowToChangesArray(row, i));
+    instance.setSourceDataAtCell(dataRowToChangesArray(row, i));
   });
 
   instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);

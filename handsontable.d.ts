@@ -119,8 +119,7 @@ declare namespace _Handsontable {
     setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
     setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
     setSourceDataAtCell(row: number, column: number | string, value: Handsontable.CellValue): void;
-    setSourceDataAtRowProp(row: number, prop: string | number, value: Handsontable.CellValue): void;
-    setSourceDataAtRowProp(changes: [number, string | number, Handsontable.CellValue][]): void;
+    setSourceDataAtCell(changes: [number, string | number, Handsontable.CellValue][]): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     table: HTMLTableElement;
@@ -2160,12 +2159,14 @@ declare namespace Handsontable {
     cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void,
     clone(object: object): object,
     columnFactory(GridSettings: GridSettings, conflictList: any[]): object,
+    countFirstRowKeys(data: Handsontable.CellValue[][] | object[], ignoredKeys?: number[]): number,
     createEmptySpreadsheetData(rows: number, columns: number): any[],
     createObjectPropListener(defaultValue?: any, propertyToListen?: string): object,
     createSpreadsheetData(rows?: number, columns?: number): any[],
     createSpreadsheetObjectData(rows?: number, colCount?: number): any[],
     curry(func: () => void): () => void,
     curryRight(func: () => void): () => void,
+    dataRowToChangesArray(dataRow: Handsontable.CellValue[] | object, rowOffset?: number): [number, number | string, Handsontable.CellValue][]
     debounce(func: () => void, wait?: number): () => void,
     deepClone(obj: object): object,
     deepExtend(target: object, extension: object): void,
@@ -2218,6 +2219,7 @@ declare namespace Handsontable {
     rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
     rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void,
     requestAnimationFrame(callback: () => void): number,
+    setProperty(object: object, name: string, value: any): void,
     spreadsheetColumnIndex(label: string): number,
     spreadsheetColumnLabel(index: number): string,
     startsWith(string: string, needle: string): boolean,

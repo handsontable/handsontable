@@ -2224,22 +2224,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Set new source value to a cell and render the table. To change many cells at once , pass an array of `changes` in format
-   * `[[row, prop, value],...]` as the first argument.
+   * Set the provided value in the source data set at the provided coordinates.
    *
    * @memberof Core#
-   * @function setSourceDataAtRowProp
-   * @param {number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
-   * @param {string} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
-   * @param {*} value Value to be set.
+   * @function getSourceDataAtCol
+   * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {number|string} column Physical column index / prop name.
+   * @param {*} value The value to be set at the provided coordinates.
+   * @param {string} [source] Source of the change as a string.
    */
-  this.setSourceDataAtRowProp = function(row, prop, value) {
-    const input = setDataInputToArray(row, prop, value);
+  this.setSourceDataAtCell = function(row, column, value, source) {
+    const input = setDataInputToArray(row, column, value);
+    const changes = [];
 
-    input.forEach((change) => {
-      dataSource.setAtCell(...change);
+    input.forEach((change, i) => {
+      const [changeRow, changeProp, changeValue] = change;
+      changes.push([
+        input[i][0],
+        input[i][1],
+        dataSource.getAtCell(input[i][0], input[i][1]),
+        input[i][2],
+      ]);
+
+      dataSource.setAtCell(changeRow, changeProp, changeValue);
     });
 
+    this.runHooks('afterSetSourceDataAtCell', changes, source);
     this.render();
   };
 
@@ -2256,19 +2266,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSourceDataAtRow = function(row) {
     return dataSource.getAtRow(row);
-  };
-
-  /**
-   * Set the provided value in the source data set at the provided coordinates.
-   *
-   * @memberof Core#
-   * @function getSourceDataAtCol
-   * @param {number} row Physical row index.
-   * @param {number|string} column Physical column index / prop name.
-   * @param {*} value The value to be set at the provided coordinates.
-   */
-  this.setSourceDataAtCell = function(row, column, value) {
-    dataSource.setAtCell(row, this.colToProp(column), value);
   };
 
   /**

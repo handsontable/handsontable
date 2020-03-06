@@ -287,7 +287,7 @@ class MultipleSelectUI extends BaseUI {
       changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
 
-    this.itemsBox.setSourceDataAtRowProp(changes);
+    this.itemsBox.setSourceDataAtCell(changes);
   }
 
   /**
@@ -306,7 +306,7 @@ class MultipleSelectUI extends BaseUI {
       changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
 
-    this.itemsBox.setSourceDataAtRowProp(changes);
+    this.itemsBox.setSourceDataAtCell(changes);
   }
 }
 

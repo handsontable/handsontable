@@ -189,7 +189,7 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
 /**
  * Transform a data row (either an array or an object) or an array of data rows to array of changes in a form of `[row, prop/col, value]`.
- * Convenient to use with `setDataAtRowProp` and `setSourceDataAtRowProp` methods.
+ * Convenient to use with `setDataAtRowProp` and `setSourceDataAtCell` methods.
  *
  * @param {Array|object} dataRow Object of row data, array of row data or an array of either.
  * @param {number} rowOffset Row offset to be passed to the resulting change list. Defaults to `0`.
