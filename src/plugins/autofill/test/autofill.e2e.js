@@ -965,7 +965,7 @@ describe('AutoFill', () => {
   });
 
   it('should does not call afterAutofill if beforeAutofill returns false', () => {
-    let count = 0;
+    const afterAutofill = jasmine.createSpy('afterAutofill');
 
     handsontable({
       data: [
@@ -977,21 +977,19 @@ describe('AutoFill', () => {
       beforeAutofill() {
         return false;
       },
-      afterAutofill: () => {
-        count += 1;
-      }
+      afterAutofill,
     });
 
     selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
-    expect(count).toEqual(0);
+    expect(afterAutofill).toHaveBeenCalledTimes(0);
 
     selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
-    expect(count).toEqual(0);
+    expect(afterAutofill).toHaveBeenCalledTimes(0);
   });
 });
