@@ -935,7 +935,8 @@ describe('AutoFill', () => {
   });
 
   it('should run afterAutofill once after each set of autofill changes have been applied', () => {
-    let count = 0;
+    const afterAutofill = jasmine.createSpy('afterAutofill');
+
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -943,16 +944,14 @@ describe('AutoFill', () => {
         [4, 5, 6, 7, 8, 9],
         [1, 2, 3, 4, 5, 6]
       ],
-      afterAutofill: () => {
-        count += 1;
-      }
+      afterAutofill
     });
 
     selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
 
-    expect(getDataAtCell(0, 1)).toEqual(1);
+    expect(afterAutofill).toHaveBeenCalledTimes(1);
 
     selectCell(0, 0);
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
@@ -960,6 +959,35 @@ describe('AutoFill', () => {
 
     expect(getDataAtCell(1, 0)).toEqual(1);
 
-    expect(count).toEqual(2);
+    expect(afterAutofill).toHaveBeenCalledTimes(2);
+  });
+
+  it('should not call afterAutofill if beforeAutofill returns false', () => {
+    const afterAutofill = jasmine.createSpy('afterAutofill');
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill() {
+        return false;
+      },
+      afterAutofill,
+    });
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(afterAutofill).toHaveBeenCalledTimes(0);
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(afterAutofill).toHaveBeenCalledTimes(0);
   });
 });
