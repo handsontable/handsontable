@@ -3944,6 +3944,21 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
     });
 
+    it('should display proper column width (when indicator is enabled) #3', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2],
+          indicators: true,
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is set).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
+    });
+
     it('should display proper column width (when indicator is disabled)', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 3),
