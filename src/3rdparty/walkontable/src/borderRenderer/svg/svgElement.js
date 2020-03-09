@@ -1,4 +1,4 @@
-import { randomString } from '../../../../helpers/string';
+import { randomString } from '../../../../../helpers/string';
 
 /**
  *

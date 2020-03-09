@@ -1,7 +1,7 @@
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand, compareStrokePriority } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
-import SvgElement from './svgElement';
+import SvgElement from './svg/svgElement';
 import { GRIDLINE_WIDTH } from '../utils/gridline';
 
 const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
