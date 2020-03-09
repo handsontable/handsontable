@@ -514,7 +514,6 @@ describe('HiddenColumns', () => {
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: {
-                indicators: true,
                 columns: [0, 1, 5, 6, 7]
               }
             });
@@ -564,7 +563,6 @@ describe('HiddenColumns', () => {
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: {
-                indicators: true,
                 columns: [0, 1, 5, 6, 7]
               }
             });
@@ -590,7 +588,6 @@ describe('HiddenColumns', () => {
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_HIDE],
             hiddenColumns: {
-              indicators: true,
               columns: [0, 1, 5, 6, 7]
             }
           });
@@ -617,7 +614,6 @@ describe('HiddenColumns', () => {
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [1, 3],
-              indicators: true
             },
           });
 
@@ -656,7 +652,6 @@ describe('HiddenColumns', () => {
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [0, 1],
-              indicators: true
             },
           });
 
@@ -695,7 +690,6 @@ describe('HiddenColumns', () => {
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [3, 4],
-              indicators: true
             },
           });
 
@@ -738,8 +732,7 @@ describe('HiddenColumns', () => {
               rowHeaders: true,
               colHeaders: true,
               hiddenColumns: {
-                columns: [0],
-                indicators: true
+                columns: [0]
               },
             });
 
@@ -783,7 +776,6 @@ describe('HiddenColumns', () => {
               colHeaders: true,
               hiddenColumns: {
                 columns: [0, 1, 2, 3],
-                indicators: true
               },
             });
 
@@ -830,7 +822,6 @@ describe('HiddenColumns', () => {
               colHeaders: true,
               hiddenColumns: {
                 columns: [0],
-                indicators: true
               },
             });
 
@@ -876,7 +867,6 @@ describe('HiddenColumns', () => {
               colHeaders: true,
               hiddenColumns: {
                 columns: [0, 1, 2, 3],
-                indicators: true
               },
             });
 
@@ -3920,6 +3910,52 @@ describe('HiddenColumns', () => {
         expect(plugin.isHidden(0)).toBeTruthy();
         expect(plugin.isHidden(5)).toBeTruthy();
       });
+    });
+  });
+
+  describe('cooperation with the AutoColumnSize', () => {
+    it('should display proper column width (when indicator is enabled) #1', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+          indicators: true,
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is set).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
+    });
+
+    it('should display proper column width (when indicator is enabled) #2', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 2],
+          indicators: true,
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is set).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
+    });
+
+    it('should display proper column width (when indicator is disabled)', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1]
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is unset).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(50, 3);
     });
   });
 });

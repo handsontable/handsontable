@@ -2964,7 +2964,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getColWidth = function(column) {
     let width = instance._getColWidthFromSettings(column);
 
-    width = instance.runHooks('modifyColWidth', width, column);
+    width = instance.runHooks('modifyColWidth', width, instance.columnIndexMapper.getVisualFromRenderableIndex(column));
 
     if (width === void 0) {
       width = ViewportColumnsCalculator.DEFAULT_WIDTH;

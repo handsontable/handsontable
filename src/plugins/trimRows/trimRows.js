@@ -49,7 +49,7 @@ class TrimRows extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Map of skipped rows by plugin.
+     * Map of skipped rows by the plugin.
      *
      * @private
      * @type {null|SkipMap}
