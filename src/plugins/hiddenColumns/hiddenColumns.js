@@ -23,9 +23,8 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * @plugin HiddenColumns
  *
  * @description
- * Plugin allows to hide certain columns. The hiding is achieved by rendering the columns with width set as 0px.
- * The plugin not modifies the source data and do not participate in data transformation (the shape of data returned
- * by `getData*` methods stays intact).
+ * Plugin allows to hide certain columns. The hiding is achieved by not rendering the columns. The plugin not modifies
+ * the source data and do not participate in data transformation (the shape of data returned by `getData*` methods stays intact).
  *
  * Possible plugin settings:
  *  * `copyPasteEnabled` as `Boolean` (default `true`)
@@ -81,10 +80,10 @@ class HiddenColumns extends BasePlugin {
      */
     this.settings = {};
     /**
-     * List of currently hidden columns.
+     * Map of hidden rows by the plugin.
      *
      * @private
-     * @type {null|PhysicalIndexToValueMap}
+     * @type {null|HiddenMap}
      */
     this.hiddenColumnsMap = null;
   }
@@ -113,6 +112,7 @@ class HiddenColumns extends BasePlugin {
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
+    this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
 
     super.enablePlugin();
@@ -229,12 +229,12 @@ class HiddenColumns extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenColumns() {
-    return arrayReduce(this.hiddenColumnsMap.getValues(), (hiddenColumns, flag, index) => {
-      if (flag) {
-        hiddenColumns.push(index);
+    return arrayReduce(this.hiddenColumnsMap.getValues(), (indexesList, isHidden, physicalIndex) => {
+      if (isHidden) {
+        indexesList.push(physicalIndex);
       }
 
-      return hiddenColumns;
+      return indexesList;
     }, []);
   }
 
@@ -278,20 +278,16 @@ class HiddenColumns extends BasePlugin {
     });
   }
 
-  // @TODO: Check type of the column index. Maybe checking hidden indexes is redundant?
   /**
    * Adds the additional column width for the hidden column indicators.
    *
    * @private
    * @param {number} width Column width.
-   * @param {number} column Column index.
+   * @param {number} column Visual column index.
    * @returns {number}
    */
   onModifyColWidth(width, column) {
-    if (this.isHidden(column)) {
-      return 0.1;
-
-    } else if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
+    if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
       // add additional space for hidden column indicator
       return width + (this.hot.hasColHeaders() ? 15 : 0);
@@ -303,17 +299,17 @@ class HiddenColumns extends BasePlugin {
    *
    * @private
    * @param {number} row Visual row index.
-   * @param {number} col Visual column index.
+   * @param {number} column Visual column index.
    * @param {object} cellProperties Object containing the cell properties.
    */
-  onAfterGetCellMeta(row, col, cellProperties) {
-    if (this.settings.copyPasteEnabled === false && this.isHidden(col)) {
+  onAfterGetCellMeta(row, column, cellProperties) {
+    if (this.settings.copyPasteEnabled === false && this.isHidden(column)) {
       cellProperties.skipColumnOnPaste = true;
     }
 
     if (this.isHidden(cellProperties.visualCol - 1)) {
       let firstSectionHidden = true;
-      let i = cellProperties.visualCol - 1;
+      let visualColumn = cellProperties.visualCol - 1;
 
       cellProperties.className = cellProperties.className || '';
 
@@ -322,13 +318,13 @@ class HiddenColumns extends BasePlugin {
       }
 
       do {
-        if (!this.isHidden(i)) {
+        if (!this.isHidden(visualColumn)) {
           firstSectionHidden = false;
           break;
         }
 
-        i -= 1;
-      } while (i >= 0);
+        visualColumn -= 1;
+      } while (visualColumn >= 0);
 
       if (firstSectionHidden && cellProperties.className.indexOf('firstVisibleColumn') === -1) {
         cellProperties.className += ' firstVisibleColumn';
