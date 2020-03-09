@@ -271,6 +271,7 @@ export default class BorderRenderer {
    * @returns {number}
    */
   getLayerNumber(selectionSetting) {
+    // TODO these numbers could be moved to selection configuration in Handsontable src/selection/highlight/types
     switch (selectionSetting.className) {
       case 'current':
         return 3;
@@ -387,6 +388,7 @@ export default class BorderRenderer {
     const firstTdIncludesGridlineOnTheLeft = !(firstTd.nodeName === 'TH' || firstTd.previousElementSibling);
     // if there is a column header, the top gridline of row 0 comes from the column header. If the table has an empty thead, we know that there is no row header
     const firstTdIncludesGridlineOnTheTop = !firstTd.parentNode.previousElementSibling && !firstTd.parentNode.parentNode.previousElementSibling.firstElementChild;
+    // TODO the two above constants should be determined by reading the settings object, not DOM. They can be moved as utils functions elsewhere
 
     // adjustments needed to render the border directly on the gridline, depending on the surrounding CSS
     if (!firstTdIncludesGridlineOnTheLeft) {
