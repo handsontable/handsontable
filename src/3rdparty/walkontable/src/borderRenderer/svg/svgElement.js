@@ -1,10 +1,14 @@
 import { randomString } from '../../../../../helpers/string';
 
 /**
+ * Performs state changes on the actual SVG DOM elements.
  *
+ * @class
  */
 export default class SvgElement {
   /**
+   * The DOM document used as the context for element creation.
+   *
    * @type {Document}
    */
   rootDocument;
@@ -15,14 +19,21 @@ export default class SvgElement {
    */
   uniqueDomInnerClipId;
   /**
+   * The main DOM element that represents the SVG drawing.
+   *
    * @type {SVGElement|undefined}
    */
   svg;
   /**
+   * The SVG <rect> element used for inner clipping of custom borders. Selection borders are not clipped.
+   *
    * @type {Element|undefined}
    */
   rect;
 
+  /**
+   * @param {Document} rootDocument The DOM document used as the context for element creation.
+   */
   constructor(rootDocument) {
     this.rootDocument = rootDocument;
     this.uniqueDomInnerClipId = `${randomString()}-inner-clip`;
@@ -31,7 +42,9 @@ export default class SvgElement {
   }
 
   /**
-   * @param {boolean} useInnerClipping Whether to use inner clipping.
+   * Creates a SVG <g> element, used to collect <path> elements layered on the same priority group.
+   *
+   * @param {boolean} useInnerClipping Whether to use inner clipping. TRUE for custom borders, FALSE for selection borders.
    * @returns {HTMLElement}
    */
   createSvgGroup(useInnerClipping) {
@@ -47,7 +60,7 @@ export default class SvgElement {
   }
 
   /**
-   * @param {object} attrHolder Object with any properties that should be added to clip rectangle.
+   * @param {object} attrHolder Object with any properties that should be added to inner clipping rectangle.
    */
   setClipAttributes(attrHolder) {
     Object.keys(attrHolder).forEach((attrName) => {
@@ -55,6 +68,9 @@ export default class SvgElement {
     });
   }
 
+  /**
+   * Creates the main DOM element that represents the SVG drawing.
+   */
   createElement() {
     if (this.svg !== void 0) {
       return;
