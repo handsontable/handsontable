@@ -310,7 +310,6 @@ export default class BorderRenderer {
     } = borderEdgesDescriptor;
     const layerNumber = this.getLayerNumber(settings);
     const stylesAndLines = this.ensurePathGroup(layerNumber).stylesAndLines;
-    const isItASelectionBorder = !!settings.className;
 
     const isSingle = selectionStart.row === selectionEnd.row && selectionStart.col === selectionEnd.col;
     let addFirstTdWidth = 0;
@@ -367,14 +366,6 @@ export default class BorderRenderer {
 
     if (typeof lastTd !== 'object') {
       return;
-    }
-
-    const selectionBeginsAndEndsOnDifferentOverlay = addFirstTdWidth !== 0 || addFirstTdHeight !== 0 || addLastTdWidth !== 0 || addLastTdHeight !== 0;
-
-    if (isItASelectionBorder && selectionBeginsAndEndsOnDifferentOverlay) {
-      if (!this.overlayName === 'bottom_left_corner') {
-        return; // For selections made on a pane that is lower in the visual hierarchy, we do not render the part of a selection border that is on the freeze line.
-      }
     }
 
     const firstTdBoundingRect = firstTd.getBoundingClientRect();
