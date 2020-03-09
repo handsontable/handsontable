@@ -1652,23 +1652,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.propToCol = datamap.propToCol.bind(datamap);
 
     metaManager.clearCellsCache();
-
-    const columnsSettings = tableMeta.columns;
-    let nrOfColumnsFromSettings = 0;
-
-    // We will check number of columns only when the `columns` property was defined as an array.
-    if (Array.isArray(columnsSettings)) {
-      nrOfColumnsFromSettings = columnsSettings.length;
-    }
-
-    /**
-     * We need to use `Math.max`, because:
-     * - we need information about `columns` as `data` may contains functions, less columns than defined by the property or even be empty.
-     * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
-     * (ie. `data` may be empty, `columns` may be a function).
-     */
-    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
-    this.rowIndexMapper.initToLength(this.countSourceRows());
+    this.initIndexMappers();
 
     grid.adjustRowsAndCols();
 
@@ -1680,6 +1664,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.runHooks('afterChange', null, 'loadData');
       instance.render();
     }
+  };
+
+  /**
+   * Init index mapper which manage indexes assigned to the data.
+   */
+  this.initIndexMappers = function() {
+    const columnsSettings = tableMeta.columns;
+    let finalNrOfColumns;
+
+    // We will check number of columns only when the `columns` property was defined as an array. Columns option may
+    // narrow down or expand displayed dataset in that case.
+    if (Array.isArray(columnsSettings)) {
+      finalNrOfColumns = columnsSettings.length;
+
+      // In some cases we need to check columns length from the schema, i.e. `data` may be empty, `columns` may be a function.
+    } else if (isDefined(tableMeta.dataSchema)) {
+      const schema = datamap.getSchema();
+
+      // Schema may be defined as an array of objects. Each object will define column.
+      finalNrOfColumns = Array.isArray(schema) ? schema.length : deepObjectSize(schema);
+
+    } else {
+      // We init index mappers by length of source data to provide indexes also for skipped indexes.
+      finalNrOfColumns = this.countSourceCols();
+    }
+
+    this.columnIndexMapper.initToLength(finalNrOfColumns);
+    this.rowIndexMapper.initToLength(this.countSourceRows());
   };
 
   /**
@@ -1822,6 +1834,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();
+    }
+
+    // The `column` property has changed - dataset may be expanded or narrowed down.
+    if (settings.data === void 0 && settings.columns !== void 0) {
+      this.initIndexMappers();
     }
 
     clen = instance.countCols();
