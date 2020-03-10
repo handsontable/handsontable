@@ -1638,7 +1638,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
      * (ie. `data` may be empty, `columns` may be a function).
      */
-    this.columnIndexMapper.initToLength(Math.max(datamap.countFirstRowKeys(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
+    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
     this.rowIndexMapper.initToLength(this.countSourceRows());
 
     grid.adjustRowsAndCols();
@@ -3000,7 +3000,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the total number of columns in the data source, filtered with the `columns` setting.
+   * Returns the total number of columns in the data source.
    *
    * @memberof Core#
    * @function countSourceCols

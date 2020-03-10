@@ -41,6 +41,23 @@ class DataSource {
   }
 
   /**
+   * Run the `modifyRowData` hook and return either the modified or the source data for the provided row.
+   *
+   * @private
+   * @param {number} rowIndex Row index.
+   * @returns {Array|object} Source or modified row of data.
+   */
+  modifyRowData(rowIndex) {
+    let modifyRowData;
+
+    if (this.hot.hasHook('modifyRowData')) {
+      modifyRowData = this.hot.runHooks('modifyRowData', rowIndex);
+    }
+
+    return (modifyRowData !== void 0 && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data[rowIndex];
+  }
+
+  /**
    * Get all data.
    *
    * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
@@ -93,20 +110,15 @@ class DataSource {
    * @param {number} row Physical row index.
    * @param {number} [startColumn] Starting index for the column range (optional).
    * @param {number} [endColumn] Ending index for the column range (optional).
-   * @param {boolean} [toArray] `true` if the returned value should be forced to be presented as an array.
+   * @param {boolean} [toArray=false] `true` if the returned value should be forced to be presented as an array.
    * @returns {Array|object}
    */
   getAtRow(row, startColumn, endColumn, toArray = false) {
     const getAllProps = startColumn === void 0 && endColumn === void 0;
     let dataRow = null;
     let newDataRow = null;
-    let modifyRowData = null;
 
-    if (this.hot.hasHook('modifyRowData')) {
-      modifyRowData = this.hot.runHooks('modifyRowData', row);
-    }
-
-    dataRow = modifyRowData !== null && isNaN(modifyRowData) ? modifyRowData : this.data[row];
+    dataRow = this.modifyRowData(row);
 
     if (Array.isArray(dataRow)) {
       newDataRow = [];
@@ -137,7 +149,7 @@ class DataSource {
         rangeEach(rangeStart, rangeEnd, (column) => {
           const prop = this.colToProp(column);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && isNaN(prop)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
             const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
 
             if (toArray) {
@@ -155,6 +167,7 @@ class DataSource {
         });
       }
     }
+
     return newDataRow;
   }
 
@@ -235,13 +248,7 @@ class DataSource {
    * @returns {*}
    */
   getAtCell(row, column) {
-    let modifyRowData = null;
-
-    if (this.hot.hasHook('modifyRowData')) {
-      modifyRowData = this.hot.runHooks('modifyRowData', row);
-    }
-
-    const dataRow = modifyRowData !== null && !Number.isInteger(modifyRowData) ? modifyRowData : this.data[row];
+    const dataRow = this.modifyRowData(row);
 
     return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
   }
@@ -301,7 +308,7 @@ class DataSource {
       }
     }
 
-    return this.data.length || 0;
+    return this.data.length;
   }
 
   /**

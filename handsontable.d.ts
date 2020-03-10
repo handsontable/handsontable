@@ -2159,7 +2159,7 @@ declare namespace Handsontable {
     cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void,
     clone(object: object): object,
     columnFactory(GridSettings: GridSettings, conflictList: any[]): object,
-    countFirstRowKeys(data: Handsontable.CellValue[][] | object[], ignoredKeys?: number[]): number,
+    countFirstRowKeys(data: Handsontable.CellValue[][] | object[]): number,
     createEmptySpreadsheetData(rows: number, columns: number): any[],
     createObjectPropListener(defaultValue?: any, propertyToListen?: string): object,
     createSpreadsheetData(rows?: number, columns?: number): any[],

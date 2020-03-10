@@ -199,7 +199,7 @@ export function dataRowToChangesArray(dataRow, rowOffset = 0) {
   let dataRows = dataRow;
   const changesArray = [];
 
-  if (!Array.isArray(dataRow) || (Array.isArray(dataRow) && dataRow.length && !Array.isArray(dataRow[0]))) {
+  if (!Array.isArray(dataRow) || !Array.isArray(dataRow[0])) {
     dataRows = [dataRow];
   }
 
