@@ -696,14 +696,24 @@ class MergeCells extends BasePlugin {
    * @param {object} coords Cell coords.
    */
   onBeforeSetRangeEnd(coords) {
-    const selRange = this.hot.getSelectedRangeLast();
-    selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
-    selRange.to = coords;
-    let rangeExpanded = false;
-
     if (this.hot.selection.isSelectedByColumnHeader() || this.hot.selection.isSelectedByRowHeader()) {
       return;
     }
+
+    const selRange = this.hot.getSelectedRangeLast();
+    selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
+    selRange.to = coords;
+    this.expandRangeByMergedCells(selRange);
+    Object.assign(coords, selRange.to);
+  }
+
+  /**
+   * Given a range, expand it to fully contain any merged cells within the range.
+   *
+   * @param {CellRange} selRange Selection range to be transformed.
+   */
+  expandRangeByMergedCells(selRange) {
+    let rangeExpanded = false;
 
     do {
       rangeExpanded = false;
@@ -713,9 +723,6 @@ class MergeCells extends BasePlugin {
         const mergedCellRange = cellInfo.getRange();
 
         if (selRange.expandByRange(mergedCellRange)) {
-          coords.row = selRange.to.row;
-          coords.col = selRange.to.col;
-
           rangeExpanded = true;
         }
       }

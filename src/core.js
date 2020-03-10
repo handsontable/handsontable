@@ -155,6 +155,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+    expandRangeByMergedCells: selRange => (instance.getPlugin('mergeCells').enabled ? instance.getPlugin('mergeCells').expandRangeByMergedCells(selRange) : selRange)
   });
 
   this.selection = selection;

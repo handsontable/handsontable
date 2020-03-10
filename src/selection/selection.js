@@ -1,6 +1,6 @@
 import Highlight, { AREA_TYPE, HEADER_TYPE, CELL_TYPE, FILL_TYPE } from './highlight/highlight';
 import SelectionRange from './range';
-import { CellCoords } from './../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from './../3rdparty/walkontable/src';
 import { isPressedCtrlKey } from './../utils/keyStateObserver';
 import { createObjectPropListener, mixin, isObject } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
@@ -250,7 +250,10 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight);
+      const singleCellRange = new CellRange(this.selectedRange.current().highlight);
+
+      this.tableProps.expandRangeByMergedCells(singleCellRange);
+      this.highlight.getCell().add(singleCellRange.from).add(singleCellRange.to);
     }
 
     const layerLevel = this.getLayerLevel();

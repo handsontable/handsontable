@@ -5,7 +5,7 @@ import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
-import { CellCoords } from './../../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
 import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
@@ -476,11 +476,19 @@ class Autofill extends BasePlugin {
    * @param {CellCoords} coords `CellCoords` coord object.
    */
   redrawBorders(coords) {
+    const singleCellRange = new CellRange(coords);
+    const mergeCellsPlugin = this.hot.getPlugin('mergeCells');
+
+    if (mergeCellsPlugin.enabled) {
+      this.hot.getPlugin('mergeCells').expandRangeByMergedCells(singleCellRange);
+    }
+
     this.hot.selection.highlight.getFill()
       .clear()
       .add(this.hot.getSelectedRangeLast().from)
       .add(this.hot.getSelectedRangeLast().to)
-      .add(coords);
+      .add(singleCellRange.from)
+      .add(singleCellRange.to);
 
     this.hot.view.render();
   }
