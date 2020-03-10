@@ -9,7 +9,7 @@ import { arrayEach } from '../../../helpers/array';
  * @private
  */
 class DataManager {
-  constructor(nestedRowsPlugin, hotInstance, sourceData) {
+  constructor(nestedRowsPlugin, hotInstance) {
     /**
      * Main Handsontable instance reference.
      *
@@ -21,7 +21,7 @@ class DataManager {
      *
      * @type {object}
      */
-    this.data = sourceData;
+    this.data = null;
     /**
      * Reference to the NestedRows plugin.
      *

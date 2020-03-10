@@ -1,5 +1,5 @@
 import { getCellType } from './../cellTypes';
-import { hasOwnProperty } from './object';
+import { deepObjectSize, hasOwnProperty, isObject } from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -185,4 +185,65 @@ export function cellMethodLookupFactory(methodName, allowUndefined) {
 
     }(typeof row === 'number' ? this.getCellMeta(row, col) : row));
   };
+}
+
+/**
+ * Transform a data row (either an array or an object) or an array of data rows to array of changes in a form of `[row, prop/col, value]`.
+ * Convenient to use with `setDataAtRowProp` and `setSourceDataAtCell` methods.
+ *
+ * @param {Array|object} dataRow Object of row data, array of row data or an array of either.
+ * @param {number} rowOffset Row offset to be passed to the resulting change list. Defaults to `0`.
+ * @returns {Array} Array of changes (in a form of an array).
+ */
+export function dataRowToChangesArray(dataRow, rowOffset = 0) {
+  let dataRows = dataRow;
+  const changesArray = [];
+
+  if (!Array.isArray(dataRow) || !Array.isArray(dataRow[0])) {
+    dataRows = [dataRow];
+  }
+
+  dataRows.forEach((row, rowIndex) => {
+    if (Array.isArray(row)) {
+      row.forEach((value, column) => {
+        changesArray.push([
+          rowIndex + rowOffset,
+          column,
+          value
+        ]);
+      });
+
+    } else {
+      Object.keys(row).forEach((propName) => {
+        changesArray.push([
+          rowIndex + rowOffset,
+          propName,
+          row[propName]
+        ]);
+      });
+    }
+  });
+
+  return changesArray;
+}
+
+/**
+ * Count the number of keys (or, basically, columns when the data is an array or arrays) in the first row of the provided dataset.
+ *
+ * @param {Array} data The dataset.
+ * @returns {number} Number of keys in the first row of the dataset.
+ */
+export function countFirstRowKeys(data) {
+  let result = 0;
+
+  if (Array.isArray(data)) {
+    if (data[0] && Array.isArray(data[0])) {
+      result = data[0].length;
+
+    } else if (data[0] && isObject(data[0])) {
+      result = deepObjectSize(data[0]);
+    }
+  }
+
+  return result;
 }

@@ -586,6 +586,15 @@ const REGISTERED_HOOKS = [
   'afterSetDataAtRowProp',
 
   /**
+   * Fired after cell source data was changed.
+   *
+   * @event Hooks#afterSetSourceDataAtCell
+   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {string} [source] String that identifies source of hook call.
+   */
+  'afterSetSourceDataAtCell',
+
+  /**
    * Fired after calling the `updateSettings` method.
    *
    * @event Hooks#afterUpdateSettings
@@ -973,12 +982,23 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
-   * @param {number} row Row height.
-   * @param {number} column Column index.
+   * @param {number} row Physical row height.
+   * @param {number} column Physical column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   'modifyData',
+
+  /**
+   * Fired when a data was retrieved or modified from the source data set.
+   *
+   * @event Hooks#modifySourceData
+   * @param {number} row Physical row index.
+   * @param {number} column Physical column index.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
+  'modifySourceData',
 
   /**
    * Fired when a data was retrieved or modified.
