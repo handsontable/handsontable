@@ -241,18 +241,11 @@ class HiddenColumns extends BasePlugin {
   /**
    * Checks if the provided column is hidden.
    *
-   * @param {number} column Column index.
-   * @param {boolean} isPhysicalIndex Flag which determines type of index.
+   * @param {number} column Visual column index.
    * @returns {boolean}
    */
-  isHidden(column, isPhysicalIndex = false) {
-    let physicalColumn = column;
-
-    if (!isPhysicalIndex) {
-      physicalColumn = this.hot.toPhysicalColumn(column);
-    }
-
-    return this.hiddenColumnsMap.getValueAtIndex(physicalColumn);
+  isHidden(column) {
+    return this.hiddenColumnsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
   }
 
   /**
@@ -262,7 +255,9 @@ class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isColumnDataValid(columns) {
-    return columns.every(column => Number.isInteger(column) && column >= 0 && column < this.hot.countCols());
+    const nrOfRows = this.hot.countCols();
+
+    return columns.every(column => Number.isInteger(column) && column >= 0 && column < nrOfRows);
   }
 
   /**
@@ -279,7 +274,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Adds the additional column width for the hidden column indicators.
+   * Adds the additional column width for the hidden column indicators. Hook is triggered only for the visible columns.
    *
    * @private
    * @param {number} width Column width.
@@ -368,21 +363,21 @@ class HiddenColumns extends BasePlugin {
       let isHidden = true;
       let rangeStart = 0;
 
-      rangeEach(range.startCol, range.endCol, (col) => {
-        if (this.isHidden(col)) {
+      rangeEach(range.startCol, range.endCol, (visualColumn) => {
+        if (this.isHidden(visualColumn)) {
           if (!isHidden) {
-            pushRange(range.startRow, range.endRow, rangeStart, col - 1);
+            pushRange(range.startRow, range.endRow, rangeStart, visualColumn - 1);
           }
 
           isHidden = true;
 
         } else {
           if (isHidden) {
-            rangeStart = col;
+            rangeStart = visualColumn;
           }
 
-          if (col === range.endCol) {
-            pushRange(range.startRow, range.endRow, rangeStart, col);
+          if (visualColumn === range.endCol) {
+            pushRange(range.startRow, range.endRow, rangeStart, visualColumn);
           }
 
           isHidden = false;
@@ -410,11 +405,11 @@ class HiddenColumns extends BasePlugin {
     const currentPosition = sequence.indexOf(physicalColumn);
     const classList = [];
 
-    if (this.isHidden(sequence[currentPosition - 1], true)) {
+    if (this.isHidden(this.hot.toVisualColumn(sequence[currentPosition - 1]))) {
       classList.push('afterHiddenColumn');
     }
 
-    if (column > -1 && this.isHidden(sequence[currentPosition + 1], true)) {
+    if (column > -1 && this.isHidden(this.hot.toVisualColumn(sequence[currentPosition + 1]))) {
       classList.push('beforeHiddenColumn');
     }
 
