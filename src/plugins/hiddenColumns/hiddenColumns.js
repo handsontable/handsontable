@@ -274,7 +274,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Adds the additional column width for the hidden column indicators. Hook is triggered only for the visible columns.
+   * Adds the additional column width for the hidden column indicators.
    *
    * @private
    * @param {number} width Column width.
@@ -282,6 +282,12 @@ class HiddenColumns extends BasePlugin {
    * @returns {number}
    */
   onModifyColWidth(width, column) {
+    // Hook is triggered internally only for the visible columns. Conditional will be handled for the API
+    // calls of the `getColWidth` function on not visible indexes.
+    if (this.isHidden(column)) {
+      return 0;
+    }
+
     if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
       // add additional space for hidden column indicator

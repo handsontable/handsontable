@@ -3919,6 +3919,7 @@ describe('HiddenColumns', () => {
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
+        autoColumnSize: true,
         hiddenColumns: {
           columns: [0, 1],
           indicators: true,
@@ -3934,6 +3935,7 @@ describe('HiddenColumns', () => {
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
+        autoColumnSize: true,
         hiddenColumns: {
           columns: [0, 2],
           indicators: true,
@@ -3949,6 +3951,7 @@ describe('HiddenColumns', () => {
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
+        autoColumnSize: true,
         hiddenColumns: {
           columns: [1, 2],
           indicators: true,
@@ -3959,11 +3962,12 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
     });
 
-    it('should display proper column width (when indicator is disabled)', async() => {
+    it('should display proper column width (when indicator is disabled)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
+        autoColumnSize: true,
         hiddenColumns: {
           columns: [0, 1]
         }
@@ -3971,6 +3975,27 @@ describe('HiddenColumns', () => {
 
       // Default column width + 15 px from the plugin (when `indicators` option is unset).
       expect(colWidth(spec().$container, 0)).toBeAroundValue(50, 3);
+    });
+
+    it('should return proper values from the `getColWidth` function', () => {
+      const hot = handsontable({
+        data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+        columns: [
+          { data: 'id', title: 'Identifier' },
+          { data: 'name', title: 'Name' },
+          { data: 'lastName', title: 'Last Name' },
+        ],
+        autoColumnSize: true,
+      });
+
+      expect(hot.getColWidth(0)).toBe(0);
+      expect(hot.getColWidth(1)).toBe(0);
+      expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([hot.getColWidth(2)]));
     });
   });
 });

@@ -411,7 +411,9 @@ class TableView {
 
         return headerRenderers;
       },
-      columnWidth: this.instance.getColWidth,
+      columnWidth: (renderedColumnIndex) => {
+        return this.instance.getColWidth(this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex));
+      },
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, renderedColumnIndex, TD) => {
         const visualColumnIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
