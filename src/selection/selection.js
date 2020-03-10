@@ -250,7 +250,9 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight);
+      const range = this.tableProps.expandCoordsToRangeIncludingSpans(this.selectedRange.current().highlight);
+
+      this.highlight.getCell().add(range.from).add(range.to);
     }
 
     const layerLevel = this.getLayerLevel();

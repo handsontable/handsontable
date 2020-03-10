@@ -7,6 +7,7 @@ import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import { CellCoords } from './../../3rdparty/walkontable/src';
 import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
+import expandCoordsToRangeIncludingSpans from './../../utils/rowSpanColSpan';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
@@ -476,11 +477,14 @@ class Autofill extends BasePlugin {
    * @param {CellCoords} coords `CellCoords` coord object.
    */
   redrawBorders(coords) {
+    const range = expandCoordsToRangeIncludingSpans(this.hot, coords);
+
     this.hot.selection.highlight.getFill()
       .clear()
       .add(this.hot.getSelectedRangeLast().from)
       .add(this.hot.getSelectedRangeLast().to)
-      .add(coords);
+      .add(range.from)
+      .add(range.to);
 
     this.hot.view.render();
   }
