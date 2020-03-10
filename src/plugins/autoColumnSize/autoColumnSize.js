@@ -379,7 +379,7 @@ class AutoColumnSize extends BasePlugin {
       return this.hot.columnIndexMapper.getVisualFromRenderableIndex(wot.wtTable.getFirstVisibleColumn());
     }
     if (wot.wtViewport.columnsRenderCalculator) {
-      return this.hot.columnIndexMapper.getVisualFromRenderableIndex(wot.wtTable.getFirstRenderedColumn());
+      return wot.wtTable.getFirstRenderedColumn();
     }
 
     return -1;
@@ -397,7 +397,7 @@ class AutoColumnSize extends BasePlugin {
       return this.hot.columnIndexMapper.getVisualFromRenderableIndex(wot.wtTable.getLastVisibleColumn());
     }
     if (wot.wtViewport.columnsRenderCalculator) {
-      return this.hot.columnIndexMapper.getVisualFromRenderableIndex(wot.wtTable.getLastRenderedColumn());
+      return wot.wtTable.getLastRenderedColumn();
     }
 
     return -1;
