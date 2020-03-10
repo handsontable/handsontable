@@ -271,6 +271,31 @@ export function getProperty(object, name) {
 }
 
 /**
+ * Set a property value on the provided object. Works on nested object prop names as well (e.g. `first.name`).
+ *
+ * @param {object} object Object to work on.
+ * @param {string} name Prop name.
+ * @param {*} value Value to be assigned at the provided property.
+ */
+export function setProperty(object, name, value) {
+  const names = name.split('.');
+  let workingObject = object;
+
+  names.forEach((propName, index) => {
+    if (index !== names.length - 1) {
+      if (!hasOwnProperty(workingObject, propName)) {
+        workingObject[propName] = {};
+      }
+
+      workingObject = workingObject[propName];
+
+    } else {
+      workingObject[propName] = value;
+    }
+  });
+}
+
+/**
  * Return object length (recursively).
  *
  * @param {*} object Object for which we want get length.
@@ -280,11 +305,16 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
+
   const recursObjLen = function(obj) {
     let result = 0;
 
     if (isObject(obj)) {
       objectEach(obj, (key) => {
+        if (key === '__children') {
+          return;
+        }
+
         result += recursObjLen(key);
       });
     } else {
