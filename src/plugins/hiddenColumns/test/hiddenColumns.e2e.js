@@ -3977,7 +3977,29 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 0)).toBeAroundValue(50, 3);
     });
 
-    it('should return proper values from the `getColWidth` function', () => {
+    it('should return proper values from the `getColWidth` function (when indicator is enabled)', () => {
+      const hot = handsontable({
+        data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+          indicators: true,
+        },
+        columns: [
+          { data: 'id', title: 'Identifier' },
+          { data: 'name', title: 'Name' },
+          { data: 'lastName', title: 'Last Name' },
+        ],
+        autoColumnSize: true,
+      });
+
+      expect(hot.getColWidth(0)).toBe(0);
+      expect(hot.getColWidth(1)).toBe(0);
+      expect([216 + 15, 229 + 15, 247 + 15, 260 + 15, 261 + 15]).toEqual(jasmine.arrayContaining([hot.getColWidth(2)]));
+    });
+
+    it('should return proper values from the `getColWidth` function (when indicator is disabled)', () => {
       const hot = handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,

@@ -412,7 +412,11 @@ class TableView {
         return headerRenderers;
       },
       columnWidth: (renderedColumnIndex) => {
-        return this.instance.getColWidth(this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex));
+        const visualIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+
+        // The function is called also for not displayed indexes, i.e. when `fixedColumnsLeft` > `startCols` or scrolling
+        // and dataset is empty.
+        return this.instance.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
       },
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, renderedColumnIndex, TD) => {
