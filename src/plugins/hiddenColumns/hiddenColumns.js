@@ -2,6 +2,7 @@ import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce } from '../../helpers/array';
+import { isObject } from '../../helpers/object';
 import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
@@ -114,6 +115,7 @@ class HiddenColumns extends BasePlugin {
     this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('afterGetColHeader', (...args) => this.onAfterGetColHeader(...args));
+    this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
 
     super.enablePlugin();
   }
@@ -359,6 +361,13 @@ class HiddenColumns extends BasePlugin {
    * @returns {Array}
    */
   onModifyCopyableRange(ranges) {
+    const pluginSettings = this.hot.getSettings().hiddenColumns;
+
+    // Ranges aren't modified.
+    if (!isObject(pluginSettings) || pluginSettings.copyPasteEnabled) {
+      return ranges;
+    }
+
     const newRanges = [];
 
     const pushRange = (startRow, endRow, startCol, endCol) => {
@@ -444,21 +453,17 @@ class HiddenColumns extends BasePlugin {
    * @private
    */
   onMapInit() {
-    const settings = this.hot.getSettings().hiddenColumns;
+    const pluginSettings = this.hot.getSettings().hiddenColumns;
 
-    if (typeof settings === 'object') {
-      this.settings = settings;
+    if (isObject(pluginSettings)) {
+      this.settings = pluginSettings;
 
-      if (settings.copyPasteEnabled === void 0) {
-        settings.copyPasteEnabled = true;
+      if (pluginSettings.copyPasteEnabled === void 0) {
+        pluginSettings.copyPasteEnabled = true;
       }
 
-      if (Array.isArray(settings.columns)) {
-        this.hideColumns(settings.columns);
-      }
-
-      if (!settings.copyPasteEnabled) {
-        this.addHook('modifyCopyableRange', ranges => this.onModifyCopyableRange(ranges));
+      if (Array.isArray(pluginSettings.columns)) {
+        this.hideColumns(pluginSettings.columns);
       }
     }
   }
