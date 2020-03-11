@@ -589,6 +589,7 @@ const REGISTERED_HOOKS = [
    * Fired after cell source data was changed.
    *
    * @event Hooks#afterSetSourceDataAtCell
+   * @since 8.0.0
    * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
    * @param {string} [source] String that identifies source of hook call.
    */
@@ -993,6 +994,7 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified from the source data set.
    *
    * @event Hooks#modifySourceData
+   * @since 8.0.0
    * @param {number} row Physical row index.
    * @param {number} column Physical column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
