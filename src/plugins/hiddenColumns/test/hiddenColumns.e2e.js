@@ -4019,5 +4019,26 @@ describe('HiddenColumns', () => {
       expect(hot.getColWidth(1)).toBe(0);
       expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([hot.getColWidth(2)]));
     });
+
+    it('should return proper values from the `getColHeader` function', () => {
+      const hot = handsontable({
+        data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+        columns: [
+          { data: 'id', title: 'Identifier' },
+          { data: 'name', title: 'Name' },
+          { data: 'lastName', title: 'Last Name' },
+        ],
+        autoColumnSize: true,
+      });
+
+      expect(hot.getColHeader(0)).toBe('Identifier');
+      expect(hot.getColHeader(1)).toBe('Name');
+      expect(hot.getColHeader(2)).toBe('Last Name');
+    });
   });
 });
