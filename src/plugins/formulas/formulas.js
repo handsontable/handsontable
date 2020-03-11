@@ -28,18 +28,18 @@ class Formulas extends BasePlugin {
     // TODO: docs
     this.sheetName = null;
 
-    this.addHook('afterLoadData', () => this.onAfterLoadData());
-    this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
-    this.addHook('modifyData', (...args) => this.onModifyData(...args));
-    this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args));
-    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
-    this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
-    this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
-    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
-    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
-    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
-    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
-    this.addHook('afterColumnSort', (...args) => this.onAfterColumnSort(...args));
+    // this.addHook('afterLoadData', () => this.onAfterLoadData());
+    // this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
+    // this.addHook('modifyData', (...args) => this.onModifyData(...args));
+    // this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args));
+    // this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
+    // this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
+    // this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
+    // this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
+    // this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
+    // this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
+    // this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
+    // this.addHook('afterColumnSort', (...args) => this.onAfterColumnSort(...args));
 
     // TODO: check if these hooks from the previous version of the plugin are still relevant
     // this.addHook('afterSetDataAtCell', (...args) => this.onAfterSetDataAtCell(...args));

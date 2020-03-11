@@ -281,8 +281,8 @@ export function setProperty(object, name, value) {
   const names = name.split('.');
   let workingObject = object;
 
-  names.forEach((propName, i) => {
-    if (i !== names.length - 1) {
+  names.forEach((propName, index) => {
+    if (index !== names.length - 1) {
       if (!hasOwnProperty(workingObject, propName)) {
         workingObject[propName] = {};
       }

@@ -59,7 +59,9 @@ describe('Core.setSourceDataAtCell', () => {
         { foo: 'dolor', lorem: 'amet' }
       ],
       modifySourceData: (row, prop, valueHolder, ioMode) => {
-        argumentHistory.push([row, prop, valueHolder, ioMode]);
+        if (ioMode === 'set') {
+          argumentHistory.push([row, prop, valueHolder, ioMode]);
+        }
       }
     });
 
@@ -86,5 +88,34 @@ describe('Core.setSourceDataAtCell', () => {
     setSourceDataAtCell(0, 'foo', 'foo2');
 
     expect(getSourceData()[0].foo).toEqual('CHANGED');
+  });
+
+  it('should run the `afterSetSourceDataAtCell` hook', () => {
+    const afterSetSourceDataAtCellSpy = jasmine.createSpy('afterSetSourceDataAtCell');
+
+    handsontable({
+      data: [
+        { foo: 'bar', lorem: 'ipsum' },
+        { foo: 'lorem', lorem: 'sit' },
+        { foo: 'dolor', lorem: 'amet' }
+      ],
+      afterSetSourceDataAtCell: afterSetSourceDataAtCellSpy
+    });
+
+    setSourceDataAtCell(0, 'foo', 'foo2');
+
+    let hookArguments = new Array(6).fill(void 0);
+    hookArguments[0] = [[0, 'foo', 'bar', 'foo2']];
+
+    expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith(...hookArguments);
+
+    afterSetSourceDataAtCellSpy.calls.reset();
+
+    setSourceDataAtCell([[0, 'lorem', 'changed1'], [1, 'foo', 'changed2']]);
+
+    hookArguments = new Array(6).fill(void 0);
+    hookArguments[0] = [[0, 'lorem', 'ipsum', 'changed1'], [1, 'foo', 'lorem', 'changed2']];
+
+    expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith(...hookArguments);
   });
 });

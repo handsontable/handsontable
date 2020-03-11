@@ -22,6 +22,12 @@ const browsers = {
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
 
+const platforms = {
+  mac: tester(platform => /^Mac/.test(platform)),
+  win: tester(platform => /^Win/.test(platform)),
+  linux: tester(platform => /^Linux/.test(platform)),
+};
+
 /**
  * @param {object} [metaObject] The browser identity collection.
  * @param {object} [metaObject.userAgent] The user agent reported by browser.
@@ -31,7 +37,16 @@ export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navig
   objectEach(browsers, ({ test }) => void test(userAgent, vendor));
 }
 
+/**
+ * @param {object} [metaObject] The platform identity collection.
+ * @param {object} [metaObject.platform] The platform ID.
+ */
+export function setPlatformMeta({ platform = navigator.platform } = {}) {
+  objectEach(platforms, ({ test }) => void test(platform));
+}
+
 setBrowserMeta();
+setPlatformMeta();
 
 /**
  * @returns {boolean}
@@ -87,4 +102,25 @@ export function isSafari() {
  */
 export function isFirefox() {
   return browsers.firefox.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isWindowsOS() {
+  return platforms.win.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isMacOS() {
+  return platforms.mac.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isLinuxOS() {
+  return platforms.linux.value;
 }

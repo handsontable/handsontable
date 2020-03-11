@@ -33,6 +33,30 @@ describe('Events', () => {
     expect(afterOnCellMouseDown).toHaveBeenCalled();
   });
 
+  it('should translate double tap to `dblclick`', async() => {
+    const onCellDblClick = jasmine.createSpy('onCellDblClick');
+
+    const hot = handsontable({
+      width: 400,
+      height: 400,
+    });
+    hot.view.wt.update('onCellDblClick', onCellDblClick);
+
+    const cell = hot.getCell(1, 1);
+
+    expect(getSelected()).toBeUndefined();
+
+    triggerTouchEvent('touchstart', cell);
+    triggerTouchEvent('touchend', cell);
+    triggerTouchEvent('touchstart', cell);
+    triggerTouchEvent('touchend', cell);
+
+    await sleep(100);
+
+    expect(getSelected()).toBeDefined();
+    expect(onCellDblClick).toHaveBeenCalled();
+  });
+
   // Currently, this test is skipped. There is a problem for test canceling events from simulated events.
   xit('should block default action related to link touch and translate from the touch to click on a cell', async() => {
     const hot = handsontable({

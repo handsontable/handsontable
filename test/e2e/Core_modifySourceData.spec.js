@@ -157,7 +157,7 @@ describe('Core_modifySourceData', () => {
           }
         });
 
-        setSourceDataAtRowProp(changesList);
+        setSourceDataAtCell(changesList);
 
         changesList.forEach((change) => {
           const [rowIndex, columnIndex, dataCellValue] = change;
@@ -201,7 +201,7 @@ describe('Core_modifySourceData', () => {
           }
         });
 
-        setSourceDataAtRowProp(changesList);
+        setSourceDataAtCell(changesList);
 
         changesList.forEach((change) => {
           const [rowIndex, prop, dataCellValue] = change;
