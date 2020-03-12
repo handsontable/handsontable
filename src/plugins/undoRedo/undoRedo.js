@@ -1,5 +1,6 @@
 import Hooks from './../../pluginHooks';
 import { arrayMap, arrayEach } from './../../helpers/array';
+import { dataRowToChangesArray } from '../../helpers/data';
 import { rangeEach } from './../../helpers/number';
 import { inherit, deepClone } from './../../helpers/object';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './../../helpers/dom/event';
@@ -424,7 +425,6 @@ UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPosi
 inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
 UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
-  let row;
   const ascendingIndexes = this.indexes.slice(0).sort();
   const sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
 
@@ -438,16 +438,17 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   const changes = [];
 
-  // TODO Temporary hook for undo/redo mess
-  instance.runHooks('beforeCreateCol', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
+  instance.alter('insert_col', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
 
   rangeEach(this.data.length - 1, (i) => {
-    row = instance.getSourceDataAtRow(i);
+    const row = instance.getSourceDataAtRow(i);
 
     rangeEach(ascendingIndexes.length - 1, (j) => {
-      row.splice(ascendingIndexes[j], 0, sortedData[i][j]);
+      row[ascendingIndexes[j]] = sortedData[i][j];
       changes.push([i, ascendingIndexes[j], null, sortedData[i][j]]);
     });
+
+    instance.setSourceDataAtCell(dataRowToChangesArray(row, i));
   });
 
   instance.columnIndexMapper.insertIndexes(ascendingIndexes[0], ascendingIndexes.length);
@@ -459,7 +460,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   if (typeof this.headers !== 'undefined') {
     rangeEach(sortedHeaders.length - 1, (j) => {
-      instance.getSettings().colHeaders.splice(ascendingIndexes[j], 0, sortedHeaders[j]);
+      instance.getSettings().colHeaders[ascendingIndexes[j]] = sortedHeaders[j];
     });
   }
 

@@ -71,7 +71,7 @@ export function hasAccessToParentWindow(frame) {
  * This method goes up through web components.
  *
  * @param {Node} element Element from which traversing is started.
- * @param {(string | Node)[]} [nodes] Array of elements or Array of elements name (in uppercase form).
+ * @param {Array<string|Node>} [nodes] Array of elements or Array of elements name (in uppercase form).
  * @param {Node} [until] The element until the traversing ends.
  * @returns {Node|null}
  */

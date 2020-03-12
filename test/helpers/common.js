@@ -109,6 +109,7 @@ export const selectColumns = handsontableMethodFactory('selectColumns');
 export const selectRows = handsontableMethodFactory('selectRows');
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
+export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');

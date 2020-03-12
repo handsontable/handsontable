@@ -295,6 +295,29 @@ describe('AutoFill', () => {
     expect(getDataAtCell(1, 0)).toEqual('test');
   });
 
+  it('should cancel autofill if beforeAutofill returns false', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill() {
+        return false;
+      }
+    });
+    selectCell(0, 0);
+
+    spec().$container.find('.wtBorder.corner').simulate('mousedown');
+    spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
+    spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+    spec().$container.find('.wtBorder.corner').simulate('mouseup');
+
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getDataAtCell(1, 0)).toEqual(1);
+  });
+
   it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', () => {
     const $table = $('<table><tr><td></td></tr></table>').appendTo('body');
     spec().$container.appendTo($table.find('td'));
@@ -908,5 +931,62 @@ describe('AutoFill', () => {
       $container2.handsontable('destroy');
       $container2.remove();
     });
+  });
+
+  it('should run afterAutofill once after each set of autofill changes have been applied', () => {
+    const afterAutofill = jasmine.createSpy('afterAutofill');
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      afterAutofill
+    });
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(afterAutofill).toHaveBeenCalledTimes(1);
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(1, 0)).toEqual(1);
+
+    expect(afterAutofill).toHaveBeenCalledTimes(2);
+  });
+
+  it('should not call afterAutofill if beforeAutofill returns false', () => {
+    const afterAutofill = jasmine.createSpy('afterAutofill');
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill() {
+        return false;
+      },
+      afterAutofill,
+    });
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(0) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+    expect(afterAutofill).toHaveBeenCalledTimes(0);
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(afterAutofill).toHaveBeenCalledTimes(0);
   });
 });

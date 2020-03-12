@@ -76,13 +76,15 @@ describe('NestedRows Collapsing UI', () => {
       });
 
       it('should collapse all children nodes of the row provided as an object', () => {
+        const sourceDataReference = getMoreComplexNestedData();
+
         const hot = handsontable({
-          data: getMoreComplexNestedData(),
+          data: sourceDataReference,
           nestedRows: true
         });
 
         const plugin = getPlugin('nestedRows');
-        const child = getSourceData()[0];
+        const child = sourceDataReference[0];
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
           expect(hot.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
