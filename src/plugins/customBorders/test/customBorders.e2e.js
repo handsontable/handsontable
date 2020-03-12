@@ -281,6 +281,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(MEDIUM_RED_BORDER);
 
+    // TODO don't test the actual SVG paths in the line below. Rather, check if Walkontable has the correct selection and trust that it renders properly
     expect(getRenderedBorderPaths(document.body)).toEqual(['M 50 23.5 151 23.5', 'M 50 23 50 70 M 150 23 150 70']);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px solid green', '2px solid red']);
   });
@@ -321,6 +322,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(EMPTY);
 
+    // TODO don't test the actual SVG paths in the line below. Rather, check if Walkontable has the correct selection and trust that it renders properly
     expect(getRenderedBorderPaths(document.body)).toEqual(['M 50 23.5 151 23.5 M 50 46.5 151 46.5',
       'M 50 46 151 46 M 50 23 50 70 M 100 23 100 70 M 50 69 151 69', '', '']);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px solid green',
@@ -361,6 +363,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(2, 2).borders.bottom).withContext('2,2 bottom').toEqual(MEDIUM_RED_BORDER);
     expect(getCellMeta(2, 2).borders.right).withContext('2,2 right').toEqual(EMPTY);
 
+    // TODO don't test the actual SVG paths in the line below. Rather, check if Walkontable has the correct selection and trust that it renders properly
     expect(getRenderedBorderPaths(document.body)).toEqual(['M 50 23.5 151 23.5 M 50 46.5 151 46.5', 'M 50 46 151 46 M 50 23 50 70 M 100 23 100 70 M 50 69 151 69']);
     expect(getRenderedBorderStyles(document.body)).toEqual(['1px solid green', '2px solid red']);
   });
@@ -1002,6 +1005,7 @@ describe('CustomBorders', () => {
   describe('virtual rendering', () => {
     // based on tests in Core_count.spec.js
 
+    // TODO don't test the actual SVG paths in the line below. Rather, check if Walkontable has the correct selection and trust that it renders properly
     const expectedBorders = ['M 0 0.5 51 0.5 M 0 23.5 51 23.5 M 0 46.5 51 46.5 M 0 69.5 51 69.5 M 0 92.5 51 92.5'];
 
     it('should render borders only for rendered rows', () => {
