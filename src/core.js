@@ -35,6 +35,7 @@ import { warnUserAboutLanguageRegistration, getValidLanguageCode, normalizeLangu
 import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DataMap } from './dataMap/index';
+import expandCoordsToRangeIncludingSpans from './utils/rowSpanColSpan';
 
 let activeGuid = null;
 
@@ -155,6 +156,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+    expandCoordsToRangeIncludingSpans: coords => expandCoordsToRangeIncludingSpans(instance, coords)
   });
 
   this.selection = selection;

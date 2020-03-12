@@ -579,6 +579,7 @@ describe('NestedHeaders', () => {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseup');
 
+      // TODO don't test the actual SVG paths in the line below. Rather, check if Walkontable has the correct selection and trust that it renders properly
       expect(getRenderedBorderPaths(document.body)).toEqual(['M 50 104.5 151 104.5 M 150.5 104 150.5 197 M 50 196.5 151 196.5 M 50.5 104 50.5 197',
         'M 51 105 101 105 M 100 104 100 128 M 51 127 101 127 M 51 104 51 128',
         'M 50 104.5 151 104.5 M 150.5 104 150.5 131 M 50.5 104 50.5 131',

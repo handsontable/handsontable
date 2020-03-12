@@ -266,16 +266,16 @@ describe('MergeCells', () => {
       });
 
       selectCell(1, 1);
-      expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('first check').toEqual(-1);
 
       selectCell(1, 1, 4, 4);
-      expect(getCell(1, 1).className.indexOf('area')).not.toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('second check').not.toEqual(-1);
 
       selectCell(1, 1);
-      expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('third check').toEqual(-1);
 
       selectCell(0, 0);
-      expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('fourth check').toEqual(-1);
     });
 
     it('should render fill handle after merge cells', () => {
@@ -436,6 +436,45 @@ describe('MergeCells', () => {
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I1');
       keyDownUp('shift+enter');
+    });
+
+    it('when a merged cell is selected, the whole merge range should be highlighed in Walkontable', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
+        ],
+      });
+
+      hot.selectCell(0, 0);
+
+      expect(hot.view.wt.selections.cell.cellRange.from.row).withContext('from row').toBe(0);
+      expect(hot.view.wt.selections.cell.cellRange.from.col).withContext('from col').toBe(0);
+      expect(hot.view.wt.selections.cell.cellRange.to.row).withContext('to row').toBe(1);
+      expect(hot.view.wt.selections.cell.cellRange.to.col).withContext('to col').toBe(1);
+    });
+
+    it('when fill handle is dragged to a merged cell, the fill selection range should be extended to the end of the merged area', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 2, colspan: 2 }
+        ],
+        fillHandle: true
+      });
+
+      selectCell(0, 0, 1, 0);
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tbody tr:eq(1) td:eq(1)').simulate('mouseover');
+
+      await sleep(50);
+
+      expect(hot.view.wt.selections.fill.cellRange.from.row).withContext('from row').toBe(0);
+      expect(hot.view.wt.selections.fill.cellRange.from.col).withContext('from col').toBe(0);
+      expect(hot.view.wt.selections.fill.cellRange.to.row).withContext('to row').toBe(2);
+      expect(hot.view.wt.selections.fill.cellRange.to.col).withContext('to col').toBe(2);
+
+      spec().$container.find('tbody tr:eq(1) td:eq(1)').simulate('mouseup');
     });
   });
 
