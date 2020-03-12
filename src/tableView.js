@@ -562,7 +562,10 @@ class TableView {
       onBeforeDrawBorders: (corners, borderClassName) => this.instance.runHooks('beforeDrawBorders', corners, borderClassName),
       onBeforeTouchScroll: () => this.instance.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.instance.runHooks('afterMomentumScroll'),
-      onBeforeStretchingColumnWidth: (stretchedWidth, column) => this.instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column),
+      onBeforeStretchingColumnWidth: (stretchedWidth, renderedColumnIndex) => {
+        return this.instance.runHooks('beforeStretchingColumnWidth',
+          stretchedWidth, this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex));
+      },
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (row, column, topmost) => this.instance.runHooks('modifyGetCellCoords', row, column, topmost),
       viewportRowCalculatorOverride: (calc) => {

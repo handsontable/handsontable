@@ -4041,4 +4041,26 @@ describe('HiddenColumns', () => {
       expect(hot.getColHeader(2)).toBe('Last Name');
     });
   });
+
+  describe('cooperation with the `stretchH` option', () => {
+    it('should stretch all rows to a window size', () => {
+      const stretchedColumns = new Set();
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2],
+        },
+        stretchH: 'all',
+        beforeStretchingColumnWidth(width, column) {
+          stretchedColumns.add(column);
+        }
+      });
+
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBeAroundValue(document.documentElement.clientWidth / 3, 2);
+      expect($(getHtCore()).find('td')[1].offsetWidth).toBeAroundValue(document.documentElement.clientWidth / 3, 2);
+      expect($(getHtCore()).find('td')[2].offsetWidth).toBeAroundValue(document.documentElement.clientWidth / 3, 2);
+      expect(stretchedColumns.values()).toEqual([1, 3, 4]);
+    });
+  });
 });
