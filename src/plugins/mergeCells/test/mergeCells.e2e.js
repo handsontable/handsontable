@@ -266,16 +266,16 @@ describe('MergeCells', () => {
       });
 
       selectCell(1, 1);
-      expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('first check').toEqual(-1);
 
       selectCell(1, 1, 4, 4);
-      expect(getCell(1, 1).className.indexOf('area')).not.toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('second check').not.toEqual(-1);
 
       selectCell(1, 1);
-      expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('third check').toEqual(-1);
 
       selectCell(0, 0);
-      expect(getCell(1, 1).className.indexOf('area')).toEqual(-1);
+      expect(getCell(1, 1).className.indexOf('area')).withContext('fourth check').toEqual(-1);
     });
 
     it('should render fill handle after merge cells', () => {

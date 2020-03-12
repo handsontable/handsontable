@@ -1,4 +1,4 @@
-import { CellRange } from '../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from '../3rdparty/walkontable/src';
 
 const assumedDefaultSpan = 1;
 
@@ -13,11 +13,16 @@ const assumedDefaultSpan = 1;
 export default function expandCoordsToRangeIncludingSpans(hotInstance, coords) {
   const range = new CellRange(coords);
   const cellMeta = hotInstance.getCellMeta(coords.row, coords.col);
-  if (cellMeta.rowspan) {
-    range.to.row = range.to.row + cellMeta.rowspan - assumedDefaultSpan;
+
+  if (cellMeta.rowspan || cellMeta.colspan) {
+    const rowspan = cellMeta.rowspan || assumedDefaultSpan;
+    const colspan = cellMeta.colspan || assumedDefaultSpan;
+
+    range.to = new CellCoords(
+      coords.row + rowspan - 1,
+      coords.col + colspan - 1
+    );
   }
-  if (cellMeta.colspan) {
-    range.to.col = range.to.col + cellMeta.colspan - assumedDefaultSpan;
-  }
+
   return range;
 }
