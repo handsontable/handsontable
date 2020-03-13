@@ -62,6 +62,7 @@ export function settingsNormalizer(sourceSettings) {
 
         if (typeof colspan === 'number' && colspan > 1) {
           headerSettings.colspan = colspan;
+          headerSettings.origColspan = colspan;
         }
       } else {
         headerSettings.label = stringify(columnSettings);

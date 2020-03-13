@@ -24,7 +24,6 @@ import UndoRedo from './undoRedo/undoRedo';
 import Base from './_base';
 
 import BindRowsWithHeaders from './bindRowsWithHeaders/bindRowsWithHeaders';
-import CollapsibleColumns from './collapsibleColumns/collapsibleColumns';
 import ColumnSummary from './columnSummary/columnSummary';
 import DropdownMenu from './dropdownMenu/dropdownMenu';
 import ExportFile from './exportFile/exportFile';
@@ -33,6 +32,7 @@ import Formulas from './formulas/formulas';
 import GanttChart from './ganttChart/ganttChart';
 import HeaderTooltips from './headerTooltips/headerTooltips';
 import NestedHeaders from './nestedHeaders/nestedHeaders';
+import CollapsibleColumns from './collapsibleColumns/collapsibleColumns';
 import NestedRows from './nestedRows/nestedRows';
 // 'HiddenColumns' must be initialized after NestedHeaders. Bug releated with wrong listeners order attached to 'modifyColWidth' hook.
 import HiddenColumns from './hiddenColumns/hiddenColumns';

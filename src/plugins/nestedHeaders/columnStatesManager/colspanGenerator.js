@@ -1,8 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach } from '../../../helpers/array';
-import { HEADER_DEFAULT_SETTINGS } from './constants';
 import { TRAVERSAL_BF } from '../../../utils/dataStructures/tree';
+import { HEADER_DEFAULT_SETTINGS } from './constants';
 
 /**
  * A function that dump a tree structure into multidimensional array. That structure is
@@ -37,22 +37,23 @@ export function colspanGenerator(headerRoots) {
   const colspanMatrix = [];
 
   arrayEach(headerRoots, (rootNode) => {
-    rootNode.walk((node) => {
-      const { data: { colspan, label, hidden, headerLevel } } = node;
+    rootNode.walkDown((node) => {
+      const { data: { colspan, origColspan, label, hidden, headerLevel, collapsible, isCollapsed } } = node;
       const colspanHeaderLayer = createNestedArrayIfNecessary(colspanMatrix, headerLevel);
 
       colspanHeaderLayer.push({
-        origColspan: colspan,
-        colspan,
         label,
+        colspan,
+        origColspan,
         hidden,
+        collapsible,
+        isCollapsed,
       });
 
       if (colspan > 1) {
         for (let i = 0; i < colspan - 1; i++) {
           colspanHeaderLayer.push({
             ...HEADER_DEFAULT_SETTINGS,
-            origColspan: colspan,
             hidden: true,
           });
         }

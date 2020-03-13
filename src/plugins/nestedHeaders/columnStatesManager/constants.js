@@ -7,5 +7,8 @@
 export const HEADER_DEFAULT_SETTINGS = {
   label: '',
   colspan: 1,
+  origColspan: 1,
   hidden: false,
+  collapsible: false,
+  isCollapsed: false,
 };

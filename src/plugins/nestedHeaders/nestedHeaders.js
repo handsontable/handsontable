@@ -56,6 +56,8 @@ class NestedHeaders extends BasePlugin {
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
   ghostTable = new GhostTable(this);
 
+  detectedOverlappedHeaders = false;
+
   /**
    * Check if plugin is enabled.
    *
@@ -76,9 +78,9 @@ class NestedHeaders extends BasePlugin {
     const nestedHeaders = this.hot.getSettings().nestedHeaders;
 
     if (Array.isArray(nestedHeaders)) {
-      const hasError = this.#columnStatesManager.setState(nestedHeaders);
+      this.detectedOverlappedHeaders = this.#columnStatesManager.setState(nestedHeaders);
 
-      if (hasError) {
+      if (this.detectedOverlappedHeaders) {
         warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
                           is currently not supported.`);
       }
@@ -114,6 +116,14 @@ class NestedHeaders extends BasePlugin {
 
     super.updatePlugin();
     this.ghostTable.buildWidthsMapper();
+  }
+
+  /**
+   * @private
+   * @returns {ColumnStatesManager}
+   */
+  getColumnStateManager() {
+    return this.#columnStatesManager;
   }
 
   /**
@@ -223,19 +233,25 @@ class NestedHeaders extends BasePlugin {
       }
 
       TH.removeAttribute('colspan');
+      TH.removeAttribute('collapsible');
       removeClass(TH, 'hiddenHeader');
 
-      const { colspan, label, hidden } = this.#columnStatesManager.getColumnSettings(visualColumnsIndex, headerLevel);
+      const { colspan, label, hidden, collapsible } = this.#columnStatesManager.getColumnSettings(visualColumnsIndex, headerLevel);
 
-      if (hidden) {
+      if (hidden === true) {
         addClass(TH, 'hiddenHeader');
-      }
 
-      if (colspan > 1) {
-        const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
-        const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
+      } else {
+        if (colspan > 1) {
+          const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
+          const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
 
-        TH.setAttribute('colspan', isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan);
+          TH.setAttribute('colspan', isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan);
+        }
+
+        if (collapsible === true) {
+          TH.setAttribute('collapsible', true);
+        }
       }
 
       const divEl = rootDocument.createElement('div');
@@ -284,9 +300,9 @@ class NestedHeaders extends BasePlugin {
     for (let column = columnFrom; column <= columnTo; column++) {
       // Traverse header layers from bottom to top.
       for (let level = layersCount - 1; level > -1; level--) {
-        const { origColspan, hidden } = this.#columnStatesManager.getColumnSettings(column, level);
+        const { colspan, hidden } = this.#columnStatesManager.getColumnSettings(column, level);
         const isFirstLayer = level === layersCount - 1;
-        let isOutOfRange = (columnWalker + origColspan) > columnSelectionWidth;
+        let isOutOfRange = (columnWalker + colspan) > columnSelectionWidth;
 
         // If the selection doesn't overlap, the whole colspaned header. Correct the
         // visual column index to the TH element, which is not hidden (most left column index).
@@ -466,7 +482,6 @@ class NestedHeaders extends BasePlugin {
    */
   destroy() {
     this.#columnStatesManager = null;
-    this.ghostTable = null;
 
     super.destroy();
   }

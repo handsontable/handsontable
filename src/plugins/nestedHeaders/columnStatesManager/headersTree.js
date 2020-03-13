@@ -1,5 +1,5 @@
 import { arrayEach } from '../../../helpers/array';
-import TreeNode from '../../../utils/dataStructures/tree';
+import TreeNode, { TRAVERSAL_BF } from '../../../utils/dataStructures/tree';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -11,7 +11,6 @@ import TreeNode from '../../../utils/dataStructures/tree';
  * The second role of the module is validation. While building the tree,
  * there is checked whether the configuration contains overlapping
  * headers. If true, then the exception is thrown.
- *
  *
  * For example, for that header configuration:
  *   +----+----+----+----+----+
@@ -41,6 +40,10 @@ export default class HeadersTree {
    */
   #rootNodes = new Map();
   /**
+   * @type {Map<number, number>}
+   */
+  #rootsIndex = new Map();
+  /**
    * The instance of the SourceSettings class.
    *
    * @type {SourceSettings}
@@ -64,18 +67,82 @@ export default class HeadersTree {
    * Gets an root nodes by specified visual column index.
    *
    * @param {number} visualColumnIndex A visual column index.
-   * @returns {TreeNode|null}
+   * @returns {TreeNode|undefined}
    */
   getRootByColumn(visualColumnIndex) {
-    return this.#rootNodes.get(visualColumnIndex) ?? null;
+    let node;
+
+    if (this.#rootsIndex.has(visualColumnIndex)) {
+      node = this.#rootNodes.get(this.#rootsIndex.get(visualColumnIndex));
+    }
+
+    return node;
   }
 
   /**
-   * Builds trees based on SourceSettings class.
+   * @param {number} visualColumnIndex
+   * @param {number} headerLevel
+   */
+  getNode(visualColumnIndex, headerLevel) {
+    const rootNode = this.getRootByColumn(visualColumnIndex);
+
+    if (!rootNode) {
+      return;
+    }
+
+    // Normalize the visual column index to a 0-based system for a specific "box" defined by root node colspan width.
+    const normalizedColumnIndex = visualColumnIndex - this.#rootsIndex.get(visualColumnIndex);
+    let columnCursor = 0;
+    let treeNode;
+
+    // Collect all parent nodes that depend on the collapsed node.
+    rootNode.walkDown((node) => {
+      const { data: { colspan, headerLevel: nodeHeaderLevel } } = node;
+
+      if (headerLevel === nodeHeaderLevel) {
+        if (normalizedColumnIndex >= columnCursor && normalizedColumnIndex <= columnCursor + colspan - 1) {
+          treeNode = node;
+
+          return false; // Cancel tree traversing.
+        }
+
+        columnCursor += colspan;
+      }
+    }, TRAVERSAL_BF);
+
+    return treeNode;
+  }
+
+  /**
+   * Builds (or rebuilds if called again) root nodes indexes.
+   */
+  rebuildTreeIndex() {
+    const origRootNodes = Array.from(this.#rootNodes);
+    let columnIndex = 0;
+
+    this.#rootsIndex.clear();
+    this.#rootNodes.clear();
+
+    arrayEach(origRootNodes, ([, rootNode]) => {
+      this.#rootNodes.set(columnIndex, rootNode);
+
+      // Map tree range (colspan range/width) into visual column index of the root node.
+      for (let i = columnIndex; i < columnIndex + rootNode.data.colspan; i++) {
+        this.#rootsIndex.set(i, columnIndex);
+      }
+
+      columnIndex += rootNode.data.colspan;
+    });
+  }
+
+  /**
+   * Builds trees based on SourceSettings class. Calling a method causes clearing the tree state built
+   * from the previous call.
    */
   buildTree() {
-    const columnsCount = this.#sourceSettings.getColumnsCount();
+    this.clear();
 
+    const columnsCount = this.#sourceSettings.getColumnsCount();
     let columnIndex = 0;
 
     while (columnIndex < columnsCount) {
@@ -87,12 +154,14 @@ export default class HeadersTree {
 
       columnIndex += columnSettings.colspan;
     }
+
+    this.rebuildTreeIndex();
   }
 
   /**
    * Builds leaves for specified tree node.
    *
-   * @param {TreeNode} parentNode A node wo which the leaves applies.
+   * @param {TreeNode} parentNode A node to which the leaves applies.
    * @param {number} columnIndex A visual column index.
    * @param {number} headerLevel Currently processed header level.
    * @param {number} [extractionLength=1] Determines column extraction length for node children.
@@ -104,9 +173,8 @@ export default class HeadersTree {
 
     arrayEach(columnsSettings, (columnSettings) => {
       const nodeData = {
-        headerLevel: headerLevel - 1,
-        columnIndex,
         ...columnSettings,
+        headerLevel: headerLevel - 1,
       };
       let node;
 
@@ -115,6 +183,7 @@ export default class HeadersTree {
         node = parentNode;
       } else {
         node = new TreeNode(nodeData);
+        node.parent = parentNode;
 
         parentNode.childs.push(node);
       }
@@ -128,9 +197,10 @@ export default class HeadersTree {
   }
 
   /**
-   * Cleares the root nodes.
+   * Clears the tree to the initial state.
    */
   clear() {
     this.#rootNodes.clear();
+    this.#rootsIndex.clear();
   }
 }

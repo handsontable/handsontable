@@ -107,6 +107,12 @@ export default class TreeNode {
    */
   data = {};
   /**
+   * A parent node.
+   *
+   * @type {TreeNode}
+   */
+  parent = null;
+  /**
    * A tree leaves.
    *
    * @type {TreeNode[]}
@@ -123,11 +129,27 @@ export default class TreeNode {
    * @param {Function} callback The callback function which will be called for each node.
    * @param {string} [traversalStrategy=DEFAULT_TRAVERSAL_STRATEGY] Traversing strategy.
    */
-  walk(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
+  walkDown(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
     if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
       throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
     }
 
     TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);
+  }
+
+  /**
+   * @param {Function} callback The callback function which will be called for each node.
+   */
+  walkUp(callback) {
+    const context = this;
+    const process = (node) => {
+      const continueTraverse = callback.call(context, node);
+
+      if (continueTraverse !== false && node.parent !== null) {
+        process(node.parent);
+      }
+    }
+
+    process(this);
   }
 }

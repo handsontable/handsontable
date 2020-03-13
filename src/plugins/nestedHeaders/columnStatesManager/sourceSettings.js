@@ -1,3 +1,5 @@
+import { extend, isObject } from '../../../helpers/object';
+import { arrayEach } from '../../../helpers/array';
 import { settingsNormalizer } from './settingsNormalizer';
 
 /**
@@ -47,6 +49,34 @@ export default class SourceSettings {
   }
 
   /**
+   * @param {Object[]} additionalSettings
+   */
+  mergeWith(additionalSettings) {
+    arrayEach(additionalSettings, ({ row, col, ...rest }) => {
+      const columnSettings = this.getColumnSettings(row, col);
+
+      if (columnSettings !== null) {
+        extend(columnSettings, rest);
+      }
+    });
+  }
+
+  /**
+   * @param {Function} callback
+   */
+  map(callback) {
+    arrayEach(this.#data, (header) => {
+      arrayEach(header, (columnSettings) => {
+        const propsToExtend = callback({ ...columnSettings });
+
+        if (isObject(propsToExtend)) {
+          extend(columnSettings, propsToExtend);
+        }
+      });
+    });
+  }
+
+  /**
    * Gets source column settings for a specified header. The returned object contains
    * information about the header label, its colspan length, or if it is hidden
    * in the header renderers.
@@ -66,7 +96,7 @@ export default class SourceSettings {
       return null;
     }
 
-    return columnsSettings[visibleColumnIndex];
+    return columnsSettings[visibleColumnIndex] ?? null;
   }
 
   /**
@@ -135,7 +165,7 @@ export default class SourceSettings {
   }
 
   /**
-   * Cleares the data.
+   * Clears the data.
    */
   clear() {
     this.#data = [];

@@ -1,5 +1,7 @@
+import { arrayMap, arrayEach } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
+import NodeModifiers from './nodeModifiers';
 import { HEADER_DEFAULT_SETTINGS } from './constants';
 import { colspanGenerator } from './colspanGenerator';
 
@@ -37,7 +39,13 @@ export default class ColumnStatesManager {
    *
    * @type {SourceSettings}
    */
-  #settings = new SourceSettings();
+  #sourceSettings = new SourceSettings();
+  /**
+   * The instance of the collapsible modifier class.
+   *
+   * @type {NodeModifiers}
+   */
+  #nodeModifiers = new NodeModifiers();
   /**
    * The instance of the headers tree. The tree is generated after setting new confuguration data.
    *
@@ -59,21 +67,67 @@ export default class ColumnStatesManager {
    * @returns {boolean} Returns `true` if the settings are processed correctly, `false` otherwise.
    */
   setState(nestedHeadersSettings) {
-    this.#settings.setData(nestedHeadersSettings);
-    this.#headersTree = new HeadersTree(this.#settings);
+    this.#sourceSettings.setData(nestedHeadersSettings);
+    this.#headersTree = new HeadersTree(this.#sourceSettings);
     let hasError = false;
 
     try {
       this.#headersTree.buildTree();
     } catch (ex) {
       this.#headersTree.clear();
-      this.#settings.clear();
+      this.#sourceSettings.clear();
       hasError = true;
     }
 
     this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
 
     return hasError;
+  }
+
+  /**
+   * @param {Object[]} settings
+   */
+  mergeStateWith(settings) {
+    const transformedSettings = arrayMap(settings, ({ row, ...rest }) => {
+      return {
+        row: row < 0 ? this.rowCoordsToLevel(row) : row,
+        ...rest,
+      }
+    });
+
+    this.#sourceSettings.mergeWith(transformedSettings);
+    this.#headersTree.buildTree();
+    this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+  }
+
+  /**
+   * @param {Function} callback
+   */
+  mapState(callback) {
+    this.#sourceSettings.map(callback);
+    this.#headersTree.buildTree();
+    this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+  }
+
+  /**
+   * @param {[type]} action
+   * @param {[type]} visualColumnIndex
+   * @param {[type]} headerLevel
+   */
+  triggerNodeModification(action, visualColumnIndex, headerLevel) {
+    if (headerLevel < 0) {
+      headerLevel = this.rowCoordsToLevel(headerLevel);
+    }
+
+    const nodeToProcess = this.#headersTree.getNode(visualColumnIndex, headerLevel);
+
+    console.log('nodeToProcess', nodeToProcess);
+
+    if (nodeToProcess) {
+      this.#nodeModifiers.triggerAction(action, nodeToProcess);
+      this.#headersTree.rebuildTreeIndex();
+      this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+    }
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -152,7 +206,7 @@ export default class ColumnStatesManager {
       headerLevel = this.rowCoordsToLevel(headerLevel);
     }
 
-    if (headerLevel >= this.#settings.getLayersCount()) {
+    if (headerLevel >= this.getLayersCount()) {
       return null;
     }
 
@@ -196,7 +250,7 @@ export default class ColumnStatesManager {
    * @returns {number}
    */
   getLayersCount() {
-    return this.#settings.getLayersCount();
+    return this.#sourceSettings.getLayersCount();
   }
 
   /**
@@ -205,15 +259,15 @@ export default class ColumnStatesManager {
    * @returns {number}
    */
   getColumnsCount() {
-    return this.#settings.getColumnsCount();
+    return this.#sourceSettings.getColumnsCount();
   }
 
   /**
-   * Cleares the state.
+   * Clears the column state manager to the initial state.
    */
   clear() {
     this.#colspanMatrix = [];
-    this.#settings.clear();
+    this.#sourceSettings.clear();
     this.#headersTree.clear();
   }
 }
