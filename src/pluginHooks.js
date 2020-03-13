@@ -586,6 +586,16 @@ const REGISTERED_HOOKS = [
   'afterSetDataAtRowProp',
 
   /**
+   * Fired after cell source data was changed.
+   *
+   * @event Hooks#afterSetSourceDataAtCell
+   * @since 8.0.0
+   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {string} [source] String that identifies source of hook call.
+   */
+  'afterSetSourceDataAtCell',
+
+  /**
    * Fired after calling the `updateSettings` method.
    *
    * @event Hooks#afterUpdateSettings
@@ -638,6 +648,17 @@ const REGISTERED_HOOKS = [
    * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
    */
   'beforeAutofill',
+
+  /**
+   * Fired by {@link Autofill} plugin after populating the data in the autofill feature. This hook is fired when
+   * {@link Options#fillHandle} option is enabled.
+   *
+   * @event Hooks#afterAutofill
+   * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
+   * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
+   * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   */
+  'afterAutofill',
 
   /**
    * Fired before aligning the cell contents.
@@ -962,12 +983,24 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
-   * @param {number} row Row height.
-   * @param {number} column Column index.
+   * @param {number} row Physical row height.
+   * @param {number} column Physical column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   'modifyData',
+
+  /**
+   * Fired when a data was retrieved or modified from the source data set.
+   *
+   * @event Hooks#modifySourceData
+   * @since 8.0.0
+   * @param {number} row Physical row index.
+   * @param {number} column Physical column index.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
+  'modifySourceData',
 
   /**
    * Fired when a data was retrieved or modified.

@@ -326,7 +326,9 @@ describe('HiddenColumns', () => {
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
-            hiddenColumns: [1, 2, 3],
+            hiddenColumns: {
+              columns: [1, 2, 3],
+            },
           });
 
           const header = getCell(-1, 4);
@@ -346,7 +348,9 @@ describe('HiddenColumns', () => {
             data: Handsontable.helper.createSpreadsheetData(1, 5),
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
-            hiddenColumns: [1, 3],
+            hiddenColumns: {
+              columns: [1, 3],
+            },
           });
 
           const header = getCell(-1, 2);
@@ -494,7 +498,7 @@ describe('HiddenColumns', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelectedLast()).toEqual([0, 3, 1, 3]);
+            expect(getSelected()).toEqual([[0, 3, 1, 3]]);
             expect(`
             |   ║   : * :   |
             |===:===:===:===|
@@ -510,7 +514,6 @@ describe('HiddenColumns', () => {
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: {
-                indicators: true,
                 columns: [0, 1, 5, 6, 7]
               }
             });
@@ -519,7 +522,7 @@ describe('HiddenColumns', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelectedLast()).toEqual([0, 8, 1, 8]);
+            expect(getSelected()).toEqual([[0, 8, 1, 8]]);
             expect(`
             |   ║   : * :   |
             |===:===:===:===|
@@ -544,7 +547,7 @@ describe('HiddenColumns', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelectedLast()).toEqual([0, 2, 1, 2]);
+            expect(getSelected()).toEqual([[0, 2, 1, 2]]);
             expect(`
             |   ║   :   : * |
             |===:===:===:===|
@@ -560,7 +563,6 @@ describe('HiddenColumns', () => {
               colHeaders: true,
               contextMenu: [CONTEXTMENU_ITEM_HIDE],
               hiddenColumns: {
-                indicators: true,
                 columns: [0, 1, 5, 6, 7]
               }
             });
@@ -569,7 +571,7 @@ describe('HiddenColumns', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelectedLast()).toEqual([0, 4, 1, 4]);
+            expect(getSelected()).toEqual([[0, 4, 1, 4]]);
             expect(`
             |   ║   :   : * |
             |===:===:===:===|
@@ -586,7 +588,6 @@ describe('HiddenColumns', () => {
             colHeaders: true,
             contextMenu: [CONTEXTMENU_ITEM_HIDE],
             hiddenColumns: {
-              indicators: true,
               columns: [0, 1, 5, 6, 7]
             }
           });
@@ -613,7 +614,6 @@ describe('HiddenColumns', () => {
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [1, 3],
-              indicators: true
             },
           });
 
@@ -635,7 +635,7 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 2).innerText).toBe('C1');
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
-          expect(getSelectedLast()).toEqual([0, 0, 1, 4]);
+          expect(getSelected()).toEqual([[0, 0, 1, 4]]);
           expect(`
           |   ║ * : * : * : * : * |
           |===:===:===:===:===:===|
@@ -652,7 +652,6 @@ describe('HiddenColumns', () => {
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [0, 1],
-              indicators: true
             },
           });
 
@@ -674,7 +673,7 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 2).innerText).toBe('C1');
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
-          expect(getSelectedLast()).toEqual([0, 0, 1, 2]);
+          expect(getSelected()).toEqual([[0, 0, 1, 2]]);
           expect(`
           |   ║ * : * : * :   :   |
           |===:===:===:===:===:===|
@@ -691,7 +690,6 @@ describe('HiddenColumns', () => {
             contextMenu: [CONTEXTMENU_ITEM_SHOW],
             hiddenColumns: {
               columns: [3, 4],
-              indicators: true
             },
           });
 
@@ -713,13 +711,197 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 2).innerText).toBe('C1');
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
-          expect(getSelectedLast()).toEqual([0, 2, 1, 4]);
+          expect(getSelected()).toEqual([[0, 2, 1, 4]]);
           expect(`
           |   ║   :   : * : * : * |
           |===:===:===:===:===:===|
           | - ║   :   : A : 0 : 0 |
           | - ║   :   : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
+        });
+      });
+    });
+
+    describe('Changing selection after alter actions from context-menu', () => {
+      describe('should keep the row selection in the same position as before inserting the row', () => {
+        describe('above the selected row', () => {
+          it('when the first column is hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0]
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(0)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row above
+
+            expect(getSelected()).toEqual([[1, 0, 1, 3]]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+            expect(getSelectedRangeLast()?.from?.row).toBe(1);
+            expect(getSelectedRangeLast()?.from?.col).toBe(0);
+            expect(getSelectedRangeLast()?.to?.row).toBe(1);
+            expect(getSelectedRangeLast()?.to?.col).toBe(3);
+            expect(`
+            |   ║ - : - : - |
+            |===:===:===:===|
+            |   ║   :   :   |
+            | * ║ A : 0 : 0 |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            `).toBeMatchToSelectionPattern();
+          });
+
+          it('when all columns are hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0, 1, 2, 3],
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(0)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row above
+
+            expect(getSelected()).toEqual([
+              [1, 0, 1, 3]
+            ]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+            expect(getSelectedRangeLast()?.from?.row).toBe(1);
+            expect(getSelectedRangeLast()?.from?.col).toBe(0);
+            expect(getSelectedRangeLast()?.to?.row).toBe(1);
+            expect(getSelectedRangeLast()?.to?.col).toBe(3);
+            expect(`
+            |   |
+            |   |
+            | * |
+            |   |
+            |   |
+            |   |
+            `).toBeMatchToSelectionPattern();
+          });
+        });
+
+        describe('below the selected row', () => {
+          it('the first column is hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0],
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(1)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row below
+
+            expect(getSelected()).toEqual([
+              [0, 0, 0, 3]
+            ]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+            expect(getSelectedRangeLast()?.from?.row).toBe(0);
+            expect(getSelectedRangeLast()?.from?.col).toBe(0);
+            expect(getSelectedRangeLast()?.to?.row).toBe(0);
+            expect(getSelectedRangeLast()?.to?.col).toBe(3);
+            expect(`
+            |   ║ - : - : - |
+            |===:===:===:===|
+            | * ║ A : 0 : 0 |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            |   ║   :   :   |
+            `).toBeMatchToSelectionPattern();
+          });
+
+          it('when all columns are hidden', () => {
+            handsontable({
+              data: createSpreadsheetData(4, 4),
+              contextMenu: true,
+              rowHeaders: true,
+              colHeaders: true,
+              hiddenColumns: {
+                columns: [0, 1, 2, 3],
+              },
+            });
+
+            const header = $('.ht_clone_left .htCore')
+              .find('tbody')
+              .find('th')
+              .eq(0);
+            simulateClick(header, 'RMB');
+            contextMenu(header);
+
+            $('.htContextMenu .ht_master .htCore')
+              .find('tbody td')
+              .not('.htSeparator')
+              .eq(1)
+              .simulate('mousedown')
+              .simulate('mouseup'); // Insert row below
+
+            expect(getSelected()).toEqual([
+              [0, 0, 0, 3]
+            ]);
+            expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+            expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+            expect(getSelectedRangeLast()?.from?.row).toBe(0);
+            expect(getSelectedRangeLast()?.from?.col).toBe(0);
+            expect(getSelectedRangeLast()?.to?.row).toBe(0);
+            expect(getSelectedRangeLast()?.to?.col).toBe(3);
+            expect(`
+            |   |
+            | * |
+            |   |
+            |   |
+            |   |
+            |   |
+            `).toBeMatchToSelectionPattern();
+          });
         });
       });
     });
@@ -740,8 +922,13 @@ describe('HiddenColumns', () => {
 
       simulateClick(header, 'LMB');
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -767,8 +954,13 @@ describe('HiddenColumns', () => {
 
       simulateClick(header, 'LMB');
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -794,8 +986,13 @@ describe('HiddenColumns', () => {
 
       simulateClick(header, 'LMB');
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ - : - |
       |===:===:===|
@@ -804,6 +1001,39 @@ describe('HiddenColumns', () => {
       |   ║   :   |
       |   ║   :   |
       |   ║   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select entire row by header if all columns are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2, 3, 4],
+        },
+      });
+
+      const header = $('.ht_clone_left .htCore')
+        .find('tbody')
+        .find('th')
+        .eq(0);
+      simulateClick(header, 'LMB');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
+      expect(`
+      |   |
+      | * |
+      |   |
+      |   |
+      |   |
+      |   |
       `).toBeMatchToSelectionPattern();
     });
 
@@ -824,8 +1054,13 @@ describe('HiddenColumns', () => {
       mouseOver(endCell);
       mouseUp(endCell);
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ - : - |
       |===:===:===|
@@ -864,7 +1099,12 @@ describe('HiddenColumns', () => {
         [0, 4, 4, 4],
         [0, 6, 4, 6],
       ]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(6);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(6);
       expect(`
       |   ║   :   : * :   : * :   |
       |===:===:===:===:===:===:===|
@@ -892,7 +1132,12 @@ describe('HiddenColumns', () => {
       $(getCell(4, 6)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 3, 4, 6]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+      expect(getSelectedRangeLast()?.from?.row).toBe(1);
+      expect(getSelectedRangeLast()?.from?.col).toBe(3);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(6);
       expect(`
       |   ║   : - : - : - : - :   :   :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|
@@ -913,7 +1158,12 @@ describe('HiddenColumns', () => {
       $(getCell(5, 8)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(5);
+      expect(getSelectedRangeLast()?.from?.row).toBe(3);
+      expect(getSelectedRangeLast()?.from?.col).toBe(5);
+      expect(getSelectedRangeLast()?.to?.row).toBe(5);
+      expect(getSelectedRangeLast()?.to?.col).toBe(8);
       expect(`
       |   ║   : - : - : - : - : - : - :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|
@@ -926,6 +1176,63 @@ describe('HiddenColumns', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
+    });
+
+    describe('should select entire table after the corner was clicked and', () => {
+      it('just some columns were hidden', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2],
+          },
+        });
+
+        const corner = $('.ht_clone_top_left_corner .htCore')
+          .find('thead')
+          .find('th')
+          .eq(0);
+        simulateClick(corner, 'LMB');
+
+        expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+        expect(`
+        |   ║ * : * |
+        |===:===:===|
+        | * ║ A : 0 |
+        | * ║ 0 : 0 |
+        | * ║ 0 : 0 |
+        | * ║ 0 : 0 |
+        | * ║ 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('all columns were hidden', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2, 3, 4],
+          },
+        });
+
+        const corner = $('.ht_clone_top_left_corner .htCore')
+          .find('thead')
+          .find('th')
+          .eq(0);
+        simulateClick(corner, 'LMB');
+
+        expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+        expect(`
+        |   |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
+        `).toBeMatchToSelectionPattern();
+      });
     });
   });
 
@@ -964,8 +1271,13 @@ describe('HiddenColumns', () => {
 
       selectAll();
 
-      expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ * : * : * |
       |===:===:===:===|
@@ -989,7 +1301,13 @@ describe('HiddenColumns', () => {
 
       selectAll();
 
-      expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0); // a fallback to 0
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   |
       | * |
@@ -1012,8 +1330,13 @@ describe('HiddenColumns', () => {
 
       selectRows(0);
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -1037,8 +1360,13 @@ describe('HiddenColumns', () => {
 
       selectRows(0);
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ - : - : - : - |
       |===:===:===:===:===|
@@ -1062,8 +1390,13 @@ describe('HiddenColumns', () => {
 
       selectRows(0);
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 4]);
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ - : - |
       |===:===:===|
@@ -1087,7 +1420,13 @@ describe('HiddenColumns', () => {
 
       selectColumns(1);
 
-      expect(getSelectedLast()).toEqual([0, 1, 4, 1]);
+      expect(getSelected()).toEqual([[0, 1, 4, 1]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1); // a fallback to 1
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(1);
       expect(`
       |   ║   :   :   :   |
       |===:===:===:===:===|
@@ -1111,8 +1450,13 @@ describe('HiddenColumns', () => {
 
       selectColumns(1, 4);
 
-      expect(getSelectedLast()).toEqual([0, 1, 4, 4]);
+      expect(getSelected()).toEqual([[0, 1, 4, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║   : * |
       |===:===:===|
@@ -1136,8 +1480,13 @@ describe('HiddenColumns', () => {
 
       selectColumns(2, 4);
 
-      expect(getSelectedLast()).toEqual([0, 2, 4, 4]);
+      expect(getSelected()).toEqual([[0, 2, 4, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(2);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║   : * |
       |===:===:===|
@@ -1161,8 +1510,13 @@ describe('HiddenColumns', () => {
 
       selectColumns(0, 2);
 
-      expect(getSelectedLast()).toEqual([0, 0, 4, 2]);
+      expect(getSelected()).toEqual([[0, 0, 4, 2]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(2);
       expect(`
       |   ║ * :   |
       |===:===:===|
@@ -1186,8 +1540,13 @@ describe('HiddenColumns', () => {
 
       selectColumns(0, 3);
 
-      expect(getSelectedLast()).toEqual([0, 0, 4, 3]);
+      expect(getSelected()).toEqual([[0, 0, 4, 3]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(3);
       expect(`
       |   ║ * :   |
       |===:===:===|
@@ -1211,8 +1570,13 @@ describe('HiddenColumns', () => {
 
       selectColumns(0, 4);
 
-      expect(getSelectedLast()).toEqual([0, 0, 4, 4]);
+      expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
       expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
       expect(`
       |   ║ * : * |
       |===:===:===|
@@ -1221,6 +1585,814 @@ describe('HiddenColumns', () => {
       | - ║ 0 : 0 |
       | - ║ 0 : 0 |
       | - ║ 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should select columns after call selectColumns if range is partially hidden at the start and at the end of the range', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+
+      selectColumns(1, 3);
+
+      expect(getSelected()).toEqual([[0, 1, 4, 3]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(3);
+      expect(`
+      |   ║   : * :   |
+      |===:===:===:===|
+      | - ║   : A :   |
+      | - ║   : 0 :   |
+      | - ║   : 0 :   |
+      | - ║   : 0 :   |
+      | - ║   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+  });
+
+  describe('redrawing rendered selection when the selected range has been changed', () => {
+    describe('by showing columns placed before the current selection', () => {
+      it('single cell was selected', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          hiddenColumns: {
+            columns: [0, 1, 2],
+          },
+        });
+
+        selectCell(3, 3);
+
+        getPlugin('hiddenColumns').showColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(3);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(3);
+        expect(`
+        |   ║   : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║   : # :   |
+        |   ║   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(3);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(3);
+        expect(`
+        |   ║   :   :   : - :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   :   : # :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      describe('entire row was selected and', () => {
+        it('columns at the start had been hidden and were showed', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            colHeaders: true,
+            hiddenColumns: {
+              columns: [0, 1],
+            },
+          });
+
+          selectRows(0);
+
+          getPlugin('hiddenColumns').showColumns([1]);
+          render();
+
+          expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+          expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+          expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+          expect(getSelectedRangeLast()?.from?.row).toBe(0);
+          expect(getSelectedRangeLast()?.from?.col).toBe(0);
+          expect(getSelectedRangeLast()?.to?.row).toBe(0);
+          expect(getSelectedRangeLast()?.to?.col).toBe(4);
+          expect(`
+          |   ║ - : - : - : - |
+          |===:===:===:===:===|
+          | * ║ A : 0 : 0 : 0 |
+          |   ║   :   :   :   |
+          |   ║   :   :   :   |
+          |   ║   :   :   :   |
+          |   ║   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+
+          getPlugin('hiddenColumns').showColumns([0]);
+          render();
+
+          expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+          expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+          expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+          expect(getSelectedRangeLast()?.from?.row).toBe(0);
+          expect(getSelectedRangeLast()?.from?.col).toBe(0);
+          expect(getSelectedRangeLast()?.to?.row).toBe(0);
+          expect(getSelectedRangeLast()?.to?.col).toBe(4);
+          expect(`
+          |   ║ - : - : - : - : - |
+          |===:===:===:===:===:===|
+          | * ║ A : 0 : 0 : 0 : 0 |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          |   ║   :   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+        });
+      });
+
+      it('non-contiguous selection', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 8,
+          startCols: 12,
+          hiddenColumns: {
+            columns: [0, 1, 2],
+          },
+        });
+
+        $(getCell(1, 3)).simulate('mousedown');
+        $(getCell(4, 6)).simulate('mouseover');
+        $(getCell(4, 6)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 5)).simulate('mousedown');
+        $(getCell(5, 8)).simulate('mouseover');
+        $(getCell(5, 8)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 6)).simulate('mousedown');
+        $(getCell(6, 9)).simulate('mouseover');
+        $(getCell(6, 9)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(6);
+        expect(getSelectedRangeLast()?.to?.row).toBe(6);
+        expect(getSelectedRangeLast()?.to?.col).toBe(9);
+        expect(`
+        |   ║ - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║ 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(6);
+        expect(getSelectedRangeLast()?.to?.row).toBe(6);
+        expect(getSelectedRangeLast()?.to?.col).toBe(9);
+        expect(`
+        |   ║   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(6);
+        expect(getSelectedRangeLast()?.to?.row).toBe(6);
+        expect(getSelectedRangeLast()?.to?.col).toBe(9);
+        expect(`
+        |   ║   :   :   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    describe('by hiding columns placed before the current selection', () => {
+      it('single cell was selected', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          hiddenColumns: true,
+        });
+
+        selectCell(3, 3);
+
+        getPlugin('hiddenColumns').hideColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(3);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(3);
+        expect(`
+        |   ║   : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║   : # :   |
+        |   ║   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(3);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(3);
+        expect(`
+        |   ║ - :   |
+        |===:===:===|
+        |   ║   :   |
+        |   ║   :   |
+        |   ║   :   |
+        | - ║ # :   |
+        |   ║   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('non-contiguous selection', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 8,
+          startCols: 12,
+          hiddenColumns: true,
+        });
+
+        $(getCell(1, 3)).simulate('mousedown');
+        $(getCell(4, 6)).simulate('mouseover');
+        $(getCell(4, 6)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 5)).simulate('mousedown');
+        $(getCell(5, 8)).simulate('mouseover');
+        $(getCell(5, 8)).simulate('mouseup');
+
+        keyDown('ctrl');
+
+        $(getCell(3, 6)).simulate('mousedown');
+        $(getCell(6, 9)).simulate('mouseover');
+        $(getCell(6, 9)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(6);
+        expect(getSelectedRangeLast()?.to?.row).toBe(6);
+        expect(getSelectedRangeLast()?.to?.col).toBe(9);
+        expect(`
+        |   ║   :   :   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([1, 2]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(6);
+        expect(getSelectedRangeLast()?.to?.row).toBe(6);
+        expect(getSelectedRangeLast()?.to?.col).toBe(9);
+        expect(`
+        |   ║   : - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║   : 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║   : 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([0]);
+        render();
+
+        expect(getSelected()).toEqual([[1, 3, 4, 6], [3, 5, 5, 8], [3, 6, 6, 9]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(6);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(6);
+        expect(getSelectedRangeLast()?.to?.row).toBe(6);
+        expect(getSelectedRangeLast()?.to?.col).toBe(9);
+        expect(`
+        |   ║ - : - : - : - : - : - : - :   :   |
+        |===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 0 :   :   :   :   :   |
+        | - ║ 0 : 0 : 1 : C : 1 : 1 : 0 :   :   |
+        | - ║ 0 : 0 : 1 : 2 : 1 : 1 : 0 :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   |
+        | - ║   :   :   : 0 : 0 : 0 : 0 :   :   |
+        |   ║   :   :   :   :   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    describe('by showing hidden, ', () => {
+      it('selected columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1, 2],
+          },
+        });
+
+        selectColumns(1, 2);
+
+        getPlugin('hiddenColumns').showColumns([2]);
+        render();
+
+        expect(getSelected()).toEqual([[0, 1, 4, 2]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(2);
+        expect(`
+        |   ║   : * :   :   |
+        |===:===:===:===:===|
+        | - ║   : A :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').showColumns([1]);
+        render();
+
+        expect(getSelected()).toEqual([[0, 1, 4, 2]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(2);
+        expect(`
+        |   ║   : * : * :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : A : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cell', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1],
+          },
+        });
+
+        selectCell(3, 1);
+
+        getPlugin('hiddenColumns').showColumns([1]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 1, 3, 1]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(1);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cells (just a few)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1],
+          },
+        });
+
+        selectCells([[3, 1], [0, 1], [0, 1]]);
+
+        getPlugin('hiddenColumns').showColumns([1]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 1, 3, 1], [0, 1, 0, 1], [0, 1, 0, 1]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(1);
+        expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : B :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cells (all of them)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2, 3, 4],
+          },
+        });
+
+        selectAll();
+
+        getPlugin('hiddenColumns').showColumns([0, 1, 2, 3, 4]);
+        render();
+
+        expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+        expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    it('by showing columns from a selection containing hidden columns at the start and at the end of the range', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 3],
+        },
+      });
+
+      selectColumns(1, 3);
+
+      getPlugin('hiddenColumns').showColumns([3]);
+      render();
+
+      expect(getSelected()).toEqual([[0, 1, 4, 3]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(3);
+      expect(`
+      |   ║   : * : * :   |
+      |===:===:===:===:===|
+      | - ║   : A : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+
+      getPlugin('hiddenColumns').showColumns([1]);
+      render();
+
+      expect(getSelected()).toEqual([[0, 1, 4, 3]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(3);
+      expect(`
+      |   ║   : * : * : * :   |
+      |===:===:===:===:===:===|
+      | - ║   : A : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    describe('by hiding ', () => {
+      it('selected columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectColumns(1, 2);
+
+        getPlugin('hiddenColumns').hideColumns([1]);
+        render();
+
+        expect(getSelected()).toEqual([[0, 1, 4, 2]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(2);
+        expect(`
+        |   ║   : * :   :   |
+        |===:===:===:===:===|
+        | - ║   : A :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        getPlugin('hiddenColumns').hideColumns([2]);
+        render();
+
+        expect(getSelected()).toEqual([[0, 1, 4, 2]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(2);
+        expect(`
+        |   ║   :   :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cell', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectCell(3, 1);
+
+        getPlugin('hiddenColumns').hideColumns([1]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 1, 3, 1]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('selected cells', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectCells([[3, 1], [0, 1], [0, 1]]);
+
+        getPlugin('hiddenColumns').hideColumns([1]);
+        render();
+
+        expect(getSelected()).toEqual([[3, 1, 3, 1], [0, 1, 0, 1], [0, 1, 0, 1]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(1);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('all selected cells', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: true,
+        });
+
+        selectAll();
+
+        getPlugin('hiddenColumns').hideColumns([0, 1, 2, 3, 4]);
+        render();
+
+        expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+        expect(`
+        |   |
+        | * |
+        | * |
+        | * |
+        | * |
+        | * |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+
+    it('showed columns on a table with all columns hidden and with selected entire row', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2, 3, 4],
+        },
+      });
+
+      selectRows(0);
+
+      getPlugin('hiddenColumns').showColumns([4]);
+      render();
+
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
+      expect(`
+      |   ║ - |
+      |===:===|
+      | * ║ A |
+      |   ║   |
+      |   ║   |
+      |   ║   |
+      |   ║   |
+      `).toBeMatchToSelectionPattern();
+
+      getPlugin('hiddenColumns').showColumns([1, 2, 3]);
+      render();
+
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
+      expect(`
+      |   ║ - : - : - : - |
+      |===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+      getPlugin('hiddenColumns').showColumns([0]);
+      render();
+
+      expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
+      expect(`
+      |   ║ - : - : - : - : - |
+      |===:===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
   });
@@ -1248,14 +2420,30 @@ describe('HiddenColumns', () => {
       return event;
     }
 
+    it('should allow to copy hidden cell', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [2, 4]
+        }
+      });
+
+      const copyEvent = getClipboardEventMock('copy');
+      const plugin = hot.getPlugin('CopyPaste');
+
+      selectCell(0, 4);
+
+      plugin.setCopyableText();
+      plugin.onCopy(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('E1');
+    });
+
     it('should allow to copy hidden columns, when "copyPasteEnabled" property is not set', () => {
       const hot = handsontable({
         data: getMultilineData(5, 10),
         hiddenColumns: {
-          columns: [
-            2,
-            4
-          ]
+          columns: [2, 4]
         },
         width: 500,
         height: 300,
@@ -1377,8 +2565,17 @@ describe('HiddenColumns', () => {
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-      expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
       expect(getCell(0, 4)).toHaveClass('current');
+      expect(`
+      |   : # |
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
     });
 
     it('should go to the closest not hidden cell on the left side while navigating by left arrow', () => {
@@ -1393,8 +2590,21 @@ describe('HiddenColumns', () => {
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
-      expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
       expect(getCell(0, 0)).toHaveClass('current');
+      expect(`
+      | # :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(0);
     });
 
     it('should go to the first visible cell in the next row while navigating by right arrow if all column on the right side are hidden', () => {
@@ -1409,8 +2619,21 @@ describe('HiddenColumns', () => {
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-      expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
       expect(getCell(1, 0)).toHaveClass('current');
+      expect(`
+      |   :   :   |
+      | # :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(1);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(1);
+      expect(getSelectedRangeLast()?.to?.col).toBe(0);
     });
 
     it('should go to the last visible cell in the previous row while navigating by left arrow if all column on the left side are hidden', () => {
@@ -1425,7 +2648,21 @@ describe('HiddenColumns', () => {
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
-      expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+      expect(getCell(0, 4)).toHaveClass('current');
+      expect(`
+      |   :   : # |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      |   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(4);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
     });
 
     it('should go to the first cell in the next visible column while navigating by down arrow if column on the right side is hidden', () => {
@@ -1440,7 +2677,21 @@ describe('HiddenColumns', () => {
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
-      expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+      expect(getCell(0, 4)).toHaveClass('current');
+      expect(`
+      |   : # |
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(4);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
     });
 
     it('should go to the last cell in the previous visible column while navigating by up arrow if column on the left side is hidden', () => {
@@ -1455,7 +2706,459 @@ describe('HiddenColumns', () => {
 
       keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
 
-      expect(getSelectedLast()).toEqual([4, 0, 4, 0]);
+      expect(getCell(4, 0)).toHaveClass('current');
+      expect(`
+      |   :   |
+      |   :   |
+      |   :   |
+      |   :   |
+      | # :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+      expect(getSelectedRangeLast()?.from?.row).toBe(4);
+      expect(getSelectedRangeLast()?.from?.col).toBe(0);
+      expect(getSelectedRangeLast()?.to?.row).toBe(4);
+      expect(getSelectedRangeLast()?.to?.col).toBe(0);
+    });
+
+    describe('should go to the proper cell while navigating if row header is selected and', () => {
+      it('first columns are hidden', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1],
+          },
+        });
+
+        const header = getCell(0, -1);
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(`
+        |   ║   : - :   |
+        |===:===:===:===|
+        | - ║   : # :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 3, 0, 3]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(3);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(3);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(3);
+      });
+
+      it('last columns are hidden', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [3, 4],
+          },
+        });
+
+        const header = getCell(0, -1);
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(`
+        |   ║   :   : - |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║   :   : # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 2, 4, 2]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(2);
+        expect(getSelectedRangeLast()?.from?.row).toBe(4);
+        expect(getSelectedRangeLast()?.from?.col).toBe(2);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(2);
+      });
+
+      it('just one column is visible (column at the start is not hidden)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1, 2, 3, 4],
+          },
+        });
+
+        let header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(4);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(0);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(1);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(1);
+        expect(getSelectedRangeLast()?.to?.col).toBe(0);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(4);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(0);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(1);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(1);
+        expect(getSelectedRangeLast()?.to?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(getSelected()).toEqual([[3, 0, 3, 0]]);
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[3, 0, 3, 0]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(0);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(0);
+      });
+
+      it('just one column is visible (column at the end is not hidden)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [0, 1, 2, 3],
+          },
+        });
+
+        let header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 4, 4, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(4);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[1, 4, 1, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(1);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(1);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 4, 4, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(4);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(4);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(4);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+        header = getCell(0, -1); // first visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[1, 4, 1, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(1);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(1);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[3, 4, 3, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        | - ║ # |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[3, 4, 3, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(3);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(3);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(3);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+        header = getCell(4, -1); // last visible cell
+
+        simulateClick(header, 'LMB');
+        keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
+
+        expect(`
+        |   ║ - |
+        |===:===|
+        | - ║ # |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        |   ║   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+        expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+        expect(getSelectedRangeLast()?.highlight?.col).toBe(4);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(4);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(4);
+      });
     });
 
     describe('should not change position and call hook when single hidden cell was selected and navigating by any arrow key', () => {
@@ -1478,7 +3181,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1488,7 +3191,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1498,7 +3201,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1508,7 +3211,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1535,7 +3238,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1545,7 +3248,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1555,7 +3258,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1565,7 +3268,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1592,7 +3295,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_UP);
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1602,7 +3305,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN);
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1612,7 +3315,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_LEFT);
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1622,7 +3325,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT);
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1651,7 +3354,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_up');
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1661,7 +3364,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_down');
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1671,7 +3374,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_left');
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1681,7 +3384,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_right');
 
-          expect(getSelectedLast()).toEqual([1, 0, 1, 0]);
+          expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1708,7 +3411,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_up');
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
@@ -1718,7 +3421,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_down');
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1728,7 +3431,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_left');
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1738,7 +3441,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_right');
 
-          expect(getSelectedLast()).toEqual([1, 2, 1, 2]);
+          expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1765,8 +3468,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_up');
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
-
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(-1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1776,7 +3478,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_down');
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(1);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1786,7 +3488,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_left');
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(-1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -1796,7 +3498,7 @@ describe('HiddenColumns', () => {
 
           keyDownUp('shift+arrow_right');
 
-          expect(getSelectedLast()).toEqual([1, 4, 1, 4]);
+          expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0]?.row).toEqual(0);
           expect(hookSpy1.calls.mostRecent().args[0]?.col).toEqual(1);
           expect(hookSpy2.calls.mostRecent().args[0]?.row).toEqual(1);
@@ -2208,6 +3910,157 @@ describe('HiddenColumns', () => {
         expect(plugin.isHidden(0)).toBeTruthy();
         expect(plugin.isHidden(5)).toBeTruthy();
       });
+    });
+  });
+
+  describe('cooperation with the AutoColumnSize', () => {
+    it('should display proper column width (when indicator is enabled) #1', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        autoColumnSize: true,
+        hiddenColumns: {
+          columns: [0, 1],
+          indicators: true,
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is set).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
+    });
+
+    it('should display proper column width (when indicator is enabled) #2', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        autoColumnSize: true,
+        hiddenColumns: {
+          columns: [0, 2],
+          indicators: true,
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is set).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
+    });
+
+    it('should display proper column width (when indicator is enabled) #3', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        autoColumnSize: true,
+        hiddenColumns: {
+          columns: [1, 2],
+          indicators: true,
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is set).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
+    });
+
+    it('should display proper column width (when indicator is disabled)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        autoColumnSize: true,
+        hiddenColumns: {
+          columns: [0, 1]
+        }
+      });
+
+      // Default column width + 15 px from the plugin (when `indicators` option is unset).
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(50, 3);
+    });
+
+    it('should return proper values from the `getColWidth` function (when indicator is enabled)', () => {
+      const hot = handsontable({
+        data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+          indicators: true,
+        },
+        columns: [
+          { data: 'id', title: 'Identifier' },
+          { data: 'name', title: 'Name' },
+          { data: 'lastName', title: 'Last Name' },
+        ],
+        autoColumnSize: true,
+      });
+
+      expect(hot.getColWidth(0)).toBe(0);
+      expect(hot.getColWidth(1)).toBe(0);
+      expect([216 + 15, 229 + 15, 247 + 15, 260 + 15, 261 + 15]).toEqual(jasmine.arrayContaining([hot.getColWidth(2)]));
+    });
+
+    it('should return proper values from the `getColWidth` function (when indicator is disabled)', () => {
+      const hot = handsontable({
+        data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+        columns: [
+          { data: 'id', title: 'Identifier' },
+          { data: 'name', title: 'Name' },
+          { data: 'lastName', title: 'Last Name' },
+        ],
+        autoColumnSize: true,
+      });
+
+      expect(hot.getColWidth(0)).toBe(0);
+      expect(hot.getColWidth(1)).toBe(0);
+      expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([hot.getColWidth(2)]));
+    });
+
+    it('should return proper values from the `getColHeader` function', () => {
+      const hot = handsontable({
+        data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+        columns: [
+          { data: 'id', title: 'Identifier' },
+          { data: 'name', title: 'Name' },
+          { data: 'lastName', title: 'Last Name' },
+        ],
+        autoColumnSize: true,
+      });
+
+      expect(hot.getColHeader(0)).toBe('Identifier');
+      expect(hot.getColHeader(1)).toBe('Name');
+      expect(hot.getColHeader(2)).toBe('Last Name');
+    });
+  });
+
+  describe('cooperation with the `stretchH` option', () => {
+    it('should stretch all rows to a window size', () => {
+      const stretchedColumns = new Set();
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2],
+        },
+        stretchH: 'all',
+        beforeStretchingColumnWidth(width, column) {
+          stretchedColumns.add(column);
+        }
+      });
+
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBeAroundValue(document.documentElement.clientWidth / 3, 2);
+      expect($(getHtCore()).find('td')[1].offsetWidth).toBeAroundValue(document.documentElement.clientWidth / 3, 2);
+      expect($(getHtCore()).find('td')[2].offsetWidth).toBeAroundValue(document.documentElement.clientWidth / 3, 2);
+      expect(stretchedColumns.values()).toEqual([1, 3, 4]);
     });
   });
 });

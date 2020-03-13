@@ -379,7 +379,12 @@ class AutoColumnSize extends BasePlugin {
       return wot.wtTable.getFirstVisibleColumn();
     }
     if (wot.wtViewport.columnsRenderCalculator) {
-      return wot.wtTable.getFirstRenderedColumn();
+      const firstRenderedColumn = wot.wtTable.getFirstRenderedColumn();
+
+      // There are no rendered columns.
+      if (firstRenderedColumn !== -1) {
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstRenderedColumn);
+      }
     }
 
     return -1;
@@ -397,7 +402,12 @@ class AutoColumnSize extends BasePlugin {
       return wot.wtTable.getLastVisibleColumn();
     }
     if (wot.wtViewport.columnsRenderCalculator) {
-      return wot.wtTable.getLastRenderedColumn();
+      const lastRenderedColumn = wot.wtTable.getLastRenderedColumn();
+
+      // There are no rendered columns.
+      if (lastRenderedColumn !== -1) {
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastRenderedColumn);
+      }
     }
 
     return -1;

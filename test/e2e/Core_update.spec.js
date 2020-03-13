@@ -654,4 +654,38 @@ describe('Core_updateSettings', () => {
 
     expect(Object.keys(updatedSetting)).toEqual(Object.keys(newSettings));
   });
+
+  it('should not update cache of index mappers when updating random key', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      columns: [{}, {}, {}]
+    });
+    const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+    const columnCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
+    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
+
+    updateSettings({ a: 'b' });
+
+    expect(rowCacheUpdatedCallback).not.toHaveBeenCalled();
+    expect(columnCacheUpdatedCallback).not.toHaveBeenCalled();
+  });
+
+  it('should update cache of index mappers only once when updating `data` and `column` properties', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      columns: [{}, {}, {}]
+    });
+    const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+    const columnCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
+
+    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
+    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
+
+    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(5, 5), columns: [{}] });
+
+    expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
+    expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
+  });
 });

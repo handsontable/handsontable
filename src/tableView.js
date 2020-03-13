@@ -411,7 +411,13 @@ class TableView {
 
         return headerRenderers;
       },
-      columnWidth: this.instance.getColWidth,
+      columnWidth: (renderedColumnIndex) => {
+        const visualIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+
+        // The function is called also for not displayed indexes, i.e. when `fixedColumnsLeft` > `startCols` or scrolling
+        // and dataset is empty.
+        return this.instance.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
+      },
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, renderedColumnIndex, TD) => {
         const visualColumnIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
@@ -556,7 +562,10 @@ class TableView {
       onBeforeDrawBorders: (corners, borderClassName) => this.instance.runHooks('beforeDrawBorders', corners, borderClassName),
       onBeforeTouchScroll: () => this.instance.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.instance.runHooks('afterMomentumScroll'),
-      onBeforeStretchingColumnWidth: (stretchedWidth, column) => this.instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, column),
+      onBeforeStretchingColumnWidth: (stretchedWidth, renderedColumnIndex) => {
+        return this.instance.runHooks('beforeStretchingColumnWidth',
+          stretchedWidth, this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex));
+      },
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (row, column, topmost) => this.instance.runHooks('modifyGetCellCoords', row, column, topmost),
       viewportRowCalculatorOverride: (calc) => {

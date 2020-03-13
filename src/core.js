@@ -8,7 +8,6 @@ import EventManager from './eventManager';
 import {
   deepClone,
   duckSchema,
-  isObject,
   isObjectEqual,
   deepObjectSize,
   hasOwnProperty,
@@ -179,6 +178,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   this.selection = selection;
+
+  instance.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
+    if (hiddenIndexesChanged) {
+      selection.rewrite();
+    }
+  });
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
     this.runHooks('beforeSetRangeStart', cellCoords);
@@ -379,9 +384,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           if (delta) {
             metaManager.createRow(instance.toPhysicalRow(index), amount);
 
-            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
-              selection.selectedRange.current().from.row += delta;
-              selection.transformEnd(delta, 0); // will call render() internally
+            const currentSelectedRange = selection?.selectedRange?.current();
+            const currentFromRange = currentSelectedRange?.from;
+            const currentFromRow = currentFromRange?.row;
+
+            // Moving down the selection (when it exist). It should be present on the "old" row.
+            if (isDefined(currentFromRow) && currentFromRow >= index) {
+              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
+              let currentFromColumn = currentFromRange.col;
+
+              // Workaround: headers are not stored inside selection.
+              if (selection.isSelectedByRowHeader()) {
+                currentFromColumn = -1;
+              }
+
+              // I can't use transforms as they don't work in negative indexes.
+              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn));
+              selection.setRangeEnd(new CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -1297,23 +1316,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function listen
-   * @param {boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
-   *                                             to the document.body). Otherwise the active element does not lose its focus.
    * @fires Hooks#afterListen
    */
-  this.listen = function(modifyDocumentFocus = true) {
-    const { rootDocument } = instance;
-    if (modifyDocumentFocus) {
-      const invalidActiveElement = !rootDocument.activeElement || (rootDocument.activeElement && rootDocument.activeElement.nodeName === void 0);
-
-      if (rootDocument.activeElement && rootDocument.activeElement !== rootDocument.body && !invalidActiveElement) {
-        rootDocument.activeElement.blur();
-
-      } else if (invalidActiveElement) { // IE
-        rootDocument.body.focus();
-      }
-    }
-
+  this.listen = function() {
     if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
@@ -1644,25 +1649,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.dataType = instance.dataType;
     dataSource.colToProp = datamap.colToProp.bind(datamap);
     dataSource.propToCol = datamap.propToCol.bind(datamap);
+    dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
 
     metaManager.clearCellsCache();
-
-    const columnsSettings = tableMeta.columns;
-    let nrOfColumnsFromSettings = 0;
-
-    // We will check number of columns only when the `columns` property was defined as an array.
-    if (Array.isArray(columnsSettings)) {
-      nrOfColumnsFromSettings = columnsSettings.length;
-    }
-
-    /**
-     * We need to use `Math.max`, because:
-     * - we need information about `columns` as `data` may contains functions, less columns than defined by the property or even be empty.
-     * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
-     * (ie. `data` may be empty, `columns` may be a function).
-     */
-    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
-    this.rowIndexMapper.initToLength(this.countSourceRows());
+    this.initIndexMappers();
 
     grid.adjustRowsAndCols();
 
@@ -1674,6 +1664,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.runHooks('afterChange', null, 'loadData');
       instance.render();
     }
+  };
+
+  /**
+   * Init index mapper which manage indexes assigned to the data.
+   */
+  this.initIndexMappers = function() {
+    const columnsSettings = tableMeta.columns;
+    let finalNrOfColumns;
+
+    // We will check number of columns only when the `columns` property was defined as an array. Columns option may
+    // narrow down or expand displayed dataset in that case.
+    if (Array.isArray(columnsSettings)) {
+      finalNrOfColumns = columnsSettings.length;
+
+      // In some cases we need to check columns length from the schema, i.e. `data` may be empty, `columns` may be a function.
+    } else if (isDefined(tableMeta.dataSchema)) {
+      const schema = datamap.getSchema();
+
+      // Schema may be defined as an array of objects. Each object will define column.
+      finalNrOfColumns = Array.isArray(schema) ? schema.length : deepObjectSize(schema);
+
+    } else {
+      // We init index mappers by length of source data to provide indexes also for skipped indexes.
+      finalNrOfColumns = this.countSourceCols();
+    }
+
+    this.columnIndexMapper.initToLength(finalNrOfColumns);
+    this.rowIndexMapper.initToLength(this.countSourceRows());
   };
 
   /**
@@ -1775,7 +1793,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let columnsAsFunc = false;
     let i;
     let j;
-    let clen;
 
     if (isDefined(settings.rows)) {
       throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
@@ -1818,13 +1835,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.createMap();
     }
 
-    clen = instance.countCols();
+    // The `column` property has changed - dataset may be expanded or narrowed down.
+    if (settings.data === void 0 && settings.columns !== void 0) {
+      this.initIndexMappers();
+    }
 
+    const clen = instance.countCols();
     const columnSetting = tableMeta.columns;
 
     // Init columns constructors configuration
     if (columnSetting && isFunction(columnSetting)) {
-      clen = instance.countSourceCols();
       columnsAsFunc = true;
     }
 
@@ -2201,7 +2221,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns the source data object (the same that was passed by `data` configuration option or `loadData` method).
+   * Returns a clone of the source data object.
    * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
    * fragment of the table data.
    *
@@ -2267,6 +2287,36 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column) {
     return dataSource.getAtColumn(column);
+  };
+
+  /**
+   * Set the provided value in the source data set at the provided coordinates.
+   *
+   * @memberof Core#
+   * @function getSourceDataAtCol
+   * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
+   * @param {number|string} column Physical column index / prop name.
+   * @param {*} value The value to be set at the provided coordinates.
+   * @param {string} [source] Source of the change as a string.
+   */
+  this.setSourceDataAtCell = function(row, column, value, source) {
+    const input = setDataInputToArray(row, column, value);
+    const changes = [];
+
+    input.forEach((change, i) => {
+      const [changeRow, changeProp, changeValue] = change;
+      changes.push([
+        input[i][0],
+        input[i][1],
+        dataSource.getAtCell(input[i][0], input[i][1]),
+        input[i][2],
+      ]);
+
+      dataSource.setAtCell(changeRow, changeProp, changeValue);
+    });
+
+    this.runHooks('afterSetSourceDataAtCell', changes, source);
+    this.render();
   };
 
   /**
@@ -2831,13 +2881,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|string|number} The column header(s).
    */
   this.getColHeader = function(column) {
-    const columnsAsFunc = tableMeta.columns && isFunction(tableMeta.columns);
     const columnIndex = instance.runHooks('modifyColHeader', column);
     let result = tableMeta.colHeaders;
 
     if (columnIndex === void 0) {
       const out = [];
-      const ilen = columnsAsFunc ? instance.countSourceCols() : instance.countCols();
+      const ilen = instance.countCols();
 
       for (let i = 0; i < ilen; i++) {
         out.push(instance.getColHeader(i));
@@ -2848,7 +2897,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     } else {
       const translateVisualIndexToColumns = function(visualColumnIndex) {
         const arr = [];
-        const columnsLen = instance.countSourceCols();
+        const columnsLen = instance.countCols();
         let index = 0;
 
         for (; index < columnsLen; index++) {
@@ -3013,8 +3062,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Total number of rows.
    */
   this.countSourceRows = function() {
-    const sourceLength = instance.runHooks('modifySourceLength');
-    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
+    return dataSource.countRows();
   };
 
   /**
@@ -3025,17 +3073,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number} Total number of columns.
    */
   this.countSourceCols = function() {
-    let len = 0;
-    const obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
-
-    if (isObject(obj)) {
-      len = deepObjectSize(obj);
-
-    } else {
-      len = obj.length || 0;
-    }
-
-    return len;
+    return dataSource.countFirstRowKeys();
   };
 
   /**

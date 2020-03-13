@@ -22,4 +22,22 @@ describe('Core.countSourceCols', () => {
 
     expect(hot.countSourceCols()).toBe(15);
   });
+
+  it('should return the number of columns in the provided dataset, regardless of the `columns` settings (when the dataset is an array of arrays).', () => {
+    const hot = handsontable({
+      data: [['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']],
+      columns: [{}]
+    });
+
+    expect(hot.countSourceCols()).toBe(15);
+  });
+
+  it('should return the number of columns in the provided dataset, regardless of the `columns` settings (when the dataset is an array of objects).', () => {
+    const hot = handsontable({
+      data: [{ a: 0, b: 1, c: 2 }],
+      columns: [{ data: 'a' }]
+    });
+
+    expect(hot.countSourceCols()).toBe(3);
+  });
 });

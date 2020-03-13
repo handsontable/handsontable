@@ -27,21 +27,6 @@ class NestedRows extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Source data object.
-     *
-     * @private
-     * @type {object}
-     */
-    this.sourceData = null;
-    /**
-     * Reference to the BindRowsWithHeaders plugin.
-     *
-     * @private
-     * @type {object}
-     */
-    this.bindRowsWithHeadersPlugin = null;
-
-    /**
      * Reference to the DataManager instance.
      *
      * @private
@@ -86,16 +71,13 @@ class NestedRows extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
-    this.sourceData = this.hot.getSourceData();
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
     this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new SkipMap());
 
-    this.dataManager = new DataManager(this, this.hot, this.sourceData);
+    this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
-
-    this.dataManager.rewriteCache();
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeRender', (...args) => this.onBeforeRender(...args));

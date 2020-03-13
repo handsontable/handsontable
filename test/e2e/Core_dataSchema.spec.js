@@ -509,5 +509,4 @@ describe('Core_dataSchema', () => {
     expect(dataAtRow.name).toEqual(null);
     expect(dataAtRow.surname).toEqual(null);
   });
-
 });

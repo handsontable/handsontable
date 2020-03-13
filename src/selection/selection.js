@@ -5,6 +5,7 @@ import { isPressedCtrlKey } from './../utils/keyStateObserver';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { arrayEach } from './../helpers/array';
+import { rangeEach } from './../helpers/number';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 import {
@@ -155,6 +156,7 @@ class Selection {
     const isColumnNegative = coords.col < 0;
     const selectedByCorner = isRowNegative && isColumnNegative;
 
+    // We change coordinates of selection to start from 0 (we don't include headers in a selection).
     if (isRowNegative) {
       coords.row = 0;
     }
@@ -328,7 +330,16 @@ class Selection {
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, force) {
-    this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, force));
+    const rangeStartAfterTranslation = this.transformation.transformStart(rowDelta, colDelta, force);
+    const rangeStartChanged = this.getSelectedRange().current().highlight !== rangeStartAfterTranslation;
+
+    // This conditional handle situation when we select cells by headers and there are no visible cells
+    // (all rows / columns are hidden or there is specific cases described in the #6733). Cells in such case are selected
+    // with row headers, but selection is adjusted to start from index 0, not index -1. We loose some information, so
+    // performing "the same selection" basing on internally stored data would give other effect.
+    if (rangeStartChanged) {
+      this.setRangeStart(rangeStartAfterTranslation);
+    }
   }
 
   /**
@@ -461,11 +472,19 @@ class Selection {
    * Select all cells.
    */
   selectAll() {
+    const nrOfRows = this.tableProps.countRows();
+    const nrOfColumns = this.tableProps.countCols();
+
+    // We can't select cells when there is no data.
+    if (nrOfRows === 0 || nrOfColumns === 0) {
+      return;
+    }
+
     this.clear();
     this.setRangeStartOnly(new CellCoords(-1, -1));
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
-    this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, this.tableProps.countCols() - 1));
+    this.setRangeEnd(new CellCoords(nrOfRows - 1, nrOfColumns - 1));
     this.finish();
   }
 
@@ -555,16 +574,56 @@ class Selection {
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
   selectRows(startRow, endRow = startRow) {
-    const countRows = this.tableProps.countRows();
-    const isValid = isValidCoord(startRow, countRows) && isValidCoord(endRow, countRows);
+    const nrOfRows = this.tableProps.countRows();
+    const nrOfColumns = this.tableProps.countCols();
+    const isValid = isValidCoord(startRow, nrOfRows) && isValidCoord(endRow, nrOfRows);
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(startRow, -1));
-      this.setRangeEnd(new CellCoords(endRow, this.tableProps.countCols() - 1));
+      // Ternary operator placed below handle situation when there are rows, but there are no columns (#6733).
+      this.setRangeEnd(new CellCoords(endRow, nrOfColumns > 0 ? nrOfColumns - 1 : 0));
       this.finish();
     }
 
     return isValid;
+  }
+
+  /**
+   * Rewrite the rendered state of the selection as visual selection may have a new representation in the DOM.
+   */
+  rewrite() {
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const cellHighlight = this.highlight.getCell();
+    const currentLayer = this.getLayerLevel();
+
+    cellHighlight.commit().adjustCoordinates(this.selectedRange.current());
+
+    // Rewriting rendered ranges going through all layers.
+    rangeEach(this.selectedRange.size(), (layerLevel) => {
+      this.highlight.useLayerLevel(layerLevel);
+
+      const areaHighlight = this.highlight.createOrGetArea();
+      const headerHighlight = this.highlight.createOrGetHeader();
+      const activeHeaderHighlight = this.highlight.createOrGetActiveHeader();
+
+      if (areaHighlight.visualCellRange !== null) {
+        areaHighlight.commit();
+      }
+
+      if (headerHighlight.visualCellRange !== null) {
+        headerHighlight.commit();
+      }
+
+      if (activeHeaderHighlight.visualCellRange !== null) {
+        activeHeaderHighlight.commit();
+      }
+    });
+
+    // Reverting starting layer for the Highlight.
+    this.highlight.useLayerLevel(currentLayer);
   }
 }
 

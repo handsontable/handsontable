@@ -50,7 +50,7 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
-      this.observer = new DataObserver(this.hot.getSourceData());
+      this.observer = new DataObserver(this.hot.getSettings().data);
       this._exposePublicApi();
     }
 
@@ -60,7 +60,7 @@ class ObserveChanges extends BasePlugin {
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(sourceData, firstRun));
 
     super.enablePlugin();
   }
@@ -152,11 +152,12 @@ class ObserveChanges extends BasePlugin {
    * On after load data listener.
    *
    * @private
+   * @param {Array} sourceData Source data array.
    * @param {boolean} firstRun `true` if event was fired first time.
    */
-  onAfterLoadData(firstRun) {
+  onAfterLoadData(sourceData, firstRun) {
     if (!firstRun) {
-      this.observer.setObservedData(this.hot.getSourceData());
+      this.observer.setObservedData(sourceData);
     }
   }
 

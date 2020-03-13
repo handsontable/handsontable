@@ -60,12 +60,12 @@ class VisualSelection extends Selection {
     const { row: startRowTranslated, col: startColTranslated } = this.settings.translateCoords(startCoords);
 
     // There are no more visual rows in the range.
-    if (endRow - startRow === 0 && startRowTranslated === null) {
+    if (endRow === startRow && startRowTranslated === null) {
       return null;
     }
 
     // There are no more visual columns in the range.
-    if (endCol - startCol === 0 && startColTranslated === null) {
+    if (endCol === startCol && startColTranslated === null) {
       return null;
     }
 
@@ -130,8 +130,12 @@ class VisualSelection extends Selection {
         this.cellRange = new CellRange(singleCellRangeTranslated);
 
         broaderCellRange.setHighlight(this.settings.untranslateCoords(singleCellRangeTranslated));
+
+        return this;
       }
     }
+
+    broaderCellRange.setHighlight(broaderCellRange.from); // Fallback to the start of the range.
 
     return this;
   }

@@ -22,7 +22,8 @@ describe('Core', () => {
       manualColumnResize: true,
       manualRowResize: true,
       nestedRows: true,
-      trimRows: true
+      trimRows: true,
+      columns: [{}, {}] // Setting `columns` property at the start shouldn't update the index mappers.
     });
 
     const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');

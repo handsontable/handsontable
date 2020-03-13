@@ -1321,7 +1321,7 @@ describe('Core_selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the first row after corner header is clicked', () => {
+  it('should select all cells when corner header is clicked', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -1331,16 +1331,16 @@ describe('Core_selection', () => {
 
     spec().$container.find('thead').find('th').eq(0).simulate('mousedown');
 
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getSelected()).toEqual([[0, 0, 4, 4]]);
     expect(`
-      |   ║ - :   :   :   :   |
-      |===:===:===:===:===:===|
-      | - ║ # :   :   :   :   |
-      |   ║   :   :   :   :   |
-      |   ║   :   :   :   :   |
-      |   ║   :   :   :   :   |
-      |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+    |   ║ * : * : * : * : * |
+    |===:===:===:===:===:===|
+    | * ║ A : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should redraw selection when option `colHeaders` is set and user scrolled', async() => {

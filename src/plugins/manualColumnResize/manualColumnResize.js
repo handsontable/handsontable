@@ -560,7 +560,7 @@ class ManualColumnResize extends BasePlugin {
    *
    * @private
    * @param {number} stretchedWidth Stretched width.
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @returns {number}
    */
   onBeforeStretchingColumnWidth(stretchedWidth, column) {
