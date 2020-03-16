@@ -4079,4 +4079,116 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(13);
     });
   });
+
+  describe('cooperation with the `MergeCells` plugin', () => {
+    it('merge containing hidden columns (start from visible cell, merging to visible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 1, 0, 3);
+
+      // Merged from visual column index 1 (visible) to visual column index 3 (visible).
+      //                                     |     merge    |
+      expect(getData()).toEqual([['A1', 'B1', null, null, 'E1']]);
+      expect($(getHtCore()).find('td')[0].innerText).toBe('B1');
+      // Only two columns have been visible from the start.
+      expect($(getHtCore())[0].offsetWidth).toBe(100);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+
+      getPlugin('hiddenColumns').showColumns([0, 2, 4]);
+      render();
+
+      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore()).find('td')[1].offsetWidth).toBe(150);
+    });
+
+    it('merge containing hidden columns (start from invisible cell, merging to visible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 0, 0, 3);
+
+      // Merged from visual column index 0 (invisible) to visual column index 3 (visible).
+      //                              |        merge        |
+      expect(getData()).toEqual([['A1', null, null, null, 'E1']]);
+
+      // TODO: It should show value from the hidden column?
+      // expect($(getHtCore()).find('td')[0].innerText).toBe('A1');
+
+      // Only two columns have been visible from the start.
+      expect($(getHtCore())[0].offsetWidth).toBe(100);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+
+      getPlugin('hiddenColumns').showColumns([0, 2, 4]);
+      render();
+
+      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
+    });
+
+    it('merge containing hidden columns (start from visible cell, merging to invisible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 1, 0, 4);
+
+      // Merged from visual column index 1 (visible) to visual column index 4 (invisible).
+      //                                    |        merge        |
+      expect(getData()).toEqual([['A1', 'B1', null, null, null]]);
+      expect($(getHtCore()).find('td')[0].innerText).toBe('B1');
+      // Only two columns have been visible from the start.
+      expect($(getHtCore())[0].offsetWidth).toBe(100);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+
+      getPlugin('hiddenColumns').showColumns([0, 2, 4]);
+      render();
+
+      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore()).find('td')[1].offsetWidth).toBe(200);
+    });
+
+    it('merge containing hidden columns (start from invisible cell, merging to invisible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 0, 0, 4);
+
+      // Merged from visual column index 0 (invisible) to visual column index 4 (invisible).
+      //                              |           merge           |
+      expect(getData()).toEqual([['A1', null, null, null, null]]);
+
+      // TODO: It should show value from the hidden column?
+      // expect($(getHtCore()).find('td')[0].innerText).toBe('A1');
+
+      // Only two columns have been visible from the start.
+      expect($(getHtCore())[0].offsetWidth).toBe(100);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+
+      getPlugin('hiddenColumns').showColumns([0, 2, 4]);
+      render();
+
+      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(250);
+    });
+  });
 });
