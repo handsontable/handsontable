@@ -4190,5 +4190,23 @@ describe('HiddenColumns', () => {
       expect($(getHtCore())[0].offsetWidth).toBe(250);
       expect($(getHtCore()).find('td')[0].offsetWidth).toBe(250);
     });
+
+    it('should translate column indexes properly - regression check', () => {
+      // An error have been thrown and too many columns have been drawn in the specific case. There haven't been done
+      // index translation (from renderable to  visual columns indexes and the other way around).
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 7),
+        hiddenColumns: {
+          columns: [0, 2],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 3, 0, 5);
+
+      // The same as at the start.
+      expect($(getHtCore()).find('td').length).toBe(5);
+    });
   });
 });
