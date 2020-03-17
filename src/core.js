@@ -15,7 +15,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayFlatten, arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -1774,18 +1774,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
 
       } else if (i === 'className') {
-        if (priv.firstRun) {
+        if (firstRun) {
           addClass(instance.rootElement, settings.className);
 
         } else {
           let gridSettingsArray;
           let settingsArray;
 
-          if (Array.isArray(GridSettings.prototype.className)) {
-            gridSettingsArray = GridSettings.prototype.className;
+          if (Array.isArray(globalMeta.className)) {
+            gridSettingsArray = globalMeta.className;
 
-          } else if (typeof GridSettings.prototype.className === 'string') {
-            gridSettingsArray = GridSettings.prototype.className.split(' ');
+          } else if (typeof globalMeta.className === 'string') {
+            gridSettingsArray = globalMeta.className.split(' ');
 
           } else {
             gridSettingsArray = [];
@@ -1813,24 +1813,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        GridSettings.prototype.className = settings.className;
+        globalMeta.className = settings.className;
 
         /* eslint-disable-next-line no-continue */
         continue;
 
       } else if (i === 'tableClassName' && instance.table) {
-        if (priv.firstRun) {
+        if (firstRun) {
           addClass(instance.table, settings.tableClassName);
 
         } else {
           let gridSettingsArray;
           let settingsArray;
 
-          if (Array.isArray(GridSettings.prototype.tableClassName)) {
-            gridSettingsArray = GridSettings.prototype.tableClassName;
+          if (Array.isArray(globalMeta.tableClassName)) {
+            gridSettingsArray = globalMeta.tableClassName;
 
-          } else if (typeof GridSettings.prototype.tableClassName === 'string') {
-            gridSettingsArray = GridSettings.prototype.tableClassName.split(' ');
+          } else if (typeof globalMeta.tableClassName === 'string') {
+            gridSettingsArray = globalMeta.tableClassName.split(' ');
 
           } else {
             gridSettingsArray = [];
@@ -1858,7 +1858,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           }
         }
 
-        GridSettings.prototype.tableClassName = settings.tableClassName;
+        globalMeta.tableClassName = settings.tableClassName;
 
         /* eslint-disable-next-line no-continue */
         continue;
