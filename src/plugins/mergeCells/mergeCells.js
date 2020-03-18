@@ -656,9 +656,9 @@ class MergeCells extends BasePlugin {
     const mergeParent = this.mergedCellsCollection.get(row, visualColumn);
 
     // Result of that hook is handled by the Walkontable. We return renderable indexes.
-    return mergeParent ? [
-      mergeParent.row, columnMapper.getRenderableFromVisualIndex(
-        columnMapper.getFirstNotHiddenIndex(mergeParent.col, 1)),
+    return mergeParent && column >= 0 && row >= 0 ? [
+      mergeParent.row, mergeParent.col >= 0 ? columnMapper.getRenderableFromVisualIndex(
+        columnMapper.getFirstNotHiddenIndex(mergeParent.col, 1)) : mergeParent.col,
       mergeParent.row + mergeParent.rowspan - 1,
       columnMapper.getRenderableFromVisualIndex(
         columnMapper.getFirstNotHiddenIndex(mergeParent.col + mergeParent.colspan - 1, -1))
