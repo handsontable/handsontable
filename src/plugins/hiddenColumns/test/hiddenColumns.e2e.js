@@ -4194,7 +4194,7 @@ describe('HiddenColumns', () => {
       getPlugin('hiddenColumns').showColumns([4]);
       render();
 
-      expect($(getHtCore())[4].offsetWidth).toBe(200);
+      expect($(getHtCore())[0].offsetWidth).toBe(200);
       expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
 
       getPlugin('hiddenColumns').hideColumns([2, 4]);
@@ -4263,6 +4263,33 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[0].offsetWidth).toBe(250);
     });
 
+    it('should return proper values from the `getCell` function', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 1, 0, 3);
+
+      expect(getCell(0, 0)).toBe(null);
+      expect(getCell(0, 1)).toBe($(getHtCore()).find('td')[0]);
+      expect(getCell(0, 2)).toBe(null);
+      expect(getCell(0, 3)).toBe($(getHtCore()).find('td')[0]);
+      expect(getCell(0, 4)).toBe(null);
+
+      getPlugin('hiddenColumns').showColumns([2]);
+      render();
+
+      expect(getCell(0, 0)).toBe(null);
+      expect(getCell(0, 1)).toBe($(getHtCore()).find('td')[0]);
+      expect(getCell(0, 2)).toBe($(getHtCore()).find('td')[0]);
+      expect(getCell(0, 3)).toBe($(getHtCore()).find('td')[0]);
+      expect(getCell(0, 4)).toBe(null);
+    });
+
     it('should translate column indexes properly - regression check', () => {
       // An error have been thrown and too many columns have been drawn in the specific case. There haven't been done
       // index translation (from renderable to visual columns indexes and the other way around).
@@ -4279,6 +4306,67 @@ describe('HiddenColumns', () => {
 
       // The same as at the start.
       expect($(getHtCore()).find('td').length).toBe(5);
+      // Still the same width for the whole table.
+      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore()).find('td')[1].offsetWidth).toBe(150);
+    });
+
+    it('should select proper cell when calling the `selectCell` within area of merge', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2],
+        },
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 1, colspan: 4 }
+        ]
+      });
+
+      selectCell(0, 1);
+
+      // Second and third columns are not displayed (CSS - display: none).
+      expect(`
+      | # :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+      deselectCell();
+      selectCell(0, 2);
+
+      // Second and third columns are not displayed (CSS - display: none).
+      expect(`
+      | # :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+      deselectCell();
+      selectCell(0, 3);
+
+      // Second and third columns are not displayed (CSS - display: none).
+      expect(`
+      | # :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 0, 4]]);
+      expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
+      expect(getSelectedRangeLast()?.highlight?.col).toBe(1);
+      expect(getSelectedRangeLast()?.from?.row).toBe(0);
+      expect(getSelectedRangeLast()?.from?.col).toBe(1);
+      expect(getSelectedRangeLast()?.to?.row).toBe(0);
+      expect(getSelectedRangeLast()?.to?.col).toBe(4);
+
+      // TODO: `selectCell(0, 4)` should give the same effect. There is bug at least from Handsontable 7.
     });
   });
 });
