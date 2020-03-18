@@ -846,6 +846,58 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
+   * Internal function to set `className` or `tableClassName` key of settings.
+   *
+   * @private
+   * @param {string} className `className` or `tableClassName` from key of settings.
+   * @param {string[]|string} classSettings Array of string or string contains class name(s) from settings object.
+   */
+  function setClassName(className, classSettings) {
+    const element = className === 'className' ? instance.rootElement : instance.table;
+
+    if (firstRun) {
+      addClass(element, classSettings);
+
+    } else {
+      let globalMetaSettingsArray;
+      let settingsArray;
+
+      if (Array.isArray(globalMeta[className])) {
+        globalMetaSettingsArray = globalMeta[className];
+
+      } else if (typeof globalMeta[className] === 'string') {
+        globalMetaSettingsArray = globalMeta[className].split(' ');
+
+      } else {
+        globalMetaSettingsArray = [];
+      }
+
+      if (Array.isArray(classSettings)) {
+        settingsArray = classSettings;
+
+      } else if (typeof classSettings === 'string') {
+        settingsArray = classSettings.split(' ');
+
+      } else {
+        settingsArray = [];
+      }
+
+      const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
+      const classNameToAdd = getDifferenceOfArrays(settingsArray, globalMetaSettingsArray);
+
+      if (classNameToRemove.length) {
+        removeClass(element, classNameToRemove);
+      }
+
+      if (classNameToAdd.length) {
+        addClass(element, classNameToAdd);
+      }
+    }
+
+    globalMeta[className] = classSettings;
+  }
+
+  /**
    * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
    * mapper's and column index mapper's cache at most once, even when there is more then one operation inside their
    * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
@@ -1774,91 +1826,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
 
       } else if (i === 'className') {
-        if (firstRun) {
-          addClass(instance.rootElement, settings.className);
-
-        } else {
-          let gridSettingsArray;
-          let settingsArray;
-
-          if (Array.isArray(globalMeta.className)) {
-            gridSettingsArray = globalMeta.className;
-
-          } else if (typeof globalMeta.className === 'string') {
-            gridSettingsArray = globalMeta.className.split(' ');
-
-          } else {
-            gridSettingsArray = [];
-          }
-
-          if (Array.isArray(settings.className)) {
-            settingsArray = settings.className;
-
-          } else if (typeof settings.className === 'string') {
-            settingsArray = settings.className.split(' ');
-
-          } else {
-            settingsArray = [];
-          }
-
-          const classNameToRemove = getDifferenceOfArrays(gridSettingsArray, settingsArray);
-          const classNameToAdd = getDifferenceOfArrays(settingsArray, gridSettingsArray);
-
-          if (classNameToRemove.length) {
-            removeClass(instance.rootElement, classNameToRemove);
-          }
-
-          if (classNameToAdd.length) {
-            addClass(instance.rootElement, classNameToAdd);
-          }
-        }
-
-        globalMeta.className = settings.className;
+        setClassName('className', settings.className);
 
         /* eslint-disable-next-line no-continue */
         continue;
 
       } else if (i === 'tableClassName' && instance.table) {
-        if (firstRun) {
-          addClass(instance.table, settings.tableClassName);
-
-        } else {
-          let gridSettingsArray;
-          let settingsArray;
-
-          if (Array.isArray(globalMeta.tableClassName)) {
-            gridSettingsArray = globalMeta.tableClassName;
-
-          } else if (typeof globalMeta.tableClassName === 'string') {
-            gridSettingsArray = globalMeta.tableClassName.split(' ');
-
-          } else {
-            gridSettingsArray = [];
-          }
-
-          if (Array.isArray(settings.tableClassName)) {
-            settingsArray = settings.tableClassName;
-
-          } else if (typeof settings.tableClassName === 'string') {
-            settingsArray = settings.tableClassName.split(' ');
-
-          } else {
-            settingsArray = [];
-          }
-
-          const classNameToRemove = getDifferenceOfArrays(gridSettingsArray, settingsArray);
-          const classNameToAdd = getDifferenceOfArrays(settingsArray, gridSettingsArray);
-
-          if (classNameToRemove.length) {
-            removeClass(instance.table, classNameToRemove);
-          }
-
-          if (classNameToAdd.length) {
-            addClass(instance.table, classNameToAdd);
-          }
-        }
-
-        globalMeta.tableClassName = settings.tableClassName;
+        setClassName('tableClassName', settings.tableClassName);
 
         /* eslint-disable-next-line no-continue */
         continue;
