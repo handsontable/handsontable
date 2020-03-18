@@ -281,6 +281,33 @@ class IndexMapper {
   }
 
   /**
+   * Search for the first visible, not hidden index.
+   *
+   * @param {number} fromVisualIndex Start index. Starting point for finding destination index. Start point may be destination
+   * point when handled index is hidden.
+   * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
+   * This variable represent indexes shift. We are looking for an index:
+   * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
+   * other way around (decreasing indexes, then variable should have the value -1)
+   * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
+   * or other way around (decreasing indexes, then variable should have the value -1).
+   * @returns {number|null}
+   */
+  getFirstNotHiddenIndex(fromVisualIndex, incrementBy) {
+    const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
+
+    if (physicalIndex === null) {
+      return null;
+    }
+
+    if (this.isHidden(physicalIndex) === false) {
+      return fromVisualIndex;
+    }
+
+    return this.getFirstNotHiddenIndex(fromVisualIndex + incrementBy, incrementBy);
+  }
+
+  /**
    * Set default values for all stored index maps.
    *
    * @param {number} [length] Destination length for all stored index maps.
