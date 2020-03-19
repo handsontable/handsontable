@@ -1,9 +1,9 @@
-import { arrayMap, arrayEach } from '../../../helpers/array';
+import { arrayMap, arrayReduce } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
 import NodeModifiers from './nodeModifiers';
 import { HEADER_DEFAULT_SETTINGS } from './constants';
-import { colspanGenerator } from './colspanGenerator';
+import { matrixGenerator } from './matrixGenerator';
 
 /**
  * The column state manager is a source of truth for nested headers configuration.
@@ -31,9 +31,9 @@ import { colspanGenerator } from './colspanGenerator';
  *                            That settings describes how the TH element should be modified (colspan attribute,
  *                            CSS classes) for a specific column and layer level.
  *
- * @type {SourceSettings}
+ * @type {StateManager}
  */
-export default class ColumnStatesManager {
+export default class StateManager {
   /**
    * The instance of the source settings class.
    *
@@ -53,11 +53,11 @@ export default class ColumnStatesManager {
    */
   #headersTree = null;
   /**
-   * Cached colspan matrix which is generated from the tree structure.
+   * Cached matrix which is generated from the tree structure.
    *
    * @type {Array[]}
    */
-  #colspanMatrix = [];
+  #stateMatrix = [];
 
   /**
    * Sets a new state for the nested headers plugin based on settings passed
@@ -79,55 +79,79 @@ export default class ColumnStatesManager {
       hasError = true;
     }
 
-    this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+    this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
 
     return hasError;
   }
 
   /**
-   * @param {Object[]} settings
+   * @param {object[]} settings An array of objects to merge with the current source settings.
+   *                            It is a requirement that every object has `row` and `col` properties
+   *                            which points to the specific header settings object.
    */
   mergeStateWith(settings) {
     const transformedSettings = arrayMap(settings, ({ row, ...rest }) => {
       return {
         row: row < 0 ? this.rowCoordsToLevel(row) : row,
         ...rest,
-      }
+      };
     });
 
     this.#sourceSettings.mergeWith(transformedSettings);
     this.#headersTree.buildTree();
-    this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+    this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
   }
 
   /**
-   * @param {Function} callback
+   * @param {Function} callback A function that is called for every header source settings.
+   *                            Each time the callback is called, the returned value extends
+   *                            header settings.
    */
   mapState(callback) {
     this.#sourceSettings.map(callback);
     this.#headersTree.buildTree();
-    this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+    this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
   }
 
   /**
-   * @param {[type]} action
-   * @param {[type]} visualColumnIndex
-   * @param {[type]} headerLevel
+   * @param {Function} callback A function that is called for every tree node.
+   *                            Each time the callback is called, the returned value is
+   *                            added to returned array.
+   * @returns {Array}
    */
-  triggerNodeModification(action, visualColumnIndex, headerLevel) {
+  mapNodes(callback) {
+    return arrayReduce(this.#headersTree.getRoots(), (acc, rootNode) => {
+      rootNode.walkDown((node) => {
+        const result = callback(node.data);
+
+        if (result !== void 0) {
+          acc.push(result);
+        }
+      });
+    }, []);
+  }
+
+  /**
+   * @param {string} action An action name to trigger.
+   * @param {number} headerLevel Header level index (there is support for negative and positive values).
+   * @param {number} columnIndex A visual column index.
+   * @returns {object|undefined}
+   */
+  triggerNodeModification(action, headerLevel, columnIndex) {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel);
     }
 
-    const nodeToProcess = this.#headersTree.getNode(visualColumnIndex, headerLevel);
-
-    console.log('nodeToProcess', nodeToProcess);
+    const nodeToProcess = this.#headersTree.getNode(headerLevel, columnIndex);
+    let actionResult;
 
     if (nodeToProcess) {
-      this.#nodeModifiers.triggerAction(action, nodeToProcess);
-      this.#headersTree.rebuildTreeIndex();
-      this.#colspanMatrix = colspanGenerator(this.#headersTree.getRoots());
+      actionResult = this.#nodeModifiers.triggerAction(action, nodeToProcess);
+
+      this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
     }
+
+    return actionResult;
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -149,7 +173,7 @@ export default class ColumnStatesManager {
    *           +--------------+
    *           │    │    │    │
    *
-   * @param {number} rowIndex Visual row index.
+   * @param {number} rowIndex A visual row index.
    * @returns {number} Returns unsigned number.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -193,15 +217,15 @@ export default class ColumnStatesManager {
   }
 
   /**
-   * Gets column settings for a specified column and header index. The returned object contains
+   * Gets column header settings for a specified column and header index. The returned object contains
    * all information necessary for header renderers. It contains header label, colspan length, or hidden
    * flag.
    *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
    * @param {number} columnIndex A visual column index.
-   * @param {number} headerLevel Header level.
    * @returns {object}
    */
-  getColumnSettings(columnIndex, headerLevel) {
+  getHeaderSettings(headerLevel, columnIndex) {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel);
     }
@@ -210,7 +234,7 @@ export default class ColumnStatesManager {
       return null;
     }
 
-    return this.#colspanMatrix[headerLevel][columnIndex] ?? { ...HEADER_DEFAULT_SETTINGS };
+    return this.#stateMatrix[headerLevel][columnIndex] ?? { ...HEADER_DEFAULT_SETTINGS };
   }
 
   /**
@@ -218,12 +242,12 @@ export default class ColumnStatesManager {
    * collapsed column. In that case, the method returns the left-most column index
    * where the nested header begins.
    *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
    * @param {number} columnIndex A visual column index.
-   * @param {number} headerLevel Header level.
    * @returns {number}
    */
-  findLeftMostColumnIndex(columnIndex, headerLevel) {
-    const { hidden } = this.getColumnSettings(columnIndex, headerLevel);
+  findLeftMostColumnIndex(headerLevel, columnIndex) {
+    const { hidden } = this.getHeaderSettings(headerLevel, columnIndex);
 
     if (hidden === false) {
       return columnIndex;
@@ -232,7 +256,7 @@ export default class ColumnStatesManager {
     let parentCol = columnIndex - 1;
 
     do {
-      const { hidden: isHidden } = this.getColumnSettings(parentCol, headerLevel);
+      const { hidden: isHidden } = this.getHeaderSettings(headerLevel, parentCol);
 
       if (isHidden === false) {
         break;
@@ -266,7 +290,7 @@ export default class ColumnStatesManager {
    * Clears the column state manager to the initial state.
    */
   clear() {
-    this.#colspanMatrix = [];
+    this.#stateMatrix = [];
     this.#sourceSettings.clear();
     this.#headersTree.clear();
   }

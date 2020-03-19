@@ -49,88 +49,91 @@ export default class SourceSettings {
   }
 
   /**
-   * @param {Object[]} additionalSettings
+   * @param {object[]} additionalSettings An array of objects with `row`, `col` and additional
+   *                                      properties to merge with current source settings.
    */
   mergeWith(additionalSettings) {
     arrayEach(additionalSettings, ({ row, col, ...rest }) => {
-      const columnSettings = this.getColumnSettings(row, col);
+      const headerSettings = this.getHeaderSettings(row, col);
 
-      if (columnSettings !== null) {
-        extend(columnSettings, rest);
+      if (headerSettings !== null) {
+        extend(headerSettings, rest);
       }
     });
   }
 
   /**
-   * @param {Function} callback
+   * @param {Function} callback A function that is called for every header settings.
+   *                            Each time the callback is called, the returned value extends
+   *                            header settings.
    */
   map(callback) {
     arrayEach(this.#data, (header) => {
-      arrayEach(header, (columnSettings) => {
-        const propsToExtend = callback({ ...columnSettings });
+      arrayEach(header, (headerSettings) => {
+        const propsToExtend = callback({ ...headerSettings });
 
         if (isObject(propsToExtend)) {
-          extend(columnSettings, propsToExtend);
+          extend(headerSettings, propsToExtend);
         }
       });
     });
   }
 
   /**
-   * Gets source column settings for a specified header. The returned object contains
-   * information about the header label, its colspan length, or if it is hidden
-   * in the header renderers.
+   * Gets source column header settings for a specified header. The returned
+   * object contains information about the header label, its colspan length,
+   * or if it is hidden in the header renderers.
    *
    * @param {number} headerLevel Header level (0 = most distant to the table).
-   * @param {number} visibleColumnIndex A visual column index.
+   * @param {number} columnIndex A visual column index.
    * @returns {object|null}
    */
-  getColumnSettings(headerLevel, visibleColumnIndex) {
-    if (headerLevel >= this.#dataLength) {
+  getHeaderSettings(headerLevel, columnIndex) {
+    if (headerLevel >= this.#dataLength || headerLevel < 0) {
       return null;
     }
 
-    const columnsSettings = this.#data[headerLevel];
+    const headersSettings = this.#data[headerLevel];
 
-    if (visibleColumnIndex >= columnsSettings.length) {
+    if (columnIndex >= headersSettings.length) {
       return null;
     }
 
-    return columnsSettings[visibleColumnIndex] ?? null;
+    return headersSettings[columnIndex] ?? null;
   }
 
   /**
-   * Gets source columns settings for specified headers. If the retrieved column
-   * settings overlap the range "box" determined by "visibleColumnIndex" and "columnsLength"
+   * Gets source of column headers settings for specified headers. If the retrieved column
+   * settings overlap the range "box" determined by "columnIndex" and "columnsLength"
    * the exception will be thrown.
    *
    * @param {number} headerLevel Header level (0 = most distant to the table).
-   * @param {number} visibleColumnIndex A visual column index from which the settings will be extracted.
+   * @param {number} columnIndex A visual column index from which the settings will be extracted.
    * @param {number} [columnsLength=1] The number of columns involved in the extraction of settings.
    * @returns {object}
    */
-  getColumnsSettings(headerLevel, visibleColumnIndex, columnsLength = 1) {
-    const columnsSettingsChunks = [];
+  getHeadersSettings(headerLevel, columnIndex, columnsLength = 1) {
+    const headersSettingsChunks = [];
 
     if (headerLevel >= this.#dataLength) {
-      return columnsSettingsChunks;
+      return headersSettingsChunks;
     }
 
-    const columnsSettings = this.#data[headerLevel];
+    const headersSettings = this.#data[headerLevel];
     let currentLength = 0;
 
-    for (let i = visibleColumnIndex; i < columnsSettings.length; i++) {
-      const columnSettings = columnsSettings[i];
+    for (let i = columnIndex; i < headersSettings.length; i++) {
+      const headerSettings = headersSettings[i];
 
-      if (columnSettings.hidden === true) {
+      if (headerSettings.hidden === true) {
         throw new Error('The first column settings cannot overlap the other header layers');
       }
 
-      currentLength += columnSettings.colspan;
-      columnsSettingsChunks.push(columnSettings);
+      currentLength += headerSettings.colspan;
+      headersSettingsChunks.push(headerSettings);
 
-      if (columnSettings.colspan > 1) {
-        i += columnSettings.colspan - 1;
+      if (headerSettings.colspan > 1) {
+        i += headerSettings.colspan - 1;
       }
 
       // We met the current sum of the child colspans
@@ -143,7 +146,7 @@ export default class SourceSettings {
       }
     }
 
-    return columnsSettingsChunks;
+    return headersSettingsChunks;
   }
 
   /**

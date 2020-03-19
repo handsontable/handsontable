@@ -84,7 +84,7 @@ function breadthFirst(callback, context) {
  *
  * @type {string}
  */
-const DEFAULT_TRAVERSAL_STRATEGY = TRAVERSAL_DF_PRE;
+const DEFAULT_TRAVERSAL_STRATEGY = TRAVERSAL_BF;
 /**
  * Collection of all available tree traversal strategies.
  *
@@ -148,7 +148,7 @@ export default class TreeNode {
       if (continueTraverse !== false && node.parent !== null) {
         process(node.parent);
       }
-    }
+    };
 
     process(this);
   }

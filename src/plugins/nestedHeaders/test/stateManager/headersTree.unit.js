@@ -1,5 +1,5 @@
-import HeadersTree from 'handsontable/plugins/nestedHeaders/columnStatesManager/headersTree';
-import SourceSettings from 'handsontable/plugins/nestedHeaders/columnStatesManager/sourceSettings';
+import HeadersTree from 'handsontable/plugins/nestedHeaders/stateManager/headersTree';
+import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 
 function createTree(nestedHeadersSettings) {
   return new HeadersTree(new SourceSettings(nestedHeadersSettings));
@@ -34,6 +34,8 @@ describe('HeadersTree', () => {
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A1',
           colspan: 1,
+          headerLevel: 0,
+          columnIndex: 0,
         }));
         expect(root.childs.length).toBe(1);
 
@@ -42,6 +44,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'A2',
           colspan: 1,
+          headerLevel: 1,
+          columnIndex: 0,
         }));
         expect(childs[0].childs.length).toBe(0);
       }
@@ -56,6 +60,8 @@ describe('HeadersTree', () => {
         expect(root.data).toEqual(expect.objectContaining({
           label: 'B1',
           colspan: 1,
+          headerLevel: 0,
+          columnIndex: 1,
         }));
         expect(root.childs.length).toBe(1);
 
@@ -64,6 +70,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'B2',
           colspan: 1,
+          headerLevel: 1,
+          columnIndex: 1,
         }));
         expect(childs[0].childs.length).toBe(0);
       }
@@ -78,6 +86,8 @@ describe('HeadersTree', () => {
         expect(root.data).toEqual(expect.objectContaining({
           label: 'C1',
           colspan: 1,
+          headerLevel: 0,
+          columnIndex: 2,
         }));
         expect(root.childs.length).toBe(1);
 
@@ -86,6 +96,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'C2',
           colspan: 1,
+          headerLevel: 1,
+          columnIndex: 2,
         }));
         expect(childs[0].childs.length).toBe(0);
       }
@@ -122,6 +134,8 @@ describe('HeadersTree', () => {
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A1',
           colspan: 4,
+          headerLevel: 0,
+          columnIndex: 0,
         }));
         expect(root.childs.length).toBe(2);
 
@@ -130,10 +144,14 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'B1',
           colspan: 3,
+          headerLevel: 1,
+          columnIndex: 0,
         }));
         expect(childs[1].data).toEqual(expect.objectContaining({
           label: 'B2',
           colspan: 1,
+          headerLevel: 1,
+          columnIndex: 3,
         }));
         expect(childs.length).toBe(2);
 
@@ -143,10 +161,14 @@ describe('HeadersTree', () => {
         expect(childs2left[0].data).toEqual(expect.objectContaining({
           label: 'C1',
           colspan: 2,
+          headerLevel: 2,
+          columnIndex: 0,
         }));
         expect(childs2left[1].data).toEqual(expect.objectContaining({
           label: 'C2',
           colspan: 1,
+          headerLevel: 2,
+          columnIndex: 2,
         }));
         expect(childs2left.length).toBe(2);
         // tree depth 2 (the right leaf)
@@ -155,6 +177,8 @@ describe('HeadersTree', () => {
         expect(childs2right[0].data).toEqual(expect.objectContaining({
           label: 'C3',
           colspan: 1,
+          headerLevel: 2,
+          columnIndex: 3,
         }));
         expect(childs2right.length).toBe(1);
       }
@@ -197,6 +221,8 @@ describe('HeadersTree', () => {
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A1',
           colspan: 1,
+          headerLevel: 0,
+          columnIndex: 0,
         }));
         expect(root.childs.length).toBe(1);
 
@@ -206,6 +232,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'B1',
           colspan: 1,
+          headerLevel: 1,
+          columnIndex: 0,
         }));
         expect(childs.length).toBe(1);
 
@@ -215,6 +243,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'C1',
           colspan: 1,
+          headerLevel: 2,
+          columnIndex: 0,
         }));
         expect(childs.length).toBe(1);
 
@@ -224,6 +254,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'D1',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 0,
         }));
         expect(childs.length).toBe(1);
 
@@ -238,6 +270,8 @@ describe('HeadersTree', () => {
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A2',
           colspan: 8,
+          headerLevel: 0,
+          columnIndex: 1,
         }));
         expect(root.childs.length).toBe(2);
 
@@ -247,10 +281,14 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'B2',
           colspan: 4,
+          headerLevel: 1,
+          columnIndex: 1,
         }));
         expect(childs[1].data).toEqual(expect.objectContaining({
           label: 'B3',
           colspan: 4,
+          headerLevel: 1,
+          columnIndex: 5,
         }));
         expect(childs.length).toBe(2);
 
@@ -260,10 +298,14 @@ describe('HeadersTree', () => {
         expect(childs2Left[0].data).toEqual(expect.objectContaining({
           label: 'C2',
           colspan: 1,
+          headerLevel: 2,
+          columnIndex: 1,
         }));
         expect(childs2Left[1].data).toEqual(expect.objectContaining({
           label: 'C3',
           colspan: 3,
+          headerLevel: 2,
+          columnIndex: 2,
         }));
         expect(childs2Left.length).toBe(2);
 
@@ -273,10 +315,14 @@ describe('HeadersTree', () => {
         expect(childs2Right[0].data).toEqual(expect.objectContaining({
           label: 'C4',
           colspan: 2,
+          headerLevel: 2,
+          columnIndex: 5,
         }));
         expect(childs2Right[1].data).toEqual(expect.objectContaining({
           label: 'C5',
           colspan: 2,
+          headerLevel: 2,
+          columnIndex: 7,
         }));
         expect(childs2Right.length).toBe(2);
 
@@ -286,6 +332,8 @@ describe('HeadersTree', () => {
         expect(childs3LeftLeft[0].data).toEqual(expect.objectContaining({
           label: 'D2',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 1,
         }));
         expect(childs3LeftLeft.length).toBe(1);
 
@@ -295,14 +343,20 @@ describe('HeadersTree', () => {
         expect(childs3LeftRight[0].data).toEqual(expect.objectContaining({
           label: 'D3',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 2,
         }));
         expect(childs3LeftRight[1].data).toEqual(expect.objectContaining({
           label: 'D4',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 3,
         }));
         expect(childs3LeftRight[2].data).toEqual(expect.objectContaining({
           label: 'D5',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 4,
         }));
         expect(childs3LeftRight.length).toBe(3);
 
@@ -312,10 +366,14 @@ describe('HeadersTree', () => {
         expect(childs3RightLeft[0].data).toEqual(expect.objectContaining({
           label: 'D6',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 5,
         }));
         expect(childs3RightLeft[1].data).toEqual(expect.objectContaining({
           label: 'D7',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 6,
         }));
         expect(childs3RightLeft.length).toBe(2);
 
@@ -325,10 +383,14 @@ describe('HeadersTree', () => {
         expect(childs3RightRight[0].data).toEqual(expect.objectContaining({
           label: 'D8',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 7,
         }));
         expect(childs3RightRight[1].data).toEqual(expect.objectContaining({
           label: 'D9',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 8,
         }));
         expect(childs3RightRight.length).toBe(2);
       }
@@ -338,6 +400,8 @@ describe('HeadersTree', () => {
         expect(root.data).toEqual(expect.objectContaining({
           label: 'A3',
           colspan: 1,
+          headerLevel: 0,
+          columnIndex: 9,
         }));
         expect(root.childs.length).toBe(1);
 
@@ -347,6 +411,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'B4',
           colspan: 1,
+          headerLevel: 1,
+          columnIndex: 9,
         }));
         expect(childs.length).toBe(1);
 
@@ -356,6 +422,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: 'C6',
           colspan: 1,
+          headerLevel: 2,
+          columnIndex: 9,
         }));
         expect(childs.length).toBe(1);
 
@@ -365,6 +433,8 @@ describe('HeadersTree', () => {
         expect(childs[0].data).toEqual(expect.objectContaining({
           label: '',
           colspan: 1,
+          headerLevel: 3,
+          columnIndex: 9,
         }));
         expect(childs.length).toBe(1);
 
@@ -530,14 +600,32 @@ describe('HeadersTree', () => {
 
       const roots = tree.getRoots();
 
-      expect(roots[0].data).toEqual({ label: 'A1', colspan: 1, hidden: false, columnIndex: 0, headerLevel: 0 });
-      expect(roots[1].data).toEqual({ label: 'A2', colspan: 4, hidden: false, columnIndex: 1, headerLevel: 0 });
-      expect(roots[2].data).toEqual({ label: 'A3', colspan: 2, hidden: false, columnIndex: 5, headerLevel: 0 });
+      expect(roots[0].data).toEqual(expect.objectContaining({
+        label: 'A1',
+        colspan: 1,
+        hidden: false,
+        headerLevel: 0,
+        columnIndex: 0,
+      }));
+      expect(roots[1].data).toEqual(expect.objectContaining({
+        label: 'A2',
+        colspan: 4,
+        hidden: false,
+        headerLevel: 0,
+        columnIndex: 1,
+      }));
+      expect(roots[2].data).toEqual(expect.objectContaining({
+        label: 'A3',
+        colspan: 2,
+        hidden: false,
+        headerLevel: 0,
+        columnIndex: 5,
+      }));
     });
   });
 
   describe('getRootByColumn', () => {
-    it('should return root node at specified column index', () => {
+    it('should return root node at specified column index range defined by its colspan width', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+
@@ -559,13 +647,101 @@ describe('HeadersTree', () => {
 
       tree.buildTree();
 
-      expect(tree.getRootByColumn(0).data).toEqual({ label: 'A1', colspan: 1, hidden: false, columnIndex: 0, headerLevel: 0 });
-      expect(tree.getRootByColumn(1).data).toEqual({ label: 'A2', colspan: 4, hidden: false, columnIndex: 1, headerLevel: 0 });
-      expect(tree.getRootByColumn(2)).toBe(null);
-      expect(tree.getRootByColumn(3)).toBe(null);
-      expect(tree.getRootByColumn(4)).toBe(null);
-      expect(tree.getRootByColumn(5).data).toEqual({ label: 'A3', colspan: 2, hidden: false, columnIndex: 5, headerLevel: 0 });
-      expect(tree.getRootByColumn(6)).toBe(null);
+      expect(tree.getRootByColumn(0).data).toEqual(expect.objectContaining({
+        label: 'A1',
+        colspan: 1,
+        hidden: false,
+        headerLevel: 0,
+        columnIndex: 0,
+      }));
+
+      {
+        const comparision = expect.objectContaining({
+          label: 'A2',
+          colspan: 4,
+          hidden: false,
+          headerLevel: 0,
+          columnIndex: 1,
+        });
+
+        expect(tree.getRootByColumn(1).data).toEqual(comparision);
+        expect(tree.getRootByColumn(2).data).toEqual(comparision);
+        expect(tree.getRootByColumn(3).data).toEqual(comparision);
+        expect(tree.getRootByColumn(4).data).toEqual(comparision);
+      }
+      {
+        const comparision = expect.objectContaining({
+          label: 'A3',
+          colspan: 2,
+          hidden: false,
+          headerLevel: 0,
+          columnIndex: 5,
+        });
+
+        expect(tree.getRootByColumn(5).data).toEqual(comparision);
+        expect(tree.getRootByColumn(6).data).toEqual(comparision);
+      }
+
+      expect(tree.getRootByColumn(7)).toBeUndefined();
+      expect(tree.getRootByColumn(8)).toBeUndefined();
+    });
+  });
+
+  describe('getNode', () => {
+    it('should return node at specified header level and column index', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      tree.buildTree();
+
+      expect(tree.getNode(0, 0).data).toEqual(expect.objectContaining({
+        label: 'A1',
+        colspan: 1,
+        headerLevel: 0,
+        columnIndex: 0,
+      }));
+      expect(tree.getNode(2, 0).data).toEqual(expect.objectContaining({
+        label: 'C1',
+        colspan: 1,
+        headerLevel: 2,
+        columnIndex: 0,
+      }));
+      expect(tree.getNode(2, 2).data).toEqual(expect.objectContaining({
+        label: 'C3',
+        colspan: 3,
+        headerLevel: 2,
+        columnIndex: 2,
+      }));
+      expect(tree.getNode(3, 4).data).toEqual(expect.objectContaining({
+        label: 'D5',
+        colspan: 1,
+        headerLevel: 3,
+        columnIndex: 4,
+      }));
+      expect(tree.getNode(0, 6).data).toEqual(expect.objectContaining({
+        label: 'A3',
+        colspan: 2,
+        headerLevel: 0,
+        columnIndex: 5,
+      }));
+      expect(tree.getNode(10, 6)).toBeUndefined();
+      expect(tree.getNode(0, 10)).toBeUndefined();
     });
   });
 

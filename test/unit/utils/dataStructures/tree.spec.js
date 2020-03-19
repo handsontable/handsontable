@@ -16,8 +16,8 @@ describe('TreeNode', () => {
     expect(node.childs).toEqual([]);
   });
 
-  describe('walk()', () => {
-    it('should properly traverse a tree using default startegy (depth-first pre-order)', () => {
+  describe('walkDown()', () => {
+    it('should properly traverse a tree using default startegy (breadth first)', () => {
       /**
        * Tree structure:
        *          .---------------(A1)--------------.
@@ -49,9 +49,9 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walk(node => void traversalOrder.push(node.data.id));
+      tree.walkDown(node => void traversalOrder.push(node.data.id));
 
-      expect(traversalOrder).toEqual(['A1', 'B1', 'C1', 'D1', 'C2', 'D2', 'D3', 'D4', 'B2', 'C3', 'D5', 'D6', 'C4', 'D7', 'D8']);
+      expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
     });
 
     it('should properly traverse a tree using depth-first pre-order startegy', () => {
@@ -86,7 +86,7 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walk(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_PRE);
+      tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_PRE);
 
       expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> C1 -> D1 -> C2 -> D2 -> D3 -> D4 -> B2 -> C3 -> D5 -> D6 -> C4 -> D7 -> D8');
     });
@@ -123,7 +123,7 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walk(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_POST);
+      tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_POST);
 
       expect(traversalOrder.join(' -> ')).toBe('D1 -> C1 -> D2 -> D3 -> D4 -> C2 -> B1 -> D5 -> D6 -> C3 -> D7 -> D8 -> C4 -> B2 -> A1');
     });
@@ -160,7 +160,7 @@ describe('TreeNode', () => {
       ]);
       const traversalOrder = [];
 
-      tree.walk(node => void traversalOrder.push(node.data.id), TRAVERSAL_BF);
+      tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_BF);
 
       expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
     });
@@ -202,19 +202,25 @@ describe('TreeNode', () => {
         return node.data.id !== 'C3';
       };
 
-      tree.walk(walker, TRAVERSAL_DF_PRE);
+      tree.walkDown(walker, TRAVERSAL_DF_PRE);
 
       expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> C1 -> D1 -> C2 -> D2 -> D3 -> D4 -> B2 -> C3');
 
       traversalOrder.length = 0;
-      tree.walk(walker, TRAVERSAL_DF_POST);
+      tree.walkDown(walker, TRAVERSAL_DF_POST);
 
       expect(traversalOrder.join(' -> ')).toBe('D1 -> C1 -> D2 -> D3 -> D4 -> C2 -> B1 -> D5 -> D6 -> C3');
 
       traversalOrder.length = 0;
-      tree.walk(walker, TRAVERSAL_BF);
+      tree.walkDown(walker, TRAVERSAL_BF);
 
       expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3');
+    });
+  });
+
+  describe('walkUp()', () => {
+    it('TODO', () => {
+
     });
   });
 });

@@ -70,7 +70,7 @@ class GhostTable {
 
       for (let col = 0; col < maxCols; col++) {
         const td = rootDocument.createElement('th');
-        const headerObj = clone(this.nestedHeaders.getColumnSettings(col, row));
+        const headerObj = clone(this.nestedHeaders.getHeaderSettings(row, col));
 
         if (headerObj && !headerObj.hidden) {
           if (row === lastRowIndex) {

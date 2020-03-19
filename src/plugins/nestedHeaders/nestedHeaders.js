@@ -9,7 +9,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { registerPlugin } from '../../plugins';
 import BasePlugin from '../_base';
-import ColumnStatesManager from './columnStatesManager';
+import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
@@ -41,12 +41,10 @@ import './nestedHeaders.css';
  */
 class NestedHeaders extends BasePlugin {
   /**
-   * Array of nested headers' colspans.
-   *
    * @private
-   * @type {Array}
+   * @type {StateManager}
    */
-  #columnStatesManager = new ColumnStatesManager();
+  #stateManager = new StateManager();
   /**
    * Custom helper for getting widths of the nested headers.
    *
@@ -78,7 +76,7 @@ class NestedHeaders extends BasePlugin {
     const nestedHeaders = this.hot.getSettings().nestedHeaders;
 
     if (Array.isArray(nestedHeaders)) {
-      this.detectedOverlappedHeaders = this.#columnStatesManager.setState(nestedHeaders);
+      this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
 
       if (this.detectedOverlappedHeaders) {
         warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
@@ -101,7 +99,7 @@ class NestedHeaders extends BasePlugin {
    */
   disablePlugin() {
     this.clearColspans();
-    this.#columnStatesManager.clear();
+    this.#stateManager.clear();
     this.ghostTable.clear();
 
     super.disablePlugin();
@@ -120,10 +118,10 @@ class NestedHeaders extends BasePlugin {
 
   /**
    * @private
-   * @returns {ColumnStatesManager}
+   * @returns {StateManager}
    */
-  getColumnStateManager() {
-    return this.#columnStatesManager;
+  getStateManager() {
+    return this.#stateManager;
   }
 
   /**
@@ -133,7 +131,7 @@ class NestedHeaders extends BasePlugin {
    * @returns {number}
    */
   getLayersCount() {
-    return this.#columnStatesManager.getLayersCount();
+    return this.#stateManager.getLayersCount();
   }
 
   /**
@@ -142,12 +140,12 @@ class NestedHeaders extends BasePlugin {
    * in the header renderers.
    *
    * @private
-   * @param {number} visualColumnIndex A visual column index.
    * @param {number} headerLevel Header level (0 = most distant to the table).
+   * @param {number} columnIndex A visual column index.
    * @returns {object}
    */
-  getColumnSettings(visualColumnIndex, headerLevel) {
-    return this.#columnStatesManager.getColumnSettings(visualColumnIndex, headerLevel);
+  getHeaderSettings(headerLevel, columnIndex) {
+    return this.#stateManager.getHeaderSettings(headerLevel, columnIndex);
   }
 
   /**
@@ -155,16 +153,17 @@ class NestedHeaders extends BasePlugin {
    * all overlays except master.
    *
    * @private
-   * @param {number} visualColumnIndex A visual column index.
+   * @param {number} columnIndex A visual column index.
    * @param {number} headerLevel Header level (0 = most distant to the table).
    * @returns {HTMLElement[]}
    */
-  getColumnHeaders(visualColumnIndex, headerLevel) {
+  getColumnHeaders(columnIndex, headerLevel) {
     const { wtOverlays } = this.hot.view.wt;
+    const renderedColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(columnIndex);
 
     return [
-      wtOverlays.topOverlay?.clone.wtTable.getColumnHeader(visualColumnIndex, headerLevel),
-      wtOverlays.topLeftCornerOverlay?.clone.wtTable.getColumnHeader(visualColumnIndex, headerLevel),
+      wtOverlays.topOverlay?.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel),
+      wtOverlays.topLeftCornerOverlay?.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel),
     ].filter(element => element !== void 0);
   }
 
@@ -233,25 +232,18 @@ class NestedHeaders extends BasePlugin {
       }
 
       TH.removeAttribute('colspan');
-      TH.removeAttribute('collapsible');
       removeClass(TH, 'hiddenHeader');
 
-      const { colspan, label, hidden, collapsible } = this.#columnStatesManager.getColumnSettings(visualColumnsIndex, headerLevel);
+      const { colspan, label, hidden } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex);
 
       if (hidden === true) {
         addClass(TH, 'hiddenHeader');
 
-      } else {
-        if (colspan > 1) {
-          const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
-          const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
+      } else if (colspan > 1) {
+        const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
+        const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
 
-          TH.setAttribute('colspan', isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan);
-        }
-
-        if (collapsible === true) {
-          TH.setAttribute('collapsible', true);
-        }
+        TH.setAttribute('colspan', isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - visualColumnsIndex) : colspan);
       }
 
       const divEl = rootDocument.createElement('div');
@@ -289,26 +281,26 @@ class NestedHeaders extends BasePlugin {
     const activeHeader = classNameModifier(hotSettings.activeHeaderClassName);
 
     const selectionByHeader = hot.selection.isSelectedByColumnHeader();
-    const layersCount = this.#columnStatesManager.getLayersCount();
+    const layersCount = this.#stateManager.getLayersCount();
     const { col: columnFrom } = selection.getTopLeftCorner();
     const { col: columnTo } = selection.getTopRightCorner();
     const columnSelectionWidth = columnTo - columnFrom + 1;
     const changes = [];
 
-    let columnWalker = 0;
+    let columnCursor = 0;
 
     for (let column = columnFrom; column <= columnTo; column++) {
       // Traverse header layers from bottom to top.
       for (let level = layersCount - 1; level > -1; level--) {
-        const { colspan, hidden } = this.#columnStatesManager.getColumnSettings(column, level);
+        const { colspan, hidden } = this.#stateManager.getHeaderSettings(level, column);
         const isFirstLayer = level === layersCount - 1;
-        let isOutOfRange = (columnWalker + colspan) > columnSelectionWidth;
+        let isOutOfRange = (columnCursor + colspan) > columnSelectionWidth;
 
         // If the selection doesn't overlap, the whole colspaned header. Correct the
         // visual column index to the TH element, which is not hidden (most left column index).
-        if (columnWalker === 0 && isFirstLayer) {
+        if (columnCursor === 0 && isFirstLayer) {
           isOutOfRange = false;
-          column = this.#columnStatesManager.findLeftMostColumnIndex(column, level);
+          column = this.#stateManager.findLeftMostColumnIndex(level, column);
         }
 
         const THs = this.getColumnHeaders(column, level);
@@ -331,7 +323,7 @@ class NestedHeaders extends BasePlugin {
         });
       }
 
-      columnWalker += 1;
+      columnCursor += 1;
     }
 
     arrayEach(changes, fn => void fn());
@@ -355,7 +347,7 @@ class NestedHeaders extends BasePlugin {
    */
   onAfterOnCellMouseDown(event, coords) {
     if (coords.row < 0) {
-      const { colspan } = this.#columnStatesManager.getColumnSettings(coords.col, coords.row);
+      const { colspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
 
       if (colspan > 1) {
         this.hot.selection.selectColumns(coords.col, coords.col + colspan - 1);
@@ -378,7 +370,7 @@ class NestedHeaders extends BasePlugin {
     }
 
     const { from, to } = this.hot.getSelectedRangeLast();
-    const { colspan } = this.#columnStatesManager.getColumnSettings(coords.col, coords.row);
+    const { colspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
     const lastColIndex = coords.col + colspan - 1;
     let changeDirection = false;
 
@@ -434,7 +426,7 @@ class NestedHeaders extends BasePlugin {
     if (renderersArray) {
       renderersArray.length = 0;
 
-      for (let headerLayer = 0; headerLayer < this.#columnStatesManager.getLayersCount(); headerLayer++) {
+      for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
         renderersArray.push(this.headerRendererFactory(headerLayer));
       }
     }
@@ -451,8 +443,8 @@ class NestedHeaders extends BasePlugin {
   onAfterViewportColumnCalculatorOverride(calc) {
     let newStartColumn = calc.startColumn;
 
-    for (let headerLayer = 0; headerLayer < this.#columnStatesManager.getLayersCount(); headerLayer++) {
-      const startColumnNestedParent = this.#columnStatesManager.findLeftMostColumnIndex(calc.startColumn, headerLayer);
+    for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
+      const startColumnNestedParent = this.#stateManager.findLeftMostColumnIndex(headerLayer, calc.startColumn);
 
       if (startColumnNestedParent < calc.startColumn) {
         newStartColumn = startColumnNestedParent;
@@ -481,7 +473,7 @@ class NestedHeaders extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#columnStatesManager = null;
+    this.#stateManager = null;
 
     super.destroy();
   }

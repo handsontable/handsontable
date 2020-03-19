@@ -43,20 +43,20 @@ export function settingsNormalizer(sourceSettings) {
   const normalizedSettings = [];
 
   // Normalize array items (header settings) into one shape - literal object with default props.
-  arrayEach(sourceSettings, (columnsSettings) => {
+  arrayEach(sourceSettings, (headersSettings) => {
     const columns = [];
 
     normalizedSettings.push(columns);
 
-    arrayEach(columnsSettings, (columnSettings) => {
+    arrayEach(headersSettings, (sourceHeaderSettings) => {
       const headerSettings = {
         ...HEADER_DEFAULT_SETTINGS,
       };
 
-      if (isObject(columnSettings)) {
+      if (isObject(sourceHeaderSettings)) {
         const {
           label, colspan,
-        } = columnSettings;
+        } = sourceHeaderSettings;
 
         headerSettings.label = stringify(label);
 
@@ -65,7 +65,7 @@ export function settingsNormalizer(sourceSettings) {
           headerSettings.origColspan = colspan;
         }
       } else {
-        headerSettings.label = stringify(columnSettings);
+        headerSettings.label = stringify(sourceHeaderSettings);
       }
 
       columns.push(headerSettings);
@@ -81,14 +81,14 @@ export function settingsNormalizer(sourceSettings) {
     });
   });
 
-  const columnsLength = Math.max(...arrayMap(normalizedSettings, (columnsSettings => columnsSettings.length)));
+  const columnsLength = Math.max(...arrayMap(normalizedSettings, (headersSettings => headersSettings.length)));
 
   // Normalize the length of each header layer to the same columns length.
-  arrayEach(normalizedSettings, (columnsSettings) => {
-    if (columnsSettings.length < columnsLength) {
-      const defaultSettings = arrayMap(new Array(columnsLength - columnsSettings.length), () => ({ ...HEADER_DEFAULT_SETTINGS }));
+  arrayEach(normalizedSettings, (headersSettings) => {
+    if (headersSettings.length < columnsLength) {
+      const defaultSettings = arrayMap(new Array(columnsLength - headersSettings.length), () => ({ ...HEADER_DEFAULT_SETTINGS }));
 
-      columnsSettings.splice(columnsSettings.length, 0, ...defaultSettings);
+      headersSettings.splice(headersSettings.length, 0, ...defaultSettings);
     }
   });
 

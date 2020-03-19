@@ -1,8 +1,8 @@
-import ColumnStatesManager from 'handsontable/plugins/nestedHeaders/columnStatesManager';
+import StateManager from 'handsontable/plugins/nestedHeaders/stateManager';
 
-describe('ColumnStatesManager', () => {
+describe('StateManager', () => {
   describe('setState', () => {
-    it('should generate colspan matrix when the nested headers settings are correct', () => {
+    it('should generate headers matrix when the nested headers settings are correct', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+
@@ -15,7 +15,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       const isError = state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -25,10 +25,18 @@ describe('ColumnStatesManager', () => {
       ]);
 
       expect(isError).toBe(false);
-      expect(state.getColumnSettings(0, 0)).toEqual({ label: 'A1', colspan: 1, origColspan: 1, hidden: false });
-      expect(state.getColumnSettings(1, 0)).toEqual({ label: 'A2', colspan: 4, origColspan: 4, hidden: false });
-      expect(state.getColumnSettings(2, 0)).toEqual({ label: '', colspan: 1, origColspan: 4, hidden: true });
-      expect(state.getColumnSettings(1, 3)).toEqual({ label: 'D2', colspan: 1, origColspan: 1, hidden: false });
+      expect(state.getHeaderSettings(0, 0)).toEqual({
+        label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false
+      });
+      expect(state.getHeaderSettings(0, 1)).toEqual({
+        label: 'A2', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false
+      });
+      expect(state.getHeaderSettings(0, 2)).toEqual({
+        label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false
+      });
+      expect(state.getHeaderSettings(-1, 1)).toEqual({
+        label: 'D2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false
+      });
       expect(state.getLayersCount()).toBe(4);
       expect(state.getColumnsCount()).toBe(7);
     });
@@ -46,7 +54,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       const isError = state.setState([
         ['A1', { label: 'A2', colspan: 5 }, 'A3'],
@@ -56,12 +64,36 @@ describe('ColumnStatesManager', () => {
       ]);
 
       expect(isError).toBe(true);
-      expect(state.getColumnSettings(0, 0)).toBe(null);
-      expect(state.getColumnSettings(1, 0)).toBe(null);
-      expect(state.getColumnSettings(2, 0)).toBe(null);
-      expect(state.getColumnSettings(1, 3)).toBe(null);
+      expect(state.getHeaderSettings(0, 0)).toBe(null);
+      expect(state.getHeaderSettings(1, 0)).toBe(null);
+      expect(state.getHeaderSettings(2, 0)).toBe(null);
+      expect(state.getHeaderSettings(1, 3)).toBe(null);
       expect(state.getLayersCount()).toBe(0);
       expect(state.getColumnsCount()).toBe(0);
+    });
+  });
+
+  describe('mergeStateWith', () => {
+    it('TODO', () => {
+
+    });
+  });
+
+  describe('mapState', () => {
+    it('TODO', () => {
+
+    });
+  });
+
+  describe('mapNodes', () => {
+    it('TODO', () => {
+
+    });
+  });
+
+  describe('triggerNodeModification', () => {
+    it('TODO', () => {
+
     });
   });
 
@@ -79,7 +111,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -113,7 +145,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -133,8 +165,8 @@ describe('ColumnStatesManager', () => {
     });
   });
 
-  describe('getColumnSettings', () => {
-    it('should return proper column settings', () => {
+  describe('getHeaderSettings', () => {
+    it('should return proper header settings using negative and positive header levels', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+
@@ -147,7 +179,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -156,14 +188,34 @@ describe('ColumnStatesManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      expect(state.getColumnSettings(0, 0)).toEqual({ label: 'A1', colspan: 1, origColspan: 1, hidden: false });
-      expect(state.getColumnSettings(1, 0)).toEqual({ label: 'A2', colspan: 4, origColspan: 4, hidden: false });
-      expect(state.getColumnSettings(2, 0)).toEqual({ label: '', colspan: 1, origColspan: 4, hidden: true });
-      expect(state.getColumnSettings(1, 3)).toEqual({ label: 'D2', colspan: 1, origColspan: 1, hidden: false });
+      {
+        const headerSettings = { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false };
+
+        expect(state.getHeaderSettings(0, 0)).toEqual(headerSettings);
+        expect(state.getHeaderSettings(-4, 0)).toEqual(headerSettings);
+      }
+      {
+        const headerSettings = { label: 'A2', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false };
+
+        expect(state.getHeaderSettings(0, 1)).toEqual(headerSettings);
+        expect(state.getHeaderSettings(-4, 1)).toEqual(headerSettings);
+      }
+      {
+        const headerSettings = { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false };
+
+        expect(state.getHeaderSettings(0, 2)).toEqual(headerSettings);
+        expect(state.getHeaderSettings(-4, 2)).toEqual(headerSettings);
+      }
+      {
+        const headerSettings = { label: 'D2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false };
+
+        expect(state.getHeaderSettings(3, 1)).toEqual(headerSettings);
+        expect(state.getHeaderSettings(-1, 1)).toEqual(headerSettings);
+      }
     });
 
     it('should return null when header level is higher than passed nested header configuration', () => {
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -172,11 +224,11 @@ describe('ColumnStatesManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      expect(state.getColumnSettings(0, 4)).toBe(null);
+      expect(state.getHeaderSettings(4, 0)).toBe(null);
     });
 
     it('should return default settings when column index exceeds total columns defined in the nested header configuration', () => {
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -185,11 +237,11 @@ describe('ColumnStatesManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      const columnSettings = state.getColumnSettings(100, 0);
+      const columnSettings = state.getHeaderSettings(0, 100);
 
-      expect(columnSettings).toEqual({ label: '', colspan: 1, hidden: false });
-      expect(state.getColumnSettings(101, 0)).toEqual({ label: '', colspan: 1, hidden: false });
-      expect(state.getColumnSettings(101, 0)).not.toBe(columnSettings);
+      expect(columnSettings).toEqual({ label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false });
+      expect(state.getHeaderSettings(0, 101)).toEqual({ label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false });
+      expect(state.getHeaderSettings(0, 101)).not.toBe(columnSettings);
     });
   });
 
@@ -207,7 +259,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -219,46 +271,46 @@ describe('ColumnStatesManager', () => {
       // header level = 0
       expect(state.findLeftMostColumnIndex(0, 0)).toBe(0);
 
-      expect(state.findLeftMostColumnIndex(1, 0)).toBe(1);
-      expect(state.findLeftMostColumnIndex(2, 0)).toBe(1);
-      expect(state.findLeftMostColumnIndex(3, 0)).toBe(1);
-      expect(state.findLeftMostColumnIndex(4, 0)).toBe(1);
+      expect(state.findLeftMostColumnIndex(0, 1)).toBe(1);
+      expect(state.findLeftMostColumnIndex(0, 2)).toBe(1);
+      expect(state.findLeftMostColumnIndex(0, 3)).toBe(1);
+      expect(state.findLeftMostColumnIndex(0, 4)).toBe(1);
 
-      expect(state.findLeftMostColumnIndex(5, 0)).toBe(5);
-      expect(state.findLeftMostColumnIndex(6, 0)).toBe(5);
+      expect(state.findLeftMostColumnIndex(0, 5)).toBe(5);
+      expect(state.findLeftMostColumnIndex(0, 6)).toBe(5);
 
       // header level = 1
-      expect(state.findLeftMostColumnIndex(0, 1)).toBe(0);
+      expect(state.findLeftMostColumnIndex(1, 0)).toBe(0);
 
       expect(state.findLeftMostColumnIndex(1, 1)).toBe(1);
-      expect(state.findLeftMostColumnIndex(2, 1)).toBe(1);
-      expect(state.findLeftMostColumnIndex(3, 1)).toBe(1);
-      expect(state.findLeftMostColumnIndex(4, 1)).toBe(1);
+      expect(state.findLeftMostColumnIndex(1, 2)).toBe(1);
+      expect(state.findLeftMostColumnIndex(1, 3)).toBe(1);
+      expect(state.findLeftMostColumnIndex(1, 4)).toBe(1);
 
-      expect(state.findLeftMostColumnIndex(5, 1)).toBe(5);
-      expect(state.findLeftMostColumnIndex(6, 1)).toBe(5);
+      expect(state.findLeftMostColumnIndex(1, 5)).toBe(5);
+      expect(state.findLeftMostColumnIndex(1, 6)).toBe(5);
 
       // header level = 2
-      expect(state.findLeftMostColumnIndex(0, 2)).toBe(0);
+      expect(state.findLeftMostColumnIndex(2, 0)).toBe(0);
 
-      expect(state.findLeftMostColumnIndex(1, 2)).toBe(1);
+      expect(state.findLeftMostColumnIndex(2, 1)).toBe(1);
 
       expect(state.findLeftMostColumnIndex(2, 2)).toBe(2);
-      expect(state.findLeftMostColumnIndex(3, 2)).toBe(2);
-      expect(state.findLeftMostColumnIndex(4, 2)).toBe(2);
+      expect(state.findLeftMostColumnIndex(2, 3)).toBe(2);
+      expect(state.findLeftMostColumnIndex(2, 4)).toBe(2);
 
-      expect(state.findLeftMostColumnIndex(5, 2)).toBe(5);
-      expect(state.findLeftMostColumnIndex(6, 2)).toBe(5);
+      expect(state.findLeftMostColumnIndex(2, 5)).toBe(5);
+      expect(state.findLeftMostColumnIndex(2, 6)).toBe(5);
 
       // header level = 3
-      expect(state.findLeftMostColumnIndex(0, 3)).toBe(0);
-      expect(state.findLeftMostColumnIndex(1, 3)).toBe(1);
-      expect(state.findLeftMostColumnIndex(2, 3)).toBe(2);
+      expect(state.findLeftMostColumnIndex(3, 0)).toBe(0);
+      expect(state.findLeftMostColumnIndex(3, 1)).toBe(1);
+      expect(state.findLeftMostColumnIndex(3, 2)).toBe(2);
       expect(state.findLeftMostColumnIndex(3, 3)).toBe(3);
-      expect(state.findLeftMostColumnIndex(4, 3)).toBe(4);
+      expect(state.findLeftMostColumnIndex(3, 4)).toBe(4);
 
-      expect(state.findLeftMostColumnIndex(5, 3)).toBe(5);
-      expect(state.findLeftMostColumnIndex(6, 3)).toBe(5);
+      expect(state.findLeftMostColumnIndex(3, 5)).toBe(5);
+      expect(state.findLeftMostColumnIndex(3, 6)).toBe(5);
     });
   });
 
@@ -276,7 +328,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -303,7 +355,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -330,7 +382,7 @@ describe('ColumnStatesManager', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6      |
        *   +----+----+----+----+----+----+----+
        */
-      const state = new ColumnStatesManager();
+      const state = new StateManager();
 
       state.setState([
         ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
@@ -341,7 +393,7 @@ describe('ColumnStatesManager', () => {
 
       state.clear();
 
-      expect(state.getColumnSettings(0, 0)).toBe(null);
+      expect(state.getHeaderSettings(0, 0)).toBe(null);
       expect(state.getLayersCount()).toBe(0);
       expect(state.getColumnsCount()).toBe(0);
     });
