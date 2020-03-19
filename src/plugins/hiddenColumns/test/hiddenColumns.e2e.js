@@ -4081,7 +4081,42 @@ describe('HiddenColumns', () => {
   });
 
   describe('cooperation with the `MergeCells` plugin', () => {
-    it('merge containing hidden columns (start from visible cell, merging to visible cell)', () => {
+    it('should display properly merged area basing on the settings', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 3 }
+        ],
+        hiddenColumns: {
+          columns: [1],
+        }
+      });
+
+      expect(getData()).toEqual([
+        ['A1', null, null, 'D1', 'E1'],
+        [null, null, null, 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+
+      expect($(getHtCore())[0].offsetWidth).toBe(200);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+
+      getPlugin('hiddenColumns').showColumns([1]);
+      render();
+
+      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(150);
+
+      getPlugin('hiddenColumns').hideColumns([1]);
+      render();
+
+      expect($(getHtCore())[0].offsetWidth).toBe(200);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+    });
+
+    it('should display properly merged area containing hidden columns (start from visible cell, merging to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4119,7 +4154,7 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(150);
     });
 
-    it('merge containing hidden columns (start from invisible cell, merging to visible cell)', () => {
+    it('should display properly merged area containing hidden columns (start from invisible cell, merging to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4166,7 +4201,7 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
     });
 
-    it('merge containing hidden columns (start from visible cell, merging to invisible cell)', () => {
+    it('should display properly merged area containing hidden columns (start from visible cell, merging to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4210,7 +4245,7 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(200);
     });
 
-    it('merge containing hidden columns (start from invisible cell, merging to invisible cell)', () => {
+    it('should display properly merged area containing hidden columns (start from invisible cell, merging to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
