@@ -115,7 +115,7 @@ export default class SourceSettings {
   getHeadersSettings(headerLevel, columnIndex, columnsLength = 1) {
     const headersSettingsChunks = [];
 
-    if (headerLevel >= this.#dataLength) {
+    if (headerLevel >= this.#dataLength || headerLevel < 0) {
       return headersSettingsChunks;
     }
 

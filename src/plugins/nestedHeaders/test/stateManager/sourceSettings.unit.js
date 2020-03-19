@@ -187,6 +187,7 @@ describe('SourceSettings', () => {
       ]]);
 
       expect(settings.getHeaderSettings(3, 0)).toBe(null);
+      expect(settings.getHeaderSettings(-1, 0)).toBe(null);
     });
 
     it('should return null when passed column index exceeds the user-defined nested headers array settings', () => {
@@ -237,6 +238,17 @@ describe('SourceSettings', () => {
 
         expect(settings.getHeadersSettings(0, 0).length).toBe(0);
       }
+    });
+
+    it('should return an empty array when passed header level exceeds the user-defined nested headers array settings', () => {
+      const settings = new SourceSettings([[
+        ['A1'],
+        [{ label: true }, 'B2', 4],
+        [],
+      ]]);
+
+      expect(settings.getHeadersSettings(3, 0)).toEqual([]);
+      expect(settings.getHeadersSettings(-1, 0)).toEqual([]);
     });
 
     it('should return columns settings for specified header level', () => {
