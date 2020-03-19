@@ -49,7 +49,7 @@ describe('Formulas -> math trig functions', () => {
   });
 
   xit('FLATTEN', () => {
-    const data = getDataForFormulas(0, 'address', ['=FLATTEN()', '=FLATTEN(A1:B3)']);
+    const data = getDataForFormulas(0, 'address', ['=FLATTEN(A1:B3)']);
 
     const hot = handsontable({
       data,
@@ -59,12 +59,11 @@ describe('Formulas -> math trig functions', () => {
       height: 300
     });
 
-    expect(hot.getDataAtCell(0, 2)).toBe('#ERROR!');
-    expect(hot.getDataAtCell(1, 2)).toEqual([1, 'Nannie Patel', 2, 'Leanne Ware', 3, 'Mathis Boone']);
+    expect(hot.getDataAtCell(0, 2)).toEqual([1, 'Nannie Patel', 2, 'Leanne Ware', 3, 'Mathis Boone']);
   });
 
   xit('JOIN', () => {
-    const data = getDataForFormulas(0, 'address', ['=JOIN()', '=JOIN(A1:B3)']);
+    const data = getDataForFormulas(0, 'address', ['=JOIN(A1:B3)']);
 
     const hot = handsontable({
       data,
@@ -74,8 +73,7 @@ describe('Formulas -> math trig functions', () => {
       height: 300
     });
 
-    expect(hot.getDataAtCell(0, 2)).toBe('#ERROR!');
-    expect(hot.getDataAtCell(1, 2)).toEqual([1, 'Nannie Patel', 2, 'Leanne Ware', 3, 'Mathis Boone'].join(','));
+    expect(hot.getDataAtCell(0, 2)).toEqual([1, 'Nannie Patel', 2, 'Leanne Ware', 3, 'Mathis Boone'].join(','));
   });
 
   xit('NUMBERS', () => {
@@ -94,7 +92,7 @@ describe('Formulas -> math trig functions', () => {
   });
 
   xit('REFERENCE', () => {
-    const data = getDataForFormulas(0, 'address', ['=REFERENCE()', '=REFERENCE(A1, "name.firstName")']);
+    const data = getDataForFormulas(0, 'address', ['=REFERENCE(A1, "name.firstName")']);
 
     data[0].id = { name: { firstName: 'Jim' } };
 
@@ -106,7 +104,6 @@ describe('Formulas -> math trig functions', () => {
       height: 300
     });
 
-    expect(hot.getDataAtCell(0, 2)).toBe('#ERROR!');
-    expect(hot.getDataAtCell(1, 2)).toBe('Jim');
+    expect(hot.getDataAtCell(0, 2)).toBe('Jim');
   });
 });

@@ -58,7 +58,7 @@ describe('Formulas -> information functions', () => {
     expect(hot.getDataAtCell(5, 1)).toBe(false);
   });
 
-  xit('ISEVEN', () => {
+  it('ISEVEN', () => {
     const data = getDataForFormulas(0, 'name', ['=ISEVEN(A1)', '=ISEVEN(A2)', '=ISEVEN(A3)']);
 
     data[0].id = 1;

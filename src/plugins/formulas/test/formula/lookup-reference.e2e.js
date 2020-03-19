@@ -13,7 +13,7 @@ describe('Formulas -> lookup reference functions', () => {
   });
 
   it('MATCH', () => {
-    const data = getDataForFormulas(0, 'name', ['=MATCH()', '=MATCH("Saranap", C1:C5)', '=MATCH(4, A1:A5, 1)']);
+    const data = getDataForFormulas(0, 'name', ['=MATCH("Saranap", C1:C5)', '=MATCH(4, A1:A5, 1)']);
 
     const hot = handsontable({
       data,
@@ -23,8 +23,7 @@ describe('Formulas -> lookup reference functions', () => {
       height: 300
     });
 
-    expect(hot.getDataAtCell(0, 1)).toBe('#N/A');
-    expect(hot.getDataAtCell(1, 1)).toBe(1);
-    expect(hot.getDataAtCell(2, 1)).toBe(3);
+    expect(hot.getDataAtCell(0, 1)).toBe(1);
+    expect(hot.getDataAtCell(1, 1)).toBe(3);
   });
 });
