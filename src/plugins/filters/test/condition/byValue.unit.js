@@ -3,6 +3,9 @@ import { dateRowFactory } from '../helpers/utils';
 
 describe('Filters condition (`by_value`)', () => {
 
+  /**
+   * @param items
+   */
   function assertion(items) {
     return function(value) {
       return items.indexOf(value) !== -1;

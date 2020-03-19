@@ -5,6 +5,11 @@ export const OPERATION_ID = 'disjunctionWithExtraCondition';
 export const SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
 // ((p OR q OR w OR x OR...) AND z) === TRUE?
 
+/**
+ * @param {Array} conditions An array with values to check.
+ * @param {*} value The comparable value.
+ * @returns {boolean}
+ */
 export function operationResult(conditions, value) {
   if (conditions.length < 3) {
     throw Error('Operation doesn\'t work on less then three conditions.');

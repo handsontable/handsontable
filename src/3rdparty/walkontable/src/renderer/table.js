@@ -38,7 +38,7 @@
  *         <td>  /                    /
  *       </tr>                       /
  *     </tbody>  ___________________/
- *   </table>
+ *   </table>.
  *
  * @class {RowsRenderer}
  */
@@ -113,13 +113,13 @@ export default class TableRenderer {
     /**
      * Indicates how much rows should be rendered to fill whole table viewport.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.rowsToRender = 0;
     /**
      * Indicates how much columns should be rendered to fill whole table viewport.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.columnsToRender = 0;
     /**
@@ -131,7 +131,7 @@ export default class TableRenderer {
     /**
      * Count of the function used to render row headers.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.rowHeadersCount = 0;
     /**
@@ -143,7 +143,7 @@ export default class TableRenderer {
     /**
      * Count of the function used to render column headers.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.columnHeadersCount = 0;
     /**
@@ -168,8 +168,8 @@ export default class TableRenderer {
   /**
    * Sets viewport size of the table.
    *
-   * @param {Number} rowsCount An amount of rows to render.
-   * @param {Number} columnsCount An amount of columns to render.
+   * @param {number} rowsCount An amount of rows to render.
+   * @param {number} columnsCount An amount of columns to render.
    */
   setViewportSize(rowsCount, columnsCount) {
     this.rowsToRender = rowsCount;
@@ -203,6 +203,7 @@ export default class TableRenderer {
   /**
    * Sets table renderers.
    *
+   * @param {renderers} renderers The renderer units.
    * @param {RowHeadersRenderer} renderers.rowHeaders Row headers renderer.
    * @param {ColumnHeadersRenderer} renderers.columnHeaders Column headers renderer.
    * @param {ColGroupRenderer} renderers.colGroup Col group renderer.
@@ -226,8 +227,8 @@ export default class TableRenderer {
   /**
    * Transforms visual/rendered row index to source index.
    *
-   * @param {Number} rowIndex Rendered index.
-   * @return {Number}
+   * @param {number} rowIndex Rendered index.
+   * @returns {number}
    */
   renderedRowToSource(rowIndex) {
     return this.rowFilter.renderedToSource(rowIndex);
@@ -236,8 +237,8 @@ export default class TableRenderer {
   /**
    * Transforms visual/rendered column index to source index.
    *
-   * @param {Number} columnIndex Rendered index.
-   * @return {Number}
+   * @param {number} columnIndex Rendered index.
+   * @returns {number}
    */
   renderedColumnToSource(columnIndex) {
     return this.columnFilter.renderedToSource(columnIndex);

@@ -7,24 +7,24 @@ import { expandMetaType } from '../utils';
  * merged with settings passed by the developer. Adding, removing, or changing property in that
  * object has no direct reflection on any other layers.
  *
- * +-------------+
+ * +-------------+.
  * │ GlobalMeta  │
  * │ (prototype) │
  * +-------------+\
  *       │         \
  *       │          \
  *      \│/         _\|
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  * │ TableMeta   │    │ ColumnMeta  │
  * │ (instance)  │    │ (prototype) │
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  *                         │
  *                         │
  *                        \│/
- *                    +-------------+
+ *                    +-------------+.
  *                    │  CellMeta   │
  *                    │ (instance)  │
- *                    +-------------+
+ *                    +-------------+.
  *
  * @class {TableMeta}
  */
@@ -35,7 +35,7 @@ export default class TableMeta {
     /**
      * Main object (instance of the internal TableMeta class from GlobalMeta), holder for all settings defined in the table scope.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.meta = new MetaCtor();
   }
@@ -43,7 +43,7 @@ export default class TableMeta {
   /**
    * Gets settings object for this layer.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getMeta() {
     return this.meta;
@@ -52,7 +52,7 @@ export default class TableMeta {
   /**
    * Updates table settings object by merging settings with the current state.
    *
-   * @param {Object} settings An object to merge with.
+   * @param {object} settings An object to merge with.
    */
   updateMeta(settings) {
     extend(this.meta, settings);

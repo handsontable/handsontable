@@ -6,7 +6,7 @@ import LazyFactoryMap from '../lazyFactoryMap';
  * List of props which have to be cleared in the column meta-layer. That props have a
  * different meaning when using in column meta.
  *
- * @type {String[]}
+ * @type {string[]}
  */
 const COLUMNS_PROPS_CONFLICTS = ['data', 'width'];
 
@@ -17,24 +17,24 @@ const COLUMNS_PROPS_CONFLICTS = ['data', 'width'];
  * the CellMeta layer. The reflection will be visible only if the property doesn't exist in the lower
  * layers (prototype lookup).
  *
- * +-------------+
+ * +-------------+.
  * │ GlobalMeta  │
  * │ (prototype) │
  * +-------------+\
  *       │         \
  *       │          \
  *      \│/         _\|
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  * │ TableMeta   │    │ ColumnMeta  │
  * │ (instance)  │    │ (prototype) │
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  *                         │
  *                         │
  *                        \│/
- *                    +-------------+
+ *                    +-------------+.
  *                    │  CellMeta   │
  *                    │ (instance)  │
- *                    +-------------+
+ *                    +-------------+.
  *
  * @class {ColumnMeta}
  */
@@ -59,8 +59,8 @@ export default class ColumnMeta {
   /**
    * Updates column meta object by merging settings with the current state.
    *
-   * @param {Number} physicalColumn The physical column index which points what column meta object is updated.
-   * @param {Object} settings An object to merge with.
+   * @param {number} physicalColumn The physical column index which points what column meta object is updated.
+   * @param {object} settings An object to merge with.
    */
   updateMeta(physicalColumn, settings) {
     const meta = this.getMeta(physicalColumn);
@@ -72,8 +72,8 @@ export default class ColumnMeta {
   /**
    * Creates one or more columns at specific position.
    *
-   * @param {Number} physicalColumn The physical column index which points from what position the column is added.
-   * @param {Number} amount An amount of columns to add.
+   * @param {number} physicalColumn The physical column index which points from what position the column is added.
+   * @param {number} amount An amount of columns to add.
    */
   createColumn(physicalColumn, amount) {
     this.metas.insert(physicalColumn, amount);
@@ -82,8 +82,8 @@ export default class ColumnMeta {
   /**
    * Removes one or more columns from the collection.
    *
-   * @param {Number} physicalColumn The physical column index which points from what position the column is removed.
-   * @param {Number} amount An amount columns to remove.
+   * @param {number} physicalColumn The physical column index which points from what position the column is removed.
+   * @param {number} amount An amount columns to remove.
    */
   removeColumn(physicalColumn, amount) {
     this.metas.remove(physicalColumn, amount);
@@ -92,8 +92,8 @@ export default class ColumnMeta {
   /**
    * Gets settings object for this layer.
    *
-   * @param {Number} physicalColumn The physical column index.
-   * @returns {Object}
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object}
    */
   getMeta(physicalColumn) {
     return this.metas.obtain(physicalColumn);
@@ -102,7 +102,7 @@ export default class ColumnMeta {
   /**
    * Gets constructor of the column meta object. Necessary for inheritance - creating the next meta layers.
    *
-   * @param {Number} physicalColumn The physical column index.
+   * @param {number} physicalColumn The physical column index.
    * @returns {Function}
    */
   getMetaConstructor(physicalColumn) {
@@ -120,7 +120,7 @@ export default class ColumnMeta {
    * Creates and returns new column meta object with properties inherited from the global meta layer.
    *
    * @private
-   * @returns {Object}
+   * @returns {object}
    */
   _createMeta() {
     return columnFactory(this.globalMeta.getMetaConstructor(), COLUMNS_PROPS_CONFLICTS).prototype;

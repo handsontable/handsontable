@@ -34,7 +34,8 @@ module.exports = {
   ],
   plugins: [
     ['@babel/plugin-proposal-object-rest-spread', { useBuiltIns: true }],
-    ['transform-inline-environment-variables']
+    ['transform-inline-environment-variables'],
+    ['@babel/plugin-proposal-class-properties']
   ],
   env: {
     // Environment for unit testing, source code and languages building via webpack (UMD).
@@ -82,9 +83,6 @@ module.exports = {
           allowedModules: allowedE2EModules
         }]
       ],
-      ignore: [
-        'src/plugins/**/test/**'
-      ]
     },
   },
 

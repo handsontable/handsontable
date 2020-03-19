@@ -8,13 +8,13 @@ import { getParentWindow } from './helpers/dom/element';
 
 class EditorManager {
   /**
-   * @param {Handsontable} instance
-   * @param {GridSettings} tableMeta
-   * @param {Selection} selection
+   * @param {Core} instance The Handsontable instance.
+   * @param {TableMeta} tableMeta The table meta instance.
+   * @param {Selection} selection The selection instance.
    */
   constructor(instance, tableMeta, selection) {
     /**
-     * Instance of {@link Handsontable}
+     * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
@@ -28,7 +28,7 @@ class EditorManager {
      */
     this.tableMeta = tableMeta;
     /**
-     * Instance of {@link Selection}
+     * Instance of {@link Selection}.
      *
      * @private
      * @type {Selection}
@@ -45,14 +45,14 @@ class EditorManager {
      * Determines if EditorManager is destroyed.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.destroyed = false;
     /**
      * Determines if EditorManager is locked.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.lock = false;
     /**
@@ -65,13 +65,13 @@ class EditorManager {
     /**
      * Keeps a reference to the cell's properties object.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.cellProperties = void 0;
     /**
      * Keeps last keyCode pressed from the keydown event.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.lastKeyCode = void 0;
 
@@ -118,7 +118,8 @@ class EditorManager {
   /**
    * Destroy current editor, if exists.
    *
-   * @param {Boolean} revertOriginal
+   * @param {boolean} revertOriginal If `false` and the cell using allowInvalid option,
+   *                                 then an editor won't be closed until validation is passed.
    */
   destroyEditor(revertOriginal) {
     if (!this.lock) {
@@ -181,7 +182,7 @@ class EditorManager {
   /**
    * Check is editor is opened/showed.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEditorOpened() {
     return this.activeEditor && this.activeEditor.isOpened();
@@ -190,8 +191,8 @@ class EditorManager {
   /**
    * Open editor with initial value.
    *
-   * @param {null|String} newInitialValue new value from which editor will start if handled property it's not the `null`.
-   * @param {Event} event
+   * @param {null|string} newInitialValue New value from which editor will start if handled property it's not the `null`.
+   * @param {Event} event The event object.
    */
   openEditor(newInitialValue, event) {
     if (!this.activeEditor) {
@@ -204,9 +205,9 @@ class EditorManager {
   /**
    * Close editor, finish editing cell.
    *
-   * @param {Boolean} restoreOriginalValue
-   * @param {Boolean} [isCtrlPressed]
-   * @param {Function} [callback]
+   * @param {boolean} restoreOriginalValue If `true`, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
+   * @param {Function} callback The callback function, fired after editor closing.
    */
   closeEditor(restoreOriginalValue, isCtrlPressed, callback) {
     if (this.activeEditor) {
@@ -220,7 +221,7 @@ class EditorManager {
   /**
    * Close editor and save changes.
    *
-   * @param {Boolean} isCtrlPressed
+   * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
    */
   closeEditorAndSaveChanges(isCtrlPressed) {
     this.closeEditor(false, isCtrlPressed);
@@ -229,10 +230,10 @@ class EditorManager {
   /**
    * Close editor and restore original value.
    *
-   * @param {Boolean} isCtrlPressed
+   * @param {boolean} isCtrlPressed Indication of whether the CTRL button is pressed.
    */
   closeEditorAndRestoreOriginalValue(isCtrlPressed) {
-    return this.closeEditor(true, isCtrlPressed);
+    this.closeEditor(true, isCtrlPressed);
   }
 
   /**
@@ -248,7 +249,7 @@ class EditorManager {
    * Controls selection's behaviour after clicking `Enter`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
    */
   moveSelectionAfterEnter(isShiftPressed) {
     const enterMoves = typeof this.tableMeta.enterMoves === 'function' ? this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
@@ -266,7 +267,7 @@ class EditorManager {
    * Controls selection behaviour after clicking `arrow up`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand up.
    */
   moveSelectionUp(isShiftPressed) {
     if (isShiftPressed) {
@@ -280,7 +281,7 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow down`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand down.
    */
   moveSelectionDown(isShiftPressed) {
     if (isShiftPressed) {
@@ -295,7 +296,7 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow right`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand right.
    */
   moveSelectionRight(isShiftPressed) {
     if (isShiftPressed) {
@@ -309,7 +310,7 @@ class EditorManager {
    * Controls selection's behaviour after clicking `arrow left`.
    *
    * @private
-   * @param {Boolean} isShiftPressed
+   * @param {boolean} isShiftPressed If `true`, then the selection will expand left.
    */
   moveSelectionLeft(isShiftPressed) {
     if (isShiftPressed) {
@@ -320,10 +321,10 @@ class EditorManager {
   }
 
   /**
-   * onAfterDocumentKeyDown callback.
+   * OnAfterDocumentKeyDown callback.
    *
    * @private
-   * @param {KeyboardEvent} event
+   * @param {KeyboardEvent} event The keyboard event object.
    */
   onAfterDocumentKeyDown(event) {
     if (!this.instance.isListening()) {
@@ -517,12 +518,12 @@ class EditorManager {
   }
 
   /**
-   * onCellDblClick callback.
+   * OnCellDblClick callback.
    *
    * @private
-   * @param {MouseEvent} event
-   * @param {Object} coords
-   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem
+   * @param {MouseEvent} event The mouse event object.
+   * @param {object} coords The cell coordinates.
+   * @param {HTMLTableCellElement|HTMLTableHeaderCellElement} elem The element which triggers the action.
    */
   onCellDblClick(event, coords, elem) {
     // may be TD or TH
@@ -546,9 +547,10 @@ class EditorManager {
 const instances = new WeakMap();
 
 /**
- * @param {Handsontable} hotInstance
- * @param {GridSettings} tableMeta
- * @param {Selection} selection
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {TableMeta} tableMeta The table meta class instance.
+ * @param {Selection} selection The selection instance.
+ * @returns {EditorManager}
  */
 EditorManager.getInstance = function(hotInstance, tableMeta, selection) {
   let editorManager = instances.get(hotInstance);

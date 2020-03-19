@@ -37,6 +37,11 @@ import * as constants from './i18n/constants';
 
 import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
 
+/**
+ * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * @param {object} userSettings The user defined options.
+ * @returns {Core}
+ */
 function Handsontable(rootElement, userSettings) {
   const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
 

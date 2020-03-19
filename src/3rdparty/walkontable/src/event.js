@@ -99,8 +99,8 @@ class Event {
    * Checks if an element is already selected.
    *
    * @private
-   * @param {Element} touchTarget
-   * @returns {Boolean}
+   * @param {Element} touchTarget An element to check.
+   * @returns {boolean}
    */
   selectedCellWasTouched(touchTarget) {
     const priv = privatePool.get(this);
@@ -121,8 +121,8 @@ class Event {
    * Gets closest TD or TH element.
    *
    * @private
-   * @param {Element} elem
-   * @returns {Object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+   * @param {Element} elem An element from the traversing starts.
+   * @returns {object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
    */
   parentCell(elem) {
     const cell = {};
@@ -148,10 +148,10 @@ class Event {
   }
 
   /**
-   * onMouseDown callback.
+   * OnMouseDown callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseDown(event) {
     const priv = privatePool.get(this);
@@ -174,8 +174,8 @@ class Event {
       this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
     }
 
-    // doubleclick reacts only for left mouse button
-    if (event.button === 0 && cell.TD) {
+    // doubleclick reacts only for left mouse button or from touch events
+    if ((event.button === 0 || this.instance.touchApplied) && cell.TD) {
       priv.dblClickOrigin[0] = cell.TD;
 
       clearTimeout(priv.dblClickTimeout[0]);
@@ -187,10 +187,10 @@ class Event {
   }
 
   /**
-   * onContextMenu callback.
+   * OnContextMenu callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
     if (this.instance.hasSetting('onCellContextMenu')) {
@@ -203,10 +203,10 @@ class Event {
   }
 
   /**
-   * onMouseOver callback.
+   * OnMouseOver callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOver(event) {
     if (!this.instance.hasSetting('onCellMouseOver')) {
@@ -225,10 +225,10 @@ class Event {
   }
 
   /**
-   * onMouseOut callback.
+   * OnMouseOut callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseOut(event) {
     if (!this.instance.hasSetting('onCellMouseOut')) {
@@ -245,10 +245,10 @@ class Event {
   }
 
   /**
-   * onMouseUp callback.
+   * OnMouseUp callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onMouseUp(event) {
     const priv = privatePool.get(this);
@@ -258,8 +258,8 @@ class Event {
       this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
     }
 
-    // if not left mouse button, then ignore
-    if (event.button !== 0) {
+    // if not left mouse button, and the origin event is not comes from touch
+    if (event.button !== 0 && !this.instance.touchApplied) {
       return;
     }
 
@@ -285,10 +285,10 @@ class Event {
   }
 
   /**
-   * onTouchStart callback. Simulates mousedown event.
+   * OnTouchStart callback. Simulates mousedown event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchStart(event) {
     const priv = privatePool.get(this);
@@ -300,16 +300,14 @@ class Event {
   }
 
   /**
-   * onTouchEnd callback. Simulates mouseup event.
+   * OnTouchEnd callback. Simulates mouseup event.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event object.
    */
   onTouchEnd(event) {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
-
-    this.instance.touchApplied = false;
 
     // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
     // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
@@ -319,6 +317,8 @@ class Event {
     }
 
     this.onMouseUp(event);
+
+    this.instance.touchApplied = false;
   }
 
   /**

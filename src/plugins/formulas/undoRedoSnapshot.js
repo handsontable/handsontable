@@ -27,9 +27,9 @@ class UndoRedoSnapshot {
   /**
    * Save snapshot for specified action.
    *
-   * @param {String} axis Alter action which triggers snapshot.
-   * @param {Number} index Alter operation stared at.
-   * @param {Number} amount Amount of items to operate.
+   * @param {string} axis Alter action which triggers snapshot.
+   * @param {number} index Alter operation stared at.
+   * @param {number} amount Amount of items to operate.
    */
   save(axis, index, amount) {
     const { matrix, dataProvider } = this.sheet;

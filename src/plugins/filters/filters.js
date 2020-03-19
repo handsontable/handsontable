@@ -23,7 +23,6 @@ import './filters.css';
 
 /**
  * @plugin Filters
- * @dependencies DropdownMenu HiddenRows
  *
  * @description
  * The plugin allows filtering the table data either by the built-in component or with the API.
@@ -90,12 +89,12 @@ class Filters extends BasePlugin {
      * Object containing information about last selected column physical and visual index for added filter conditions.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      * @default null
      */
     this.lastSelectedColumn = null;
     /**
-     * Hidden menu rows indexed by physical column index
+     * Hidden menu rows indexed by physical column index.
      *
      * @private
      * @type {Map}
@@ -117,7 +116,7 @@ class Filters extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Filters#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     /* eslint-disable no-unneeded-ternary */
@@ -227,6 +226,7 @@ class Filters extends BasePlugin {
     super.disablePlugin();
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @description
    * Adds condition to the conditions collection at specified column index.
@@ -247,7 +247,7 @@ class Filters extends BasePlugin {
    *  * `not_between` - Not between
    *  * `not_contains` - Not contains
    *  * `not_empty` - Not empty
-   *  * `neq` - Not equal
+   *  * `neq` - Not equal.
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
@@ -288,11 +288,12 @@ class Filters extends BasePlugin {
    * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
    * filtersPlugin.filter();
    * ```
-   * @param {Number} column Visual column index.
-   * @param {String} name Condition short name.
+   * @param {number} column Visual column index.
+   * @param {string} name Condition short name.
    * @param {Array} args Condition arguments.
-   * @param {String} operationId `id` of operation which is performed on the column
+   * @param {string} operationId `id` of operation which is performed on the column.
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column, name, args, operationId = OPERATION_AND) {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
@@ -302,7 +303,7 @@ class Filters extends BasePlugin {
   /**
    * Removes conditions at specified column index.
    *
-   * @param {Number} column Visual column index.
+   * @param {number} column Visual column index.
    */
   removeConditions(column) {
     const physicalColumn = this.hot.toPhysicalColumn(column);
@@ -314,7 +315,7 @@ class Filters extends BasePlugin {
    * Clears all conditions previously added to the collection for the specified column index or, if the column index
    * was not passed, clear the conditions for all columns.
    *
-   * @param {Number} [column] Visual column index.
+   * @param {number} [column] Visual column index.
    */
   clearConditions(column) {
     if (column === void 0) {
@@ -381,8 +382,8 @@ class Filters extends BasePlugin {
   /**
    * Gets last selected column index.
    *
-   * @returns {Object|null} Return `null` when column isn't selected otherwise
-   * object containing information about selected column with keys `visualIndex` and `physicalIndex`
+   * @returns {object|null} Return `null` when column isn't selected otherwise
+   * object containing information about selected column with keys `visualIndex` and `physicalIndex`.
    */
   getSelectedColumn() {
     return this.lastSelectedColumn;
@@ -404,7 +405,7 @@ class Filters extends BasePlugin {
   /**
    * Returns handsontable source data with cell meta based on current selection.
    *
-   * @param {Number} [column] Column index. By default column index accept the value of the selected column.
+   * @param {number} [column] Column index. By default column index accept the value of the selected column.
    * @returns {Array} Returns array of objects where keys as row index.
    */
   getDataMapAtColumn(column) {
@@ -443,10 +444,10 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Update condition of ValueComponent basing on handled changes
+   * Update condition of ValueComponent basing on handled changes.
    *
    * @private
-   * @param {Number} columnIndex Column index of handled ValueComponent condition
+   * @param {number} columnIndex Column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex) {
     const dataAtCol = this.hot.getDataAtCol(columnIndex);
@@ -516,7 +517,7 @@ class Filters extends BasePlugin {
    * After dropdown menu default options listener.
    *
    * @private
-   * @param {Object} defaultOptions ContextMenu default item options.
+   * @param {object} defaultOptions ContextMenu default item options.
    */
   onAfterDropdownMenuDefaultOptions(defaultOptions) {
     defaultOptions.items.push({ name: SEPARATOR });
@@ -527,14 +528,14 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Get operation basing on number and type of arguments (where arguments are states of components)
+   * Get operation basing on number and type of arguments (where arguments are states of components).
    *
-   * @param {String} suggestedOperation operation which was chosen by user from UI
-   * @param {Object} byConditionState1 state of first condition component
-   * @param {Object} byConditionState2 state of second condition component
-   * @param {Object} byValueState state of value component
+   * @param {string} suggestedOperation Operation which was chosen by user from UI.
+   * @param {object} byConditionState1 State of first condition component.
+   * @param {object} byConditionState2 State of second condition component.
+   * @param {object} byValueState State of value component.
    * @private
-   * @returns {String}
+   * @returns {string}
    */
   getOperationBasedOnArguments(suggestedOperation, byConditionState1, byConditionState2, byValueState) {
     let operation = suggestedOperation;
@@ -556,7 +557,7 @@ class Filters extends BasePlugin {
    * On action bar submit listener.
    *
    * @private
-   * @param {String} submitType
+   * @param {string} submitType The submit type.
    */
   onActionBarSubmit(submitType) {
     if (submitType === 'accept') {
@@ -605,8 +606,8 @@ class Filters extends BasePlugin {
    * On component change listener.
    *
    * @private
-   * @param {BaseComponent} component Component inheriting BaseComponent
-   * @param {Object} command Menu item object (command).
+   * @param {BaseComponent} component Component inheriting BaseComponent.
+   * @param {object} command Menu item object (command).
    */
   onComponentChange(component, command) {
     if (component === this.components.get('filter_by_condition')) {
@@ -634,7 +635,7 @@ class Filters extends BasePlugin {
 
   /**
    * Listen to the keyboard input on document body and forward events to instance of Handsontable
-   * created by DropdownMenu plugin
+   * created by DropdownMenu plugin.
    *
    * @private
    */
@@ -646,8 +647,8 @@ class Filters extends BasePlugin {
    * On after get column header listener.
    *
    * @private
-   * @param {Number} col
-   * @param {HTMLTableCellElement} TH
+   * @param {number} col Visual column index.
+   * @param {HTMLTableCellElement} TH Header's TH element.
    */
   onAfterGetColHeader(col, TH) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
@@ -694,7 +695,7 @@ class Filters extends BasePlugin {
    * Updates components basing on conditions state.
    *
    * @private
-   * @param {Object} conditionsState
+   * @param {object} conditionsState An object with the state generated by UI components.
    */
   updateComponents(conditionsState) {
     if (!this.dropdownMenuPlugin.enabled) {
@@ -729,7 +730,7 @@ class Filters extends BasePlugin {
    *
    * @private
    * @param {BaseComponent} component `BaseComponent` element or it derivatives.
-   * @param {Number} column Physical column index.
+   * @param {number} column Physical column index.
    */
   showComponentForParticularColumn(component, column) {
     if (!this.hiddenRowsCache.has(column)) {
@@ -745,8 +746,8 @@ class Filters extends BasePlugin {
    * Removes specific rows from `hiddenRows` cache for particular column.
    *
    * @private
-   * @param {Number} column Physical column index.
-   * @param {Array} indexes Physical indexes of rows which will be removed from `hiddenRows` cache
+   * @param {number} column Physical column index.
+   * @param {Array} indexes Physical indexes of rows which will be removed from `hiddenRows` cache.
    */
   removeIndexesFromHiddenRowsCache(column, indexes) {
     const hiddenRowsForColumn = this.hiddenRowsCache.get(column);
@@ -785,7 +786,7 @@ class Filters extends BasePlugin {
    * Changes visibility of component.
    *
    * @private
-   * @param {Boolean} visible Determine if components should be visible.
+   * @param {boolean} visible Determine if components should be visible.
    * @param {...BaseComponent} components List of components.
    */
   changeComponentsVisibility(visible = true, ...components) {
@@ -825,7 +826,7 @@ class Filters extends BasePlugin {
    * Saves `hiddenRows` cache for particular row.
    *
    * @private
-   * @param rowIndex Physical row index
+   * @param {number} rowIndex Physical row index.
    */
   saveHiddenRowsCache(rowIndex) {
     this.hiddenRowsCache.set(rowIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').hiddenRows);

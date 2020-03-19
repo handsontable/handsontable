@@ -47,7 +47,7 @@ class ManualRowMove extends BasePlugin {
     super(hotInstance);
 
     /**
-     * Set up WeakMap of plugin to sharing private parameters;
+     * Set up WeakMap of plugin to sharing private parameters;.
      */
     privatePool.set(this, {
       rowsToMove: [],
@@ -65,21 +65,21 @@ class ManualRowMove extends BasePlugin {
      * Event Manager object.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.eventManager = new EventManager(this);
     /**
      * Backlight UI object.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.backlight = new BacklightUI(hotInstance);
     /**
      * Guideline UI object.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.guideline = new GuidelineUI(hotInstance);
   }
@@ -88,7 +88,7 @@ class ManualRowMove extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualRowMove#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().manualRowMove;
@@ -144,12 +144,12 @@ class ManualRowMove extends BasePlugin {
   /**
    * Moves a single row.
    *
-   * @param {Number} row Visual row index to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * @param {number} row Visual row index to be moved.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   moveRow(row, finalIndex) {
     return this.moveRows([row], finalIndex);
@@ -159,11 +159,11 @@ class ManualRowMove extends BasePlugin {
    * Moves a multiple rows.
    *
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   moveRows(rows, finalIndex) {
     const priv = privatePool.get(this);
@@ -191,12 +191,12 @@ class ManualRowMove extends BasePlugin {
   /**
    * Drag a single row to drop index position.
    *
-   * @param {Number} row Visual row index to be dragged.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * @param {number} row Visual row index to be dragged.
+   * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   dragRow(row, dropIndex) {
     return this.dragRows([row], dropIndex);
@@ -206,11 +206,11 @@ class ManualRowMove extends BasePlugin {
    * Drag multiple rows to drop index position.
    *
    * @param {Array} rows Array of visual row indexes to be dragged.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
    * @fires Hooks#beforeRowMove
    * @fires Hooks#afterRowMove
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   dragRows(rows, dropIndex) {
     const finalIndex = this.countFinalIndex(rows, dropIndex);
@@ -222,12 +222,12 @@ class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. you can’t move more than one element to the last position.
+   * Indicates if it's possible to move rows to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
    *
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isMovePossible(movedRows, finalIndex) {
     const length = this.hot.rowIndexMapper.getNotSkippedIndexesLength();
@@ -251,9 +251,9 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isRowOrderChanged(movedRows, finalIndex) {
     return movedRows.some((row, nrOfMovedElement) => row - nrOfMovedElement !== finalIndex);
@@ -264,8 +264,8 @@ class ManualRowMove extends BasePlugin {
    *
    * @private
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} dropIndex Visual row index, being a drop index for the moved rows.
-   * @returns {Number} Visual row index, being a start index for the moved rows.
+   * @param {number} dropIndex Visual row index, being a drop index for the moved rows.
+   * @returns {number} Visual row index, being a start index for the moved rows.
    */
   countFinalIndex(movedRows, dropIndex) {
     const numberOfRowsLowerThanDropIndex = arrayReduce(movedRows, (numberOfRows, currentRowIndex) => {
@@ -283,9 +283,9 @@ class ManualRowMove extends BasePlugin {
    * Gets the sum of the heights of rows in the provided range.
    *
    * @private
-   * @param {Number} from Visual row index.
-   * @param {Number} to Visual row index.
-   * @returns {Number}
+   * @param {number} from Visual row index.
+   * @param {number} to Visual row index.
+   * @returns {number}
    */
   getRowsHeight(from, to) {
     let height = 0;
@@ -323,8 +323,8 @@ class ManualRowMove extends BasePlugin {
    * Checks if the provided row is in the fixedRowsTop section.
    *
    * @private
-   * @param {Number} row Visual row index to check.
-   * @returns {Boolean}
+   * @param {number} row Visual row index to check.
+   * @returns {boolean}
    */
   isFixedRowTop(row) {
     return row < this.hot.getSettings().fixedRowsTop;
@@ -334,8 +334,8 @@ class ManualRowMove extends BasePlugin {
    * Checks if the provided row is in the fixedRowsBottom section.
    *
    * @private
-   * @param {Number} row Visual row index to check.
-   * @returns {Boolean}
+   * @param {number} row Visual row index to check.
+   * @returns {boolean}
    */
   isFixedRowBottom(row) {
     return row > this.hot.getSettings().fixedRowsBottom;
@@ -502,7 +502,7 @@ class ManualRowMove extends BasePlugin {
    * @param {MouseEvent} event `mousedown` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
     const { wtTable, wtViewport } = this.hot.view.wt;
@@ -588,7 +588,7 @@ class ManualRowMove extends BasePlugin {
    * @param {MouseEvent} event `mouseover` event properties.
    * @param {CellCoords} coords Visual cell coordinates where was fired event.
    * @param {HTMLElement} TD Cell represented as HTMLElement.
-   * @param {Object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
+   * @param {object} blockCalculations Object which contains information about blockCalculation for row, column or cells.
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
     const selectedRange = this.hot.getSelectedRangeLast();

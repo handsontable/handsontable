@@ -3,6 +3,11 @@ import { createArrayAssertion } from '../utils';
 
 export const CONDITION_NAME = 'by_value';
 
+/**
+ * @param {object} dataRow The object which holds and describes the single cell value.
+ * @param {Array} inputValues An array of values to compare with.
+ * @returns {boolean}
+ */
 export function condition(dataRow, [value]) {
   return value(dataRow.value);
 }

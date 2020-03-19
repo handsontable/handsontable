@@ -10,23 +10,23 @@ const privatePool = new WeakMap();
  */
 class ViewportColumnsCalculator {
   /**
-   * Default column width
+   * Default column width.
    *
-   * @type {Number}
+   * @type {number}
    */
   static get DEFAULT_WIDTH() {
     return 50;
   }
 
   /**
-   * @param {Object} options Object with all options specyfied for column viewport calculation.
-   * @param {Number} options.viewportWidth Width of the viewport
-   * @param {Number} options.scrollOffset Current horizontal scroll position of the viewport
-   * @param {Number} options.totalColumns Total number of columns
-   * @param {Function} options.columnWidthFn Function that returns the width of the column at a given index (in px)
-   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin)
-   * @param {String} options.calculationType String which describes types of calculation which will be performed.
-   * @param {String} [options.stretchH] Stretch mode 'all' or 'last'
+   * @param {object} options Object with all options specyfied for column viewport calculation.
+   * @param {number} options.viewportWidth Width of the viewport.
+   * @param {number} options.scrollOffset Current horizontal scroll position of the viewport.
+   * @param {number} options.totalColumns Total number of columns.
+   * @param {Function} options.columnWidthFn Function that returns the width of the column at a given index (in px).
+   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
+   * @param {string} options.calculationType String which describes types of calculation which will be performed.
+   * @param {string} [options.stretchH] Stretch mode 'all' or 'last'.
    * @param {Function} [options.stretchingColumnWidthFn] Function that returns the new width of the stretched column.
    */
   constructor({
@@ -50,30 +50,30 @@ class ViewportColumnsCalculator {
     });
 
     /**
-     * Number of rendered/visible columns
+     * Number of rendered/visible columns.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.count = 0;
 
     /**
-     * Index of the first rendered/visible column (can be overwritten using overrideFn)
+     * Index of the first rendered/visible column (can be overwritten using overrideFn).
      *
-     * @type {Number|null}
+     * @type {number|null}
      */
     this.startColumn = null;
 
     /**
-     * Index of the last rendered/visible column (can be overwritten using overrideFn)
+     * Index of the last rendered/visible column (can be overwritten using overrideFn).
      *
      * @type {null}
      */
     this.endColumn = null;
 
     /**
-     * Position of the first rendered/visible column (in px)
+     * Position of the first rendered/visible column (in px).
      *
-     * @type {Number|null}
+     * @type {number|null}
      */
     this.startPosition = null;
 
@@ -88,7 +88,7 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * Calculates viewport
+   * Calculates viewport.
    */
   calculate() {
     let sum = 0;
@@ -168,7 +168,7 @@ class ViewportColumnsCalculator {
   /**
    * Recalculate columns stretching.
    *
-   * @param {Number} totalWidth
+   * @param {number} totalWidth The total width of the table.
    */
   refreshStretching(totalWidth) {
     if (this.stretch === 'none') {
@@ -209,9 +209,9 @@ class ViewportColumnsCalculator {
   /**
    * Get stretched column width based on stretchH (all or last) setting passed in handsontable instance.
    *
-   * @param {Number} column
-   * @param {Number} baseWidth
-   * @returns {Number|null}
+   * @param {number} column The visual column index.
+   * @param {number} baseWidth The default column width.
+   * @returns {number|null}
    */
   getStretchedColumnWidth(column, baseWidth) {
     let result = null;
@@ -227,9 +227,9 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * @param {Number} column
-   * @param {Number} baseWidth
-   * @returns {Number}
+   * @param {number} column The visual column index.
+   * @param {number} baseWidth The default column width.
+   * @returns {number}
    * @private
    */
   _getStretchedAllColumnWidth(column, baseWidth) {
@@ -263,8 +263,8 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * @param {Number} column
-   * @returns {Number|null}
+   * @param {number} column The visual column index.
+   * @returns {number|null}
    * @private
    */
   _getStretchedLastColumnWidth(column) {
@@ -279,8 +279,8 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * @param {Number} column Column index.
-   * @returns {Number}
+   * @param {number} column The visual column index.
+   * @returns {number}
    * @private
    */
   _getColumnWidth(column) {

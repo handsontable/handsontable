@@ -2,6 +2,9 @@ import { extend } from '../../../helpers/object';
 import { expandMetaType } from '../utils';
 import metaSchemaFactory from '../metaSchema';
 
+/**
+ * @returns {TableMeta} Returns an empty object. The holder for global meta object.
+ */
 function createTableMetaEmptyClass() {
   return class TableMeta {};
 }
@@ -11,24 +14,24 @@ function createTableMetaEmptyClass() {
  * Other layers are inherited from this object. Adding, removing, or changing property in that
  * object has a direct reflection to all layers such as: TableMeta, ColumnMeta, or CellMeta layers.
  *
- * +-------------+
+ * +-------------+.
  * │ GlobalMeta  │
  * │ (prototype) │
  * +-------------+\
  *       │         \
  *       │          \
  *      \│/         _\|
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  * │ TableMeta   │    │ ColumnMeta  │
  * │ (instance)  │    │ (prototype) │
- * +-------------+    +-------------+
+ * +-------------+    +-------------+.
  *                         │
  *                         │
  *                        \│/
- *                    +-------------+
+ *                    +-------------+.
  *                    │  CellMeta   │
  *                    │ (instance)  │
- *                    +-------------+
+ *                    +-------------+.
  *
  * @class {GlobalMeta}
  */
@@ -43,7 +46,7 @@ export default class GlobalMeta {
     /**
      * Main object (prototype of the internal TableMeta class), holder for all default settings.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.meta = this.metaCtor.prototype;
 
@@ -62,7 +65,7 @@ export default class GlobalMeta {
   /**
    * Gets settings object for this layer.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getMeta() {
     return this.meta;
@@ -71,7 +74,7 @@ export default class GlobalMeta {
   /**
    * Updates global settings object by merging settings with the current state.
    *
-   * @param {Object} settings An object to merge with.
+   * @param {object} settings An object to merge with.
    */
   updateMeta(settings) {
     extend(this.meta, settings);

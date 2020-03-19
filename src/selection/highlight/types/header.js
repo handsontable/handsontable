@@ -4,7 +4,7 @@ import { Selection } from './../../../3rdparty/walkontable/src';
  * Creates the new instance of Selection, responsible for highlighting row and column headers. This type of selection
  * can occur multiple times.
  *
- * @return {Selection}
+ * @returns {Selection}
  */
 function createHighlight({ headerClassName, rowClassName, columnClassName }) {
   const s = new Selection({

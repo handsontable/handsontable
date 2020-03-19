@@ -54,7 +54,7 @@ class ItemsFactory {
   /**
    * Get all menu items based on pattern.
    *
-   * @param {Array|Object|Boolean} pattern Pattern which you can define by displaying menu items order. If `true` default
+   * @param {Array|object|boolean} pattern Pattern which you can define by displaying menu items order. If `true` default
    *                                       pattern will be used.
    * @returns {Array}
    */
@@ -63,6 +63,12 @@ class ItemsFactory {
   }
 }
 
+/**
+ * @param {object[]} itemsPattern The user defined menu items collection.
+ * @param {object[]} defaultPattern The menu default items collection.
+ * @param {object} items Additional options.
+ * @returns {object[]} Returns parsed and merged menu items collection ready to render.
+ */
 function getItems(itemsPattern = null, defaultPattern = [], items = {}) {
   const result = [];
   let pattern = itemsPattern;

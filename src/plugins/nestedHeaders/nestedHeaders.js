@@ -49,14 +49,14 @@ class NestedHeaders extends BasePlugin {
      * Nasted headers cached settings.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.settings = [];
     /**
      * Cached number of column header levels.
      *
      * @private
-     * @type {Number}
+     * @type {number}
      */
     this.columnHeaderLevelCount = 0;
     /**
@@ -68,6 +68,7 @@ class NestedHeaders extends BasePlugin {
     this.colspanArray = [];
     /**
      * Custom helper for getting widths of the nested headers.
+     *
      * @TODO This should be changed after refactor handsontable/utils/ghostTable.
      *
      * @private
@@ -77,9 +78,9 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Check if plugin is enabled
+   * Check if plugin is enabled.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().nestedHeaders;
@@ -186,7 +187,7 @@ class NestedHeaders extends BasePlugin {
 
     arrayEach(this.colspanArray, (value, i) => {
       if (this.getNestedParent(i, fixedColumnsLeft) !== fixedColumnsLeft) {
-        warn(toSingleLine`You have declared a Nested Header overlapping the Fixed Columns section - it may lead to visual
+        warn(toSingleLine`You have declared a Nested Header overlapping the Fixed Columns section - it may lead to visual\x20
           glitches. To prevent that kind of problems, split the nested headers between the fixed and non-fixed columns.`);
       }
     });
@@ -229,6 +230,10 @@ class NestedHeaders extends BasePlugin {
    * @private
    */
   setupColspanArray() {
+    /**
+     * @param {Array} array An array to check.
+     * @param {number} index The index.
+     */
     function checkIfExists(array, index) {
       if (!array[index]) {
         array[index] = [];
@@ -265,8 +270,8 @@ class NestedHeaders extends BasePlugin {
    * Fill the "colspan array" with default data for the dummy hidden headers.
    *
    * @private
-   * @param {Number} colspan The colspan value.
-   * @param {Number} level Header level.
+   * @param {number} colspan The colspan value.
+   * @param {number} level Header level.
    */
   fillColspanArrayWithDummies(colspan, level) {
     rangeEach(0, colspan - 2, () => {
@@ -282,7 +287,7 @@ class NestedHeaders extends BasePlugin {
    * Generates the appropriate header renderer for a header row.
    *
    * @private
-   * @param {Number} headerRow The header row.
+   * @param {number} headerRow The header row.
    * @returns {Function}
    *
    * @fires Hooks#afterGetColHeader
@@ -337,9 +342,9 @@ class NestedHeaders extends BasePlugin {
    * Returns the colspan for the provided coordinates.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
-   * @returns {Number}
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @returns {number}
    */
   getColspan(row, column) {
     const header = this.colspanArray[this.rowCoordsToLevel(row)][column];
@@ -351,8 +356,8 @@ class NestedHeaders extends BasePlugin {
    * Translates the level value (header row index from the top) to the row value (negative index).
    *
    * @private
-   * @param {Number} level Header level.
-   * @returns {Number}
+   * @param {number} level Header level.
+   * @returns {number}
    */
   levelToRowCoords(level) {
     return level - this.columnHeaderLevelCount;
@@ -362,8 +367,8 @@ class NestedHeaders extends BasePlugin {
    * Translates the row value (negative index) to the level value (header row index from the top).
    *
    * @private
-   * @param {Number} row Row index.
-   * @returns {Number}
+   * @param {number} row Row index.
+   * @returns {number}
    */
   rowCoordsToLevel(row) {
     return row + this.columnHeaderLevelCount;
@@ -373,8 +378,8 @@ class NestedHeaders extends BasePlugin {
    * Returns the column index of the "parent" nested header.
    *
    * @private
-   * @param {Number} level Header level.
-   * @param {Number} column Column index.
+   * @param {number} level Header level.
+   * @param {number} column Column index.
    * @returns {*}
    */
   getNestedParent(level, column) {
@@ -406,9 +411,9 @@ class NestedHeaders extends BasePlugin {
    * Returns (physical) indexes of headers below the header with provided coordinates.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
-   * @returns {Number[]}
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @returns {number[]}
    */
   getChildHeaders(row, column) {
     const level = this.rowCoordsToLevel(row);
@@ -515,7 +520,7 @@ class NestedHeaders extends BasePlugin {
    * Make the renderer render the first nested column in its entirety.
    *
    * @private
-   * @param {Object} calc Viewport column calculator.
+   * @param {object} calc Viewport column calculator.
    */
   onAfterViewportColumnCalculatorOverride(calc) {
     let newStartColumn = calc.startColumn;
@@ -536,7 +541,7 @@ class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event Mouse event.
-   * @param {Object} coords Clicked cell coords.
+   * @param {object} coords Clicked cell coords.
    */
   onAfterOnCellMouseDown(event, coords) {
     if (coords.row < 0) {
@@ -556,8 +561,9 @@ class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event Mouse event.
-   * @param {Object} coords Clicked cell coords.
-   * @param {HTMLElement} TD
+   * @param {object} coords Clicked cell coords.
+   * @param {HTMLElement} TD The cell element.
+   * @param {object} blockCalculations An object which allows or disallows changing the selection for the particular axies.
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
     if (coords.row >= 0 || coords.col < 0 || !this.hot.view.isMouseDown()) {
@@ -649,9 +655,9 @@ class NestedHeaders extends BasePlugin {
    * `modifyColWidth` hook callback - returns width from cache, when is greater than incoming from hook.
    *
    * @private
-   * @param width Width from hook.
-   * @param column Visual index of an column.
-   * @returns {Number}
+   * @param {number} width Width from hook.
+   * @param {number} column Visual index of an column.
+   * @returns {number}
    */
   onModifyColWidth(width, column) {
     const cachedWidth = this.ghostTable.widthsCache[column];

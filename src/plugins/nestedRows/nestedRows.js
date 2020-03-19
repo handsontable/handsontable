@@ -21,32 +21,15 @@ const privatePool = new WeakMap();
  *
  * @description
  * Plugin responsible for displaying and operating on data sources with nested structures.
- *
- * @dependencies BindRowsWithHeaders
  */
 class NestedRows extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Source data object.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.sourceData = null;
-    /**
-     * Reference to the BindRowsWithHeaders plugin.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.bindRowsWithHeadersPlugin = null;
-
-    /**
      * Reference to the DataManager instance.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.dataManager = null;
 
@@ -54,7 +37,7 @@ class NestedRows extends BasePlugin {
      * Reference to the HeadersUI instance.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.headersUI = null;
     /**
@@ -77,7 +60,7 @@ class NestedRows extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link NestedRows#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().nestedRows;
@@ -87,16 +70,13 @@ class NestedRows extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
-    this.sourceData = this.hot.getSourceData();
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
     this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new SkipMap());
 
-    this.dataManager = new DataManager(this, this.hot, this.sourceData);
+    this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
-
-    this.dataManager.rewriteCache();
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('beforeRender', (...args) => this.onBeforeRender(...args));
@@ -145,12 +125,13 @@ class NestedRows extends BasePlugin {
    *
    * @private
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @param {undefined|Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @param {Boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
    * @fires Hooks#afterRowMove
+   * @returns {boolean}
    */
   onBeforeRowMove(rows, finalIndex, dropIndex, movePossible) {
     if (isUndefined(dropIndex)) {
@@ -275,9 +256,9 @@ class NestedRows extends BasePlugin {
    *
    * @private
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {Number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isRowOrderChanged(movedRows, finalIndex) {
     return movedRows.some((row, nrOfMovedElement) => row - nrOfMovedElement !== finalIndex);
@@ -288,7 +269,7 @@ class NestedRows extends BasePlugin {
    *
    * @private
    * @param {Array} rows Array of visual row indexes to be moved.
-   * @param {undefined|Number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
+   * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
    * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
    */
   selectCells(rows, dropIndex) {
@@ -353,8 +334,8 @@ class NestedRows extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event Mousedown event.
-   * @param {Object} coords Cell coords.
-   * @param {HTMLElement} TD clicked cell.
+   * @param {object} coords Cell coords.
+   * @param {HTMLElement} TD Clicked cell.
    */
   onBeforeOnCellMouseDown(event, coords, TD) {
     this.collapsingUI.toggleState(event, coords, TD);
@@ -364,7 +345,8 @@ class NestedRows extends BasePlugin {
    * The modifyRowData hook callback.
    *
    * @private
-   * @param {Number} row Visual row index.
+   * @param {number} row Visual row index.
+   * @returns {boolean}
    */
   onModifyRowData(row) {
     return this.dataManager.getDataObject(row);
@@ -374,7 +356,7 @@ class NestedRows extends BasePlugin {
    * Modify the source data length to match the length of the nested structure.
    *
    * @private
-   * @returns {Number}
+   * @returns {number}
    */
   onModifySourceLength() {
     return this.dataManager.countAllRows();
@@ -382,10 +364,10 @@ class NestedRows extends BasePlugin {
 
   /**
    * @private
-   * @param {Number} index
-   * @param {Number} amount
-   * @param {Object} element
-   * @returns {Boolean}
+   * @param {number} index The index where the data was spliced.
+   * @param {number} amount An amount of items to remove.
+   * @param {object} element An element to add.
+   * @returns {boolean}
    */
   onBeforeDataSplice(index, amount, element) {
     this.dataManager.spliceData(index, amount, element);
@@ -397,9 +379,9 @@ class NestedRows extends BasePlugin {
    * Called before the source data filtering. Returning `false` stops the native filtering.
    *
    * @private
-   * @param {Number} index
-   * @param {Number} amount
-   * @returns {Boolean}
+   * @param {number} index The index where the data filtering starts.
+   * @param {number} amount An amount of rows which filtering applies to.
+   * @returns {boolean}
    */
   onBeforeDataFilter(index, amount) {
     const realLogicRows = [];
@@ -424,7 +406,8 @@ class NestedRows extends BasePlugin {
    * `afterContextMenuDefaultOptions` hook callback.
    *
    * @private
-   * @param {Object} defaultOptions
+   * @param {object} defaultOptions The default context menu items order.
+   * @returns {boolean}
    */
   onAfterContextMenuDefaultOptions(defaultOptions) {
     return this.contextMenuUI.appendOptions(defaultOptions);
@@ -434,8 +417,8 @@ class NestedRows extends BasePlugin {
    * `afterGetRowHeader` hook callback.
    *
    * @private
-   * @param {Number} row Row index.
-   * @param {HTMLElement} TH row header element.
+   * @param {number} row Row index.
+   * @param {HTMLElement} TH Row header element.
    */
   onAfterGetRowHeader(row, TH) {
     this.headersUI.appendLevelIndicators(row, TH);
@@ -445,8 +428,8 @@ class NestedRows extends BasePlugin {
    * `modifyRowHeaderWidth` hook callback.
    *
    * @private
-   * @param {Number} rowHeaderWidth The initial row header width(s).
-   * @returns {Number}
+   * @param {number} rowHeaderWidth The initial row header width(s).
+   * @returns {number}
    */
   onModifyRowHeaderWidth(rowHeaderWidth) {
     return this.headersUI.rowHeaderWidthCache || rowHeaderWidth;
@@ -456,10 +439,10 @@ class NestedRows extends BasePlugin {
    * `onAfterRemoveRow` hook callback.
    *
    * @private
-   * @param {Number} index Removed row.
-   * @param {Number} amount Amount of removed rows.
-   * @param {Array} logicRows
-   * @param {String} source Source of action.
+   * @param {number} index Removed row.
+   * @param {number} amount Amount of removed rows.
+   * @param {Array} logicRows An array of the removed physical rows.
+   * @param {string} source Source of action.
    */
   onAfterRemoveRow(index, amount, logicRows, source) {
     if (source === this.pluginName) {
@@ -479,9 +462,9 @@ class NestedRows extends BasePlugin {
    * `modifyRemovedAmount` hook callback.
    *
    * @private
-   * @param {Number} amount Initial amount.
-   * @param {Number} index Index of the starting row.
-   * @returns {Number} Modified amount.
+   * @param {number} amount Initial amount.
+   * @param {number} index Index of the starting row.
+   * @returns {number} Modified amount.
    */
   onModifyRemovedAmount(amount, index) {
     const lastParents = [];
@@ -536,8 +519,8 @@ class NestedRows extends BasePlugin {
    * `afterAddChild` hook callback.
    *
    * @private
-   * @param {Object} parent Parent element.
-   * @param {Object} element New child element.
+   * @param {object} parent Parent element.
+   * @param {object} element New child element.
    */
   onAfterAddChild(parent, element) {
     this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element));
@@ -559,8 +542,8 @@ class NestedRows extends BasePlugin {
    * `afterDetachChild` hook callback.
    *
    * @private
-   * @param {Object} parent Parent element.
-   * @param {Object} element New child element.
+   * @param {object} parent Parent element.
+   * @param {object} element New child element.
    */
   onAfterDetachChild(parent, element) {
     this.collapsingUI.collapsedRowsStash.shiftStash(this.dataManager.getRowIndex(element));
@@ -573,9 +556,9 @@ class NestedRows extends BasePlugin {
    * `afterCreateRow` hook callback.
    *
    * @private
-   * @param {Number} index
-   * @param {Number} amount
-   * @param {String} source
+   * @param {number} index Represents the visual index of first newly created row in the data source array.
+   * @param {number} amount Number of newly created rows in the data source array.
+   * @param {string} source String that identifies source of hook call.
    */
   onAfterCreateRow(index, amount, source) {
     if (source === this.pluginName) {
@@ -600,8 +583,8 @@ class NestedRows extends BasePlugin {
   /**
    * `beforeRender` hook callback.
    *
-   * @param {Boolean} force
-   * @param {Object} skipRender
+   * @param {boolean} force Indicates if the render call was trigered by a change of settings or data.
+   * @param {object} skipRender An object, holder for skipRender functionality.
    * @private
    */
   onBeforeRender(force, skipRender) {
@@ -624,7 +607,7 @@ class NestedRows extends BasePlugin {
   /**
    * `beforeLoadData` hook callback.
    *
-   * @param {Array} data
+   * @param {Array} data The source data.
    * @private
    */
   onBeforeLoadData(data) {

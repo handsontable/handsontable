@@ -14,7 +14,7 @@ class StrictBindsMap extends IndexMap {
    * Add values to list and reorganize.
    *
    * @private
-   * @param {Number} insertionIndex Position inside the list.
+   * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
@@ -38,8 +38,8 @@ class StrictBindsMap extends IndexMap {
   /**
    * Get next values, which should be greater than actual maximum value in the list.
    *
-   * @param ordinalNumber Position in the list.
-   * @returns {Number}
+   * @param {number} ordinalNumber Position in the list.
+   * @returns {number}
    */
   getNextValue(ordinalNumber) {
     return Math.max(...this.getValues()) + 1 + ordinalNumber;

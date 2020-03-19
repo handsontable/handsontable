@@ -97,9 +97,10 @@ describe('MetaManager', () => {
     it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();
 
-      spyOn(metaManager.cellMeta, 'setMeta').and.returnValue('foo');
+      spyOn(metaManager.cellMeta, 'setMeta');
 
-      expect(metaManager.setCellMeta(34, 22, 'key', 'value')).toBe('foo');
+      metaManager.setCellMeta(34, 22, 'key', 'value');
+
       expect(metaManager.cellMeta.setMeta).toHaveBeenCalledWith(34, 22, 'key', 'value');
     });
   });
