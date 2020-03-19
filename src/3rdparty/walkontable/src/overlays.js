@@ -584,6 +584,29 @@ class Overlays {
 
     return result;
   }
+
+  /**
+   * Update the clones table class name.
+   *
+   */
+  updateTableClassName() {
+    const masterTable = this.instance.wtTable.TABLE;
+    const overlays = [
+      this.topOverlay,
+      this.leftOverlay,
+      this.bottomOverlay,
+      this.topLeftCornerOverlay,
+      this.bottomLeftCornerOverlay
+    ];
+
+    arrayEach(overlays, (elem) => {
+      if (!elem) {
+        return;
+      }
+
+      elem.clone.wtTable.TABLE.className = masterTable.className;
+    });
+  }
 }
 
 export default Overlays;

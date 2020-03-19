@@ -1828,14 +1828,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       } else if (i === 'className') {
         setClassName('className', settings.className);
 
-        /* eslint-disable-next-line no-continue */
-        continue;
-
       } else if (i === 'tableClassName' && instance.table) {
         setClassName('tableClassName', settings.tableClassName);
 
-        /* eslint-disable-next-line no-continue */
-        continue;
+        instance.view.wt.wtOverlays.updateTableClassName();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
 
