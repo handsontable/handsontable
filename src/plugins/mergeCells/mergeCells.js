@@ -696,15 +696,14 @@ class MergeCells extends BasePlugin {
     if (isObject(mergedCellCopy)) {
       const columnMapper = this.hot.columnIndexMapper;
       const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
-      const numberOfRenderableRows = this.hot.countRenderableColumns();
-      const maxColSpan = numberOfRenderableRows - renderedColumnIndex;
+      const lastMergedColumnIndex = columnMapper.getRenderableFromVisualIndex(
+        columnMapper.getFirstNotHiddenIndex(mergedCellCopy.col + mergedCellCopy.colspan - 1, -1));
+      const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
 
       // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
       mergedCellCopy.col = columnMapper.getFirstNotHiddenIndex(mergedCellCopy.col, 1);
-
-      if (mergedCellCopy.colspan > maxColSpan) {
-        mergedCellCopy.colspan = maxColSpan;
-      }
+      // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
+      mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
     }
 
     applySpanProperties(TD, mergedCellCopy, row, col);
@@ -867,7 +866,6 @@ class MergeCells extends BasePlugin {
           // We extend the viewport when some columns have been merged.
           calc.endColumn = renderableIndexAtMergeEnd;
           // We are looking for next merges inside already extended viewport (starting again from column equal to 0).
-
           this.modifyViewportEnd.call(this, calc, nrOfRows); // recursively search upwards
 
           return false; // Finish the current loop. Everything will be checked from the beginning by above recursion.

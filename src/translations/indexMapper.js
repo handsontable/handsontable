@@ -281,7 +281,7 @@ class IndexMapper {
   }
 
   /**
-   * Search for the first visible, not hidden index.
+   * Search for the first visible, not hidden index (represented by a visual index).
    *
    * @param {number} fromVisualIndex Start index. Starting point for finding destination index. Start point may be destination
    * point when handled index is hidden.
@@ -291,7 +291,7 @@ class IndexMapper {
    * other way around (decreasing indexes, then variable should have the value -1)
    * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
    * or other way around (decreasing indexes, then variable should have the value -1).
-   * @returns {number|null}
+   * @returns {number|null} Visual column index or `null`.
    */
   getFirstNotHiddenIndex(fromVisualIndex, incrementBy) {
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
