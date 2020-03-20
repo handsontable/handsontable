@@ -85,6 +85,9 @@ export default class StateManager {
   }
 
   /**
+   * By default all known default settings (HEADER_DEFAULT_SETTINGS) and foreign keys are merged
+   * with source state. But only known keys are exported to matrix.
+   *
    * @param {object[]} settings An array of objects to merge with the current source settings.
    *                            It is a requirement that every object has `row` and `col` properties
    *                            which points to the specific header settings object.
@@ -103,6 +106,9 @@ export default class StateManager {
   }
 
   /**
+   * By default all known default settings (HEADER_DEFAULT_SETTINGS) and foreign keys are merged
+   * with source state. But only known keys are exported to matrix.
+   *
    * @param {Function} callback A function that is called for every header source settings.
    *                            Each time the callback is called, the returned value extends
    *                            header settings.
@@ -128,6 +134,8 @@ export default class StateManager {
           acc.push(result);
         }
       });
+
+      return acc;
     }, []);
   }
 

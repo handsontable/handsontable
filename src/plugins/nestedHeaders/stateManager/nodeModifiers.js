@@ -15,7 +15,7 @@ export default class NodeModifiers {
   collapseNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === true) {
+    if (nodeData.isCollapsed === true || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],
@@ -81,7 +81,7 @@ export default class NodeModifiers {
   expandNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === false) {
+    if (nodeData.isCollapsed === false || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],

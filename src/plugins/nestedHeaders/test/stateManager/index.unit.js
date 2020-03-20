@@ -74,26 +74,241 @@ describe('StateManager', () => {
   });
 
   describe('mergeStateWith', () => {
-    it('TODO', () => {
+    it('should merge additional settings using negative and positive header levels', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const state = new StateManager();
 
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      state.mergeStateWith([
+        { row: -4, col: 0, collapsible: 'test-a' },
+        { row: 1, col: 1, test1: 'test-b' },
+        { row: 2, col: 2, test2: 'test-c', test3: 'test-d' },
+        { row: -2, col: 1, test4: 'test-e' },
+        { row: 3, col: 1, collapsible: 'test-d' },
+      ]);
+
+      expect(state.getHeaderSettings(0, 0)).toEqual(expect.objectContaining({
+        label: 'A1',
+        collapsible: 'test-a',
+      }));
+      expect(state.getHeaderSettings(1, 1)).toEqual(expect.not.objectContaining({
+        test1: 'test-b',
+      }));
+      expect(state.getHeaderSettings(2, 2)).toEqual(expect.not.objectContaining({
+        test2: 'test-c',
+        test3: 'test-d',
+      }));
+      expect(state.getHeaderSettings(2, 1)).toEqual(expect.not.objectContaining({
+        test4: 'test-e',
+      }));
+      expect(state.getHeaderSettings(3, 1)).toEqual(expect.objectContaining({
+        label: 'D2',
+        collapsible: 'test-d',
+      }));
     });
   });
 
   describe('mapState', () => {
-    it('TODO', () => {
+    it('should merge additional settings', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const mapSpy = jasmine.createSpy();
+      const state = new StateManager();
 
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      mapSpy.and.callFake((headerSettings) => {
+        if (headerSettings.label === 'A1') {
+          return { test: 'test-a', collapsible: 'test-b' };
+        }
+      });
+      state.mapState(mapSpy);
+
+      expect(mapSpy).toHaveBeenCalledTimes(28);
+      expect(state.getHeaderSettings(0, 0)).toEqual(expect.objectContaining({
+        label: 'A1',
+        collapsible: 'test-b',
+      }));
+      expect(state.getHeaderSettings(0, 0)).toEqual(expect.not.objectContaining({
+        test: 'test-a',
+      }));
     });
   });
 
   describe('mapNodes', () => {
-    it('TODO', () => {
+    it('should map all tree nodes', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const mapSpy = jasmine.createSpy();
+      const state = new StateManager();
 
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      mapSpy.and.callFake(treeData => treeData.label);
+
+      const nodesData = state.mapNodes(mapSpy);
+
+      expect(mapSpy).toHaveBeenCalledTimes(16);
+      expect(nodesData).toEqual([
+        /* root 1 */ 'A1', 'B1', 'C1', 'D1',
+        /* root 2 */ 'A2', 'B2', 'C2', 'C3', 'D2', 'D3', 'D4', 'D5',
+        /* root 3 */ 'A3', 'B3', 'C4', 'D6',
+      ]);
     });
   });
 
   describe('triggerNodeModification', () => {
-    it('TODO', () => {
+    it('should update the matrix after collapsing', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const state = new StateManager();
 
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      const modResult = state.triggerNodeModification('collapse', 0, 1);
+
+      expect(modResult).toEqual({
+        affectedColumns: [4, 3, 2],
+        colspanCompensation: 3,
+        rollbackModification: jasmine.any(Function),
+      });
+      expect(state.getHeaderSettings(0, 1)).toEqual(expect.objectContaining({
+        label: 'A2',
+        colspan: 1,
+        origColspan: 4,
+        isCollapsed: true,
+        hidden: false,
+      }));
+      expect(state.getHeaderSettings(1, 1)).toEqual(expect.objectContaining({
+        label: 'B2',
+        colspan: 1,
+        origColspan: 4,
+        isCollapsed: true,
+        hidden: false,
+      }));
+      expect(state.getHeaderSettings(2, 2)).toEqual(expect.objectContaining({
+        label: 'C3',
+        colspan: 3,
+        origColspan: 3,
+        isCollapsed: false,
+        hidden: true,
+      }));
+    });
+
+    it('should update the matrix after expanding', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const state = new StateManager();
+
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      state.triggerNodeModification('collapse', 0, 1);
+
+      const modResult = state.triggerNodeModification('expand', 0, 1);
+
+      expect(modResult).toEqual({
+        affectedColumns: [2, 3, 4],
+        colspanCompensation: 3,
+        rollbackModification: jasmine.any(Function),
+      });
+      expect(state.getHeaderSettings(0, 1)).toEqual(expect.objectContaining({
+        label: 'A2',
+        colspan: 4,
+        origColspan: 4,
+        isCollapsed: false,
+        hidden: false,
+      }));
+      expect(state.getHeaderSettings(1, 1)).toEqual(expect.objectContaining({
+        label: 'B2',
+        colspan: 4,
+        origColspan: 4,
+        isCollapsed: false,
+        hidden: false,
+      }));
+      expect(state.getHeaderSettings(2, 2)).toEqual(expect.objectContaining({
+        label: 'C3',
+        colspan: 3,
+        origColspan: 3,
+        isCollapsed: false,
+        hidden: false,
+      }));
     });
   });
 
