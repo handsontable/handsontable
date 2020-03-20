@@ -8,6 +8,7 @@ import {
   arrayMin,
   arrayReduce,
   arraySum,
+  convertToArrayOfString,
   getDifferenceOfArrays,
   getIntersectionOfArrays,
   getUnionOfArrays
@@ -357,6 +358,24 @@ describe('Array helper', () => {
       it('should return elements that exists in any of the arrays.', () => {
         expect(getUnionOfArrays(['class-1', 'class-2', 'class-3'], ['class-3', 'class-4'], ['class-3', 'class-4', 'class-5']))
           .toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4', 'class-5']);
+      });
+    });
+  });
+
+  //
+  // Handsontable.helper.convertToArrayOfString
+  //
+  describe('convertToArrayOfString', () => {
+    describe('works with parameters as array of string', () => {
+      it('should return array of string.', () => {
+
+        expect(convertToArrayOfString(['class-1', 'class-2', 'class-3'])).toStrictEqual(['class-1', 'class-2', 'class-3']);
+      });
+    });
+
+    describe('works with parameters as string', () => {
+      it('should return array of string.', () => {
+        expect(convertToArrayOfString('class-1')).toStrictEqual(['class-1']);
       });
     });
   });

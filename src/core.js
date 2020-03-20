@@ -15,7 +15,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, convertToArrayOfString } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -850,7 +850,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @private
    * @param {string} className `className` or `tableClassName` from key of settings.
-   * @param {string[]|string} classSettings Array of string or string contains class name(s) from settings object.
+   * @param {string|string[]} classSettings String or array of string contains class name(s) from settings object.
    */
   function setClassName(className, classSettings) {
     const element = className === 'className' ? instance.rootElement : instance.table;
@@ -859,28 +859,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(element, classSettings);
 
     } else {
-      let globalMetaSettingsArray;
-      let settingsArray;
-
-      if (Array.isArray(globalMeta[className])) {
-        globalMetaSettingsArray = globalMeta[className];
-
-      } else if (typeof globalMeta[className] === 'string') {
-        globalMetaSettingsArray = globalMeta[className].split(' ');
-
-      } else {
-        globalMetaSettingsArray = [];
-      }
-
-      if (Array.isArray(classSettings)) {
-        settingsArray = classSettings;
-
-      } else if (typeof classSettings === 'string') {
-        settingsArray = classSettings.split(' ');
-
-      } else {
-        settingsArray = [];
-      }
+      const globalMetaSettingsArray = convertToArrayOfString(globalMeta[className]);
+      const settingsArray = convertToArrayOfString(classSettings);
 
       const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
       const classNameToAdd = getDifferenceOfArrays(settingsArray, globalMetaSettingsArray);

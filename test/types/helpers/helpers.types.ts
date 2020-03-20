@@ -17,6 +17,7 @@ Handsontable.helper.cancelAnimationFrame(1);
 Handsontable.helper.cellMethodLookupFactory('foo', true);
 Handsontable.helper.clone({key: 'foo'});
 Handsontable.helper.columnFactory(gridSettings, [1, 'foo', true]);
+Handsontable.helper.convertToArrayOfString('class-1');
 Handsontable.helper.createEmptySpreadsheetData(0, 0);
 Handsontable.helper.createObjectPropListener('foo', 'bar');
 Handsontable.helper.createSpreadsheetData(0, 0);

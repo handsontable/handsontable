@@ -586,7 +586,7 @@ class Overlays {
   }
 
   /**
-   * Update the clones table class name.
+   * Update the clones tables class name.
    *
    */
   updateTableClassName() {

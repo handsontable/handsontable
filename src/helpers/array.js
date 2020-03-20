@@ -315,3 +315,25 @@ export function getUnionOfArrays(...arrays) {
 
   return Array.from(set);
 }
+
+/**
+ * Change string to array of string and return array of string.
+ *
+ * @param {string|string[]} value String or array of strings.
+ * @returns {string[]} Returns array of string or empty array.
+ */
+export function convertToArrayOfString(value) {
+  let arrayOfValue;
+
+  if (Array.isArray(value)) {
+    arrayOfValue = value;
+
+  } else if (typeof value === 'string') {
+    arrayOfValue = value.split(' ');
+
+  } else {
+    arrayOfValue = [];
+  }
+
+  return arrayOfValue;
+}
