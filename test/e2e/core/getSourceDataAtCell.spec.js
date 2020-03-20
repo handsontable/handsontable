@@ -124,4 +124,26 @@ describe('Core.getSourceDataAtCell', () => {
       expect(getSourceDataAtCell(1, 0)).toEqual('2016');
     });
   });
+
+  describe('`modifySourceData` hook', () => {
+    it('should be possible to change source data for a cell on the fly', () => {
+      let lastIoMode = null;
+
+      handsontable({
+        data: [
+          ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+          ['2008', 10, 11, 12, 13],
+          ['2009', 20, 11, 14, 13],
+          ['2010', 30, 15, 12, 13]
+        ],
+        modifySourceData(row, column, valueHolder, ioMode) {
+          valueHolder.value = `${row}-${column}`;
+          lastIoMode = ioMode;
+        }
+      });
+
+      expect(getSourceDataAtCell(1, 0)).toEqual('1-0');
+      expect(lastIoMode).toEqual('get');
+    });
+  });
 });

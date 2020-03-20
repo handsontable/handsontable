@@ -376,6 +376,8 @@ describe('DomElement helper', () => {
     it('should focus known textarea element', () => {
       const textarea = document.createElement('textarea');
 
+      document.body.appendChild(textarea);
+
       textarea.setAttribute('data-hot-input', '');
       textarea.focus();
 
@@ -384,10 +386,14 @@ describe('DomElement helper', () => {
       selectElementIfAllowed(textarea);
 
       expect(spy).toHaveBeenCalled();
+
+      document.body.removeChild(textarea);
     });
 
     it('should not focus unknown textarea element with the same class name as HOT editor input', () => {
       const textarea = document.createElement('textarea');
+
+      document.body.appendChild(textarea);
 
       textarea.className = 'handsontableInput';
       textarea.focus();
@@ -397,10 +403,14 @@ describe('DomElement helper', () => {
       selectElementIfAllowed(textarea);
 
       expect(spy).not.toHaveBeenCalled();
+
+      document.body.removeChild(textarea);
     });
 
     it('should not focus unknown input (bare input)', () => {
       const input = document.createElement('input');
+
+      document.body.appendChild(input);
 
       input.focus();
 
@@ -409,6 +419,8 @@ describe('DomElement helper', () => {
       selectElementIfAllowed(input);
 
       expect(spy).not.toHaveBeenCalled();
+
+      document.body.removeChild(input);
     });
   });
 });

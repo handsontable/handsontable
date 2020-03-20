@@ -1270,8 +1270,7 @@ describe('ColumnSorting', () => {
      * @param row
      */
     function customIsEmptyRow(row) {
-      const data = this.getSourceData();
-      return data[row].isNew;
+      return myData[row].isNew;
     }
 
     handsontable({
