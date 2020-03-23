@@ -164,7 +164,7 @@ class IndexMapper {
     if (indexMap instanceof SkipMap) {
       this.skipMapsCollection.register(uniqueName, indexMap);
 
-    } else if (indexMap instanceof HiddenMap === true) {
+    } else if (indexMap instanceof HiddenMap) {
       this.hiddenCollection.register(uniqueName, indexMap);
 
     } else {
@@ -277,7 +277,11 @@ class IndexMapper {
       return null;
     }
 
-    return visualIndex - this.getFlattenHiddenList().slice(0, physicalIndex).filter(hidden => hidden).length;
+    const notSkippedIndexes = this.getNotSkippedIndexes(); // Mappings from visual to physical indexes.
+    const isHiddenForVisualIndexes = notSkippedIndexes.map(
+      physicalIndexForVisualIndex => this.isHidden(physicalIndexForVisualIndex));
+
+    return visualIndex - isHiddenForVisualIndexes.slice(0, visualIndex + 1).filter(isHidden => isHidden).length;
   }
 
   /**
@@ -506,7 +510,7 @@ class IndexMapper {
    *
    * @private
    * @param {number} physicalIndex Physical index.
-   * @returns {noolean}
+   * @returns {boolean}
    */
   isHidden(physicalIndex) {
     return this.getFlattenHiddenList()[physicalIndex] || false;

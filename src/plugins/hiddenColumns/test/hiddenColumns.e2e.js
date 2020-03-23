@@ -3598,6 +3598,64 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('D1');
     });
 
+    it('should properly render hidden ranges after moving action (moving range of columns containing a hidden column)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [3],
+          indicators: true
+        },
+        manualColumnMove: true
+      });
+
+      getPlugin('manualColumnMove').moveColumns([2, 3, 4], 1);
+      render();
+
+      expect(hot.getData()).toEqual([
+        ['A1', 'C1', 'D1', 'E1', 'B1'],
+        ['A2', 'C2', 'D2', 'E2', 'B2'],
+      ]);
+      expect(hot.getColWidth(2)).toEqual(0);
+      expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
+      expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 2)).toBe(null);
+      expect(getCell(-1, 3)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('B1');
+    });
+
+    it('should properly render hidden ranges after moving action (shifts between hidden columns)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2, 3],
+          indicators: true
+        },
+        manualColumnMove: true
+      });
+
+      getPlugin('manualColumnMove').moveColumns([3, 1, 2], 1);
+      render();
+
+      expect(hot.getData()).toEqual([
+        ['A1', 'D1', 'B1', 'C1', 'E1'],
+        ['A2', 'D2', 'B2', 'C2', 'E2'],
+      ]);
+      expect(hot.getColWidth(2)).toEqual(0);
+      expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
+      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 1)).toBe(null);
+      expect(getCell(-1, 2)).toBe(null);
+      expect(getCell(-1, 3)).toBe(null);
+      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
+      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('E1');
+    });
+
     it('should properly render hidden ranges after moving action (moving part of hidden columns)', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(2, 5),
