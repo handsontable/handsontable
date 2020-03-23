@@ -1,5 +1,5 @@
 import IndexMapper from 'handsontable/translations/indexMapper';
-import { SkipMap, PhysicalIndexToValueMap as IndexToValueMap, VisualIndexToPhysicalIndexMap as IndexToIndexMap } from 'handsontable/translations';
+import { SkipMap, HiddenMap, PhysicalIndexToValueMap as IndexToValueMap, VisualIndexToPhysicalIndexMap as IndexToIndexMap } from 'handsontable/translations';
 
 describe('IndexMapper', () => {
   it('should fill mappers with initial values at start', () => {
@@ -76,7 +76,7 @@ describe('IndexMapper', () => {
     expect(indexMapper.skipMapsCollection.get('uniqueName')).toBe(skipMap);
     expect(indexMapper.skipMapsCollection.getLength()).toBe(1);
 
-    indexMapper.unregisterMap('uniqueName', skipMap);
+    indexMapper.unregisterMap('uniqueName');
 
     expect(indexMapper.skipMapsCollection.get('uniqueName')).toBe(undefined);
     expect(indexMapper.skipMapsCollection.getLength()).toBe(0);
@@ -137,34 +137,295 @@ describe('IndexMapper', () => {
   it('should translate indexes from visual to physical and the other way round properly', () => {
     const indexMapper = new IndexMapper();
     const skipMap = new SkipMap();
+    const hiddenMap = new HiddenMap();
 
     expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
     expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(null);
 
-    indexMapper.initToLength(10);
+    indexMapper.initToLength(5);
 
     expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(0);
     expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(0);
+    expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(1);
+    expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(1);
+    expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(2);
+    expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(2);
+    expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(3);
+    expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(3);
+    expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(4);
+    expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(4);
+    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(null);
 
-    expect(indexMapper.getVisualFromPhysicalIndex(10)).toBe(null);
-    expect(indexMapper.getPhysicalFromVisualIndex(10)).toBe(null);
+    indexMapper.setIndexesSequence([1, 4, 2, 0, 3]);
+
+    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(3);
+    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+    expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+    expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(4);
+    expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(2);
+    expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(2);
+    expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(4);
+    expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(0);
+    expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(1);
+    expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(3);
+    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(null);
 
     skipMap.addLocalHook('init', () => {
-      skipMap.setValueAtIndex(0, true);
       skipMap.setValueAtIndex(2, true);
-      skipMap.setValueAtIndex(5, true);
+      skipMap.setValueAtIndex(4, true);
     });
 
     indexMapper.registerMap('skipMap', skipMap);
 
-    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
-    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
-    expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
-    expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(4);
-    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
-    expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(8);
+    // visual   | 0        1  2
+    // physical | 1  4  2  0  3
 
-    indexMapper.unregisterMap('skipMap', skipMap);
+    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(1);
+    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+    expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+    expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(0);
+    expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(3);
+    expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(2);
+    expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(null);
+
+    hiddenMap.addLocalHook('init', () => {
+      hiddenMap.setValueAtIndex(0, true);
+      hiddenMap.setValueAtIndex(1, true);
+    });
+
+    indexMapper.registerMap('hiddenMap', hiddenMap);
+
+    // No real changes.
+    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(1);
+    expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+    expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+    expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(0);
+    expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(3);
+    expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(2);
+    expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(null);
+
+    indexMapper.unregisterMap('skipMap');
+    indexMapper.unregisterMap('hiddenMap');
+  });
+
+  it('should translate indexes from visual to renderable and the other way round properly', () => {
+    const indexMapper = new IndexMapper();
+    const skipMap = new SkipMap();
+    const hiddenMap = new HiddenMap();
+
+    expect(indexMapper.getVisualFromRenderableIndex(0)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(1)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(2)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(3)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(4)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(5)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(5)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(6)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(6)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(7)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(7)).toBe(null);
+
+    indexMapper.initToLength(7);
+
+    expect(indexMapper.getVisualFromRenderableIndex(0)).toBe(0);
+    expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+    expect(indexMapper.getVisualFromRenderableIndex(1)).toBe(1);
+    expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(1);
+    expect(indexMapper.getVisualFromRenderableIndex(2)).toBe(2);
+    expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(2);
+    expect(indexMapper.getVisualFromRenderableIndex(3)).toBe(3);
+    expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(3);
+    expect(indexMapper.getVisualFromRenderableIndex(4)).toBe(4);
+    expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(4);
+    expect(indexMapper.getVisualFromRenderableIndex(5)).toBe(5);
+    expect(indexMapper.getRenderableFromVisualIndex(5)).toBe(5);
+    expect(indexMapper.getVisualFromRenderableIndex(6)).toBe(6);
+    expect(indexMapper.getRenderableFromVisualIndex(6)).toBe(6);
+    expect(indexMapper.getVisualFromRenderableIndex(7)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(7)).toBe(null);
+
+    indexMapper.setIndexesSequence([1, 4, 2, 0, 3, 6, 5]);
+
+    expect(indexMapper.getVisualFromRenderableIndex(0)).toBe(0);
+    expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+    expect(indexMapper.getVisualFromRenderableIndex(1)).toBe(1);
+    expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(1);
+    expect(indexMapper.getVisualFromRenderableIndex(2)).toBe(2);
+    expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(2);
+    expect(indexMapper.getVisualFromRenderableIndex(3)).toBe(3);
+    expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(3);
+    expect(indexMapper.getVisualFromRenderableIndex(4)).toBe(4);
+    expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(4);
+    expect(indexMapper.getVisualFromRenderableIndex(5)).toBe(5);
+    expect(indexMapper.getRenderableFromVisualIndex(5)).toBe(5);
+    expect(indexMapper.getVisualFromRenderableIndex(6)).toBe(6);
+    expect(indexMapper.getRenderableFromVisualIndex(6)).toBe(6);
+    expect(indexMapper.getVisualFromRenderableIndex(7)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(7)).toBe(null);
+
+    skipMap.addLocalHook('init', () => {
+      skipMap.setValueAtIndex(2, true);
+      skipMap.setValueAtIndex(4, true);
+    });
+
+    indexMapper.registerMap('skipMap', skipMap);
+
+    // visual   | 0        1  2  3  4
+    // physical | 1  4  2  0  3  6  5
+
+    expect(indexMapper.getVisualFromRenderableIndex(0)).toBe(0);
+    expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+    expect(indexMapper.getVisualFromRenderableIndex(1)).toBe(1);
+    expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(1);
+    expect(indexMapper.getVisualFromRenderableIndex(2)).toBe(2);
+    expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(2);
+    expect(indexMapper.getVisualFromRenderableIndex(3)).toBe(3);
+    expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(3);
+    expect(indexMapper.getVisualFromRenderableIndex(4)).toBe(4);
+    expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(4);
+    expect(indexMapper.getVisualFromRenderableIndex(5)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(5)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(6)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(6)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(7)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(7)).toBe(null);
+
+    hiddenMap.addLocalHook('init', () => {
+      hiddenMap.setValueAtIndex(1, true);
+      hiddenMap.setValueAtIndex(3, true);
+    });
+
+    indexMapper.registerMap('hiddenMap', hiddenMap);
+
+    // renderable   |          0     1  2
+    // visual       | 0        1  2  3  4
+    // physical     | 1  4  2  0  3  6  5
+
+    expect(indexMapper.getVisualFromRenderableIndex(0)).toBe(1);
+    expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(1)).toBe(3);
+    expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(0);
+    expect(indexMapper.getVisualFromRenderableIndex(2)).toBe(4);
+    expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(3)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(1);
+    expect(indexMapper.getVisualFromRenderableIndex(4)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(2);
+    expect(indexMapper.getVisualFromRenderableIndex(5)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(5)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(6)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(6)).toBe(null);
+    expect(indexMapper.getVisualFromRenderableIndex(7)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(7)).toBe(null);
+
+    indexMapper.unregisterMap('skipMap');
+    indexMapper.unregisterMap('hiddenMap');
+  });
+
+  it('should translate indexes from renderable to physical properly', () => {
+    const indexMapper = new IndexMapper();
+    const skipMap = new SkipMap();
+    const hiddenMap = new HiddenMap();
+
+    expect(indexMapper.getPhysicalFromRenderableIndex(0)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(1)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(2)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(3)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(4)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(7)).toBe(null);
+
+    indexMapper.initToLength(7);
+
+    expect(indexMapper.getPhysicalFromRenderableIndex(0)).toBe(0);
+    expect(indexMapper.getPhysicalFromRenderableIndex(1)).toBe(1);
+    expect(indexMapper.getPhysicalFromRenderableIndex(2)).toBe(2);
+    expect(indexMapper.getPhysicalFromRenderableIndex(3)).toBe(3);
+    expect(indexMapper.getPhysicalFromRenderableIndex(4)).toBe(4);
+    expect(indexMapper.getPhysicalFromRenderableIndex(5)).toBe(5);
+    expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(6);
+    expect(indexMapper.getPhysicalFromRenderableIndex(7)).toBe(null);
+
+    indexMapper.setIndexesSequence([1, 4, 2, 0, 3, 6, 5]);
+
+    expect(indexMapper.getPhysicalFromRenderableIndex(0)).toBe(1);
+    expect(indexMapper.getPhysicalFromRenderableIndex(1)).toBe(4);
+    expect(indexMapper.getPhysicalFromRenderableIndex(2)).toBe(2);
+    expect(indexMapper.getPhysicalFromRenderableIndex(3)).toBe(0);
+    expect(indexMapper.getPhysicalFromRenderableIndex(4)).toBe(3);
+    expect(indexMapper.getPhysicalFromRenderableIndex(5)).toBe(6);
+    expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(5);
+    expect(indexMapper.getPhysicalFromRenderableIndex(7)).toBe(null);
+
+    skipMap.addLocalHook('init', () => {
+      skipMap.setValueAtIndex(2, true);
+      skipMap.setValueAtIndex(4, true);
+    });
+
+    indexMapper.registerMap('skipMap', skipMap);
+
+    // visual   | 0        1  2  3  4
+    // physical | 1  4  2  0  3  6  5
+
+    expect(indexMapper.getPhysicalFromRenderableIndex(0)).toBe(1);
+    expect(indexMapper.getPhysicalFromRenderableIndex(1)).toBe(0);
+    expect(indexMapper.getPhysicalFromRenderableIndex(2)).toBe(3);
+    expect(indexMapper.getPhysicalFromRenderableIndex(3)).toBe(6);
+    expect(indexMapper.getPhysicalFromRenderableIndex(4)).toBe(5);
+    expect(indexMapper.getPhysicalFromRenderableIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(7)).toBe(null);
+
+    hiddenMap.addLocalHook('init', () => {
+      hiddenMap.setValueAtIndex(1, true);
+      hiddenMap.setValueAtIndex(3, true);
+    });
+
+    indexMapper.registerMap('hiddenMap', hiddenMap);
+
+    // renderable   |          0     1  2
+    // visual       | 0        1  2  3  4
+    // physical     | 1  4  2  0  3  6  5
+
+    expect(indexMapper.getPhysicalFromRenderableIndex(0)).toBe(0);
+    expect(indexMapper.getPhysicalFromRenderableIndex(1)).toBe(6);
+    expect(indexMapper.getPhysicalFromRenderableIndex(2)).toBe(5);
+    expect(indexMapper.getPhysicalFromRenderableIndex(3)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(4)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(5)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(7)).toBe(null);
+
+    indexMapper.unregisterMap('skipMap');
+    indexMapper.unregisterMap('hiddenMap');
   });
 
   describe('removing indexes', () => {
