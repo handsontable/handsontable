@@ -4,6 +4,8 @@ import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndex
 
 /**
  * Map for storing mappings from an visual index to an physical index.
+ *
+ * It also updates the physical index on remove/add row or column action.
  */
 class VisualIndexToPhysicalIndexMap extends IndexMap {
   constructor() {

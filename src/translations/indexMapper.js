@@ -9,8 +9,8 @@ import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 
 /**
- * Index mapper stores, registers and manages the indexes on the basis of calculations collected from this class objects.
- * It should be seen as a single source of truth (regarding row and column indexes i. e. their sequence, information if they are skipped in the process of rendering, values linked to them)
+ * Index mapper stores, registers and manages the indexes on the basis of calculations collected from the subsidiary maps.
+ * It should be seen as a single source of truth (regarding row and column indexes i. E. Their sequence, information if they are skipped in the process of rendering, values linked to them)
  * for any operation that considers CRUD actions such as **insertion**, **movement**, **removal** etc, and is used to properly calculate physical and visual indexes translations in both ways.
  * It has a built-in cache that is updated only when the data or structure changes.
  *
@@ -21,69 +21,38 @@ import { isDefined } from '../helpers/mixed';
  * To ensure the calculation is done correctly **index mapper** also registers the skipping process
  * and embeds **cache** which is triggered only when the data or structure changes.
  *
- *
  *  **rowIndexMapper** and **columnIndexMapper** are instances of indexMapper which, respectively, manage **rows** and **columns** by calling methods.
  *
- * **These are the main objects on class IndexMapper for storing different types of index information:**
+ * **Complementary to the above there are 3 main kinds of index maps which may be registered in the collections.**.
  *
- * **-** Map for the **sequence** of indexes. It is registered by default and may be used from API methods like
- * `getIndexesSequence`, `setIndexesSequence`, `getNumberOfIndexes` etc.
- * ```js
- * // type {VisualIndexToPhysicalIndexMap}
- * this.indexesSequence = new IndexToIndexMap();
+ * They are registered to collections and can be used by reference.
  *
- * ```
- * **-** Collection for different **skip maps**. These indexes are bound to be skipped and will not be rendered and/or present in `getData` calls.
+ * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
- * Examples of the API methods are: `getNotSkippedIndexes`, `getNotSkippedIndexesLength`, `isSkipped`
- *
- * ``` js
- * // type {MapCollection}
- * // Indexes not rendered and skipped in `getData`
- *
- * this.skipMapsCollection = new MapCollection();
- * ```
- *
- * ``` js
- * // type {MapCollection}
- * // Indexes not rendered only
- * // hiddenMapsCollection is WIP
- * this.hiddenMapsCollection = new MapCollection();
- * ```
- *
- * **-** Collection for any **other** kind of mapping.
- * ``` js
- * // type {MapCollection}
- * this.variousMapsCollection = new MapCollection();
- * ```
- *
- * **Complementary to the above there are 3 main kinds of index maps which may be registered in the collections.**
- * They are registered to collections and can be used by reference. They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
- *
- * **-** `VisualIndexToPhysicalIndexMap` which provides mappings **from visual index to physical index** and update the physical index on remove/add row or column action.
- *
- * **-** `PhysicalIndexToValueMap` which provides mappings **from physical index to any value** and doesn't update the value on remove/add row or column action.
- *
- * **-** `SkipMap` - which is like `PhysicalIndexToValueMap` but for **skipping** some indexes inside index maps (values are booleans).
+ * These are: {@link to VisualIndexToPhysicalIndexMap}, {@link to PhysicalIndexToValueMap} and {@link to SkipMap}.
  */
 class IndexMapper {
   constructor() {
     /**
-     * Map storing the sequence of indexes.
+     * Map for storing the sequence of indexes.
+     *
+     * It is registered by default and may be used from API methods.
      *
      * @private
      * @type {VisualIndexToPhysicalIndexMap}
      */
     this.indexesSequence = new IndexToIndexMap();
     /**
-     * Collection for different skip maps. Indexes marked as skipped in any map won't be rendered.
+     * A {@link to MapCollection} for different skip maps.
+     *
+     * These indexes are bound to be skipped and will not be rendered and/or present in `getData` calls.
      *
      * @private
      * @type {MapCollection}
      */
     this.skipMapsCollection = new MapCollection();
     /**
-     * Collection for another kind of maps.
+     * Collection for any another kind of maps.
      *
      * @private
      * @type {MapCollection}
