@@ -228,7 +228,7 @@ class TrimRows extends BasePlugin {
   }
 
   /**
-   * Get if trim config is valid.
+   * Get if trim config is valid. Check whether all of the provided row indexes are within source data.
    *
    * @param {Array} trimmedRows List of physical row indexes.
    * @returns {boolean}

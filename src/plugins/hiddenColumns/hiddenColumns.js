@@ -3,6 +3,7 @@ import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
+import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
@@ -148,20 +149,20 @@ class HiddenColumns extends BasePlugin {
    */
   showColumns(columns) {
     const currentHideConfig = this.getHiddenColumns();
-    const validColumns = this.isColumnDataValid(columns);
+    const isConfigValid = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
 
-    if (validColumns) {
+    if (isConfigValid) {
       destinationHideConfig = currentHideConfig.filter(column => !columns.includes(column));
     }
 
-    const continueHiding = this.hot.runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, validColumns);
+    const continueHiding = this.hot.runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (validColumns) {
+    if (isConfigValid) {
       destinationHideConfig = currentHideConfig.filter(hiddenColumn => columns.includes(hiddenColumn) === false);
 
       this.hot.executeBatchOperations(() => {
@@ -171,8 +172,8 @@ class HiddenColumns extends BasePlugin {
       });
     }
 
-    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, validColumns,
-      validColumns && destinationHideConfig.length < currentHideConfig.length);
+    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
+      isConfigValid && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
@@ -191,20 +192,20 @@ class HiddenColumns extends BasePlugin {
    */
   hideColumns(columns) {
     const currentHideConfig = this.getHiddenColumns();
-    const validColumns = this.isColumnDataValid(columns);
+    const isConfigValid = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
 
-    if (validColumns) {
+    if (isConfigValid) {
       destinationHideConfig = Array.from(new Set(currentHideConfig.concat(columns)));
     }
 
-    const continueHiding = this.hot.runHooks('beforeHideColumns', currentHideConfig, destinationHideConfig, validColumns);
+    const continueHiding = this.hot.runHooks('beforeHideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (validColumns) {
+    if (isConfigValid) {
       this.hot.executeBatchOperations(() => {
         arrayEach(columns, (visualColumn) => {
           this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
@@ -212,8 +213,8 @@ class HiddenColumns extends BasePlugin {
       });
     }
 
-    this.hot.runHooks('afterHideColumns', currentHideConfig, destinationHideConfig, validColumns,
-      validColumns && destinationHideConfig.length > currentHideConfig.length);
+    this.hot.runHooks('afterHideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
+      isConfigValid && destinationHideConfig.length > currentHideConfig.length);
   }
 
   /**
@@ -251,15 +252,15 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Check whether all of the provided column indexes are within the bounds of the table.
+   * Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
    *
-   * @param {Array} columns Array of column indexes.
+   * @param {Array} hiddenColumns List of hidden row indexes.
    * @returns {boolean}
    */
-  isColumnDataValid(columns) {
+  isValidConfig(hiddenColumns) {
     const nrOfRows = this.hot.countCols();
 
-    return columns.every(column => Number.isInteger(column) && column >= 0 && column < nrOfRows);
+    return hiddenColumns.every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfRows);
   }
 
   /**
@@ -292,7 +293,7 @@ class HiddenColumns extends BasePlugin {
 
     if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
-      // add additional space for hidden column indicator
+      // Add additional space for hidden column indicator.
       return width + (this.hot.hasColHeaders() ? 15 : 0);
     }
   }
@@ -307,6 +308,7 @@ class HiddenColumns extends BasePlugin {
    */
   onAfterGetCellMeta(row, column, cellProperties) {
     if (this.settings.copyPasteEnabled === false && this.isHidden(column)) {
+      // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipColumnOnPaste = true;
     }
 
@@ -319,7 +321,7 @@ class HiddenColumns extends BasePlugin {
     } else if (cellProperties.className) {
       const classArr = cellProperties.className.split(' ');
 
-      if (classArr.length) {
+      if (classArr.length > 0) {
         const containAfterHiddenColumn = classArr.indexOf('afterHiddenColumn');
 
         if (containAfterHiddenColumn > -1) {
@@ -341,7 +343,7 @@ class HiddenColumns extends BasePlugin {
   onModifyCopyableRange(ranges) {
     const pluginSettings = this.hot.getSettings().hiddenColumns;
 
-    // Ranges aren't modified.
+    // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
     if (!isObject(pluginSettings) || pluginSettings.copyPasteEnabled) {
       return ranges;
     }
@@ -394,15 +396,17 @@ class HiddenColumns extends BasePlugin {
     }
 
     const physicalColumn = this.hot.toPhysicalColumn(column);
-    const sequence = this.hot.columnIndexMapper.getIndexesSequence();
-    const currentPosition = sequence.indexOf(physicalColumn);
+    const sequenceOfPhysicalIndexes = this.hot.columnIndexMapper.getIndexesSequence();
+    const currentPositionInSourceIndexes = sequenceOfPhysicalIndexes.indexOf(physicalColumn);
     const classList = [];
 
-    if (this.isHidden(this.hot.toVisualColumn(sequence[currentPosition - 1]))) {
+    if (column >= 1 &&
+      this.isHidden(this.hot.toVisualColumn(sequenceOfPhysicalIndexes[currentPositionInSourceIndexes - 1]))) {
       classList.push('afterHiddenColumn');
     }
 
-    if (this.isHidden(this.hot.toVisualColumn(sequence[currentPosition + 1]))) {
+    if (currentPositionInSourceIndexes < sequenceOfPhysicalIndexes.length - 1 &&
+      this.isHidden(this.hot.toVisualColumn(sequenceOfPhysicalIndexes[currentPositionInSourceIndexes + 1]))) {
       classList.push('beforeHiddenColumn');
     }
 
@@ -426,7 +430,7 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * `afterPluginsInitialized` hook callback.
+   * On map initialized hook callback.
    *
    * @private
    */
@@ -436,7 +440,7 @@ class HiddenColumns extends BasePlugin {
     if (isObject(pluginSettings)) {
       this.settings = pluginSettings;
 
-      if (pluginSettings.copyPasteEnabled === void 0) {
+      if (isUndefined(pluginSettings.copyPasteEnabled)) {
         pluginSettings.copyPasteEnabled = true;
       }
 
