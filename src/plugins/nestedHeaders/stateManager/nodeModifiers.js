@@ -1,16 +1,29 @@
 import { arrayEach } from '../../../helpers/array';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * The NodeModifiers module is responsible for the modification of a tree
+ * structure in a way to achieve new column headers state.
+ *
  * @type {NodeModifiers}
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export default class NodeModifiers {
   static AVAILABLE_ACTIONS = ['collapse', 'expand'];
 
   /**
+   * Collapsing a node is a process where the processing node is collapsed
+   * to the colspan width of the first child. All node children, except the
+   * first one, are hidden. To prevent losing a current state of node children
+   * on the right, all nodes are cloned (and restored while expanding), and
+   * only then original nodes are modified (hidden in this case).
+   *
    * @param {TreeNode} nodeToProcess A tree node to process.
-   * @returns {object}
+   * @returns {object} result The action result.
+   * @returns {Function} result.rollbackModification The function that rollbacks the tree to the
+   *                                                 previous state.
+   * @returns {number[]} result.affectedColumns The list of the visual column indexes which are affected.
+   *                                            That list is passed to the hiddens column logic.
+   * @returns {number} result.colspanCompensation The number of colspan by which the processed node
+   *                                              colspan was reduced.
    */
   collapseNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
@@ -37,7 +50,8 @@ export default class NodeModifiers {
       // Clone the tree to preserve original tree state after header expanding.
       node.data.clonedTree = node.cloneTree();
 
-      // Hide all leaves except the first leaf on the left (on headers context hide all headers on the right).
+      // Hide all leaves except the first leaf on the left (on headers context hide all
+      // headers on the right).
       node.walkDown(({ data }) => {
         data.hidden = true;
       });
@@ -45,8 +59,8 @@ export default class NodeModifiers {
 
     const { colspan, origColspan, columnIndex } = nodeData;
 
-    // Calculate by how many colspan it needs to reduce the headings to match them to the
-    // first child colspan width.
+    // Calculate by how many colspan it needs to reduce the headings to match them to
+    // the first child colspan width.
     const colspanCompensation = colspan - (getFirstChildProperty(nodeToProcess, 'colspan') ?? 1);
 
     nodeToProcess.walkUp((node) => {
@@ -79,8 +93,19 @@ export default class NodeModifiers {
   }
 
   /**
+   * Expanding a node is a process where the processing node is expanded to
+   * its original colspan width. To restore an original state of all node
+   * children on the right, the modified nodes are replaced with the cloned
+   * nodes (they were cloned while collapsing).
+   *
    * @param {TreeNode} nodeToProcess A tree node to process.
-   * @returns {object}
+   * @returns {object} result The action result.
+   * @returns {Function} result.rollbackModification The function that rollbacks the tree to the
+   *                                                 previous state.
+   * @returns {number[]} result.affectedColumns The list of the visual column indexes which are affected.
+   *                                            That list is passed to the hidden columns logic.
+   * @returns {number} result.colspanCompensation The number of colspan by which the processed node
+   *                                              colspan was increased.
    */
   expandNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
@@ -154,6 +179,9 @@ export default class NodeModifiers {
   }
 
   /**
+   * An entry point for triggering a node modifiers. If the triggered action
+   * do not exists the exception is thrown.
+   *
    * @param {string} actionName An action name to trigger.
    * @param {TreeNode} nodeToProcess A tree node to process.
    * @returns {object}
@@ -168,6 +196,8 @@ export default class NodeModifiers {
 }
 
 /**
+ * A tree helper for retrieving a data from the first child.
+ *
  * @param {TreeNode} node A tree node to check.
  * @param {string} propertyName A name of the property whose value you want to get.
  * @returns {*}
@@ -181,6 +211,18 @@ function getFirstChildProperty({ childs }, propertyName) {
 }
 
 /**
+ * A tree helper which checks if passed node has the same original colspan as its
+ * first child. In that case the node is treated as "mirrored" or "reflected"
+ * every action performed on one of that nodes should be reflected to other "mirrored"
+ * node.
+ *
+ * In that case nodes A1 and A2 are "refelcted"
+ *   +----+----+----+----+
+ *   | A1      | B1      |
+ *   +----+----+----+----+
+ *   | A2      | B2 | B3 |
+ *   +----+----+----+----+
+ *
  * @param {TreeNode} node A tree node to check.
  * @returns {boolean}
  */

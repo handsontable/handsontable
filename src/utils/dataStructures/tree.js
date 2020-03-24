@@ -124,7 +124,7 @@ export default class TreeNode {
   }
 
   /**
-   * Adds a node to tree leaves. Added node is linked the parent node through "parent" property.
+   * Adds a node to tree leaves. Added node is linked with the parent node through "parent" property.
    *
    * @param {TreeNode} node A TreeNode to add.
    */

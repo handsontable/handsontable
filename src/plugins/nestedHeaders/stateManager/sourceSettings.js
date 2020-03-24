@@ -49,6 +49,8 @@ export default class SourceSettings {
   }
 
   /**
+   * Merges settings with current source settings.
+   *
    * @param {object[]} additionalSettings An array of objects with `row`, `col` and additional
    *                                      properties to merge with current source settings.
    */
@@ -63,6 +65,9 @@ export default class SourceSettings {
   }
 
   /**
+   * Maps the current state with a callback. For each source settings the callback function
+   * is called. If the function returns value that value is merged with the source settings.
+   *
    * @param {Function} callback A function that is called for every header settings.
    *                            Each time the callback is called, the returned value extends
    *                            header settings.

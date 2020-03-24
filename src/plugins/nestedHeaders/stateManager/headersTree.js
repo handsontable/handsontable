@@ -47,12 +47,14 @@ export default class HeadersTree {
    * A map that translates the visual column indexes that intersect the range
    * defined by the header colspan width to the root index.
    *
+   * @private
    * @type {Map<number, number>}
    */
   #rootsIndex = new Map();
   /**
    * The instance of the SourceSettings class.
    *
+   * @private
    * @type {SourceSettings}
    */
   #sourceSettings = null;

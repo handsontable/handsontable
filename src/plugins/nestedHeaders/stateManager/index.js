@@ -6,7 +6,7 @@ import { HEADER_DEFAULT_SETTINGS } from './constants';
 import { matrixGenerator } from './matrixGenerator';
 
 /**
- * The column state manager is a source of truth for nested headers configuration.
+ * The state manager is a source of truth for nested headers configuration.
  * The state generation process is divided into three stages.
  *
  *   +---------------------+  1. User-defined configuration normalization;
@@ -23,13 +23,13 @@ import { matrixGenerator } from './matrixGenerator';
  *   +---------------------+  If `true` the colspan matrix generation is skipped, overlapped headers are not supported.
  *             │
  *            \│/
- *   +---------------------+  3. Colspan matrix generation;
- *   │                     │  Based on built trees the colspan matrix generation is performed. That part of code
- *   │    colspan matrix   │  generates an array structure similar to normalized data from the SourceSettings
+ *   +---------------------+  3. Matrix generation;
+ *   │                     │  Based on built trees the matrix generation is performed. That part of code
+ *   │  matrix generation  │  generates an array structure similar to normalized data from the SourceSettings
  *   │                     │  but with the difference that this structure contains column settings which changed
  *   +---------------------+  during runtime (after the tree manipulation) e.q after collapse or expand column.
  *                            That settings describes how the TH element should be modified (colspan attribute,
- *                            CSS classes) for a specific column and layer level.
+ *                            CSS classes, etc) for a specific column and layer level.
  *
  * @type {StateManager}
  */
@@ -37,24 +37,28 @@ export default class StateManager {
   /**
    * The instance of the source settings class.
    *
+   * @private
    * @type {SourceSettings}
    */
   #sourceSettings = new SourceSettings();
   /**
    * The instance of the collapsible modifier class.
    *
+   * @private
    * @type {NodeModifiers}
    */
   #nodeModifiers = new NodeModifiers();
   /**
    * The instance of the headers tree. The tree is generated after setting new confuguration data.
    *
+   * @private
    * @type {HeadersTree|null}
    */
   #headersTree = null;
   /**
    * Cached matrix which is generated from the tree structure.
    *
+   * @private
    * @type {Array[]}
    */
   #stateMatrix = [];
@@ -85,8 +89,10 @@ export default class StateManager {
   }
 
   /**
+   * Merges settings with current plugin state.
+   *
    * By default all known default settings (HEADER_DEFAULT_SETTINGS) and foreign keys are merged
-   * with source state. But only known keys are exported to matrix.
+   * with source state and passed to the tree. But only known keys are exported to matrix.
    *
    * @param {object[]} settings An array of objects to merge with the current source settings.
    *                            It is a requirement that every object has `row` and `col` properties
@@ -106,8 +112,11 @@ export default class StateManager {
   }
 
   /**
+   * Maps the current state with a callback. For each header settings the callback function
+   * is called. If the function returns value that value is merged with the state.
+   *
    * By default all known default settings (HEADER_DEFAULT_SETTINGS) and foreign keys are merged
-   * with source state. But only known keys are exported to matrix.
+   * with source state and passed to the tree. But only known keys are exported to matrix.
    *
    * @param {Function} callback A function that is called for every header source settings.
    *                            Each time the callback is called, the returned value extends
@@ -120,6 +129,9 @@ export default class StateManager {
   }
 
   /**
+   * Maps the current tree nodes with a callback. For each node the callback function
+   * is called. If the function returns value that value is added to returned array.
+   *
    * @param {Function} callback A function that is called for every tree node.
    *                            Each time the callback is called, the returned value is
    *                            added to returned array.
@@ -140,6 +152,10 @@ export default class StateManager {
   }
 
   /**
+   * Triggers an action (it can be "collapse" or "expand") from the NodeModifiers module. The module
+   * modifies a tree structure in such a way as to obtain the correct structure consistent with the
+   * called action.
+   *
    * @param {string} action An action name to trigger.
    * @param {number} headerLevel Header level index (there is support for negative and positive values).
    * @param {number} columnIndex A visual column index.
