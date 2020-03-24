@@ -124,6 +124,8 @@ export default class TreeNode {
   }
 
   /**
+   * Adds a node to tree leaves. Added node is linked the parent node through "parent" property.
+   *
    * @param {TreeNode} node A TreeNode to add.
    */
   addChild(node) {
@@ -131,40 +133,26 @@ export default class TreeNode {
     this.childs.push(node);
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Nodes traversing method which supports several strategies.
+   * Clones a tree structure deeply.
    *
-   * @param {Function} callback The callback function which will be called for each node.
-   * @param {string} [traversalStrategy=DEFAULT_TRAVERSAL_STRATEGY] Traversing strategy.
-   */
-  walkDown(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
-    if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
-      throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
-    }
-
-    TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);
-  }
-
-  /**
-   * @param {Function} callback The callback function which will be called for each node.
-   */
-  walkUp(callback) {
-    const context = this;
-    const process = (node) => {
-      const continueTraverse = callback.call(context, node);
-
-      if (continueTraverse !== false && node.parent !== null) {
-        process(node.parent);
-      }
-    };
-
-    process(this);
-  }
-
-  /**
+   * For example, for giving a tree structure:
+   *      .--(B1)--.
+   *   .-(C1)   .-(C2)-.----.
+   *  (D1)     (D2)   (D3) (D4)
+   *
+   * Cloning a tree starting from C2 node creates a mirrored tree structure.
+   *     .-(C2')-.-----.
+   *    (D2')   (D3') (D4')
+   *
+   * The cloned tree can be safely modified without affecting the original structure.
+   * After modification, the clone can be merged with a tree using the "replaceTreeWith" method.
+   *
    * @param {TreeNode} [nodeTree=this] A TreeNode to clone.
    * @returns {TreeNode}
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   cloneTree(nodeTree = this) {
     const clonedNode = new TreeNode({
       ...nodeTree.data,
@@ -178,6 +166,8 @@ export default class TreeNode {
   }
 
   /**
+   * Replaces the current node with a passed tree structure.
+   *
    * @param {TreeNode} nodeTree A TreeNode to replace with.
    */
   replaceTreeWith(nodeTree) {
@@ -187,5 +177,41 @@ export default class TreeNode {
     for (let i = 0; i < nodeTree.childs.length; i++) {
       this.addChild(nodeTree.childs[i]);
     }
+  }
+
+  /**
+   * Traverses the tree structure through node childs. The walk down traversing supports
+   * a three different strategies.
+   *  - Depth-first pre-order strategy (https://en.wikipedia.org/wiki/Tree_traversal#Pre-order_(NLR));
+   *  - Depth-first post-order strategy (https://en.wikipedia.org/wiki/Tree_traversal#Post-order_(NLR));
+   *  - Breadth-first traversal strategy (https://en.wikipedia.org/wiki/Tree_traversal#Breadth-first_search_/_level_order).
+   *
+   * @param {Function} callback The callback function which will be called for each node.
+   * @param {string} [traversalStrategy=DEFAULT_TRAVERSAL_STRATEGY] Traversing strategy.
+   */
+  walkDown(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
+    if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
+      throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
+    }
+
+    TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);
+  }
+
+  /**
+   * Traverses the tree structure through node parents.
+   *
+   * @param {Function} callback The callback function which will be called for each node.
+   */
+  walkUp(callback) {
+    const context = this;
+    const process = (node) => {
+      const continueTraverse = callback.call(context, node);
+
+      if (continueTraverse !== false && node.parent !== null) {
+        process(node.parent);
+      }
+    };
+
+    process(this);
   }
 }
