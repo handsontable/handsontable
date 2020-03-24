@@ -311,26 +311,10 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (this.isHidden(cellProperties.visualCol - 1)) {
-      let firstSectionHidden = true;
-      let visualColumn = cellProperties.visualCol - 1;
-
       cellProperties.className = cellProperties.className || '';
 
       if (cellProperties.className.indexOf('afterHiddenColumn') === -1) {
         cellProperties.className += ' afterHiddenColumn';
-      }
-
-      do {
-        if (!this.isHidden(visualColumn)) {
-          firstSectionHidden = false;
-          break;
-        }
-
-        visualColumn -= 1;
-      } while (visualColumn >= 0);
-
-      if (firstSectionHidden && cellProperties.className.indexOf('firstVisibleColumn') === -1) {
-        cellProperties.className += ' firstVisibleColumn';
       }
     } else if (cellProperties.className) {
       const classArr = cellProperties.className.split(' ');
@@ -340,12 +324,6 @@ class HiddenColumns extends BasePlugin {
 
         if (containAfterHiddenColumn > -1) {
           classArr.splice(containAfterHiddenColumn, 1);
-        }
-
-        const containFirstVisible = classArr.indexOf('firstVisibleColumn');
-
-        if (containFirstVisible > -1) {
-          classArr.splice(containFirstVisible, 1);
         }
 
         cellProperties.className = classArr.join(' ');
@@ -411,7 +389,7 @@ class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetColHeader(column, TH) {
-    if (!this.settings.indicators) {
+    if (!this.settings.indicators || column === -1) {
       return;
     }
 
@@ -424,7 +402,7 @@ class HiddenColumns extends BasePlugin {
       classList.push('afterHiddenColumn');
     }
 
-    if (column > -1 && this.isHidden(this.hot.toVisualColumn(sequence[currentPosition + 1]))) {
+    if (this.isHidden(this.hot.toVisualColumn(sequence[currentPosition + 1]))) {
       classList.push('beforeHiddenColumn');
     }
 
