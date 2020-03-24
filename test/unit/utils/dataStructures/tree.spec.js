@@ -3,7 +3,9 @@ import TreeNode, { TRAVERSAL_DF_PRE, TRAVERSAL_DF_POST, TRAVERSAL_BF } from 'han
 function createNode(id, childs = []) {
   const node = new TreeNode({ id });
 
-  node.childs = childs;
+  childs.forEach((childNode) => {
+    node.addChild(childNode);
+  });
 
   return node;
 }
@@ -14,6 +16,7 @@ describe('TreeNode', () => {
 
     expect(node.data.id).toBe('test');
     expect(node.childs).toEqual([]);
+    expect(node.parent).toBeNull();
   });
 
   describe('walkDown()', () => {

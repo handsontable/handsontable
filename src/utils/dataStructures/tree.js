@@ -124,6 +124,14 @@ export default class TreeNode {
   }
 
   /**
+   * @param {TreeNode} node A TreeNode to add.
+   */
+  addChild(node) {
+    node.parent = this;
+    this.childs.push(node);
+  }
+
+  /**
    * Nodes traversing method which supports several strategies.
    *
    * @param {Function} callback The callback function which will be called for each node.
@@ -151,5 +159,33 @@ export default class TreeNode {
     };
 
     process(this);
+  }
+
+  /**
+   * @param {TreeNode} [nodeTree=this] A TreeNode to clone.
+   * @returns {TreeNode}
+   */
+  cloneTree(nodeTree = this) {
+    const clonedNode = new TreeNode({
+      ...nodeTree.data,
+    });
+
+    for (let i = 0; i < nodeTree.childs.length; i++) {
+      clonedNode.addChild(this.cloneTree(nodeTree.childs[i]));
+    }
+
+    return clonedNode;
+  }
+
+  /**
+   * @param {TreeNode} nodeTree A TreeNode to replace with.
+   */
+  replaceTreeWith(nodeTree) {
+    this.data = { ...nodeTree.data };
+    this.childs = [];
+
+    for (let i = 0; i < nodeTree.childs.length; i++) {
+      this.addChild(nodeTree.childs[i]);
+    }
   }
 }

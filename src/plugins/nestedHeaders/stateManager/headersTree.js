@@ -191,9 +191,8 @@ export default class HeadersTree {
         node = parentNode;
       } else {
         node = new TreeNode(nodeData);
-        node.parent = parentNode;
 
-        parentNode.childs.push(node);
+        parentNode.addChild(node);
       }
 
       if (headerLevel < this.#sourceSettings.getLayersCount()) {

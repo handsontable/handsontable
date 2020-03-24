@@ -32,7 +32,7 @@ beforeEach(() => {
       rootNode.walkDown((node) => {
         const { label, colspan, isCollapsed, hidden, headerLevel } = node.data;
 
-        if (hidden) {
+        if (hidden === true) {
           return;
         }
 

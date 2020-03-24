@@ -15,7 +15,7 @@ export default class NodeModifiers {
   collapseNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === true || nodeData.origColspan <= 1) {
+    if (nodeData.isCollapsed === true || nodeData.hidden === true || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],
@@ -33,8 +33,11 @@ export default class NodeModifiers {
 
     const allLeavesExceptMostLeft = nodeChilds.slice(1);
 
-    // Hide all leaves except the first leaf on the left.
     arrayEach(allLeavesExceptMostLeft, (node) => {
+      // Clone the tree to preserve original tree state after header expanding.
+      node.data.clonedTree = node.cloneTree();
+
+      // Hide all leaves except the first leaf on the left (on headers context hide all headers on the right).
       node.walkDown(({ data }) => {
         data.hidden = true;
       });
@@ -51,7 +54,8 @@ export default class NodeModifiers {
 
       data.colspan -= colspanCompensation;
 
-      if (data.colspan === 1) {
+      if (data.colspan <= 1) {
+        data.colspan = 1;
         data.isCollapsed = true;
 
       } else if (isNodeReflectsFirstChildColspan(node)) {
@@ -81,7 +85,7 @@ export default class NodeModifiers {
   expandNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === false || nodeData.origColspan <= 1) {
+    if (nodeData.isCollapsed === false || nodeData.hidden === true || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],
@@ -103,12 +107,11 @@ export default class NodeModifiers {
     let colspanCompensation = 0;
 
     arrayEach(allLeavesExceptMostLeft, (node) => {
-      const leafData = node.data;
+      // Restore original state of the collapsed headers.
+      node.replaceTreeWith(node.data.clonedTree);
+      node.data.clonedTree = null;
 
-      // Show all leaves except the first leaf on the left.
-      node.walkDown(({ data }) => {
-        data.hidden = false;
-      });
+      const leafData = node.data;
 
       // Calculate by how many colspan it needs to increase the headings to match them to
       // the colspan width of all its children.
@@ -134,7 +137,8 @@ export default class NodeModifiers {
 
       data.colspan += colspanCompensation;
 
-      if (data.colspan === data.origColspan) {
+      if (data.colspan >= data.origColspan) {
+        data.colspan = data.origColspan;
         data.isCollapsed = false;
 
       } else if (isNodeReflectsFirstChildColspan(node)) {
