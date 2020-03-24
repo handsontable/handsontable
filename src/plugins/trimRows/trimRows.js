@@ -217,7 +217,7 @@ class TrimRows extends BasePlugin {
    * @returns {boolean}
    */
   isTrimmed(physicalRow) {
-    return this.trimmedRowsMap.getValueAtIndex(physicalRow);
+    return this.trimmedRowsMap.getValueAtIndex(physicalRow) || false;
   }
 
   /**

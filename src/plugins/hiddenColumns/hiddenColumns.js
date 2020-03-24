@@ -248,7 +248,7 @@ class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(column) {
-    return this.hiddenColumnsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
+    return this.hiddenColumnsMap.getValueAtIndex(this.hot.toPhysicalColumn(column)) || false;
   }
 
   /**
