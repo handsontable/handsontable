@@ -244,7 +244,6 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      // eslint-disable-next-line no-console
       expect(warnSpy).toHaveBeenCalledWith('Your Nested Headers plugin setup contains overlapping headers. ' +
                                            'This kind of configuration is currently not supported.');
       expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
