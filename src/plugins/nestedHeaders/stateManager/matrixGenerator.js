@@ -54,6 +54,7 @@ export function matrixGenerator(headerRoots) {
         for (let i = 0; i < origColspan - 1; i++) {
           colspanHeaderLayer.push({
             ...HEADER_DEFAULT_SETTINGS,
+            origColspan,
             hidden: true,
           });
         }

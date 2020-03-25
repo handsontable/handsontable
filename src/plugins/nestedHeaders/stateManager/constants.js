@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 /**
  * Default properties for nested header settings.
  *
@@ -42,3 +41,10 @@ export const HEADER_DEFAULT_SETTINGS = {
    */
   isCollapsed: false,
 };
+
+/**
+ * List of properties which are configurable. That properties can be changed using public API.
+ *
+ * @type {string[]}
+ */
+export const HEADER_CONFIGURABLE_PROPS = ['label', 'collapsible'];

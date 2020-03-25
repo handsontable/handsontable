@@ -54,6 +54,12 @@ class NestedHeaders extends BasePlugin {
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
   ghostTable = new GhostTable(this);
 
+  /**
+   * The flag which determines that the nested header settings contains overlapping headers
+   * configuration.
+   *
+   * @type {boolean}
+   */
   detectedOverlappedHeaders = false;
 
   /**
@@ -117,6 +123,8 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Returns an instance of the internal state manager of the plugin.
+   *
    * @private
    * @returns {StateManager}
    */
@@ -215,7 +223,8 @@ class NestedHeaders extends BasePlugin {
    * Generates the appropriate header renderer for a header row.
    *
    * @private
-   * @param {number} headerLevel The index of header level counting from the top (positive values counting from 0 to N).
+   * @param {number} headerLevel The index of header level counting from the top (positive
+   *                             values counting from 0 to N).
    * @returns {Function}
    * @fires Hooks#afterGetColHeader
    */
@@ -292,9 +301,9 @@ class NestedHeaders extends BasePlugin {
     for (let column = columnFrom; column <= columnTo; column++) {
       // Traverse header layers from bottom to top.
       for (let level = layersCount - 1; level > -1; level--) {
-        const { colspan, hidden } = this.#stateManager.getHeaderSettings(level, column);
+        const { origColspan, hidden } = this.#stateManager.getHeaderSettings(level, column);
         const isFirstLayer = level === layersCount - 1;
-        let isOutOfRange = (columnCursor + colspan) > columnSelectionWidth;
+        let isOutOfRange = (columnCursor + origColspan) > columnSelectionWidth;
 
         // If the selection doesn't overlap, the whole colspaned header. Correct the
         // visual column index to the TH element, which is not hidden (most left column index).
@@ -347,10 +356,10 @@ class NestedHeaders extends BasePlugin {
    */
   onAfterOnCellMouseDown(event, coords) {
     if (coords.row < 0) {
-      const { colspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
+      const { origColspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
 
-      if (colspan > 1) {
-        this.hot.selection.selectColumns(coords.col, coords.col + colspan - 1);
+      if (origColspan > 1) {
+        this.hot.selection.selectColumns(coords.col, coords.col + origColspan - 1);
       }
     }
   }
@@ -370,8 +379,8 @@ class NestedHeaders extends BasePlugin {
     }
 
     const { from, to } = this.hot.getSelectedRangeLast();
-    const { colspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
-    const lastColIndex = coords.col + colspan - 1;
+    const { origColspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
+    const lastColIndex = coords.col + origColspan - 1;
     let changeDirection = false;
 
     if (from.col <= to.col) {
@@ -391,7 +400,7 @@ class NestedHeaders extends BasePlugin {
       [from.col, to.col] = [to.col, from.col];
     }
 
-    if (colspan > 1) {
+    if (origColspan > 1) {
       blockCalculations.column = true;
       blockCalculations.cell = true;
 

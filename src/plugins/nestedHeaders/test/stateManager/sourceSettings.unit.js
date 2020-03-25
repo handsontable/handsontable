@@ -98,28 +98,64 @@ describe('SourceSettings', () => {
       ]);
 
       settings.mergeWith([
-        { row: 0, col: 0, test: 'test-a' },
-        { row: 1, col: 1, test1: 'test-b' },
-        { row: 2, col: 2, test2: 'test-c', test3: 'test-d' },
-        { row: -2, col: 1, test4: 'test-e' },
-        { row: 3, col: 1, test5: 'test-d' },
+        { row: 0, col: 0, collapsible: true },
+        { row: 1, col: 1, label: 'B2_mod' },
+        { row: 2, col: 2 },
+        { row: -2, col: 1, collapsible: true },
+        { row: 3, col: 1, collapsible: true },
       ]);
 
       expect(settings.getData()).toEqual([
         [
-          { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false, test: 'test-a' },
+          { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: true },
           { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
         ],
         [
           { label: 'true', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
-          { label: 'B2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false, test1: 'test-b' },
+          { label: 'B2_mod', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: '4', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
         ],
         [
           { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false, test2: 'test-c', test3: 'test-d' },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+      ]);
+    });
+
+    it('should not merge properties which are not known or forbidden to set', () => {
+      const settings = new SourceSettings();
+
+      settings.setData([
+        ['A1'],
+        [{ label: true }, 'B2', 4],
+        [],
+      ]);
+
+      settings.mergeWith([
+        { row: 0, col: 0, test: 'test-a', hidden: true, colspan: 99 },
+        { row: 1, col: 1, test1: 'test-b', hidden: true },
+        { row: 2, col: 2, test2: 'test-c', test3: 'test-d' },
+        { row: -2, col: 1, test4: 'test-e', isCollapsed: true },
+        { row: 3, col: 1, test5: 'test-d', origColspan: 99 },
+      ]);
+
+      expect(settings.getData()).toEqual([
+        [
+          { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+        [
+          { label: 'true', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: 'B2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '4', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+        [
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
         ],
       ]);
     });
@@ -138,7 +174,7 @@ describe('SourceSettings', () => {
 
       mapSpy.and.callFake((headerSettings) => {
         if (headerSettings.label === 'A1') {
-          return { colspan: 3, test: 'test-a' };
+          return { collapsible: true };
         }
       });
 
@@ -147,7 +183,45 @@ describe('SourceSettings', () => {
       expect(mapSpy).toHaveBeenCalledTimes(9);
       expect(settings.getData()).toEqual([
         [
-          { label: 'A1', colspan: 3, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false, test: 'test-a' },
+          { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: true },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+        [
+          { label: 'true', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: 'B2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '4', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+        [
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+      ]);
+    });
+
+    it('should not merge properties which are not known or forbidden to set', () => {
+      const mapSpy = jasmine.createSpy();
+      const settings = new SourceSettings();
+
+      settings.setData([
+        ['A1'],
+        [{ label: true }, 'B2', 4],
+        [],
+      ]);
+
+      mapSpy.and.callFake((headerSettings) => {
+        if (headerSettings.label === 'A1') {
+          return { colspan: 3, test: 'a', isCollapsed: true, origColspan: 99 };
+        }
+      });
+
+      settings.map(mapSpy);
+
+      expect(mapSpy).toHaveBeenCalledTimes(9);
+      expect(settings.getData()).toEqual([
+        [
+          { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
         ],

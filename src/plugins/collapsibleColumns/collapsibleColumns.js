@@ -263,7 +263,7 @@ class CollapsibleColumns extends BasePlugin {
     this.headerStateManager.mapNodes(({ collapsible, origColspan, headerLevel, columnIndex }) => {
       if (collapsible === true && origColspan > 1) {
         coords.push({
-          row: headerLevel,
+          row: this.headerStateManager.levelToRowCoords(headerLevel),
           col: columnIndex,
         });
       }
@@ -304,9 +304,11 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    let isActionPossible = true;
+    // Ignore coordinates which points to the cells range.
+    const filteredCoords = arrayFilter(coords, ({ row }) => row < 0);
+    let isActionPossible = filteredCoords.length > 0;
 
-    arrayEach(coords, ({ row, col: column }) => {
+    arrayEach(filteredCoords, ({ row, col: column }) => {
       const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column);
 
       if (!collapsible || isCollapsed && action === 'collapse' && !isCollapsed && action === 'expand') {
@@ -323,7 +325,7 @@ class CollapsibleColumns extends BasePlugin {
     if (isActionPossible) {
       const affectedColumnsIndexes = [];
 
-      arrayEach(coords, ({ row, col: column }) => {
+      arrayEach(filteredCoords, ({ row, col: column }) => {
         const {
           colspanCompensation,
           affectedColumns,

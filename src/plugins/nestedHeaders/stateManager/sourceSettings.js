@@ -1,6 +1,7 @@
 import { extend, isObject } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import { settingsNormalizer } from './settingsNormalizer';
+import { HEADER_CONFIGURABLE_PROPS } from './constants';
 
 /**
  * The class manages and normalizes settings passed by the developer
@@ -59,7 +60,7 @@ export default class SourceSettings {
       const headerSettings = this.getHeaderSettings(row, col);
 
       if (headerSettings !== null) {
-        extend(headerSettings, rest);
+        extend(headerSettings, rest, HEADER_CONFIGURABLE_PROPS);
       }
     });
   }
@@ -78,7 +79,7 @@ export default class SourceSettings {
         const propsToExtend = callback({ ...headerSettings });
 
         if (isObject(propsToExtend)) {
-          extend(headerSettings, propsToExtend);
+          extend(headerSettings, propsToExtend, HEADER_CONFIGURABLE_PROPS);
         }
       });
     });

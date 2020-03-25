@@ -9,6 +9,7 @@ import { arrayEach } from '../../../helpers/array';
 export default class NodeModifiers {
   static AVAILABLE_ACTIONS = ['collapse', 'expand'];
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Collapsing a node is a process where the processing node is collapsed
    * to the colspan width of the first child. All node children, except the
@@ -17,14 +18,16 @@ export default class NodeModifiers {
    * only then original nodes are modified (hidden in this case).
    *
    * @param {TreeNode} nodeToProcess A tree node to process.
-   * @returns {object} result The action result.
-   * @returns {Function} result.rollbackModification The function that rollbacks the tree to the
-   *                                                 previous state.
-   * @returns {number[]} result.affectedColumns The list of the visual column indexes which are affected.
-   *                                            That list is passed to the hiddens column logic.
-   * @returns {number} result.colspanCompensation The number of colspan by which the processed node
-   *                                              colspan was reduced.
+   * @returns {object} result Returns an object with properties:
+   *                          - rollbackModification: The function that
+   *                          rollbacks the tree to the previous state.
+   *                          - affectedColumns: The list of the visual column
+   *                          indexes which are affected. That list is passed
+   *                          to the hiddens column logic.
+   *                          - colspanCompensation: The number of colspan by
+   *                          which the processed node colspan was reduced.
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   collapseNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
@@ -92,6 +95,7 @@ export default class NodeModifiers {
     };
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Expanding a node is a process where the processing node is expanded to
    * its original colspan width. To restore an original state of all node
@@ -99,14 +103,16 @@ export default class NodeModifiers {
    * nodes (they were cloned while collapsing).
    *
    * @param {TreeNode} nodeToProcess A tree node to process.
-   * @returns {object} result The action result.
-   * @returns {Function} result.rollbackModification The function that rollbacks the tree to the
-   *                                                 previous state.
-   * @returns {number[]} result.affectedColumns The list of the visual column indexes which are affected.
-   *                                            That list is passed to the hidden columns logic.
-   * @returns {number} result.colspanCompensation The number of colspan by which the processed node
-   *                                              colspan was increased.
+   * @returns {object} result Returns an object with properties:
+   *                          - rollbackModification: The function that
+   *                          rollbacks the tree to the previous state.
+   *                          - affectedColumns: The list of the visual column
+   *                          indexes which are affected. That list is passed
+   *                          to the hiddens column logic.
+   *                          - colspanCompensation: The number of colspan by
+   *                          which the processed node colspan was increased.
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   expandNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
@@ -212,16 +218,15 @@ function getFirstChildProperty({ childs }, propertyName) {
 
 /**
  * A tree helper which checks if passed node has the same original colspan as its
- * first child. In that case the node is treated as "mirrored" or "reflected"
- * every action performed on one of that nodes should be reflected to other "mirrored"
- * node.
+ * first child. In that case the node is treated as "mirrored" or "reflected" every
+ * action performed on one of that nodes should be reflected to other "mirrored" node.
  *
  * In that case nodes A1 and A2 are "refelcted"
  *   +----+----+----+----+
  *   | A1      | B1      |
  *   +----+----+----+----+
  *   | A2      | B2 | B3 |
- *   +----+----+----+----+
+ *   +----+----+----+----+.
  *
  * @param {TreeNode} node A tree node to check.
  * @returns {boolean}

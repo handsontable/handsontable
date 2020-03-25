@@ -91,8 +91,8 @@ export default class StateManager {
   /**
    * Merges settings with current plugin state.
    *
-   * By default all known default settings (HEADER_DEFAULT_SETTINGS) and foreign keys are merged
-   * with source state and passed to the tree. But only known keys are exported to matrix.
+   * By default only foreign keys are merged with source state and passed to the tree. But only
+   * known keys are exported to matrix.
    *
    * @param {object[]} settings An array of objects to merge with the current source settings.
    *                            It is a requirement that every object has `row` and `col` properties
@@ -115,8 +115,8 @@ export default class StateManager {
    * Maps the current state with a callback. For each header settings the callback function
    * is called. If the function returns value that value is merged with the state.
    *
-   * By default all known default settings (HEADER_DEFAULT_SETTINGS) and foreign keys are merged
-   * with source state and passed to the tree. But only known keys are exported to matrix.
+   * By default only foreign keys are merged with source state and passed to the tree. But only
+   * known keys are exported to matrix.
    *
    * @param {Function} callback A function that is called for every header source settings.
    *                            Each time the callback is called, the returned value extends

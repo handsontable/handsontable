@@ -32,7 +32,7 @@ describe('StateManager', () => {
         label: 'A2', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false
       });
       expect(state.getHeaderSettings(0, 2)).toEqual({
-        label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false
+        label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false
       });
       expect(state.getHeaderSettings(-1, 1)).toEqual({
         label: 'D2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false
@@ -416,7 +416,7 @@ describe('StateManager', () => {
         expect(state.getHeaderSettings(-4, 1)).toEqual(headerSettings);
       }
       {
-        const headerSettings = { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false };
+        const headerSettings = { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false };
 
         expect(state.getHeaderSettings(0, 2)).toEqual(headerSettings);
         expect(state.getHeaderSettings(-4, 2)).toEqual(headerSettings);

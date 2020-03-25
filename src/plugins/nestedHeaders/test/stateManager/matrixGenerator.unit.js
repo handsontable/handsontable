@@ -60,19 +60,19 @@ describe('matrixGenerator', () => {
       expect(colspans).toEqual([
         [
           { label: 'A1', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false }
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false }
         ],
         [
           { label: 'B1', colspan: 3, origColspan: 3, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 3, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 3, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'B2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false }
         ],
         [
           { label: 'C1', colspan: 2, origColspan: 2, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 2, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'C2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: 'C3', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false }
         ]
@@ -103,37 +103,37 @@ describe('matrixGenerator', () => {
         [
           { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: 'A2', colspan: 8, origColspan: 8, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 8, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'A3', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false }
         ],
         [
           { label: 'B1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: 'B2', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'B3', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'B4', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false }
         ],
         [
           { label: 'C1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: 'C2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
           { label: 'C3', colspan: 3, origColspan: 3, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 3, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 3, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'C4', colspan: 2, origColspan: 2, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 2, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'C5', colspan: 2, origColspan: 2, hidden: false, isCollapsed: false, collapsible: false },
-          { label: '', colspan: 1, origColspan: 1, hidden: true, isCollapsed: false, collapsible: false },
+          { label: '', colspan: 1, origColspan: 2, hidden: true, isCollapsed: false, collapsible: false },
           { label: 'C6', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false }
         ],
         [
