@@ -232,7 +232,7 @@ class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   isMovePossible(movedColumns, finalIndex) {
-    const length = this.hot.columnIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.columnIndexMapper.getNotTrimmedIndexesLength();
 
     // An attempt to transfer more columns to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedColumns.length + finalIndex > length;
