@@ -876,6 +876,17 @@ const REGISTERED_HOOKS = [
   'beforeRender',
 
   /**
+   * Fired before cell meta is changed.
+   *
+   * @event Hooks#beforeSetCellMeta
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The updated meta key.
+   * @param {*} value The updated meta value.
+   */
+  'beforeSetCellMeta',
+
+  /**
    * Fired before setting range is started but not finished yet.
    *
    * @event Hooks#beforeSetRangeStartOnly

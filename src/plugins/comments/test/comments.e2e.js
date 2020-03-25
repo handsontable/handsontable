@@ -232,6 +232,22 @@ describe('Comments', () => {
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
     });
 
+    it('should not trigger `afterSetCellMeta` callback if `setCommentAtCell` function is invoked and `beforeSetCellMeta` returned false', () => {
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+        beforeSetCellMeta: () => false,
+        afterSetCellMeta: afterSetCellMetaCallback
+      });
+
+      const plugin = hot.getPlugin('comments');
+
+      plugin.setCommentAtCell(1, 1, 'Added comment');
+
+      expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
+    });
+
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
@@ -265,6 +281,25 @@ describe('Comments', () => {
 
       plugin.removeCommentAtCell(1, 1);
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
+    });
+
+    it('should not trigger `afterSetCellMeta` callback if `removeCommentAtCell` function is invoked and `beforeSetCellMeta` returned false', () => {
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'test' } }
+        ]
+      });
+
+      hot.updateSettings({ beforeSetCellMeta: () => false, afterSetCellMeta: afterSetCellMetaCallback });
+
+      const plugin = hot.getPlugin('comments');
+
+      plugin.removeCommentAtCell(1, 1);
+
+      expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
     });
 
     it('should allow opening the comment editor using the `showAtCell` method', () => {
@@ -503,6 +538,40 @@ describe('Comments', () => {
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
     });
 
+    it('should not trigger `afterSetCellMeta` callback after deleting comment by context menu if `beforeSetCellMeta` returned false', () => {
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns() {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        },
+        beforeSetCellMeta: () => false,
+        afterSetCellMeta: afterSetCellMetaCallback
+      });
+
+      expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
+
+      selectCell(1, 1);
+      contextMenu();
+
+      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Delete comment';
+      })[0];
+
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+
+      expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
+    });
+
     it('should trigger `afterSetCellMeta` callback after editing comment by context menu', async() => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
 
@@ -545,6 +614,51 @@ describe('Comments', () => {
       await sleep(400);
 
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
+    });
+
+    it('should not trigger `afterSetCellMeta` callback after editing comment by context menu if `beforeSetCellMeta` returned false', async() => {
+      const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns() {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        },
+        beforeSetCellMeta: () => false,
+        afterSetCellMeta: afterSetCellMetaCallback
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const editCommentButton = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Edit comment';
+      })[0];
+
+      $(editCommentButton).simulate('mousedown');
+      $(editCommentButton).simulate('mouseup');
+
+      const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+      textarea.focus();
+      textarea.value = 'Edited comment';
+
+      await sleep(100);
+
+      $('body').simulate('mousedown');
+      $('body').simulate('mouseup');
+      textarea.blur();
+
+      await sleep(400);
+
+      expect(afterSetCellMetaCallback).not.toHaveBeenCalled();
     });
   });
 });

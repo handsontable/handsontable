@@ -2433,23 +2433,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} column Visual column index.
    * @param {string} key Property name.
    * @param {string} value Property value.
+   * @fires Hooks#beforeSetCellMeta
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
-    let physicalRow = row;
-    let physicalColumn = column;
+    const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
 
-    if (row < this.countRows()) {
-      physicalRow = this.toPhysicalRow(row);
+    if (allowSetCellMeta !== false) {
+      let physicalRow = row;
+      let physicalColumn = column;
+
+      if (row < this.countRows()) {
+        physicalRow = this.toPhysicalRow(row);
+      }
+
+      if (column < this.countCols()) {
+        physicalColumn = this.toPhysicalColumn(column);
+      }
+
+      metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+
+      instance.runHooks('afterSetCellMeta', row, column, key, value);
     }
-
-    if (column < this.countCols()) {
-      physicalColumn = this.toPhysicalColumn(column);
-    }
-
-    metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
-
-    instance.runHooks('afterSetCellMeta', row, column, key, value);
   };
 
   /**
