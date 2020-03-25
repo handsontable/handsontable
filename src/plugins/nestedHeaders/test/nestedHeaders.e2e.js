@@ -233,7 +233,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should warn the developer when the settings contains overlaping headers', () => {
-      console.warn = jasmine.createSpy('warn'); // eslint-disable-line no-console
+      const warnSpy = spyOn(console, 'warn');
 
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -245,8 +245,8 @@ describe('NestedHeaders', () => {
       });
 
       // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledWith('Your Nested Headers plugin setup contains overlapping headers. ' +
-                                                'This kind of configuration is currently not supported.');
+      expect(warnSpy).toHaveBeenCalledWith('Your Nested Headers plugin setup contains overlapping headers. ' +
+                                           'This kind of configuration is currently not supported.');
       expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
         <thead></thead>
         `);
