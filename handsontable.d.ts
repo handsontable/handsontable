@@ -2011,11 +2011,11 @@ declare namespace Handsontable {
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
       setIndexesSequence: (indexes: number[]) => void;
-      getNotSkippedIndexes: (readFromCache?: boolean) => number[];
-      getNotSkippedIndexesLength: () => number;
+      getNotTrimmedIndexes: (readFromCache?: boolean) => number[];
+      getNotTrimmedIndexesLength: () => number;
       getNumberOfIndexes: () => number;
       moveIndexes: (movedIndexes: number | number[], finalIndex: number) => void;
-      isSkipped: (physicalIndex: number) => boolean;
+      isTrimmed: (physicalIndex: number) => boolean;
     }
   }
 

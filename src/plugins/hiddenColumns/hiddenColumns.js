@@ -10,7 +10,7 @@ import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 
-import { HiddenMap } from '../../translations';
+import { HidingMap } from '../../translations';
 
 import './hiddenColumns.css';
 
@@ -85,7 +85,7 @@ class HiddenColumns extends BasePlugin {
      * Map of hidden rows by the plugin.
      *
      * @private
-     * @type {null|HiddenMap}
+     * @type {null|HidingMap}
      */
     this.hiddenColumnsMap = null;
   }
@@ -108,7 +108,7 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    this.hiddenColumnsMap = new HiddenMap();
+    this.hiddenColumnsMap = new HidingMap();
     this.hiddenColumnsMap.addLocalHook('init', () => this.onMapInit());
     this.hot.columnIndexMapper.registerMap(PLUGIN_NAME, this.hiddenColumnsMap);
 

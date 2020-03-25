@@ -2,8 +2,8 @@ import { arrayFilter, arrayMap } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
 import { rangeEach } from '../helpers/number';
 import IndexToIndexMap from './maps/visualIndexToPhysicalIndexMap';
-import SkipMap from './maps/skipMap';
-import HiddenMap from './maps/hiddenMap';
+import TrimmingMap from './maps/trimmingMap';
+import HidingMap from './maps/hidingMap';
 import MapCollection from './mapCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
@@ -37,94 +37,117 @@ class IndexMapper {
      */
     this.indexesSequence = new IndexToIndexMap();
     /**
-     * Collection for different skip maps. Indexes marked as skipped in any map won't be rendered.
+     * Collection for different trimming maps. Indexes marked as trimmed in any map won't be included in a dataset
+     * and won't be rendered.
      *
      * @private
      * @type {MapCollection}
      */
-    this.skipMapsCollection = new MapCollection();
+    this.trimmingMapsCollection = new MapCollection();
     /**
-     * Collection for another kind of maps.
+     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in a dataset,
+     * but won't be rendered.
+     *
+     * @private
+     * @type {MapCollection}
+     */
+    this.hidingMapsCollection = new MapCollection();
+    /**
+     * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
      *
      * @private
      * @type {MapCollection}
      */
     this.variousMapsCollection = new MapCollection();
     /**
-     * Cache for skip result for particular indexes.
+     * Cache for trim result for particular physical indexes.
      *
      * @private
      * @type {Array}
      */
-    this.flattenSkipList = [];
+    this.flattenTrimmedList = [];
     /**
-     * Cache for list of not skipped indexes, respecting the indexes sequence.
+     * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
      * @private
      * @type {Array}
      */
-    this.notSkippedIndexesCache = [];
+    this.notTrimmedIndexesCache = [];
     /**
-     * Flag determining whether operations performed on index mapper were batched.
+     * Cache for hide result for particular physical indexes.
+     *
+     * @private
+     * @type {Array}
+     */
+    this.flattenHiddenList = [];
+    /**
+     * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
+     *
+     * @private
+     * @type {Array}
+     */
+    this.notHiddenIndexesCache = [];
+    /**
+     * Flag determining whether actions performed on index mapper have been batched.
      *
      * @private
      * @type {boolean}
      */
     this.isBatched = false;
     /**
-     * Flag determining whether any action on indexes sequence was performed.
+     * Flag determining whether any action on indexes sequence has been performed.
      *
      * @private
      * @type {boolean}
      */
     this.indexesSequenceChanged = false;
     /**
-     * Flag determining whether any action on skipped indexes was performed.
+     * Flag determining whether any action on trimmed indexes has been performed.
      *
      * @private
      * @type {boolean}
      */
-    this.skippedIndexesChanged = false;
+    this.trimmedIndexesChanged = false;
     /**
-     * Flag determining whether any action on hidden indexes was performed.
+     * Flag determining whether any action on hidden indexes has been performed.
      *
      * @private
      * @type {boolean}
      */
     this.hiddenIndexesChanged = false;
-
-    // TODO: comments needed.
-    this.hiddenCollection = new MapCollection();
-    this.flattenHiddenList = [];
-    this.notHiddenIndexesCache = [];
-    this.renderableIndexesCache = [];
+    /**
+     * Physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
+     *
+     * @private
+     * @type {Array}
+     */
+    this.renderablePhysicalIndexesCache = [];
 
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;
 
-      // Sequence of visible indexes might change.
+      // Sequence of stored indexes might change.
       this.updateCache();
 
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.skipMapsCollection.addLocalHook('change', (changedMap) => {
-      this.skippedIndexesChanged = true;
+    this.trimmingMapsCollection.addLocalHook('change', (changedMap) => {
+      this.trimmedIndexesChanged = true;
 
-      // TODO: comment may be changed.
-      // Number of visible indexes might change.
+      // Number of trimmed indexes might change.
       this.updateCache();
 
-      this.runLocalHooks('change', changedMap, this.skipMapsCollection);
+      this.runLocalHooks('change', changedMap, this.trimmingMapsCollection);
     });
 
-    this.hiddenCollection.addLocalHook('change', (changedMap) => {
+    this.hidingMapsCollection.addLocalHook('change', (changedMap) => {
       this.hiddenIndexesChanged = true;
 
-      // TODO: comment needed.
+      // Number of hidden indexes might change.
       this.updateCache();
 
-      this.runLocalHooks('change', changedMap, this.hiddenCollection);
+      this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
     this.variousMapsCollection.addLocalHook('change', (changedMap) => {
@@ -133,7 +156,8 @@ class IndexMapper {
   }
 
   /**
-   * Execute batch operations with updating cache.
+   * Execute batch operations with updating cache when necessary. As effect, wrapped operations will be executed and
+   * cache will be updated at most once.
    *
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
@@ -157,15 +181,15 @@ class IndexMapper {
    * @returns {IndexMap}
    */
   registerMap(uniqueName, indexMap) {
-    if (this.skipMapsCollection.get(uniqueName) || this.variousMapsCollection.get(uniqueName)) {
+    if (this.trimmingMapsCollection.get(uniqueName) || this.hidingMapsCollection.get(uniqueName) || this.variousMapsCollection.get(uniqueName)) {
       throw Error(`Map with name "${uniqueName}" has been already registered.`);
     }
 
-    if (indexMap instanceof SkipMap) {
-      this.skipMapsCollection.register(uniqueName, indexMap);
+    if (indexMap instanceof TrimmingMap) {
+      this.trimmingMapsCollection.register(uniqueName, indexMap);
 
-    } else if (indexMap instanceof HiddenMap) {
-      this.hiddenCollection.register(uniqueName, indexMap);
+    } else if (indexMap instanceof HidingMap) {
+      this.hidingMapsCollection.register(uniqueName, indexMap);
 
     } else {
       this.variousMapsCollection.register(uniqueName, indexMap);
@@ -192,8 +216,8 @@ class IndexMapper {
    * @param {string} name Name of the index map.
    */
   unregisterMap(name) {
-    this.skipMapsCollection.unregister(name);
-    this.hiddenCollection.unregister(name);
+    this.trimmingMapsCollection.unregister(name);
+    this.hidingMapsCollection.unregister(name);
     this.variousMapsCollection.unregister(name);
   }
 
@@ -204,7 +228,7 @@ class IndexMapper {
    * @returns {number|null} Returns translated index mapped by passed visual index.
    */
   getPhysicalFromVisualIndex(visualIndex) {
-    const visibleIndexes = this.getNotSkippedIndexes();
+    const visibleIndexes = this.getNotTrimmedIndexes();
     const numberOfVisibleIndexes = visibleIndexes.length;
     let physicalIndex = null;
 
@@ -222,12 +246,12 @@ class IndexMapper {
    * @returns {null|number}
    */
   getPhysicalFromRenderableIndex(renderableIndex) {
-    const renderableIndexes = this.getRenderableIndexes();
-    const numberOfVisibleIndexes = renderableIndexes.length;
+    const renderablePhysicalIndexes = this.getRenderablePhysicalIndexes();
+    const numberOfVisibleIndexes = renderablePhysicalIndexes.length;
     let physicalIndex = null;
 
     if (renderableIndex < numberOfVisibleIndexes) {
-      physicalIndex = renderableIndexes[renderableIndex];
+      physicalIndex = renderablePhysicalIndexes[renderableIndex];
     }
 
     return physicalIndex;
@@ -240,7 +264,7 @@ class IndexMapper {
    * @returns {number|null} Returns a visual index of the index mapper.
    */
   getVisualFromPhysicalIndex(physicalIndex) {
-    const visibleIndexes = this.getNotSkippedIndexes();
+    const visibleIndexes = this.getNotTrimmedIndexes();
     const visualIndex = visibleIndexes.indexOf(physicalIndex);
 
     if (visualIndex !== -1) {
@@ -267,7 +291,7 @@ class IndexMapper {
    * @returns {null|number}
    */
   getRenderableFromVisualIndex(visualIndex) {
-    if (visualIndex >= this.getNotSkippedIndexesLength()) {
+    if (visualIndex >= this.getNotTrimmedIndexesLength()) {
       return null;
     }
 
@@ -277,8 +301,8 @@ class IndexMapper {
       return null;
     }
 
-    const notSkippedIndexes = this.getNotSkippedIndexes(); // Mappings from visual to physical indexes.
-    const isHiddenForVisualIndexes = notSkippedIndexes.map(
+    const notTrimmedIndexes = this.getNotTrimmedIndexes(); // Mappings from visual to physical indexes.
+    const isHiddenForVisualIndexes = notTrimmedIndexes.map(
       physicalIndexForVisualIndex => this.isHidden(physicalIndexForVisualIndex));
 
     return visualIndex - isHiddenForVisualIndexes.slice(0, visualIndex + 1).filter(isHidden => isHidden).length;
@@ -317,19 +341,19 @@ class IndexMapper {
    * @param {number} [length] Destination length for all stored index maps.
    */
   initToLength(length = this.getNumberOfIndexes()) {
-    this.flattenSkipList = [];
-    this.notSkippedIndexesCache = [...new Array(length).keys()];
+    this.flattenTrimmedList = [];
+    this.notTrimmedIndexesCache = [...new Array(length).keys()];
     this.flattenHiddenList = [];
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
     this.executeBatchOperations(() => {
       this.indexesSequence.init(length);
-      this.skipMapsCollection.initEvery(length);
+      this.trimmingMapsCollection.initEvery(length);
     });
 
-    // We move initialization of hidden collection to next batch for purpose of working on sequence of already skipped indexes.
+    // We move initialization of hidden collection to next batch for purpose of working on sequence of already trimmed indexes.
     this.executeBatchOperations(() => {
-      this.hiddenCollection.initEvery(length);
+      this.hidingMapsCollection.initEvery(length);
 
       // It shouldn't reset the cache.
       this.variousMapsCollection.initEvery(length);
@@ -357,33 +381,41 @@ class IndexMapper {
   }
 
   /**
-   * Get all indexes NOT skipped in the process of rendering.
+   * Get all NOT trimmed indexes.
+   *
+   * Note: Indexes marked as trimmed aren't included in a dataset and aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array} Physical indexes.
+   * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
+   * value of this native array is a "physical index".
    */
-  getNotSkippedIndexes(readFromCache = true) {
+  getNotTrimmedIndexes(readFromCache = true) {
     if (readFromCache === true) {
-      return this.notSkippedIndexesCache;
+      return this.notTrimmedIndexesCache;
     }
 
-    return arrayFilter(this.getIndexesSequence(), index => this.isSkipped(index) === false);
+    return arrayFilter(this.getIndexesSequence(), index => this.isTrimmed(index) === false);
   }
 
   /**
-   * Get length of all indexes NOT skipped in the process of rendering.
+   * Get length of all NOT trimmed indexes.
+   *
+   * Note: Indexes marked as trimmed aren't included in a dataset and aren't rendered.
    *
    * @returns {number}
    */
-  getNotSkippedIndexesLength() {
-    return this.getNotSkippedIndexes().length;
+  getNotTrimmedIndexesLength() {
+    return this.getNotTrimmedIndexes().length;
   }
 
   /**
-   * @TODO Description.
+   * Get all NOT hidden indexes.
+   *
+   * Note: Indexes marked as hidden are included in a dataset, but aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
+   * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
+   * value of this native array is a "physical index".
    */
   getNotHiddenIndexes(readFromCache = true) {
     if (readFromCache === true) {
@@ -394,7 +426,9 @@ class IndexMapper {
   }
 
   /**
-   * @TODO Description.
+   * Get length of all NOT hidden indexes.
+   *
+   * Note: Indexes marked as hidden are included in a dataset, but aren't rendered.
    *
    * @returns {number}
    */
@@ -403,28 +437,19 @@ class IndexMapper {
   }
 
   /**
-   * @TODO Description.
+   * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getRenderableIndexes(readFromCache = true) {
+  getRenderablePhysicalIndexes(readFromCache = true) {
     if (readFromCache === true) {
-      return this.renderableIndexesCache;
+      return this.renderablePhysicalIndexesCache;
     }
 
-    return arrayFilter(this.getNotSkippedIndexes(), (physicalIndex) => {
+    return arrayFilter(this.getNotTrimmedIndexes(), (physicalIndex) => {
       return this.isHidden(physicalIndex) === false;
     });
-  }
-
-  /**
-   * @TODO Description.
-   *
-   * @returns {number}
-   */
-  getRenderableIndexesLength() {
-    return this.getRenderableIndexes().length;
   }
 
   /**
@@ -448,19 +473,19 @@ class IndexMapper {
     }
 
     const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex));
-    const notSkippedIndexesLength = this.getNotSkippedIndexesLength();
+    const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
 
     // Removing indexes without re-indexing.
     const listWithRemovedItems = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
 
     // When item(s) are moved after the last visible item we assign the last possible index.
-    let destinationPosition = notSkippedIndexesLength - movedIndexesLength;
+    let destinationPosition = notTrimmedIndexesLength - movedIndexesLength;
 
     // Otherwise, we find proper index for inserted item(s).
-    if (finalIndex + movedIndexesLength < notSkippedIndexesLength) {
+    if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
-      const physicalIndex = listWithRemovedItems.filter(index => this.isSkipped(index) === false)[finalIndex];
+      const physicalIndex = listWithRemovedItems.filter(index => this.isTrimmed(index) === false)[finalIndex];
       destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
     }
 
@@ -470,7 +495,7 @@ class IndexMapper {
 
   // TODO: Comment and names of variables to change.
   /**
-   * Get flat list of values, which are result whether index was skipped in any of skip collection's element.
+   * Get flat list of values, which are result whether index was hidden in any of hiding maps strored in a hiding elements collection.
    *
    * @private
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
@@ -481,12 +506,12 @@ class IndexMapper {
       return this.flattenHiddenList;
     }
 
-    if (this.hiddenCollection.getLength() === 0) {
+    if (this.hidingMapsCollection.getLength() === 0) {
       return [];
     }
 
     const result = [];
-    const particularHiddensLists = arrayMap(this.hiddenCollection.get(), list => list.getValues());
+    const particularHiddensLists = arrayMap(this.hidingMapsCollection.get(), list => list.getValues());
 
     rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
       result[physicalIndex] = particularHiddensLists.some(particularHiddensList => particularHiddensList[physicalIndex]);
@@ -501,8 +526,8 @@ class IndexMapper {
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
    */
-  isSkipped(physicalIndex) {
-    return this.getFlattenSkipList()[physicalIndex] || false;
+  isTrimmed(physicalIndex) {
+    return this.getFlattenTrimmedList()[physicalIndex] || false;
   }
 
   /**
@@ -524,15 +549,15 @@ class IndexMapper {
    * @param {number} amountOfIndexes Amount of inserted indexes.
    */
   insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
-    const nthVisibleIndex = this.getNotSkippedIndexes()[firstInsertedVisualIndex];
+    const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
     const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
     const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.executeBatchOperations(() => {
       this.indexesSequence.insert(insertionIndex, insertedIndexes);
-      this.skipMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.hiddenCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
       this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
     });
   }
@@ -546,8 +571,8 @@ class IndexMapper {
   removeIndexes(removedIndexes) {
     this.executeBatchOperations(() => {
       this.indexesSequence.remove(removedIndexes);
-      this.skipMapsCollection.removeFromEvery(removedIndexes);
-      this.hiddenCollection.removeFromEvery(removedIndexes);
+      this.trimmingMapsCollection.removeFromEvery(removedIndexes);
+      this.hidingMapsCollection.removeFromEvery(removedIndexes);
       this.variousMapsCollection.removeFromEvery(removedIndexes);
     });
   }
@@ -559,17 +584,17 @@ class IndexMapper {
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getFlattenSkipList(readFromCache = true) {
+  getFlattenTrimmedList(readFromCache = true) {
     if (readFromCache === true) {
-      return this.flattenSkipList;
+      return this.flattenTrimmedList;
     }
 
-    if (this.skipMapsCollection.getLength() === 0) {
+    if (this.trimmingMapsCollection.getLength() === 0) {
       return [];
     }
 
     const result = [];
-    const particularSkipsLists = arrayMap(this.skipMapsCollection.get(), skipList => skipList.getValues());
+    const particularSkipsLists = arrayMap(this.trimmingMapsCollection.get(), skipList => skipList.getValues());
 
     rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
       result[physicalIndex] = particularSkipsLists.some(particularSkipsList => particularSkipsList[physicalIndex]);
@@ -586,19 +611,19 @@ class IndexMapper {
    * @private
    */
   updateCache(force = false) {
-    const cachedIndexesChanged = this.indexesSequenceChanged || this.skippedIndexesChanged || this.hiddenIndexesChanged;
+    const anyCachedIndexChanged = this.indexesSequenceChanged || this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
-    if (force === true || (this.isBatched === false && cachedIndexesChanged === true)) {
-      this.flattenSkipList = this.getFlattenSkipList(false);
+    if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
+      this.flattenTrimmedList = this.getFlattenTrimmedList(false);
       this.flattenHiddenList = this.getFlattenHiddenList(false);
-      this.notSkippedIndexesCache = this.getNotSkippedIndexes(false);
+      this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
-      this.renderableIndexesCache = this.getRenderableIndexes(false);
+      this.renderablePhysicalIndexesCache = this.getRenderablePhysicalIndexes(false);
 
-      this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.skippedIndexesChanged, this.hiddenIndexesChanged);
+      this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.trimmedIndexesChanged, this.hiddenIndexesChanged);
 
       this.indexesSequenceChanged = false;
-      this.skippedIndexesChanged = false;
+      this.trimmedIndexesChanged = false;
       this.hiddenIndexesChanged = false;
     }
   }

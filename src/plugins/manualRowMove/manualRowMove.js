@@ -230,7 +230,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isMovePossible(movedRows, finalIndex) {
-    const length = this.hot.rowIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.rowIndexMapper.getNotTrimmedIndexesLength();
 
     // An attempt to transfer more rows to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedRows.length + finalIndex > length;

@@ -435,7 +435,7 @@ class DataMap {
       const customDefinedColumns = isDefined(this.tableMeta.columns) || isDefined(this.tableMeta.dataSchema);
 
       // All rows have been removed. There shouldn't be any columns.
-      if (this.instance.rowIndexMapper.getNotSkippedIndexesLength() === 0 && customDefinedColumns === false) {
+      if (this.instance.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
         this.instance.columnIndexMapper.setIndexesSequence([]);
       }
     }
@@ -501,7 +501,7 @@ class DataMap {
       this.instance.columnIndexMapper.removeIndexes(logicColumns);
 
       // All columns have been removed. There shouldn't be any rows.
-      if (this.instance.columnIndexMapper.getNotSkippedIndexesLength() === 0) {
+      if (this.instance.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
         this.instance.rowIndexMapper.setIndexesSequence([]);
       }
     }
@@ -813,7 +813,7 @@ class DataMap {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    const length = this.instance.rowIndexMapper.getNotSkippedIndexesLength();
+    const length = this.instance.rowIndexMapper.getNotTrimmedIndexesLength();
 
     return Math.min(length, maxRows);
   }

@@ -3096,7 +3096,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this.countRenderableColumns = function() {
-    const numberOfNotSkippedColumns = this.columnIndexMapper.getNotSkippedIndexesLength();
+    const numberOfNotSkippedColumns = this.columnIndexMapper.getNotTrimmedIndexesLength();
     const numberOfHiddenColumns = numberOfNotSkippedColumns - this.columnIndexMapper.getNotHiddenIndexesLength();
 
     return this.countCols() - numberOfHiddenColumns;
@@ -3111,7 +3111,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = tableMeta.maxCols;
-    let dataLen = this.columnIndexMapper.getNotSkippedIndexesLength();
+    let dataLen = this.columnIndexMapper.getNotTrimmedIndexesLength();
 
     if (tableMeta.columns) {
       const columnsIsFunction = isFunction(tableMeta.columns);

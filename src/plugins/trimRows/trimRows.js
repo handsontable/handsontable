@@ -1,6 +1,6 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
-import { SkipMap } from '../../translations';
+import { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 
 /**
@@ -52,7 +52,7 @@ class TrimRows extends BasePlugin {
      * Map of skipped rows by the plugin.
      *
      * @private
-     * @type {null|SkipMap}
+     * @type {null|TrimmingMap}
      */
     this.trimmedRowsMap = null;
   }
@@ -74,7 +74,7 @@ class TrimRows extends BasePlugin {
       return;
     }
 
-    this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new SkipMap());
+    this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new TrimmingMap());
     this.trimmedRowsMap.addLocalHook('init', () => this.onMapInit());
 
     super.enablePlugin();

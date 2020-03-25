@@ -12,7 +12,7 @@ import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
 
 import './nestedRows.css';
-import { SkipMap } from '../../translations';
+import { TrimmingMap } from '../../translations';
 
 const privatePool = new WeakMap();
 
@@ -45,7 +45,7 @@ class NestedRows extends BasePlugin {
      * Map of skipped rows by plugin.
      *
      * @private
-     * @type {null|SkipMap}
+     * @type {null|TrimmingMap}
      */
     this.collapsedRowsMap = null;
 
@@ -72,7 +72,7 @@ class NestedRows extends BasePlugin {
    */
   enablePlugin() {
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
-    this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new SkipMap());
+    this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap());
 
     this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);
