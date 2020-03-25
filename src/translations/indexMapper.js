@@ -37,7 +37,7 @@ class IndexMapper {
      */
     this.indexesSequence = new IndexToIndexMap();
     /**
-     * Collection for different trimming maps. Indexes marked as trimmed in any map won't be included in a dataset
+     * Collection for different trimming maps. Indexes marked as trimmed in any map won't be included in the {@link DataMap}
      * and won't be rendered.
      *
      * @private
@@ -45,7 +45,7 @@ class IndexMapper {
      */
     this.trimmingMapsCollection = new MapCollection();
     /**
-     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in a dataset,
+     * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
      * but won't be rendered.
      *
      * @private
@@ -60,12 +60,12 @@ class IndexMapper {
      */
     this.variousMapsCollection = new MapCollection();
     /**
-     * Cache for trim result for particular physical indexes.
+     * Cache for trimming result for particular physical indexes.
      *
      * @private
      * @type {Array}
      */
-    this.flattenTrimmedList = [];
+    this.flattenTrimmingResult = [];
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
@@ -74,12 +74,12 @@ class IndexMapper {
      */
     this.notTrimmedIndexesCache = [];
     /**
-     * Cache for hide result for particular physical indexes.
+     * Cache for hiding result for particular physical indexes.
      *
      * @private
      * @type {Array}
      */
-    this.flattenHiddenList = [];
+    this.flattenHidingResult = [];
     /**
      * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
      *
@@ -157,7 +157,7 @@ class IndexMapper {
 
   /**
    * Execute batch operations with updating cache when necessary. As effect, wrapped operations will be executed and
-   * cache will be updated at most once.
+   * cache will be updated at most once (cache is updated only when any cached index has been changed).
    *
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
@@ -174,7 +174,7 @@ class IndexMapper {
   }
 
   /**
-   * Register map which provide some index mappings.
+   * Register map which provide some index mappings. Type of map determining to which collection it will be added.
    *
    * @param {string} uniqueName Name of the index map. It should be unique.
    * @param {IndexMap} indexMap Registered index map updated on items removal and insertion.
@@ -222,7 +222,7 @@ class IndexMapper {
   }
 
   /**
-   * Get physical index by its visual index.
+   * Get a physical index corresponding to the given visual index.
    *
    * @param {number} visualIndex Visual index.
    * @returns {number|null} Returns translated index mapped by passed visual index.
@@ -240,7 +240,7 @@ class IndexMapper {
   }
 
   /**
-   * Get a physical index from an renderable index.
+   * Get a physical index corresponding to the given renderable index.
    *
    * @param {number} renderableIndex Renderable index.
    * @returns {null|number}
@@ -258,7 +258,7 @@ class IndexMapper {
   }
 
   /**
-   * Get visual index by its physical index.
+   * Get a visual index corresponding to the given physical index.
    *
    * @param {number} physicalIndex Physical index to search.
    * @returns {number|null} Returns a visual index of the index mapper.
@@ -275,7 +275,7 @@ class IndexMapper {
   }
 
   /**
-   * Get a visual index from an renderable index.
+   * Get a visual index corresponding to the given renderable index.
    *
    * @param {number} renderableIndex Renderable index.
    * @returns {null|number}
@@ -285,7 +285,7 @@ class IndexMapper {
   }
 
   /**
-   * Get a renderable index from an visual index.
+   * Get a renderable index corresponding to the given visual index.
    *
    * @param {number} visualIndex Visual index.
    * @returns {null|number}
@@ -341,9 +341,9 @@ class IndexMapper {
    * @param {number} [length] Destination length for all stored index maps.
    */
   initToLength(length = this.getNumberOfIndexes()) {
-    this.flattenTrimmedList = [];
+    this.flattenTrimmingResult = [];
     this.notTrimmedIndexesCache = [...new Array(length).keys()];
-    this.flattenHiddenList = [];
+    this.flattenHidingResult = [];
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
     this.executeBatchOperations(() => {
@@ -501,9 +501,9 @@ class IndexMapper {
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getFlattenHiddenList(readFromCache = true) {
+  getFlattenHidingResult(readFromCache = true) {
     if (readFromCache === true) {
-      return this.flattenHiddenList;
+      return this.flattenHidingResult;
     }
 
     if (this.hidingMapsCollection.getLength() === 0) {
@@ -527,7 +527,7 @@ class IndexMapper {
    * @returns {boolean}
    */
   isTrimmed(physicalIndex) {
-    return this.getFlattenTrimmedList()[physicalIndex] || false;
+    return this.getFlattenTrimmingResult()[physicalIndex] || false;
   }
 
   /**
@@ -538,7 +538,7 @@ class IndexMapper {
    * @returns {boolean}
    */
   isHidden(physicalIndex) {
-    return this.getFlattenHiddenList()[physicalIndex] || false;
+    return this.getFlattenHidingResult()[physicalIndex] || false;
   }
 
   /**
@@ -584,9 +584,9 @@ class IndexMapper {
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getFlattenTrimmedList(readFromCache = true) {
+  getFlattenTrimmingResult(readFromCache = true) {
     if (readFromCache === true) {
-      return this.flattenTrimmedList;
+      return this.flattenTrimmingResult;
     }
 
     if (this.trimmingMapsCollection.getLength() === 0) {
@@ -614,8 +614,8 @@ class IndexMapper {
     const anyCachedIndexChanged = this.indexesSequenceChanged || this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
     if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
-      this.flattenTrimmedList = this.getFlattenTrimmedList(false);
-      this.flattenHiddenList = this.getFlattenHiddenList(false);
+      this.flattenTrimmingResult = this.getFlattenTrimmingResult(false);
+      this.flattenHidingResult = this.getFlattenHidingResult(false);
       this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
       this.renderablePhysicalIndexesCache = this.getRenderablePhysicalIndexes(false);

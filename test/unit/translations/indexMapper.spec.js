@@ -1099,7 +1099,7 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
 
       let notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      let flattenTrimmedList = indexMapper.flattenTrimmedList;
+      let flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
 
@@ -1107,73 +1107,73 @@ describe('IndexMapper', () => {
       trimmingMap2.setValues([false, false, false, false, false, false, false, true, true, true]);
 
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).not.toBe(indexMapper.flattenTrimmedList);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.flattenTrimmingResult);
       expect(cacheUpdatedCallback.calls.count()).toEqual(2);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      flattenTrimmedList = indexMapper.flattenTrimmedList;
+      flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       trimmingMap1.setValueAtIndex(0, false);
 
       // Actions on the first collection. No real change. We rebuild cache anyway (`change` hook should be called?).
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).not.toBe(indexMapper.flattenTrimmedList);
-      expect(flattenTrimmedList.length).toBe(10);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.flattenTrimmingResult);
+      expect(flattenTrimmingResult.length).toBe(10);
       expect(notTrimmedIndexesCache).toEqual(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).toEqual(indexMapper.flattenTrimmedList);
+      expect(flattenTrimmingResult).toEqual(indexMapper.flattenTrimmingResult);
       expect(cacheUpdatedCallback.calls.count()).toEqual(3);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      flattenTrimmedList = indexMapper.flattenTrimmedList;
+      flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       trimmingMap1.setValueAtIndex(0, true);
 
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).not.toBe(indexMapper.flattenTrimmedList);
-      expect(flattenTrimmedList.length).toBe(10);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.flattenTrimmingResult);
+      expect(flattenTrimmingResult.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(4);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      flattenTrimmedList = indexMapper.flattenTrimmedList;
+      flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       trimmingMap1.setValueAtIndex(0, false);
 
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).not.toBe(indexMapper.flattenTrimmedList);
-      expect(flattenTrimmedList.length).toBe(10);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.flattenTrimmingResult);
+      expect(flattenTrimmingResult.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(5);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      flattenTrimmedList = indexMapper.flattenTrimmedList;
+      flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       trimmingMap2.setValueAtIndex(0, false);
 
       // Actions on the second collection. No real change.  We rebuild cache anyway (`change` hook should be called?).
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).not.toBe(indexMapper.flattenTrimmedList);
-      expect(flattenTrimmedList.length).toBe(10);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.flattenTrimmingResult);
+      expect(flattenTrimmingResult.length).toBe(10);
       expect(notTrimmedIndexesCache).toEqual(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).toEqual(indexMapper.flattenTrimmedList);
+      expect(flattenTrimmingResult).toEqual(indexMapper.flattenTrimmingResult);
       expect(cacheUpdatedCallback.calls.count()).toEqual(6);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      flattenTrimmedList = indexMapper.flattenTrimmedList;
+      flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       trimmingMap2.setValueAtIndex(0, true);
 
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).not.toBe(indexMapper.flattenTrimmedList);
-      expect(flattenTrimmedList.length).toBe(10);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.flattenTrimmingResult);
+      expect(flattenTrimmingResult.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(7);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      flattenTrimmedList = indexMapper.flattenTrimmedList;
+      flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       trimmingMap2.setValueAtIndex(0, false);
 
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).not.toBe(indexMapper.flattenTrimmedList);
-      expect(flattenTrimmedList.length).toBe(10);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.flattenTrimmingResult);
+      expect(flattenTrimmingResult.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(8);
     });
 
@@ -1188,7 +1188,7 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
 
       const notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      const flattenTrimmedList = indexMapper.flattenTrimmedList;
+      const flattenTrimmingResult = indexMapper.flattenTrimmingResult;
 
       indexMapper.addLocalHook('cacheUpdated', cacheUpdatedCallback);
 
@@ -1224,9 +1224,9 @@ describe('IndexMapper', () => {
       expect(cacheUpdatedCallback).not.toHaveBeenCalled();
 
       expect(notTrimmedIndexesCache).toBe(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).toBe(indexMapper.flattenTrimmedList);
+      expect(flattenTrimmingResult).toBe(indexMapper.flattenTrimmingResult);
       expect(notTrimmedIndexesCache).toEqual(indexMapper.notTrimmedIndexesCache);
-      expect(flattenTrimmedList).toEqual(indexMapper.flattenTrimmedList);
+      expect(flattenTrimmingResult).toEqual(indexMapper.flattenTrimmingResult);
     });
 
     it('should update cache only once when used the `executeBatchOperations` function', () => {
