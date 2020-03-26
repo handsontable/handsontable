@@ -2,8 +2,8 @@ import { HyperFormula } from 'hyperformula/es/src/index';
 import BasePlugin from '../_base';
 import staticRegister from '../../utils/staticRegister';
 import { registerPlugin } from '../../plugins';
-import { parseErrorObject } from './utils/utils';
-import { sequenceToMoveOperations } from './utils/columnSorting';
+import parseErrorObject from './utils/utils';
+import sequenceToMoveOperations from './utils/columnSorting';
 
 staticRegister('formulas').register('hyperformula', HyperFormula.buildEmpty());
 staticRegister('formulas').register('sheetMapping', new Map());
