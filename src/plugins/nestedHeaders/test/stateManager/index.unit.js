@@ -1,3 +1,4 @@
+import { HEADER_DEFAULT_SETTINGS } from 'handsontable/plugins/nestedHeaders/stateManager/constants';
 import StateManager from 'handsontable/plugins/nestedHeaders/stateManager';
 
 describe('StateManager', () => {
@@ -64,10 +65,11 @@ describe('StateManager', () => {
       ]);
 
       expect(isError).toBe(true);
-      expect(state.getHeaderSettings(0, 0)).toBe(null);
-      expect(state.getHeaderSettings(1, 0)).toBe(null);
-      expect(state.getHeaderSettings(2, 0)).toBe(null);
-      expect(state.getHeaderSettings(1, 3)).toBe(null);
+      expect(state.getHeaderSettings(0, 0)).not.toBe(HEADER_DEFAULT_SETTINGS);
+      expect(state.getHeaderSettings(0, 0)).toEqual(expect.objectContaining(HEADER_DEFAULT_SETTINGS));
+      expect(state.getHeaderSettings(1, 0)).toEqual(expect.objectContaining(HEADER_DEFAULT_SETTINGS));
+      expect(state.getHeaderSettings(2, 0)).toEqual(expect.objectContaining(HEADER_DEFAULT_SETTINGS));
+      expect(state.getHeaderSettings(1, 3)).toEqual(expect.objectContaining(HEADER_DEFAULT_SETTINGS));
       expect(state.getLayersCount()).toBe(0);
       expect(state.getColumnsCount()).toBe(0);
     });
@@ -439,7 +441,7 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      expect(state.getHeaderSettings(4, 0)).toBe(null);
+      expect(state.getHeaderSettings(4, 0)).toEqual(expect.objectContaining(HEADER_DEFAULT_SETTINGS));
     });
 
     it('should return default settings when column index exceeds total columns defined in the nested header configuration', () => {
@@ -608,7 +610,7 @@ describe('StateManager', () => {
 
       state.clear();
 
-      expect(state.getHeaderSettings(0, 0)).toBe(null);
+      expect(state.getHeaderSettings(0, 0)).toEqual(expect.objectContaining(HEADER_DEFAULT_SETTINGS));
       expect(state.getLayersCount()).toBe(0);
       expect(state.getColumnsCount()).toBe(0);
     });

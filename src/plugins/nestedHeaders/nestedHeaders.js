@@ -81,13 +81,18 @@ class NestedHeaders extends BasePlugin {
 
     const nestedHeaders = this.hot.getSettings().nestedHeaders;
 
-    if (Array.isArray(nestedHeaders)) {
-      this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
+    if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
+      warn(toSingleLine`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
+                        passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
 
-      if (this.detectedOverlappedHeaders) {
-        warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
-                          is currently not supported.`);
-      }
+      return;
+    }
+
+    this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
+
+    if (this.detectedOverlappedHeaders) {
+      warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
+                        is currently not supported.`);
     }
 
     this.addHook('afterInit', () => this.onAfterInit());
@@ -252,7 +257,12 @@ class NestedHeaders extends BasePlugin {
         const isTopLeftOverlay = view.wt.wtOverlays.topLeftCornerOverlay?.clone.wtTable.THEAD.contains(TH);
         const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
 
-        TH.setAttribute('colspan', isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - visualColumnsIndex) : colspan);
+        // Check if there is a fixed column enabled, if so then reduce colspan to fixed column width.
+        const correctedColspan = isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - visualColumnsIndex) : colspan;
+
+        if (correctedColspan > 1) {
+          TH.setAttribute('colspan', correctedColspan);
+        }
       }
 
       const divEl = rootDocument.createElement('div');
@@ -278,7 +288,7 @@ class NestedHeaders extends BasePlugin {
    */
   updateHeadersHighlight() {
     const { hot } = this;
-    const selection = hot.getSelectedRangeLast();
+    const selection = hot.getSelectedRange();
 
     if (selection === void 0) {
       return;
@@ -291,49 +301,50 @@ class NestedHeaders extends BasePlugin {
 
     const selectionByHeader = hot.selection.isSelectedByColumnHeader();
     const layersCount = this.#stateManager.getLayersCount();
-    const { col: columnFrom } = selection.getTopLeftCorner();
-    const { col: columnTo } = selection.getTopRightCorner();
-    const columnSelectionWidth = columnTo - columnFrom + 1;
     const changes = [];
 
-    let columnCursor = 0;
+    arrayEach(selection, (selectionLayer) => {
+      const coordsFrom = selectionLayer.getTopLeftCorner();
+      const coordsTo = selectionLayer.getTopRightCorner();
 
-    for (let column = columnFrom; column <= columnTo; column++) {
-      // Traverse header layers from bottom to top.
-      for (let level = layersCount - 1; level > -1; level--) {
-        const { origColspan, hidden } = this.#stateManager.getHeaderSettings(level, column);
-        const isFirstLayer = level === layersCount - 1;
-        let isOutOfRange = (columnCursor + origColspan) > columnSelectionWidth;
+      // If the beginning of the selection (columnFrom) starts in-between colspaned
+      // header shift the columnFrom to the header position where it starts.
+      const columnFrom = this.#stateManager.findLeftMostColumnIndex(-1, coordsFrom.col);
+      const columnTo = coordsTo.col;
+      const columnSelectionWidth = columnTo - columnFrom + 1;
 
-        // If the selection doesn't overlap, the whole colspaned header. Correct the
-        // visual column index to the TH element, which is not hidden (most left column index).
-        if (columnCursor === 0 && isFirstLayer) {
-          isOutOfRange = false;
-          column = this.#stateManager.findLeftMostColumnIndex(level, column);
+      let columnCursor = 0;
+
+      for (let column = columnFrom; column <= columnTo; column++) {
+        // Traverse header layers from bottom to top.
+        for (let level = layersCount - 1; level > -1; level--) {
+          const { origColspan, hidden } = this.#stateManager.getHeaderSettings(level, column);
+          const isFirstLayer = level === layersCount - 1;
+          const isOutOfRange = !isFirstLayer && (columnCursor + origColspan) > columnSelectionWidth;
+
+          const THs = this.getColumnHeaders(column, level);
+
+          arrayEach(THs, (TH) => {
+            if (isOutOfRange) {
+              changes.push(activeHeader(TH, removeClass));
+              changes.push(highlightHeader(TH, removeClass));
+
+            } else if (selectionByHeader && !hidden) {
+              changes.push(activeHeader(TH, addClass));
+              changes.push(highlightHeader(TH, addClass));
+
+            } else if (isFirstLayer && !hidden) {
+              changes.push(highlightHeader(TH, addClass));
+
+            } else {
+              changes.push(highlightHeader(TH, removeClass));
+            }
+          });
         }
 
-        const THs = this.getColumnHeaders(column, level);
-
-        arrayEach(THs, (TH) => {
-          if (isOutOfRange) {
-            changes.push(activeHeader(TH, removeClass));
-            changes.push(highlightHeader(TH, removeClass));
-
-          } else if (selectionByHeader && !hidden) {
-            changes.push(activeHeader(TH, addClass));
-            changes.push(highlightHeader(TH, addClass));
-
-          } else if (isFirstLayer) {
-            changes.push(highlightHeader(TH, addClass));
-
-          } else {
-            changes.push(highlightHeader(TH, removeClass));
-          }
-        });
+        columnCursor += 1;
       }
-
-      columnCursor += 1;
-    }
+    });
 
     arrayEach(changes, fn => void fn());
   }

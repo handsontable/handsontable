@@ -61,7 +61,7 @@ export default class StateManager {
    * @private
    * @type {Array[]}
    */
-  #stateMatrix = [];
+  #stateMatrix = [[]];
 
   /**
    * Sets a new state for the nested headers plugin based on settings passed
@@ -255,10 +255,10 @@ export default class StateManager {
     }
 
     if (headerLevel >= this.getLayersCount()) {
-      return null;
+      return { ...HEADER_DEFAULT_SETTINGS };
     }
 
-    return this.#stateMatrix[headerLevel][columnIndex] ?? { ...HEADER_DEFAULT_SETTINGS };
+    return this.#stateMatrix[headerLevel]?.[columnIndex] ?? { ...HEADER_DEFAULT_SETTINGS };
   }
 
   /**
@@ -277,19 +277,19 @@ export default class StateManager {
       return columnIndex;
     }
 
-    let parentCol = columnIndex - 1;
+    let stepBackColumn = columnIndex - 1;
 
     do {
-      const { hidden: isHidden } = this.getHeaderSettings(headerLevel, parentCol);
+      const { hidden: isHidden } = this.getHeaderSettings(headerLevel, stepBackColumn);
 
       if (isHidden === false) {
         break;
       }
 
-      parentCol -= 1;
+      stepBackColumn -= 1;
     } while (columnIndex >= 0);
 
-    return parentCol;
+    return stepBackColumn;
   }
 
   /**
