@@ -2008,14 +2008,21 @@ declare namespace Handsontable {
       unregisterMap: (name: string) => void;
       getPhysicalFromVisualIndex: (visualIndex: number) => number | null;
       getVisualFromPhysicalIndex: (physicalIndex: number) => number | null;
+      getPhysicalFromRenderableIndex: (renderableIndex: number) => number | null;
+      getVisualFromRenderableIndex: (renderableIndex: number) => number | null;
+      getRenderableFromVisualIndex: (visualIndex: number) => number | null;
+      getFirstNotHiddenIndex: (fromVisualIndex: number, incrementBy: number) => number | null;
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
       setIndexesSequence: (indexes: number[]) => void;
       getNotTrimmedIndexes: (readFromCache?: boolean) => number[];
       getNotTrimmedIndexesLength: () => number;
+      getNotHiddenIndexes: (readFromCache?: boolean) => number[];
+      getNotHiddenIndexesLength: () => number;
       getNumberOfIndexes: () => number;
       moveIndexes: (movedIndexes: number | number[], finalIndex: number) => void;
       isTrimmed: (physicalIndex: number) => boolean;
+      isHidden: (physicalIndex: number) => boolean;
     }
   }
 

@@ -7,6 +7,7 @@ describe('IndexMapper', () => {
 
     expect(indexMapper.getIndexesSequence()).toEqual([]);
     expect(indexMapper.getNotTrimmedIndexes()).toEqual([]);
+    expect(indexMapper.getNotHiddenIndexes()).toEqual([]);
     expect(indexMapper.getNumberOfIndexes()).toBe(0);
     expect(indexMapper.getNotTrimmedIndexesLength()).toBe(0);
   });
@@ -17,6 +18,7 @@ describe('IndexMapper', () => {
 
     expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     expect(indexMapper.getNumberOfIndexes()).toBe(10);
     expect(indexMapper.getNotTrimmedIndexesLength()).toBe(10);
   });
@@ -35,6 +37,7 @@ describe('IndexMapper', () => {
   it('should register map to proper collection when it is possible', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();
+    const hidingMap = new HidingMap();
     const indexToValueMap = new IndexToValueMap();
 
     expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
@@ -43,10 +46,18 @@ describe('IndexMapper', () => {
 
     expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(trimmingMap);
     expect(indexMapper.trimmingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
 
     // We can register map under unique key only once. Otherwise, error should be thrown.
     expect(() => {
       indexMapper.registerMap('uniqueName', trimmingMap);
+    }).toThrow();
+
+    expect(() => {
+      indexMapper.registerMap('uniqueName', hidingMap);
     }).toThrow();
 
     expect(() => {
@@ -55,17 +66,32 @@ describe('IndexMapper', () => {
 
     expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(trimmingMap);
     expect(indexMapper.trimmingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
 
-    indexMapper.registerMap('uniqueName2', indexToValueMap);
 
-    expect(indexMapper.variousMapsCollection.get('uniqueName2')).toBe(indexToValueMap);
+    indexMapper.registerMap('uniqueName2', hidingMap);
+
+    expect(indexMapper.hidingMapsCollection.get('uniqueName2')).toBe(hidingMap);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName2')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.get('uniqueName2')).toBe(undefined);
+
+    indexMapper.registerMap('uniqueName3', indexToValueMap);
+
+    expect(indexMapper.variousMapsCollection.get('uniqueName3')).toBe(indexToValueMap);
     expect(indexMapper.variousMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName3')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName3')).toBe(undefined);
 
     indexMapper.unregisterMap('uniqueName');
     indexMapper.unregisterMap('uniqueName2');
+    indexMapper.unregisterMap('uniqueName3');
   });
 
-  it('should unregister map', () => {
+  it('should unregister map properly (TrimmingMap)', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();
 
@@ -75,9 +101,67 @@ describe('IndexMapper', () => {
 
     expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(trimmingMap);
     expect(indexMapper.trimmingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
 
     indexMapper.unregisterMap('uniqueName');
 
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+  });
+
+  it('should unregister map properly (HidingMap)', () => {
+    const indexMapper = new IndexMapper();
+    const hidingMap = new HidingMap();
+
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+
+    indexMapper.registerMap('uniqueName', hidingMap);
+
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(hidingMap);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+
+    indexMapper.unregisterMap('uniqueName');
+
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+  });
+
+  it('should unregister map properly (various map)', () => {
+    const indexMapper = new IndexMapper();
+    const indexToValueMap = new IndexToValueMap();
+
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+
+    indexMapper.registerMap('uniqueName', indexToValueMap);
+
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(indexToValueMap);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
+
+    indexMapper.unregisterMap('uniqueName');
+
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
     expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(undefined);
     expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
   });
@@ -110,7 +194,7 @@ describe('IndexMapper', () => {
     expect(indexMapper.isTrimmed(2)).toBeFalsy();
     expect(indexMapper.isTrimmed(5)).toBeFalsy();
 
-    // Initialization of two maps.
+    // Initialization of two maps (indexes sequence and trimming map).
     indexMapper.initToLength(10);
 
     // Maps are filled with default values before calling the `init` hook.
@@ -128,7 +212,59 @@ describe('IndexMapper', () => {
     expect(indexMapper.isTrimmed(2)).toBeTruthy();
     expect(indexMapper.isTrimmed(5)).toBeTruthy();
 
-    // 2 maps were initialized and 3 `setValueAtIndex` functions have been called.
+    // 2 maps have been initialized and 3 `setValueAtIndex` functions have been called.
+    expect(changeCallback.calls.count()).toEqual(5);
+
+    indexMapper.unregisterMap('uniqueName');
+  });
+
+  it('should handle `Hiding` map properly', () => {
+    const indexMapper = new IndexMapper();
+    const hidingMap = new HidingMap();
+    const changeCallback = jasmine.createSpy('change');
+    let indexesSequenceOnInit;
+    let notHiddenIndexesOnInit;
+    let numberOfIndexesOnInit;
+    let notHiddenIndexesLengthOnInit;
+
+    indexMapper.addLocalHook('change', changeCallback);
+
+    hidingMap.addLocalHook('init', () => {
+      indexesSequenceOnInit = indexMapper.getIndexesSequence();
+      notHiddenIndexesOnInit = indexMapper.getNotHiddenIndexes();
+      numberOfIndexesOnInit = indexMapper.getNumberOfIndexes();
+      notHiddenIndexesLengthOnInit = indexMapper.getNotHiddenIndexesLength();
+
+      hidingMap.setValueAtIndex(0, true);
+      hidingMap.setValueAtIndex(2, true);
+      hidingMap.setValueAtIndex(5, true);
+    });
+
+    indexMapper.registerMap('uniqueName', hidingMap);
+
+    expect(indexMapper.isHidden(0)).toBeFalsy();
+    expect(indexMapper.isHidden(2)).toBeFalsy();
+    expect(indexMapper.isHidden(5)).toBeFalsy();
+
+    // Initialization of two maps (indexes sequence and hiding map).
+    indexMapper.initToLength(10);
+
+    // Maps are filled with default values before calling the `init` hook.
+    expect(indexesSequenceOnInit).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(notHiddenIndexesOnInit).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(numberOfIndexesOnInit).toBe(10);
+    expect(notHiddenIndexesLengthOnInit).toBe(10);
+
+    expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    expect(indexMapper.getNotHiddenIndexes()).toEqual([1, 3, 4, 6, 7, 8, 9]);
+    expect(indexMapper.getNumberOfIndexes()).toBe(10);
+    expect(indexMapper.getNotHiddenIndexesLength()).toBe(7);
+
+    expect(indexMapper.isHidden(0)).toBeTruthy();
+    expect(indexMapper.isHidden(2)).toBeTruthy();
+    expect(indexMapper.isHidden(5)).toBeTruthy();
+
+    // 2 maps have been initialized and 3 `setValueAtIndex` functions have been called.
     expect(changeCallback.calls.count()).toEqual(5);
 
     indexMapper.unregisterMap('uniqueName');
@@ -434,26 +570,100 @@ describe('IndexMapper', () => {
       const indexToIndexMap = new IndexToIndexMap();
       const indexToValueMap = new IndexToValueMap(index => index + 2);
       const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
       indexMapper.registerMap('indexToValueMap', indexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
-      trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+      trimmingMap.setValues([true, false, false, false, true, false, true, false, true, false]);
+      hidingMap.setValues([false, true, false, true, false, false, false, false, false, true]);
+
+      // renderable   |       0        1     2
+      // visual       |    0  1  2     3     4     5
+      // physical     | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(3);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(4);
+      expect(indexMapper.getVisualFromPhysicalIndex(8)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(9)).toBe(5);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(2);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(7);
+      expect(indexMapper.getPhysicalFromVisualIndex(5)).toBe(9);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(2);
+      expect(indexMapper.getRenderableFromVisualIndex(5)).toBe(null);
 
       indexMapper.removeIndexes([0, 1, 2]);
 
+      // renderable   |       0     1
+      // visual       | 0     1     2     3
+      // physical     | 0  1  2  3  4  5  6
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(3);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(2);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(4);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(6);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(null);
+
+      expect(indexMapper.isTrimmed(0)).toBe(false);
+      expect(indexMapper.isTrimmed(1)).toBe(true);
+      expect(indexMapper.isTrimmed(2)).toBe(false);
+      expect(indexMapper.isTrimmed(3)).toBe(true);
+      expect(indexMapper.isTrimmed(4)).toBe(false);
+      expect(indexMapper.isTrimmed(5)).toBe(true);
+      expect(indexMapper.isTrimmed(6)).toBe(false);
+
+      expect(indexMapper.isHidden(0)).toBe(true);
+      expect(indexMapper.isHidden(1)).toBe(false);
+      expect(indexMapper.isHidden(2)).toBe(false);
+      expect(indexMapper.isHidden(3)).toBe(false);
+      expect(indexMapper.isHidden(4)).toBe(false);
+      expect(indexMapper.isHidden(5)).toBe(false);
+      expect(indexMapper.isHidden(6)).toBe(true);
+
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 2, 4, 6]);
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([1, 2, 3, 4, 5]);
+      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([2, 4]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6]);
       // Next values are just preserved, they aren't counted again.
       expect(indexToValueMap.getValues()).toEqual([5, 6, 7, 8, 9, 10, 11]);
       expect(trimmingMap.getValues()).toEqual([false, true, false, true, false, true, false]);
+      expect(hidingMap.getValues()).toEqual([true, false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexToIndexMap');
       indexMapper.unregisterMap('indexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
     });
 
     it('should remove multiple indexes from the middle', () => {
@@ -461,26 +671,102 @@ describe('IndexMapper', () => {
       const indexToIndexMap = new IndexToIndexMap();
       const indexToValueMap = new IndexToValueMap(index => index + 2);
       const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
       indexMapper.registerMap('indexToValueMap', indexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+      hidingMap.setValues([false, false, false, false, false, true, false, false, false, true]);
+
+      // renderable   |    0     1           2
+      // visual       |    0     1     2     3     4
+      // physical     | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(3);
+      expect(indexMapper.getVisualFromPhysicalIndex(8)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(9)).toBe(4);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(7);
+      expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(9);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(2);
+      expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(null);
 
       indexMapper.removeIndexes([4, 5]);
 
+      // renderable   |    0     1     2
+      // visual       |    0     1     2     3
+      // physical     | 0  1  2  3  4  5  6  7
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(3);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(7);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(2);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(null);
+
+      expect(indexMapper.isTrimmed(0)).toBe(true);
+      expect(indexMapper.isTrimmed(1)).toBe(false);
+      expect(indexMapper.isTrimmed(2)).toBe(true);
+      expect(indexMapper.isTrimmed(3)).toBe(false);
+      expect(indexMapper.isTrimmed(4)).toBe(true);
+      expect(indexMapper.isTrimmed(5)).toBe(false);
+      expect(indexMapper.isTrimmed(6)).toBe(true);
+      expect(indexMapper.isTrimmed(7)).toBe(false);
+
+      expect(indexMapper.isHidden(0)).toBe(false);
+      expect(indexMapper.isHidden(1)).toBe(false);
+      expect(indexMapper.isHidden(2)).toBe(false);
+      expect(indexMapper.isHidden(3)).toBe(false);
+      expect(indexMapper.isHidden(4)).toBe(false);
+      expect(indexMapper.isHidden(5)).toBe(false);
+      expect(indexMapper.isHidden(6)).toBe(false);
+      expect(indexMapper.isHidden(7)).toBe(true);
+
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 3, 5, 7]);
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3, 4, 5, 6]);
+      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([1, 3, 5]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       // Next values are just preserved, they aren't counted again.
       expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 8, 9, 10, 11]);
       expect(trimmingMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
+      expect(hidingMap.getValues()).toEqual([false, false, false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexToIndexMap');
       indexMapper.unregisterMap('indexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
     });
 
     it('should remove multiple indexes from the end', () => {
@@ -488,26 +774,101 @@ describe('IndexMapper', () => {
       const indexToIndexMap = new IndexToIndexMap();
       const indexToValueMap = new IndexToValueMap(index => index + 2);
       const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
       indexMapper.registerMap('indexToValueMap', indexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+      hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
+
+      // renderable   |    0                 1
+      // visual       |    0     1     2     3     4
+      // physical     | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(3);
+      expect(indexMapper.getVisualFromPhysicalIndex(8)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(9)).toBe(4);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(7);
+      expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(9);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(null);
 
       indexMapper.removeIndexes([8, 9]);
 
+      // renderable   |    0                 1
+      // visual       |    0     1     2     3
+      // physical     | 0  1  2  3  4  5  6  7
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(3);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(7);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(1);
+
+      expect(indexMapper.isTrimmed(0)).toBe(true);
+      expect(indexMapper.isTrimmed(1)).toBe(false);
+      expect(indexMapper.isTrimmed(2)).toBe(true);
+      expect(indexMapper.isTrimmed(3)).toBe(false);
+      expect(indexMapper.isTrimmed(4)).toBe(true);
+      expect(indexMapper.isTrimmed(5)).toBe(false);
+      expect(indexMapper.isTrimmed(6)).toBe(true);
+      expect(indexMapper.isTrimmed(7)).toBe(false);
+
+      expect(indexMapper.isHidden(0)).toBe(false);
+      expect(indexMapper.isHidden(1)).toBe(false);
+      expect(indexMapper.isHidden(2)).toBe(false);
+      expect(indexMapper.isHidden(3)).toBe(true);
+      expect(indexMapper.isHidden(4)).toBe(false);
+      expect(indexMapper.isHidden(5)).toBe(true);
+      expect(indexMapper.isHidden(6)).toBe(false);
+      expect(indexMapper.isHidden(7)).toBe(false);
+
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 3, 5, 7]);
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 4, 6, 7]);
+      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([1, 7]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       // Next values are just preserved, they aren't counted again.
       expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
       expect(trimmingMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
+      expect(hidingMap.getValues()).toEqual([false, false, false, true, false, true, false, false]);
 
       indexMapper.unregisterMap('indexToIndexMap');
       indexMapper.unregisterMap('indexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
     });
 
     it('should remove multiple indexes with mixed order #1', () => {
@@ -515,26 +876,91 @@ describe('IndexMapper', () => {
       const indexToIndexMap = new IndexToIndexMap();
       const indexToValueMap = new IndexToValueMap(index => index + 2);
       const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
       indexMapper.registerMap('indexToValueMap', indexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+      hidingMap.setValues([false, false, false, true, false, false, false, true, false, false]);
+
+      // renderable   |    0           1           2
+      // visual       |    0     1     2     3     4
+      // physical     | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(3);
+      expect(indexMapper.getVisualFromPhysicalIndex(8)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(9)).toBe(4);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(7);
+      expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(9);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(2);
 
       indexMapper.removeIndexes([0, 1, 3, 5]);
 
+      // renderable   |                0
+      // visual       |          0     1
+      // physical     | 0  1  2  3  4  5
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(1);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(5);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(0);
+
+      expect(indexMapper.isTrimmed(0)).toBe(true);
+      expect(indexMapper.isTrimmed(1)).toBe(true);
+      expect(indexMapper.isTrimmed(2)).toBe(true);
+      expect(indexMapper.isTrimmed(3)).toBe(false);
+      expect(indexMapper.isTrimmed(4)).toBe(true);
+      expect(indexMapper.isTrimmed(5)).toBe(false);
+
+      expect(indexMapper.isHidden(0)).toBe(false);
+      expect(indexMapper.isHidden(1)).toBe(false);
+      expect(indexMapper.isHidden(2)).toBe(false);
+      expect(indexMapper.isHidden(3)).toBe(true);
+      expect(indexMapper.isHidden(4)).toBe(false);
+      expect(indexMapper.isHidden(5)).toBe(false);
+
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([3, 5]);
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 4, 5]);
+      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([5]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
       expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
       expect(trimmingMap.getValues()).toEqual([true, true, true, false, true, false]);
+      expect(hidingMap.getValues()).toEqual([false, false, false, true, false, false]);
 
       indexMapper.unregisterMap('indexToIndexMap');
       indexMapper.unregisterMap('indexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
     });
 
     it('should remove multiple indexes with mixed order #2', () => {
@@ -542,26 +968,91 @@ describe('IndexMapper', () => {
       const indexToIndexMap = new IndexToIndexMap();
       const indexToValueMap = new IndexToValueMap(index => index + 2);
       const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
       indexMapper.registerMap('indexToValueMap', indexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+      hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
+
+      // renderable   |    0                 1
+      // visual       |    0     1     2     3     4
+      // physical     | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(3);
+      expect(indexMapper.getVisualFromPhysicalIndex(8)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(9)).toBe(4);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(7);
+      expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(9);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(null);
 
       indexMapper.removeIndexes([5, 3, 1, 0]);
 
+      // renderable   |          0
+      // visual       |          0     1
+      // physical     | 0  1  2  3  4  5
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(1);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(5);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+
+      expect(indexMapper.isTrimmed(0)).toBe(true);
+      expect(indexMapper.isTrimmed(1)).toBe(true);
+      expect(indexMapper.isTrimmed(2)).toBe(true);
+      expect(indexMapper.isTrimmed(3)).toBe(false);
+      expect(indexMapper.isTrimmed(4)).toBe(true);
+      expect(indexMapper.isTrimmed(5)).toBe(false);
+
+      expect(indexMapper.isHidden(0)).toBe(false);
+      expect(indexMapper.isHidden(1)).toBe(false);
+      expect(indexMapper.isHidden(2)).toBe(false);
+      expect(indexMapper.isHidden(3)).toBe(false);
+      expect(indexMapper.isHidden(4)).toBe(false);
+      expect(indexMapper.isHidden(5)).toBe(true);
+
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([3, 5]);
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3, 4]);
+      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([3]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
       expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
       expect(trimmingMap.getValues()).toEqual([true, true, true, false, true, false]);
+      expect(hidingMap.getValues()).toEqual([false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexToIndexMap');
       indexMapper.unregisterMap('indexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
     });
 
     it('should remove multiple indexes with mixed order #3', () => {
@@ -569,26 +1060,91 @@ describe('IndexMapper', () => {
       const indexToIndexMap = new IndexToIndexMap();
       const indexToValueMap = new IndexToValueMap(index => index + 2);
       const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
       indexMapper.registerMap('indexToValueMap', indexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
+      hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
+
+      // renderable   |    0                 1
+      // visual       |    0     1     2     3     4
+      // physical     | 0  1  2  3  4  5  6  7  8  9
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(1);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(2);
+      expect(indexMapper.getVisualFromPhysicalIndex(6)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(7)).toBe(3);
+      expect(indexMapper.getVisualFromPhysicalIndex(8)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(9)).toBe(4);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(1);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(2)).toBe(5);
+      expect(indexMapper.getPhysicalFromVisualIndex(3)).toBe(7);
+      expect(indexMapper.getPhysicalFromVisualIndex(4)).toBe(9);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(2)).toBe(null);
+      expect(indexMapper.getRenderableFromVisualIndex(3)).toBe(1);
+      expect(indexMapper.getRenderableFromVisualIndex(4)).toBe(null);
 
       indexMapper.removeIndexes([0, 5, 3, 1]);
 
+      // renderable   |          0
+      // visual       |          0     1
+      // physical     | 0  1  2  3  4  5
+
+      expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(1)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(2)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(3)).toBe(0);
+      expect(indexMapper.getVisualFromPhysicalIndex(4)).toBe(null);
+      expect(indexMapper.getVisualFromPhysicalIndex(5)).toBe(1);
+
+      expect(indexMapper.getPhysicalFromVisualIndex(0)).toBe(3);
+      expect(indexMapper.getPhysicalFromVisualIndex(1)).toBe(5);
+
+      expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+      expect(indexMapper.getRenderableFromVisualIndex(1)).toBe(null);
+
+      expect(indexMapper.isTrimmed(0)).toBe(true);
+      expect(indexMapper.isTrimmed(1)).toBe(true);
+      expect(indexMapper.isTrimmed(2)).toBe(true);
+      expect(indexMapper.isTrimmed(3)).toBe(false);
+      expect(indexMapper.isTrimmed(4)).toBe(true);
+      expect(indexMapper.isTrimmed(5)).toBe(false);
+
+      expect(indexMapper.isHidden(0)).toBe(false);
+      expect(indexMapper.isHidden(1)).toBe(false);
+      expect(indexMapper.isHidden(2)).toBe(false);
+      expect(indexMapper.isHidden(3)).toBe(false);
+      expect(indexMapper.isHidden(4)).toBe(false);
+      expect(indexMapper.isHidden(5)).toBe(true);
+
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([3, 5]);
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3, 4]);
+      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([3]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
       expect(indexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
       expect(trimmingMap.getValues()).toEqual([true, true, true, false, true, false]);
+      expect(hidingMap.getValues()).toEqual([false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexToIndexMap');
       indexMapper.unregisterMap('indexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
+      indexMapper.unregisterMap('hidingMap');
     });
   });
 
