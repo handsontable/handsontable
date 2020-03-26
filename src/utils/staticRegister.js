@@ -11,7 +11,7 @@ export default function staticRegister(namespace = 'common') {
   const subCollection = collection.get(namespace);
 
   /**
-   * Register an item to the collection. If the item under the same was exist earlier then this item will be replaced with new one.
+   * Register an item in the collection. If the item under the same name already exists, this item will be replaced with the new one.
    *
    * @param {string} name Identification of the item.
    * @param {*} item Item to save in the collection.
@@ -31,7 +31,7 @@ export default function staticRegister(namespace = 'common') {
   }
 
   /**
-   * Check if item under specyfied name is exists.
+   * Check if item under specified name exists.
    *
    * @param {string} name Identification of the item.
    * @returns {boolean} Returns `true` or `false` depends on if element exists in the collection.
@@ -41,7 +41,7 @@ export default function staticRegister(namespace = 'common') {
   }
 
   /**
-   * Retrieve list of names registered from the collection.
+   * Retrieve list of names registered in the collection.
    *
    * @returns {Array} Returns an array of strings with all names under which objects are stored.
    */

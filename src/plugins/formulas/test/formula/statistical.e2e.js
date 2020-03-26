@@ -131,7 +131,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(2, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(2, 12);
   });
 
   it('BINOMDIST', () => {
@@ -145,7 +145,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.205078125, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.205078125, 12);
   });
 
   xit('BINOM.DIST.RANGE', () => {
@@ -159,7 +159,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.060616586840172675, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.060616586840172675, 12);
   });
 
   xit('BINOM.INV', () => {
@@ -173,7 +173,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(4, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(4, 12);
   });
 
   xit('CHISQ.DIST', () => {
@@ -187,7 +187,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.43939128946770356, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.43939128946770356, 12);
   });
 
   xit('CHISQ.DIST.RT', () => {
@@ -201,7 +201,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.6999858358786271, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.6999858358786271, 12);
   });
 
   xit('CHISQ.INV', () => {
@@ -215,7 +215,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(5.348120627447116, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(5.348120627447116, 12);
   });
 
   xit('CHISQ.INV.RT', () => {
@@ -229,7 +229,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(6.2107571945266935, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(6.2107571945266935, 12);
   });
 
   xit('COLUMN', () => {
@@ -243,7 +243,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 0)).toEqual([['Leanne Ware'], ['Mathis Boone'], ['Cruz Benjamin'], ['Reese David']]);
+    expect(hot.getDataAtCell(0, 0)).toEqual([['Leanne Ware'], ['Mathis Boone'], ['Cruz Benjamin'], ['Reese David']]);
   });
 
   it('COLUMNS', () => {
@@ -257,7 +257,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 0)).toBe(4);
+    expect(hot.getDataAtCell(0, 0)).toBe(4);
   });
 
   xit('CONFIDENCE', () => {
@@ -271,7 +271,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 0)).toBeCloseTo(0.301640986313058, 12);
+    expect(hot.getDataAtCell(0, 0)).toBeCloseTo(0.301640986313058, 12);
   });
 
   xit('CONFIDENCE.T', () => {
@@ -285,7 +285,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 0)).toBeCloseTo(0.33124980616238564, 12);
+    expect(hot.getDataAtCell(0, 0)).toBeCloseTo(0.33124980616238564, 12);
   });
 
   it('CORREL', () => {
@@ -310,7 +310,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 0)).toBeCloseTo(0.9970544855015815, 12);
+    expect(hot.getDataAtCell(0, 0)).toBeCloseTo(0.9970544855015815, 12);
   });
 
   it('COUNT', () => {
@@ -402,7 +402,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 0)).toBe(2);
+    expect(hot.getDataAtCell(0, 0)).toBe(2);
   });
 
   xit('COUNTIN', () => {
@@ -422,7 +422,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 1)).toBe(2);
+    expect(hot.getDataAtCell(0, 1)).toBe(2);
   });
 
   it('COUNTUNIQUE', () => {
@@ -467,7 +467,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(5.2);
+    expect(hot.getDataAtCell(0, 2)).toBe(5.2);
   });
 
   xit('COVARIANCE.S', () => {
@@ -488,7 +488,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(9.666666666666668, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(9.666666666666668, 12);
   });
 
   xit('DEVSQ', () => {
@@ -510,7 +510,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(48);
+    expect(hot.getDataAtCell(0, 2)).toBe(48);
   });
 
   xit('EXPONDIST', () => {
@@ -524,7 +524,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.8646647167633873, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.8646647167633873, 12);
   });
 
   xit('FDIST', () => {
@@ -538,7 +538,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.9897419523940192, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.9897419523940192, 12);
   });
 
   xit('FDISTRT', () => {
@@ -552,7 +552,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.010258047605980813, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.010258047605980813, 12);
   });
 
   xit('FINV', () => {
@@ -566,7 +566,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.31438998832176834, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.31438998832176834, 12);
   });
 
   xit('FINVRT', () => {
@@ -580,7 +580,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(4.009749312673947, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(4.009749312673947, 12);
   });
 
   xit('FISHER', () => {
@@ -594,7 +594,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.10033534773107562, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.10033534773107562, 12);
   });
 
   xit('FISHERINV', () => {
@@ -608,7 +608,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.09966799462495583, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.09966799462495583, 12);
   });
 
   xit('FORECAST', () => {
@@ -633,7 +633,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(10.607253086419755, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(10.607253086419755, 12);
   });
 
   xit('FREQUENCY', () => {
@@ -660,7 +660,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual([1, 2, 4, 2]);
+    expect(hot.getDataAtCell(0, 2)).toEqual([1, 2, 4, 2]);
   });
 
   xit('GAMMA', () => {
@@ -674,7 +674,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual(9.51350769866877);
+    expect(hot.getDataAtCell(0, 2)).toEqual(9.51350769866877);
   });
 
   xit('GAMMADIST', () => {
@@ -688,7 +688,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.00043670743091302124, 10);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.00043670743091302124, 10);
   });
 
   xit('GAMMAINV', () => {
@@ -702,7 +702,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual(1233.435565298214);
+    expect(hot.getDataAtCell(0, 2)).toEqual(1233.435565298214);
   });
 
   xit('GAMMALN', () => {
@@ -716,7 +716,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(1.7917594692280547, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(1.7917594692280547, 12);
   });
 
   xit('GAMMALN.PRECISE', () => {
@@ -730,7 +730,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(1.7917594692280547, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(1.7917594692280547, 12);
   });
 
   xit('GAUSS', () => {
@@ -744,7 +744,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.4999683287581669, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.4999683287581669, 12);
   });
 
   xit('GEOMEAN', () => {
@@ -766,7 +766,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(5.476986969656962, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(5.476986969656962, 12);
   });
 
   xit('GROWTH', () => {
@@ -797,8 +797,6 @@ describe('Formulas -> statistical functions', () => {
     hot.getPlugin('formulas').setVariable('FOO', [11, 12, 13, 14, 15, 16, 17, 18, 19]);
     hot.getPlugin('formulas').recalculateFull();
     hot.render();
-
-
 
     const value = hot.getDataAtCell(1, 2);
 
@@ -832,7 +830,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(5.028375962061728, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(5.028375962061728, 12);
   });
 
   xit('HYPGEOMDIST', () => {
@@ -846,7 +844,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.3632610939112487, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.3632610939112487, 12);
   });
 
   xit('INTERCEPT', () => {
@@ -871,7 +869,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.04838709677419217, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.04838709677419217, 12);
   });
 
   xit('KURT', () => {
@@ -896,7 +894,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(-0.15179963720841627, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(-0.15179963720841627, 12);
   });
 
   xit('LARGE', () => {
@@ -916,7 +914,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(4);
+    expect(hot.getDataAtCell(0, 2)).toBe(4);
   });
 
   xit('LINEST', () => {
@@ -939,7 +937,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual([2, 1]);
+    expect(hot.getDataAtCell(0, 2)).toEqual([2, 1]);
   });
 
   xit('LOGEST', () => {
@@ -962,7 +960,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual([1.751116, 1.194316]);
+    expect(hot.getDataAtCell(0, 2)).toEqual([1.751116, 1.194316]);
   });
 
   xit('LOGNORMDIST', () => {
@@ -976,7 +974,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.0390835557068005, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.0390835557068005, 12);
   });
 
   xit('LOGNORMINV', () => {
@@ -990,7 +988,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(4, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(4, 12);
   });
 
   it('MAX', () => {
@@ -1004,7 +1002,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(9.2);
+    expect(hot.getDataAtCell(0, 2)).toBe(9.2);
   });
 
   it('MAXA', () => {
@@ -1089,7 +1087,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual([2, 3, 1]);
+    expect(hot.getDataAtCell(0, 2)).toEqual([2, 3, 1]);
   });
 
   xit('MODESNGL', () => {
@@ -1110,7 +1108,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(4);
+    expect(hot.getDataAtCell(0, 2)).toBe(4);
   });
 
   xit('NEGBINOMDIST', () => {
@@ -1124,7 +1122,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(0.05504866037517786);
+    expect(hot.getDataAtCell(0, 2)).toBe(0.05504866037517786);
   });
 
   xit('NORMDIST', () => {
@@ -1138,7 +1136,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(0.24197072451914337);
+    expect(hot.getDataAtCell(0, 2)).toBe(0.24197072451914337);
   });
 
   xit('NORMINV', () => {
@@ -1152,7 +1150,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(141.4213562373095);
+    expect(hot.getDataAtCell(0, 2)).toBe(141.4213562373095);
   });
 
   xit('NORMSDIST', () => {
@@ -1166,7 +1164,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(0.8413447460685429);
+    expect(hot.getDataAtCell(0, 2)).toBe(0.8413447460685429);
   });
 
   xit('NORMSINV', () => {
@@ -1180,7 +1178,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(141.4213562373095);
+    expect(hot.getDataAtCell(0, 2)).toBe(141.4213562373095);
   });
 
   xit('PEARSON', () => {
@@ -1205,7 +1203,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.6993786061802354, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.6993786061802354, 12);
   });
 
   xit('PERCENTILEEXC', () => {
@@ -1224,7 +1222,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(2.5);
+    expect(hot.getDataAtCell(0, 2)).toBe(2.5);
   });
 
   xit('PERCENTILEINC', () => {
@@ -1243,7 +1241,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(2.5);
+    expect(hot.getDataAtCell(0, 2)).toBe(2.5);
   });
 
   xit('PERCENTRANKEXC', () => {
@@ -1262,7 +1260,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(0.8);
+    expect(hot.getDataAtCell(0, 2)).toBe(0.8);
   });
 
   xit('PERCENTRANKINC', () => {
@@ -1281,7 +1279,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(1);
+    expect(hot.getDataAtCell(0, 2)).toBe(1);
   });
 
   xit('PERMUT', () => {
@@ -1295,7 +1293,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(720);
+    expect(hot.getDataAtCell(0, 2)).toBe(720);
   });
 
   xit('PERMUTATIONA', () => {
@@ -1309,7 +1307,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(1000);
+    expect(hot.getDataAtCell(0, 2)).toBe(1000);
   });
 
   xit('PHI', () => {
@@ -1323,7 +1321,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.24197072451914337, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.24197072451914337, 12);
   });
 
   xit('POISSONDIST', () => {
@@ -1337,7 +1335,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.14936120510359185, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.14936120510359185, 12);
   });
 
   xit('PROB', () => {
@@ -1387,7 +1385,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(40);
+    expect(hot.getDataAtCell(0, 2)).toBe(40);
   });
 
   xit('QUARTILEINC', () => {
@@ -1410,7 +1408,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(7.5);
+    expect(hot.getDataAtCell(0, 2)).toBe(7.5);
   });
 
   xit('RANKAVG', () => {
@@ -1432,7 +1430,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(1);
+    expect(hot.getDataAtCell(0, 2)).toBe(1);
   });
 
   xit('RANKEQ', () => {
@@ -1452,7 +1450,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(5);
+    expect(hot.getDataAtCell(0, 2)).toBe(5);
   });
 
   xit('ROW', () => {
@@ -1473,7 +1471,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual([1, 2]);
+    expect(hot.getDataAtCell(0, 2)).toEqual([1, 2]);
     expect(hot.getDataAtCell(1, 2)).toEqual([2, 4]);
   });
 
@@ -1495,7 +1493,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(3);
+    expect(hot.getDataAtCell(0, 2)).toBe(3);
   });
 
   xit('RSQ', () => {
@@ -1524,7 +1522,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.05795019157088122, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.05795019157088122, 12);
   });
 
   xit('SKEW', () => {
@@ -1549,7 +1547,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.3595430714067974, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.3595430714067974, 12);
   });
 
   xit('SKEWP', () => {
@@ -1574,7 +1572,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.303193339354144, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.303193339354144, 12);
   });
 
   xit('SLOPE', () => {
@@ -1603,7 +1601,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.3055555555555556, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.3055555555555556, 12);
   });
 
   xit('SMALL', () => {
@@ -1627,7 +1625,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(4);
+    expect(hot.getDataAtCell(0, 2)).toBe(4);
   });
 
   xit('STANDARDIZE', () => {
@@ -1641,7 +1639,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(-0.4);
+    expect(hot.getDataAtCell(0, 2)).toBe(-0.4);
   });
 
   xit('STDEVP', () => {
@@ -1666,7 +1664,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(26.054558142482477);
+    expect(hot.getDataAtCell(0, 2)).toBe(26.054558142482477);
   });
 
   xit('STDEVS', () => {
@@ -1743,7 +1741,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(26.054558142482477);
+    expect(hot.getDataAtCell(0, 2)).toBe(26.054558142482477);
   });
 
   xit('STEYX', () => {
@@ -1772,7 +1770,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBe(3.305718950210041);
+    expect(hot.getDataAtCell(0, 2)).toBe(3.305718950210041);
   });
 
   it('TRANSPOSE', () => {
@@ -1793,7 +1791,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual([[1, 3, 5], [2, 4, 6]]);
+    expect(hot.getDataAtCell(0, 2)).toEqual([[1, 3, 5], [2, 4, 6]]);
   });
 
   xit('TDIST', () => {
@@ -1807,7 +1805,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.2067483346226397, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.2067483346226397, 12);
   });
 
   xit('T.DIST.RT', () => {
@@ -1821,7 +1819,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.17795884187479105, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.17795884187479105, 12);
   });
 
   xit('TINV', () => {
@@ -1835,7 +1833,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(-1.4397557472652736, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(-1.4397557472652736, 12);
   });
 
   xit('T.INV.2T', () => {
@@ -1849,7 +1847,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(1.9431802743487372, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(1.9431802743487372, 12);
   });
 
   xit('TREND', () => {
@@ -1874,7 +1872,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toEqual([11, 13]);
+    expect(hot.getDataAtCell(0, 2)).toEqual([11, 13]);
   });
 
   xit('TRIMMEAN', () => {
@@ -1900,7 +1898,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(3.777777777777777, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(3.777777777777777, 12);
   });
 
   xit('VARP', () => {
@@ -1914,7 +1912,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.66666666666666, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.66666666666666, 12);
   });
 
   xit('VARS', () => {
@@ -1958,7 +1956,7 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.6666666666666666, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.6666666666666666, 12);
   });
 
   xit('WEIBULLDIST', () => {
@@ -1972,6 +1970,6 @@ describe('Formulas -> statistical functions', () => {
       height: 300
     });
 
-   expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.1988531815143044, 12);
+    expect(hot.getDataAtCell(0, 2)).toBeCloseTo(0.1988531815143044, 12);
   });
 });
