@@ -37,8 +37,8 @@ class IndexMapper {
      */
     this.indexesSequence = new IndexToIndexMap();
     /**
-     * Collection for different trimming maps. Indexes marked as trimmed in any map won't be included in the {@link DataMap}
-     * and won't be rendered.
+     * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
+     * the {@link DataMap} and won't be rendered.
      *
      * @private
      * @type {MapCollection}
@@ -88,28 +88,28 @@ class IndexMapper {
      */
     this.notHiddenIndexesCache = [];
     /**
-     * Flag determining whether actions performed on index mapper have been batched.
+     * Flag determining whether actions performed on index mapper have been batched. It's used for cache management.
      *
      * @private
      * @type {boolean}
      */
     this.isBatched = false;
     /**
-     * Flag determining whether any action on indexes sequence has been performed.
+     * Flag determining whether any action on indexes sequence has been performed. It's used for cache management.
      *
      * @private
      * @type {boolean}
      */
     this.indexesSequenceChanged = false;
     /**
-     * Flag determining whether any action on trimmed indexes has been performed.
+     * Flag determining whether any action on trimmed indexes has been performed. It's used for cache management.
      *
      * @private
      * @type {boolean}
      */
     this.trimmedIndexesChanged = false;
     /**
-     * Flag determining whether any action on hidden indexes has been performed.
+     * Flag determining whether any action on hidden indexes has been performed. It's used for cache management.
      *
      * @private
      * @type {boolean}
@@ -312,7 +312,7 @@ class IndexMapper {
    * Search for the first visible, not hidden index (represented by a visual index).
    *
    * @param {number} fromVisualIndex Start index. Starting point for finding destination index. Start point may be destination
-   * point when handled index is hidden.
+   * point when handled index is NOT hidden.
    * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
    * This variable represent indexes shift. We are looking for an index:
    * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
@@ -336,7 +336,7 @@ class IndexMapper {
   }
 
   /**
-   * Set default values for all stored index maps.
+   * Set default values for all indexes in registered index maps.
    *
    * @param {number} [length] Destination length for all stored index maps.
    */
@@ -363,7 +363,7 @@ class IndexMapper {
   }
 
   /**
-   * Get all indexes sequence.
+   * Get sequence of indexes.
    *
    * @returns {Array} Physical indexes.
    */
@@ -383,7 +383,7 @@ class IndexMapper {
   /**
    * Get all NOT trimmed indexes.
    *
-   * Note: Indexes marked as trimmed aren't included in a dataset and aren't rendered.
+   * Note: Indexes marked as trimmed aren't included in a {@link DataMap} and aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
@@ -400,7 +400,7 @@ class IndexMapper {
   /**
    * Get length of all NOT trimmed indexes.
    *
-   * Note: Indexes marked as trimmed aren't included in a dataset and aren't rendered.
+   * Note: Indexes marked as trimmed aren't included in a {@link DataMap} and aren't rendered.
    *
    * @returns {number}
    */
@@ -411,7 +411,7 @@ class IndexMapper {
   /**
    * Get all NOT hidden indexes.
    *
-   * Note: Indexes marked as hidden are included in a dataset, but aren't rendered.
+   * Note: Indexes marked as hidden are included in a {@link DataMap}, but aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
@@ -428,28 +428,12 @@ class IndexMapper {
   /**
    * Get length of all NOT hidden indexes.
    *
-   * Note: Indexes marked as hidden are included in a dataset, but aren't rendered.
+   * Note: Indexes marked as hidden are included in a {@link DataMap}, but aren't rendered.
    *
    * @returns {number}
    */
   getNotHiddenIndexesLength() {
     return this.getNotHiddenIndexes().length;
-  }
-
-  /**
-   * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
-   *
-   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getRenderablePhysicalIndexes(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.renderablePhysicalIndexesCache;
-    }
-
-    return arrayFilter(this.getNotTrimmedIndexes(), (physicalIndex) => {
-      return this.isHidden(physicalIndex) === false;
-    });
   }
 
   /**
@@ -465,7 +449,7 @@ class IndexMapper {
    * Move indexes in the index mapper.
    *
    * @param {number|Array} movedIndexes Visual index(es) to move.
-   * @param {number} finalIndex Visual index index being a start index for the moved element.
+   * @param {number} finalIndex Visual index being a start index for the moved elements.
    */
   moveIndexes(movedIndexes, finalIndex) {
     if (typeof movedIndexes === 'number') {
@@ -493,35 +477,8 @@ class IndexMapper {
     this.setIndexesSequence(getListWithInsertedItems(listWithRemovedItems, destinationPosition, physicalMovedIndexes));
   }
 
-  // TODO: Comment and names of variables to change.
   /**
-   * Get flat list of values, which are result whether index was hidden in any of hiding maps strored in a hiding elements collection.
-   *
-   * @private
-   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getFlattenHidingResult(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.flattenHidingResult;
-    }
-
-    if (this.hidingMapsCollection.getLength() === 0) {
-      return [];
-    }
-
-    const result = [];
-    const particularHiddensLists = arrayMap(this.hidingMapsCollection.get(), list => list.getValues());
-
-    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
-      result[physicalIndex] = particularHiddensLists.some(particularHiddensList => particularHiddensList[physicalIndex]);
-    });
-
-    return result;
-  }
-
-  /**
-   * Get whether index is skipped in the process of rendering.
+   * Get whether index is trimmed. Index marked as trimmed isn't included in a {@link DataMap} and isn't rendered.
    *
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
@@ -531,9 +488,8 @@ class IndexMapper {
   }
 
   /**
-   * Get whether index is skipped in the process of rendering.
+   * Get whether index is hidden. Index marked as hidden is included in a {@link DataMap}, but isn't rendered.
    *
-   * @private
    * @param {number} physicalIndex Physical index.
    * @returns {boolean}
    */
@@ -578,37 +534,11 @@ class IndexMapper {
   }
 
   /**
-   * Get list of values, which represent result if index was skipped in any of skip collections.
+   * Rebuild cache for some indexes. Every action on indexes sequence or indexes skipped in the process of rendering
+   * by default reset cache, thus batching some index maps actions is recommended.
    *
    * @private
-   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getFlattenTrimmingResult(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.flattenTrimmingResult;
-    }
-
-    if (this.trimmingMapsCollection.getLength() === 0) {
-      return [];
-    }
-
-    const result = [];
-    const particularSkipsLists = arrayMap(this.trimmingMapsCollection.get(), skipList => skipList.getValues());
-
-    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
-      result[physicalIndex] = particularSkipsLists.some(particularSkipsList => particularSkipsList[physicalIndex]);
-    });
-
-    return result;
-  }
-
-  /**
-   * Rebuild cache for some indexes. Every action on indexes sequence or skipped indexes by default reset cache,
-   * thus batching some index maps actions is recommended.
-   *
    * @param {boolean} [force=false] Determine if force cache update.
-   * @private
    */
   updateCache(force = false) {
     const anyCachedIndexChanged = this.indexesSequenceChanged || this.trimmedIndexesChanged || this.hiddenIndexesChanged;
@@ -626,6 +556,85 @@ class IndexMapper {
       this.trimmedIndexesChanged = false;
       this.hiddenIndexesChanged = false;
     }
+  }
+
+  /**
+   * Get flat list of values, which are result whether index has been hidden in any registered trimming maps.
+   *
+   * @private
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @returns {Array}
+   */
+  getFlattenTrimmingResult(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.flattenTrimmingResult;
+    }
+
+    if (this.trimmingMapsCollection.getLength() === 0) {
+      return [];
+    }
+
+    const result = [];
+    // Below variable stores results of trimming (boolean values) for every particular trimming map.
+    // [
+    //   [true, true, true], // first trimming map
+    //   [false, true, true] // second trimming map
+    // ]
+    const allTrimmingValues = arrayMap(this.trimmingMapsCollection.get(), trimmingMap => trimmingMap.getValues());
+
+    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
+      result[physicalIndex] = allTrimmingValues.some(nextTrimmingValues => nextTrimmingValues[physicalIndex]);
+    });
+
+    return result;
+  }
+
+  /**
+   * Get flat list of values, which are result whether index has been hidden in any registered hiding maps.
+   *
+   * @private
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @returns {Array}
+   */
+  getFlattenHidingResult(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.flattenHidingResult;
+    }
+
+    if (this.hidingMapsCollection.getLength() === 0) {
+      return [];
+    }
+
+    const result = [];
+    // Below variable stores results of hiding (boolean values) for every particular hiding map.
+    // [
+    //   [true, true, true], // first trimming map
+    //   [false, true, true] // second trimming map
+    // ]
+    const allHidingValues = arrayMap(this.hidingMapsCollection.get(), list => list.getValues());
+
+    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
+      result[physicalIndex] = allHidingValues.some(nextHidingValues => nextHidingValues[physicalIndex]);
+    });
+
+    return result;
+  }
+
+  /**
+   * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
+   *
+   * @private
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @returns {Array}
+   */
+  getRenderablePhysicalIndexes(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.renderablePhysicalIndexesCache;
+    }
+
+    return arrayFilter(this.getNotTrimmedIndexes(), (physicalIndex) => {
+      return this.isHidden(physicalIndex) === false;
+    });
   }
 }
 
