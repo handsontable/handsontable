@@ -81,7 +81,7 @@ class CollapsibleColumns extends BasePlugin {
    * @private
    * @type {EventManager}
    */
-  eventManager = null;
+  eventManager = new EventManager(this);
   /**
    * @type {StateManager}
    */
@@ -133,8 +133,6 @@ class CollapsibleColumns extends BasePlugin {
 
     this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
-
-    this.eventManager = new EventManager(this.hot);
 
     super.enablePlugin();
   }

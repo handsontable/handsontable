@@ -464,10 +464,11 @@ class NestedHeaders extends BasePlugin {
     let newStartColumn = calc.startColumn;
 
     for (let headerLayer = 0; headerLayer < this.#stateManager.getLayersCount(); headerLayer++) {
-      const startColumnNestedParent = this.#stateManager.findLeftMostColumnIndex(headerLayer, calc.startColumn);
+      const startColumn = this.#stateManager.findLeftMostColumnIndex(headerLayer, calc.startColumn);
+      const renderedStartColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(startColumn);
 
-      if (startColumnNestedParent < calc.startColumn) {
-        newStartColumn = startColumnNestedParent;
+      if (renderedStartColumn < calc.startColumn) {
+        newStartColumn = renderedStartColumn;
         break;
       }
     }

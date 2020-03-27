@@ -74,6 +74,9 @@ describe('CollapsibleColumns', () => {
       destroy();
       this.$container.remove();
     }
+    if (this.$wrapper) {
+      this.$wrapper.remove();
+    }
   });
 
   describe('initialization', () => {
@@ -1450,6 +1453,134 @@ describe('CollapsibleColumns', () => {
             <td class="">BD1</td>
             <td class="">BE1</td>
             <td class="">BF1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it('should correclty render headers after column collapsing', () => {
+      const $wrapper = $('<div></div>').css({
+        width: 400,
+        height: 200,
+        overflow: 'hidden',
+      });
+
+      spec().$wrapper = spec().$container.wrap($wrapper).parent();
+
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 40),
+        colHeaders: true,
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['-', '-', '-', '-', '-', '-', '-', '-', '-', { label: 'J', colspan: 4 },
+            { label: 'N', colspan: 4 }, 'R', { label: 'S', colspan: 3 }],
+          ['-', '-', '-', '-', '-', '-', '-', '-', '-', { label: 'J', colspan: 2 },
+            { label: 'L', colspan: 2 }, { label: 'N', colspan: 2 }, { label: 'P', colspan: 2 },
+            'R', 'S', { label: 'T', colspan: 2 }],
+          ['-', '-', '-', '-', '-', '-', '-', '-', '-', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+            'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+        ],
+        collapsibleColumns: true,
+      });
+
+      hot.scrollViewportTo(0, 15);
+      hot.render();
+
+      $(getCell(-2, 9).querySelector('.collapsibleIndicator')) // header "B"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-2, 11).querySelector('.collapsibleIndicator')) // header "D"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      hot.scrollViewportTo(0, 17);
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">R</th>
+            <th class="collapsibleIndicator expanded" colspan="3">S</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="">R</th>
+            <th class="">S</th>
+            <th class="collapsibleIndicator expanded" colspan="2">T</th>
+            <th class="hiddenHeader"></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+          <tr>
+            <th class="">R</th>
+            <th class="">S</th>
+            <th class="">T</th>
+            <th class="">U</th>
+            <th class="">V</th>
+            <th class="">W</th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">R1</td>
+            <td class="">S1</td>
+            <td class="">T1</td>
+            <td class="">U1</td>
+            <td class="">V1</td>
+            <td class="">W1</td>
+            <td class="">X1</td>
+            <td class="">Y1</td>
+            <td class="">Z1</td>
+            <td class="">AA1</td>
+            <td class="">AB1</td>
+            <td class="">AC1</td>
+            <td class="">AD1</td>
+            <td class="">AE1</td>
+            <td class="">AF1</td>
+            <td class="">AG1</td>
+            <td class="">AH1</td>
+            <td class="">AI1</td>
           </tr>
         </tbody>
         `);
