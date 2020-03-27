@@ -105,7 +105,15 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const { collapsibleColumns } = this.hot.getSettings();
+    const { collapsibleColumns, nestedHeaders, hiddenColumns } = this.hot.getSettings();
+
+    if (!nestedHeaders) {
+      warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
+    }
+
+    if (!hiddenColumns) {
+      warn('You need to configure the Hidden Columns plugin in order to use collapsible headers.');
+    }
 
     this.hiddenColumnsPlugin = this.hot.getPlugin('hiddenColumns');
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
@@ -123,15 +131,22 @@ class CollapsibleColumns extends BasePlugin {
       }
     }
 
-    this.checkDependencies();
-
-    this.addHook('afterRender', () => this.onAfterRender());
     this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
     this.eventManager = new EventManager(this.hot);
 
     super.enablePlugin();
+  }
+
+  /**
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
   }
 
   /**
@@ -190,23 +205,6 @@ class CollapsibleColumns extends BasePlugin {
         }
       });
     }, true);
-  }
-
-  /**
-   * Checks if all the required dependencies are enabled.
-   *
-   * @private
-   */
-  checkDependencies() {
-    const settings = this.hot.getSettings();
-
-    if (!settings.nestedHeaders) {
-      warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
-    }
-
-    if (!settings.hiddenColumns) {
-      warn('You need to configure the Hidden Columns plugin in order to use collapsible headers.');
-    }
   }
 
   /**
@@ -421,17 +419,6 @@ class CollapsibleColumns extends BasePlugin {
       }
 
       stopImmediatePropagation(event);
-    }
-  }
-
-  /**
-   * AfterRender hook callback.
-   *
-   * @private
-   */
-  onAfterRender() {
-    if (!this.nestedHeadersPlugin.enabled || !this.hiddenColumnsPlugin.enabled) {
-      this.disablePlugin();
     }
   }
 

@@ -79,7 +79,7 @@ class NestedHeaders extends BasePlugin {
       return;
     }
 
-    const nestedHeaders = this.hot.getSettings().nestedHeaders;
+    const { nestedHeaders } = this.hot.getSettings();
 
     if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
       warn(toSingleLine`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
@@ -106,17 +106,6 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    this.clearColspans();
-    this.#stateManager.clear();
-    this.ghostTable.clear();
-
-    super.disablePlugin();
-  }
-
-  /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
@@ -125,6 +114,17 @@ class NestedHeaders extends BasePlugin {
 
     super.updatePlugin();
     this.ghostTable.buildWidthsMapper();
+  }
+
+  /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    this.clearColspans();
+    this.#stateManager.clear();
+    this.ghostTable.clear();
+
+    super.disablePlugin();
   }
 
   /**

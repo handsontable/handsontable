@@ -1,9 +1,9 @@
 describe('CollapsibleColumns', () => {
   const id = 'testContainer';
 
-  function extractDOMStructure(hotOverlay) {
-    const cloneTHeadOverlay = (hotOverlay instanceof jQuery ? hotOverlay[0] : hotOverlay).cloneNode(true);
-    const cellsRow = getMaster().find('tbody tr')[0].cloneNode(true);
+  function extractDOMStructure(overlayTHead, overlayTBody) {
+    const cloneTHeadOverlay = overlayTHead.find('thead')[0].cloneNode(true);
+    const cellsRow = overlayTBody ? overlayTBody.find('tbody tr')[0].cloneNode(true).outerHTML : '';
 
     Array.from(cloneTHeadOverlay.querySelectorAll('th')).forEach((TH) => {
       if (TH.querySelector('.collapsibleIndicator')) {
@@ -16,12 +16,12 @@ describe('CollapsibleColumns', () => {
         TH.classList.add('expanded');
       }
 
-      // Remove header content
+      // Simplify header content
       TH.innerText = TH.querySelector('.colHeader').innerText;
       TH.removeAttribute('style');
     });
 
-    return `${cloneTHeadOverlay.outerHTML}<tbody>${cellsRow.outerHTML}</tbody>`;
+    return `${cloneTHeadOverlay.outerHTML}${cellsRow ? `<tbody>${cellsRow}</tbody>` : ''}`;
   }
 
   beforeEach(function() {
@@ -90,7 +90,7 @@ describe('CollapsibleColumns', () => {
 
       const plugin = hot.getPlugin('collapsibleColumns');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -136,7 +136,7 @@ describe('CollapsibleColumns', () => {
       plugin.disablePlugin();
       hot.render();
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -198,7 +198,7 @@ describe('CollapsibleColumns', () => {
       plugin.enablePlugin();
       hot.render();
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -242,7 +242,7 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should be possible to enable the plugin using the updateSettings method', () => {
+    it('should be possible to enable the plugin using the updateSettings method (enable all nested headers)', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         hiddenColumns: true,
@@ -256,7 +256,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -276,6 +276,67 @@ describe('CollapsibleColumns', () => {
             <th class="">C2</th>
             <th class="">D2</th>
             <th class="">E2</th>
+            <th class="">F2</th>
+            <th class="">G2</th>
+            <th class="">H2</th>
+            <th class="">I2</th>
+            <th class="">J2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it('should be possible to enable the plugin using the updateSettings method (selective configuration)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B1', colspan: 2 }, { label: 'D1', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ]
+      });
+
+      hot.updateSettings({
+        collapsibleColumns: [
+          { row: -1, col: 3, collapsible: true },
+          { row: -2, col: 1, collapsible: true },
+        ]
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">F1</th>
+            <th class="">G1</th>
+            <th class="">H1</th>
+            <th class="">I1</th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="2">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">D1</th>
+            <th class="hiddenHeader"></th>
             <th class="">F2</th>
             <th class="">G2</th>
             <th class="">H2</th>
@@ -306,7 +367,7 @@ describe('CollapsibleColumns', () => {
         hiddenColumns: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
-          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+          ['A2', { label: 'B1', colspan: 2 }, { label: 'D1', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
         ],
         collapsibleColumns: true,
       });
@@ -315,7 +376,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: false,
       });
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -331,10 +392,169 @@ describe('CollapsibleColumns', () => {
           </tr>
           <tr>
             <th class="">A2</th>
-            <th class="">B2</th>
-            <th class="">C2</th>
-            <th class="">D2</th>
-            <th class="">E2</th>
+            <th class="" colspan="2">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">D1</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F2</th>
+            <th class="">G2</th>
+            <th class="">H2</th>
+            <th class="">I2</th>
+            <th class="">J2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it('should be possible to update the plugin settings using the updateSettings method', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
+          ['A2', { label: 'B1', colspan: 2 }, { label: 'D1', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ],
+        collapsibleColumns: [
+          { row: -1, col: 1, collapsible: true }
+        ],
+      });
+
+      hot.updateSettings({
+        collapsibleColumns: [
+          { row: -2, col: 1, collapsible: true }
+        ],
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">F1</th>
+            <th class="">G1</th>
+            <th class="">H1</th>
+            <th class="">I1</th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="2">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">D1</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F2</th>
+            <th class="">G2</th>
+            <th class="">H2</th>
+            <th class="">I2</th>
+            <th class="">J2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.updateSettings({
+        collapsibleColumns: [
+          { row: -1, col: 3, collapsible: true }
+        ],
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">F1</th>
+            <th class="">G1</th>
+            <th class="">H1</th>
+            <th class="">I1</th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="2">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">D1</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F2</th>
+            <th class="">G2</th>
+            <th class="">H2</th>
+            <th class="">I2</th>
+            <th class="">J2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.updateSettings({
+        collapsibleColumns: true
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">F1</th>
+            <th class="">G1</th>
+            <th class="">H1</th>
+            <th class="">I1</th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">D1</th>
+            <th class="hiddenHeader"></th>
             <th class="">F2</th>
             <th class="">G2</th>
             <th class="">H2</th>
@@ -372,7 +592,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -420,7 +640,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -466,7 +686,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -514,7 +734,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -570,7 +790,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -672,7 +892,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -768,7 +988,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -852,7 +1072,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -924,7 +1144,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -984,7 +1204,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1038,7 +1258,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1112,7 +1332,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="collapsibleIndicator expanded" colspan="8">0_7</th>
@@ -1252,7 +1472,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseAll();
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1291,7 +1511,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1350,7 +1570,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseAll();
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1389,7 +1609,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1446,7 +1666,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseAll();
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1494,7 +1714,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1548,7 +1768,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1614,7 +1834,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1704,7 +1924,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -1849,7 +2069,7 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="collapsibleIndicator expanded" colspan="8">0_7</th>
@@ -2131,7 +2351,7 @@ describe('CollapsibleColumns', () => {
         { row: -4, col: 10 },
       ], 'collapse');
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -2366,7 +2586,7 @@ describe('CollapsibleColumns', () => {
         { row: -3, col: 5 }
       ], 'collapse'); // header "B3" and "F3"
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -2455,7 +2675,7 @@ describe('CollapsibleColumns', () => {
         { row: -3, col: 5 }
       ], 'expand'); // header "B3" and "F3"
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -2793,7 +3013,7 @@ describe('CollapsibleColumns', () => {
       plugin.collapseSection({ row: -2, col: 1 }); // header "B1"
 
       expect(afterColumnCollapse).not.toHaveBeenCalled();
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -2859,7 +3079,7 @@ describe('CollapsibleColumns', () => {
       plugin.expandSection({ row: -2, col: 1 }); // header "B1"
 
       expect(afterColumnExpand).not.toHaveBeenCalled();
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -2914,7 +3134,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseSection({ row: -2, col: 1 });
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -2954,7 +3174,7 @@ describe('CollapsibleColumns', () => {
       // This call will be blocked by hook.
       plugin.collapseSection({ row: -1, col: 1 });
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -3013,7 +3233,7 @@ describe('CollapsibleColumns', () => {
       plugin.collapseAll();
       plugin.expandSection({ row: -2, col: 1 }); // header "B1"
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>
@@ -3056,7 +3276,7 @@ describe('CollapsibleColumns', () => {
       // This call will be blocked by hook.
       plugin.expandSection({ row: -2, col: 3 }); // header "D1"
 
-      expect(extractDOMStructure(getTopClone().find('thead'))).toMatchHTML(`
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
             <th class="">A1</th>

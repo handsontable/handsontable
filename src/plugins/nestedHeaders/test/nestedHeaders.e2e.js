@@ -2049,7 +2049,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(hot.getSelected()).toEqual([
+      expect(getSelected()).toEqual([
         [0, 1, 9, 1],
         [0, 5, 9, 5],
         [0, 1, 9, 1], // <- This coords shouldn't be here (known issue)

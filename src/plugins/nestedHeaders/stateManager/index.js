@@ -52,9 +52,9 @@ export default class StateManager {
    * The instance of the headers tree. The tree is generated after setting new confuguration data.
    *
    * @private
-   * @type {HeadersTree|null}
+   * @type {HeadersTree}
    */
-  #headersTree = null;
+  #headersTree = new HeadersTree(this.#sourceSettings);;
   /**
    * Cached matrix which is generated from the tree structure.
    *
@@ -72,7 +72,6 @@ export default class StateManager {
    */
   setState(nestedHeadersSettings) {
     this.#sourceSettings.setData(nestedHeadersSettings);
-    this.#headersTree = new HeadersTree(this.#sourceSettings);
     let hasError = false;
 
     try {
