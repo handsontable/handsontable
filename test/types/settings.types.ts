@@ -177,7 +177,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
       return date.getDay() === 0 || date.getDay() === 6;
     }
   },
-  debug: true,
   defaultDate: 'foo',
   disableVisualSelection: oneOf(true, 'current', 'area', 'header', [DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header]),
   dragToScroll: false,

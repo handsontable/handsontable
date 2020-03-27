@@ -345,7 +345,6 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
-      debug: () => this.settings.debug,
       externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
       preventOverflow: () => this.settings.preventOverflow,
