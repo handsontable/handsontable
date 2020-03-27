@@ -1458,7 +1458,7 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should correclty render headers after column collapsing', () => {
+    it('should correctly render collapsed headers after the table has been scrolled', () => {
       const $wrapper = $('<div></div>').css({
         width: 400,
         height: 200,
