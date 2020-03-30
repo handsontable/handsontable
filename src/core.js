@@ -2439,7 +2439,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.setCellMeta = function(row, column, key, value) {
     const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
 
-    if (allowSetCellMeta !== false) {
+    if (allowSetCellMeta === false) {
+      return;
+    }
       let physicalRow = row;
       let physicalColumn = column;
 
