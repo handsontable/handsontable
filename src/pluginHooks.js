@@ -879,6 +879,7 @@ const REGISTERED_HOOKS = [
    * Fired before cell meta is changed.
    *
    * @event Hooks#beforeSetCellMeta
+   * @since 8.0.0
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {string} key The updated meta key.
