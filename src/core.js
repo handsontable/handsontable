@@ -1,6 +1,5 @@
 import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
 import EditorManager from './editorManager';
@@ -946,10 +945,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     let shouldBeCanceled = true;
 
-    if (isFunction(beforeChangeResult)) {
-      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-
-    } else if (beforeChangeResult === false) {
+    if (beforeChangeResult === false) {
 
       if (activeEditor) {
         activeEditor.cancelChanges();
