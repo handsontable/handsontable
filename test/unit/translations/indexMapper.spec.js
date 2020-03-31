@@ -1385,6 +1385,54 @@ describe('IndexMapper', () => {
         expect(trimmingMap.getValues()).toEqual([true, true, true, true, true, true, true, true, true, true, false, false, false]);
       });
     });
+
+    describe('with hidden indexes', () => {
+      it('should insert indexes properly when some indexes are hidden', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const hidingMap = new HidingMap();
+
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('hidingMap', hidingMap);
+        indexMapper.initToLength(10);
+        hidingMap.setValues([true, true, false, false, false, false, false, false, false, true]);
+
+        indexMapper.insertIndexes(3, 3);
+
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        expect(indexMapper.getNotHiddenIndexes()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+        // // Next values (indexes) are recounted (re-indexed).
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        // // Next values are just preserved, they aren't counted again.
+        expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 5, 6, 7, 8, 9, 10, 11]);
+        expect(hidingMap.getValues()).toEqual([true, true, false, false, false, false, false, false, false, false, false, false, true]);
+      });
+
+      it('should insert indexes properly when all indexes are hidden', () => {
+        const indexMapper = new IndexMapper();
+        const indexToIndexMap = new IndexToIndexMap();
+        const indexToValueMap = new IndexToValueMap(index => index + 2);
+        const hidingMap = new HidingMap();
+
+        indexMapper.registerMap('indexToIndexMap', indexToIndexMap);
+        indexMapper.registerMap('indexToValueMap', indexToValueMap);
+        indexMapper.registerMap('hidingMap', hidingMap);
+        indexMapper.initToLength(10);
+        hidingMap.setValues([true, true, true, true, true, true, true, true, true, true]);
+
+        indexMapper.insertIndexes(3, 3);
+
+        expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        expect(indexMapper.getNotHiddenIndexes()).toEqual([3, 4, 5]);
+        // // Next values (indexes) are recounted (re-indexed).
+        expect(indexToIndexMap.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        // // Next values are just preserved, they aren't counted again.
+        expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 5, 6, 7, 8, 9, 10, 11]);
+        expect(hidingMap.getValues()).toEqual([true, true, true, false, false, false, true, true, true, true, true, true, true]);
+      });
+    });
   });
 
   describe('moving indexes', () => {

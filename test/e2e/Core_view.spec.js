@@ -160,6 +160,44 @@ describe('Core_view', () => {
     expect(hot.view.wt.wtScroll.getLastVisibleRow()).toEqual(119);
   });
 
+  it('should scroll viewport properly when there are hidden columns ' +
+    '(row argument for the `scrollViewportTo` is defined)', async() => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    hot.scrollViewportTo(0, 15);
+
+    await sleep(0);
+
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(12);
+  });
+
+  it('should scroll viewport properly when there are hidden columns ' +
+    '(row argument for the `scrollViewportTo` is not defined)', async() => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    hot.scrollViewportTo(void 0, 15);
+
+    await sleep(0);
+
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(12);
+  });
+
   it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
     spec().$container[0].style.width = '400px';
 

@@ -124,7 +124,7 @@ class TableView {
   /**
    * Returns td object given coordinates.
    *
-   * @param {CellCoords} coords The cell coordinates.
+   * @param {CellCoords} coords Renderable cell coordinates.
    * @param {boolean} topmost Indicates whether the cell should be calculated from the topmost.
    * @returns {HTMLTableCellElement|null}
    */
@@ -141,7 +141,7 @@ class TableView {
   /**
    * Scroll viewport to a cell.
    *
-   * @param {CellCoords} coords The cell coordinates.
+   * @param {CellCoords} coords Renderable cell coordinates.
    * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
    * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
    * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
@@ -155,7 +155,7 @@ class TableView {
   /**
    * Scroll viewport to a column.
    *
-   * @param {number} column Visual column index.
+   * @param {number} column Renderable column index.
    * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right side of the table.
    * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left side of the table.
    * @returns {boolean}
@@ -167,7 +167,7 @@ class TableView {
   /**
    * Scroll viewport to a row.
    *
-   * @param {number} row Visual row index.
+   * @param {number} row Renderable row index.
    * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
    * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom side of the table.
    * @returns {boolean}
