@@ -212,6 +212,30 @@ describe('manualColumnMove', () => {
       expect($backlight.length).toBe(0);
     });
 
+    it('should draw backlight element properly when there are hidden columns', function() {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnMove: true,
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2, 3],
+        }
+      });
+
+      selectColumns(1, 4);
+
+      // Mouse events on second not hidden element.
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+
+      const backlight = this.$container.find('.ht__manualColumnMove--backlight')[0];
+
+      expect(backlight.offsetLeft).toBe(100);
+      expect(backlight.offsetWidth).toBe(100);
+    });
+
     describe('selection', () => {
       it('should be shown properly when moving multiple columns from the left to the right', () => {
         handsontable({

@@ -234,16 +234,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (scrollToCell !== false) {
       if (!isSelectedByAnyHeader) {
         if (currentSelectedRange && !this.selection.isMultiple()) {
-          this.view.scrollViewport(currentSelectedRange.from);
+          this.view.scrollViewport(fromVisualToRenderableCoords(currentSelectedRange.from));
         } else {
-          this.view.scrollViewport(cellCoords);
+          this.view.scrollViewport(fromVisualToRenderableCoords(cellCoords));
         }
 
       } else if (isSelectedByRowHeader) {
-        this.view.scrollViewportVertically(cellCoords.row);
+        this.view.scrollViewportVertically(instance.rowIndexMapper.getRenderableFromVisualIndex(cellCoords.row));
 
       } else if (isSelectedByColumnHeader) {
-        this.view.scrollViewportHorizontally(cellCoords.col);
+        this.view.scrollViewportHorizontally(instance.columnIndexMapper.getRenderableFromVisualIndex(cellCoords.col));
       }
     }
 
@@ -3463,13 +3463,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let result = false;
 
     if (row !== void 0 && column !== void 0) {
-      result = instance.view.scrollViewport(new CellCoords(row, column), snapToTop, snapToRight, snapToBottom, snapToLeft);
+      result = instance.view.scrollViewport(
+        fromVisualToRenderableCoords({ row, col: column }), snapToTop, snapToRight, snapToBottom, snapToLeft);
     }
+
     if (typeof row === 'number' && typeof column !== 'number') {
-      result = instance.view.scrollViewportVertically(row, snapToTop, snapToBottom);
+      result = instance.view.scrollViewportVertically(
+        instance.rowIndexMapper.getRenderableFromVisualIndex(row), snapToTop, snapToBottom);
     }
+
     if (typeof column === 'number' && typeof row !== 'number') {
-      result = instance.view.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+      result = instance.view.scrollViewportHorizontally(
+        instance.columnIndexMapper.getRenderableFromVisualIndex(column), snapToRight, snapToLeft);
     }
 
     return result;

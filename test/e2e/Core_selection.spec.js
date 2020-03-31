@@ -1401,6 +1401,54 @@ describe('Core_selection', () => {
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
+  it('should scroll viewport properly when selecting singe cell beyond the table boundaries (when some columns are hidden)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    selectCell(0, 15);
+
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
+  });
+
+  it('should scroll viewport properly when selecting multiple cells beyond the table boundaries (when some columns are hidden)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    selectCells([[0, 4], [0, 15]]);
+
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
+  });
+
+  it('should scroll viewport properly when selecting singe column beyond the table boundaries (when some columns are hidden)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    selectColumns(15);
+
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
+  });
+
   describe('multiple selection mode', () => {
     it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
       handsontable({
