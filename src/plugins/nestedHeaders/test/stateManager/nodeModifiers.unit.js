@@ -5,7 +5,11 @@ import NodeModifiers from 'handsontable/plugins/nestedHeaders/stateManager/nodeM
 import './custom-matchers';
 
 function createTree(nestedHeadersSettings) {
-  return new HeadersTree(new SourceSettings(nestedHeadersSettings));
+  const source = new SourceSettings();
+
+  source.setData(nestedHeadersSettings);
+
+  return new HeadersTree(source);
 }
 
 describe('NodeModifiers', () => {

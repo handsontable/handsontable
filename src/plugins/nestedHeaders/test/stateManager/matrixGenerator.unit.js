@@ -3,7 +3,11 @@ import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sour
 import { matrixGenerator } from 'handsontable/plugins/nestedHeaders/stateManager/matrixGenerator';
 
 function generateMatrix(nestedHeadersSettings) {
-  const tree = new HeadersTree(new SourceSettings(nestedHeadersSettings));
+  const source = new SourceSettings();
+
+  source.setData(nestedHeadersSettings);
+
+  const tree = new HeadersTree(source);
 
   tree.buildTree();
 

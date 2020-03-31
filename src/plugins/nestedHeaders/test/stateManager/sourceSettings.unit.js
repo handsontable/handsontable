@@ -3,7 +3,9 @@ import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sour
 describe('SourceSettings', () => {
   describe('constructor', () => {
     it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
@@ -86,7 +88,9 @@ describe('SourceSettings', () => {
 
   describe('getData', () => {
     it('should return normalized settings', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
@@ -279,28 +283,34 @@ describe('SourceSettings', () => {
     });
 
     it('should return null when passed header level exceeds the user-defined nested headers array settings', () => {
-      const settings = new SourceSettings([[
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
-      ]]);
+      ]);
 
       expect(settings.getHeaderSettings(3, 0)).toBe(null);
       expect(settings.getHeaderSettings(-1, 0)).toBe(null);
     });
 
     it('should return null when passed column index exceeds the user-defined nested headers array settings', () => {
-      const settings = new SourceSettings([[
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
-      ]]);
+      ]);
 
       expect(settings.getHeaderSettings(0, 3)).toBe(null);
     });
 
     it('should return column settings for specified coordinates', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -333,25 +343,31 @@ describe('SourceSettings', () => {
         expect(settings.getHeadersSettings(0, 0).length).toBe(0);
       }
       {
-        const settings = new SourceSettings([[]]);
+        const settings = new SourceSettings();
+
+        settings.setData([[]]);
 
         expect(settings.getHeadersSettings(0, 0).length).toBe(0);
       }
     });
 
     it('should return an empty array when passed header level exceeds the user-defined nested headers array settings', () => {
-      const settings = new SourceSettings([[
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
-      ]]);
+      ]);
 
       expect(settings.getHeadersSettings(3, 0)).toEqual([]);
       expect(settings.getHeadersSettings(-1, 0)).toEqual([]);
     });
 
     it('should return columns settings for specified header level', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -379,7 +395,9 @@ describe('SourceSettings', () => {
     });
 
     it('should return columns settings for specified header level and column length', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -410,7 +428,9 @@ describe('SourceSettings', () => {
     });
 
     it('should throw an exception when the first retrieved column settings overlaps the passed "columnIndex" argument', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -438,7 +458,9 @@ describe('SourceSettings', () => {
     });
 
     it('should throw an exception when the last retrieved column settings overlaps the passed "columnIndex"+"columnsLength" arguments', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
         ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
@@ -468,12 +490,16 @@ describe('SourceSettings', () => {
         expect(settings.getLayersCount()).toBe(0);
       }
       {
-        const settings = new SourceSettings([]);
+        const settings = new SourceSettings();
+
+        settings.setData([]);
 
         expect(settings.getLayersCount()).toBe(0);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           ['A1', 'A2'],
           [],
           [],
@@ -482,7 +508,9 @@ describe('SourceSettings', () => {
         expect(settings.getLayersCount()).toBe(3);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [{ label: 'A1' }, { label: 'A2', colspan: 1 }],
           [],
           [],
@@ -491,7 +519,9 @@ describe('SourceSettings', () => {
         expect(settings.getLayersCount()).toBe(3);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }],
           [],
           [],
@@ -510,12 +540,16 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(0);
       }
       {
-        const settings = new SourceSettings([]);
+        const settings = new SourceSettings();
+
+        settings.setData([]);
 
         expect(settings.getColumnsCount()).toBe(0);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [],
           [],
           [],
@@ -524,7 +558,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(0);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           ['A1', 'A2'],
           [],
           [],
@@ -533,7 +569,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(2);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [{ label: 'A1' }, { label: 'A2', colspan: 1 }],
           [],
           [],
@@ -542,7 +580,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(2);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }],
           [],
           [],
@@ -551,7 +591,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(5);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [],
           ['A1', 'A2', 'A3'],
           [],
@@ -560,7 +602,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(3);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [],
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }, 'A3'],
           [],
@@ -569,7 +613,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(6);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [],
           [],
           ['A1', 'A2', 'A3', 'A4'],
@@ -578,7 +624,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(4);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [],
           [],
           [{ label: 'A1' }, { label: 'A2', colspan: 1 }, { label: 'A3', colspan: 1, foo: 'bar' }, 'A4'],
@@ -587,7 +635,9 @@ describe('SourceSettings', () => {
         expect(settings.getColumnsCount()).toBe(4);
       }
       {
-        const settings = new SourceSettings([
+        const settings = new SourceSettings();
+
+        settings.setData([
           [],
           [],
           [{ label: 'A1' }, { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2, foo: 'bar' }, 'A4'],
@@ -600,12 +650,13 @@ describe('SourceSettings', () => {
 
   describe('clear', () => {
     it('should clear the data', () => {
-      const settings = new SourceSettings([
+      const settings = new SourceSettings();
+
+      settings.setData([
         ['A1'],
         [{ label: true }, 'B2', 4],
         [],
       ]);
-
       settings.clear();
 
       expect(settings.getData()).toEqual([]);

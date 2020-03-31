@@ -34,10 +34,6 @@ export default class SourceSettings {
    */
   #columnsCountLimit = Infinity;
 
-  constructor(nestedHeadersSettings = []) {
-    this.setData(nestedHeadersSettings);
-  }
-
   /**
    * Sets columns limit to the source settings will be trimmed. All headers which
    * overlap the column limit will be reduced to keep the structure solid.
