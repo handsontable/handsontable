@@ -1894,6 +1894,7 @@ declare namespace Handsontable {
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
       beforeRowMove?: (rows: number[], target: number) => void;
       beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
+      beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
       beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
       beforeSetRangeStart?: (coords: wot.CellCoords) => void;
       beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
