@@ -24,45 +24,46 @@ describe('NestedHeaders', () => {
     return headerRows[row].querySelectorAll('th:not(.hiddenHeader)');
   }
 
-  /**
-   * @param rows
-   * @param cols
-   * @param obj
-   */
-  function generateComplexSetup(rows, cols, obj) {
+  function generateComplexSetup(rows, cols, generateNestedHeaders = false) {
     const data = [];
 
     for (let i = 0; i < rows; i++) {
+      let labelCursor = 0;
+
       for (let j = 0; j < cols; j++) {
         if (!data[i]) {
           data[i] = [];
         }
 
-        if (!obj) {
-          data[i][j] = `${i}_${j}`;
+        const columnLabel = Handsontable.helper.spreadsheetColumnLabel(labelCursor);
+
+        if (!generateNestedHeaders) {
+          data[i][j] = `${columnLabel}${i + 1}`;
+          labelCursor += 1;
           /* eslint-disable no-continue */
           continue;
         }
 
         if (i === 0 && j % 2 !== 0) {
           data[i][j] = {
-            label: `${i}_${j}`,
+            label: `${columnLabel}${i + 1}`,
             colspan: 8
           };
         } else if (i === 1 && (j % 3 === 1 || j % 3 === 2)) {
           data[i][j] = {
-            label: `${i}_${j}`,
+            label: `${columnLabel}${i + 1}`,
             colspan: 4
           };
         } else if (i === 2 && (j % 5 === 1 || j % 5 === 2 || j % 5 === 3 || j % 5 === 4)) {
           data[i][j] = {
-            label: `${i}_${j}`,
+            label: `${columnLabel}${i + 1}`,
             colspan: 2
           };
         } else {
-          data[i][j] = `${i}_${j}`;
+          data[i][j] = `${columnLabel}${i + 1}`;
         }
 
+        labelCursor += data[i][j].colspan ?? 1;
       }
     }
 
@@ -636,6 +637,205 @@ describe('NestedHeaders', () => {
       expect(hot.getColWidth(1)).toBeGreaterThan(50);
       expect(headers[1].offsetWidth).toBeGreaterThan(100);
     });
+
+    it('should correctly render headers when loaded dataset is shorter (less columns) than nested headers settings', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: generateComplexSetup(4, 100, true),
+        width: 400,
+        height: 300,
+      });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="8">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="" colspan="2">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">D3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="">D4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+            <th class="">G4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+            <th class="">J4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(5, 5));
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="" colspan="2">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">D3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="">D4</th>
+            <th class="">E4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(5, 2));
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="">B1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="">B2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">B3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.loadData(Handsontable.helper.createSpreadsheetData(5, 6));
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="5">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">F2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="" colspan="2">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">D3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="">D4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+          </tr>
+        </tbody>
+        `);
+    });
   });
 
   describe('The \'colspan\' property', () => {
@@ -794,8 +994,8 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">0_0</th>
-            <th class="" colspan="8">0_1</th>
+            <th class="">A1</th>
+            <th class="" colspan="8">B1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -803,8 +1003,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">0_2</th>
-            <th class="" colspan="8">0_3</th>
+            <th class="">J1</th>
+            <th class="" colspan="8">K1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -812,86 +1012,86 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">0_4</th>
-            <th class="" colspan="8">0_5</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="">1_0</th>
-            <th class="" colspan="4">1_1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">1_2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">1_3</th>
-            <th class="" colspan="4">1_4</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">1_5</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">1_6</th>
-            <th class="" colspan="4">1_7</th>
+            <th class="">S1</th>
+            <th class="" colspan="8">T1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">2_0</th>
-            <th class="" colspan="2">2_1</th>
+            <th class="">A2</th>
+            <th class="" colspan="4">B2</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_2</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_4</th>
+            <th class="" colspan="4">F2</th>
             <th class="hiddenHeader"></th>
-            <th class="">2_5</th>
-            <th class="" colspan="2">2_6</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_7</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_8</th>
+            <th class="">J2</th>
+            <th class="" colspan="4">K2</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_9</th>
             <th class="hiddenHeader"></th>
-            <th class="">2_10</th>
-            <th class="" colspan="2">2_11</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_12</th>
+            <th class="" colspan="4">O2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">S2</th>
+            <th class="" colspan="4">T2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">3_0</th>
-            <th class="">3_1</th>
-            <th class="">3_2</th>
-            <th class="">3_3</th>
-            <th class="">3_4</th>
-            <th class="">3_5</th>
-            <th class="">3_6</th>
-            <th class="">3_7</th>
-            <th class="">3_8</th>
-            <th class="">3_9</th>
-            <th class="">3_10</th>
-            <th class="">3_11</th>
-            <th class="">3_12</th>
-            <th class="">3_13</th>
-            <th class="">3_14</th>
-            <th class="">3_15</th>
-            <th class="">3_16</th>
-            <th class="">3_17</th>
-            <th class="">3_18</th>
-            <th class="">3_19</th>
-            <th class="">3_20</th>
-            <th class="">3_21</th>
-            <th class="">3_22</th>
+            <th class="">A3</th>
+            <th class="" colspan="2">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">D3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+            <th class="" colspan="2">K3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">M3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">O3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">Q3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">S3</th>
+            <th class="" colspan="2">T3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">V3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="">D4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+            <th class="">G4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+            <th class="">J4</th>
+            <th class="">K4</th>
+            <th class="">L4</th>
+            <th class="">M4</th>
+            <th class="">N4</th>
+            <th class="">O4</th>
+            <th class="">P4</th>
+            <th class="">Q4</th>
+            <th class="">R4</th>
+            <th class="">S4</th>
+            <th class="">T4</th>
+            <th class="">U4</th>
+            <th class="">V4</th>
+            <th class="">W4</th>
           </tr>
         </thead>
         <tbody>
@@ -930,7 +1130,7 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="" colspan="8">0_5</th>
+            <th class="" colspan="8">T1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -938,8 +1138,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">0_6</th>
-            <th class="" colspan="8">0_7</th>
+            <th class="">AB1</th>
+            <th class="" colspan="8">AC1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -947,8 +1147,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">0_8</th>
-            <th class="" colspan="8">0_9</th>
+            <th class="">AK1</th>
+            <th class="" colspan="8">AL1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -956,8 +1156,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">0_10</th>
-            <th class="" colspan="8">0_11</th>
+            <th class="">AT1</th>
+            <th class="" colspan="8">AU1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -965,8 +1165,8 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">0_12</th>
-            <th class="" colspan="8">0_13</th>
+            <th class="">BC1</th>
+            <th class="" colspan="8">BD1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -974,148 +1174,152 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">0_14</th>
+            <th class="">BL1</th>
+            <th class="" colspan="8">BM1</th>
           </tr>
           <tr>
-            <th class="" colspan="4">1_7</th>
+            <th class="" colspan="4">T2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="4">1_8</th>
+            <th class="" colspan="4">X2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">1_9</th>
-            <th class="" colspan="4">1_10</th>
+            <th class="">AB2</th>
+            <th class="" colspan="4">AC2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="4">1_11</th>
+            <th class="" colspan="4">AG2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">1_12</th>
-            <th class="" colspan="4">1_13</th>
+            <th class="">AK2</th>
+            <th class="" colspan="4">AL2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="4">1_14</th>
+            <th class="" colspan="4">AP2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">1_15</th>
-            <th class="" colspan="4">1_16</th>
+            <th class="">AT2</th>
+            <th class="" colspan="4">AU2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="4">1_17</th>
+            <th class="" colspan="4">AY2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">1_18</th>
-            <th class="" colspan="4">1_19</th>
+            <th class="">BC2</th>
+            <th class="" colspan="4">BD2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="4">1_20</th>
+            <th class="" colspan="4">BH2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">1_21</th>
+            <th class="">BL2</th>
+            <th class="" colspan="4">BM2</th>
           </tr>
           <tr>
-            <th class="" colspan="2">2_11</th>
+            <th class="" colspan="2">T3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_12</th>
+            <th class="" colspan="2">V3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_13</th>
+            <th class="" colspan="2">X3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_14</th>
+            <th class="" colspan="2">Z3</th>
             <th class="hiddenHeader"></th>
-            <th class="">2_15</th>
-            <th class="" colspan="2">2_16</th>
+            <th class="">AB3</th>
+            <th class="" colspan="2">AC3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_17</th>
+            <th class="" colspan="2">AE3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_18</th>
+            <th class="" colspan="2">AG3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_19</th>
+            <th class="" colspan="2">AI3</th>
             <th class="hiddenHeader"></th>
-            <th class="">2_20</th>
-            <th class="" colspan="2">2_21</th>
+            <th class="">AK3</th>
+            <th class="" colspan="2">AL3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_22</th>
+            <th class="" colspan="2">AN3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_23</th>
+            <th class="" colspan="2">AP3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_24</th>
+            <th class="" colspan="2">AR3</th>
             <th class="hiddenHeader"></th>
-            <th class="">2_25</th>
-            <th class="" colspan="2">2_26</th>
+            <th class="">AT3</th>
+            <th class="" colspan="2">AU3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_27</th>
+            <th class="" colspan="2">AW3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_28</th>
+            <th class="" colspan="2">AY3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_29</th>
+            <th class="" colspan="2">BA3</th>
             <th class="hiddenHeader"></th>
-            <th class="">2_30</th>
-            <th class="" colspan="2">2_31</th>
+            <th class="">BC3</th>
+            <th class="" colspan="2">BD3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_32</th>
+            <th class="" colspan="2">BF3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_33</th>
+            <th class="" colspan="2">BH3</th>
             <th class="hiddenHeader"></th>
-            <th class="" colspan="2">2_34</th>
+            <th class="" colspan="2">BJ3</th>
             <th class="hiddenHeader"></th>
-            <th class="">2_35</th>
+            <th class="">BL3</th>
+            <th class="" colspan="2">BM3</th>
           </tr>
           <tr>
-            <th class="">3_19</th>
-            <th class="">3_20</th>
-            <th class="">3_21</th>
-            <th class="">3_22</th>
-            <th class="">3_23</th>
-            <th class="">3_24</th>
-            <th class="">3_25</th>
-            <th class="">3_26</th>
-            <th class="">3_27</th>
-            <th class="">3_28</th>
-            <th class="">3_29</th>
-            <th class="">3_30</th>
-            <th class="">3_31</th>
-            <th class="">3_32</th>
-            <th class="">3_33</th>
-            <th class="">3_34</th>
-            <th class="">3_35</th>
-            <th class="">3_36</th>
-            <th class="">3_37</th>
-            <th class="">3_38</th>
-            <th class="">3_39</th>
-            <th class="">3_40</th>
-            <th class="">3_41</th>
-            <th class="">3_42</th>
-            <th class="">3_43</th>
-            <th class="">3_44</th>
-            <th class="">3_45</th>
-            <th class="">3_46</th>
-            <th class="">3_47</th>
-            <th class="">3_48</th>
-            <th class="">3_49</th>
-            <th class="">3_50</th>
-            <th class="">3_51</th>
-            <th class="">3_52</th>
-            <th class="">3_53</th>
-            <th class="">3_54</th>
-            <th class="">3_55</th>
-            <th class="">3_56</th>
-            <th class="">3_57</th>
-            <th class="">3_58</th>
-            <th class="">3_59</th>
-            <th class="">3_60</th>
-            <th class="">3_61</th>
-            <th class="">3_62</th>
-            <th class="">3_63</th>
+            <th class="">T4</th>
+            <th class="">U4</th>
+            <th class="">V4</th>
+            <th class="">W4</th>
+            <th class="">X4</th>
+            <th class="">Y4</th>
+            <th class="">Z4</th>
+            <th class="">AA4</th>
+            <th class="">AB4</th>
+            <th class="">AC4</th>
+            <th class="">AD4</th>
+            <th class="">AE4</th>
+            <th class="">AF4</th>
+            <th class="">AG4</th>
+            <th class="">AH4</th>
+            <th class="">AI4</th>
+            <th class="">AJ4</th>
+            <th class="">AK4</th>
+            <th class="">AL4</th>
+            <th class="">AM4</th>
+            <th class="">AN4</th>
+            <th class="">AO4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AR4</th>
+            <th class="">AS4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+            <th class="">AX4</th>
+            <th class="">AY4</th>
+            <th class="">AZ4</th>
+            <th class="">BA4</th>
+            <th class="">BB4</th>
+            <th class="">BC4</th>
+            <th class="">BD4</th>
+            <th class="">BE4</th>
+            <th class="">BF4</th>
+            <th class="">BG4</th>
+            <th class="">BH4</th>
+            <th class="">BI4</th>
+            <th class="">BJ4</th>
+            <th class="">BK4</th>
+            <th class="">BL4</th>
+            <th class="">BM4</th>
           </tr>
         </thead>
         <tbody>
@@ -1165,6 +1369,7 @@ describe('NestedHeaders', () => {
             <td class="">BJ1</td>
             <td class="">BK1</td>
             <td class="">BL1</td>
+            <td class="">BM1</td>
           </tr>
         </tbody>
         `);

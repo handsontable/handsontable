@@ -105,7 +105,7 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const { collapsibleColumns, nestedHeaders, hiddenColumns } = this.hot.getSettings();
+    const { nestedHeaders, hiddenColumns } = this.hot.getSettings();
 
     if (!nestedHeaders) {
       warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
@@ -119,7 +119,26 @@ class CollapsibleColumns extends BasePlugin {
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
+    this.addHook('init', () => this.onInit());
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
+    this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
+
+    super.enablePlugin();
+    this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
+  }
+
+  /**
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   */
+  updatePlugin() {
+    if (!this.hot.view) { // @TODO: Workaround for broken plugin initialization abstraction.
+      return;
+    }
+
     if (!this.nestedHeadersPlugin.detectedOverlappedHeaders) {
+      const { collapsibleColumns } = this.hot.getSettings();
+
       if (typeof collapsibleColumns === 'boolean') {
         // Add `collapsible: true` attribute to all headers with colspan higher than 1.
         this.headerStateManager.mapState((headerSettings) => {
@@ -130,19 +149,6 @@ class CollapsibleColumns extends BasePlugin {
         this.headerStateManager.mergeStateWith(collapsibleColumns);
       }
     }
-
-    this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
-    this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
-
-    super.enablePlugin();
-  }
-
-  /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
-   */
-  updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
 
     super.updatePlugin();
   }
@@ -254,14 +260,12 @@ class CollapsibleColumns extends BasePlugin {
    * @param {string} action 'collapse' or 'expand'.
    */
   toggleAllCollapsibleSections(action) {
-    const coords = [];
-
-    this.headerStateManager.mapNodes(({ collapsible, origColspan, headerLevel, columnIndex }) => {
+    const coords = this.headerStateManager.mapNodes(({ collapsible, origColspan, headerLevel, columnIndex }) => {
       if (collapsible === true && origColspan > 1) {
-        coords.push({
+        return {
           row: this.headerStateManager.levelToRowCoords(headerLevel),
           col: columnIndex,
-        });
+        };
       }
     });
 
@@ -417,6 +421,30 @@ class CollapsibleColumns extends BasePlugin {
       }
 
       stopImmediatePropagation(event);
+    }
+  }
+
+  /**
+   * Updates the plugin state after HoT initialization.
+   *
+   * @private
+   */
+  onInit() {
+    // @TODO: Workaround for broken plugin initialization abstraction.
+    this.updatePlugin();
+  }
+
+  /**
+   * Updates the plugin state after new dataset load.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   */
+  onAfterLoadData(sourceData, initialLoad) {
+    if (!initialLoad) {
+      this.updatePlugin();
     }
   }
 

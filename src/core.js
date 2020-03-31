@@ -915,9 +915,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.view = new TableView(this);
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
-    this.forceFullRender = true; // used when data was changed
-
     instance.runHooks('init');
+
+    this.forceFullRender = true; // used when data was changed
     this.view.render();
 
     if (typeof firstRun === 'object') {

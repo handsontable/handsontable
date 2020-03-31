@@ -37,6 +37,8 @@ class GhostTable {
     const columns = this.container.querySelectorAll('tr:last-of-type th');
     const maxColumns = columns.length;
 
+    this.widthsCache.length = 0;
+
     for (let i = 0; i < maxColumns; i++) {
       this.widthsCache.push(columns[i].offsetWidth);
     }

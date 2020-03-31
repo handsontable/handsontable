@@ -84,18 +84,10 @@ class NestedHeaders extends BasePlugin {
     if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
       warn(toSingleLine`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
-
-      return;
     }
 
-    this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
-
-    if (this.detectedOverlappedHeaders) {
-      warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
-                        is currently not supported.`);
-    }
-
-    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('init', () => this.onInit());
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('afterOnCellMouseDown', (event, coords) => this.onAfterOnCellMouseDown(event, coords));
     this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
@@ -103,17 +95,32 @@ class NestedHeaders extends BasePlugin {
     this.addHook('afterViewportColumnCalculatorOverride', calc => this.onAfterViewportColumnCalculatorOverride(calc));
 
     super.enablePlugin();
+    this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
   }
 
   /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    if (!this.hot.view) { // @TODO: Workaround for broken plugin initialization abstraction.
+      return;
+    }
 
-    super.updatePlugin();
+    const { nestedHeaders } = this.hot.getSettings();
+
+    this.#stateManager.setColumnsCountLimit(this.hot.countCols());
+
+    if (Array.isArray(nestedHeaders)) {
+      this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
+    }
+
+    if (this.detectedOverlappedHeaders) {
+      warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
+                        is currently not supported.`);
+    }
+
     this.ghostTable.buildWidthsMapper();
+    super.updatePlugin();
   }
 
   /**
@@ -350,15 +357,6 @@ class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Cache column header count.
-   *
-   * @private
-   */
-  onAfterInit() {
-    this.ghostTable.buildWidthsMapper();
-  }
-
-  /**
    * Select all nested headers of clicked cell.
    *
    * @private
@@ -488,6 +486,30 @@ class NestedHeaders extends BasePlugin {
     const cachedWidth = this.ghostTable.widthsCache[column];
 
     return width > cachedWidth ? width : cachedWidth;
+  }
+
+  /**
+   * Updates the plugin state after HoT initialization.
+   *
+   * @private
+   */
+  onInit() {
+    // @TODO: Workaround for broken plugin initialization abstraction.
+    this.updatePlugin();
+  }
+
+  /**
+   * Updates the plugin state after new dataset load.
+   *
+   * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
+   */
+  onAfterLoadData(sourceData, initialLoad) {
+    if (!initialLoad) {
+      this.updatePlugin();
+    }
   }
 
   /**

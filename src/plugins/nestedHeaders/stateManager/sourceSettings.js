@@ -25,9 +25,27 @@ export default class SourceSettings {
    * @type {number}
    */
   #dataLength = 0;
+  /**
+   * Columns count limit value trim source settings to that value. If columns
+   * count limit intersects nested header, the header's colspan value is reduced
+   * to keep the whole structure stable (trimmed precisely where the limit is set).
+   *
+   * @type {number}
+   */
+  #columnsCountLimit = Infinity;
 
   constructor(nestedHeadersSettings = []) {
     this.setData(nestedHeadersSettings);
+  }
+
+  /**
+   * Sets columns limit to the source settings will be trimmed. All headers which
+   * overlap the column limit will be reduced to keep the structure solid.
+   *
+   * @param {number} columnsCount The number of columns to limit to.
+   */
+  setColumnsCountLimit(columnsCount) {
+    this.#columnsCountLimit = columnsCount;
   }
 
   /**
@@ -36,7 +54,7 @@ export default class SourceSettings {
    * @param {Array[]} [nestedHeadersSettings=[]] The user-defined nested headers settings.
    */
   setData(nestedHeadersSettings = []) {
-    this.#data = settingsNormalizer(nestedHeadersSettings);
+    this.#data = settingsNormalizer(nestedHeadersSettings, this.#columnsCountLimit);
     this.#dataLength = this.#data.length;
   }
 

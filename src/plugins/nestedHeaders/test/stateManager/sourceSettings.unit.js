@@ -29,6 +29,31 @@ describe('SourceSettings', () => {
     });
   });
 
+  describe('setColumnsCountLimit', () => {
+    it('should limit source settings', () => {
+      const settings = new SourceSettings();
+
+      settings.setColumnsCountLimit(1);
+      settings.setData([
+        ['A1'],
+        [{ label: true }, 'B2', 4],
+        [],
+      ]);
+
+      expect(settings.getData()).toEqual([
+        [
+          { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+        [
+          { label: 'true', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+        [
+          { label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false },
+        ],
+      ]);
+    });
+  });
+
   describe('setData', () => {
     it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
       const settings = new SourceSettings();

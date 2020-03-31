@@ -37,14 +37,23 @@ import { HEADER_DEFAULT_SETTINGS } from './constants';
  *   ]
  *
  * @param {Array[]} sourceSettings An array with defined nested headers settings.
+ * @param {number} [columnsCountLimit=Infinity] A number of columns to which the structure
+ *                                              will be trimmed. While trimming the colspan
+ *                                              values are adjusted to preserve the original
+ *                                              structure.
  * @returns {Array[]}
  */
-export function settingsNormalizer(sourceSettings) {
+export function settingsNormalizer(sourceSettings, columnsCountLimit = Infinity) {
   const normalizedSettings = [];
+
+  if (columnsCountLimit === 0) {
+    return normalizedSettings;
+  }
 
   // Normalize array items (header settings) into one shape - literal object with default props.
   arrayEach(sourceSettings, (headersSettings) => {
     const columns = [];
+    let columnIndex = 0;
 
     normalizedSettings.push(columns);
 
@@ -68,6 +77,17 @@ export function settingsNormalizer(sourceSettings) {
         headerSettings.label = stringify(sourceHeaderSettings);
       }
 
+      columnIndex += headerSettings.origColspan;
+
+      let cancelProcessing = false;
+
+      if (columnIndex >= columnsCountLimit) {
+        // Adjust the colspan value to not overlap the columns count limit.
+        headerSettings.colspan = headerSettings.origColspan - (columnIndex - columnsCountLimit);
+        headerSettings.origColspan = headerSettings.colspan;
+        cancelProcessing = true;
+      }
+
       columns.push(headerSettings);
 
       if (headerSettings.colspan > 1) {
@@ -78,6 +98,8 @@ export function settingsNormalizer(sourceSettings) {
           });
         }
       }
+
+      return !cancelProcessing;
     });
   });
 

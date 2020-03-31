@@ -54,7 +54,7 @@ export default class StateManager {
    * @private
    * @type {HeadersTree}
    */
-  #headersTree = new HeadersTree(this.#sourceSettings);;
+  #headersTree = new HeadersTree(this.#sourceSettings);
   /**
    * Cached matrix which is generated from the tree structure.
    *
@@ -85,6 +85,16 @@ export default class StateManager {
     this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
 
     return hasError;
+  }
+
+  /**
+   * Sets columns limit to the state will be trimmed. All headers (colspans) which
+   * overlap the column limit will be reduced to keep the structure solid.
+   *
+   * @param {number} columnsCount The number of columns to limit to.
+   */
+  setColumnsCountLimit(columnsCount) {
+    this.#sourceSettings.setColumnsCountLimit(columnsCount);
   }
 
   /**

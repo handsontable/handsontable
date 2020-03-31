@@ -159,9 +159,9 @@ export default class HeadersTree {
       const rootNode = new TreeNode();
 
       this.#rootNodes.set(columnIndex, rootNode);
-      this.buildLeaves(rootNode, columnIndex, 0, columnSettings.colspan);
+      this.buildLeaves(rootNode, columnIndex, 0, columnSettings.origColspan);
 
-      columnIndex += columnSettings.colspan;
+      columnIndex += columnSettings.origColspan;
     }
 
     this.rebuildTreeIndex();
@@ -198,10 +198,10 @@ export default class HeadersTree {
       }
 
       if (headerLevel < this.#sourceSettings.getLayersCount()) {
-        this.buildLeaves(node, columnIndex, headerLevel, columnSettings.colspan);
+        this.buildLeaves(node, columnIndex, headerLevel, columnSettings.origColspan);
       }
 
-      columnIndex += columnSettings.colspan;
+      columnIndex += columnSettings.origColspan;
     });
   }
 
