@@ -1631,6 +1631,75 @@ describe('IndexMapper', () => {
         expect(indexMapper.getIndexesSequence()).toEqual([2, 3, 4, 5, 6, 0, 1, 7, 8, 9]);
       });
     });
+
+    it('should move indexes properly when there are hidden indexes', () => {
+      const indexMapper = new IndexMapper();
+      const hidingMap = new HidingMap();
+
+      indexMapper.registerMap('hidingMap', hidingMap);
+      indexMapper.initToLength(10);
+      hidingMap.setValues([true, true, true, false, false, false, false, true, true, true]);
+
+      indexMapper.moveIndexes([2, 0], 4);
+
+      expect(hidingMap.getValues()).toEqual([true, true, true, false, false, false, false, true, true, true]);
+      expect(indexMapper.getIndexesSequence()).toEqual([1, 3, 4, 5, 2, 0, 6, 7, 8, 9]);
+      expect(indexMapper.isHidden(0)).toBe(true);
+      expect(indexMapper.isHidden(1)).toBe(true);
+      expect(indexMapper.isHidden(2)).toBe(true);
+      expect(indexMapper.isHidden(7)).toBe(true);
+      expect(indexMapper.isHidden(8)).toBe(true);
+      expect(indexMapper.isHidden(9)).toBe(true);
+
+      indexMapper.moveIndexes([6], 0);
+
+      expect(hidingMap.getValues()).toEqual([true, true, true, false, false, false, false, true, true, true]);
+      expect(indexMapper.getIndexesSequence()).toEqual([6, 1, 3, 4, 5, 2, 0, 7, 8, 9]);
+      expect(indexMapper.isHidden(0)).toBe(true);
+      expect(indexMapper.isHidden(1)).toBe(true);
+      expect(indexMapper.isHidden(2)).toBe(true);
+      expect(indexMapper.isHidden(7)).toBe(true);
+      expect(indexMapper.isHidden(8)).toBe(true);
+      expect(indexMapper.isHidden(9)).toBe(true);
+    });
+
+    it('should move indexes properly when there are hidden and trimmed indexes', () => {
+      const indexMapper = new IndexMapper();
+      const trimmingMap = new TrimmingMap();
+      const hidingMap = new HidingMap();
+
+      indexMapper.registerMap('trimmingMap', trimmingMap);
+      indexMapper.registerMap('hidingMap', hidingMap);
+      indexMapper.initToLength(10);
+      trimmingMap.setValues([true, true, true, false, false, false, false, false, false, true]);
+      hidingMap.setValues([false, false, false, true, true, true, false, false, false, false]);
+
+      indexMapper.moveIndexes([2, 0], 3);
+
+      expect(trimmingMap.getValues()).toEqual([true, true, true, false, false, false, false, false, false, true]);
+      expect(hidingMap.getValues()).toEqual([false, false, false, true, true, true, false, false, false, false]);
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 4, 6, 7, 5, 3, 8, 9]); // Moved indexes: 5, 3
+      expect(indexMapper.isTrimmed(0)).toBe(true);
+      expect(indexMapper.isTrimmed(1)).toBe(true);
+      expect(indexMapper.isTrimmed(2)).toBe(true);
+      expect(indexMapper.isTrimmed(9)).toBe(true);
+      expect(indexMapper.isHidden(3)).toBe(true);
+      expect(indexMapper.isHidden(4)).toBe(true);
+      expect(indexMapper.isHidden(5)).toBe(true);
+
+      indexMapper.moveIndexes([5], 0);
+
+      expect(trimmingMap.getValues()).toEqual([true, true, true, false, false, false, false, false, false, true]);
+      expect(hidingMap.getValues()).toEqual([false, false, false, true, true, true, false, false, false, false]);
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 8, 4, 6, 7, 5, 3, 9]); // Moved index: 8
+      expect(indexMapper.isTrimmed(0)).toBe(true);
+      expect(indexMapper.isTrimmed(1)).toBe(true);
+      expect(indexMapper.isTrimmed(2)).toBe(true);
+      expect(indexMapper.isTrimmed(9)).toBe(true);
+      expect(indexMapper.isHidden(3)).toBe(true);
+      expect(indexMapper.isHidden(4)).toBe(true);
+      expect(indexMapper.isHidden(5)).toBe(true);
+    });
   });
 
   describe('cache management', () => {
