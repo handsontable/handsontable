@@ -2442,21 +2442,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (allowSetCellMeta === false) {
       return;
     }
-      let physicalRow = row;
-      let physicalColumn = column;
 
-      if (row < this.countRows()) {
-        physicalRow = this.toPhysicalRow(row);
-      }
+    let physicalRow = row;
+    let physicalColumn = column;
 
-      if (column < this.countCols()) {
-        physicalColumn = this.toPhysicalColumn(column);
-      }
-
-      metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
-
-      instance.runHooks('afterSetCellMeta', row, column, key, value);
+    if (row < this.countRows()) {
+      physicalRow = this.toPhysicalRow(row);
     }
+
+    if (column < this.countCols()) {
+      physicalColumn = this.toPhysicalColumn(column);
+    }
+
+    metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+
+    instance.runHooks('afterSetCellMeta', row, column, key, value);
   };
 
   /**
