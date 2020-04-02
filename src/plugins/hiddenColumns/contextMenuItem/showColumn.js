@@ -54,52 +54,40 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       columns.length = 0;
 
       const [, startColumn, , endColumn] = this.getSelectedLast();
-      const start = Math.min(startColumn, endColumn);
-      const end = Math.max(startColumn, endColumn);
-      const sequence = this.columnIndexMapper.getIndexesSequence();
-      const physicalStartColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(start);
-      const currentStartPosition = sequence.indexOf(physicalStartColumn);
+      const visualStartColumn = Math.min(startColumn, endColumn);
+      const visualEndColumn = Math.max(startColumn, endColumn);
+      const renderableStartColumn = this.columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
+      const renderableEndColumn = this.columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
 
-      if (start === end) {
-        const columnsBefore = [];
-        const columnsAfter = [];
+      if (visualStartColumn === visualEndColumn) {
+        // Handled column is the first rendered index and there are some visual indexes before it.
+        if (renderableStartColumn === 0 && renderableStartColumn < visualStartColumn) {
+          // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
+          columns.push(...this.columnIndexMapper.getNotTrimmedIndexes().slice(0, visualStartColumn)); // physical indexes
 
-        rangeEach(0, currentStartPosition - 1, (column) => {
-          if (hiddenColumnsPlugin.isHidden(sequence[column], true)) {
-            columnsBefore.push(sequence[column]);
+          return false;
+        }
 
-          } else {
-            columnsBefore.length = 0;
+        const lastVisualIndex = this.countCols() - 1;
+        const lastRenderableIndex = this.countRenderableColumns() - 1;
 
-            return false;
-          }
-        });
-
-        rangeEach(currentStartPosition + 1, this.countCols() - 1, (column) => {
-          if (hiddenColumnsPlugin.isHidden(sequence[column], true)) {
-            columnsAfter.push(sequence[column]);
-
-          } else {
-            columnsAfter.length = 0;
-
-            return false;
-          }
-        });
-
-        columns.push(...columnsBefore, ...columnsAfter);
-
+        // Handled column is the last rendered index and there are some visual indexes after it.
+        if (renderableEndColumn === lastRenderableIndex && lastVisualIndex > visualEndColumn) {
+          columns.push(...this.columnIndexMapper.getNotTrimmedIndexes().slice(visualEndColumn + 1));
+        }
       } else {
-        const physicalEndColumn = this.columnIndexMapper.getPhysicalFromVisualIndex(end);
-        const currentEndPosition = sequence.indexOf(physicalEndColumn);
+        const visualColumnsInRange = visualEndColumn - visualStartColumn + 1;
+        const renderedColumnsInRange = renderableEndColumn - renderableStartColumn + 1;
 
-        rangeEach(currentStartPosition, currentEndPosition, (column) => {
-          if (hiddenColumnsPlugin.isHidden(sequence[column], true)) {
-            columns.push(sequence[column]);
-          }
-        });
+        if (visualColumnsInRange > renderedColumnsInRange) {
+          const hiddenColumns = hiddenColumnsPlugin.getHiddenColumns();
+          const physicalIndexesInRange = this.columnIndexMapper.getNotTrimmedIndexes().slice(visualStartColumn + 1, visualEndColumn);
+
+          columns.push(...physicalIndexesInRange.filter(physicalIndex => hiddenColumns.includes(physicalIndex)));
+        }
       }
 
-      return columns.length < 1;
+      return columns.length === 0;
     }
   };
 }

@@ -395,18 +395,13 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    const physicalColumn = this.hot.toPhysicalColumn(column);
-    const sequenceOfPhysicalIndexes = this.hot.columnIndexMapper.getIndexesSequence();
-    const currentPositionInSourceIndexes = sequenceOfPhysicalIndexes.indexOf(physicalColumn);
     const classList = [];
 
-    if (column >= 1 &&
-      this.isHidden(this.hot.toVisualColumn(sequenceOfPhysicalIndexes[currentPositionInSourceIndexes - 1]))) {
+    if (column >= 1 && this.isHidden(column - 1)) {
       classList.push('afterHiddenColumn');
     }
 
-    if (currentPositionInSourceIndexes < sequenceOfPhysicalIndexes.length - 1 &&
-      this.isHidden(this.hot.toVisualColumn(sequenceOfPhysicalIndexes[currentPositionInSourceIndexes + 1]))) {
+    if (column < this.hot.countCols() - 1 && this.isHidden(column + 1)) {
       classList.push('beforeHiddenColumn');
     }
 
