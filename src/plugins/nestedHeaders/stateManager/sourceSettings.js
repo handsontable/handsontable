@@ -145,7 +145,7 @@ export default class SourceSettings {
     for (let i = columnIndex; i < headersSettings.length; i++) {
       const headerSettings = headersSettings[i];
 
-      if (headerSettings.hidden === true) {
+      if (headerSettings.isHidden === true) {
         throw new Error('The first column settings cannot overlap the other header layers');
       }
 

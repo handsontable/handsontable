@@ -14,19 +14,19 @@ import { HEADER_DEFAULT_SETTINGS } from './constants';
  * Output example:
  *   [
  *     [
- *       { label: 'A1', colspan: 2, origColspan: 2, hidden: false },
- *       { label: '', colspan: 1, origColspan: 1, hidden: true },
- *       { label: '', colspan: 1, origColspan: 1, hidden: false },
+ *       { label: 'A1', colspan: 2, origColspan: 2, isHidden: false, ... },
+ *       { label: '', colspan: 1, origColspan: 1, isHidden: true, ... },
+ *       { label: '', colspan: 1, origColspan: 1, isHidden: false, ... },
  *     ],
  *     [
- *       { label: 'true', colspan: 1, origColspan: 1, hidden: false },
- *       { label: 'B2', colspan: 1, origColspan: 1, hidden: false },
- *       { label: '4', colspan: 1, origColspan: 1, hidden: false },
+ *       { label: 'true', colspan: 1, origColspan: 1, isHidden: false, ... },
+ *       { label: 'B2', colspan: 1, origColspan: 1, isHidden: false, ... },
+ *       { label: '4', colspan: 1, origColspan: 1, isHidden: false, ... },
  *     ],
  *     [
- *       { label: '', colspan: 1, origColspan: 1, hidden: false },
- *       { label: '', colspan: 1, origColspan: 1, hidden: false },
- *       { label: '', colspan: 1, origColspan: 1, hidden: false },
+ *       { label: '', colspan: 1, origColspan: 1, isHidden: false, ... },
+ *       { label: '', colspan: 1, origColspan: 1, isHidden: false, ... },
+ *       { label: '', colspan: 1, origColspan: 1, isHidden: false, ... },
  *     ],
  *   ]
  *
@@ -38,16 +38,17 @@ export function matrixGenerator(headerRoots) {
 
   arrayEach(headerRoots, (rootNode) => {
     rootNode.walkDown((node) => {
-      const { data: { colspan, origColspan, label, hidden, headerLevel, collapsible, isCollapsed } } = node;
+      const { data: { colspan, origColspan, label, isHidden, headerLevel, collapsible, isCollapsed } } = node;
       const colspanHeaderLayer = createNestedArrayIfNecessary(matrix, headerLevel);
 
       colspanHeaderLayer.push({
         label,
         colspan,
         origColspan,
-        hidden,
         collapsible,
         isCollapsed,
+        isHidden,
+        isBlank: false,
       });
 
       if (origColspan > 1) {
@@ -55,7 +56,8 @@ export function matrixGenerator(headerRoots) {
           colspanHeaderLayer.push({
             ...HEADER_DEFAULT_SETTINGS,
             origColspan,
-            hidden: true,
+            isHidden: true,
+            isBlank: true,
           });
         }
       }

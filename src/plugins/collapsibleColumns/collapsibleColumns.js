@@ -1,4 +1,4 @@
-import { arrayEach, arrayFilter } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import {
@@ -13,10 +13,12 @@ import BasePlugin from '../_base';
 
 const actionDictionary = new Map([
   ['collapse', {
+    hiddenAction: 'hideColumns',
     beforeHook: 'beforeColumnCollapse',
     afterHook: 'afterColumnCollapse',
   }],
   ['expand', {
+    hiddenAction: 'showColumns',
     beforeHook: 'beforeColumnExpand',
     afterHook: 'afterColumnExpand',
   }],
@@ -212,31 +214,6 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Generates the indicator element.
-   *
-   * @private
-   * @param {number} row Row index.
-   * @param {number} column Column index.
-   * @returns {HTMLElement}
-   */
-  generateIndicator(row, column) {
-    const divEl = this.hot.rootDocument.createElement('div');
-    const columnSettings = this.headerStateManager.getHeaderSettings(row, column);
-
-    addClass(divEl, 'collapsibleIndicator');
-
-    if (columnSettings.isCollapsed) {
-      addClass(divEl, 'collapsed');
-      fastInnerText(divEl, '+');
-    } else {
-      addClass(divEl, 'expanded');
-      fastInnerText(divEl, '-');
-    }
-
-    return divEl;
-  }
-
-  /**
    * Expands section at the provided coords.
    *
    * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
@@ -319,12 +296,9 @@ class CollapsibleColumns extends BasePlugin {
     });
 
     const nodeModRollbacks = [];
-    const currentCollapsedColumns = [...this.hiddenColumnsPlugin.getHiddenColumns()];
-    let destinationCollapsedColumns = [...currentCollapsedColumns];
+    const affectedColumnsIndexes = [];
 
     if (isActionPossible) {
-      const affectedColumnsIndexes = [];
-
       arrayEach(filteredCoords, ({ row, col: column }) => {
         const {
           colspanCompensation,
@@ -337,15 +311,16 @@ class CollapsibleColumns extends BasePlugin {
           nodeModRollbacks.push(rollbackModification);
         }
       });
+    }
 
-      if (action === 'collapse') {
-        destinationCollapsedColumns.push(...affectedColumnsIndexes);
+    const currentCollapsedColumns = [...this.hiddenColumnsPlugin.getHiddenColumns()];
+    let destinationCollapsedColumns = [];
 
-      } else if (action === 'expand') {
-        destinationCollapsedColumns = arrayFilter(destinationCollapsedColumns, (columnIndex) => {
-          return !affectedColumnsIndexes.includes(columnIndex);
-        });
-      }
+    if (action === 'collapse') {
+      destinationCollapsedColumns = arrayUnique([...currentCollapsedColumns, ...affectedColumnsIndexes]);
+
+    } else if (action === 'expand') {
+      destinationCollapsedColumns = arrayFilter(currentCollapsedColumns, index => !affectedColumnsIndexes.includes(index));
     }
 
     const actionTranslator = actionDictionary.get(action);
@@ -365,8 +340,7 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    this.hiddenColumnsPlugin.showColumns(this.hiddenColumnsPlugin.getHiddenColumns());
-    this.hiddenColumnsPlugin.hideColumns(destinationCollapsedColumns);
+    this.hiddenColumnsPlugin[actionTranslator.hiddenAction](affectedColumnsIndexes);
 
     const isActionPerformed = this.hiddenColumnsPlugin.getHiddenColumns().length !== currentCollapsedColumns.length;
 
@@ -380,6 +354,31 @@ class CollapsibleColumns extends BasePlugin {
 
     this.hot.render();
     this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+  }
+
+  /**
+   * Generates the indicator element.
+   *
+   * @private
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @returns {HTMLElement}
+   */
+  generateIndicator(row, column) {
+    const divEl = this.hot.rootDocument.createElement('div');
+    const columnSettings = this.headerStateManager.getHeaderSettings(row, column);
+
+    addClass(divEl, 'collapsibleIndicator');
+
+    if (columnSettings.isCollapsed) {
+      addClass(divEl, 'collapsed');
+      fastInnerText(divEl, '+');
+    } else {
+      addClass(divEl, 'expanded');
+      fastInnerText(divEl, '-');
+    }
+
+    return divEl;
   }
 
   /**

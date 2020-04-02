@@ -280,18 +280,18 @@ export default class StateManager {
    * @returns {number}
    */
   findLeftMostColumnIndex(headerLevel, columnIndex) {
-    const { hidden } = this.getHeaderSettings(headerLevel, columnIndex);
+    const { isBlank } = this.getHeaderSettings(headerLevel, columnIndex);
 
-    if (hidden === false) {
+    if (isBlank === false) {
       return columnIndex;
     }
 
     let stepBackColumn = columnIndex - 1;
 
     do {
-      const { hidden: isHidden } = this.getHeaderSettings(headerLevel, stepBackColumn);
+      const { isBlank: blank } = this.getHeaderSettings(headerLevel, stepBackColumn);
 
-      if (isHidden === false) {
+      if (blank === false) {
         break;
       }
 

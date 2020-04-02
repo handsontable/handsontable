@@ -607,21 +607,21 @@ describe('HeadersTree', () => {
       expect(roots[0].data).toEqual(expect.objectContaining({
         label: 'A1',
         colspan: 1,
-        hidden: false,
+        isHidden: false,
         headerLevel: 0,
         columnIndex: 0,
       }));
       expect(roots[1].data).toEqual(expect.objectContaining({
         label: 'A2',
         colspan: 4,
-        hidden: false,
+        isHidden: false,
         headerLevel: 0,
         columnIndex: 1,
       }));
       expect(roots[2].data).toEqual(expect.objectContaining({
         label: 'A3',
         colspan: 2,
-        hidden: false,
+        isHidden: false,
         headerLevel: 0,
         columnIndex: 5,
       }));
@@ -654,7 +654,7 @@ describe('HeadersTree', () => {
       expect(tree.getRootByColumn(0).data).toEqual(expect.objectContaining({
         label: 'A1',
         colspan: 1,
-        hidden: false,
+        isHidden: false,
         headerLevel: 0,
         columnIndex: 0,
       }));
@@ -663,7 +663,7 @@ describe('HeadersTree', () => {
         const comparision = expect.objectContaining({
           label: 'A2',
           colspan: 4,
-          hidden: false,
+          isHidden: false,
           headerLevel: 0,
           columnIndex: 1,
         });
@@ -677,7 +677,7 @@ describe('HeadersTree', () => {
         const comparision = expect.objectContaining({
           label: 'A3',
           colspan: 2,
-          hidden: false,
+          isHidden: false,
           headerLevel: 0,
           columnIndex: 5,
         });

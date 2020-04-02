@@ -1695,13 +1695,12 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      hot.scrollViewportTo(0, 17);
+      hot.scrollViewportTo(0, 20);
       hot.render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="">R</th>
             <th class="collapsibleIndicator expanded" colspan="3">S</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1719,9 +1718,9 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
           </tr>
           <tr>
-            <th class="">R</th>
             <th class="">S</th>
             <th class="collapsibleIndicator expanded" colspan="2">T</th>
             <th class="hiddenHeader"></th>
@@ -1739,9 +1738,9 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
           </tr>
           <tr>
-            <th class="">R</th>
             <th class="">S</th>
             <th class="">T</th>
             <th class="">U</th>
@@ -1759,11 +1758,11 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">R1</td>
             <td class="">S1</td>
             <td class="">T1</td>
             <td class="">U1</td>
@@ -1781,6 +1780,7 @@ describe('CollapsibleColumns', () => {
             <td class="">AG1</td>
             <td class="">AH1</td>
             <td class="">AI1</td>
+            <td class="">AJ1</td>
           </tr>
         </tbody>
         `);
@@ -2498,6 +2498,391 @@ describe('CollapsibleColumns', () => {
     });
   });
 
+  describe('selection', () => {
+    it('should active highlight column header for collapsed column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          [{ label: 'A1', colspan: 9 }, 'A2'],
+          ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 4 }, 'B4'],
+          ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }, { label: 'C5', colspan: 2 }, 'C6'],
+          ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9'],
+        ],
+        collapsibleColumns: true
+      });
+
+      $(getCell(-4, 0).querySelector('.collapsibleIndicator')) // Collapse header "A1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-1, 0)) // Select header "D1"
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="ht__highlight ht__active_highlight collapsibleIndicator collapsed">A1</th>
+            <th class="">A2</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">B1</th>
+            <th class="">B4</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">C1</th>
+            <th class="">C6</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">D1</th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
+
+      $(getCell(-4, 0).querySelector('.collapsibleIndicator')) // Expand header "A1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="9">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">A2</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">B1</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">B4</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">C1</th>
+            <th class="">C2</th>
+            <th class="collapsibleIndicator expanded" colspan="3">C3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">C4</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">C5</th>
+            <th class="hiddenHeader"></th>
+            <th class="">C6</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">D1</th>
+            <th class="">D2</th>
+            <th class="">D3</th>
+            <th class="">D4</th>
+            <th class="">D5</th>
+            <th class="">D6</th>
+            <th class="">D7</th>
+            <th class="">D8</th>
+            <th class="">D9</th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
+    });
+
+    it('should active highlight column header for non-contiguous selection of the collapsed columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
+          ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
+          ['A3', { label: 'B3', colspan: 4 }, { label: 'F3', colspan: 4 }, 'J3', { label: 'K3', colspan: 3 }],
+          ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
+            { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
+          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5', 'K5', 'L5', 'M5'],
+        ],
+        collapsibleColumns: true
+      });
+
+      $(getCell(-2, 7)) // Select header "H4"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Collapse header "H4"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      keyDown('ctrl');
+
+      $(getCell(-1, 5)) // Select header "F5"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // Collapse header "B4"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      $(getCell(-2, 3)) // Select header "D4"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      keyUp('ctrl');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="6">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="6">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="collapsibleIndicator expanded" colspan="3">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="3">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="collapsibleIndicator collapsed">B4</th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">D4</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">F4</th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">H4</th>
+            <th class="">J4</th>
+          </tr>
+          <tr>
+            <th class="">A5</th>
+            <th class="">B5</th>
+            <th class="ht__active_highlight ht__highlight">D5</th>
+            <th class="ht__active_highlight ht__highlight">E5</th>
+            <th class="ht__active_highlight ht__highlight">F5</th>
+            <th class="">G5</th>
+            <th class="ht__active_highlight ht__highlight">H5</th>
+            <th class="">J5</th>
+          </tr>
+        </thead>
+        `);
+
+      $(getCell(-4, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="9">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">A2</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">B1</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">B4</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">C1</th>
+            <th class="">C2</th>
+            <th class="collapsibleIndicator expanded" colspan="3">C3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">C4</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">C5</th>
+            <th class="hiddenHeader"></th>
+            <th class="">C6</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">D1</th>
+            <th class="">D2</th>
+            <th class="">D3</th>
+            <th class="">D4</th>
+            <th class="">D5</th>
+            <th class="">D6</th>
+            <th class="">D7</th>
+            <th class="">D8</th>
+            <th class="">D9</th>
+            <th class=""></th>
+          </tr>
+        </thead>
+        `);
+    });
+
+    it('should active highlight the column header when the header is collpased to the same colspan with as its child', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        hiddenColumns: true,
+        nestedHeaders: [
+          [{ label: 'A1', colspan: 10 }],
+          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+          ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 2 }, { label: 'F3', colspan: 2 },
+            { label: 'H3', colspan: 2 }, 'J3'],
+        ],
+        collapsibleColumns: true
+      });
+
+      $(getCell(-1, 0)) // Select header "A3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="10">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">A3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">D3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+        </thead>
+        `);
+
+      $(getCell(-3, 0).querySelector('.collapsibleIndicator')) // Collapse header "A1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">A1</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">A2</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">A3</th>
+          </tr>
+        </thead>
+        `);
+
+      $(getCell(-3, 0).querySelector('.collapsibleIndicator')) // Expand header "A1"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="10">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="ht__active_highlight ht__highlight">A3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">D3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+        </thead>
+        `);
+    });
+  });
+
   describe('collapsible button', () => {
     it('should call "toggleCollapsibleSection" internally with correct toggle state ' +
        '(depends if the clicked header is already collapsed or not)', () => {
@@ -2894,7 +3279,7 @@ describe('CollapsibleColumns', () => {
         </tbody>
         `);
 
-      hot.scrollViewportTo(0, 22);
+      hot.scrollViewportTo(0, 63);
       hot.render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -3434,8 +3819,8 @@ describe('CollapsibleColumns', () => {
 
       plugin.toggleCollapsibleSection([{ row: -2, col: 1 }], 'collapse'); // header "B1"
 
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [4, 3], true, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [4, 3], true, true, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, void 0, void 0, void 0);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, true, void 0, void 0);
 
       plugin.toggleCollapsibleSection([{ row: -1, col: 1 }], 'collapse'); // header "B2"
 
@@ -3504,7 +3889,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseSection({ row: -2, col: 1 });
 
-      expect(afterColumnCollapse).toHaveBeenCalledWith([], [4, 3], true, true, void 0, void 0);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([], [3, 4], true, true, void 0, void 0);
 
       plugin.collapseSection({ row: -2, col: 1 });
 

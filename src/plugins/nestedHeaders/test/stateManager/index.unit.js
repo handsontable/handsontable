@@ -27,16 +27,40 @@ describe('StateManager', () => {
 
       expect(isError).toBe(false);
       expect(state.getHeaderSettings(0, 0)).toEqual({
-        label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false
+        label: 'A1',
+        colspan: 1,
+        origColspan: 1,
+        isHidden: false,
+        isCollapsed: false,
+        collapsible: false,
+        isBlank: false,
       });
       expect(state.getHeaderSettings(0, 1)).toEqual({
-        label: 'A2', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false
+        label: 'A2',
+        colspan: 4,
+        origColspan: 4,
+        isHidden: false,
+        isCollapsed: false,
+        collapsible: false,
+        isBlank: false,
       });
       expect(state.getHeaderSettings(0, 2)).toEqual({
-        label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false
+        label: '',
+        colspan: 1,
+        origColspan: 4,
+        isHidden: true,
+        isCollapsed: false,
+        collapsible: false,
+        isBlank: true,
       });
       expect(state.getHeaderSettings(-1, 1)).toEqual({
-        label: 'D2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false
+        label: 'D2',
+        colspan: 1,
+        origColspan: 1,
+        isHidden: false,
+        isCollapsed: false,
+        collapsible: false,
+        isBlank: false,
       });
       expect(state.getLayersCount()).toBe(4);
       expect(state.getColumnsCount()).toBe(7);
@@ -232,7 +256,7 @@ describe('StateManager', () => {
       const modResult = state.triggerNodeModification('collapse', 0, 1);
 
       expect(modResult).toEqual({
-        affectedColumns: [4, 3, 2],
+        affectedColumns: [2, 3, 4],
         colspanCompensation: 3,
         rollbackModification: jasmine.any(Function),
       });
@@ -241,21 +265,21 @@ describe('StateManager', () => {
         colspan: 1,
         origColspan: 4,
         isCollapsed: true,
-        hidden: false,
+        isHidden: false,
       }));
       expect(state.getHeaderSettings(1, 1)).toEqual(expect.objectContaining({
         label: 'B2',
         colspan: 1,
         origColspan: 4,
         isCollapsed: true,
-        hidden: false,
+        isHidden: false,
       }));
       expect(state.getHeaderSettings(2, 2)).toEqual(expect.objectContaining({
         label: 'C3',
         colspan: 3,
         origColspan: 3,
         isCollapsed: false,
-        hidden: true,
+        isHidden: true,
       }));
     });
 
@@ -295,21 +319,21 @@ describe('StateManager', () => {
         colspan: 4,
         origColspan: 4,
         isCollapsed: false,
-        hidden: false,
+        isHidden: false,
       }));
       expect(state.getHeaderSettings(1, 1)).toEqual(expect.objectContaining({
         label: 'B2',
         colspan: 4,
         origColspan: 4,
         isCollapsed: false,
-        hidden: false,
+        isHidden: false,
       }));
       expect(state.getHeaderSettings(2, 2)).toEqual(expect.objectContaining({
         label: 'C3',
         colspan: 3,
         origColspan: 3,
         isCollapsed: false,
-        hidden: false,
+        isHidden: false,
       }));
     });
   });
@@ -406,25 +430,57 @@ describe('StateManager', () => {
       ]);
 
       {
-        const headerSettings = { label: 'A1', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false };
+        const headerSettings = {
+          label: 'A1',
+          colspan: 1,
+          origColspan: 1,
+          isHidden: false,
+          isBlank: false,
+          isCollapsed: false,
+          collapsible: false,
+        };
 
         expect(state.getHeaderSettings(0, 0)).toEqual(headerSettings);
         expect(state.getHeaderSettings(-4, 0)).toEqual(headerSettings);
       }
       {
-        const headerSettings = { label: 'A2', colspan: 4, origColspan: 4, hidden: false, isCollapsed: false, collapsible: false };
+        const headerSettings = {
+          label: 'A2',
+          colspan: 4,
+          origColspan: 4,
+          isHidden: false,
+          isBlank: false,
+          isCollapsed: false,
+          collapsible: false,
+        };
 
         expect(state.getHeaderSettings(0, 1)).toEqual(headerSettings);
         expect(state.getHeaderSettings(-4, 1)).toEqual(headerSettings);
       }
       {
-        const headerSettings = { label: '', colspan: 1, origColspan: 4, hidden: true, isCollapsed: false, collapsible: false };
+        const headerSettings = {
+          label: '',
+          colspan: 1,
+          origColspan: 4,
+          isHidden: true,
+          isBlank: true,
+          isCollapsed: false,
+          collapsible: false,
+        };
 
         expect(state.getHeaderSettings(0, 2)).toEqual(headerSettings);
         expect(state.getHeaderSettings(-4, 2)).toEqual(headerSettings);
       }
       {
-        const headerSettings = { label: 'D2', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false };
+        const headerSettings = {
+          label: 'D2',
+          colspan: 1,
+          origColspan: 1,
+          isHidden: false,
+          isBlank: false,
+          isCollapsed: false,
+          collapsible: false,
+        };
 
         expect(state.getHeaderSettings(3, 1)).toEqual(headerSettings);
         expect(state.getHeaderSettings(-1, 1)).toEqual(headerSettings);
@@ -456,8 +512,24 @@ describe('StateManager', () => {
 
       const columnSettings = state.getHeaderSettings(0, 100);
 
-      expect(columnSettings).toEqual({ label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false });
-      expect(state.getHeaderSettings(0, 101)).toEqual({ label: '', colspan: 1, origColspan: 1, hidden: false, isCollapsed: false, collapsible: false });
+      expect(columnSettings).toEqual({
+        label: '',
+        colspan: 1,
+        origColspan: 1,
+        isHidden: false,
+        isBlank: false,
+        isCollapsed: false,
+        collapsible: false,
+      });
+      expect(state.getHeaderSettings(0, 101)).toEqual({
+        label: '',
+        colspan: 1,
+        origColspan: 1,
+        isHidden: false,
+        isBlank: false,
+        isCollapsed: false,
+        collapsible: false,
+      });
       expect(state.getHeaderSettings(0, 101)).not.toBe(columnSettings);
     });
   });

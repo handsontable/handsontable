@@ -20,19 +20,19 @@ import { HEADER_DEFAULT_SETTINGS } from './constants';
  * So the abovementioned example will be normalized into this:
  *   [
  *     [
- *       { label: 'A1', colspan: 2, hidden: false },
- *       { label: '', colspan: 1, hidden: true },
- *       { label: '', colspan: 1, hidden: false },
+ *       { label: 'A1', colspan: 2, isHidden: false, ... },
+ *       { label: '', colspan: 1, isHidden: true, ... },
+ *       { label: '', colspan: 1, isHidden: false, ... },
  *     ],
  *     [
- *       { label: 'true', colspan: 1, hidden: false },
- *       { label: 'B2', colspan: 1, hidden: false },
- *       { label: '4', colspan: 1, hidden: false },
+ *       { label: 'true', colspan: 1, isHidden: false, ... },
+ *       { label: 'B2', colspan: 1, isHidden: false, ... },
+ *       { label: '4', colspan: 1, isHidden: false, ... },
  *     ],
  *     [
- *       { label: '', colspan: 1, hidden: false },
- *       { label: '', colspan: 1, hidden: false },
- *       { label: '', colspan: 1, hidden: false },
+ *       { label: '', colspan: 1, isHidden: false, ... },
+ *       { label: '', colspan: 1, isHidden: false, ... },
+ *       { label: '', colspan: 1, isHidden: false, ... },
  *     ],
  *   ]
  *
@@ -94,7 +94,8 @@ export function settingsNormalizer(sourceSettings, columnsCountLimit = Infinity)
         for (let i = 0; i < headerSettings.colspan - 1; i++) {
           columns.push({
             ...HEADER_DEFAULT_SETTINGS,
-            hidden: true,
+            isHidden: true,
+            isBlank: true,
           });
         }
       }

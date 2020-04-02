@@ -31,7 +31,7 @@ export default class NodeModifiers {
   collapseNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === true || nodeData.hidden === true || nodeData.origColspan <= 1) {
+    if (nodeData.isCollapsed === true || nodeData.isHidden === true || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],
@@ -48,23 +48,35 @@ export default class NodeModifiers {
     nodeData.isCollapsed = true;
 
     const allLeavesExceptMostLeft = nodeChilds.slice(1);
+    const affectedColumns = new Set();
 
-    arrayEach(allLeavesExceptMostLeft, (node) => {
-      // Clone the tree to preserve original tree state after header expanding.
-      node.data.clonedTree = node.cloneTree();
+    if (allLeavesExceptMostLeft.length > 0) {
+      arrayEach(allLeavesExceptMostLeft, (node) => {
+        traverseHiddenNodeColumnIndexes(node, (nodeColumnIndex) => {
+          affectedColumns.add(nodeColumnIndex);
+        });
 
-      // Hide all leaves except the first leaf on the left (on headers context hide all
-      // headers on the right).
-      node.walkDown(({ data }) => {
-        data.hidden = true;
+        // Clone the tree to preserve original tree state after header expanding.
+        node.data.clonedTree = node.cloneTree();
+
+        // Hide all leaves except the first leaf on the left (on headers context hide all
+        // headers on the right).
+        node.walkDown(({ data }) => {
+          data.isHidden = true;
+        });
       });
-    });
 
-    const { colspan, origColspan, columnIndex } = nodeData;
+    } else {
+      // Add column to "affected" started from 1. The header without children can not be
+      // collapsed so the first have to be visible (untouched).
+      for (let i = 1; i < nodeData.origColspan; i++) {
+        affectedColumns.add(nodeData.columnIndex + i);
+      }
+    }
 
     // Calculate by how many colspan it needs to reduce the headings to match them to
     // the first child colspan width.
-    const colspanCompensation = colspan - (getFirstChildProperty(nodeToProcess, 'colspan') ?? 1);
+    const colspanCompensation = nodeData.colspan - (getFirstChildProperty(nodeToProcess, 'colspan') ?? 1);
 
     nodeToProcess.walkUp((node) => {
       const { data } = node;
@@ -79,14 +91,6 @@ export default class NodeModifiers {
         data.isCollapsed = getFirstChildProperty(node, 'isCollapsed');
       }
     });
-
-    const affectedColumns = new Set();
-    const lastColumnIndex = columnIndex + origColspan - 1;
-    const affectedColumnsLength = origColspan - nodeData.colspan;
-
-    for (let i = 0; i < affectedColumnsLength; i++) {
-      affectedColumns.add(lastColumnIndex - i);
-    }
 
     return {
       rollbackModification: () => this.expandNode(nodeToProcess),
@@ -116,7 +120,7 @@ export default class NodeModifiers {
   expandNode(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === false || nodeData.hidden === true || nodeData.origColspan <= 1) {
+    if (nodeData.isCollapsed === false || nodeData.isHidden === true || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],
@@ -132,33 +136,37 @@ export default class NodeModifiers {
 
     nodeData.isCollapsed = false;
 
-    const { colspan, origColspan, columnIndex } = nodeData;
     const allLeavesExceptMostLeft = nodeChilds.slice(1);
     const affectedColumns = new Set();
     let colspanCompensation = 0;
 
-    arrayEach(allLeavesExceptMostLeft, (node) => {
-      // Restore original state of the collapsed headers.
-      node.replaceTreeWith(node.data.clonedTree);
-      node.data.clonedTree = null;
+    if (allLeavesExceptMostLeft.length > 0) {
+      arrayEach(allLeavesExceptMostLeft, (node) => {
+        // Restore original state of the collapsed headers.
+        node.replaceTreeWith(node.data.clonedTree);
+        node.data.clonedTree = null;
 
-      const leafData = node.data;
+        const leafData = node.data;
 
-      // Calculate by how many colspan it needs to increase the headings to match them to
-      // the colspan width of all its children.
-      colspanCompensation += leafData.colspan;
+        // Calculate by how many colspan it needs to increase the headings to match them to
+        // the colspan width of all its children.
+        colspanCompensation += leafData.colspan;
 
-      for (let i = 0; i < leafData.colspan; i++) {
-        affectedColumns.add(leafData.columnIndex + i);
-      }
-    });
+        traverseHiddenNodeColumnIndexes(node, (nodeColumnIndex) => {
+          affectedColumns.add(nodeColumnIndex);
+        });
+      });
 
-    // Or if the compensation is equal to 0 (in a case when the node doesn't have any children)
-    // restore the colspan width to its original state.
-    if (colspanCompensation === 0) {
+    } else {
+      const { colspan, origColspan, columnIndex } = nodeData;
+
+      // In a case when the node doesn't have any children restore the colspan width to
+      // its original state.
       colspanCompensation = origColspan - colspan;
 
-      for (let i = 0; i < origColspan; i++) {
+      // Add column to "affected" started from 1. The header without children can not be
+      // collapsed so the first column is already visible and we shouldn't touch it.
+      for (let i = 1; i < origColspan; i++) {
         affectedColumns.add(columnIndex + i);
       }
     }
@@ -199,6 +207,27 @@ export default class NodeModifiers {
 
     return this[`${actionName}Node`](nodeToProcess);
   }
+}
+
+/**
+ * Traverses a tree nodes and call a callback when not hidden node is found. The callback
+ * is called with visual column index then.
+ *
+ * @param {TreeNode} node A tree node to traverse.
+ * @param {Function} callback The callback function which will be called for each node.
+ */
+function traverseHiddenNodeColumnIndexes(node, callback) {
+  node.walkDown(({ data, childs }) => {
+    if (!data.isHidden) {
+      callback(data.columnIndex);
+
+      if (childs.length === 0) {
+        for (let i = 1; i < data.colspan; i++) {
+          callback(data.columnIndex + i);
+        }
+      }
+    }
+  });
 }
 
 /**

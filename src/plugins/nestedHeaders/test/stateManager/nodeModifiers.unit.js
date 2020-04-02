@@ -28,10 +28,11 @@ describe('NodeModifiers', () => {
 
       spyOn(nodeModifier, 'collapseNode').and.returnValue('test');
 
-      nodeModifier.triggerAction('collapse', mockNode);
+      const result = nodeModifier.triggerAction('collapse', mockNode);
 
       expect(nodeModifier.collapseNode).toHaveBeenCalledTimes(1);
       expect(nodeModifier.collapseNode).toHaveBeenCalledWith(mockNode);
+      expect(result).toBe('test');
     });
   });
 
@@ -40,14 +41,14 @@ describe('NodeModifiers', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | A1 | A2                | A3           | A4 | A5 |
+       *   | A1 | B1                | F1           | I1 | J1 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+       *   | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
        *   +----+----+----+----+----+----+----+----+----+----+
        */
       const headerSettings = [
-        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 3 }, 'A4', 'A5'],
-        ['B1', { label: 'B2', colspan: 3 }, 'B3', { label: 'B4', colspan: 2 }, 'B5', 'B6', 'B7'],
+        ['A1', { label: 'B1', colspan: 4 }, { label: 'F1', colspan: 3 }, 'I1', 'J1'],
+        ['A2', { label: 'B2', colspan: 3 }, 'E2', { label: 'F2', colspan: 2 }, 'H2', 'I2', 'J2'],
       ];
 
       it('should ignore collapsing when the node has a colspan = 1', () => {
@@ -59,50 +60,45 @@ describe('NodeModifiers', () => {
 
         const expected = `
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3           | A4 | A5 |
+          | A1 | B1                | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+          | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+----+
           `;
 
         // A1
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 0))).toEqual({
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 0))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
         // A4
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 8))).toEqual({
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 8))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
         // B1
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 0))).toEqual({
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 0))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
         // B3
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 4))).toEqual({
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 4))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
         // B5
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 7))).toEqual({
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 7))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
       });
 
@@ -113,30 +109,28 @@ describe('NodeModifiers', () => {
 
         const nodeModifier = new NodeModifiers();
 
-        // A2
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual({
+        // B1
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
           affectedColumns: [4],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2         * | A3           | A4 | A5 |
+          | A1 | B1         * | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B4      | B5 | B6 | B7 |
+          | A2 | B2           | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+
           `);
 
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual({
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2         * | A3           | A4 | A5 |
+          | A1 | B1         * | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B4      | B5 | B6 | B7 |
+          | A2 | B2           | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -148,17 +142,16 @@ describe('NodeModifiers', () => {
 
         const nodeModifier = new NodeModifiers();
 
-        // A2
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 4))).toEqual({
+        // B1
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 4))).toEqual(expect.objectContaining({
           affectedColumns: [4],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2         * | A3           | A4 | A5 |
+          | A1 | B1         * | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B4      | B5 | B6 | B7 |
+          | A2 | B2           | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -170,59 +163,55 @@ describe('NodeModifiers', () => {
 
         const nodeModifier = new NodeModifiers();
 
-        // B4
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 5))).toEqual({
+        // F2
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 5))).toEqual(expect.objectContaining({
           affectedColumns: [6],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3      | A4 | A5 |
+          | A1 | B1                | F1      | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4*| B5 | B6 | B7 |
+          | A2 | B2           | E2 | F2*| H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+
           `);
 
-        // A2
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual({
+        // B1
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
           affectedColumns: [4],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+
-          | A1 | A2         * | A3      | A4 | A5 |
+          | A1 | B1         * | F1      | I1 | J1 |
           +----+----+----+----+----+----+----+----+
-          | B1 | B2           | B4*| B5 | B6 | B7 |
+          | A2 | B2           | F2*| H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+
           `);
 
         // B2
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 3))).toEqual({
-          affectedColumns: [3, 2],
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 3))).toEqual(expect.objectContaining({
+          affectedColumns: [2, 3],
           colspanCompensation: 2,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+
-          | A1 | A2*| A3      | A4 | A5 |
+          | A1 | B1*| F1      | I1 | J1 |
           +----+----+----+----+----+----+
-          | B1 | B2*| B4*| B5 | B6 | B7 |
+          | A2 | B2*| F2*| H2 | I2 | J2 |
           +----+----+----+----+----+----+
           `);
 
-        // A3
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 5))).toEqual({
-          affectedColumns: [7, 6],
+        // F1
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 5))).toEqual(expect.objectContaining({
+          affectedColumns: [7],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+
-          | A1 | A2*| A3*| A4 | A5 |
+          | A1 | B1*| F1*| I1 | J1 |
           +----+----+----+----+----+
-          | B1 | B2*| B4*| B6 | B7 |
+          | A2 | B2*| F2*| I2 | J2 |
           +----+----+----+----+----+
           `);
       });
@@ -235,14 +224,14 @@ describe('NodeModifiers', () => {
         const nodeModifier = new NodeModifiers();
 
         {
-          // B4
+          // F2
           const modResult = nodeModifier.triggerAction('collapse', tree.getNode(1, 5));
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+----+
-            | A1 | A2                | A3      | A4 | A5 |
+            | A1 | B1                | F1      | I1 | J1 |
             +----+----+----+----+----+----+----+----+----+
-            | B1 | B2           | B3 | B4*| B5 | B6 | B7 |
+            | A2 | B2           | E2 | F2*| H2 | I2 | J2 |
             +----+----+----+----+----+----+----+----+----+
             `);
 
@@ -250,21 +239,21 @@ describe('NodeModifiers', () => {
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+----+----+
-            | A1 | A2                | A3           | A4 | A5 |
+            | A1 | B1                | F1           | I1 | J1 |
             +----+----+----+----+----+----+----+----+----+----+
-            | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+            | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
             +----+----+----+----+----+----+----+----+----+----+
             `);
         }
         {
-          // B4 (again)
+          // F2 (again)
           const modResult = nodeModifier.triggerAction('collapse', tree.getNode(1, 5));
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+----+
-            | A1 | A2                | A3      | A4 | A5 |
+            | A1 | B1                | F1      | I1 | J1 |
             +----+----+----+----+----+----+----+----+----+
-            | B1 | B2           | B3 | B4*| B5 | B6 | B7 |
+            | A2 | B2           | E2 | F2*| H2 | I2 | J2 |
             +----+----+----+----+----+----+----+----+----+
             `);
 
@@ -272,23 +261,23 @@ describe('NodeModifiers', () => {
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+----+----+
-            | A1 | A2                | A3           | A4 | A5 |
+            | A1 | B1                | F1           | I1 | J1 |
             +----+----+----+----+----+----+----+----+----+----+
-            | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+            | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
             +----+----+----+----+----+----+----+----+----+----+
             `);
         }
         {
-          nodeModifier.triggerAction('collapse', tree.getNode(1, 5)); // B4
-          nodeModifier.triggerAction('collapse', tree.getNode(0, 1)); // A2
+          nodeModifier.triggerAction('collapse', tree.getNode(1, 5)); // F2
+          nodeModifier.triggerAction('collapse', tree.getNode(0, 1)); // B1
 
           const modResult = nodeModifier.triggerAction('collapse', tree.getNode(1, 3)); // B2
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+
-            | A1 | A2*| A3      | A4 | A5 |
+            | A1 | B1*| F1      | I1 | J1 |
             +----+----+----+----+----+----+
-            | B1 | B2*| B4*| B5 | B6 | B7 |
+            | A2 | B2*| F2*| H2 | I2 | J2 |
             +----+----+----+----+----+----+
             `);
 
@@ -296,9 +285,9 @@ describe('NodeModifiers', () => {
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+
-            | A1 | A2         * | A3      | A4 | A5 |
+            | A1 | B1         * | F1      | I1 | J1 |
             +----+----+----+----+----+----+----+----+
-            | B1 | B2           | B4*| B5 | B6 | B7 |
+            | A2 | B2           | F2*| H2 | I2 | J2 |
             +----+----+----+----+----+----+----+----+
             `);
         }
@@ -309,20 +298,20 @@ describe('NodeModifiers', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | A1 | A2                                    | A3 |
+       *   | A1 | B1                                    | J1 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | B1 | B2                | B3                | B4 |
+       *   | A2 | B2                | F2                | J2 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | C1 | C2 | C3           | C4      | C5      | C6 |
+       *   | A3 | B3 | C3           | F3      | H3      | J3 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
+       *   | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 |    |
        *   +----+----+----+----+----+----+----+----+----+----+
        */
       const headerSettings = [
-        ['A1', { label: 'A2', colspan: 8 }, 'A3'],
-        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 4 }, 'B4'],
-        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }, { label: 'C5', colspan: 2 }, 'C6'],
-        ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9'],
+        ['A1', { label: 'B1', colspan: 8 }, 'J1'],
+        ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+        ['A3', 'B3', { label: 'C3', colspan: 3 }, { label: 'F3', colspan: 2 }, { label: 'H3', colspan: 2 }, 'J3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
       ];
 
       it('should build a valid structure', () => {
@@ -332,13 +321,13 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                                    | A3 |
+          | A1 | B1                                    | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                | B3                | B4 |
+          | A2 | B2                | F2                | J2 |
           +----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2 | C3           | C4      | C5      | C6 |
+          | A3 | B3 | C3           | F3      | H3      | J3 |
           +----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
+          | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 |    |
           +----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -351,74 +340,70 @@ describe('NodeModifiers', () => {
         const nodeModifier = new NodeModifiers();
 
         // C3
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(2, 4))).toEqual({
-          affectedColumns: [4, 3],
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(2, 4))).toEqual(expect.objectContaining({
+          affectedColumns: [3, 4],
           colspanCompensation: 2,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+
-          | A1 | A2                          | A3 |
+          | A1 | B1                          | J1 |
           +----+----+----+----+----+----+----+----+
-          | B1 | B2      | B3                | B4 |
+          | A2 | B2      | F2                | J2 |
           +----+----+----+----+----+----+----+----+
-          | C1 | C2 | C3*| C4      | C5      | C6 |
+          | A3 | B3 | C3*| F3      | H3      | J3 |
           +----+----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D6 | D7 | D8 | D9 |    |
+          | A4 | B4 | C4 | F4 | G4 | H4 | I4 |    |
           +----+----+----+----+----+----+----+----+
           `);
 
-        // C4
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(2, 5))).toEqual({
+        // F3
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(2, 5))).toEqual(expect.objectContaining({
           affectedColumns: [6],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+
-          | A1 | A2                     | A3 |
+          | A1 | B1                     | J1 |
           +----+----+----+----+----+----+----+
-          | B1 | B2      | B3           | B4 |
+          | A2 | B2      | F2           | J2 |
           +----+----+----+----+----+----+----+
-          | C1 | C2 | C3*| C4*| C5      | C6 |
+          | A3 | B3 | C3*| F3*| H3      | J3 |
           +----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D6 | D8 | D9 |    |
+          | A4 | B4 | C4 | F4 | H4 | I4 |    |
           +----+----+----+----+----+----+----+
           `);
 
-        // B3
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 5))).toEqual({
-          affectedColumns: [8, 7, 6],
+        // F2
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 5))).toEqual(expect.objectContaining({
+          affectedColumns: [7, 8],
           colspanCompensation: 2,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+
-          | A1 | A2           | A3 |
+          | A1 | B1           | J1 |
           +----+----+----+----+----+
-          | B1 | B2      | B3*| B4 |
+          | A2 | B2      | F2*| J2 |
           +----+----+----+----+----+
-          | C1 | C2 | C3*| C4*| C6 |
+          | A3 | B3 | C3*| F3*| J3 |
           +----+----+----+----+----+
-          | D1 | D2 | D3 | D6 |    |
+          | A4 | B4 | C4 | F4 |    |
           +----+----+----+----+----+
           `);
 
-        // A2 (it will be collapsed to the colspan of its first child)
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual({
-          affectedColumns: [8, 7, 6, 5, 4, 3],
+        // B1 (it will be collapsed to the colspan of its first child)
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+          affectedColumns: [5],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+
-          | A1 | A2    * | A3 |
+          | A1 | B1    * | J1 |
           +----+----+----+----+
-          | B1 | B2      | B4 |
+          | A2 | B2      | J2 |
           +----+----+----+----+
-          | C1 | C2 | C3*| C6 |
+          | A3 | B3 | C3*| J3 |
           +----+----+----+----+
-          | D1 | D2 | D3 |    |
+          | A4 | B4 | C4 |    |
           +----+----+----+----+
           `);
       });
@@ -428,24 +413,24 @@ describe('NodeModifiers', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | A1 | A2                                    | A3 | A4           |
+       *   | A1 | B1                                    | J1 | K1           |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | B1 | B2                                    | B3 | B4           |
+       *   | A2 | B2                                    | J2 | K2           |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | C1 | C2                | C3                | C4 | C5           |
+       *   | A3 | B3                | F3                | J3 | K3           |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | D1 | D2      | D3      | D4      | D5      | D6 | D7 | D8      |
+       *   | A4 | B4      | D4      | F4      | H4      | J4 | K4 | L4      |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | EA | EB | EC | ED | EE | EF | EG | EH | EI | EK | EL | EM | EN |
+       *   | A5 | B5 | C5 | D5 | E5 | F5 | G5 | H5 | I5 | J5 | K5 | L5 | M5 |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
        */
       const headerSettings = [
-        ['A1', { label: 'A2', colspan: 8 }, 'A3', { label: 'A4', colspan: 3 }],
-        ['B1', { label: 'B2', colspan: 8 }, 'B3', { label: 'B4', colspan: 3 }],
-        ['C1', { label: 'C2', colspan: 4 }, { label: 'C3', colspan: 4 }, 'C4', { label: 'C5', colspan: 3 }],
-        ['D1', { label: 'D2', colspan: 2 }, { label: 'D3', colspan: 2 }, { label: 'D4', colspan: 2 },
-          { label: 'D5', colspan: 2 }, 'D6', 'D7', { label: 'D8', colspan: 2 }],
-        ['EA', 'EB', 'EC', 'ED', 'EE', 'EF', 'EG', 'EH', 'EI', 'EJ', 'EK', 'EL', 'EM'],
+        ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
+        ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
+        ['A3', { label: 'B3', colspan: 4 }, { label: 'F3', colspan: 4 }, 'J3', { label: 'K3', colspan: 3 }],
+        ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
+          { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
+        ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5', 'K5', 'L5', 'M5'],
       ];
 
       it('should build a valid structure', () => {
@@ -455,15 +440,15 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                                    | A3 | A4           |
+          | A1 | B1                                    | J1 | K1           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                                    | B3 | B4           |
+          | A2 | B2                                    | J2 | K2           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2                | C3                | C4 | C5           |
+          | A3 | B3                | F3                | J3 | K3           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3      | D4      | D5      | D6 | D7 | D8      |
+          | A4 | B4      | D4      | F4      | H4      | J4 | K4 | L4      |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EE | EF | EG | EH | EI | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | D5 | E5 | F5 | G5 | H5 | I5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -475,83 +460,79 @@ describe('NodeModifiers', () => {
 
         const nodeModifier = new NodeModifiers();
 
-        // C2
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(2, 4))).toEqual({
-          affectedColumns: [4, 3],
+        // B3
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(2, 4))).toEqual(expect.objectContaining({
+          affectedColumns: [3, 4],
           colspanCompensation: 2,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                          | A3 | A4           |
+          | A1 | B1                          | J1 | K1           |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                          | B3 | B4           |
+          | A2 | B2                          | J2 | K2           |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2    * | C3                | C4 | C5           |
+          | A3 | B3    * | F3                | J3 | K3           |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D4      | D5      | D6 | D7 | D8      |
+          | A4 | B4      | F4      | H4      | J4 | K4 | L4      |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | EF | EG | EH | EI | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | F5 | G5 | H5 | I5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+----+----+----+----+
           `);
 
         // B2
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 1))).toEqual({
-          affectedColumns: [8, 7, 6, 5, 4, 3],
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 1))).toEqual(expect.objectContaining({
+          affectedColumns: [5, 7, 6, 8],
           colspanCompensation: 4,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+
-          | A1 | A2    * | A3 | A4           |
+          | A1 | B1    * | J1 | K1           |
           +----+----+----+----+----+----+----+
-          | B1 | B2    * | B3 | B4           |
+          | A2 | B2    * | J2 | K2           |
           +----+----+----+----+----+----+----+
-          | C1 | C2    * | C4 | C5           |
+          | A3 | B3    * | J3 | K3           |
           +----+----+----+----+----+----+----+
-          | D1 | D2      | D6 | D7 | D8      |
+          | A4 | B4      | J4 | K4 | L4      |
           +----+----+----+----+----+----+----+
-          | EA | EB | EC | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+
           `);
 
-        // A4 ("mirrored" header, has the same colspan as its children)
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 10))).toEqual({
-          affectedColumns: [12, 11],
+        // K1 ("mirrored" header, has the same colspan as its children)
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 10))).toEqual(expect.objectContaining({
+          affectedColumns: [11, 12],
           colspanCompensation: 2,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+
-          | A1 | A2    * | A3 | A4*|
+          | A1 | B1    * | J1 | K1*|
           +----+----+----+----+----+
-          | B1 | B2    * | B3 | B4*|
+          | A2 | B2    * | J2 | K2*|
           +----+----+----+----+----+
-          | C1 | C2    * | C4 | C5*|
+          | A3 | B3    * | J3 | K3*|
           +----+----+----+----+----+
-          | D1 | D2      | D6 | D7 |
+          | A4 | B4      | J4 | K4 |
           +----+----+----+----+----+
-          | EA | EB | EC | EJ | EK |
+          | A5 | B5 | C5 | J5 | K5 |
           +----+----+----+----+----+
           `);
 
-        // D2 (collapse last column)
-        expect(nodeModifier.triggerAction('collapse', tree.getNode(3, 1))).toEqual({
+        // B4 (collapse last column)
+        expect(nodeModifier.triggerAction('collapse', tree.getNode(3, 1))).toEqual(expect.objectContaining({
           affectedColumns: [2],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+
-          | A1 | A2*| A3 | A4*|
+          | A1 | B1*| J1 | K1*|
           +----+----+----+----+
-          | B1 | B2*| B3 | B4*|
+          | A2 | B2*| J2 | K2*|
           +----+----+----+----+
-          | C1 | C2*| C4 | C5*|
+          | A3 | B3*| J3 | K3*|
           +----+----+----+----+
-          | D1 | D2*| D6 | D7 |
+          | A4 | B4*| J4 | K4 |
           +----+----+----+----+
-          | EA | EB | EJ | EK |
+          | A5 | B5 | J5 | K5 |
           +----+----+----+----+
           `);
       });
@@ -563,14 +544,14 @@ describe('NodeModifiers', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | A1 | A2                | A3           | A4 | A5 |
+       *   | A1 | B1                | F1           | I1 | J1 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+       *   | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
        *   +----+----+----+----+----+----+----+----+----+----+
        */
       const headerSettings = [
-        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 3 }, 'A4', 'A5'],
-        ['B1', { label: 'B2', colspan: 3 }, 'B3', { label: 'B4', colspan: 2 }, 'B5', 'B6', 'B7'],
+        ['A1', { label: 'B1', colspan: 4 }, { label: 'F1', colspan: 3 }, 'I1', 'J1'],
+        ['A2', { label: 'B2', colspan: 3 }, 'E2', { label: 'F2', colspan: 2 }, 'H2', 'I2', 'J2'],
       ];
 
       it('should ignore expanding when the node has a colspan = 1', () => {
@@ -582,50 +563,45 @@ describe('NodeModifiers', () => {
 
         const expected = `
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3           | A4 | A5 |
+          | A1 | B1                | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+          | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+----+
           `;
 
         // A1
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 0))).toEqual({
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 0))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
-        // A4
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 8))).toEqual({
+        // I1
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 8))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
-        // B1
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 0))).toEqual({
+        // A2
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 0))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
-        // B3
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 4))).toEqual({
+        // E2
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 4))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
 
-        // B5
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 7))).toEqual({
+        // H2
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 7))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(expected);
       });
 
@@ -636,30 +612,32 @@ describe('NodeModifiers', () => {
 
         const nodeModifier = new NodeModifiers();
 
-        // A2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual({
-          affectedColumns: [],
-          colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        // B1
+        nodeModifier.triggerAction('collapse', tree.getNode(0, 1));
+
+        // B1
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+          affectedColumns: [4],
+          colspanCompensation: 1,
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3           | A4 | A5 |
+          | A1 | B1                | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+          | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+----+
           `);
 
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual({
+        // B1
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
           affectedColumns: [],
           colspanCompensation: 0,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3           | A4 | A5 |
+          | A1 | B1                | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+          | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -671,28 +649,27 @@ describe('NodeModifiers', () => {
 
         const nodeModifier = new NodeModifiers();
 
-        // A2
+        // B1
         nodeModifier.triggerAction('collapse', tree.getNode(0, 4));
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2         * | A3           | A4 | A5 |
+          | A1 | B1         * | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B4      | B5 | B6 | B7 |
+          | A2 | B2           | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+
           `);
 
-        // A2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 4))).toEqual({
+        // B1
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 4))).toEqual(expect.objectContaining({
           affectedColumns: [4],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3           | A4 | A5 |
+          | A1 | B1                | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+          | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -715,65 +692,61 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+
-          | A1 | A2*| A3*| A4 | A5 |
+          | A1 | B1*| F1*| I1 | J1 |
           +----+----+----+----+----+
-          | B1 | B2*| B4*| B6 | B7 |
+          | A2 | B2*| F2*| I2 | J2 |
           +----+----+----+----+----+
           `);
 
         // B2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 1))).toEqual({
-          affectedColumns: [1, 2, 3],
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 1))).toEqual(expect.objectContaining({
+          affectedColumns: [2, 3],
           colspanCompensation: 2,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+
-          | A1 | A2         * | A3*| A4 | A5 |
+          | A1 | B1         * | F1*| I1 | J1 |
           +----+----+----+----+----+----+----+
-          | B1 | B2           | B4*| B6 | B7 |
+          | A2 | B2           | F2*| I2 | J2 |
           +----+----+----+----+----+----+----+
           `);
 
-        // A3
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 5))).toEqual({
+        // F1
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 5))).toEqual(expect.objectContaining({
           affectedColumns: [7],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+
-          | A1 | A2         * | A3      | A4 | A5 |
+          | A1 | B1         * | F1      | I1 | J1 |
           +----+----+----+----+----+----+----+----+
-          | B1 | B2           | B4*| B5 | B6 | B7 |
+          | A2 | B2           | F2*| H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+
           `);
 
-        // B4
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 5))).toEqual({
-          affectedColumns: [5, 6],
+        // F2
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 5))).toEqual(expect.objectContaining({
+          affectedColumns: [6],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2         * | A3           | A4 | A5 |
+          | A1 | B1         * | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B4      | B5 | B6 | B7 |
+          | A2 | B2           | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+
           `);
 
-        // A2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual({
+        // B1
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
           affectedColumns: [4],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3           | A4 | A5 |
+          | A1 | B1                | F1           | I1 | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4      | B5 | B6 | B7 |
+          | A2 | B2           | E2 | F2      | H2 | I2 | J2 |
           +----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -796,22 +769,22 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+
-          | A1 | A2*| A3*| A4 | A5 |
+          | A1 | B1*| F1*| I1 | J1 |
           +----+----+----+----+----+
-          | B1 | B2*| B4*| B6 | B7 |
+          | A2 | B2*| F2*| I2 | J2 |
           +----+----+----+----+----+
           `);
 
         {
           nodeModifier.triggerAction('expand', tree.getNode(1, 1)); // B2
 
-          const modResult = nodeModifier.triggerAction('expand', tree.getNode(0, 5)); // A3
+          const modResult = nodeModifier.triggerAction('expand', tree.getNode(0, 5)); // F1
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+
-            | A1 | A2         * | A3      | A4 | A5 |
+            | A1 | B1         * | F1      | I1 | J1 |
             +----+----+----+----+----+----+----+----+
-            | B1 | B2           | B4*| B5 | B6 | B7 |
+            | A2 | B2           | F2*| H2 | I2 | J2 |
             +----+----+----+----+----+----+----+----+
             `);
 
@@ -819,22 +792,22 @@ describe('NodeModifiers', () => {
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+
-            | A1 | A2         * | A3*| A4 | A5 |
+            | A1 | B1         * | F1*| I1 | J1 |
             +----+----+----+----+----+----+----+
-            | B1 | B2           | B4*| B6 | B7 |
+            | A2 | B2           | F2*| I2 | J2 |
             +----+----+----+----+----+----+----+
             `);
         }
         {
-          nodeModifier.triggerAction('expand', tree.getNode(1, 5)); // B4
+          nodeModifier.triggerAction('expand', tree.getNode(1, 5)); // F2
 
-          const modResult = nodeModifier.triggerAction('expand', tree.getNode(0, 1)); // A2
+          const modResult = nodeModifier.triggerAction('expand', tree.getNode(0, 1)); // B1
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+----+
-            | A1 | A2                | A3    * | A4 | A5 |
+            | A1 | B1                | F1    * | I1 | J1 |
             +----+----+----+----+----+----+----+----+----+
-            | B1 | B2           | B3 | B4      | B6 | B7 |
+            | A2 | B2           | E2 | F2      | I2 | J2 |
             +----+----+----+----+----+----+----+----+----+
             `);
 
@@ -842,9 +815,9 @@ describe('NodeModifiers', () => {
 
           expect(tree).toBeMatchToHeadersStructure(`
             +----+----+----+----+----+----+----+----+
-            | A1 | A2         * | A3    * | A4 | A5 |
+            | A1 | B1         * | F1    * | I1 | J1 |
             +----+----+----+----+----+----+----+----+
-            | B1 | B2           | B4      | B6 | B7 |
+            | A2 | B2           | F2      | I2 | J2 |
             +----+----+----+----+----+----+----+----+
             `);
         }
@@ -855,20 +828,20 @@ describe('NodeModifiers', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | A1 | A2                                    | A3 |
+       *   | A1 | B1                                    | J1 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | B1 | B2                | B3                | B4 |
+       *   | A2 | B2                | F2                | J2 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | C1 | C2 | C3           | C4      | C5      | C6 |
+       *   | A3 | B3 | C3           | F3      | H3      | J3 |
        *   +----+----+----+----+----+----+----+----+----+----+
-       *   | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
+       *   | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 |    |
        *   +----+----+----+----+----+----+----+----+----+----+
        */
       const headerSettings = [
-        ['A1', { label: 'A2', colspan: 8 }, 'A3'],
-        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 4 }, 'B4'],
-        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }, { label: 'C5', colspan: 2 }, 'C6'],
-        ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9'],
+        ['A1', { label: 'B1', colspan: 8 }, 'J1'],
+        ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+        ['A3', 'B3', { label: 'C3', colspan: 3 }, { label: 'F3', colspan: 2 }, { label: 'H3', colspan: 2 }, 'J3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
       ];
 
       it('should build a valid structure', () => {
@@ -878,13 +851,13 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                                    | A3 |
+          | A1 | B1                                    | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                | B3                | B4 |
+          | A2 | B2                | F2                | J2 |
           +----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2 | C3           | C4      | C5      | C6 |
+          | A3 | B3 | C3           | F3      | H3      | J3 |
           +----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
+          | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 |    |
           +----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -895,6 +868,7 @@ describe('NodeModifiers', () => {
         tree.buildTree();
 
         const nodeModifier = new NodeModifiers();
+
         // Collapse all nodes.
         tree.getRoots().forEach((rootNode) => {
           rootNode.walkDown((node) => {
@@ -906,121 +880,115 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+
-          | A1 | A2*| A3 |
+          | A1 | B1*| J1 |
           +----+----+----+
-          | B1 | B2*| B4 |
+          | A2 | B2*| J2 |
           +----+----+----+
-          | C1 | C2 | C6 |
+          | A3 | B3 | J3 |
           +----+----+----+
-          | D1 | D2 |    |
+          | A4 | B4 |    |
           +----+----+----+
           `);
 
         // B2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 1))).toEqual({
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 1))).toEqual(expect.objectContaining({
           affectedColumns: [2],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+
-          | A1 | A2    * | A3 |
+          | A1 | B1    * | J1 |
           +----+----+----+----+
-          | B1 | B2      | B4 |
+          | A2 | B2      | J2 |
           +----+----+----+----+
-          | C1 | C2 | C3*| C6 |
+          | A3 | B3 | C3*| J3 |
           +----+----+----+----+
-          | D1 | D2 | D3 |    |
+          | A4 | B4 | C4 |    |
           +----+----+----+----+
           `);
 
         // C3
-        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 2))).toEqual({
+        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 2))).toEqual(expect.objectContaining({
           affectedColumns: [3, 4],
           colspanCompensation: 2,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+
-          | A1 | A2              * | A3 |
+          | A1 | B1              * | J1 |
           +----+----+----+----+----+----+
-          | B1 | B2                | B4 |
+          | A2 | B2                | J2 |
           +----+----+----+----+----+----+
-          | C1 | C2 | C3           | C6 |
+          | A3 | B3 | C3           | J3 |
           +----+----+----+----+----+----+
-          | D1 | D2 | D3 | D4 | D5 |    |
+          | A4 | B4 | C4 | D4 | E4 |    |
           +----+----+----+----+----+----+
           `);
 
-        // A2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual({
+        // B1
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
           affectedColumns: [5],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+
-          | A1 | A2                     | A3 |
+          | A1 | B1                     | J1 |
           +----+----+----+----+----+----+----+
-          | B1 | B2                | B3*| B4 |
+          | A2 | B2                | F2*| J2 |
           +----+----+----+----+----+----+----+
-          | C1 | C2 | C3           | C4*| C6 |
+          | A3 | B3 | C3           | F3*| J3 |
           +----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D4 | D5 | D6 |    |
+          | A4 | B4 | C4 | D4 | E4 | F4 |    |
           +----+----+----+----+----+----+----+
           `);
 
-        // B3
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 5))).toEqual({
+        // F2
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 5))).toEqual(expect.objectContaining({
           affectedColumns: [7],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+
-          | A1 | A2                          | A3 |
+          | A1 | B1                          | J1 |
           +----+----+----+----+----+----+----+----+
-          | B1 | B2                | B3      | B4 |
+          | A2 | B2                | F2      | J2 |
           +----+----+----+----+----+----+----+----+
-          | C1 | C2 | C3           | C4*| C5*| C6 |
+          | A3 | B3 | C3           | F3*| H3*| J3 |
           +----+----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D4 | D5 | D6 | D8 |    |
+          | A4 | B4 | C4 | D4 | E4 | F4 | H4 |    |
           +----+----+----+----+----+----+----+----+
           `);
 
-        // C5
-        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 7))).toEqual({
+        // H3
+        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 7))).toEqual(expect.objectContaining({
           affectedColumns: [8],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2                               | A3 |
+          | A1 | B1                               | J1 |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2                | B3           | B4 |
+          | A2 | B2                | F2           | J2 |
           +----+----+----+----+----+----+----+----+----+
-          | C1 | C2 | C3           | C4*| C5      | C6 |
+          | A3 | B3 | C3           | F3*| H3      | J3 |
           +----+----+----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D4 | D5 | D6 | D8 | D9 |    |
+          | A4 | B4 | C4 | D4 | E4 | F4 | H4 | I4 |    |
           +----+----+----+----+----+----+----+----+----+
           `);
 
-        // C4
-        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 5))).toEqual({
+        // F3
+        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 5))).toEqual(expect.objectContaining({
           affectedColumns: [6],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                                    | A3 |
+          | A1 | B1                                    | J1 |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                | B3                | B4 |
+          | A2 | B2                | F2                | J2 |
           +----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2 | C3           | C4      | C5      | C6 |
+          | A3 | B3 | C3           | F3      | H3      | J3 |
           +----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
+          | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 |    |
           +----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -1030,24 +998,24 @@ describe('NodeModifiers', () => {
       /**
        * The column headers visualisation:
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | A1 | A2                                    | A3 | A4           |
+       *   | A1 | B1                                    | J1 | K1           |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | B1 | B2                                    | B3 | B4           |
+       *   | A2 | B2                                    | J2 | K2           |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | C1 | C2                | C3                | C4 | C5           |
+       *   | A3 | B3                | F3                | J3 | K3           |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | D1 | D2      | D3      | D4      | D5      | D6 | D7 | D8      |
+       *   | A4 | B4      | D4      | F4      | H4      | J4 | K4 | L4      |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
-       *   | EA | EB | EC | ED | EE | EF | EG | EH | EI | EK | EL | EM | EN |
+       *   | A5 | B5 | C5 | D5 | E5 | F5 | G5 | H5 | I5 | J5 | K5 | L5 | M5 |
        *   +----+----+----+----+----+----+----+----+----+----+----+----+----+
        */
       const headerSettings = [
-        ['A1', { label: 'A2', colspan: 8 }, 'A3', { label: 'A4', colspan: 3 }],
-        ['B1', { label: 'B2', colspan: 8 }, 'B3', { label: 'B4', colspan: 3 }],
-        ['C1', { label: 'C2', colspan: 4 }, { label: 'C3', colspan: 4 }, 'C4', { label: 'C5', colspan: 3 }],
-        ['D1', { label: 'D2', colspan: 2 }, { label: 'D3', colspan: 2 }, { label: 'D4', colspan: 2 },
-          { label: 'D5', colspan: 2 }, 'D6', 'D7', { label: 'D8', colspan: 2 }],
-        ['EA', 'EB', 'EC', 'ED', 'EE', 'EF', 'EG', 'EH', 'EI', 'EJ', 'EK', 'EL', 'EM'],
+        ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
+        ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
+        ['A3', { label: 'B3', colspan: 4 }, { label: 'F3', colspan: 4 }, 'J3', { label: 'K3', colspan: 3 }],
+        ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
+          { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
+        ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5', 'K5', 'L5', 'M5'],
       ];
 
       it('should build a valid structure', () => {
@@ -1057,15 +1025,15 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                                    | A3 | A4           |
+          | A1 | B1                                    | J1 | K1           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                                    | B3 | B4           |
+          | A2 | B2                                    | J2 | K2           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2                | C3                | C4 | C5           |
+          | A3 | B3                | F3                | J3 | K3           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3      | D4      | D5      | D6 | D7 | D8      |
+          | A4 | B4      | D4      | F4      | H4      | J4 | K4 | L4      |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EE | EF | EG | EH | EI | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | D5 | E5 | F5 | G5 | H5 | I5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
           `);
       });
@@ -1076,6 +1044,7 @@ describe('NodeModifiers', () => {
         tree.buildTree();
 
         const nodeModifier = new NodeModifiers();
+
         // Collapse all nodes.
         tree.getRoots().forEach((rootNode) => {
           rootNode.walkDown((node) => {
@@ -1087,198 +1056,463 @@ describe('NodeModifiers', () => {
 
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+
-          | A1 | A2*| A3 | A4*|
+          | A1 | B1*| J1 | K1*|
           +----+----+----+----+
-          | B1 | B2*| B3 | B4*|
+          | A2 | B2*| J2 | K2*|
           +----+----+----+----+
-          | C1 | C2*| C4 | C5*|
+          | A3 | B3*| J3 | K3*|
           +----+----+----+----+
-          | D1 | D2*| D6 | D7 |
+          | A4 | B4*| J4 | K4 |
           +----+----+----+----+
-          | EA | EB | EJ | EK |
+          | A5 | B5 | J5 | K5 |
           +----+----+----+----+
           `);
 
         // C2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 1))).toEqual({
+        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 1))).toEqual(expect.objectContaining({
           affectedColumns: [3],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+
-          | A1 | A2    * | A3 | A4*|
+          | A1 | B1    * | J1 | K1*|
           +----+----+----+----+----+
-          | B1 | B2    * | B3 | B4*|
+          | A2 | B2    * | J2 | K2*|
           +----+----+----+----+----+
-          | C1 | C2      | C4 | C5*|
+          | A3 | B3      | J3 | K3*|
           +----+----+----+----+----+
-          | D1 | D2*| D3*| D6 | D7 |
+          | A4 | B4*| D4*| J4 | K4 |
           +----+----+----+----+----+
-          | EA | EB | ED | EJ | EK |
+          | A5 | B5 | D5 | J5 | K5 |
           +----+----+----+----+----+
           `);
 
-        // B2 (mirrored header A2 should be expanded either)
-        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 1))).toEqual({
+        // B2 (mirrored header B1 should be expanded also)
+        expect(nodeModifier.triggerAction('expand', tree.getNode(1, 1))).toEqual(expect.objectContaining({
           affectedColumns: [5],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+
-          | A1 | A2           | A3 | A4*|
+          | A1 | B1           | J1 | K1*|
           +----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4*|
+          | A2 | B2           | J2 | K2*|
           +----+----+----+----+----+----+
-          | C1 | C2      | C3*| C4 | C5*|
+          | A3 | B3      | F3*| J3 | K3*|
           +----+----+----+----+----+----+
-          | D1 | D2*| D3*| D4*| D6 | D7 |
+          | A4 | B4*| D4*| F4*| J4 | K4 |
           +----+----+----+----+----+----+
-          | EA | EB | ED | EF | EJ | EK |
+          | A5 | B5 | D5 | F5 | J5 | K5 |
           +----+----+----+----+----+----+
           `);
 
-        // A4 (mirrored headers B4 and C5 should be expanded either)
-        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 10))).toEqual({
+        // K2 (mirrored headers K2 and K3 should be expanded also)
+        expect(nodeModifier.triggerAction('expand', tree.getNode(0, 10))).toEqual(expect.objectContaining({
           affectedColumns: [11],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+
-          | A1 | A2           | A3 | A4      |
+          | A1 | B1           | J1 | K1      |
           +----+----+----+----+----+----+----+
-          | B1 | B2           | B3 | B4      |
+          | A2 | B2           | J2 | K2      |
           +----+----+----+----+----+----+----+
-          | C1 | C2      | C3*| C4 | C5      |
+          | A3 | B3      | F3*| J3 | K3      |
           +----+----+----+----+----+----+----+
-          | D1 | D2*| D3*| D4*| D6 | D7 | D8*|
+          | A4 | B4*| D4*| F4*| J4 | K4 | L4*|
           +----+----+----+----+----+----+----+
-          | EA | EB | ED | EF | EJ | EK | EL |
+          | A5 | B5 | D5 | F5 | J5 | K5 | L5 |
           +----+----+----+----+----+----+----+
           `);
 
-        // D2
-        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 1))).toEqual({
+        // B4
+        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 1))).toEqual(expect.objectContaining({
           affectedColumns: [2],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+
-          | A1 | A2                | A3 | A4      |
+          | A1 | B1                | J1 | K1      |
           +----+----+----+----+----+----+----+----+
-          | B1 | B2                | B3 | B4      |
+          | A2 | B2                | J2 | K2      |
           +----+----+----+----+----+----+----+----+
-          | C1 | C2           | C3*| C4 | C5      |
+          | A3 | B3           | F3*| J3 | K3      |
           +----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3*| D4*| D6 | D7 | D8*|
+          | A4 | B4      | D4*| F4*| J4 | K4 | L4*|
           +----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EF | EJ | EK | EL |
+          | A5 | B5 | C5 | D5 | F5 | J5 | K5 | L5 |
           +----+----+----+----+----+----+----+----+
           `);
 
-        // D4
-        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 5))).toEqual({
+        // F4
+        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 5))).toEqual(expect.objectContaining({
           affectedColumns: [6],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+
-          | A1 | A2                     | A3 | A4      |
+          | A1 | B1                     | J1 | K1      |
           +----+----+----+----+----+----+----+----+----+
-          | B1 | B2                     | B3 | B4      |
+          | A2 | B2                     | J2 | K2      |
           +----+----+----+----+----+----+----+----+----+
-          | C1 | C2           | C3    * | C4 | C5      |
+          | A3 | B3           | F3    * | J3 | K3      |
           +----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3*| D4      | D6 | D7 | D8*|
+          | A4 | B4      | D4*| F4      | J4 | K4 | L4*|
           +----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EF | EG | EJ | EK | EL |
+          | A5 | B5 | C5 | D5 | F5 | G5 | J5 | K5 | L5 |
           +----+----+----+----+----+----+----+----+----+
           `);
 
-        // D8
-        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 11))).toEqual({
+        // L4
+        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 11))).toEqual(expect.objectContaining({
           affectedColumns: [12],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                     | A3 | A4           |
+          | A1 | B1                     | J1 | K1           |
           +----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                     | B3 | B4           |
+          | A2 | B2                     | J2 | K2           |
           +----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2           | C3    * | C4 | C5           |
+          | A3 | B3           | F3    * | J3 | K3           |
           +----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3*| D4      | D6 | D7 | D8      |
+          | A4 | B4      | D4*| F4      | J4 | K4 | L4      |
           +----+----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EF | EG | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | D5 | F5 | G5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+----+----+----+
           `);
 
-        // C3
-        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 5))).toEqual({
+        // F3
+        expect(nodeModifier.triggerAction('expand', tree.getNode(2, 5))).toEqual(expect.objectContaining({
           affectedColumns: [7],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                          | A3 | A4           |
+          | A1 | B1                          | J1 | K1           |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                          | B3 | B4           |
+          | A2 | B2                          | J2 | K2           |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2           | C3           | C4 | C5           |
+          | A3 | B3           | F3           | J3 | K3           |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3*| D4      | D5*| D6 | D7 | D8      |
+          | A4 | B4      | D4*| F4      | H4*| J4 | K4 | L4      |
           +----+----+----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EF | EG | EH | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | D5 | F5 | G5 | H5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+----+----+----+----+
           `);
 
         // D3
-        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 3))).toEqual({
+        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 3))).toEqual(expect.objectContaining({
           affectedColumns: [4],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                               | A3 | A4           |
+          | A1 | B1                               | J1 | K1           |
           +----+----+----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                               | B3 | B4           |
+          | A2 | B2                               | J2 | K2           |
           +----+----+----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2                | C3           | C4 | C5           |
+          | A3 | B3                | F3           | J3 | K3           |
           +----+----+----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3      | D4      | D5*| D6 | D7 | D8      |
+          | A4 | B4      | D4      | F4      | H4*| J4 | K4 | L4      |
           +----+----+----+----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EE | EF | EG | EH | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | D5 | E5 | F5 | G5 | H5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+----+----+----+----+----+
           `);
 
-        // D5
-        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 7))).toEqual({
+        // H4
+        expect(nodeModifier.triggerAction('expand', tree.getNode(3, 7))).toEqual(expect.objectContaining({
           affectedColumns: [8],
           colspanCompensation: 1,
-          rollbackModification: jasmine.any(Function),
-        });
+        }));
         expect(tree).toBeMatchToHeadersStructure(`
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | A1 | A2                                    | A3 | A4           |
+          | A1 | B1                                    | J1 | K1           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | B1 | B2                                    | B3 | B4           |
+          | A2 | B2                                    | J2 | K2           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | C1 | C2                | C3                | C4 | C5           |
+          | A3 | B3                | F3                | J3 | K3           |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | D1 | D2      | D3      | D4      | D5      | D6 | D7 | D8      |
+          | A4 | B4      | D4      | F4      | H4      | J4 | K4 | L4      |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
-          | EA | EB | EC | ED | EE | EF | EG | EH | EI | EJ | EK | EL | EM |
+          | A5 | B5 | C5 | D5 | E5 | F5 | G5 | H5 | I5 | J5 | K5 | L5 | M5 |
           +----+----+----+----+----+----+----+----+----+----+----+----+----+
           `);
       });
+    });
+  });
+
+  describe('multiple tree modification', () => {
+    it('should not lead to desynchronization of headers while collapsing and expanding a tree (variation #1)', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A1 | B1                                         | K1 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A2 | B2                     | G2                | K2 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A3 | B3      | D3           | G3      | I3      | K3 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 | J4 | K4 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'B1', colspan: 9 }, 'K1'],
+        ['A2', { label: 'B2', colspan: 5 }, { label: 'G2', colspan: 4 }, 'K2'],
+        ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 3 }, { label: 'G3', colspan: 2 },
+          { label: 'I3', colspan: 2 }, 'K3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4'],
+      ]);
+
+      tree.buildTree();
+
+      const nodeModifier = new NodeModifiers();
+
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 8)); // I3
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 1)); // B3
+
+      // B1
+      expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [6, 8, 7],
+        colspanCompensation: 3,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+----+----+
+        | A1 | B1              * | K1 |
+        +----+----+----+----+----+----+
+        | A2 | B2                | K2 |
+        +----+----+----+----+----+----+
+        | A3 | B3*| D3           | K3 |
+        +----+----+----+----+----+----+
+        | A4 | B4 | D4 | E4 | F4 | K4 |
+        +----+----+----+----+----+----+
+        `);
+
+      // B1
+      expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [6, 8, 7],
+        colspanCompensation: 3,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+----+----+----+----+----+
+        | A1 | B1                               | K1 |
+        +----+----+----+----+----+----+----+----+----+
+        | A2 | B2                | G2           | K2 |
+        +----+----+----+----+----+----+----+----+----+
+        | A3 | B3*| D3           | G3      | I3*| K3 |
+        +----+----+----+----+----+----+----+----+----+
+        | A4 | B4 | D4 | E4 | F4 | G4 | H4 | I4 | K4 |
+        +----+----+----+----+----+----+----+----+----+
+        `);
+    });
+
+    it('should not lead to desynchronization of headers while collapsing and expanding a tree (variation #2)', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A1 | B1                                         | K1 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A2 | B2                     | G2                | K2 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A3 | B3      | D3           | G3      | I3      | K3 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 | J4 | K4 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'B1', colspan: 9 }, 'K1'],
+        ['A2', { label: 'B2', colspan: 5 }, { label: 'G2', colspan: 4 }, 'K2'],
+        ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 3 }, { label: 'G3', colspan: 2 },
+          { label: 'I3', colspan: 2 }, 'K3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4'],
+      ]);
+
+      tree.buildTree();
+
+      const nodeModifier = new NodeModifiers();
+
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 1)); // B3
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 6)); // G3
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 8)); // I3
+
+      // B1
+      expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [6, 8],
+        colspanCompensation: 2,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+----+----+
+        | A1 | B1              * | K1 |
+        +----+----+----+----+----+----+
+        | A2 | B2                | K2 |
+        +----+----+----+----+----+----+
+        | A3 | B3*| D3           | K3 |
+        +----+----+----+----+----+----+
+        | A4 | B4 | D4 | E4 | F4 | K4 |
+        +----+----+----+----+----+----+
+        `);
+
+      // B1
+      expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [6, 8],
+        colspanCompensation: 2,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+----+----+----+----+
+        | A1 | B1                          | K1 |
+        +----+----+----+----+----+----+----+----+
+        | A2 | B2                | G2      | K2 |
+        +----+----+----+----+----+----+----+----+
+        | A3 | B3*| D3           | G3*| I3*| K3 |
+        +----+----+----+----+----+----+----+----+
+        | A4 | B4 | D4 | E4 | F4 | G4 | I4 | K4 |
+        +----+----+----+----+----+----+----+----+
+        `);
+    });
+
+    it('should not lead to desynchronization of headers while collapsing and expanding a tree (variation #3)', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A1 | B1                                         | K1 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A2 | B2                     | G2                | K2 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A3 | B3      | D3           | G3      | I3      | K3 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A4 | B4 | C4 | D4 | E4 | F4 | G4 | H4 | I4 | J4 | K4 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'B1', colspan: 9 }, 'K1'],
+        ['A2', { label: 'B2', colspan: 5 }, { label: 'G2', colspan: 4 }, 'K2'],
+        ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 3 }, { label: 'G3', colspan: 2 },
+          { label: 'I3', colspan: 2 }, 'K3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4'],
+      ]);
+
+      tree.buildTree();
+
+      const nodeModifier = new NodeModifiers();
+
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 1)); // B3
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 6)); // G3
+
+      // G2
+      expect(nodeModifier.triggerAction('collapse', tree.getNode(1, 6))).toEqual(expect.objectContaining({
+        affectedColumns: [8, 9],
+        colspanCompensation: 2,
+      }));
+
+      // B1
+      expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [6],
+        colspanCompensation: 1,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+----+----+
+        | A1 | B1              * | K1 |
+        +----+----+----+----+----+----+
+        | A2 | B2                | K2 |
+        +----+----+----+----+----+----+
+        | A3 | B3*| D3           | K3 |
+        +----+----+----+----+----+----+
+        | A4 | B4 | D4 | E4 | F4 | K4 |
+        +----+----+----+----+----+----+
+        `);
+
+      // B1
+      expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [6],
+        colspanCompensation: 1,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+----+----+----+
+        | A1 | B1                     | K1 |
+        +----+----+----+----+----+----+----+
+        | A2 | B2                | G2*| K2 |
+        +----+----+----+----+----+----+----+
+        | A3 | B3*| D3           | G3*| K3 |
+        +----+----+----+----+----+----+----+
+        | A4 | B4 | D4 | E4 | F4 | G4 | K4 |
+        +----+----+----+----+----+----+----+
+        `);
+    });
+
+    it('should not lead to desynchronization of headers while collapsing and expanding a tree (variation #4, "mirrored" children)', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A1 | B1                     | G1                | K1 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A2 | B2      | D2           | G2      | I2      | K2 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       *   | A3 | B3      | D3           | G3 | H3 | I3      | K3 |
+       *   +----+----+----+----+----+----+----+----+----+----+----+
+       */
+      const tree = createTree([
+        ['A1', { label: 'B1', colspan: 5 }, { label: 'G1', colspan: 4 }, 'K1'],
+        ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 3 }, { label: 'G2', colspan: 2 },
+          { label: 'I2', colspan: 2 }, 'K2'],
+        ['A3', { label: 'B3', colspan: 2 }, { label: 'D3', colspan: 3 }, { label: 'G3', colspan: 1 },
+          { label: 'H3', colspan: 1 }, { label: 'I3', colspan: 2 }, 'K3'],
+      ]);
+
+      tree.buildTree();
+
+      const nodeModifier = new NodeModifiers();
+
+      nodeModifier.triggerAction('collapse', tree.getNode(2, 1)); // B3
+      nodeModifier.triggerAction('collapse', tree.getNode(1, 3)); // D2
+      nodeModifier.triggerAction('collapse', tree.getNode(1, 6)); // G2
+
+      // B1
+      expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [3],
+        colspanCompensation: 1,
+      }));
+      // G1
+      expect(nodeModifier.triggerAction('collapse', tree.getNode(0, 6))).toEqual(expect.objectContaining({
+        affectedColumns: [8, 9],
+        colspanCompensation: 2,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+
+        | A1 | B1*| G1*| K1 |
+        +----+----+----+----+
+        | A2 | B2*| G2*| K2 |
+        +----+----+----+----+
+        | A3 | B3*| G3 | K3 |
+        +----+----+----+----+
+        `);
+
+      // G1
+      expect(nodeModifier.triggerAction('expand', tree.getNode(0, 6))).toEqual(expect.objectContaining({
+        affectedColumns: [8, 9],
+        colspanCompensation: 2,
+      }));
+      // B1
+      expect(nodeModifier.triggerAction('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
+        affectedColumns: [3],
+        colspanCompensation: 1,
+      }));
+
+      expect(tree).toBeMatchToHeadersStructure(`
+        +----+----+----+----+----+----+----+
+        | A1 | B1      | G1           | K1 |
+        +----+----+----+----+----+----+----+
+        | A2 | B2*| D2*| G2*| I2      | K2 |
+        +----+----+----+----+----+----+----+
+        | A3 | B3*| D3*| G3 | I3      | K3 |
+        +----+----+----+----+----+----+----+
+        `);
     });
   });
 });

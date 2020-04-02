@@ -23,12 +23,6 @@ export const HEADER_DEFAULT_SETTINGS = {
    */
   origColspan: 1,
   /**
-   * The flag which determines whether the column header should be rendered as hidden (display: none).
-   *
-   * @type {boolean}
-   */
-  hidden: false,
-  /**
    * The flag which determines whether the node is collapsible (can be collpased/expanded).
    *
    * @type {boolean}
@@ -40,6 +34,22 @@ export const HEADER_DEFAULT_SETTINGS = {
    * @type {boolean}
    */
   isCollapsed: false,
+  /**
+   * The flag which determines whether the column header should be rendered as hidden (display: none).
+   *
+   * @type {boolean}
+   */
+  isHidden: false,
+  /**
+   * The flag which determines whether the column header settings is accually not renderable. That kind
+   * of objects are generated after colspaned header to fill an array to correct size.
+   *
+   * For example for header with colspan = 8 the 7 blank objects are generated to fil an array settings
+   * to length = 8.
+   *
+   * @type {boolean}
+   */
+  isBlank: false,
 };
 
 /**

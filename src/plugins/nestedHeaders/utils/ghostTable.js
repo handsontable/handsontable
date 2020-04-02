@@ -74,7 +74,7 @@ class GhostTable {
         const td = rootDocument.createElement('th');
         const headerObj = clone(this.nestedHeaders.getHeaderSettings(row, col));
 
-        if (headerObj && !headerObj.hidden) {
+        if (headerObj && !headerObj.isHidden) {
           if (row === lastRowIndex) {
             if (headerObj.colspan > 1) {
               lastRowColspan = true;

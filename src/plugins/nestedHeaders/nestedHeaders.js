@@ -32,10 +32,10 @@ import './nestedHeaders.css';
  * const hot = new Handsontable(container, {
  *   date: getData(),
  *   nestedHeaders: [
- *           ['A', {label: 'B', colspan: 8}, 'C'],
- *           ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
- *           ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
- *           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+ *     ['A', {label: 'B', colspan: 8}, 'C'],
+ *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
+ *     ['H', {label: 'I', colspan: 2}, {label: 'J', colspan: 2}, {label: 'K', colspan: 2}, {label: 'L', colspan: 2}, 'M'],
+ *     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
  *  ],
  * ```
  */
@@ -255,9 +255,9 @@ class NestedHeaders extends BasePlugin {
       TH.removeAttribute('colspan');
       removeClass(TH, 'hiddenHeader');
 
-      const { colspan, label, hidden } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex);
+      const { colspan, label, isHidden } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex);
 
-      if (hidden === true) {
+      if (isHidden === true) {
         addClass(TH, 'hiddenHeader');
 
       } else if (colspan > 1) {
@@ -325,22 +325,22 @@ class NestedHeaders extends BasePlugin {
       for (let column = columnFrom; column <= columnTo; column++) {
         // Traverse header layers from bottom to top.
         for (let level = layersCount - 1; level > -1; level--) {
-          const { origColspan, hidden } = this.#stateManager.getHeaderSettings(level, column);
+          const { colspan, isHidden } = this.#stateManager.getHeaderSettings(level, column);
           const isFirstLayer = level === layersCount - 1;
-          const isOutOfRange = !isFirstLayer && (columnCursor + origColspan) > columnSelectionWidth;
+          const isOutOfRange = !isFirstLayer && (columnCursor + colspan) > columnSelectionWidth;
 
           const THs = this.getColumnHeaders(column, level);
 
           arrayEach(THs, (TH) => {
-            if (isOutOfRange) {
+            if (isOutOfRange || isHidden) {
               changes.push(activeHeader(TH, removeClass));
               changes.push(highlightHeader(TH, removeClass));
 
-            } else if (selectionByHeader && !hidden) {
+            } else if (selectionByHeader) {
               changes.push(activeHeader(TH, addClass));
               changes.push(highlightHeader(TH, addClass));
 
-            } else if (isFirstLayer && !hidden) {
+            } else if (isFirstLayer) {
               changes.push(highlightHeader(TH, addClass));
 
             } else {

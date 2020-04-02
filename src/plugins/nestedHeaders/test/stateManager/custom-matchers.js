@@ -30,9 +30,9 @@ beforeEach(() => {
     // Fill the grid with appropriate symbols and phrases.
     rootTrees.forEach((rootNode) => {
       rootNode.walkDown((node) => {
-        const { label, colspan, isCollapsed, hidden, headerLevel } = node.data;
+        const { label, colspan, isCollapsed, isHidden, headerLevel } = node.data;
 
-        if (hidden === true) {
+        if (isHidden === true) {
           return;
         }
 
