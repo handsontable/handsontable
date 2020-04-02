@@ -71,7 +71,6 @@ describe('IndexMapper', () => {
     expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
     expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
 
-
     indexMapper.registerMap('uniqueName2', hidingMap);
 
     expect(indexMapper.hidingMapsCollection.get('uniqueName2')).toBe(hidingMap);

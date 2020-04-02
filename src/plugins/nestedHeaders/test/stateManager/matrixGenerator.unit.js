@@ -85,7 +85,7 @@ describe('matrixGenerator', () => {
             label: '', colspan: 1, origColspan: 4, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
           },
           {
-            label: '', colspan: 1, origColspan: 4, isHidden: true, isCollapsed: false, collapsible: false, isBlank: tru,
+            label: '', colspan: 1, origColspan: 4, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
           }
         ],
         [
@@ -99,7 +99,7 @@ describe('matrixGenerator', () => {
             label: '', colspan: 1, origColspan: 3, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
           },
           {
-            label: 'B2', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: fals,
+            label: 'B2', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           }
         ],
         [
@@ -113,7 +113,7 @@ describe('matrixGenerator', () => {
             label: 'C2', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           },
           {
-            label: 'C3', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: fals,
+            label: 'C3', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           }
         ]
       ]);
@@ -169,7 +169,7 @@ describe('matrixGenerator', () => {
             label: '', colspan: 1, origColspan: 8, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
           },
           {
-            label: 'A3', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: fals,
+            label: 'A3', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           }
         ],
         [
@@ -201,7 +201,7 @@ describe('matrixGenerator', () => {
             label: '', colspan: 1, origColspan: 4, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
           },
           {
-            label: 'B4', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: fals,
+            label: 'B4', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           }
         ],
         [
@@ -233,7 +233,7 @@ describe('matrixGenerator', () => {
             label: '', colspan: 1, origColspan: 2, isHidden: true, isCollapsed: false, collapsible: false, isBlank: true,
           },
           {
-            label: 'C6', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: fals,
+            label: 'C6', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           }
         ],
         [
@@ -265,7 +265,7 @@ describe('matrixGenerator', () => {
             label: 'D9', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           },
           {
-            label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: fals,
+            label: '', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
           }
         ]
       ]);

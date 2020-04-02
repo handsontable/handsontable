@@ -2706,52 +2706,39 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="9">A1</th>
+            <th class="">A1</th>
+            <th class="collapsibleIndicator collapsed" colspan="3">B1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
             <th class="">A2</th>
+            <th class="collapsibleIndicator collapsed" colspan="3">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
           </tr>
           <tr>
-            <th class="ht__active_highlight ht__highlight">B1</th>
-            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
+            <th class="">A3</th>
+            <th class="collapsibleIndicator expanded" colspan="3">B3</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="4">B3</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">B4</th>
+            <th class="">J3</th>
           </tr>
           <tr>
-            <th class="ht__active_highlight ht__highlight">C1</th>
-            <th class="">C2</th>
-            <th class="collapsibleIndicator expanded" colspan="3">C3</th>
+            <th class="">A4</th>
+            <th class="collapsibleIndicator collapsed">B4</th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">D4</th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">C4</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">C5</th>
-            <th class="hiddenHeader"></th>
-            <th class="">C6</th>
+            <th class="">J4</th>
           </tr>
           <tr>
-            <th class="ht__active_highlight ht__highlight">D1</th>
-            <th class="">D2</th>
-            <th class="">D3</th>
-            <th class="">D4</th>
-            <th class="">D5</th>
-            <th class="">D6</th>
-            <th class="">D7</th>
-            <th class="">D8</th>
-            <th class="">D9</th>
-            <th class=""></th>
+            <th class="">A5</th>
+            <th class="">B5</th>
+            <th class="ht__active_highlight ht__highlight">D5</th>
+            <th class="ht__active_highlight ht__highlight">E5</th>
+            <th class="">J5</th>
           </tr>
         </thead>
         `);
