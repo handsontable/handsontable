@@ -180,11 +180,18 @@ class NestedHeaders extends BasePlugin {
   getColumnHeaders(columnIndex, headerLevel) {
     const { wtOverlays } = this.hot.view.wt;
     const renderedColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(columnIndex);
+    const headers = [];
 
-    return [
-      wtOverlays.topOverlay?.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel),
-      wtOverlays.topLeftCornerOverlay?.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel),
-    ].filter(element => element !== void 0);
+    if (renderedColumnIndex !== null) {
+      if (wtOverlays.topOverlay) {
+        headers.push(wtOverlays.topOverlay.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel));
+      }
+      if (wtOverlays.topLeftCornerOverlay) {
+        headers.push(wtOverlays.topLeftCornerOverlay.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel));
+      }
+    }
+
+    return headers;
   }
 
   /**
@@ -302,13 +309,14 @@ class NestedHeaders extends BasePlugin {
     }
 
     const hotSettings = this.hot.getSettings();
-    const classNameModifier = className => (TH, modifier) => () => modifier(TH, className);
+    const classNameModifier = className => (TH, modifier) => () => (TH ? modifier(TH, className) : null);
     const highlightHeader = classNameModifier(hotSettings.currentHeaderClassName);
     const activeHeader = classNameModifier(hotSettings.activeHeaderClassName);
 
     const selectionByHeader = hot.selection.isSelectedByColumnHeader();
     const layersCount = this.#stateManager.getLayersCount();
-    const changes = [];
+    const activeHeaderChanges = new Map();
+    const highlightHeaderChanges = new Map();
 
     arrayEach(selection, (selectionLayer) => {
       const coordsFrom = selectionLayer.getTopLeftCorner();
@@ -333,18 +341,20 @@ class NestedHeaders extends BasePlugin {
 
           arrayEach(THs, (TH) => {
             if (isOutOfRange || isHidden) {
-              changes.push(activeHeader(TH, removeClass));
-              changes.push(highlightHeader(TH, removeClass));
+              // Reset CSS classes state (workaround for WoT issue which can not render that classes
+              // for nested header structure properly).
+              activeHeaderChanges.set(TH, activeHeader(TH, removeClass));
+              highlightHeaderChanges.set(TH, highlightHeader(TH, removeClass));
 
             } else if (selectionByHeader) {
-              changes.push(activeHeader(TH, addClass));
-              changes.push(highlightHeader(TH, addClass));
+              activeHeaderChanges.set(TH, activeHeader(TH, addClass));
+              highlightHeaderChanges.set(TH, highlightHeader(TH, addClass));
 
             } else if (isFirstLayer) {
-              changes.push(highlightHeader(TH, addClass));
+              highlightHeaderChanges.set(TH, highlightHeader(TH, addClass));
 
             } else {
-              changes.push(highlightHeader(TH, removeClass));
+              highlightHeaderChanges.set(TH, highlightHeader(TH, removeClass));
             }
           });
         }
@@ -353,7 +363,11 @@ class NestedHeaders extends BasePlugin {
       }
     });
 
-    arrayEach(changes, fn => void fn());
+    arrayEach(activeHeaderChanges, ([, classModifer]) => void classModifer());
+    arrayEach(highlightHeaderChanges, ([, classModifer]) => void classModifer());
+
+    activeHeaderChanges.clear();
+    highlightHeaderChanges.clear();
   }
 
   /**

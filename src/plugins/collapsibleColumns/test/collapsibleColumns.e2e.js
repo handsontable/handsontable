@@ -2504,44 +2504,162 @@ describe('CollapsibleColumns', () => {
         data: Handsontable.helper.createSpreadsheetData(5, 10),
         hiddenColumns: true,
         nestedHeaders: [
-          [{ label: 'A1', colspan: 9 }, 'A2'],
-          ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 4 }, 'B4'],
-          ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }, { label: 'C5', colspan: 2 }, 'C6'],
-          ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9'],
+          [{ label: 'A1', colspan: 9 }, 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+          ['A3', 'B3', { label: 'C3', colspan: 3 }, { label: 'F3', colspan: 2 }, { label: 'H3', colspan: 2 }, 'J3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
         ],
         collapsibleColumns: true
       });
 
-      $(getCell(-4, 0).querySelector('.collapsibleIndicator')) // Collapse header "A1"
+      $(getCell(-2, 2)) // Select header "C3"
+        .simulate('mousedown')
+        .simulate('mouseup');
+      $(getCell(-2, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
-      $(getCell(-1, 0)) // Select header "D1"
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="7">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="4">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">C3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="ht__active_highlight ht__highlight">C4</th>
+            <th class="">F4</th>
+            <th class="">G4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+            <th class="">J4</th>
+          </tr>
+        </thead>
+        `);
+
+      $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Collapse header "H3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-2, 7)) // Select header "H3"
         .simulate('mousedown')
         .simulate('mouseup');
 
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="ht__highlight ht__active_highlight collapsibleIndicator collapsed">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="6">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
             <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="collapsibleIndicator expanded" colspan="3">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
           </tr>
           <tr>
-            <th class="ht__active_highlight ht__highlight">B1</th>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="collapsibleIndicator collapsed">C3</th>
+            <th class="collapsibleIndicator expanded" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">H3</th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
             <th class="">B4</th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">C1</th>
-            <th class="">C6</th>
-          </tr>
-          <tr>
-            <th class="ht__active_highlight ht__highlight">D1</th>
-            <th class=""></th>
+            <th class="">C4</th>
+            <th class="">F4</th>
+            <th class="">G4</th>
+            <th class="ht__active_highlight ht__highlight">H4</th>
+            <th class="">J4</th>
           </tr>
         </thead>
         `);
 
-      $(getCell(-4, 0).querySelector('.collapsibleIndicator')) // Expand header "A1"
+      $(getCell(-2, 5).querySelector('.collapsibleIndicator')) // Collapse header "F3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-3, 5)) // Select header "F2"
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="5">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="collapsibleIndicator collapsed">C3</th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">F3</th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">H3</th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="ht__active_highlight ht__highlight">F4</th>
+            <th class="ht__active_highlight ht__highlight">H4</th>
+            <th class="">J4</th>
+          </tr>
+        </thead>
+        `);
+
+      $(getCell(-3, 5).querySelector('.collapsibleIndicator')) // Collapse header "F2"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
@@ -2549,52 +2667,90 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="9">A1</th>
+            <th class="collapsibleIndicator expanded" colspan="4">A1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
             <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">F2</th>
+            <th class="">J2</th>
           </tr>
           <tr>
-            <th class="ht__active_highlight ht__highlight">B1</th>
-            <th class="collapsibleIndicator expanded" colspan="4">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="4">B3</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="collapsibleIndicator collapsed">C3</th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator collapsed">F3</th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
             <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="ht__active_highlight ht__highlight">F4</th>
+            <th class="">J4</th>
+          </tr>
+        </thead>
+        `);
+
+      $(getCell(-3, 5).querySelector('.collapsibleIndicator')) // Expand header "F2"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-2, 5).querySelector('.collapsibleIndicator')) // Expand header "F3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+      $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Expand header "H3"
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click');
+
+      expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="collapsibleIndicator expanded" colspan="7">A1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
           </tr>
           <tr>
-            <th class="ht__active_highlight ht__highlight">C1</th>
-            <th class="">C2</th>
-            <th class="collapsibleIndicator expanded" colspan="3">C3</th>
+            <th class="">A2</th>
+            <th class="collapsibleIndicator expanded" colspan="2">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="4">F2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">C4</th>
             <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">C5</th>
-            <th class="hiddenHeader"></th>
-            <th class="">C6</th>
+            <th class="">J2</th>
           </tr>
           <tr>
-            <th class="ht__active_highlight ht__highlight">D1</th>
-            <th class="">D2</th>
-            <th class="">D3</th>
-            <th class="">D4</th>
-            <th class="">D5</th>
-            <th class="">D6</th>
-            <th class="">D7</th>
-            <th class="">D8</th>
-            <th class="">D9</th>
-            <th class=""></th>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="collapsibleIndicator collapsed">C3</th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="ht__active_highlight ht__highlight collapsibleIndicator expanded" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="ht__active_highlight ht__highlight">F4</th>
+            <th class="ht__active_highlight ht__highlight">G4</th>
+            <th class="ht__active_highlight ht__highlight">H4</th>
+            <th class="ht__active_highlight ht__highlight">I4</th>
+            <th class="">J4</th>
           </tr>
         </thead>
         `);
