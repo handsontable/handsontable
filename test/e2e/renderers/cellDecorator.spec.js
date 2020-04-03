@@ -117,4 +117,15 @@ describe('CellDecorator', () => {
       done();
     }, 200);
   });
+
+  // When PR#6425 has been approved I will move this test to className.spec.js
+  it('should add all CSS classes to each cell without removing old one (passed as an array)', () => {
+    handsontable({
+      data: [[1, true]],
+      className: ['First', 'Second', '', 'Third'],
+    });
+
+    expect(getCell(0, 0).className).toBe('First Second Third');
+    expect(getCell(0, 1).className).toBe('First Second Third');
+  });
 });
