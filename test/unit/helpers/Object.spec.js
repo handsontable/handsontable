@@ -6,6 +6,7 @@ import {
   deepExtend,
   deepObjectSize,
   createObjectPropListener,
+  setProperty
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -302,6 +303,33 @@ describe('Object helper', () => {
 
       expect(propListener.isTouched()).toBe(true);
       expect(propListener.value).toBe(void 0);
+    });
+  });
+
+  //
+  // Handsontable.helper.setProperty
+  //
+  describe('setProperty', () => {
+    it('should set a property value on a given object', () => {
+      const testObject = {};
+      const testObject2 = { prop1: 0 };
+
+      setProperty(testObject, 'prop1', 'value1');
+      expect(testObject.prop1).toEqual('value1');
+
+      setProperty(testObject2, 'prop1', 'value1');
+      expect(testObject2.prop1).toEqual('value1');
+    });
+
+    it('should set a nested property value on a given object', () => {
+      const testObject = {};
+      const testObject2 = { prop1: { subprop1: 0 } };
+
+      setProperty(testObject, 'prop1.subprop1', 'value1');
+      expect(testObject.prop1.subprop1).toEqual('value1');
+
+      setProperty(testObject2, 'prop1.subprop1', 'value1');
+      expect(testObject2.prop1.subprop1).toEqual('value1');
     });
   });
 });

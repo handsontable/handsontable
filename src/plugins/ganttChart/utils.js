@@ -1,13 +1,13 @@
 /**
  * Day count for December.
  *
- * @type {Number}
+ * @type {number}
  */
 export const DEC_LENGTH = 31;
 /**
  * Day count for a week.
  *
- * @type {Number}
+ * @type {number}
  */
 export const WEEK_LENGTH = 7;
 
@@ -15,9 +15,9 @@ export const WEEK_LENGTH = 7;
  * Generate a mixed month object.
  *
  * @private
- * @param {String} monthName The month name.
- * @param {Number} index Index for the mixed month.
- * @returns {Object} The month object.
+ * @param {string} monthName The month name.
+ * @param {number} index Index for the mixed month.
+ * @returns {object} The month object.
  */
 export function getMixedMonthObject(monthName, index) {
   return {
@@ -34,9 +34,9 @@ export function getMixedMonthObject(monthName, index) {
  * Generate the name for a mixed month.
  *
  * @private
- * @param {Number} afterMonthIndex Index of the month after the mixed one.
+ * @param {number} afterMonthIndex Index of the month after the mixed one.
  * @param {Array} monthList List of the months.
- * @returns {String} Name for the mixed month.
+ * @returns {string} Name for the mixed month.
  */
 export function getMixedMonthName(afterMonthIndex, monthList) {
   let mixedMonthName = null;
@@ -62,8 +62,8 @@ export function getMixedMonthName(afterMonthIndex, monthList) {
  * Get the three first letters from the provided month name.
  *
  * @private
- * @param {String} monthName The month name.
- * @returns {String} The three-lettered shorthand for the month name.
+ * @param {string} monthName The month name.
+ * @returns {string} The three-lettered shorthand for the month name.
  */
 export function getShorthand(monthName) {
   const MONTH_SHORT_LEN = 3;
@@ -73,7 +73,7 @@ export function getShorthand(monthName) {
 /**
  * Get the start date of the provided range bar.
  *
- * @param {Object} rangeBar The range bar object.
+ * @param {object} rangeBar The range bar object.
  * @returns {Date} The start date.
  */
 export function getStartDate(rangeBar) {
@@ -83,7 +83,7 @@ export function getStartDate(rangeBar) {
 /**
  * Get the end date of the provided range bar.
  *
- * @param {Object} rangeBar The range bar object.
+ * @param {object} rangeBar The range bar object.
  * @returns {Date} The end date.
  */
 export function getEndDate(rangeBar) {
@@ -93,8 +93,8 @@ export function getEndDate(rangeBar) {
 /**
  * Get the additional data object of the provided range bar.
  *
- * @param {Object} rangeBar The range bar object.
- * @returns {Object} The additional data object.
+ * @param {object} rangeBar The range bar object.
+ * @returns {object} The additional data object.
  */
 export function getAdditionalData(rangeBar) {
   return Array.isArray(rangeBar) ? rangeBar[3] : rangeBar.additionalData;
@@ -103,7 +103,7 @@ export function getAdditionalData(rangeBar) {
 /**
  * Set the start date of the provided range bar.
  *
- * @param {Object} rangeBar The range bar object.
+ * @param {object} rangeBar The range bar object.
  * @param {Date} value The new start date value.
  */
 export function setStartDate(rangeBar, value) {
@@ -118,7 +118,7 @@ export function setStartDate(rangeBar, value) {
 /**
  * Set the end date of the provided range bar.
  *
- * @param {Object} rangeBar The range bar object.
+ * @param {object} rangeBar The range bar object.
  * @param {Date} value The new end date value.
  */
 export function setEndDate(rangeBar, value) {
@@ -133,7 +133,7 @@ export function setEndDate(rangeBar, value) {
 /**
  * Parse the provided date and check if it's valid.
  *
- * @param {String|Date} date Date string or object.
+ * @param {string|Date} date Date string or object.
  * @returns {Date|null} Parsed Date object or null, if not a valid date string.
  */
 export function parseDate(date) {
@@ -157,8 +157,8 @@ export function parseDate(date) {
 /**
  * Get the year of the provided date.
  *
- * @param {Date|String} date Date to get the year from.
- * @returns {Number|null} The year from the provided date.
+ * @param {Date|string} date Date to get the year from.
+ * @returns {number|null} The year from the provided date.
  */
 export function getDateYear(date) {
   const newDate = parseDate(date);

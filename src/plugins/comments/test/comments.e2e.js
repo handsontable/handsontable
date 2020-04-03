@@ -218,6 +218,22 @@ describe('Comments', () => {
       expect(getCellMeta(1, 1).comment.value).toEqual('test comment');
     });
 
+    it('should not allow inserting comments using the `setCommentAtCell` method if `beforeSetCellMeta` returned false', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+        beforeSetCellMeta: () => false
+      });
+
+      const plugin = hot.getPlugin('comments');
+
+      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+
+      plugin.setCommentAtCell(1, 1, 'test comment');
+
+      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+    });
+
     it('should trigger `afterSetCellMeta` callback when `setCommentAtCell` function is invoked', () => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
       const hot = handsontable({
@@ -248,6 +264,24 @@ describe('Comments', () => {
       plugin.removeCommentAtCell(1, 1);
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
+    });
+
+    it('should not allow removing comments using the `removeCommentAtCell` method if `beforeSetCellMeta` returned false', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'test' } }
+        ]
+      });
+
+      hot.updateSettings({ beforeSetCellMeta: () => false });
+
+      const plugin = hot.getPlugin('comments');
+
+      plugin.removeCommentAtCell(1, 1);
+
+      expect(getCellMeta(1, 1).comment.value).toEqual('test');
     });
 
     it('should trigger `afterSetCellMeta` callback when `removeCommentAtCell` function is invoked', () => {
@@ -347,13 +381,17 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(addCommentButton).top + 5,
     });
 
-    $(addCommentButton).simulate('mousedown');
+    $(addCommentButton).simulate('mousedown').simulate('mouseup');
 
     const editor = hot.getPlugin('comments').editor.getInputElement();
 
     await sleep(300);
 
     expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
+
+    // Call manually blur event on comment input. This prevents auto-triggering blur event
+    // when the instance is destroyed, which causes to call `getCellMeta` on the destroyed instance.
+    editor.blur();
   });
 
   describe('Using the Context Menu', () => {
@@ -371,7 +409,7 @@ describe('Comments', () => {
         return $(this).text() === 'Add comment';
       })[0];
 
-      $(addCommentButton).simulate('mousedown');
+      $(addCommentButton).simulate('mousedown').simulate('mouseup');
 
       const editor = hot.getPlugin('comments').editor.getInputElement();
 
@@ -397,7 +435,7 @@ describe('Comments', () => {
         return $(this).text() === 'Delete comment';
       })[0];
 
-      $(deleteCommentButton).simulate('mousedown');
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
     });
@@ -423,7 +461,7 @@ describe('Comments', () => {
         return $(this).text() === 'Delete comment';
       })[0];
 
-      $(deleteCommentButton).simulate('mousedown');
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
       expect(getCellMeta(2, 2).comment).toEqual(void 0);
@@ -450,7 +488,7 @@ describe('Comments', () => {
         return $(this).text() === 'Read-only comment';
       })[0];
 
-      $(readOnlyComment).simulate('mousedown');
+      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
       $(document).simulate('mouseup');
 
       $(getCell(1, 1)).simulate('mouseover', {
@@ -494,9 +532,40 @@ describe('Comments', () => {
         return $(this).text() === 'Delete comment';
       })[0];
 
-      $(deleteCommentButton).simulate('mousedown');
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
 
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', undefined, undefined, undefined);
+    });
+
+    it('should not deleting comment by context menu if `beforeSetCellMeta` returned false', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns() {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        },
+        beforeSetCellMeta: () => false
+      });
+
+      expect(getCellMeta(1, 1).comment.value).toEqual('test');
+
+      selectCell(1, 1);
+      contextMenu();
+
+      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Delete comment';
+      })[0];
+
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+
+      expect(getCellMeta(1, 1).comment.value).toEqual('test');
     });
 
     it('should trigger `afterSetCellMeta` callback after editing comment by context menu', async() => {
@@ -541,6 +610,48 @@ describe('Comments', () => {
       await sleep(400);
 
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
+    });
+
+    it('should not editing comment by context menu if `beforeSetCellMeta` returned false', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        comments: true,
+        columns() {
+          return {
+            comment: {
+              value: 'test'
+            }
+          };
+        },
+        beforeSetCellMeta: () => false
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const editCommentButton = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Edit comment';
+      })[0];
+
+      $(editCommentButton).simulate('mousedown');
+      $(editCommentButton).simulate('mouseup');
+
+      const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+      textarea.focus();
+      textarea.value = 'Edited comment';
+
+      await sleep(100);
+
+      $('body').simulate('mousedown');
+      $('body').simulate('mouseup');
+      textarea.blur();
+
+      await sleep(400);
+
+      expect(getCellMeta(0, 0).comment.value).toEqual('test');
     });
   });
 });

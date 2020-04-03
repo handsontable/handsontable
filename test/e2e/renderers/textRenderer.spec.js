@@ -84,4 +84,25 @@ describe('TextRenderer', () => {
 
     expect($(getCell(1, 0)).height()).toBeGreaterThan($(getCell(0, 0)).height());
   });
+
+  it('should wrap text when trimWhitespace option is false', () => {
+    const HOT = handsontable({
+      trimWhitespace: false,
+      wordWrap: true,
+      data: [
+        ['text', 'long long long long long text']
+      ],
+      colWidths: [100, 500]
+    });
+
+    const oldRowHeight = $(getCell(0, 1)).height();
+
+    HOT.updateSettings({
+      colWidths: [100, 100]
+    });
+
+    const newRowHeight = $(getCell(0, 1)).height();
+
+    expect(newRowHeight).toBeGreaterThan(oldRowHeight);
+  });
 });

@@ -32,13 +32,13 @@ export default class OrderView {
     /**
      * Node type which the order view will manage while rendering the DOM elements.
      *
-     * @type {String}
+     * @type {string}
      */
     this.childNodeType = childNodeType.toUpperCase();
     /**
      * The visual index of currently processed row.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.visualIndex = 0;
     /**
@@ -51,9 +51,9 @@ export default class OrderView {
 
   /**
    * Sets the size for rendered elements. It can be a size for rows, cells or size for row
-   * headers etc. it depends for what table renderer this instance was created.
+   * headers etc. It depends for what table renderer this instance was created.
    *
-   * @param {Number} size
+   * @param {number} size The size.
    * @returns {OrderView}
    */
   setSize(size) {
@@ -63,10 +63,10 @@ export default class OrderView {
   }
 
   /**
-  * Sets the offset for rendered elements. The offset describes the shift between 0 and
-  * the first rendered element according to the scroll position.
+   * Sets the offset for rendered elements. The offset describes the shift between 0 and
+   * the first rendered element according to the scroll position.
    *
-   * @param {Number} offset
+   * @param {number} offset The offset.
    * @returns {OrderView}
    */
   setOffset(offset) {
@@ -80,7 +80,7 @@ export default class OrderView {
    * a row (TR) as a root node is managed by two OrderView instances. If this happens another DOM injection
    * algorithm is performed to achieve consistent order.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSharedViewSet() {
     return this.sizeSet.isShared();
@@ -89,7 +89,7 @@ export default class OrderView {
   /**
    * Returns rendered DOM element based on visual index.
    *
-   * @param {Number} visualIndex
+   * @param {number} visualIndex The visual index.
    * @returns {HTMLElement}
    */
   getNode(visualIndex) {
@@ -110,7 +110,7 @@ export default class OrderView {
   /**
    * Returns rendered child count for this instance.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getRenderedChildCount() {
     const { rootNode, sizeSet } = this;

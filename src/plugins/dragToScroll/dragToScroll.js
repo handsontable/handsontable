@@ -1,6 +1,8 @@
 import BasePlugin from './../_base';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
+import { isRightClick } from '../../helpers/dom/event';
+import { getParentWindow } from '../../helpers/dom/element';
 
 /**
  * @description
@@ -38,7 +40,7 @@ class DragToScroll extends BasePlugin {
      * Flag indicates mouseDown/mouseUp.
      *
      * @private
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.listening = false;
   }
@@ -47,7 +49,7 @@ class DragToScroll extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link DragToScroll#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().dragToScroll;
@@ -61,8 +63,8 @@ class DragToScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterOnCellMouseDown', () => this.setupListening());
-    this.addHook('afterOnCellCornerMouseDown', () => this.setupListening());
+    this.addHook('afterOnCellMouseDown', event => this.setupListening(event));
+    this.addHook('afterOnCellCornerMouseDown', event => this.setupListening(event));
 
     this.registerEvents();
 
@@ -91,7 +93,7 @@ class DragToScroll extends BasePlugin {
   /**
    * Sets the value of the visible element.
    *
-   * @param boundaries {DOMRect} An object with coordinates compatible with DOMRect.
+   * @param {DOMRect} boundaries An object with coordinates compatible with DOMRect.
    */
   setBoundaries(boundaries) {
     this.boundaries = boundaries;
@@ -100,7 +102,7 @@ class DragToScroll extends BasePlugin {
   /**
    * Changes callback function.
    *
-   * @param callback {Function}
+   * @param {Function} callback The callback function.
    */
   setCallback(callback) {
     this.callback = callback;
@@ -110,8 +112,8 @@ class DragToScroll extends BasePlugin {
    * Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
    * between passed boundaries.
    *
-   * @param {Number} x Mouse X coordinate to check.
-   * @param {Number} y Mouse Y coordinate to check.
+   * @param {number} x Mouse X coordinate to check.
+   * @param {number} y Mouse Y coordinate to check.
    */
   check(x, y) {
     let diffX = 0;
@@ -139,15 +141,50 @@ class DragToScroll extends BasePlugin {
   }
 
   /**
+   * Enables listening on `mousemove` event.
+   *
+   * @private
+   */
+  listen() {
+    this.listening = true;
+  }
+
+  /**
+   * Disables listening on `mousemove` event.
+   *
+   * @private
+   */
+  unlisten() {
+    this.listening = false;
+  }
+
+  /**
+   * Returns current state of listening.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isListening() {
+    return this.listening;
+  }
+
+  /**
    * Registers dom listeners.
    *
    * @private
    */
   registerEvents() {
-    const rootDocument = this.hot.rootDocument;
+    const { rootWindow } = this.hot;
 
-    this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
-    this.eventManager.addEventListener(rootDocument, 'mousemove', event => this.onMouseMove(event));
+    let frame = rootWindow;
+
+    while (frame) {
+      this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.onMouseMove(event));
+
+      frame = getParentWindow(frame);
+    }
   }
 
   /**
@@ -163,8 +200,13 @@ class DragToScroll extends BasePlugin {
    * On after on cell/cellCorner mouse down listener.
    *
    * @private
+   * @param {MouseEvent} event The mouse event object.
    */
-  setupListening() {
+  setupListening(event) {
+    if (isRightClick(event)) {
+      return;
+    }
+
     const scrollHandler = this.hot.view.wt.wtTable.holder; // native scroll
 
     if (scrollHandler === this.hot.rootWindow) {
@@ -189,7 +231,7 @@ class DragToScroll extends BasePlugin {
       }
     });
 
-    this.listening = true;
+    this.listen();
   }
 
   /**
@@ -199,18 +241,11 @@ class DragToScroll extends BasePlugin {
    * @param {MouseEvent} event `mousemove` event properties.
    */
   onMouseMove(event) {
-    if (this.listening) {
-      this.check(event.clientX, event.clientY);
+    if (!this.isListening()) {
+      return;
     }
-  }
 
-  /**
-   * `onMouseUp` hook callback.
-   *
-   * @private
-   */
-  onMouseUp() {
-    this.listening = false;
+    this.check(event.clientX, event.clientY);
   }
 
   /**

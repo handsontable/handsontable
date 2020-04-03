@@ -42,7 +42,7 @@ class Stack {
   /**
    * Check if the stack is empty.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEmpty() {
     return !this.size();
@@ -51,7 +51,7 @@ class Stack {
   /**
    * Return number of elements in the stack.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   size() {
     return this.items.length;

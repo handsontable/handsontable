@@ -1,5 +1,9 @@
 import * as C from './../../../i18n/constants';
 
+/**
+ * @param {CopyPaste} copyPastePlugin The plugin instance.
+ * @returns {object}
+ */
 export default function cutItem(copyPastePlugin) {
   return {
     key: 'cut',

@@ -5,7 +5,7 @@ import { getCompareFunctionFactory, DO_NOT_SWAP } from '../columnSorting/sortSer
 /**
  * Sort comparator handled by conventional sort algorithm.
  *
- * @param {Array} sortOrders Sort orders (`asc` for ascending, `desc` for descending).
+ * @param {Array} sortingOrders Sort orders (`asc` for ascending, `desc` for descending).
  * @param {Array} columnMetas Column meta objects.
  * @returns {Function}
  */

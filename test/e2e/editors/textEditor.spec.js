@@ -114,6 +114,54 @@ describe('TextEditor', () => {
     expect(overflow).not.toBe('hidden');
   });
 
+  it('should change editor\'s z-index properties during switching to overlay where editor was open', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      editor: 'text',
+      fixedRowsBottom: 2,
+      fixedRowsTop: 2,
+      fixedColumnsLeft: 2,
+    });
+
+    // .ht_clone_top_left_corner
+    selectCell(0, 0);
+    keyDownUp('enter');
+
+    const handsontableInputHolder = spec().$container.find('.handsontableInputHolder');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('180');
+
+    // .ht_clone_left
+    selectCell(5, 0);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('120');
+
+    // .ht_clone_bottom_left_corner
+    selectCell(9, 0);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('150');
+
+    // .ht_clone_top
+    selectCell(0, 5);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('160');
+
+    // .ht_clone_master
+    selectCell(2, 2);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('100');
+
+    // .ht_clone_bottom
+    selectCell(9, 5);
+    keyDownUp('enter');
+
+    expect(handsontableInputHolder.css('zIndex')).toBe('130');
+  });
+
   it('should render string in textarea', () => {
     handsontable();
     setDataAtCell(2, 2, 'string');
@@ -125,11 +173,12 @@ describe('TextEditor', () => {
   });
 
   it('should render proper value after cell coords manipulation', () => {
-    handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
-      modifyRow(row) { return row === 4 ? 0 : row + 1; },
-      modifyCol(column) { return column === 4 ? 0 : column + 1; },
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5)
     });
+
+    hot.rowIndexMapper.setIndexesSequence([1, 2, 3, 4, 0]);
+    hot.columnIndexMapper.setIndexesSequence([1, 2, 3, 4, 0]);
 
     selectCell(0, 0);
     getActiveEditor().beginEditing();
@@ -620,35 +669,105 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toEqual(true);
   });
 
-  it('should open editor after double clicking on a cell', (done) => {
-    const hot = handsontable({
+  it('should open editor after double clicking on a cell', async() => {
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 2)
     });
     const cell = $(getCell(0, 0));
-    let clicks = 0;
 
+    selectCell(0, 0);
     window.scrollTo(0, cell.offset().top);
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks += 1;
-    }, 0);
+    await sleep(0);
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks += 1;
-    }, 100);
+    cell
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
 
-    setTimeout(() => {
-      const editor = hot.getActiveEditor();
+    await sleep(100);
 
-      expect(clicks).toBe(2);
-      expect(editor.isOpened()).toBe(true);
-      expect(editor.isInFullEditMode()).toBe(true);
-      done();
-    }, 200);
+    cell
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    await sleep(100);
+
+    const editor = getActiveEditor();
+
+    expect(editor.isOpened()).toBe(true);
+    expect(editor.isInFullEditMode()).toBe(true);
+  });
+
+  it('should not open editor after double clicking on a cell using the middle mouse button', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2)
+    });
+    const cell = $(getCell(0, 0));
+    const button = 1;
+
+    selectCell(0, 0);
+    window.scrollTo(0, cell.offset().top);
+
+    await sleep(0);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    const editor = getActiveEditor();
+
+    expect(editor.isOpened()).toBe(false);
+    expect(editor.isInFullEditMode()).toBe(false);
+  });
+
+  it('should not open editor after double clicking on a cell using the right mouse button', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 2)
+    });
+    const cell = $(getCell(0, 0));
+    const button = 2;
+
+    selectCell(0, 0);
+    window.scrollTo(0, cell.offset().top);
+
+    await sleep(0);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    cell
+      .simulate('mousedown', { button })
+      .simulate('mouseup', { button })
+      .simulate('click', { button })
+    ;
+
+    await sleep(100);
+
+    const editor = getActiveEditor();
+
+    expect(editor.isOpened()).toBe(false);
+    expect(editor.isInFullEditMode()).toBe(false);
   });
 
   it('should call editor focus() method after opening an editor', () => {

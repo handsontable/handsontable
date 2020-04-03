@@ -1,7 +1,14 @@
 import BasePlugin from '../../plugins/_base';
-import { rangeEach } from '../../helpers/number';
 import { registerPlugin } from '../../plugins';
-import BindStrategy from './bindStrategy';
+import LooseBindsMap from './maps/looseBindsMap';
+import StrictBindsMap from './maps/strictBindsMap';
+
+const DEFAULT_BIND = 'loose';
+
+const bindTypeToMapStrategy = new Map([
+  ['loose', LooseBindsMap],
+  ['strict', StrictBindsMap]
+]);
 
 /**
  * @plugin BindRowsWithHeaders
@@ -26,26 +33,19 @@ class BindRowsWithHeaders extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Strategy object for binding rows with headers.
+     * Plugin indexes cache.
      *
      * @private
-     * @type {BindStrategy}
+     * @type {null|IndexMap}
      */
-    this.bindStrategy = new BindStrategy();
-    /**
-     * List of last removed row indexes.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.removedRows = [];
+    this.headerIndexes = null;
   }
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link BindRowsWithHeaders#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().bindRowsWithHeaders;
@@ -58,36 +58,28 @@ class BindRowsWithHeaders extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    let bindStrategy = this.hot.getSettings().bindRowsWithHeaders;
 
-    if (typeof bindStrategy !== 'string') {
-      bindStrategy = BindStrategy.DEFAULT_STRATEGY;
+    let bindType = this.hot.getSettings().bindRowsWithHeaders;
+
+    if (typeof bindType !== 'string') {
+      bindType = DEFAULT_BIND;
     }
-    this.bindStrategy.setStrategy(bindStrategy);
-    this.bindStrategy.createMap(this.hot.countSourceRows());
+
+    const MapStrategy = bindTypeToMapStrategy.get(bindType);
+
+    this.headerIndexes = this.hot.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy());
 
     this.addHook('modifyRowHeader', row => this.onModifyRowHeader(row));
-    this.addHook('afterCreateRow', (index, amount) => this.onAfterCreateRow(index, amount));
-    this.addHook('beforeRemoveRow', (index, amount) => this.onBeforeRemoveRow(index, amount));
-    this.addHook('afterRemoveRow', () => this.onAfterRemoveRow());
-    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
 
     super.enablePlugin();
-  }
-
-  /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
-   */
-  updatePlugin() {
-    super.updatePlugin();
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.removedRows.length = 0;
-    this.bindStrategy.clearMap();
+    this.hot.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
+
     super.disablePlugin();
   }
 
@@ -95,72 +87,19 @@ class BindRowsWithHeaders extends BasePlugin {
    * On modify row header listener.
    *
    * @private
-   * @param {Number} row Row index.
-   * @returns {Number}
-   *
-   * @fires Hooks#modifyRow
+   * @param {number} row Row index.
+   * @returns {number}
    */
   onModifyRowHeader(row) {
-    return this.bindStrategy.translate(this.hot.runHooks('modifyRow', row));
-  }
-
-  /**
-   * On after create row listener.
-   *
-   * @private
-   * @param {Number} index Row index.
-   * @param {Number} amount Defines how many rows removed.
-   */
-  onAfterCreateRow(index, amount) {
-    this.bindStrategy.createRow(index, amount);
-  }
-
-  /**
-   * On before remove row listener.
-   *
-   * @private
-   * @param {Number} index Row index.
-   * @param {Number} amount Defines how many rows removed.
-   *
-   * @fires Hooks#modifyRow
-   */
-  onBeforeRemoveRow(index, amount) {
-    this.removedRows.length = 0;
-
-    if (index !== false) {
-      // Collect physical row index.
-      rangeEach(index, index + amount - 1, (removedIndex) => {
-        this.removedRows.push(this.hot.runHooks('modifyRow', removedIndex));
-      });
-    }
-  }
-
-  /**
-   * On after remove row listener.
-   *
-   * @private
-   */
-  onAfterRemoveRow() {
-    this.bindStrategy.removeRow(this.removedRows);
-  }
-
-  /**
-   * On after load data listener.
-   *
-   * @private
-   * @param {Boolean} firstRun Indicates if hook was fired while Handsontable initialization.
-   */
-  onAfterLoadData(firstRun) {
-    if (!firstRun) {
-      this.bindStrategy.createMap(this.hot.countSourceRows());
-    }
+    return this.headerIndexes.getValueAtIndex(this.hot.toPhysicalRow(row));
   }
 
   /**
    * Destroys the plugin instance.
    */
   destroy() {
-    this.bindStrategy.destroy();
+    this.hot.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
+
     super.destroy();
   }
 }

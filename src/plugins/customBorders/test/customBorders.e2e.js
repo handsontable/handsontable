@@ -13,18 +13,21 @@ describe('CustomBorders', () => {
   /**
    * Returns number of custom borders in DOM. There are 5 borders per
    * cell (top, left, bottom right, corner), some of which are hidden
-   * TODO this seems redundant that we always render borders that are not visible
+   * TODO this seems redundant that we always render borders that are not visible.
    */
   function countCustomBorders() {
     return $(CUSTOM_BORDER_SELECTOR).length;
   }
   /**
-   * Returns number of visible custom borders in DOM
+   * Returns number of visible custom borders in DOM.
    */
   function countVisibleCustomBorders() {
     return $(`${CUSTOM_BORDER_SELECTOR}:visible`).length;
   }
 
+  /**
+   * @param numRows
+   */
   function generateCustomBordersForAllRows(numRows) {
     const bordersConfig = [];
 

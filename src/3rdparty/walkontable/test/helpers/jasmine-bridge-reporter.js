@@ -3,6 +3,9 @@
     return;
   }
 
+  /**
+   * @class
+   */
   function JasmineBridgeReporter() {
     this.started = false;
     this.finished = false;

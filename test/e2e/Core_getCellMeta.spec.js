@@ -13,19 +13,18 @@ describe('Core_getCellMeta', () => {
   });
 
   it('should get proper cell meta when indexes was modified', () => {
-    handsontable({
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
-      }
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5
     });
+
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     const cellMeta = getCellMeta(0, 1);
 
-    expect(cellMeta.row).toEqual(10);
-    expect(cellMeta.col).toEqual(11);
+    expect(cellMeta.row).toEqual(4);
+    expect(cellMeta.col).toEqual(3);
     expect(cellMeta.visualRow).toEqual(0);
     expect(cellMeta.visualCol).toEqual(1);
   });
@@ -198,17 +197,16 @@ describe('Core_getCellMeta', () => {
     let colInsideHook;
 
     const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
       beforeGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
       },
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
-      }
     });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.getCellMeta(0, 1);
 
@@ -216,22 +214,61 @@ describe('Core_getCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
+  it('should expand "type" property to cell meta when property is added in the `beforeGetCellMeta` hook', () => {
+    handsontable({
+      beforeGetCellMeta(row, col, cellProperties) {
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
+        }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+        }
+      },
+    });
+
+    expect(getCellMeta(0, 0).editor).toBeUndefined();
+    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
+    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
+    expect(getCellMeta(3, 0).editor).toBeUndefined();
+  });
+
+  it('should expand "type" property to cell meta when property is added in the "cells" function', () => {
+    handsontable({
+      cells(row, col) {
+        const cellProperties = {};
+
+        if (row === 1 && col === 0) {
+          cellProperties.type = 'numeric';
+        }
+        if (row === 2 && col === 0) {
+          cellProperties.type = 'autocomplete';
+        }
+
+        return cellProperties;
+      },
+    });
+
+    expect(getCellMeta(0, 0).editor).toBeUndefined();
+    expect(getCellMeta(1, 0).editor).toBe(Handsontable.editors.NumericEditor);
+    expect(getCellMeta(2, 0).editor).toBe(Handsontable.editors.AutocompleteEditor);
+    expect(getCellMeta(3, 0).editor).toBeUndefined();
+  });
+
   it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', () => {
     let rowInsideHook;
     let colInsideHook;
 
     const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
       afterGetCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
-      },
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
       }
     });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     hot.getCellMeta(0, 1);
 

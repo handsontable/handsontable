@@ -39,13 +39,13 @@ class ConditionUpdateObserver {
     /**
      * Flag which determines if grouping events is enabled.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.grouping = false;
     /**
      * The latest known position of edited conditions at specified column index.
      *
-     * @type {Number}
+     * @type {number}
      * @default -1
      */
     this.latestEditedColumnPosition = -1;
@@ -85,9 +85,9 @@ class ConditionUpdateObserver {
   }
 
   /**
-   * On before modify condition (add or remove from collection),
+   * On before modify condition (add or remove from collection),.
    *
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @private
    */
   _onConditionBeforeModify(column) {
@@ -97,8 +97,8 @@ class ConditionUpdateObserver {
   /**
    * Update all related states which should be changed after invoking changes applied to current column.
    *
-   * @param column
-   * @param {Object} conditionArgsChange Object describing condition changes which can be handled by filters on `update` hook.
+   * @param {number} column The column index.
+   * @param {object} conditionArgsChange Object describing condition changes which can be handled by filters on `update` hook.
    * It contains keys `conditionKey` and `conditionValue` which refers to change specified key of condition to specified value
    * based on referred keys.
    */

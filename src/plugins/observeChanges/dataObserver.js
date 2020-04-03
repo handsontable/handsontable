@@ -18,13 +18,13 @@ class DataObserver {
     /**
      * JsonPatch observer.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.observer = null;
     /**
      * Flag which determines if observer is paused or not. Paused observer doesn't emit `change` hooks.
      *
-     * @type {Boolean}
+     * @type {boolean}
      * @default false
      */
     this.paused = false;
@@ -35,7 +35,7 @@ class DataObserver {
   /**
    * Set data to observe.
    *
-   * @param {*} observedData
+   * @param {*} observedData Set an object to observe.
    */
   setObservedData(observedData) {
     if (this.observer) {
@@ -48,7 +48,7 @@ class DataObserver {
   /**
    * Check if observer was paused.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isPaused() {
     return this.paused;

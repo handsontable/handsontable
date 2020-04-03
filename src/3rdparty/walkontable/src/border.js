@@ -21,8 +21,8 @@ import CellCoords from './cell/coords';
  */
 class Border {
   /**
-   * @param {Walkontable} wotInstance
-   * @param {Object} settings
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {object} settings The border settings.
    */
   constructor(wotInstance, settings) {
     if (!settings) {
@@ -60,7 +60,7 @@ class Border {
   }
 
   /**
-   * Register all necessary events
+   * Register all necessary events.
    */
   registerListeners() {
     const documentBody = this.wot.rootDocument.body;
@@ -74,7 +74,7 @@ class Border {
   }
 
   /**
-   * Mouse down listener
+   * Mouse down listener.
    *
    * @private
    */
@@ -83,7 +83,7 @@ class Border {
   }
 
   /**
-   * Mouse up listener
+   * Mouse up listener.
    *
    * @private
    */
@@ -95,7 +95,7 @@ class Border {
    * Mouse enter listener for fragment selection functionality.
    *
    * @private
-   * @param {Event} event Dom event
+   * @param {Event} event Dom event.
    * @param {HTMLElement} parentElement Part of border element.
    */
   onMouseEnter(event, parentElement) {
@@ -111,6 +111,10 @@ class Border {
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
 
+    /**
+     * @param {Event} mouseEvent The mouse event object.
+     * @returns {boolean}
+     */
     function isOutside(mouseEvent) {
       if (mouseEvent.clientY < Math.floor(bounds.top)) {
         return true;
@@ -126,6 +130,9 @@ class Border {
       }
     }
 
+    /**
+     * @param {Event} handlerEvent The mouse event object.
+     */
     function handler(handlerEvent) {
       if (isOutside(handlerEvent)) {
         _this.eventManager.removeEventListener(documentBody, 'mousemove', handler);
@@ -137,9 +144,9 @@ class Border {
   }
 
   /**
-   * Create border elements
+   * Create border elements.
    *
-   * @param {Object} settings
+   * @param {object} settings The border settings.
    */
   createBorders(settings) {
     const { rootDocument } = this.wot;
@@ -206,7 +213,7 @@ class Border {
   }
 
   /**
-   * Create multiple selector handler for mobile devices
+   * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
     const { rootDocument } = this.wot;
@@ -264,6 +271,11 @@ class Border {
     this.main.appendChild(this.selectionHandles.bottomRightHitArea);
   }
 
+  /**
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {boolean}
+   */
   isPartRange(row, col) {
     const areaSelection = this.wot.selections.createOrGetArea();
 
@@ -276,6 +288,14 @@ class Border {
     return false;
   }
 
+  /**
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number} top The top position of the handler.
+   * @param {number} left The left position of the handler.
+   * @param {number} width The width of the handler.
+   * @param {number} height The height of the handler.
+   */
   updateMultipleSelectionHandlesPosition(row, col, top, left, width, height) {
     const handleWidth = parseInt(this.selectionHandles.styles.topLeft.width, 10);
     const hitAreaWidth = parseInt(this.selectionHandles.styles.topLeftHitArea.width, 10);
@@ -320,9 +340,9 @@ class Border {
   }
 
   /**
-   * Show border around one or many cells
+   * Show border around one or many cells.
    *
-   * @param {Array} corners
+   * @param {Array} corners The corner coordinates.
    */
   appear(corners) {
     if (this.disabled) {
@@ -516,8 +536,9 @@ class Border {
    * Check whether an entire column of cells is selected.
    *
    * @private
-   * @param {Number} startRowIndex Start row index.
-   * @param {Number} endRowIndex End row index.
+   * @param {number} startRowIndex Start row index.
+   * @param {number} endRowIndex End row index.
+   * @returns {boolean}
    */
   isEntireColumnSelected(startRowIndex, endRowIndex) {
     return startRowIndex === this.wot.wtTable.getFirstRenderedRow() && endRowIndex === this.wot.wtTable.getLastRenderedRow();
@@ -527,8 +548,9 @@ class Border {
    * Check whether an entire row of cells is selected.
    *
    * @private
-   * @param {Number} startColumnIndex Start column index.
-   * @param {Number} endColumnIndex End column index.
+   * @param {number} startColumnIndex Start column index.
+   * @param {number} endColumnIndex End column index.
+   * @returns {boolean}
    */
   isEntireRowSelected(startColumnIndex, endColumnIndex) {
     return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() && endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
@@ -538,11 +560,11 @@ class Border {
    * Get left/top index and width/height depending on the `direction` provided.
    *
    * @private
-   * @param {String} direction `rows` or `columns`, defines if an entire column or row is selected.
-   * @param {Number} fromIndex Start index of the selection.
-   * @param {Number} toIndex End index of the selection.
-   * @param {Number} containerOffset offset of the container.
-   * @return {Array|Boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
+   * @param {number} fromIndex Start index of the selection.
+   * @param {number} toIndex End index of the selection.
+   * @param {number} containerOffset Offset of the container.
+   * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
   getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
     const { wtTable } = this.wot;
@@ -602,7 +624,8 @@ class Border {
    * Change border style.
    *
    * @private
-   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {object} border The border object descriptor.
    */
   changeBorderStyle(borderElement, border) {
     const style = this[borderElement].style;
@@ -632,7 +655,7 @@ class Border {
    * Change border style to default.
    *
    * @private
-   * @param {HTMLElement} position
+   * @param {string} position The position type ("top", "bottom", "left", "right") to change.
    */
   changeBorderToDefaultStyle(position) {
     const defaultBorder = {
@@ -650,8 +673,8 @@ class Border {
    * Toggle class 'hidden' to element.
    *
    * @private
-   * @param {String} borderElement Coordinate where add/remove border: top, right, bottom, left.
-   * @return {Boolean}
+   * @param {string} borderElement Coordinate where add/remove border: top, right, bottom, left.
+   * @param {boolean} [remove] Defines type of the action to perform.
    */
   toggleHiddenClass(borderElement, remove) {
     this.changeBorderToDefaultStyle(borderElement);
@@ -664,7 +687,7 @@ class Border {
   }
 
   /**
-   * Hide border
+   * Hide border.
    */
   disappear() {
     this.topStyle.display = 'none';

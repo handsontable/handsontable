@@ -1,18 +1,19 @@
 /**
  * Checks if value of n is a numeric one
- * http://jsperf.com/isnan-vs-isnumeric/4
- * @param n
+ * http://jsperf.com/isnan-vs-isnumeric/4.
+ *
+ * @param {*} value The value to check.
  * @returns {boolean}
  */
-export function isNumeric(n) {
+export function isNumeric(value) {
   /* eslint-disable */
-  var t = typeof n;
+  const t = typeof value;
 
-  return t == 'number' ? !isNaN(n) && isFinite(n) :
-    t == 'string' ? !n.length ? false :
-      n.length == 1 ? /\d/.test(n) :
-        /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(n) :
-      t == 'object' ? !!n && typeof n.valueOf() == 'number' && !(n instanceof Date) : false;
+  return t == 'number' ? !isNaN(value) && isFinite(value) :
+    t == 'string' ? !value.length ? false :
+      value.length == 1 ? /\d/.test(value) :
+        /^\s*[+-]?\s*(?:(?:\d+(?:\.\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/i.test(value) :
+      t == 'object' ? !!value && typeof value.valueOf() == 'number' && !(value instanceof Date) : false;
 }
 
 /**

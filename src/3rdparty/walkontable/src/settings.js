@@ -6,8 +6,8 @@ import { objectEach } from './../../../helpers/object';
  */
 class Settings {
   /**
-   * @param {Walkontable} wotInstance
-   * @param {Object} settings
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {object} settings The user defined settings.
    */
   constructor(wotInstance, settings) {
     this.wot = wotInstance;
@@ -18,7 +18,6 @@ class Settings {
     // default settings. void 0 means it is required, null means it can be empty
     this.defaults = {
       table: void 0,
-      debug: false, // shows WalkontableDebugOverlay
 
       // presentation mode
       externalRowCalculator: false,
@@ -123,10 +122,10 @@ class Settings {
   }
 
   /**
-   * Update settings
+   * Update settings.
    *
-   * @param {Object} settings
-   * @param {*} value
+   * @param {object} settings The singular settings to update or if passed as object to merge with.
+   * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Walkontable}
    */
   update(settings, value) {
@@ -141,13 +140,13 @@ class Settings {
   }
 
   /**
-   * Get setting by name
+   * Get setting by name.
    *
-   * @param {String} key
-   * @param {*} param1
-   * @param {*} param2
-   * @param {*} param3
-   * @param {*} param4
+   * @param {string} key The settings key to retrieve.
+   * @param {*} [param1] Additional parameter passed to the options defined as function.
+   * @param {*} [param2] Additional parameter passed to the options defined as function.
+   * @param {*} [param3] Additional parameter passed to the options defined as function.
+   * @param {*} [param4] Additional parameter passed to the options defined as function.
    * @returns {*}
    */
   getSetting(key, param1, param2, param3, param4) {
@@ -165,10 +164,10 @@ class Settings {
   }
 
   /**
-   * Checks if setting exists
+   * Checks if setting exists.
    *
-   * @param {Boolean} key
-   * @returns {Boolean}
+   * @param {boolean} key The settings key to check.
+   * @returns {boolean}
    */
   has(key) {
     return !!this.settings[key];

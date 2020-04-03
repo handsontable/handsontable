@@ -30,18 +30,20 @@ const META_HEAD = [
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  * This plugin enables the copy/paste functionality in the Handsontable. The functionality works for API, Context Menu,
  * using keyboard shortcuts and menu bar from the browser.
  * Possible values:
  * * `true` (to enable default options),
- * * `false` (to disable completely)
+ * * `false` (to disable completely).
  *
  * or an object with values:
  * * `'columnsLimit'` (see {@link CopyPaste#columnsLimit})
  * * `'rowsLimit'` (see {@link CopyPaste#rowsLimit})
  * * `'pasteMode'` (see {@link CopyPaste#pasteMode})
+ * * `'uiContainer'` (see {@link CopyPaste#uiContainer}).
  *
  * See [the copy/paste demo](https://handsontable.com/docs/demo-copy-paste.html) for examples.
  *
@@ -54,18 +56,20 @@ const META_HEAD = [
  *   columnsLimit: 25,
  *   rowsLimit: 50,
  *   pasteMode: 'shift_down',
+ *   uiContainer: document.body,
  * },
  * ```
  * @class CopyPaste
  * @plugin CopyPaste
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class CopyPaste extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
      * Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
-     * @type {Number}
+     * @type {number}
      * @default 1000
      */
     this.columnsLimit = COLUMNS_LIMIT;
@@ -88,17 +92,24 @@ class CopyPaste extends BasePlugin {
      * * When set to `"shift_down"`, clipboard data will be pasted in place of current selection, while all selected cells are moved down.
      * * When set to `"shift_right"`, clipboard data will be pasted in place of current selection, while all selected cells are moved right.
      *
-     * @type {String}
+     * @type {string}
      * @default 'overwrite'
      */
     this.pasteMode = 'overwrite';
     /**
      * Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
      *
-     * @type {Number}
+     * @type {number}
      * @default 1000
      */
     this.rowsLimit = ROWS_LIMIT;
+
+    /**
+     * UI container for the secondary focusable element.
+     *
+     * @type {HTMLElement}
+     */
+    this.uiContainer = this.hot.rootDocument.body;
 
     privatePool.set(this, {
       isTriggeredByCopy: false,
@@ -112,7 +123,7 @@ class CopyPaste extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link CopyPaste#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().copyPaste;
@@ -125,15 +136,16 @@ class CopyPaste extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    const settings = this.hot.getSettings();
+    const { copyPaste: settings, fragmentSelection } = this.hot.getSettings();
     const priv = privatePool.get(this);
 
-    priv.isFragmentSelectionEnabled = settings.fragmentSelection;
+    priv.isFragmentSelectionEnabled = !!fragmentSelection;
 
-    if (typeof settings.copyPaste === 'object') {
-      this.pasteMode = settings.copyPaste.pasteMode || this.pasteMode;
-      this.rowsLimit = settings.copyPaste.rowsLimit || this.rowsLimit;
-      this.columnsLimit = settings.copyPaste.columnsLimit || this.columnsLimit;
+    if (typeof settings === 'object') {
+      this.pasteMode = settings.pasteMode || this.pasteMode;
+      this.rowsLimit = isNaN(settings.rowsLimit) ? this.rowsLimit : settings.rowsLimit;
+      this.columnsLimit = isNaN(settings.columnsLimit) ? this.columnsLimit : settings.columnsLimit;
+      this.uiContainer = settings.uiContainer || this.uiContainer;
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.onAfterContextMenuDefaultOptions(options));
@@ -141,7 +153,7 @@ class CopyPaste extends BasePlugin {
     this.addHook('afterSelectionEnd', () => this.onAfterSelectionEnd());
     this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
 
-    this.focusableElement = createElement(this.hot.rootDocument);
+    this.focusableElement = createElement(this.uiContainer);
     this.focusableElement
       .addLocalHook('copy', event => this.onCopy(event))
       .addLocalHook('cut', event => this.onCut(event))
@@ -199,8 +211,8 @@ class CopyPaste extends BasePlugin {
   /**
    * Creates copyable text releated to range objects.
    *
-   * @param {Object[]} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
-   * @returns {String} Returns string which will be copied into clipboard.
+   * @param {object[]} ranges Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`.
+   * @returns {string} Returns string which will be copied into clipboard.
    */
   getRangedCopyableData(ranges) {
     const dataSet = [];
@@ -237,7 +249,7 @@ class CopyPaste extends BasePlugin {
   /**
    * Creates copyable text releated to range objects.
    *
-   * @param {Object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @param {object[]} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    * @returns {Array[]} Returns array of arrays which will be copied into clipboard.
    */
   getRangedData(ranges) {
@@ -275,7 +287,8 @@ class CopyPaste extends BasePlugin {
   /**
    * Simulates the paste action.
    *
-   * @param {String} [value] Value to paste.
+   * @param {string} pastableText Value as raw string to paste.
+   * @param {string} [pastableHtml=''] Value as HTML to paste.
    */
   paste(pastableText = '', pastableHtml = pastableText) {
     if (!pastableText && !pastableHtml) {
@@ -350,6 +363,7 @@ class CopyPaste extends BasePlugin {
    * Verifies if editor exists and is open.
    *
    * @private
+   * @returns {boolean}
    */
   isEditorOpened() {
     const editor = this.hot.getActiveEditor();
@@ -361,9 +375,9 @@ class CopyPaste extends BasePlugin {
    * Prepares new values to populate them into datasource.
    *
    * @private
-   * @param {Array} inputArray
-   * @param {Array} selection
-   * @returns {Array} Range coordinates after populate data
+   * @param {Array} inputArray An array of the data to populate.
+   * @param {Array} [selection] The selection which indicates from what position the data will be populated.
+   * @returns {Array} Range coordinates after populate data.
    */
   populateValues(inputArray, selection = this.hot.getSelectedLast()) {
     if (!inputArray.length) {
@@ -534,7 +548,7 @@ class CopyPaste extends BasePlugin {
    * Add copy, cut and paste options to the Context Menu.
    *
    * @private
-   * @param {Object} options Contains default added options of the Context Menu.
+   * @param {object} options Contains default added options of the Context Menu.
    */
   onAfterContextMenuDefaultOptions(options) {
     options.items.push(

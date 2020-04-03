@@ -12,6 +12,9 @@ describe('DragToScroll', () => {
     }
   });
 
+  /**
+   *
+   */
   function createBoundaries() {
     return {
       top: 100,
@@ -165,5 +168,17 @@ describe('DragToScroll', () => {
     });
 
     dragToScroll.check(99, 1001);
+  });
+
+  describe('contextmenu', () => {
+    it('should not scroll if the \'mouseup\' event has not been fired after the \'contextmenu\' event', () => {
+      handsontable({
+        dragToScroll: true
+      });
+
+      contextMenu();
+
+      expect(getPlugin('dragToScroll').isListening()).toBe(false);
+    });
   });
 });

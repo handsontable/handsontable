@@ -3,6 +3,7 @@ import { clone, extend } from '../../../helpers/object';
 import { arrayFilter, arrayMap, arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { partial } from '../../../helpers/function';
+import { dataRowToChangesArray } from '../../../helpers/data';
 import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import BaseUI from './_base';
@@ -115,7 +116,7 @@ class MultipleSelectUI extends BaseUI {
   /**
    * Check if all values listed in element are selected.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isSelectedAllValues() {
     return this.items.length === this.getValue().length;
@@ -274,28 +275,38 @@ class MultipleSelectUI extends BaseUI {
    * On click listener for "Select all" link.
    *
    * @private
-   * @param {DOMEvent} event
+   * @param {DOMEvent} event The mouse event object.
    */
   onSelectAllClick(event) {
+    const changes = [];
+
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row) => {
+    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = true;
+
+      changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
-    this.itemsBox.render();
+
+    this.itemsBox.setSourceDataAtCell(changes);
   }
 
   /**
    * On click listener for "Clear" link.
    *
    * @private
-   * @param {DOMEvent} event
+   * @param {DOMEvent} event The mouse event object.
    */
   onClearAllClick(event) {
+    const changes = [];
+
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row) => {
+    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = false;
+
+      changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
-    this.itemsBox.render();
+
+    this.itemsBox.setSourceDataAtCell(changes);
   }
 }
 
@@ -305,7 +316,7 @@ export default MultipleSelectUI;
  * Pick up object items based on selected values.
  *
  * @param {Array} availableItems Base collection to compare values.
- * @param selectedValue Flat array with selected values.
+ * @param {Array} selectedValue Flat array with selected values.
  * @returns {Array}
  */
 function valueToItems(availableItems, selectedValue) {

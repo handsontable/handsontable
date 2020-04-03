@@ -34,8 +34,8 @@ _register('time', timeCellType);
 /**
  * Retrieve cell type object.
  *
- * @param {String} name Cell type identification.
- * @returns {Object} Returns cell type object.
+ * @param {string} name Cell type identification.
+ * @returns {object} Returns cell type object.
  */
 function _getItem(name) {
   if (!hasItem(name)) {
@@ -49,8 +49,8 @@ function _getItem(name) {
 /**
  * Register cell type under specified name.
  *
- * @param {String} name Cell type identification.
- * @param {Object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
+ * @param {string} name Cell type identification.
+ * @param {object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
  */
 function _register(name, type) {
   const { editor, renderer, validator } = type;

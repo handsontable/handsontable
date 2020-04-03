@@ -4,8 +4,8 @@ import { toSingleLine } from './templateLiteralTag';
 /**
  * Converts any value to string.
  *
- * @param {*} value
- * @returns {String}
+ * @param {*} value The value to stringify.
+ * @returns {string}
  */
 export function stringify(value) {
   let result;
@@ -34,7 +34,7 @@ export function stringify(value) {
  * Checks if given variable is defined.
  *
  * @param {*} variable Variable to check.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isDefined(variable) {
   return typeof variable !== 'undefined';
@@ -44,7 +44,7 @@ export function isDefined(variable) {
  * Checks if given variable is undefined.
  *
  * @param {*} variable Variable to check.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isUndefined(variable) {
   return typeof variable === 'undefined';
@@ -54,7 +54,7 @@ export function isUndefined(variable) {
  * Check if given variable is null, empty string or undefined.
  *
  * @param {*} variable Variable to check.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isEmpty(variable) {
   return variable === null || variable === '' || isUndefined(variable);
@@ -64,7 +64,7 @@ export function isEmpty(variable) {
  * Check if given variable is a regular expression.
  *
  * @param {*} variable Variable to check.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 export function isRegExp(variable) {
   return Object.prototype.toString.call(variable) === '[object RegExp]';

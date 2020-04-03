@@ -1,6 +1,10 @@
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 
+  /**
+   * @param rows
+   * @param cols
+   */
   function getMultilineData(rows, cols) {
     const data = Handsontable.helper.createSpreadsheetData(rows, cols);
 
@@ -226,6 +230,9 @@ describe('HiddenColumns', () => {
       }
     }
 
+    /**
+     *
+     */
     function getClipboardEventMock() {
       const event = {};
       event.clipboardData = new DataTransferObject();
@@ -442,7 +449,7 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getColWidth(3)).toBe(0.1);
       expect(hot.getColWidth(4)).toBe(0.1);
@@ -471,7 +478,7 @@ describe('HiddenColumns', () => {
       const items = $('.htContextMenu tbody td');
       const actions = items.not('.htSeparator');
 
-      actions.simulate('mousedown');
+      actions.simulate('mousedown').simulate('mouseup');
 
       expect(hot.getColWidth(2)).toBe(50);
       expect(hot.getColWidth(3)).toBe(50);

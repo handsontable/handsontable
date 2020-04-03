@@ -40,7 +40,7 @@ class BaseUI {
     /**
      * List of element options.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.options = extend(BaseUI.DEFAULTS, options);
     /**
@@ -53,7 +53,7 @@ class BaseUI {
     /**
      * Flag which determines build state of element.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.buildState = false;
   }
@@ -61,7 +61,7 @@ class BaseUI {
   /**
    * Set the element value.
    *
-   * @returns {*}
+   * @param {*} value Set the component value.
    */
   setValue(value) {
     this.options.value = value;
@@ -101,7 +101,7 @@ class BaseUI {
   /**
    * Check if element was built (built whole DOM structure).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isBuilt() {
     return this.buildState === STATE_BUILT;

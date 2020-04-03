@@ -30,6 +30,19 @@ describe('Core_getDataType', () => {
     expect(getDataType(0, 0, 1, 1)).toEqual('text');
   });
 
+  it('should iterate only for table cell range and ignore header coordinates (negative values)', () => {
+    const hot = handsontable({
+      data: arrayOfArrays()
+    });
+
+    spyOn(hot, 'getCellMeta').and.callThrough();
+
+    expect(getDataType(-1, -2, 2, 2)).toEqual('text');
+    expect(hot.getCellMeta.calls.count()).toBe(9);
+    expect(hot.getCellMeta.calls.first().args).toEqual([0, 0]);
+    expect(hot.getCellMeta.calls.mostRecent().args).toEqual([2, 2]);
+  });
+
   it('should return data type at specyfied range (type defined in columns)', () => {
     handsontable({
       data: arrayOfArrays(),
