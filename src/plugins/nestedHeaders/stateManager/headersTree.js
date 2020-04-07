@@ -37,7 +37,8 @@ import TreeNode from '../../../utils/dataStructures/tree';
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default class HeadersTree {
   /**
-   * The collection of nested headers settings structured into trees.
+   * The collection of nested headers settings structured into trees. The root trees are stored
+   * under the visual column index.
    *
    * @private
    * @type {Map<number, TreeNode>}
@@ -191,6 +192,7 @@ export default class HeadersTree {
       if (headerLevel === 1) { // fill the root node
         parentNode.data = nodeData;
         node = parentNode;
+
       } else {
         node = new TreeNode(nodeData);
 

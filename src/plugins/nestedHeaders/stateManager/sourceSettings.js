@@ -1,6 +1,6 @@
 import { extend, isObject } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
-import { settingsNormalizer } from './settingsNormalizer';
+import { normalizeSettings } from './settingsNormalizer';
 import { HEADER_CONFIGURABLE_PROPS } from './constants';
 
 /**
@@ -32,7 +32,7 @@ export default class SourceSettings {
    *
    * @type {number}
    */
-  #columnsCountLimit = Infinity;
+  #columnsLimit = Infinity;
 
   /**
    * Sets columns limit to the source settings will be trimmed. All headers which
@@ -40,8 +40,8 @@ export default class SourceSettings {
    *
    * @param {number} columnsCount The number of columns to limit to.
    */
-  setColumnsCountLimit(columnsCount) {
-    this.#columnsCountLimit = columnsCount;
+  setColumnsLimit(columnsCount) {
+    this.#columnsLimit = columnsCount;
   }
 
   /**
@@ -50,7 +50,7 @@ export default class SourceSettings {
    * @param {Array[]} [nestedHeadersSettings=[]] The user-defined nested headers settings.
    */
   setData(nestedHeadersSettings = []) {
-    this.#data = settingsNormalizer(nestedHeadersSettings, this.#columnsCountLimit);
+    this.#data = normalizeSettings(nestedHeadersSettings, this.#columnsLimit);
     this.#dataLength = this.#data.length;
   }
 

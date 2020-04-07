@@ -3972,8 +3972,8 @@ describe('CollapsibleColumns', () => {
 
       plugin.toggleCollapsibleSection([{ row: -1, col: 1 }], 'collapse'); // header "B2"
 
-      expect(beforeColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], true, void 0, void 0, void 0);
-      expect(afterColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], true, false, void 0, void 0);
+      expect(beforeColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, void 0, void 0, void 0);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, false, void 0, void 0);
     });
 
     it('should trigger "beforeColumnExpand" and "afterColumnExpand" hooks', () => {
@@ -4008,8 +4008,8 @@ describe('CollapsibleColumns', () => {
 
       plugin.toggleCollapsibleSection([{ row: -2, col: 1 }], 'expand'); // header "B1"
 
-      expect(beforeColumnExpand).toHaveBeenCalledWith([], [], true, void 0, void 0, void 0);
-      expect(afterColumnExpand).toHaveBeenCalledWith([], [], true, false, void 0, void 0);
+      expect(beforeColumnExpand).toHaveBeenCalledWith([], [], false, void 0, void 0, void 0);
+      expect(afterColumnExpand).toHaveBeenCalledWith([], [], false, false, void 0, void 0);
     });
   });
 
@@ -4036,7 +4036,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.collapseSection({ row: -2, col: 1 });
 
-      expect(afterColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4], true, false, void 0, void 0);
+      expect(afterColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4], false, false, void 0, void 0);
     });
 
     it('should set "successfullyExpanded" argument of "afterColumnExpand" hook as `false` after trying expanding already expanded column', () => {
@@ -4063,7 +4063,7 @@ describe('CollapsibleColumns', () => {
 
       plugin.expandSection({ row: -2, col: 1 }); // header "B1"
 
-      expect(afterColumnExpand).toHaveBeenCalledWith([2], [2], true, false, void 0, void 0);
+      expect(afterColumnExpand).toHaveBeenCalledWith([2], [2], false, false, void 0, void 0);
     });
 
     it('should set "successfullyCollapsed" and "collapsePossible" arguments in hooks as `false` when trying colapse headers ' +

@@ -1,15 +1,15 @@
-import { settingsNormalizer } from 'handsontable/plugins/nestedHeaders/stateManager/settingsNormalizer';
+import { normalizeSettings } from 'handsontable/plugins/nestedHeaders/stateManager/settingsNormalizer';
 
-describe('settingsNormalizer', () => {
+describe('normalizeSettings', () => {
   it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
-    expect(settingsNormalizer([])).toEqual([]);
-    expect(settingsNormalizer([[]])).toEqual([[]]);
-    expect(settingsNormalizer([['A1']])).toEqual([[
+    expect(normalizeSettings([])).toEqual([]);
+    expect(normalizeSettings([[]])).toEqual([[]]);
+    expect(normalizeSettings([['A1']])).toEqual([[
       {
         label: 'A1', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
       },
     ]]);
-    expect(settingsNormalizer([
+    expect(normalizeSettings([
       ['A1'],
       [{ label: true }, 'B2', 4],
       [],
@@ -58,7 +58,7 @@ describe('settingsNormalizer', () => {
       ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'],
     ];
 
-    expect(settingsNormalizer(settings)).toEqual([
+    expect(normalizeSettings(settings)).toEqual([
       [
         {
           label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
@@ -198,7 +198,7 @@ describe('settingsNormalizer', () => {
       ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V'],
     ];
 
-    expect(settingsNormalizer(settings, 6)).toEqual([
+    expect(normalizeSettings(settings, 6)).toEqual([
       [
         {
           label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
@@ -280,7 +280,7 @@ describe('settingsNormalizer', () => {
         },
       ],
     ]);
-    expect(settingsNormalizer(settings, 4)).toEqual([
+    expect(normalizeSettings(settings, 4)).toEqual([
       [
         {
           label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
@@ -338,7 +338,7 @@ describe('settingsNormalizer', () => {
         },
       ],
     ]);
-    expect(settingsNormalizer(settings, 1)).toEqual([
+    expect(normalizeSettings(settings, 1)).toEqual([
       [
         {
           label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
@@ -360,8 +360,8 @@ describe('settingsNormalizer', () => {
         },
       ],
     ]);
-    expect(settingsNormalizer(settings, 0)).toEqual([]);
-    expect(settingsNormalizer(settings, 2)).toEqual([
+    expect(normalizeSettings(settings, 0)).toEqual([]);
+    expect(normalizeSettings(settings, 2)).toEqual([
       [
         {
           label: 'A', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,
@@ -404,7 +404,7 @@ describe('settingsNormalizer', () => {
       ['C1', { label: 'C2', colspan: 3 }, { label: 'C3', colspan: 2 }, 'C4'],
     ];
 
-    expect(settingsNormalizer(settings)).toEqual([
+    expect(normalizeSettings(settings)).toEqual([
       [
         {
           label: 'A1', colspan: 1, origColspan: 1, isHidden: false, isCollapsed: false, collapsible: false, isBlank: false,

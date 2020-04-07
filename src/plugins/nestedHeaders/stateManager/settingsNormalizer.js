@@ -17,7 +17,7 @@ import { HEADER_DEFAULT_SETTINGS } from './constants';
  *
  * The normalization process equalizes the length of columns to each header
  * layers to the same length and generates object settings with a common shape.
- * So the abovementioned example will be normalized into this:
+ * So the above mentioned example will be normalized into this:
  *   [
  *     [
  *       { label: 'A1', colspan: 2, isHidden: false, ... },
@@ -37,16 +37,16 @@ import { HEADER_DEFAULT_SETTINGS } from './constants';
  *   ]
  *
  * @param {Array[]} sourceSettings An array with defined nested headers settings.
- * @param {number} [columnsCountLimit=Infinity] A number of columns to which the structure
- *                                              will be trimmed. While trimming the colspan
- *                                              values are adjusted to preserve the original
- *                                              structure.
+ * @param {number} [columnsLimit=Infinity] A number of columns to which the structure
+ *                                         will be trimmed. While trimming the colspan
+ *                                         values are adjusted to preserve the original
+ *                                         structure.
  * @returns {Array[]}
  */
-export function settingsNormalizer(sourceSettings, columnsCountLimit = Infinity) {
+export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
   const normalizedSettings = [];
 
-  if (columnsCountLimit === 0) {
+  if (columnsLimit === 0) {
     return normalizedSettings;
   }
 
@@ -81,9 +81,9 @@ export function settingsNormalizer(sourceSettings, columnsCountLimit = Infinity)
 
       let cancelProcessing = false;
 
-      if (columnIndex >= columnsCountLimit) {
-        // Adjust the colspan value to not overlap the columns count limit.
-        headerSettings.colspan = headerSettings.origColspan - (columnIndex - columnsCountLimit);
+      if (columnIndex >= columnsLimit) {
+        // Adjust the colspan value to not overlap the columns limit.
+        headerSettings.colspan = headerSettings.origColspan - (columnIndex - columnsLimit);
         headerSettings.origColspan = headerSettings.colspan;
         cancelProcessing = true;
       }

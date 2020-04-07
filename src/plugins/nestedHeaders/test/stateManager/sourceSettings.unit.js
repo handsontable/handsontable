@@ -49,11 +49,11 @@ describe('SourceSettings', () => {
     });
   });
 
-  describe('setColumnsCountLimit', () => {
+  describe('setColumnsLimit', () => {
     it('should limit source settings', () => {
       const settings = new SourceSettings();
 
-      settings.setColumnsCountLimit(1);
+      settings.setColumnsLimit(1);
       settings.setData([
         ['A1'],
         [{ label: true }, 'B2', 4],

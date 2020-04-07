@@ -288,7 +288,7 @@ class CollapsibleColumns extends BasePlugin {
     arrayEach(filteredCoords, ({ row, col: column }) => {
       const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column);
 
-      if (!collapsible || isCollapsed && action === 'collapse' && !isCollapsed && action === 'expand') {
+      if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
         isActionPossible = false;
 
         return false;
@@ -373,6 +373,7 @@ class CollapsibleColumns extends BasePlugin {
     if (columnSettings.isCollapsed) {
       addClass(divEl, 'collapsed');
       fastInnerText(divEl, '+');
+
     } else {
       addClass(divEl, 'expanded');
       fastInnerText(divEl, '-');

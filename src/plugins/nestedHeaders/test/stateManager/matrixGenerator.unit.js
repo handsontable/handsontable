@@ -1,8 +1,8 @@
 import HeadersTree from 'handsontable/plugins/nestedHeaders/stateManager/headersTree';
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
-import { matrixGenerator } from 'handsontable/plugins/nestedHeaders/stateManager/matrixGenerator';
+import { generateMatrix } from 'handsontable/plugins/nestedHeaders/stateManager/matrixGenerator';
 
-function generateMatrix(nestedHeadersSettings) {
+function generateMatrixFromSettings(nestedHeadersSettings) {
   const source = new SourceSettings();
 
   source.setData(nestedHeadersSettings);
@@ -11,10 +11,10 @@ function generateMatrix(nestedHeadersSettings) {
 
   tree.buildTree();
 
-  return matrixGenerator(tree.getRoots());
+  return generateMatrix(tree.getRoots());
 }
 
-describe('matrixGenerator', () => {
+describe('generateMatrix', () => {
   describe('should build headers settings array matrix', () => {
     it('no nested headers defined', () => {
       /**
@@ -25,7 +25,7 @@ describe('matrixGenerator', () => {
        *   | A1 | B1 | C1 |
        *   +----+----+----+
        */
-      const colspans = generateMatrix([
+      const colspans = generateMatrixFromSettings([
         ['A1', 'B1', 'C1'],
         ['A2', 'B2', 'C2'],
       ]);
@@ -67,7 +67,7 @@ describe('matrixGenerator', () => {
        *   | C1      | C2 | C3 |
        *   +----+----+----+----+
        */
-      const colspans = generateMatrix([
+      const colspans = generateMatrixFromSettings([
         [{ label: 'A1', colspan: 4 }],
         [{ label: 'B1', colspan: 3 }, 'B2'],
         [{ label: 'C1', colspan: 2 }, 'C2', 'C3'],
@@ -132,7 +132,7 @@ describe('matrixGenerator', () => {
        *   | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 |    |
        *   +----+----+----+----+----+----+----+----+----+----+
        */
-      const colspans = generateMatrix([
+      const colspans = generateMatrixFromSettings([
         ['A1', { label: 'A2', colspan: 8 }, 'A3'],
         ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 4 }, 'B4'],
         ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }, { label: 'C5', colspan: 2 }, 'C6'],

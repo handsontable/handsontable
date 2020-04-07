@@ -3,7 +3,7 @@ import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
 import NodeModifiers from './nodeModifiers';
 import { HEADER_DEFAULT_SETTINGS } from './constants';
-import { matrixGenerator } from './matrixGenerator';
+import { generateMatrix } from './matrixGenerator';
 
 /**
  * The state manager is a source of truth for nested headers configuration.
@@ -49,7 +49,7 @@ export default class StateManager {
    */
   #nodeModifiers = new NodeModifiers();
   /**
-   * The instance of the headers tree. The tree is generated after setting new confuguration data.
+   * The instance of the headers tree. The tree is generated after setting new configuration data.
    *
    * @private
    * @type {HeadersTree}
@@ -82,7 +82,7 @@ export default class StateManager {
       hasError = true;
     }
 
-    this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
+    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
 
     return hasError;
   }
@@ -93,8 +93,8 @@ export default class StateManager {
    *
    * @param {number} columnsCount The number of columns to limit to.
    */
-  setColumnsCountLimit(columnsCount) {
-    this.#sourceSettings.setColumnsCountLimit(columnsCount);
+  setColumnsLimit(columnsCount) {
+    this.#sourceSettings.setColumnsLimit(columnsCount);
   }
 
   /**
@@ -117,7 +117,7 @@ export default class StateManager {
 
     this.#sourceSettings.mergeWith(transformedSettings);
     this.#headersTree.buildTree();
-    this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
+    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
   }
 
   /**
@@ -134,7 +134,7 @@ export default class StateManager {
   mapState(callback) {
     this.#sourceSettings.map(callback);
     this.#headersTree.buildTree();
-    this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
+    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
   }
 
   /**
@@ -181,7 +181,7 @@ export default class StateManager {
     if (nodeToProcess) {
       actionResult = this.#nodeModifiers.triggerAction(action, nodeToProcess);
 
-      this.#stateMatrix = matrixGenerator(this.#headersTree.getRoots());
+      this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
     }
 
     return actionResult;
