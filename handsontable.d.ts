@@ -1993,7 +1993,7 @@ declare namespace Handsontable {
   }
 
   namespace RecordTranslation {
-    interface IndexMap {
+    interface IndexedElement {
       getValues: number[],
       getValueAtIndex: (index: number) => any;
       setValues: (values: any[]) => void;
@@ -2004,8 +2004,8 @@ declare namespace Handsontable {
 
     interface IndexMapper {
       executeBatchOperations: (wrappedOperations: () => any) => void;
-      registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
-      unregisterMap: (name: string) => void;
+      registerIndexedElement: (uniqueName: string, indexedElement: IndexedElement) => IndexedElement;
+      unregisterIndexedElement: (name: string) => void;
       getPhysicalFromVisualIndex: (visualIndex: number) => number | null;
       getVisualFromPhysicalIndex: (physicalIndex: number) => number | null;
       getPhysicalFromRenderableIndex: (renderableIndex: number) => number | null;

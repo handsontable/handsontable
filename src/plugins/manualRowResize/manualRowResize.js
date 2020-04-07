@@ -82,7 +82,7 @@ class ManualRowResize extends BasePlugin {
 
     this.rowHeightsMap = new IndexToValueMap();
     this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
-    this.hot.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
+    this.hot.rowIndexMapper.registerIndexedElement(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
@@ -108,7 +108,7 @@ class ManualRowResize extends BasePlugin {
     const priv = privatePool.get(this);
     priv.config = this.rowHeightsMap.getValues();
 
-    this.hot.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterIndexedElement(ROW_HEIGHTS_MAP_NAME);
     super.disablePlugin();
   }
 
@@ -536,7 +536,7 @@ class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterIndexedElement(ROW_HEIGHTS_MAP_NAME);
 
     super.destroy();
   }

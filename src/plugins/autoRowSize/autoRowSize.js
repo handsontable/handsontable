@@ -135,7 +135,7 @@ class AutoRowSize extends BasePlugin {
     this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
 
     this.rowHeightsMap = new IndexToValueMap();
-    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+    this.hot.rowIndexMapper.registerIndexedElement(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
   }
 
   /**
@@ -531,7 +531,7 @@ class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(ROW_WIDTHS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterIndexedElement(ROW_WIDTHS_MAP_NAME);
     this.ghostTable.clean();
     super.destroy();
   }

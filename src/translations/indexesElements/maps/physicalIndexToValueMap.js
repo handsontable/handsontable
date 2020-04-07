@@ -1,10 +1,10 @@
-import IndexMap from './indexMap';
-import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
+import IndexedElement from '../indexedElement';
+import { getListWithRemovedItems, getListWithInsertedItems } from '../utils/physicallyIndexedElement';
 
 /**
  * Map for storing mappings from an physical index to a value.
  */
-class PhysicalIndexToValueMap extends IndexMap {
+class PhysicalIndexToValueMap extends IndexedElement {
   /**
    * Add values to list and reorganize.
    *

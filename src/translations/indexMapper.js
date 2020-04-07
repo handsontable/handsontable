@@ -1,10 +1,10 @@
 import { arrayFilter, arrayMap } from './../helpers/array';
-import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
+import { getListWithRemovedItems, getListWithInsertedItems } from './indexesElements/utils/indexesSequence';
 import { rangeEach } from '../helpers/number';
-import IndexToIndexMap from './maps/visualIndexToPhysicalIndexMap';
-import TrimmingMap from './maps/trimmingMap';
-import HidingMap from './maps/hidingMap';
-import MapCollection from './mapCollection';
+import IndexesSequence from './indexesElements/indexesSequence';
+import TrimmingMap from './indexesElements/maps/trimmingMap';
+import HidingMap from './indexesElements/maps/hidingMap';
+import IndexedElementsCollection from './indexedElementsCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
@@ -33,32 +33,33 @@ class IndexMapper {
      * Map storing the sequence of indexes.
      *
      * @private
-     * @type {VisualIndexToPhysicalIndexMap}
+     * @type {IndexesSequence}
      */
-    this.indexesSequence = new IndexToIndexMap();
+    this.indexesSequence = new IndexesSequence();
     /**
      * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
      * the {@link DataMap} and won't be rendered.
      *
      * @private
-     * @type {MapCollection}
+     * @type {IndexedElementsCollection}
      */
-    this.trimmingMapsCollection = new MapCollection();
+    this.trimmingMapsCollection = new IndexedElementsCollection();
     /**
      * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
      * but won't be rendered.
      *
      * @private
-     * @type {MapCollection}
+     * @type {IndexedElementsCollection}
      */
-    this.hidingMapsCollection = new MapCollection();
+    this.hidingMapsCollection = new IndexedElementsCollection();
     /**
-     * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
+     * Collection for another kind of indexed elements. There are stored mappings from indexes to values or just
+     * indexes sequences.
      *
      * @private
-     * @type {MapCollection}
+     * @type {IndexedElementsCollection}
      */
-    this.variousMapsCollection = new MapCollection();
+    this.variousIndexedElementsCollection = new IndexedElementsCollection();
     /**
      * Cache for trimming result for particular physical indexes.
      *
@@ -150,8 +151,8 @@ class IndexMapper {
       this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
-    this.variousMapsCollection.addLocalHook('change', (changedMap) => {
-      this.runLocalHooks('change', changedMap, this.variousMapsCollection);
+    this.variousIndexedElementsCollection.addLocalHook('change', (changedMap) => {
+      this.runLocalHooks('change', changedMap, this.variousIndexedElementsCollection);
     });
   }
 
@@ -174,51 +175,54 @@ class IndexMapper {
   }
 
   /**
-   * Register map which provide some index mappings. Type of map determining to which collection it will be added.
+   * Register indexed element which provide some index mappings or indexes sequence. Type of the element determining
+   * to which collection it will be added.
    *
-   * @param {string} uniqueName Name of the index map. It should be unique.
-   * @param {IndexMap} indexMap Registered index map updated on items removal and insertion.
-   * @returns {IndexMap}
+   * @param {string} uniqueName Name of the indexed element. It should be unique.
+   * @param {IndexedElement} indexedElement Registered indexed element. It may be map which provide mappings from index
+   * to value or just indexes sequence. It is updated on items removal and insertion.
+   * @returns {IndexedElement} Already registered indexed element.
    */
-  registerMap(uniqueName, indexMap) {
-    if (this.trimmingMapsCollection.get(uniqueName) || this.hidingMapsCollection.get(uniqueName) || this.variousMapsCollection.get(uniqueName)) {
-      throw Error(`Map with name "${uniqueName}" has been already registered.`);
+  registerIndexedElement(uniqueName, indexedElement) {
+    if (this.trimmingMapsCollection.get(uniqueName) || this.hidingMapsCollection.get(uniqueName)
+      || this.variousIndexedElementsCollection.get(uniqueName)) {
+      throw Error(`Indexed element with name "${uniqueName}" has been already registered.`);
     }
 
-    if (indexMap instanceof TrimmingMap) {
-      this.trimmingMapsCollection.register(uniqueName, indexMap);
+    if (indexedElement instanceof TrimmingMap) {
+      this.trimmingMapsCollection.register(uniqueName, indexedElement);
 
-    } else if (indexMap instanceof HidingMap) {
-      this.hidingMapsCollection.register(uniqueName, indexMap);
+    } else if (indexedElement instanceof HidingMap) {
+      this.hidingMapsCollection.register(uniqueName, indexedElement);
 
     } else {
-      this.variousMapsCollection.register(uniqueName, indexMap);
+      this.variousIndexedElementsCollection.register(uniqueName, indexedElement);
     }
 
     const numberOfIndexes = this.getNumberOfIndexes();
     /*
-      We initialize map ony when we have full information about number of indexes and the dataset is not empty.
+      We initialize indexed element ony when we have full information about number of indexes and the dataset is not empty.
       Otherwise it's unnecessary. Initialization of empty array would not give any positive changes. After initializing
-      it with number of indexes equal to 0 the map would be still empty. What's more there would be triggered
+      it with number of indexes equal to 0 the element would be still empty. What's more there would be triggered
       not needed hook (no real change have occurred). Number of indexes is known after loading data (the `loadData`
       function from the `Core`).
      */
     if (numberOfIndexes > 0) {
-      indexMap.init(numberOfIndexes);
+      indexedElement.init(numberOfIndexes);
     }
 
-    return indexMap;
+    return indexedElement;
   }
 
   /**
-   * Unregister a map with given name.
+   * Unregister an indexed element with given name.
    *
-   * @param {string} name Name of the index map.
+   * @param {string} name Name of the indexed element.
    */
-  unregisterMap(name) {
+  unregisterIndexedElement(name) {
     this.trimmingMapsCollection.unregister(name);
     this.hidingMapsCollection.unregister(name);
-    this.variousMapsCollection.unregister(name);
+    this.variousIndexedElementsCollection.unregister(name);
   }
 
   /**
@@ -356,7 +360,7 @@ class IndexMapper {
       this.hidingMapsCollection.initEvery(length);
 
       // It shouldn't reset the cache.
-      this.variousMapsCollection.initEvery(length);
+      this.variousIndexedElementsCollection.initEvery(length);
     });
 
     this.runLocalHooks('init');
@@ -514,7 +518,7 @@ class IndexMapper {
       this.indexesSequence.insert(insertionIndex, insertedIndexes);
       this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
       this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+      this.variousIndexedElementsCollection.insertToEvery(insertionIndex, insertedIndexes);
     });
   }
 
@@ -529,7 +533,7 @@ class IndexMapper {
       this.indexesSequence.remove(removedIndexes);
       this.trimmingMapsCollection.removeFromEvery(removedIndexes);
       this.hidingMapsCollection.removeFromEvery(removedIndexes);
-      this.variousMapsCollection.removeFromEvery(removedIndexes);
+      this.variousIndexedElementsCollection.removeFromEvery(removedIndexes);
     });
   }
 

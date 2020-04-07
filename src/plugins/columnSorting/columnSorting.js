@@ -8,7 +8,7 @@ import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import BasePlugin from '../_base';
 import { registerPlugin } from './../../plugins';
-import { VisualIndexToPhysicalIndexMap as IndexToIndexMap, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { IndexesSequence as IndexToIndexMap, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { ColumnStatesManager } from './columnStatesManager';
@@ -108,9 +108,9 @@ class ColumnSorting extends BasePlugin {
      * Plugin indexes cache.
      *
      * @private
-     * @type {null|VisualIndexToPhysicalIndexMap}
+     * @type {null|IndexesSequence}
      */
-    this.indexesSequenceCache = null;
+    this.rowSequenceCache = null;
   }
 
   /**
@@ -131,7 +131,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.columnMetaCache = this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, new IndexToValueMap((physicalIndex) => {
+    this.columnMetaCache = this.hot.columnIndexMapper.registerIndexedElement(`${this.pluginKey}.columnMeta`, new IndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
 
       if (visualIndex === null) {
@@ -176,12 +176,12 @@ class ColumnSorting extends BasePlugin {
     });
 
     this.hot.executeBatchOperations(() => {
-      if (this.indexesSequenceCache !== null) {
-        this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
-        this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
+      if (this.rowSequenceCache !== null) {
+        this.hot.rowIndexMapper.setIndexesSequence(this.rowSequenceCache.getValues());
+        this.hot.rowIndexMapper.unregisterIndexedElement(this.pluginKey);
       }
 
-      this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+      this.hot.columnIndexMapper.unregisterIndexedElement(`${this.pluginKey}.columnMeta`);
     });
 
     super.disablePlugin();
@@ -218,9 +218,9 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
-      this.indexesSequenceCache = this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexToIndexMap());
-      this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
+    if (currentSortConfig.length === 0 && this.rowSequenceCache === null) {
+      this.rowSequenceCache = this.hot.rowIndexMapper.registerIndexedElement(this.pluginKey, new IndexToIndexMap());
+      this.rowSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
     if (sortPossible) {
@@ -556,7 +556,7 @@ class ColumnSorting extends BasePlugin {
    */
   sortByPresetSortStates() {
     if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
-      this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
+      this.hot.rowIndexMapper.setIndexesSequence(this.rowSequenceCache.getValues());
 
       return;
     }
@@ -773,8 +773,8 @@ class ColumnSorting extends BasePlugin {
    */
   destroy() {
     this.columnStatesManager.destroy();
-    this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
-    this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+    this.hot.rowIndexMapper.unregisterIndexedElement(this.pluginKey);
+    this.hot.columnIndexMapper.unregisterIndexedElement(`${this.pluginKey}.columnMeta`);
 
     super.destroy();
   }

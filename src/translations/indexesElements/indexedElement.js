@@ -4,9 +4,9 @@ import { isFunction } from '../../helpers/function';
 import localHooks from '../../mixins/localHooks';
 
 /**
- * Map for storing mappings from an index to a value.
+ * Element for storing mappings from an index to a value or just indexes sequence.
  */
-class IndexMap {
+class IndexedElement {
   constructor(initValueOrFn = null) {
     /**
      * List of values for particular indexes.
@@ -146,6 +146,6 @@ class IndexMap {
   }
 }
 
-mixin(IndexMap, localHooks);
+mixin(IndexedElement, localHooks);
 
-export default IndexMap;
+export default IndexedElement;
