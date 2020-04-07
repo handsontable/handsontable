@@ -208,20 +208,11 @@ let _removeClass;
  * @returns {string[]}
  */
 function filterEmptyClassNames(classNames) {
-  const result = [];
-
   if (!classNames || !classNames.length) {
-    return result;
+    return [];
   }
 
-  let len = 0;
-
-  while (classNames[len]) {
-    result.push(classNames[len]);
-    len += 1;
-  }
-
-  return result;
+  return classNames.filter(x => !!x);
 }
 
 if (isClassListSupported()) {
@@ -301,7 +292,6 @@ if (isClassListSupported()) {
   };
 
   _addClass = function(element, classes) {
-    let len = 0;
     let _className = element.className;
     let className = classes;
 
@@ -312,11 +302,10 @@ if (isClassListSupported()) {
       _className = className.join(' ');
 
     } else {
-      while (className && className[len]) {
-        if (!createClassNameRegExp(className[len]).test(_className)) {
+      for (let len = 0; len < className.length; len++) {
+        if (className[len] && !createClassNameRegExp(className[len]).test(_className)) {
           _className += ` ${className[len]}`;
         }
-        len += 1;
       }
     }
     element.className = _className;
