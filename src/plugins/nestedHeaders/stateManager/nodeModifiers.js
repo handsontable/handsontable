@@ -194,7 +194,7 @@ export default class NodeModifiers {
 
   /**
    * An entry point for triggering a node modifiers. If the triggered action
-   * do not exists the exception is thrown.
+   * does not exist the exception is thrown.
    *
    * @param {string} actionName An action name to trigger.
    * @param {TreeNode} nodeToProcess A tree node to process.
