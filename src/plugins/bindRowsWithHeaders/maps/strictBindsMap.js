@@ -1,11 +1,11 @@
-import { IndexedElement, alterUtilsFactory } from '../../../translations';
+import { IndexMap, alterUtilsFactory } from '../../../translations';
 
-const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('PHYSICALLY_INDEXED');
+const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('physically');
 
 /**
  * Map from physical index to another index.
  */
-class StrictBindsMap extends IndexedElement {
+class StrictBindsMap extends IndexMap {
   constructor() {
     super(index => index);
   }

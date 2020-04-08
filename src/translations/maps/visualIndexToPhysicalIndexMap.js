@@ -1,12 +1,13 @@
-import { IndexMap, alterUtilsFactory, getDecreasedIndexes, getIncreasedIndexes } from '../../../translations';
-
-const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('physically');
+import IndexMap from './indexMap';
+import { getListWithRemovedItems, getListWithInsertedItems } from './utils/visuallyIndexed';
+import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
 
 /**
- * Map from physical index to another index.
+ * Map for storing mappings from an visual index to an physical index.
  */
-class LooseBindsMap extends IndexMap {
+class VisualIndexToPhysicalIndexMap extends IndexMap {
   constructor() {
+    // Not handling custom init function or init value.
     super(index => index);
   }
 
@@ -20,7 +21,7 @@ class LooseBindsMap extends IndexMap {
   insert(insertionIndex, insertedIndexes) {
     const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertionIndex, insertedIndexes);
 
-    this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
 
     super.insert(insertionIndex, insertedIndexes);
   }
@@ -40,4 +41,4 @@ class LooseBindsMap extends IndexMap {
   }
 }
 
-export default LooseBindsMap;
+export default VisualIndexToPhysicalIndexMap;

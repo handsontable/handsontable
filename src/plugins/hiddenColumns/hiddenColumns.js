@@ -110,7 +110,7 @@ class HiddenColumns extends BasePlugin {
 
     this.hiddenColumnsMap = new HidingMap();
     this.hiddenColumnsMap.addLocalHook('init', () => this.onMapInit());
-    this.hot.columnIndexMapper.registerIndexedElement(PLUGIN_NAME, this.hiddenColumnsMap);
+    this.hot.columnIndexMapper.registerMap(PLUGIN_NAME, this.hiddenColumnsMap);
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
@@ -135,7 +135,7 @@ class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.columnIndexMapper.unregisterIndexedElement(PLUGIN_NAME);
+    this.hot.columnIndexMapper.unregisterMap(PLUGIN_NAME);
     this.settings = {};
 
     super.disablePlugin();
@@ -449,7 +449,7 @@ class HiddenColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterIndexedElement(PLUGIN_NAME);
+    this.hot.columnIndexMapper.unregisterMap(PLUGIN_NAME);
 
     super.destroy();
   }

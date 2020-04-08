@@ -72,7 +72,7 @@ class NestedRows extends BasePlugin {
    */
   enablePlugin() {
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
-    this.collapsedRowsMap = this.hot.rowIndexMapper.registerIndexedElement('nestedRows', new TrimmingMap());
+    this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap());
 
     this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);
@@ -106,7 +106,7 @@ class NestedRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.rowIndexMapper.unregisterIndexedElement('nestedRows');
+    this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     super.disablePlugin();
   }
@@ -600,7 +600,7 @@ class NestedRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterIndexedElement('nestedRows');
+    this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     super.destroy();
   }
