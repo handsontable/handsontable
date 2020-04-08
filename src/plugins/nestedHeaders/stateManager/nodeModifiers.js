@@ -210,7 +210,7 @@ export default class NodeModifiers {
 }
 
 /**
- * Traverses a tree nodes and call a callback when not hidden node is found. The callback
+ * Traverses the tree nodes and calls a callback when no hidden node is found. The callback
  * is called with visual column index then.
  *
  * @param {TreeNode} node A tree node to traverse.
