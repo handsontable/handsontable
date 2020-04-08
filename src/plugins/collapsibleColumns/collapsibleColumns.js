@@ -85,6 +85,8 @@ class CollapsibleColumns extends BasePlugin {
    */
   eventManager = new EventManager(this);
   /**
+   * The NestedHeaders plugin StateManager instance.
+   *
    * @type {StateManager}
    */
   headerStateManager = null;

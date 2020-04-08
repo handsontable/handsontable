@@ -26,7 +26,7 @@ export default class SourceSettings {
    */
   #dataLength = 0;
   /**
-   * Columns count limit value trim source settings to that value. If columns
+   * Columns count limit value trims source settings to that value. If columns
    * count limit intersects nested header, the header's colspan value is reduced
    * to keep the whole structure stable (trimmed precisely where the limit is set).
    *

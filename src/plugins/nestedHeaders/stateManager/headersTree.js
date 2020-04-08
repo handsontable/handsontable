@@ -9,10 +9,10 @@ import TreeNode from '../../../utils/dataStructures/tree';
  * trees, the matrix is generated for nested header renderers.
  *
  * The second role of the module is validation. While building the tree,
- * there is checked whether the configuration contains overlapping
+ * there is check whether the configuration contains overlapping
  * headers. If true, then the exception is thrown.
  *
- * The tree is static; it means that its column indexing never changed
+ * The tree is static; it means that its column indexing never changes
  * even when a collapsing header is performed. The structure is based
  * on visual column indexes.
  *
