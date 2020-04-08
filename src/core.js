@@ -3446,38 +3446,63 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     preventScrollingToCell = false;
   };
 
+  const getIndexToScroll = (indexMapper, visualIndex) => {
+    const firstColumnOnTheRight = indexMapper.getFirstNotHiddenIndex(visualIndex, 1);
+
+    if (firstColumnOnTheRight !== null) {
+      return firstColumnOnTheRight;
+    }
+
+    return indexMapper.getFirstNotHiddenIndex(visualIndex, -1); // Looking for a index on the left.
+  };
+
   /**
    * Scroll viewport to coordinates specified by the `row` and `column` arguments.
    *
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {number} [row] Visual row index.
-   * @param {number} [column] Visual column index.
+   * @param {number} [row] Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise,
+   * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
+   * @param {number} [column] Column index. If the last argument isn't defined we treat the index as a visual column index.
+   * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
    * @param {boolean} [snapToBottom=false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
    * @param {boolean} [snapToRight=false] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
+   * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if scroll was successful, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column, snapToBottom = false, snapToRight = false) {
+  this.scrollViewportTo = function(row, column, snapToBottom = false,
+                                   snapToRight = false, considerHiddenIndexes = true) {
     const snapToTop = !snapToBottom;
     const snapToLeft = !snapToRight;
-    let result = false;
+    let renderableRow = row;
+    let renderableColumn = column;
 
-    if (row !== void 0 && column !== void 0) {
-      result = instance.view.scrollViewport(
-        fromVisualToRenderableCoords({ row, col: column }), snapToTop, snapToRight, snapToBottom, snapToLeft);
+    if (considerHiddenIndexes) {
+      const visualRowToScroll = Number.isInteger(row) ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
+      const visualColumnToScroll = Number.isInteger(column) ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
+
+      if (visualRowToScroll === null || visualColumnToScroll === null) {
+        return false;
+      }
+
+      renderableRow = Number.isInteger(row) ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
+      renderableColumn = Number.isInteger(column) ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
     }
 
-    if (typeof row === 'number' && typeof column !== 'number') {
-      result = instance.view.scrollViewportVertically(
-        instance.rowIndexMapper.getRenderableFromVisualIndex(row), snapToTop, snapToBottom);
+    if (Number.isInteger(renderableRow) && Number.isInteger(renderableColumn)) {
+      return instance.view.scrollViewport(new CellCoords(renderableRow, renderableColumn), snapToTop, snapToRight, snapToBottom, snapToLeft);
     }
 
-    if (typeof column === 'number' && typeof row !== 'number') {
-      result = instance.view.scrollViewportHorizontally(
-        instance.columnIndexMapper.getRenderableFromVisualIndex(column), snapToRight, snapToLeft);
+    if (Number.isInteger(renderableRow) && !Number.isInteger(renderableColumn)) {
+      return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
     }
 
-    return result;
+    if (Number.isInteger(renderableColumn) && !Number.isInteger(renderableRow)) {
+      return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
+    }
+
+    return false;
   };
 
   /**
