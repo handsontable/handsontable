@@ -1140,7 +1140,7 @@ describe('ContextMenu', () => {
 
       const header = $('.ht_clone_top .htCore').find('thead').find('th').eq(2);
 
-      header.simulate('mousedown', { which: 3 });
+      simulateClick(header, 'RMB');
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1166,7 +1166,7 @@ describe('ContextMenu', () => {
         .find('th')
         .eq(0);
 
-      corner.simulate('mousedown', { which: 3 });
+      simulateClick(corner, 'RMB');
       contextMenu(corner);
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1223,7 +1223,7 @@ describe('ContextMenu', () => {
           .find('th')
           .eq(0);
 
-        corner.simulate('mousedown', { which: 3 });
+        simulateClick(corner, 'RMB');
         contextMenu(corner);
 
         expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1253,7 +1253,7 @@ describe('ContextMenu', () => {
           .find('th')
           .eq(0);
 
-        corner.simulate('mousedown', { which: 3 });
+        simulateClick(corner, 'RMB');
         contextMenu(corner);
 
         expect($('.htContextMenu tbody td.htDisabled').text()).toBe([

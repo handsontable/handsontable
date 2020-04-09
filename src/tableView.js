@@ -397,13 +397,7 @@ class TableView {
 
         if (this.instance.hasColHeaders()) {
           headerRenderers.push((renderedColumnIndex, TH) => {
-            let visualColumnsIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-
-            if (visualColumnsIndex === null) {
-              visualColumnsIndex = renderedColumnIndex;
-            }
-
-            this.appendColHeader(visualColumnsIndex, TH);
+            this.appendColHeader(renderedColumnIndex, TH);
           });
         }
 
@@ -563,8 +557,9 @@ class TableView {
       onBeforeTouchScroll: () => this.instance.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.instance.runHooks('afterMomentumScroll'),
       onBeforeStretchingColumnWidth: (stretchedWidth, renderedColumnIndex) => {
-        return this.instance.runHooks('beforeStretchingColumnWidth',
-          stretchedWidth, this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex));
+        const visualColumnIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+
+        return this.instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
       },
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (row, column, topmost) => this.instance.runHooks('modifyGetCellCoords', row, column, topmost),
@@ -787,18 +782,19 @@ class TableView {
    * Append column header to a TH element.
    *
    * @private
-   * @param {number} col The visual column index.
+   * @param {number} renderedColumnIndex The rendered column index.
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
-  appendColHeader(col, TH) {
+  appendColHeader(renderedColumnIndex, TH) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), col, this.instance.getColHeader);
+        this.updateCellHeader(container.querySelector('.colHeader'), renderedColumnIndex, this.instance.getColHeader);
+
       } else {
         empty(TH);
-        this.appendColHeader(col, TH);
+        this.appendColHeader(renderedColumnIndex, TH);
       }
 
     } else {
@@ -808,13 +804,19 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, col, this.instance.getColHeader);
+      this.updateCellHeader(span, renderedColumnIndex, this.instance.getColHeader);
 
       div.appendChild(span);
       TH.appendChild(div);
     }
 
-    this.instance.runHooks('afterGetColHeader', col, TH);
+    let visualColumnsIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
+
+    if (visualColumnsIndex === null) {
+      visualColumnsIndex = renderedColumnIndex;
+    }
+
+    this.instance.runHooks('afterGetColHeader', visualColumnsIndex, TH);
   }
 
   /**

@@ -1437,9 +1437,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return arrayMap(selection.getSelectedRange(), ({ from, to }) => {
-        return [from.row, from.col, to.row, to.col];
-      });
+      return arrayMap(selection.getSelectedRange(), ({ from, to }) => [from.row, from.col, to.row, to.col]);
     }
   };
 
@@ -1652,7 +1650,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
 
     metaManager.clearCellsCache();
-    this.initIndexMappers();
+    instance.initIndexMappers();
 
     grid.adjustRowsAndCols();
 
@@ -1668,6 +1666,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Init index mapper which manage indexes assigned to the data.
+   * 
+   * @private
    */
   this.initIndexMappers = function() {
     const columnsSettings = tableMeta.columns;
@@ -1837,7 +1837,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // The `column` property has changed - dataset may be expanded or narrowed down.
     if (settings.data === void 0 && settings.columns !== void 0) {
-      this.initIndexMappers();
+      instance.initIndexMappers();
     }
 
     const clen = instance.countCols();
@@ -3096,8 +3096,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this.countRenderableColumns = function() {
-    const numberOfNotSkippedColumns = this.columnIndexMapper.getNotTrimmedIndexesLength();
-    const numberOfHiddenColumns = numberOfNotSkippedColumns - this.columnIndexMapper.getNotHiddenIndexesLength();
+    const numberOfNotTrimmedColumns = this.columnIndexMapper.getNotTrimmedIndexesLength();
+    const numberOfHiddenColumns = numberOfNotTrimmedColumns - this.columnIndexMapper.getNotHiddenIndexesLength();
 
     return this.countCols() - numberOfHiddenColumns;
   };
