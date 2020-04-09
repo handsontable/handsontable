@@ -179,9 +179,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection = selection;
 
-  instance.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
     if (hiddenIndexesChanged) {
-      this.selection.rewrite();
+      this.selection.refresh();
     }
   });
 
@@ -1833,10 +1833,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();
-    }
 
-    // The `column` property has changed - dataset may be expanded or narrowed down.
-    if (settings.data === void 0 && settings.columns !== void 0) {
+      // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
       instance.initIndexMappers();
     }
 

@@ -25,7 +25,8 @@ export default function rowBelowItem() {
       const selected = getValidSelection(this);
       const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
 
-      // We have clicked on the corner and there is no data.
+      // There is no selection, because we have clicked on the corner and there is no data (click on the corner by default
+      // select all cells, but there are no cells).
       if (!anyCellVisible) {
         return false;
       }

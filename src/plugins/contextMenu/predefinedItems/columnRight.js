@@ -29,7 +29,8 @@ export default function columnRightItem() {
         return true;
       }
 
-      // We have clicked on the corner and there is no data.
+      // There is no selection, because we have clicked on the corner and there is no data (click on the corner by default
+      // select all cells, but there are no cells).
       if (!anyCellVisible) {
         return false;
       }
