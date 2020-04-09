@@ -408,8 +408,9 @@ class TableView {
       columnWidth: (renderedColumnIndex) => {
         const visualIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
-        // The function is called also for not displayed indexes, i.e. when `fixedColumnsLeft` > `startCols` or scrolling
-        // and dataset is empty.
+        // It's not a bug that we can't find visual index for some handled by method indexes. The function is called also
+        // for not displayed indexes (beyond the table boundaries), i.e. when `fixedColumnsLeft` > `startCols` (wrong config?) or
+        // scrolling and dataset is empty (scroll should handle that?).
         return this.instance.getColWidth(visualIndex === null ? renderedColumnIndex : visualIndex);
       },
       rowHeight: this.instance.getRowHeight,
