@@ -654,7 +654,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const physicalColumn = this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(column);
+    const physicalColumn = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(column);
     const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;

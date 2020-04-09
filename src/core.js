@@ -181,7 +181,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   instance.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
     if (hiddenIndexesChanged) {
-      selection.rewrite();
+      this.selection.rewrite();
     }
   });
 
@@ -1666,7 +1666,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Init index mapper which manage indexes assigned to the data.
-   * 
+   *
    * @private
    */
   this.initIndexMappers = function() {

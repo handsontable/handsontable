@@ -30,7 +30,7 @@ export function handsontableMouseTriggerFactory(type, buttonKey) {
       handsontableElement = $(handsontableElement);
     }
     const ev = $.Event(type);
-    ev.which = buttonKey || 1; // left click by default
+    ev.which = buttonKey || getMouseButton('LMB'); // left click by default
 
     handsontableElement.simulate(type, ev);
   };

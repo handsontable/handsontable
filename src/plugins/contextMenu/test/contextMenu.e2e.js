@@ -1112,12 +1112,9 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      $('.ht_clone_left .htCore')
-        .eq(0)
-        .find('tbody')
-        .find('th')
-        .eq(0)
-        .simulate('mousedown', { which: 3 });
+      const rowHeader = $('.ht_clone_left .htCore').eq(0).find('tbody').find('th').eq(0);
+
+      simulateClick(rowHeader, 'RMB');
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1317,7 +1314,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', { which: 3 });
+      simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1512,7 +1509,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', { which: 3 });
+      simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
