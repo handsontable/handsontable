@@ -19,7 +19,7 @@ class ViewportColumnsCalculator {
   }
 
   /**
-   * @param {Object} options Object with all options specyfied for column viewport calculation.
+   * @param {Object} options Object with all options specified for column viewport calculation.
    * @param {Number} options.viewportWidth Width of the viewport
    * @param {Number} options.scrollOffset Current horizontal scroll position of the viewport
    * @param {Number} options.totalColumns Total number of columns

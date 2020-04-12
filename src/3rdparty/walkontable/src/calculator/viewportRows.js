@@ -19,7 +19,7 @@ class ViewportRowsCalculator {
   }
 
   /**
-   * @param {Object} options Object with all options specyfied for row viewport calculation.
+   * @param {Object} options Object with all options specified for row viewport calculation.
    * @param {Number} options.viewportHeight Height of the viewport
    * @param {Number} options.scrollOffset Current vertical scroll position of the viewport
    * @param {Number} options.totalRows Total number of rows

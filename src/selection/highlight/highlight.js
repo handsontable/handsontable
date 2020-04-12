@@ -87,7 +87,7 @@ class Highlight {
   }
 
   /**
-   * Check if highlight cell rendering is disabled for specyfied highlight type.
+   * Check if highlight cell rendering is disabled for specified highlight type.
    *
    * @param {String} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
    * @return {Boolean}

@@ -27,7 +27,7 @@ export default function staticRegister(namespace = 'common') {
   }
 
   /**
-   * Check if item under specyfied name is exists.
+   * Check if item under specified name is exists.
    *
    * @param {String} name Identification of the item.
    * @returns {Boolean} Returns `true` or `false` depends on if element exists in the collection.
