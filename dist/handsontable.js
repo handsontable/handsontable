@@ -9410,7 +9410,7 @@ function staticRegister() {
     return subCollection.get(name);
   }
   /**
-   * Check if item under specified name is exists.
+   * Check if item under specyfied name is exists.
    *
    * @param {String} name Identification of the item.
    * @returns {Boolean} Returns `true` or `false` depends on if element exists in the collection.
@@ -20726,7 +20726,7 @@ function Core(rootElement, userSettings) {
     return cellProperties;
   };
   /**
-   * Returns an array of cell meta objects for specified physical row index.
+   * Returns an array of cell meta objects for specyfied physical row index.
    *
    * @memberof Core#
    * @function getCellMetaAtRow
@@ -26107,7 +26107,7 @@ function () {
       return 50;
     }
     /**
-     * @param {Object} options Object with all options specified for column viewport calculation.
+     * @param {Object} options Object with all options specyfied for column viewport calculation.
      * @param {Number} options.viewportWidth Width of the viewport
      * @param {Number} options.scrollOffset Current horizontal scroll position of the viewport
      * @param {Number} options.totalColumns Total number of columns
@@ -26462,7 +26462,7 @@ function () {
       return 23;
     }
     /**
-     * @param {Object} options Object with all options specified for row viewport calculation.
+     * @param {Object} options Object with all options specyfied for row viewport calculation.
      * @param {Number} options.viewportHeight Height of the viewport
      * @param {Number} options.scrollOffset Current vertical scroll position of the viewport
      * @param {Number} options.totalRows Total number of rows
@@ -36449,7 +36449,7 @@ function () {
     this.customSelections = [];
   }
   /**
-   * Check if highlight cell rendering is disabled for specified highlight type.
+   * Check if highlight cell rendering is disabled for specyfied highlight type.
    *
    * @param {String} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
    * @return {Boolean}
@@ -52795,7 +52795,7 @@ function (_BasePlugin) {
     }
     /**
      * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
-     * To retrieve width for specified column use {@link AutoColumnSize#getColumnWidth} method.
+     * To retrieve width for specyfied column use {@link AutoColumnSize#getColumnWidth} method.
      *
      * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
      */
@@ -54349,7 +54349,7 @@ function (_BasePlugin) {
     }
     /**
      * Calculate all rows heights. The calculated row will be cached in the {@link AutoRowSize#heights} property.
-     * To retrieve height for specified row use {@link AutoRowSize#getRowHeight} method.
+     * To retrieve height for specyfied row use {@link AutoRowSize#getRowHeight} method.
      *
      * @param {Object|Number} rowRange Row index or an object with `from` and `to` properties which define row range.
      */
