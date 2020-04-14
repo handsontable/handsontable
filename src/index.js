@@ -11,7 +11,7 @@ import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cel
 import Core from './core';
 import jQueryWrapper from './helpers/wrappers/jquery';
 import EventManager, { getListenersCounter } from './eventManager';
-import { getRegisteredElementsCounter } from './translations/indexedElementsCollection';
+import { getRegisteredMapsCounter } from './translations/mapCollection';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
@@ -58,7 +58,7 @@ Handsontable.Core = function(rootElement, userSettings = {}) {
 Handsontable.DefaultSettings = metaSchemaFactory();
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
-Handsontable._getRegisteredElementsCounter = getRegisteredElementsCounter; // For MemoryLeak tests
+Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
