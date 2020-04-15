@@ -234,7 +234,7 @@ class IndexMapper {
    * @returns {null|number}
    */
   getPhysicalFromRenderableIndex(renderableIndex) {
-    const renderablePhysicalIndexes = this.getRenderablePhysicalIndexes();
+    const renderablePhysicalIndexes = this.getRenderableIndexes();
     const numberOfVisibleIndexes = renderablePhysicalIndexes.length;
     let physicalIndex = null;
 
@@ -423,11 +423,16 @@ class IndexMapper {
   }
 
   /**
-   * Get all NOT trimmed and NOT hidden indexes. This indexes may be rendered when they are placed in the viewport.
+   * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
    *
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
    */
-  getRenderableIndexes() {
+  getRenderableIndexes(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.renderablePhysicalIndexesCache;
+    }
+
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
     const notHiddenIndexes = this.getNotHiddenIndexes();
 
@@ -555,7 +560,7 @@ class IndexMapper {
       this.hidingMapsCollection.updateCache();
       this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
-      this.renderablePhysicalIndexesCache = this.getRenderablePhysicalIndexes(false);
+      this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
 
       this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.trimmedIndexesChanged, this.hiddenIndexesChanged);
 
@@ -563,23 +568,6 @@ class IndexMapper {
       this.trimmedIndexesChanged = false;
       this.hiddenIndexesChanged = false;
     }
-  }
-
-  /**
-   * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
-   *
-   * @private
-   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getRenderablePhysicalIndexes(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.renderablePhysicalIndexesCache;
-    }
-
-    return arrayFilter(this.getNotTrimmedIndexes(), (physicalIndex) => {
-      return this.isHidden(physicalIndex) === false;
-    });
   }
 }
 
