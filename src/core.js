@@ -3477,26 +3477,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let renderableColumn = column;
 
     if (considerHiddenIndexes) {
-      const visualRowToScroll = Number.isInteger(row) ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
-      const visualColumnToScroll = Number.isInteger(column) ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
+      const isRowInteger = Number.isInteger(row);
+      const isColumnInteger = Number.isInteger(column);
+
+      const visualRowToScroll = isRowInteger ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
+      const visualColumnToScroll = isColumnInteger ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
 
       if (visualRowToScroll === null || visualColumnToScroll === null) {
         return false;
       }
 
-      renderableRow = Number.isInteger(row) ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
-      renderableColumn = Number.isInteger(column) ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
+      renderableRow = isRowInteger ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
+      renderableColumn = isColumnInteger ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
     }
 
-    if (Number.isInteger(renderableRow) && Number.isInteger(renderableColumn)) {
+    const isRowInteger = Number.isInteger(renderableRow);
+    const isColumnInteger = Number.isInteger(renderableColumn);
+
+    if (isRowInteger && isColumnInteger) {
       return instance.view.scrollViewport(new CellCoords(renderableRow, renderableColumn), snapToTop, snapToRight, snapToBottom, snapToLeft);
     }
 
-    if (Number.isInteger(renderableRow) && !Number.isInteger(renderableColumn)) {
+    if (isRowInteger && isColumnInteger === false) {
       return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
     }
 
-    if (Number.isInteger(renderableColumn) && !Number.isInteger(renderableRow)) {
+    if (isColumnInteger && isRowInteger === false) {
       return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
     }
 

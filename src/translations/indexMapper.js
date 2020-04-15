@@ -1,6 +1,6 @@
 import { arrayFilter, arrayMap } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
-import IndexToIndexMap from './maps/visualIndexToPhysicalIndexMap';
+import IndexToIndexMap from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
 import MapCollection from './mapCollection';
@@ -33,7 +33,7 @@ class IndexMapper {
      * Map storing the sequence of indexes.
      *
      * @private
-     * @type {VisualIndexToPhysicalIndexMap}
+     * @type {IndexesSequence}
      */
     this.indexesSequence = new IndexToIndexMap();
     /**
