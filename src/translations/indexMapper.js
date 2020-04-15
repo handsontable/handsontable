@@ -329,9 +329,7 @@ class IndexMapper {
    * @param {number} [length] Destination length for all stored index maps.
    */
   initToLength(length = this.getNumberOfIndexes()) {
-    this.flattenTrimmingResult = [];
     this.notTrimmedIndexesCache = [...new Array(length).keys()];
-    this.flattenHidingResult = [];
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
     this.executeBatchOperations(() => {
