@@ -3097,10 +3097,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this.countRenderableColumns = function() {
-    const numberOfNotTrimmedColumns = this.columnIndexMapper.getNotTrimmedIndexesLength();
-    const numberOfHiddenColumns = numberOfNotTrimmedColumns - this.columnIndexMapper.getNotHiddenIndexesLength();
-
-    return this.countCols() - numberOfHiddenColumns;
+    return this.columnIndexMapper.getRenderableIndexesLength();
   };
 
   /**
@@ -3141,30 +3138,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     return Math.min(maxCols, dataLen);
-  };
-
-  /**
-   * Returns an visual index of the first rendered row.
-   * Returns -1 if no row is rendered.
-   *
-   * @memberof Core#
-   * @function rowOffset
-   * @returns {number} Visual index of first rendered row.
-   */
-  this.rowOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedRow();
-  };
-
-  /**
-   * Returns the visual index of the first rendered column.
-   * Returns -1 if no column is rendered.
-   *
-   * @memberof Core#
-   * @function colOffset
-   * @returns {number} Visual index of the first visible column.
-   */
-  this.colOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedColumn();
   };
 
   /**

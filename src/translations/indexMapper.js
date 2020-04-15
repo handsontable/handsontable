@@ -423,6 +423,27 @@ class IndexMapper {
   }
 
   /**
+   * Get all NOT trimmed and NOT hidden indexes. This indexes may be rendered when they are placed in the viewport.
+   *
+   * @returns {Array}
+   */
+  getRenderableIndexes() {
+    const notTrimmedIndexes = this.getNotTrimmedIndexes();
+    const notHiddenIndexes = this.getNotHiddenIndexes();
+
+    return notTrimmedIndexes.filter(physicalIndex => notHiddenIndexes.includes(physicalIndex));
+  }
+
+  /**
+   * Get length of all NOT trimmed and NOT hidden indexes.
+   *
+   * @returns {number}
+   */
+  getRenderableIndexesLength() {
+    return this.getRenderableIndexes().length;
+  }
+
+  /**
    * Get number of all indexes.
    *
    * @returns {number}
