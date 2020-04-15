@@ -141,7 +141,7 @@ export function extendDefaultBorder(defaultBorder, customBorder) {
  * Check if selection has border.
  *
  * @param {Core} hot The Handsontable instance.
- * @param {string} [direction] If set ('left' or 'top') then only the specyfied border side will be checked.
+ * @param {string} [direction] If set ('left' or 'top') then only the specified border side will be checked.
  * @returns {boolean}
  */
 export function checkSelectionBorders(hot, direction) {
