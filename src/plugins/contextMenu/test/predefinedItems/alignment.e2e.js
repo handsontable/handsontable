@@ -186,5 +186,30 @@ describe('ContextMenu', () => {
       deselectCell();
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'className', 'htRight', undefined, undefined);
     });
+
+    it('should not add clasName to cell after changing alignment by context menu, if `beforeSetCellMeta` returned false', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        beforeSetCellMeta: () => false
+      });
+
+      selectCell(2, 3);
+      contextMenu();
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+      item.simulate('mouseover');
+
+      await sleep(350);
+      const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
+      const button = contextSubMenu.find('.ht_master .htCore tbody td').not('.htSeparator').eq(2);
+
+      button.simulate('mousedown').simulate('mouseup'); // Text bottom
+
+      deselectCell();
+
+      expect(getCellMeta(2, 3).className).toBe(void 0);
+    });
   });
 });

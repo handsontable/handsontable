@@ -282,6 +282,12 @@ describe('DomElement helper', () => {
       expect(element.className).toBe('test1 test2 test4 test3');
     });
 
+    it('should add all CSS classes without removing old one (passed as an array)', () => {
+      addClass(element, ['test2', 'test4', '', 'test3']);
+
+      expect(element.className).toBe('test1 test2 test4 test3');
+    });
+
     it('should not touch the DOM element when the passed argument is empty', () => {
       const elementMock = {
         classList: {
@@ -306,6 +312,12 @@ describe('DomElement helper', () => {
       addClass(elementMock, ['']);
 
       expect(elementMock.classList.add).not.toHaveBeenCalled();
+    });
+
+    it('should filter empty and falsy classNames', () => {
+      addClass(element, [undefined, null, '', false, 'false']); // only the last one is not filtered
+
+      expect(element.className).toBe('test1 false');
     });
   });
 

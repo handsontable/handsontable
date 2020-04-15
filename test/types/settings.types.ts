@@ -177,7 +177,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
       return date.getDay() === 0 || date.getDay() === 6;
     }
   },
-  debug: true,
   defaultDate: 'foo',
   disableVisualSelection: oneOf(true, 'current', 'area', 'header', [DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header]),
   dragToScroll: false,
@@ -478,6 +477,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
   beforeRowMove: (rows, target) => {},
   beforeRowResize: (newSize, row, isDoubleClick) => {},
+  beforeSetCellMeta: (row, col, key, value) => {},
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},

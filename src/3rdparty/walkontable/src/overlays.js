@@ -127,10 +127,6 @@ class Overlays {
       }
     }
 
-    if (this.wot.getSetting('debug') && !this.debug) {
-      this.debug = Overlay.createOverlay(Overlay.CLONE_DEBUG, this.wot);
-    }
-
     return syncScroll;
   }
 
@@ -444,9 +440,6 @@ class Overlays {
       this.bottomLeftCornerOverlay.destroy();
     }
 
-    if (this.debug) {
-      this.debug.destroy();
-    }
     this.destroyed = true;
   }
 
@@ -481,10 +474,6 @@ class Overlays {
 
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
       this.bottomLeftCornerOverlay.refresh(fastDraw);
-    }
-
-    if (this.debug) {
-      this.debug.refresh(fastDraw);
     }
   }
 
