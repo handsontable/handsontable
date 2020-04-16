@@ -2019,6 +2019,8 @@ declare namespace Handsontable {
       getNotTrimmedIndexesLength: () => number;
       getNotHiddenIndexes: (readFromCache?: boolean) => number[];
       getNotHiddenIndexesLength: () => number;
+      getRenderableIndexes: (readFromCache?: boolean) => number[];
+      getRenderableIndexesLength: () => number;
       getNumberOfIndexes: () => number;
       moveIndexes: (movedIndexes: number | number[], finalIndex: number) => void;
       isTrimmed: (physicalIndex: number) => boolean;
