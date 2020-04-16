@@ -647,13 +647,12 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {number} row Row index.
-   * @param {number} column Rendered column index.
+   * @param {number} column Visual column index.
    * @returns {Array}
    */
   onModifyGetCellCoords(row, column) {
     const columnMapper = this.hot.columnIndexMapper;
-    const visualColumn = columnMapper.getVisualFromRenderableIndex(column);
-    const mergeParent = this.mergedCellsCollection.get(row, visualColumn);
+    const mergeParent = this.mergedCellsCollection.get(row, column);
 
     // Result of that hook is handled by the Walkontable. We return renderable indexes.
     return mergeParent && column >= 0 && row >= 0 ? [

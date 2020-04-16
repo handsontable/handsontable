@@ -566,7 +566,12 @@ class TableView {
         return this.instance.runHooks('beforeStretchingColumnWidth', stretchedWidth, visualColumnIndex);
       },
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
-      onModifyGetCellCoords: (row, column, topmost) => this.instance.runHooks('modifyGetCellCoords', row, column, topmost),
+      onModifyGetCellCoords: (row, renderableColumnIndex, topmost) => {
+        const visualColumnIndex = renderableColumnIndex >= 0 ?
+          this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
+
+        return this.instance.runHooks('modifyGetCellCoords', row, visualColumnIndex, topmost);
+      },
       viewportRowCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportRowRenderingOffset;
 
