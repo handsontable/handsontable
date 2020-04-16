@@ -651,7 +651,7 @@ describe('IndexMapper', () => {
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 2, 4, 6]);
       expect(indexMapper.getNotHiddenIndexes()).toEqual([1, 2, 3, 4, 5]);
-      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([2, 4]); // private function
+      expect(indexMapper.getRenderableIndexes()).toEqual([2, 4]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6]);
       // Next values are just preserved, they aren't counted again.
@@ -754,7 +754,7 @@ describe('IndexMapper', () => {
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 3, 5, 7]);
       expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3, 4, 5, 6]);
-      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([1, 3, 5]); // private function
+      expect(indexMapper.getRenderableIndexes()).toEqual([1, 3, 5]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       // Next values are just preserved, they aren't counted again.
@@ -856,7 +856,7 @@ describe('IndexMapper', () => {
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 3, 5, 7]);
       expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 4, 6, 7]);
-      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([1, 7]); // private function
+      expect(indexMapper.getRenderableIndexes()).toEqual([1, 7]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       // Next values are just preserved, they aren't counted again.
@@ -948,7 +948,7 @@ describe('IndexMapper', () => {
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([3, 5]);
       expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 4, 5]);
-      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([5]); // private function
+      expect(indexMapper.getRenderableIndexes()).toEqual([5]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
@@ -1040,7 +1040,7 @@ describe('IndexMapper', () => {
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([3, 5]);
       expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3, 4]);
-      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([3]); // private function
+      expect(indexMapper.getRenderableIndexes()).toEqual([3]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
@@ -1132,7 +1132,7 @@ describe('IndexMapper', () => {
       expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5]);
       expect(indexMapper.getNotTrimmedIndexes()).toEqual([3, 5]);
       expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3, 4]);
-      expect(indexMapper.getRenderablePhysicalIndexes()).toEqual([3]); // private function
+      expect(indexMapper.getRenderableIndexes()).toEqual([3]); // private function
       // Next values (indexes) are recounted (re-indexed).
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.

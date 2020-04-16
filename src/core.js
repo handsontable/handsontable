@@ -2153,18 +2153,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return datamap.get(row, datamap.colToProp(column));
   };
 
-  // @TODO: Maybe it can be removed?
-  /**
-   * Get data at cell basing on the renderable row and column indexes.
-   *
-   * @param {number} row Renderable row index.
-   * @param {number} column Renderable column index.
-   * @returns {*} Data at cell.
-   */
-  this.getRenderableDataAtCell = function(row, column) {
-    return datamap.get(row, this.colToProp(this.columnIndexMapper.getVisualFromRenderableIndex(column)));
-  };
-
   /**
    * Returns value at visual `row` and `prop` indexes (see {@link DataMap#get}).
    *

@@ -372,7 +372,11 @@ class TableView {
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
-      data: this.instance.getRenderableDataAtCell,
+      data: (renderableRow, renderableColumn) => {
+        const visualColumnIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+
+        return this.instance.getDataAtCell(renderableRow, visualColumnIndex);
+      },
       totalRows: () => this.instance.countRows(),
       totalColumns: () => this.instance.countRenderableColumns(),
       fixedColumnsLeft: () => this.settings.fixedColumnsLeft,
