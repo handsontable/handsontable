@@ -555,9 +555,22 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
-      onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => this.instance.runHooks('afterDrawSelection',
-        currentRow, currentColumn, cornersOfSelection, layerLevel),
-      onBeforeDrawBorders: (corners, borderClassName) => this.instance.runHooks('beforeDrawBorders', corners, borderClassName),
+      onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
+        const visualColumnIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(currentColumn);
+
+        return this.instance.runHooks('afterDrawSelection', currentRow, visualColumnIndex, cornersOfSelection, layerLevel);
+      },
+      onBeforeDrawBorders: (corners, borderClassName) => {
+        const [startRow, startRenderableColumn, endRow, endRenderableColumn] = corners;
+        const visualCorners = [
+          startRow,
+          this.instance.columnIndexMapper.getVisualFromRenderableIndex(startRenderableColumn),
+          endRow,
+          this.instance.columnIndexMapper.getVisualFromRenderableIndex(endRenderableColumn),
+        ];
+
+        return this.instance.runHooks('beforeDrawBorders', visualCorners, borderClassName);
+      },
       onBeforeTouchScroll: () => this.instance.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.instance.runHooks('afterMomentumScroll'),
       onBeforeStretchingColumnWidth: (stretchedWidth, renderedColumnIndex) => {
