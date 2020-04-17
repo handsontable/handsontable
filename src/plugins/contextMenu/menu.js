@@ -8,6 +8,7 @@ import {
   isInput,
   removeClass,
   getParentWindow,
+  hasClass,
 } from './../../helpers/dom/element';
 import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
 import Cursor from './cursor';
@@ -70,6 +71,7 @@ class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
 
       frame = getParentWindow(frame);
     }
@@ -814,6 +816,22 @@ class Menu {
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
         (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) || isChildOf(event.target, this.hot.rootDocument)))) {
       this.close(true);
+    }
+  }
+
+  /**
+   * Document's contextmenu listener.
+   *
+   * @private
+   * @param {MouseEvent} event The mouse event object.
+   */
+  onDocumentContextMenu(event) {
+    if (!this.isOpened()) {
+      return;
+    }
+
+    if (hasClass(event.target, 'htCore') && isChildOf(event.target, this.hotMenu.rootElement)) {
+      event.preventDefault();
     }
   }
 }
