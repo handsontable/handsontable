@@ -310,7 +310,7 @@ export function deepObjectSize(object) {
     let result = 0;
 
     if (isObject(obj)) {
-      objectEach(obj, (key) => {
+      objectEach(obj, (value, key) => {
         if (key === '__children') {
           return;
         }
