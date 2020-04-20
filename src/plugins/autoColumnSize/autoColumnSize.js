@@ -376,18 +376,18 @@ class AutoColumnSize extends BasePlugin {
     const wot = this.hot.view.wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
-      // Fist fully visible columns is stored as renderable index.
-      const firstFullyVisibleColumn = wot.wtTable.getLastVisibleColumn();
+      // Fist fully visible column is stored as renderable index.
+      const firstFullyVisibleColumn = wot.wtTable.getFirstVisibleColumn();
 
       if (firstFullyVisibleColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(wot.wtTable.getFirstVisibleColumn());
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstFullyVisibleColumn);
       }
     }
 
     if (wot.wtViewport.columnsRenderCalculator) {
       const firstRenderedColumn = wot.wtTable.getFirstRenderedColumn();
 
-      // There are no rendered columns.
+      // There are no rendered column.
       if (firstRenderedColumn !== -1) {
         return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstRenderedColumn);
       }
@@ -405,16 +405,16 @@ class AutoColumnSize extends BasePlugin {
     const wot = this.hot.view.wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
-      // Last fully visible columns is stored as renderable index.
+      // Last fully visible column is stored as renderable index.
       const lastFullyVisibleColumn = wot.wtTable.getLastVisibleColumn();
 
       if (lastFullyVisibleColumn !== -1) {
-        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(wot.wtTable.getLastVisibleColumn());
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastFullyVisibleColumn);
       }
     }
 
     if (wot.wtViewport.columnsRenderCalculator) {
-      // Last fully visible columns is stored as renderable index.
+      // Last fully visible column is stored as renderable index.
       const lastRenderedColumn = wot.wtTable.getLastRenderedColumn();
 
       // There are no rendered columns.
