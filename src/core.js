@@ -1667,12 +1667,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.initIndexMappers = function() {
     const columnsSettings = tableMeta.columns;
-    let finalNrOfColumns;
+    let finalNrOfColumns = 0;
 
     // We will check number of columns only when the `columns` property was defined as an array. Columns option may
     // narrow down or expand displayed dataset in that case.
     if (Array.isArray(columnsSettings)) {
       finalNrOfColumns = columnsSettings.length;
+
+    } else if (isFunction(columnsSettings)) {
+      if (instance.dataType === 'array') {
+        const nrOfSourceColumns = this.countSourceCols();
+
+        rangeEach(0, nrOfSourceColumns - 1, (columnIndex) => {
+          if (columnsSettings(columnIndex)) {
+            finalNrOfColumns += 1;
+          }
+        });
+
+        // Extended dataset by the `columns` property? Moved code right from the refactored `countCols` method.
+      } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+        finalNrOfColumns = datamap.colToPropCache.length;
+      }
 
       // In some cases we need to check columns length from the schema, i.e. `data` may be empty, `columns` may be a function.
     } else if (isDefined(tableMeta.dataSchema)) {
@@ -3097,33 +3112,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = tableMeta.maxCols;
-    let dataLen = this.columnIndexMapper.getNotTrimmedIndexesLength();
-
-    if (tableMeta.columns) {
-      const columnsIsFunction = isFunction(tableMeta.columns);
-
-      if (columnsIsFunction) {
-        if (instance.dataType === 'array') {
-          let columnLen = 0;
-
-          for (let i = 0; i < dataLen; i++) {
-            if (tableMeta.columns(i)) {
-              columnLen += 1;
-            }
-          }
-
-          dataLen = columnLen;
-        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-          dataLen = datamap.colToPropCache.length;
-        }
-
-      } else {
-        dataLen = tableMeta.columns.length;
-      }
-
-    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-      dataLen = datamap.colToPropCache.length;
-    }
+    const dataLen = this.columnIndexMapper.getNotTrimmedIndexesLength();
 
     return Math.min(maxCols, dataLen);
   };
