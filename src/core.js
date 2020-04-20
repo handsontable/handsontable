@@ -3100,7 +3100,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this.countRenderableColumns = function() {
-    return this.columnIndexMapper.getRenderableIndexesLength();
+    const maxCols = tableMeta.maxCols;
+    const dataLen = this.columnIndexMapper.getRenderableIndexesLength();
+
+    return Math.min(maxCols, dataLen);
   };
 
   /**

@@ -1180,7 +1180,7 @@ describe('ContextMenu', () => {
       ].join(''));
     });
 
-    // This test should be removed when some changes in handling such data set will be done. Regression check.
+    // This test should be removed when some changes in handling a such dataset will be done. Regression check.
     it('should disable proper options when row header was selected and there are no visible cells #6733', () => {
       handsontable({
         data: [null],
