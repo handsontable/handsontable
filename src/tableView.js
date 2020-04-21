@@ -360,6 +360,15 @@ class TableView {
   }
 
   /**
+   * Returns the number of renderable columns.
+   *
+   * @returns {number}
+   */
+  countRenderableColumns() {
+    return Math.min(this.instance.columnIndexMapper.getRenderableIndexesLength(), this.settings.maxCols);
+  }
+
+  /**
    * Defines default configuration and initializes WalkOnTable intance.
    *
    * @private
@@ -378,7 +387,7 @@ class TableView {
         return this.instance.getDataAtCell(renderableRow, visualColumnIndex);
       },
       totalRows: () => this.instance.countRows(),
-      totalColumns: () => this.instance.countRenderableColumns(),
+      totalColumns: () => this.countRenderableColumns(),
       fixedColumnsLeft: () => this.settings.fixedColumnsLeft,
       fixedRowsTop: () => this.settings.fixedRowsTop,
       fixedRowsBottom: () => this.settings.fixedRowsBottom,
@@ -617,7 +626,7 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const cols = this.instance.countRenderableColumns();
+          const cols = this.countRenderableColumns();
 
           if (typeof viewportOffset === 'number') {
             calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);

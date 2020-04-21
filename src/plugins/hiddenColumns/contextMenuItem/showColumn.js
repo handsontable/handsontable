@@ -16,12 +16,12 @@ export default function showColumnItem(hiddenColumnsPlugin) {
     },
     callback() {
       const [, startVisualColumn, , endVisualColumn] = this.getSelectedLast();
-      const onlyFirstVisibleColumnSelected =
-        this.columnIndexMapper.getRenderableFromVisualIndex(startVisualColumn) === 0 &&
-        startVisualColumn === endVisualColumn;
-      const onlyLastVisibleColumnSelected =
-        this.columnIndexMapper.getRenderableFromVisualIndex(endVisualColumn) === this.countRenderableColumns() - 1 &&
-        startVisualColumn === endVisualColumn;
+      const noVisibleIndexesBefore =
+        this.columnIndexMapper.getFirstNotHiddenIndex(startVisualColumn - 1, -1) === -1;
+      const onlyFirstVisibleColumnSelected = noVisibleIndexesBefore && startVisualColumn === endVisualColumn;
+      const noVisibleIndexesAfter =
+        this.columnIndexMapper.getFirstNotHiddenIndex(endVisualColumn + 1, 1) === null;
+      const onlyLastVisibleColumnSelected = noVisibleIndexesAfter && startVisualColumn === endVisualColumn;
 
       let startPhysicalColumn = this.toPhysicalColumn(startVisualColumn);
       let endPhysicalColumn = this.toPhysicalColumn(endVisualColumn);
@@ -31,7 +31,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       }
 
       if (onlyLastVisibleColumnSelected) {
-        endPhysicalColumn = this.countSourceCols() - 1;
+        endPhysicalColumn = this.countSourceCols() - 1; // All columns after the selected column will be shown.
       }
 
       hiddenColumnsPlugin.showColumns(columns);
@@ -68,7 +68,9 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         }
 
         const lastVisualIndex = this.countCols() - 1;
-        const lastRenderableIndex = this.countRenderableColumns() - 1;
+        const lastRenderableIndex = this.columnIndexMapper.getRenderableFromVisualIndex(
+          this.columnIndexMapper.getFirstNotHiddenIndex(lastVisualIndex, -1)
+        );
 
         // Handled column is the last rendered index and there are some visual indexes after it.
         if (renderableEndColumn === lastRenderableIndex && lastVisualIndex > visualEndColumn) {
