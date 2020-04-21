@@ -2525,7 +2525,7 @@ declare namespace Handsontable {
     type BorderOptions = {
       width?: number;
       color?: string;
-      style?: string;
+      hide?: boolean;
     }
     type BorderRange = {
       range: {
