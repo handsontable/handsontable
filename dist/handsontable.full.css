@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.2.2
- * Release date: 23/10/2019 (built at 18/03/2020 18:30:14)
+ * Release date: 23/10/2019 (built at 07/11/2019 19:18:08)
  */
 /**
  * Fix for bootstrap styles
@@ -184,6 +184,7 @@
   outline-width: 0;
   white-space: pre-line;
   /* preserve new line character in cell */
+  background-clip: padding-box;
 }
 
 .handsontable th:last-child {
@@ -579,6 +580,7 @@
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 104;
 }
 
 .htSelectEditor {
@@ -681,6 +683,25 @@ CheckboxRenderer
   display: inline-block;
   width: 100%;
 }
+
+/**
+ * Handsontable in Handsontable
+ */
+
+.handsontable .handsontable.ht_clone_top .wtHider {
+  padding: 0 0 5px 0;
+}
+
+/**
+* Autocomplete Editor
+*/
+.handsontable .autocompleteEditor.handsontable {
+  padding-right: 17px;
+}
+.handsontable .autocompleteEditor.handsontable.htMacScroll {
+  padding-right: 15px;
+}
+
 
 /**
  * Handsontable listbox theme
@@ -977,7 +998,7 @@ CheckboxRenderer
 
 /*!
  * Pikaday
- * Copyright © 2014 David Bushell | BSD & MIT license | https://dbushell.com/
+ * Copyright © 2014 David Bushell | BSD & MIT license | http://dbushell.com/
  */
 
 .pika-single {
@@ -1148,8 +1169,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     font-weight: bold;
 }
 
-.is-selected .pika-button,
-.has-event .pika-button {
+.is-selected .pika-button {
     color: #fff;
     font-weight: bold;
     background: #33aaff;
@@ -1157,12 +1177,6 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
-.has-event .pika-button {
-    background: #005da9;
-    box-shadow: inset 0 1px 3px #0076c9;
-}
-
-.is-disabled .pika-button,
 .is-inrange .pika-button {
     background: #D5E9F7;
 }
@@ -1181,25 +1195,15 @@ http://nicolasgallagher.com/micro-clearfix-hack/
     border-radius: 3px;
 }
 
-.is-disabled .pika-button {
-    pointer-events: none;
-    cursor: default;
-    color: #999;
-    opacity: .3;
-}
-
+.is-disabled .pika-button,
 .is-outside-current-month .pika-button {
+    pointer-events: none;
+    cursor: default;
     color: #999;
     opacity: .3;
 }
 
-.is-selection-disabled {
-    pointer-events: none;
-    cursor: default;
-}
-
-.pika-button:hover,
-.pika-row.pick-whole-week:hover .pika-button {
+.pika-button:hover {
     color: #fff;
     background: #ff8000;
     box-shadow: none;
@@ -1269,7 +1273,7 @@ http://nicolasgallagher.com/micro-clearfix-hack/
   display: none;
 }
 
-.htContextMenu .ht_master table.htCore {
+.htContextMenu table.htCore {
   border: 1px solid #ccc;
   border-bottom-width: 2px;
   border-right-width: 2px;

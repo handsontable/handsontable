@@ -171,7 +171,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
-    countColsTranslated: () => instance.countRenderableColumns(),
+    countColsTranslated: () => this.view.countRenderableColumns(),
     translateCoords: fromVisualToRenderableCoords,
     untranslateCoords: fromRenderableToVisualCoords
   });
@@ -2053,9 +2053,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return null;
     }
 
-    const wotIndex = column < 0 ? column : this.columnIndexMapper.getRenderableFromVisualIndex(column);
+    let renderableColumnIndex = column; // Handling also column headers.
 
-    return instance.view.getCellAtCoords(new CellCoords(row, wotIndex), topmost);
+    if (column >= 0) {
+      renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(column);
+    }
+
+    return instance.view.getCellAtCoords(new CellCoords(row, renderableColumnIndex), topmost);
   };
 
   /**
@@ -2590,7 +2594,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns an array of cell meta objects for specyfied physical row index.
+   * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#
    * @function getCellMetaAtRow
@@ -3089,21 +3093,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countRows = function() {
     return datamap.getLength();
-  };
-
-  // @TODO: Maybe it can be removed?
-  /**
-   * Returns the number of renderable columns.
-   *
-   * @memberof Core#
-   * @function countRenderableColumns
-   * @returns {number}
-   */
-  this.countRenderableColumns = function() {
-    const maxCols = tableMeta.maxCols;
-    const dataLen = this.columnIndexMapper.getRenderableIndexesLength();
-
-    return Math.min(maxCols, dataLen);
   };
 
   /**
