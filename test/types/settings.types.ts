@@ -302,6 +302,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   preventWheel: true,
   readOnly: true,
   readOnlyCellClassName: 'foo',
+  redo: true,
   renderAllRows: true,
   renderer: oneOf(
     'autocomplete', 'checkbox', 'html', 'numeric', 'password', 'text', 'custom.renderer',

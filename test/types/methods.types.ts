@@ -73,6 +73,8 @@ hot.isColumnModificationAllowed() === true;
 hot.isEmptyCol(123) === true;
 hot.isEmptyRow(123) === true;
 hot.isListening() === true;
+hot.isRedoAvailable() === true;
+hot.isUndoAvailable() === true;
 hot.listen();
 hot.loadData([[1,2,3], [1,2,3]]);
 hot.loadData([{a:'a',b:2,c:''}, {a:'a',b:2,c:''}]);
