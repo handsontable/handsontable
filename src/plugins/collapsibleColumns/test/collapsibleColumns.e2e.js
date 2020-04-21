@@ -673,7 +673,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -771,7 +771,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">D1</td>
+            <td class="">D1</td>
             <td class="">E1</td>
             <td class="">F1</td>
             <td class="">G1</td>
@@ -977,7 +977,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">D1</td>
+            <td class="">D1</td>
             <td class="">E1</td>
             <td class="">F1</td>
             <td class="">G1</td>
@@ -1063,7 +1063,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -1137,9 +1137,9 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
             <td class="">L1</td>
             <td class="">M1</td>
@@ -1199,7 +1199,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
             <td class="">L1</td>
             <td class="">M1</td>
@@ -1254,7 +1254,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
             <td class="">L1</td>
           </tr>
@@ -1303,7 +1303,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
           </tr>
         </tbody>
@@ -1429,7 +1429,7 @@ describe('CollapsibleColumns', () => {
             <td class="">B1</td>
             <td class="">C1</td>
             <td class="">D1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
           </tr>
         </tbody>
         `);
@@ -1519,7 +1519,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">D1</td>
+            <td class="">D1</td>
           </tr>
         </tbody>
         `);
@@ -1646,9 +1646,9 @@ describe('CollapsibleColumns', () => {
             <td class="">AJ1</td>
             <td class="">AK1</td>
             <td class="">AL1</td>
-            <td class="afterHiddenColumn">AP1</td>
+            <td class="">AP1</td>
             <td class="">AQ1</td>
-            <td class="afterHiddenColumn">AT1</td>
+            <td class="">AT1</td>
             <td class="">AU1</td>
             <td class="">AV1</td>
             <td class="">AW1</td>
@@ -1828,7 +1828,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -1926,7 +1926,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -1968,7 +1968,7 @@ describe('CollapsibleColumns', () => {
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -2034,7 +2034,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
           </tr>
         </tbody>
@@ -2088,7 +2088,7 @@ describe('CollapsibleColumns', () => {
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
           </tr>
         </tbody>
@@ -2152,7 +2152,7 @@ describe('CollapsibleColumns', () => {
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
             <td class="">L1</td>
             <td class="">M1</td>
@@ -2238,7 +2238,7 @@ describe('CollapsibleColumns', () => {
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -2490,7 +2490,7 @@ describe('CollapsibleColumns', () => {
             <td class="">AO1</td>
             <td class="">AP1</td>
             <td class="">AQ1</td>
-            <td class="afterHiddenColumn">AT1</td>
+            <td class="">AT1</td>
             <td class="">AU1</td>
           </tr>
         </tbody>
@@ -3282,7 +3282,7 @@ describe('CollapsibleColumns', () => {
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -3405,19 +3405,19 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
             <td class="">K1</td>
-            <td class="afterHiddenColumn">S1</td>
+            <td class="">S1</td>
             <td class="">T1</td>
-            <td class="afterHiddenColumn">AB1</td>
+            <td class="">AB1</td>
             <td class="">AC1</td>
-            <td class="afterHiddenColumn">AK1</td>
+            <td class="">AK1</td>
             <td class="">AL1</td>
-            <td class="afterHiddenColumn">AT1</td>
+            <td class="">AT1</td>
             <td class="">AU1</td>
-            <td class="afterHiddenColumn">BC1</td>
+            <td class="">BC1</td>
             <td class="">BD1</td>
-            <td class="afterHiddenColumn">BL1</td>
+            <td class="">BL1</td>
           </tr>
         </tbody>
         `);
@@ -3541,25 +3541,25 @@ describe('CollapsibleColumns', () => {
         <tbody>
           <tr>
             <td class="">K1</td>
-            <td class="afterHiddenColumn">S1</td>
+            <td class="">S1</td>
             <td class="">T1</td>
-            <td class="afterHiddenColumn">AB1</td>
+            <td class="">AB1</td>
             <td class="">AC1</td>
-            <td class="afterHiddenColumn">AK1</td>
+            <td class="">AK1</td>
             <td class="">AL1</td>
-            <td class="afterHiddenColumn">AT1</td>
+            <td class="">AT1</td>
             <td class="">AU1</td>
-            <td class="afterHiddenColumn">BC1</td>
+            <td class="">BC1</td>
             <td class="">BD1</td>
-            <td class="afterHiddenColumn">BL1</td>
+            <td class="">BL1</td>
             <td class="">BM1</td>
-            <td class="afterHiddenColumn">BU1</td>
+            <td class="">BU1</td>
             <td class="">BV1</td>
-            <td class="afterHiddenColumn">CD1</td>
+            <td class="">CD1</td>
             <td class="">CE1</td>
-            <td class="afterHiddenColumn">CM1</td>
+            <td class="">CM1</td>
             <td class="">CN1</td>
-            <td class="afterHiddenColumn">CV1</td>
+            <td class="">CV1</td>
           </tr>
         </tbody>
         `);
@@ -3778,11 +3778,11 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">D1</td>
+            <td class="">D1</td>
             <td class="">E1</td>
             <td class="">F1</td>
             <td class="">G1</td>
-            <td class="afterHiddenColumn">J1</td>
+            <td class="">J1</td>
           </tr>
         </tbody>
         `);
@@ -4244,7 +4244,7 @@ describe('CollapsibleColumns', () => {
           <tr>
             <td class="">A1</td>
             <td class="">B1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -4302,7 +4302,7 @@ describe('CollapsibleColumns', () => {
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -4342,7 +4342,7 @@ describe('CollapsibleColumns', () => {
             <td class="">A1</td>
             <td class="">B1</td>
             <td class="">C1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -4404,7 +4404,7 @@ describe('CollapsibleColumns', () => {
             <td class="">B1</td>
             <td class="">C1</td>
             <td class="">D1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
@@ -4447,7 +4447,7 @@ describe('CollapsibleColumns', () => {
             <td class="">B1</td>
             <td class="">C1</td>
             <td class="">D1</td>
-            <td class="afterHiddenColumn">F1</td>
+            <td class="">F1</td>
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
