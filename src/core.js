@@ -2053,9 +2053,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return null;
     }
 
-    const wotIndex = column < 0 ? column : this.columnIndexMapper.getRenderableFromVisualIndex(column);
+    let renderableColumnIndex = column; // Handling also column headers.
 
-    return instance.view.getCellAtCoords(new CellCoords(row, wotIndex), topmost);
+    if (column >= 0) {
+      renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(column);
+    }
+
+    return instance.view.getCellAtCoords(new CellCoords(row, renderableColumnIndex), topmost);
   };
 
   /**

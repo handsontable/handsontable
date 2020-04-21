@@ -514,14 +514,12 @@ class CollapsibleColumns extends BasePlugin {
       });
     });
 
-    // Added by @wszymanski, this code around was absent, when the original commit was performed.
     const destinationCollapsedColumns = this.hiddenColumnsPlugin.getHiddenColumns();
 
     if (action === 'collapse') {
       const allowColumnCollapse = this.hot.runHooks('beforeColumnCollapse', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnCollapse === false) {
-        // Added by @wszymanski, this code around was absent, when the original commit was performed.
         this.hiddenColumnsPlugin.showColumns(this.hiddenColumnsPlugin.getHiddenColumns());
         this.hiddenColumnsPlugin.hideColumns(this.collapsedColumns);
         this.collapsedSections = cloneCollapsedSections;
@@ -532,7 +530,6 @@ class CollapsibleColumns extends BasePlugin {
       const allowColumnExpand = this.hot.runHooks('beforeColumnExpand', currentCollapsedColumns, destinationCollapsedColumns, collapsePossible);
 
       if (allowColumnExpand === false) {
-        // Added by @wszymanski, this code around was absent, when original commit was performed.
         this.hiddenColumnsPlugin.showColumns(this.hiddenColumnsPlugin.getHiddenColumns());
         this.hiddenColumnsPlugin.hideColumns(this.collapsedColumns);
         this.collapsedSections = cloneCollapsedSections;

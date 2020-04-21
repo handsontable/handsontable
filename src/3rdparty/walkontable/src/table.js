@@ -571,8 +571,6 @@ class Table {
       return -4;
     }
 
-    // Took @swistach version of code (56eca442ac2834cd2790ee581f0b1303b95ceaa5), but probably it should be changed.
-    // Since original commit there was change done by @warpech (d6a5be6cdbb4dba2da4cef0db29a1a09b171efbe).
     let TR;
 
     if (row < 0) {
