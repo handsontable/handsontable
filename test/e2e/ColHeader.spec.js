@@ -391,7 +391,7 @@ describe('ColHeader', () => {
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(65);
   });
 
-  it('should display headers properly when `colHeaders` option is set to a `true` value and order of column was changed', () => {
+  it('should display auto-generated headers (the `colHeaders` is set to `true`) in the original order even when columns have been moved', () => {
     const hot = handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -403,13 +403,13 @@ describe('ColHeader', () => {
     hot.columnIndexMapper.setIndexesSequence([2, 1, 0]);
     hot.render();
 
-    expect(htCore.find('thead th:eq(0)').text()).toEqual(' ');
+    expect(htCore.find('thead th:eq(0)').text()).toEqual(' '); // Row header
     expect(htCore.find('thead th:eq(1)').text()).toEqual('A');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('B');
     expect(htCore.find('thead th:eq(3)').text()).toEqual('C');
   });
 
-  it('should display headers properly when `colHeaders` option is set to a custom value and order of column was changed', () => {
+  it('should move the defined headers with columns when the `colHeaders` option is set to a custom value and columns have been moved', () => {
     const hot = handsontable({
       rowHeaders: true,
       colHeaders: ['0', '1', '2'],
@@ -421,7 +421,7 @@ describe('ColHeader', () => {
     hot.columnIndexMapper.setIndexesSequence([2, 1, 0]);
     hot.render();
 
-    expect(htCore.find('thead th:eq(0)').text()).toEqual(' ');
+    expect(htCore.find('thead th:eq(0)').text()).toEqual(' '); // Row header
     expect(htCore.find('thead th:eq(1)').text()).toEqual('2');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('1');
     expect(htCore.find('thead th:eq(3)').text()).toEqual('0');

@@ -1,10 +1,10 @@
 import { arrayFilter, arrayMap } from './../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
-import { rangeEach } from '../helpers/number';
-import IndexToIndexMap from './maps/visualIndexToPhysicalIndexMap';
+import IndexToIndexMap from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
 import MapCollection from './mapCollection';
+import AggregatedCollection from './aggregatedCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
@@ -33,7 +33,7 @@ class IndexMapper {
      * Map storing the sequence of indexes.
      *
      * @private
-     * @type {VisualIndexToPhysicalIndexMap}
+     * @type {IndexesSequence}
      */
     this.indexesSequence = new IndexToIndexMap();
     /**
@@ -43,7 +43,8 @@ class IndexMapper {
      * @private
      * @type {MapCollection}
      */
-    this.trimmingMapsCollection = new MapCollection();
+    this.trimmingMapsCollection = new AggregatedCollection(
+      valuesForIndex => valuesForIndex.some(value => value === true), false);
     /**
      * Collection for different hiding maps. Indexes marked as hidden in any map WILL be included in the {@link DataMap},
      * but won't be rendered.
@@ -51,7 +52,8 @@ class IndexMapper {
      * @private
      * @type {MapCollection}
      */
-    this.hidingMapsCollection = new MapCollection();
+    this.hidingMapsCollection = new AggregatedCollection(
+      valuesForIndex => valuesForIndex.some(value => value === true), false);
     /**
      * Collection for another kind of maps. There are stored mappings from indexes (visual or physical) to values.
      *
@@ -60,26 +62,12 @@ class IndexMapper {
      */
     this.variousMapsCollection = new MapCollection();
     /**
-     * Cache for trimming result for particular physical indexes.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.flattenTrimmingResult = [];
-    /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
      * @private
      * @type {Array}
      */
     this.notTrimmedIndexesCache = [];
-    /**
-     * Cache for hiding result for particular physical indexes.
-     *
-     * @private
-     * @type {Array}
-     */
-    this.flattenHidingResult = [];
     /**
      * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
      *
@@ -246,7 +234,7 @@ class IndexMapper {
    * @returns {null|number}
    */
   getPhysicalFromRenderableIndex(renderableIndex) {
-    const renderablePhysicalIndexes = this.getRenderablePhysicalIndexes();
+    const renderablePhysicalIndexes = this.getRenderableIndexes();
     const numberOfVisibleIndexes = renderablePhysicalIndexes.length;
     let physicalIndex = null;
 
@@ -341,9 +329,7 @@ class IndexMapper {
    * @param {number} [length] Destination length for all stored index maps.
    */
   initToLength(length = this.getNumberOfIndexes()) {
-    this.flattenTrimmingResult = [];
     this.notTrimmedIndexesCache = [...new Array(length).keys()];
-    this.flattenHidingResult = [];
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
     this.executeBatchOperations(() => {
@@ -437,6 +423,32 @@ class IndexMapper {
   }
 
   /**
+   * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
+   *
+   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @returns {Array}
+   */
+  getRenderableIndexes(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.renderablePhysicalIndexesCache;
+    }
+
+    const notTrimmedIndexes = this.getNotTrimmedIndexes();
+    const notHiddenIndexes = this.getNotHiddenIndexes();
+
+    return notTrimmedIndexes.filter(physicalIndex => notHiddenIndexes.includes(physicalIndex));
+  }
+
+  /**
+   * Get length of all NOT trimmed and NOT hidden indexes.
+   *
+   * @returns {number}
+   */
+  getRenderableIndexesLength() {
+    return this.getRenderableIndexes().length;
+  }
+
+  /**
    * Get number of all indexes.
    *
    * @returns {number}
@@ -484,7 +496,7 @@ class IndexMapper {
    * @returns {boolean}
    */
   isTrimmed(physicalIndex) {
-    return this.getFlattenTrimmingResult()[physicalIndex] || false;
+    return this.trimmingMapsCollection.getMergedValueAtIndex(physicalIndex);
   }
 
   /**
@@ -494,7 +506,7 @@ class IndexMapper {
    * @returns {boolean}
    */
   isHidden(physicalIndex) {
-    return this.getFlattenHidingResult()[physicalIndex] || false;
+    return this.hidingMapsCollection.getMergedValueAtIndex(physicalIndex);
   }
 
   /**
@@ -544,11 +556,11 @@ class IndexMapper {
     const anyCachedIndexChanged = this.indexesSequenceChanged || this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
     if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
-      this.flattenTrimmingResult = this.getFlattenTrimmingResult(false);
-      this.flattenHidingResult = this.getFlattenHidingResult(false);
+      this.trimmingMapsCollection.updateCache();
+      this.hidingMapsCollection.updateCache();
       this.notTrimmedIndexesCache = this.getNotTrimmedIndexes(false);
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
-      this.renderablePhysicalIndexesCache = this.getRenderablePhysicalIndexes(false);
+      this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
 
       this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.trimmedIndexesChanged, this.hiddenIndexesChanged);
 
@@ -556,85 +568,6 @@ class IndexMapper {
       this.trimmedIndexesChanged = false;
       this.hiddenIndexesChanged = false;
     }
-  }
-
-  /**
-   * Get flat list of values, which are result whether index has been hidden in any registered trimming maps.
-   *
-   * @private
-   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getFlattenTrimmingResult(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.flattenTrimmingResult;
-    }
-
-    if (this.trimmingMapsCollection.getLength() === 0) {
-      return [];
-    }
-
-    const result = [];
-    // Below variable stores results of trimming (boolean values) for every particular trimming map.
-    // [
-    //   [true, true, true], // first trimming map
-    //   [false, true, true] // second trimming map
-    // ]
-    const allTrimmingValues = arrayMap(this.trimmingMapsCollection.get(), trimmingMap => trimmingMap.getValues());
-
-    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
-      result[physicalIndex] = allTrimmingValues.some(nextTrimmingValues => nextTrimmingValues[physicalIndex]);
-    });
-
-    return result;
-  }
-
-  /**
-   * Get flat list of values, which are result whether index has been hidden in any registered hiding maps.
-   *
-   * @private
-   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getFlattenHidingResult(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.flattenHidingResult;
-    }
-
-    if (this.hidingMapsCollection.getLength() === 0) {
-      return [];
-    }
-
-    const result = [];
-    // Below variable stores results of hiding (boolean values) for every particular hiding map.
-    // [
-    //   [true, true, true], // first trimming map
-    //   [false, true, true] // second trimming map
-    // ]
-    const allHidingValues = arrayMap(this.hidingMapsCollection.get(), list => list.getValues());
-
-    rangeEach(this.indexesSequence.getLength() - 1, (physicalIndex) => {
-      result[physicalIndex] = allHidingValues.some(nextHidingValues => nextHidingValues[physicalIndex]);
-    });
-
-    return result;
-  }
-
-  /**
-   * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
-   *
-   * @private
-   * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
-   */
-  getRenderablePhysicalIndexes(readFromCache = true) {
-    if (readFromCache === true) {
-      return this.renderablePhysicalIndexesCache;
-    }
-
-    return arrayFilter(this.getNotTrimmedIndexes(), (physicalIndex) => {
-      return this.isHidden(physicalIndex) === false;
-    });
   }
 }
 

@@ -1112,12 +1112,9 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      $('.ht_clone_left .htCore')
-        .eq(0)
-        .find('tbody')
-        .find('th')
-        .eq(0)
-        .simulate('mousedown', { which: 3 });
+      const rowHeader = $('.ht_clone_left .htCore').eq(0).find('tbody').find('th').eq(0);
+
+      simulateClick(rowHeader, 'RMB');
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1140,7 +1137,7 @@ describe('ContextMenu', () => {
 
       const header = $('.ht_clone_top .htCore').find('thead').find('th').eq(2);
 
-      header.simulate('mousedown', { which: 3 });
+      simulateClick(header, 'RMB');
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1166,7 +1163,7 @@ describe('ContextMenu', () => {
         .find('th')
         .eq(0);
 
-      corner.simulate('mousedown', { which: 3 });
+      simulateClick(corner, 'RMB');
       contextMenu(corner);
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1183,7 +1180,7 @@ describe('ContextMenu', () => {
       ].join(''));
     });
 
-    // This test should be removed when some changes in handling such data set will be done. Regression check.
+    // This test should be removed when some changes in handling a such dataset will be done. Regression check.
     it('should disable proper options when row header was selected and there are no visible cells #6733', () => {
       handsontable({
         data: [null],
@@ -1223,7 +1220,7 @@ describe('ContextMenu', () => {
           .find('th')
           .eq(0);
 
-        corner.simulate('mousedown', { which: 3 });
+        simulateClick(corner, 'RMB');
         contextMenu(corner);
 
         expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1253,7 +1250,7 @@ describe('ContextMenu', () => {
           .find('th')
           .eq(0);
 
-        corner.simulate('mousedown', { which: 3 });
+        simulateClick(corner, 'RMB');
         contextMenu(corner);
 
         expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1317,7 +1314,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', { which: 3 });
+      simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
@@ -1512,7 +1509,7 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', { which: 3 });
+      simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')

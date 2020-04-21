@@ -647,13 +647,12 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {number} row Row index.
-   * @param {number} column Rendered column index.
+   * @param {number} column Visual column index.
    * @returns {Array}
    */
   onModifyGetCellCoords(row, column) {
     const columnMapper = this.hot.columnIndexMapper;
-    const visualColumn = columnMapper.getVisualFromRenderableIndex(column);
-    const mergeParent = this.mergedCellsCollection.get(row, visualColumn);
+    const mergeParent = this.mergedCellsCollection.get(row, column);
 
     // Result of that hook is handled by the Walkontable. We return renderable indexes.
     return mergeParent && column >= 0 && row >= 0 ? [
@@ -812,7 +811,7 @@ class MergeCells extends BasePlugin {
   }
 
   /**
-   *  Modify viewport start when needed. We extend viewport when merged cells aren't fully visible.
+   * Modify viewport start when needed. We extend viewport when merged cells aren't fully visible.
    *
    * @private
    * @param {object} calc The column calculator object.
@@ -975,7 +974,7 @@ class MergeCells extends BasePlugin {
    * `beforeDrawAreaBorders` hook callback.
    *
    * @private
-   * @param {Array} corners Coordinates of the area corners.
+   * @param {Array} corners Visual coordinates of the area corners.
    * @param {string} className Class name for the area.
    */
   onBeforeDrawAreaBorders(corners, className) {
@@ -1033,7 +1032,7 @@ class MergeCells extends BasePlugin {
    *
    * @private
    * @param {number} currentRow Row index of the currently processed cell.
-   * @param {number} currentColumn Column index of the currently cell.
+   * @param {number} currentColumn Visual column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.

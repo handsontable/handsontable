@@ -141,7 +141,7 @@ class DataProvider {
    * Check if column at specified column index is hidden.
    *
    * @private
-   * @param {number} column Column index.
+   * @param {number} column Visual column index.
    * @returns {boolean}
    */
   _isHiddenColumn(column) {

@@ -35,4 +35,25 @@ describe('ContextMenuReadOnly', () => {
     $(changeToReadOnlyButton).simulate('mousedown').simulate('mouseup');
     expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true, undefined, undefined);
   });
+
+  it('should not change readOnly property to true after changing cell to read only by context menu, if `beforeSetCellMeta` returned false', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      contextMenu: true,
+      beforeSetCellMeta: () => false
+    });
+
+    selectCell(2, 3);
+    contextMenu();
+
+    const changeToReadOnlyButton = $('.htItemWrapper').filter(function() {
+      return $(this).text() === 'Read only';
+    })[0];
+
+    $(changeToReadOnlyButton).simulate('mousedown').simulate('mouseup');
+
+    expect(getCellMeta(2, 3).readOnly).toBe(false);
+  });
 });

@@ -104,7 +104,7 @@ declare namespace _Handsontable {
     runHooks(key: keyof Handsontable.Hooks.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     // Requires TS 3.0:
     // runHooks<K extends keyof Handsontable.Events>(key: K, ...params: Parameters<Handsontable.Events[K]>): ReturnType<Handsontable.Events[K]>;
-    scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
+    scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
     selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
     selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
@@ -200,7 +200,7 @@ declare namespace Handsontable {
       from: CellCoords;
       to: CellCoords;
     }
-    type OverlayType = 'top' | 'bottom' | 'left' | 'top_left_corner' | 'bottom_left_corner' | 'debug';
+    type OverlayType = 'top' | 'bottom' | 'left' | 'top_left_corner' | 'bottom_left_corner';
   }
 
   namespace cellTypes {
@@ -1678,7 +1678,6 @@ declare namespace Handsontable {
     dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
     dateFormat?: string;
     datePickerConfig?: PikadayOptions;
-    debug?: boolean;
     defaultDate?: string;
     disableVisualSelection?: boolean | 'current' | 'area' | 'header' | ('current' | 'area' | 'header')[];
     dragToScroll?: boolean;
@@ -1895,6 +1894,7 @@ declare namespace Handsontable {
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
       beforeRowMove?: (rows: number[], target: number) => void;
       beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
+      beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
       beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
       beforeSetRangeStart?: (coords: wot.CellCoords) => void;
       beforeSetRangeStartOnly?: (coords: wot.CellCoords) => void;
@@ -2019,6 +2019,8 @@ declare namespace Handsontable {
       getNotTrimmedIndexesLength: () => number;
       getNotHiddenIndexes: (readFromCache?: boolean) => number[];
       getNotHiddenIndexesLength: () => number;
+      getRenderableIndexes: (readFromCache?: boolean) => number[];
+      getRenderableIndexesLength: () => number;
       getNumberOfIndexes: () => number;
       moveIndexes: (movedIndexes: number | number[], finalIndex: number) => void;
       isTrimmed: (physicalIndex: number) => boolean;

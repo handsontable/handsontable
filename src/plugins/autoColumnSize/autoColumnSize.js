@@ -370,18 +370,24 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
-   * @returns {number} Returns column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
+   * @returns {number} Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn() {
     const wot = this.hot.view.wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
-      return wot.wtTable.getFirstVisibleColumn();
+      // Fist fully visible column is stored as renderable index.
+      const firstFullyVisibleColumn = wot.wtTable.getFirstVisibleColumn();
+
+      if (firstFullyVisibleColumn !== -1) {
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstFullyVisibleColumn);
+      }
     }
+
     if (wot.wtViewport.columnsRenderCalculator) {
       const firstRenderedColumn = wot.wtTable.getFirstRenderedColumn();
 
-      // There are no rendered columns.
+      // There are no rendered column.
       if (firstRenderedColumn !== -1) {
         return this.hot.columnIndexMapper.getVisualFromRenderableIndex(firstRenderedColumn);
       }
@@ -393,15 +399,22 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Gets the last visible column.
    *
-   * @returns {number} Returns column index or -1 if table is not rendered.
+   * @returns {number} Returns visual column index or -1 if table is not rendered.
    */
   getLastVisibleColumn() {
     const wot = this.hot.view.wt;
 
     if (wot.wtViewport.columnsVisibleCalculator) {
-      return wot.wtTable.getLastVisibleColumn();
+      // Last fully visible column is stored as renderable index.
+      const lastFullyVisibleColumn = wot.wtTable.getLastVisibleColumn();
+
+      if (lastFullyVisibleColumn !== -1) {
+        return this.hot.columnIndexMapper.getVisualFromRenderableIndex(lastFullyVisibleColumn);
+      }
     }
+
     if (wot.wtViewport.columnsRenderCalculator) {
+      // Last fully visible column is stored as renderable index.
       const lastRenderedColumn = wot.wtTable.getLastRenderedColumn();
 
       // There are no rendered columns.

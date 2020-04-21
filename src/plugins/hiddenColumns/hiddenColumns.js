@@ -153,7 +153,7 @@ class HiddenColumns extends BasePlugin {
     let destinationHideConfig = currentHideConfig;
 
     if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(column => !columns.includes(column));
+      destinationHideConfig = currentHideConfig.filter(column => columns.includes(column) === false);
     }
 
     const continueHiding = this.hot.runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
@@ -163,8 +163,6 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(hiddenColumn => columns.includes(hiddenColumn) === false);
-
       this.hot.executeBatchOperations(() => {
         arrayEach(columns, (visualColumn) => {
           this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
@@ -294,7 +292,9 @@ class HiddenColumns extends BasePlugin {
     if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
       // Add additional space for hidden column indicator.
-      return width + (this.hot.hasColHeaders() ? 15 : 0);
+      if (this.hot.hasColHeaders()) {
+        return width + 15;
+      }
     }
   }
 

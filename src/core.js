@@ -1,6 +1,5 @@
 import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
 import EditorManager from './editorManager';
@@ -179,9 +178,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection = selection;
 
-  instance.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
     if (hiddenIndexesChanged) {
-      selection.rewrite();
+      this.selection.refresh();
     }
   });
 
@@ -987,10 +986,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     let shouldBeCanceled = true;
 
-    if (isFunction(beforeChangeResult)) {
-      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-
-    } else if (beforeChangeResult === false) {
+    if (beforeChangeResult === false) {
 
       if (activeEditor) {
         activeEditor.cancelChanges();
@@ -1437,9 +1433,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return arrayMap(selection.getSelectedRange(), ({ from, to }) => {
-        return [from.row, from.col, to.row, to.col];
-      });
+      return arrayMap(selection.getSelectedRange(), ({ from, to }) => [from.row, from.col, to.row, to.col]);
     }
   };
 
@@ -1652,7 +1646,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
 
     metaManager.clearCellsCache();
-    this.initIndexMappers();
+    instance.initIndexMappers();
 
     grid.adjustRowsAndCols();
 
@@ -1668,15 +1662,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Init index mapper which manage indexes assigned to the data.
+   *
+   * @private
    */
   this.initIndexMappers = function() {
     const columnsSettings = tableMeta.columns;
-    let finalNrOfColumns;
+    let finalNrOfColumns = 0;
 
     // We will check number of columns only when the `columns` property was defined as an array. Columns option may
     // narrow down or expand displayed dataset in that case.
     if (Array.isArray(columnsSettings)) {
       finalNrOfColumns = columnsSettings.length;
+
+    } else if (isFunction(columnsSettings)) {
+      if (instance.dataType === 'array') {
+        const nrOfSourceColumns = this.countSourceCols();
+
+        rangeEach(0, nrOfSourceColumns - 1, (columnIndex) => {
+          if (columnsSettings(columnIndex)) {
+            finalNrOfColumns += 1;
+          }
+        });
+
+        // Extended dataset by the `columns` property? Moved code right from the refactored `countCols` method.
+      } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+        finalNrOfColumns = datamap.colToPropCache.length;
+      }
 
       // In some cases we need to check columns length from the schema, i.e. `data` may be empty, `columns` may be a function.
     } else if (isDefined(tableMeta.dataSchema)) {
@@ -1833,11 +1844,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();
-    }
 
-    // The `column` property has changed - dataset may be expanded or narrowed down.
-    if (settings.data === void 0 && settings.columns !== void 0) {
-      this.initIndexMappers();
+      // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
+      instance.initIndexMappers();
     }
 
     const clen = instance.countCols();
@@ -2157,18 +2166,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getDataAtCell = function(row, column) {
     return datamap.get(row, datamap.colToProp(column));
-  };
-
-  // @TODO: Maybe it can be removed?
-  /**
-   * Get data at cell basing on the renderable row and column indexes.
-   *
-   * @param {number} row Renderable row index.
-   * @param {number} column Renderable column index.
-   * @returns {*} Data at cell.
-   */
-  this.getRenderableDataAtCell = function(row, column) {
-    return datamap.get(row, this.colToProp(this.columnIndexMapper.getVisualFromRenderableIndex(column)));
   };
 
   /**
@@ -2499,9 +2496,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} column Visual column index.
    * @param {string} key Property name.
    * @param {string} value Property value.
+   * @fires Hooks#beforeSetCellMeta
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
+    const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
+
+    if (allowSetCellMeta === false) {
+      return;
+    }
+
     let physicalRow = row;
     let physicalColumn = column;
 
@@ -3096,10 +3100,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this.countRenderableColumns = function() {
-    const numberOfNotSkippedColumns = this.columnIndexMapper.getNotTrimmedIndexesLength();
-    const numberOfHiddenColumns = numberOfNotSkippedColumns - this.columnIndexMapper.getNotHiddenIndexesLength();
+    const maxCols = tableMeta.maxCols;
+    const dataLen = this.columnIndexMapper.getRenderableIndexesLength();
 
-    return this.countCols() - numberOfHiddenColumns;
+    return Math.min(maxCols, dataLen);
   };
 
   /**
@@ -3111,59 +3115,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = tableMeta.maxCols;
-    let dataLen = this.columnIndexMapper.getNotTrimmedIndexesLength();
-
-    if (tableMeta.columns) {
-      const columnsIsFunction = isFunction(tableMeta.columns);
-
-      if (columnsIsFunction) {
-        if (instance.dataType === 'array') {
-          let columnLen = 0;
-
-          for (let i = 0; i < dataLen; i++) {
-            if (tableMeta.columns(i)) {
-              columnLen += 1;
-            }
-          }
-
-          dataLen = columnLen;
-        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-          dataLen = datamap.colToPropCache.length;
-        }
-
-      } else {
-        dataLen = tableMeta.columns.length;
-      }
-
-    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-      dataLen = datamap.colToPropCache.length;
-    }
+    const dataLen = this.columnIndexMapper.getNotTrimmedIndexesLength();
 
     return Math.min(maxCols, dataLen);
-  };
-
-  /**
-   * Returns an visual index of the first rendered row.
-   * Returns -1 if no row is rendered.
-   *
-   * @memberof Core#
-   * @function rowOffset
-   * @returns {number} Visual index of first rendered row.
-   */
-  this.rowOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedRow();
-  };
-
-  /**
-   * Returns the visual index of the first rendered column.
-   * Returns -1 if no column is rendered.
-   *
-   * @memberof Core#
-   * @function colOffset
-   * @returns {number} Visual index of the first visible column.
-   */
-  this.colOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedColumn();
   };
 
   /**
@@ -3446,38 +3400,69 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     preventScrollingToCell = false;
   };
 
+  const getIndexToScroll = (indexMapper, visualIndex) => {
+    const firstColumnOnTheRight = indexMapper.getFirstNotHiddenIndex(visualIndex, 1);
+
+    if (firstColumnOnTheRight !== null) {
+      return firstColumnOnTheRight;
+    }
+
+    return indexMapper.getFirstNotHiddenIndex(visualIndex, -1); // Looking for a index on the left.
+  };
+
   /**
    * Scroll viewport to coordinates specified by the `row` and `column` arguments.
    *
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {number} [row] Visual row index.
-   * @param {number} [column] Visual column index.
+   * @param {number} [row] Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise,
+   * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
+   * @param {number} [column] Column index. If the last argument isn't defined we treat the index as a visual column index.
+   * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
    * @param {boolean} [snapToBottom=false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
    * @param {boolean} [snapToRight=false] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
+   * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if scroll was successful, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column, snapToBottom = false, snapToRight = false) {
+  this.scrollViewportTo = function(row, column, snapToBottom = false,
+                                   snapToRight = false, considerHiddenIndexes = true) {
     const snapToTop = !snapToBottom;
     const snapToLeft = !snapToRight;
-    let result = false;
+    let renderableRow = row;
+    let renderableColumn = column;
 
-    if (row !== void 0 && column !== void 0) {
-      result = instance.view.scrollViewport(
-        fromVisualToRenderableCoords({ row, col: column }), snapToTop, snapToRight, snapToBottom, snapToLeft);
+    if (considerHiddenIndexes) {
+      const isRowInteger = Number.isInteger(row);
+      const isColumnInteger = Number.isInteger(column);
+
+      const visualRowToScroll = isRowInteger ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
+      const visualColumnToScroll = isColumnInteger ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
+
+      if (visualRowToScroll === null || visualColumnToScroll === null) {
+        return false;
+      }
+
+      renderableRow = isRowInteger ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
+      renderableColumn = isColumnInteger ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
     }
 
-    if (typeof row === 'number' && typeof column !== 'number') {
-      result = instance.view.scrollViewportVertically(
-        instance.rowIndexMapper.getRenderableFromVisualIndex(row), snapToTop, snapToBottom);
+    const isRowInteger = Number.isInteger(renderableRow);
+    const isColumnInteger = Number.isInteger(renderableColumn);
+
+    if (isRowInteger && isColumnInteger) {
+      return instance.view.scrollViewport(new CellCoords(renderableRow, renderableColumn), snapToTop, snapToRight, snapToBottom, snapToLeft);
     }
 
-    if (typeof column === 'number' && typeof row !== 'number') {
-      result = instance.view.scrollViewportHorizontally(
-        instance.columnIndexMapper.getRenderableFromVisualIndex(column), snapToRight, snapToLeft);
+    if (isRowInteger && isColumnInteger === false) {
+      return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
     }
 
-    return result;
+    if (isColumnInteger && isRowInteger === false) {
+      return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
+    }
+
+    return false;
   };
 
   /**

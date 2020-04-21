@@ -63,6 +63,10 @@ class IndexMap {
    *
    * @param {number} index The index.
    * @param {*} value The value to save.
+   *
+   * Note: Please keep in mind that it is not possible to set value beyond the map (not respecting already set
+   * map's size). Please use the `setValues` method when you would like to extend the map.
+   *
    * @returns {boolean}
    */
   setValueAtIndex(index, value) {

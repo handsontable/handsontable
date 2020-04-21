@@ -1,6 +1,6 @@
 import IndexMapper from './indexMapper';
 import PhysicalIndexToValueMap from './maps/physicalIndexToValueMap';
-import VisualIndexToPhysicalIndexMap from './maps/visualIndexToPhysicalIndexMap';
+import IndexesSequence from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
 import IndexMap from './maps/indexMap';
@@ -9,7 +9,7 @@ import { getIncreasedIndexes, getDecreasedIndexes, alterUtilsFactory } from './m
 export {
   IndexMapper,
   PhysicalIndexToValueMap,
-  VisualIndexToPhysicalIndexMap,
+  IndexesSequence,
   TrimmingMap,
   HidingMap,
   IndexMap,

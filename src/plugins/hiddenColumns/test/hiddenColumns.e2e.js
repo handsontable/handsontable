@@ -42,12 +42,13 @@ describe('HiddenColumns', () => {
         }
       });
 
-      expect(countRenderableColumns()).toBe(3);
+      expect(spec().$container.find('tr:eq(0) td').length).toBe(3);
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(0, 1)).toBe(null);
       expect(getCell(0, 2).innerText).toBe('C1');
       expect(getCell(0, 3)).toBe(null);
       expect(getCell(0, 4).innerText).toBe('E1');
+      expect(countCols()).toBe(5);
     });
 
     it('should return to default state after calling the disablePlugin method', () => {
@@ -57,6 +58,9 @@ describe('HiddenColumns', () => {
           columns: [1, 3],
         },
       });
+
+      expect(countCols()).toBe(5);
+
       getPlugin('hiddenColumns').disablePlugin();
       render();
 
@@ -65,6 +69,7 @@ describe('HiddenColumns', () => {
       expect(getCell(0, 2).innerText).toBe('C1');
       expect(getCell(0, 3).innerText).toBe('D1');
       expect(getCell(0, 4).innerText).toBe('E1');
+      expect(countCols()).toBe(5);
     });
 
     it('should hide columns after calling the enablePlugin method', () => {
@@ -78,9 +83,15 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
       plugin.disablePlugin();
       render();
+
+      expect(countCols()).toBe(5);
+
       plugin.enablePlugin();
       render();
 
+      expect(countCols()).toBe(5);
+
+      expect(countCols()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(0, 1)).toBe(null);
       expect(getCell(0, 2).innerText).toBe('C1');
@@ -104,7 +115,8 @@ describe('HiddenColumns', () => {
       });
 
       expect(plugin.enabled).toEqual(true);
-      expect(countRenderableColumns()).toBe(3);
+      expect(spec().$container.find('tr:eq(0) td').length).toBe(3);
+      expect(countCols()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(0, 1)).toBe(null);
       expect(getCell(0, 2).innerText).toBe('C1');
@@ -120,7 +132,8 @@ describe('HiddenColumns', () => {
         },
       });
 
-      expect(countRenderableColumns()).toBe(3);
+      expect(countCols()).toBe(5);
+      expect(spec().$container.find('tr:eq(0) td').length).toBe(3);
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(0, 1)).toBe(null);
       expect(getCell(0, 2).innerText).toBe('C1');
@@ -133,7 +146,8 @@ describe('HiddenColumns', () => {
         },
       });
 
-      expect(countRenderableColumns()).toBe(2);
+      expect(countCols()).toBe(5);
+      expect(spec().$container.find('tr:eq(0) td').length).toBe(2);
       expect(getCell(0, 0)).toBe(null);
       expect(getCell(0, 1).innerText).toBe('B1');
       expect(getCell(0, 2)).toBe(null);
@@ -475,7 +489,8 @@ describe('HiddenColumns', () => {
 
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-          expect(countRenderableColumns()).toBe(3);
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
           expect(getCell(0, 0).innerText).toBe('A1');
           expect(getCell(0, 1)).toBe(null);
           expect(getCell(0, 2)).toBe(null);
@@ -617,7 +632,8 @@ describe('HiddenColumns', () => {
             },
           });
 
-          expect(countRenderableColumns()).toBe(3);
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(4);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
           expect(getCell(0, 0).innerText).toBe('A1');
           expect(getCell(0, 1)).toBe(null);
           expect(getCell(0, 2).innerText).toBe('C1');
@@ -629,7 +645,8 @@ describe('HiddenColumns', () => {
           contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
-          expect(countRenderableColumns()).toBe(5);
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(6);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(5);
           expect(getCell(0, 0).innerText).toBe('A1');
           expect(getCell(0, 1).innerText).toBe('B1');
           expect(getCell(0, 2).innerText).toBe('C1');
@@ -655,7 +672,8 @@ describe('HiddenColumns', () => {
             },
           });
 
-          expect(countRenderableColumns()).toBe(3);
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(4);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
           expect(getCell(0, 0)).toBe(null);
           expect(getCell(0, 1)).toBe(null);
           expect(getCell(0, 2).innerText).toBe('C1');
@@ -667,7 +685,8 @@ describe('HiddenColumns', () => {
           contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
-          expect(countRenderableColumns()).toBe(5);
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(6);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(5);
           expect(getCell(0, 0).innerText).toBe('A1');
           expect(getCell(0, 1).innerText).toBe('B1');
           expect(getCell(0, 2).innerText).toBe('C1');
@@ -693,7 +712,8 @@ describe('HiddenColumns', () => {
             },
           });
 
-          expect(countRenderableColumns()).toBe(3);
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(4);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
           expect(getCell(0, 0).innerText).toBe('A1');
           expect(getCell(0, 1).innerText).toBe('B1');
           expect(getCell(0, 2).innerText).toBe('C1');
@@ -705,7 +725,8 @@ describe('HiddenColumns', () => {
           contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
-          expect(countRenderableColumns()).toBe(5);
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(6);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(5);
           expect(getCell(0, 0).innerText).toBe('A1');
           expect(getCell(0, 1).innerText).toBe('B1');
           expect(getCell(0, 2).innerText).toBe('C1');

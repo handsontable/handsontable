@@ -876,6 +876,18 @@ const REGISTERED_HOOKS = [
   'beforeRender',
 
   /**
+   * Fired before cell meta is changed.
+   *
+   * @event Hooks#beforeSetCellMeta
+   * @since 8.0.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The updated meta key.
+   * @param {*} value The updated meta value.
+   */
+  'beforeSetCellMeta',
+
+  /**
    * Fired before setting range is started but not finished yet.
    *
    * @event Hooks#beforeSetRangeStartOnly
@@ -1890,6 +1902,7 @@ const REMOVED_HOOKS = new Map([
   ['unmodifyRow', '8.0.0'],
   ['unmodifyCol', '8.0.0'],
   ['skipLengthCache', '8.0.0'],
+  ['hiddenColumn', '8.0.0']
 ]);
 
 /**
