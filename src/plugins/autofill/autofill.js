@@ -149,6 +149,7 @@ class Autofill extends BasePlugin {
           copyableRows.push(row);
         }
       });
+
       rangeEach(range.startCol, range.endCol, (column) => {
         if (copyableColumns.indexOf(column) === -1) {
           copyableColumns.push(column);

@@ -690,7 +690,7 @@ class MergeCells extends BasePlugin {
   onAfterRenderer(TD, row, col) {
     const mergedCell = this.mergedCellsCollection.get(row, col);
     // We shouldn't override data in the collection.
-    const mergedCellCopy = isObject(mergedCell) ? clone(mergedCell) : mergedCell;
+    const mergedCellCopy = isObject(mergedCell) ? clone(mergedCell) : void 0;
 
     if (isObject(mergedCellCopy)) {
       const columnMapper = this.hot.columnIndexMapper;

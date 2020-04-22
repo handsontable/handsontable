@@ -1669,7 +1669,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const columnsSettings = tableMeta.columns;
     let finalNrOfColumns = 0;
 
-    // We will check number of columns only when the `columns` property was defined as an array. Columns option may
+    // We will check number of columns when the `columns` property was defined as an array. Columns option may
     // narrow down or expand displayed dataset in that case.
     if (Array.isArray(columnsSettings)) {
       finalNrOfColumns = columnsSettings.length;
@@ -1689,7 +1689,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         finalNrOfColumns = datamap.colToPropCache.length;
       }
 
-      // In some cases we need to check columns length from the schema, i.e. `data` may be empty, `columns` may be a function.
+      // In some cases we need to check columns length from the schema, i.e. `data` may be empty.
     } else if (isDefined(tableMeta.dataSchema)) {
       const schema = datamap.getSchema();
 

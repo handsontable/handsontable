@@ -4025,6 +4025,10 @@ describe('ContextMenu', () => {
         ]);
         expect(getSelectedRangeLast()?.highlight?.row).toBe(1);
         expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(1);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(1);
+        expect(getSelectedRangeLast()?.to?.col).toBe(3);
         expect(`
         |   ║ - : - : - : - |
         |===:===:===:===:===|
@@ -4063,6 +4067,10 @@ describe('ContextMenu', () => {
         ]);
         expect(getSelectedRangeLast()?.highlight?.row).toBe(0);
         expect(getSelectedRangeLast()?.highlight?.col).toBe(0);
+        expect(getSelectedRangeLast()?.from?.row).toBe(0);
+        expect(getSelectedRangeLast()?.from?.col).toBe(0);
+        expect(getSelectedRangeLast()?.to?.row).toBe(0);
+        expect(getSelectedRangeLast()?.to?.col).toBe(3);
         expect(`
         |   ║ - : - : - : - |
         |===:===:===:===:===|

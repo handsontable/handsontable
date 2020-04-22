@@ -513,16 +513,16 @@ class Selection {
       propToCol: prop => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
-    const countRows = this.tableProps.countRows();
-    const countCols = this.tableProps.countCols();
+    const nrOfRows = this.tableProps.countRows();
+    const nrOfColumns = this.tableProps.countCols();
 
     // Check if every layer of the coordinates are valid.
     const isValid = !selectionRanges.some((selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
-      const _isValid = isValidCoord(rowStart, countRows) &&
-                      isValidCoord(columnStart, countCols) &&
-                      isValidCoord(rowEnd, countRows) &&
-                      isValidCoord(columnEnd, countCols);
+      const _isValid = isValidCoord(rowStart, nrOfRows) &&
+                      isValidCoord(columnStart, nrOfColumns) &&
+                      isValidCoord(rowEnd, nrOfRows) &&
+                      isValidCoord(columnEnd, nrOfColumns);
 
       return !_isValid;
     });
@@ -553,13 +553,13 @@ class Selection {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
 
-    const countCols = this.tableProps.countCols();
-    const countRows = this.tableProps.countRows();
-    const isValid = countRows > 0 && isValidCoord(start, countCols) && isValidCoord(end, countCols);
+    const nrOfColumns = this.tableProps.countCols();
+    const nrOfRows = this.tableProps.countRows();
+    const isValid = nrOfRows > 0 && isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(-1, start));
-      this.setRangeEnd(new CellCoords(this.tableProps.countRows() - 1, end));
+      this.setRangeEnd(new CellCoords(nrOfRows - 1, end));
       this.finish();
     }
 

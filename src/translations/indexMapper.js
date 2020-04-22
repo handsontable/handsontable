@@ -400,8 +400,7 @@ class IndexMapper {
    * Note: Indexes marked as hidden are included in a {@link DataMap}, but aren't rendered.
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array} List of physical indexes. Index of this native array is a "visual index",
-   * value of this native array is a "physical index".
+   * @returns {Array} List of physical indexes. Please keep in mind that index of this native array IS NOT a "visual index".
    */
   getNotHiddenIndexes(readFromCache = true) {
     if (readFromCache === true) {
@@ -426,7 +425,8 @@ class IndexMapper {
    * Get list of physical indexes (respecting the sequence of indexes) which may be rendered (when they are in a viewport).
    *
    * @param {boolean} [readFromCache=true] Determine if read indexes from cache.
-   * @returns {Array}
+   * @returns {Array} List of physical indexes. Index of this native array is a "renderable index",
+   * value of this native array is a "physical index".
    */
   getRenderableIndexes(readFromCache = true) {
     if (readFromCache === true) {

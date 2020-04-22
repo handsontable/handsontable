@@ -82,7 +82,7 @@ class HiddenColumns extends BasePlugin {
      */
     this.settings = {};
     /**
-     * Map of hidden rows by the plugin.
+     * Map of hidden columns by the plugin.
      *
      * @private
      * @type {null|HidingMap}
@@ -256,9 +256,9 @@ class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isValidConfig(hiddenColumns) {
-    const nrOfRows = this.hot.countCols();
+    const nrOfColumns = this.hot.countCols();
 
-    return hiddenColumns.every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfRows);
+    return hiddenColumns.every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfColumns);
   }
 
   /**
