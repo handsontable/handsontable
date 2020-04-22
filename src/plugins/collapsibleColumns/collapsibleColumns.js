@@ -130,7 +130,7 @@ class CollapsibleColumns extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
     super.enablePlugin();
-    // @TODO: Workaround for broken plugin initialization abstraction (https://github.com/handsontable/handsontable/issues/6806).
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     this.updatePlugin();
   }
 
@@ -138,7 +138,7 @@ class CollapsibleColumns extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    // @TODO: Workaround for broken plugin initialization abstraction (https://github.com/handsontable/handsontable/issues/6806).
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     if (!this.hot.view) {
       return;
     }
@@ -456,7 +456,7 @@ class CollapsibleColumns extends BasePlugin {
    * @private
    */
   onInit() {
-    // @TODO: Workaround for broken plugin initialization abstraction (https://github.com/handsontable/handsontable/issues/6806).
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     this.updatePlugin();
   }
 
