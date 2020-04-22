@@ -2547,6 +2547,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 2, 4, 4]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 2 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 4 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 2 });
 
       $(getCell(-2, 7).querySelector('.collapsibleIndicator')) // Collapse header "H3"
         .simulate('mousedown')
@@ -2596,6 +2600,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 7, 4, 8]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 7 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 7 });
 
       $(getCell(-2, 5).querySelector('.collapsibleIndicator')) // Collapse header "F3"
         .simulate('mousedown')
@@ -2641,6 +2649,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 5, 4, 8]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 5 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
 
       $(getCell(-3, 5).querySelector('.collapsibleIndicator')) // Collapse header "F2"
         .simulate('mousedown')
@@ -2679,6 +2691,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 5, 4, 8]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 5 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
 
       $(getCell(-3, 5).querySelector('.collapsibleIndicator')) // Expand header "F2"
         .simulate('mousedown')
@@ -2737,6 +2753,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 5, 4, 8]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 5 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 8 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 5 });
     });
 
     it('should active highlight column header for non-contiguous selection of the collapsed columns', () => {
@@ -2835,6 +2855,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      // This "expect" checks buggy behavior which is not fixed yet #4964 (the last selection shouldn't be here).
+      expect(getSelected()).toEqual([[0, 7, 4, 8], [0, 5, 4, 5], [0, 3, 4, 3], [0, 3, 4, 4]]);
 
       $(getCell(-4, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"
         .simulate('mousedown')
@@ -2880,6 +2902,8 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      // This "expect" checks buggy behavior which is not fixed yet #4964 (the last selection shouldn't be here).
+      expect(getSelected()).toEqual([[0, 7, 4, 8], [0, 5, 4, 5], [0, 3, 4, 3], [0, 3, 4, 4]]);
     });
 
     it('should active highlight the column header when the header is collpased to the same colspan with as its child', () => {
@@ -2939,6 +2963,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 0, 4, 0]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 0 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
 
       $(getCell(-3, 0).querySelector('.collapsibleIndicator')) // Collapse header "A1"
         .simulate('mousedown')
@@ -2958,6 +2986,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 0, 4, 0]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 0 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
 
       $(getCell(-3, 0).querySelector('.collapsibleIndicator')) // Expand header "A1"
         .simulate('mousedown')
@@ -3004,6 +3036,10 @@ describe('CollapsibleColumns', () => {
           </tr>
         </thead>
         `);
+      expect(getSelected()).toEqual([[0, 0, 4, 0]]);
+      expect(getSelectedRangeLast().from.toObject()).toEqual({ row: 0, col: 0 });
+      expect(getSelectedRangeLast().to.toObject()).toEqual({ row: 4, col: 0 });
+      expect(getSelectedRangeLast().highlight.toObject()).toEqual({ row: 0, col: 0 });
     });
   });
 
