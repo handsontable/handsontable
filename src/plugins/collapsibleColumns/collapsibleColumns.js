@@ -1,4 +1,4 @@
-import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayUnique, arrayReduce } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import {
@@ -9,16 +9,17 @@ import {
 import EventManager from '../../eventManager';
 import { registerPlugin } from '../../plugins';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { HidingMap } from '../../translations';
 import BasePlugin from '../_base';
 
 const actionDictionary = new Map([
   ['collapse', {
-    hiddenAction: 'hideColumns',
+    hideColumn: true,
     beforeHook: 'beforeColumnCollapse',
     afterHook: 'afterColumnCollapse',
   }],
   ['expand', {
-    hiddenAction: 'showColumns',
+    hideColumn: false,
     beforeHook: 'beforeColumnExpand',
     afterHook: 'afterColumnExpand',
   }],
@@ -45,6 +46,7 @@ const actionDictionary = new Map([
  *   data: generateDataObj(),
  *   colHeaders: true,
  *   rowHeaders: true,
+ *   nestedHeaders: true,
  *   // enable plugin
  *   collapsibleColumns: true,
  * });
@@ -54,6 +56,7 @@ const actionDictionary = new Map([
  *   data: generateDataObj(),
  *   colHeaders: true,
  *   rowHeaders: true,
+ *   nestedHeaders: true,
  *   // enable and configure which columns can be collapsed
  *   collapsibleColumns: [
  *     {row: -4, col: 1, collapsible: true},
@@ -63,13 +66,6 @@ const actionDictionary = new Map([
  * ```
  */
 class CollapsibleColumns extends BasePlugin {
-  /**
-   * Cached reference to the HiddenColumns plugin.
-   *
-   * @private
-   * @type {HiddenColumns}
-   */
-  hiddenColumnsPlugin = null;
   /**
    * Cached reference to the NestedHeaders plugin.
    *
@@ -90,6 +86,13 @@ class CollapsibleColumns extends BasePlugin {
    * @type {StateManager}
    */
   headerStateManager = null;
+  /**
+   * Map of collapsed columns by the plugin.
+   *
+   * @private
+   * @type {HidingMap|null}
+   */
+  #collapsedColumnsMap = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -109,17 +112,15 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const { nestedHeaders, hiddenColumns } = this.hot.getSettings();
+    const { nestedHeaders } = this.hot.getSettings();
 
     if (!nestedHeaders) {
       warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
-    if (!hiddenColumns) {
-      warn('You need to configure the Hidden Columns plugin in order to use collapsible headers.');
-    }
+    this.#collapsedColumnsMap = new HidingMap();
+    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#collapsedColumnsMap);
 
-    this.hiddenColumnsPlugin = this.hot.getPlugin('hiddenColumns');
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
@@ -129,14 +130,16 @@ class CollapsibleColumns extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
     super.enablePlugin();
-    this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
+    this.updatePlugin();
   }
 
   /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    if (!this.hot.view) { // @TODO: Workaround for broken plugin initialization abstraction.
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
+    if (!this.hot.view) {
       return;
     }
 
@@ -161,7 +164,8 @@ class CollapsibleColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hiddenColumnsPlugin = null;
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    this.#collapsedColumnsMap = null;
     this.nestedHeadersPlugin = null;
 
     this.clearButtons();
@@ -315,7 +319,7 @@ class CollapsibleColumns extends BasePlugin {
       });
     }
 
-    const currentCollapsedColumns = [...this.hiddenColumnsPlugin.getHiddenColumns()];
+    const currentCollapsedColumns = this.getCollapsedColumns();
     let destinationCollapsedColumns = [];
 
     if (action === 'collapse') {
@@ -342,9 +346,13 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    this.hiddenColumnsPlugin[actionTranslator.hiddenAction](affectedColumnsIndexes);
+    this.hot.executeBatchOperations(() => {
+      arrayEach(affectedColumnsIndexes, (visualColumn) => {
+        this.#collapsedColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
+      });
+    });
 
-    const isActionPerformed = this.hiddenColumnsPlugin.getHiddenColumns().length !== currentCollapsedColumns.length;
+    const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
 
     this.hot.runHooks(
       actionTranslator.afterHook,
@@ -356,6 +364,22 @@ class CollapsibleColumns extends BasePlugin {
 
     this.hot.render();
     this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+  }
+
+  /**
+   * Gets an array of physical indexes of collapsed columns.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getCollapsedColumns() {
+    return arrayReduce(this.#collapsedColumnsMap.getValues(), (indexesList, isCollapsed, physicalIndex) => {
+      if (isCollapsed) {
+        indexesList.push(physicalIndex);
+      }
+
+      return indexesList;
+    }, []);
   }
 
   /**
@@ -432,7 +456,7 @@ class CollapsibleColumns extends BasePlugin {
    * @private
    */
   onInit() {
-    // @TODO: Workaround for broken plugin initialization abstraction.
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     this.updatePlugin();
   }
 
@@ -454,6 +478,9 @@ class CollapsibleColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#collapsedColumnsMap = null;
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+
     super.destroy();
   }
 }
