@@ -373,8 +373,8 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {number[]}
    */
   getCollapsedColumns() {
-    return arrayReduce(this.#collapsedColumnsMap.getValues(), (indexesList, isHidden, physicalIndex) => {
-      if (isHidden) {
+    return arrayReduce(this.#collapsedColumnsMap.getValues(), (indexesList, isCollapsed, physicalIndex) => {
+      if (isCollapsed) {
         indexesList.push(physicalIndex);
       }
 
