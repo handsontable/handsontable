@@ -282,7 +282,7 @@ export function getDifferenceOfArrays(...arrays) {
  * Intersection of two or more arrays.
  *
  * @param {...[]} arrays Array of strings or array of numbers.
- * @returns {Array} Returns elements that exists in every arrays.
+ * @returns {Array} Returns elements that exists in every array.
  */
 export function getIntersectionOfArrays(...arrays) {
   const [first, ...rest] = [...arrays];
