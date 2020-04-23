@@ -296,7 +296,7 @@ export function getIntersectionOfArrays(...arrays) {
 }
 
 /**
- * Union in two or more array.
+ * Union of two or more arrays.
  *
  * @param {...[]} arrays Array of strings or array of number.
  * @returns {Array} Returns elements exists in any of the arrays once.
