@@ -1755,7 +1755,6 @@ declare namespace Handsontable {
     readOnlyCellClassName?: string;
     renderAllRows?: boolean;
     renderer?: RendererType | string | renderers.Base;
-    redo?: boolean;
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
     rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
