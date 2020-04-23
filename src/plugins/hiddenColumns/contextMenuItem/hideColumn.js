@@ -1,4 +1,3 @@
-import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -27,7 +26,10 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
       const start = Math.min(from.col, to.col);
       const end = Math.max(from.col, to.col);
       const columnsToHide = [];
-      rangeEach(start, end, column => columnsToHide.push(column));
+
+      for (let visualColumn = start; visualColumn <= end; visualColumn += 1) {
+        columnsToHide.push(visualColumn);
+      }
 
       const firstHiddenColumn = columnsToHide[0];
       const lastHiddenColumn = columnsToHide[columnsToHide.length - 1];

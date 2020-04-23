@@ -5,7 +5,6 @@ import { isPressedCtrlKey } from './../utils/keyStateObserver';
 import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { arrayEach } from './../helpers/array';
-import { rangeEach } from './../helpers/number';
 import localHooks from './../mixins/localHooks';
 import Transformation from './transformation';
 import {
@@ -602,7 +601,7 @@ class Selection {
     cellHighlight.commit().adjustCoordinates(this.selectedRange.current());
 
     // Rewriting rendered ranges going through all layers.
-    rangeEach(this.selectedRange.size(), (layerLevel) => {
+    for (let layerLevel = 0; layerLevel < this.selectedRange.size(); layerLevel += 1) {
       this.highlight.useLayerLevel(layerLevel);
 
       const areaHighlight = this.highlight.createOrGetArea();
@@ -612,7 +611,7 @@ class Selection {
       areaHighlight.commit();
       headerHighlight.commit();
       activeHeaderHighlight.commit();
-    });
+    }
 
     // Reverting starting layer for the Highlight.
     this.highlight.useLayerLevel(currentLayer);

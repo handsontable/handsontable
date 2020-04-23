@@ -2,7 +2,6 @@ import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
 import { arrayEach } from './../../helpers/array';
-import { rangeEach } from '../../helpers/number';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import { CellCoords } from './../../3rdparty/walkontable/src';
@@ -144,17 +143,17 @@ class Autofill extends BasePlugin {
     const data = [];
 
     arrayEach(copyableRanges, (range) => {
-      rangeEach(range.startRow, range.endRow, (row) => {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
+      for (let visualRow = range.startRow; visualRow <= range.endRow; visualRow += 1) {
+        if (copyableRows.indexOf(visualRow) === -1) {
+          copyableRows.push(visualRow);
         }
-      });
+      }
 
-      rangeEach(range.startCol, range.endCol, (column) => {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
+      for (let visualColumn = range.startCol; visualColumn <= range.endCol; visualColumn += 1) {
+        if (copyableColumns.indexOf(visualColumn) === -1) {
+          copyableColumns.push(visualColumn);
         }
-      });
+      }
     });
 
     arrayEach(copyableRows, (row) => {

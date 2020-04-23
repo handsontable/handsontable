@@ -821,7 +821,7 @@ class MergeCells extends BasePlugin {
     const columnMapper = this.hot.columnIndexMapper;
     const visualStartCol = columnMapper.getVisualFromRenderableIndex(calc.startColumn);
 
-    rangeEach(0, nrOfRows - 1, (visualRowIndex) => {
+    for (let visualRowIndex = 0; visualRowIndex < nrOfRows; visualRowIndex += 1) {
       const mergeParentForViewportStart = this.mergedCellsCollection.get(visualRowIndex, visualStartCol);
 
       if (isObject(mergeParentForViewportStart)) {
@@ -835,10 +835,10 @@ class MergeCells extends BasePlugin {
           // We are looking for next merges inside already extended viewport (starting again from column equal to 0).
           this.modifyViewportStart.call(this, calc, nrOfRows); // recursively search upwards
 
-          return false; // Finish the current loop. Everything will be checked from the beginning by above recursion.
+          return; // Finish the current loop. Everything will be checked from the beginning by above recursion.
         }
       }
-    });
+    }
   }
 
   /**
@@ -852,7 +852,7 @@ class MergeCells extends BasePlugin {
     const columnMapper = this.hot.columnIndexMapper;
     const visualEndCol = columnMapper.getVisualFromRenderableIndex(calc.endColumn);
 
-    rangeEach(0, nrOfRows - 1, (visualRowIndex) => {
+    for (let visualRowIndex = 0; visualRowIndex < nrOfRows; visualRowIndex += 1) {
       const mergeParentForViewportEnd = this.mergedCellsCollection.get(visualRowIndex, visualEndCol);
 
       if (isObject(mergeParentForViewportEnd)) {
@@ -867,10 +867,10 @@ class MergeCells extends BasePlugin {
           // We are looking for next merges inside already extended viewport (starting again from column equal to 0).
           this.modifyViewportEnd.call(this, calc, nrOfRows); // recursively search upwards
 
-          return false; // Finish the current loop. Everything will be checked from the beginning by above recursion.
+          return; // Finish the current loop. Everything will be checked from the beginning by above recursion.
         }
       }
-    });
+    }
   }
 
   /**

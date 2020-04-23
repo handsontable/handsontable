@@ -305,7 +305,7 @@ class ManualColumnMove extends BasePlugin {
     const columnMapper = this.hot.columnIndexMapper;
     let columnsWidth = 0;
 
-    rangeEach(fromColumn, toColumn, (visualColumnIndex) => {
+    for (let visualColumnIndex = fromColumn; visualColumnIndex <= toColumn; visualColumnIndex += 1) {
       // We can't use just `getColWidth` (even without indexes translation) as it doesn't return proper values
       // when column is stretched.
       const renderableIndex = columnMapper.getRenderableFromVisualIndex(visualColumnIndex);
@@ -316,7 +316,7 @@ class ManualColumnMove extends BasePlugin {
       } else if (renderableIndex !== null) {
         columnsWidth += this.hot.view.wt.wtTable.getStretchedColumnWidth(renderableIndex) || 0;
       }
-    });
+    }
 
     return columnsWidth;
   }

@@ -1,6 +1,5 @@
 import MapCollection from './mapCollection';
 import { arrayMap } from '../helpers/array';
-import { rangeEach } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 
 /**
@@ -60,15 +59,15 @@ class AggregatedCollection extends MapCollection {
     const indexesValuesMatrix = [];
     const mapsLength = (isDefined(mapsValuesMatrix[0]) && mapsValuesMatrix[0].length) || 0;
 
-    rangeEach(mapsLength - 1, (index) => {
+    for (let index = 0; index < mapsLength; index += 1) {
       const valuesForIndex = [];
 
-      rangeEach(this.getLength() - 1, (mapIndex) => {
+      for (let mapIndex = 0; mapIndex < this.getLength(); mapIndex += 1) {
         valuesForIndex.push(mapsValuesMatrix[mapIndex][index]);
-      });
+      }
 
       indexesValuesMatrix.push(valuesForIndex);
-    });
+    }
 
     return arrayMap(indexesValuesMatrix, this.aggregationFunction);
   }

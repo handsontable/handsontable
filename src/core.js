@@ -1678,11 +1678,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (instance.dataType === 'array') {
         const nrOfSourceColumns = this.countSourceCols();
 
-        rangeEach(0, nrOfSourceColumns - 1, (columnIndex) => {
+        for (let columnIndex = 0; columnIndex < nrOfSourceColumns; columnIndex += 1) {
           if (columnsSettings(columnIndex)) {
             finalNrOfColumns += 1;
           }
-        });
+        }
 
         // Extended dataset by the `columns` property? Moved code right from the refactored `countCols` method.
       } else if (instance.dataType === 'object' || instance.dataType === 'function') {
