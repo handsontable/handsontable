@@ -28,7 +28,7 @@ class VisualSelection extends Selection {
   }
 
   /**
-   * Clears selection.
+   * Clears visual and renderable selection.
    *
    * @returns {VisualSelection}
    */
@@ -42,49 +42,49 @@ class VisualSelection extends Selection {
    * Search for the first visible coordinates in the range as range may start and/or end with the hidden index.
    *
    * @private
-   * @param {CellCoords} startCoords Start coordinates for the range. Starting point for finding destination coordinates
+   * @param {CellCoords} startCoords Visual start coordinates for the range. Starting point for finding destination coordinates
    * with visible coordinates (we are going from the starting coordinates to the end coordinates until the criteria are met).
-   * @param {CellCoords} endCoords End coordinates for the range.
+   * @param {CellCoords} endCoords Visual end coordinates for the range.
    * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
    * This variable represent indexes shift. We are looking for an index:
    * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
    * other way around (decreasing indexes, then variable should have the value -1)
    * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
    * or other way around (decreasing indexes, then variable should have the value -1).
-   * @returns {null|CellCoords}
+   * @returns {null|CellCoords} Visual cell coordinates.
    */
   findVisibleCoordsInRange(startCoords, endCoords, incrementBy) {
     const { row: startRow, col: startCol } = startCoords;
     const { row: endRow, col: endCol } = endCoords;
-    const { row: startRowTranslated, col: startColTranslated } = this.settings.translateCoords(startCoords);
+    const { row: startRowRenderable, col: startColumnRenderable } = this.settings.visualToRenderableCoords(startCoords);
 
     // There are no more visual rows in the range.
-    if (endRow === startRow && startRowTranslated === null) {
+    if (endRow === startRow && startRowRenderable === null) {
       return null;
     }
 
     // There are no more visual columns in the range.
-    if (endCol === startCol && startColTranslated === null) {
+    if (endCol === startCol && startColumnRenderable === null) {
       return null;
     }
 
     // We are looking for next visible row and column in the range.
-    if (startRowTranslated === null && startColTranslated === null) {
+    if (startRowRenderable === null && startColumnRenderable === null) {
       return this.findVisibleCoordsInRange(new CellCoords(startRow + incrementBy, startCol + incrementBy), endCoords, incrementBy);
     }
 
     // We are looking for a next visible row in the range.
-    if (startRowTranslated === null) {
+    if (startRowRenderable === null) {
       return this.findVisibleCoordsInRange(new CellCoords(startRow + incrementBy, startCol), endCoords, incrementBy);
     }
 
     // We are looking for a next visible column in the range.
-    if (startColTranslated === null) {
+    if (startColumnRenderable === null) {
       return this.findVisibleCoordsInRange(new CellCoords(startRow, startCol + incrementBy), endCoords, incrementBy);
     }
 
     // We found visible coords in the range.
-    return this.settings.translateCoords(startCoords);
+    return startCoords;
   }
 
   /**
@@ -99,17 +99,20 @@ class VisualSelection extends Selection {
       return this;
     }
 
-    const fromRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
-    const toRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.to, this.visualCellRange.from, -1);
+    const fromRangeVisual = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
+    const toRangeVisual = this.findVisibleCoordsInRange(this.visualCellRange.to, this.visualCellRange.from, -1);
 
     // There is no visual start point (and also visual end point) in the range. We are looking for the first visible cell in a broader range.
-    if (fromRangeTranslated === null) {
+    if (fromRangeVisual === null) {
       this.cellRange = null;
 
       return this;
     }
 
-    this.cellRange = new CellRange(fromRangeTranslated, fromRangeTranslated, toRangeTranslated);
+    const fromRangeRenderable = this.settings.visualToRenderableCoords(fromRangeVisual);
+    const toRangeRenderable = this.settings.visualToRenderableCoords(toRangeVisual);
+
+    this.cellRange = new CellRange(fromRangeRenderable, fromRangeRenderable, toRangeRenderable);
 
     return this;
   }
@@ -128,12 +131,14 @@ class VisualSelection extends Selection {
   adjustCoordinates(broaderCellRange) {
     // We can't show selection visually now, but we try to find fist visible range in the broader cell range.
     if (this.cellRange === null && broaderCellRange) {
-      const singleCellRangeTranslated = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
+      const singleCellRangeVisual = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
 
-      if (singleCellRangeTranslated !== null) {
-        this.cellRange = new CellRange(singleCellRangeTranslated);
+      if (singleCellRangeVisual !== null) {
+        const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
 
-        broaderCellRange.setHighlight(this.settings.untranslateCoords(singleCellRangeTranslated));
+        this.cellRange = new CellRange(singleCellRangeRenderable);
+
+        broaderCellRange.setHighlight(singleCellRangeVisual);
 
         return this;
       }
@@ -150,8 +155,8 @@ class VisualSelection extends Selection {
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getVisualCorners() {
-    const topLeft = this.settings.untranslateCoords(this.cellRange.getTopLeftCorner());
-    const bottomRight = this.settings.untranslateCoords(this.cellRange.getBottomRightCorner());
+    const topLeft = this.settings.renderableToVisualCoords(this.cellRange.getTopLeftCorner());
+    const bottomRight = this.settings.renderableToVisualCoords(this.cellRange.getBottomRightCorner());
 
     return [
       topLeft.row,

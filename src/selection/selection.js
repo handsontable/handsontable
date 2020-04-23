@@ -60,7 +60,7 @@ class Selection {
      */
     this.selectedByColumnHeader = new Set();
     /**
-     * Selection data layer.
+     * Selection data layer (handle visual coordinates).
      *
      * @type {SelectionRange}
      */
@@ -78,8 +78,8 @@ class Selection {
       disableHighlight: this.settings.disableVisualSelection,
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
-      translateCoords: coords => this.tableProps.translateCoords(coords),
-      untranslateCoords: coords => this.tableProps.untranslateCoords(coords),
+      visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
+      renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
     });
     /**
      * The module for modifying coordinates.
@@ -89,8 +89,8 @@ class Selection {
     this.transformation = new Transformation(this.selectedRange, {
       countRows: () => this.tableProps.countRows(),
       countCols: () => this.tableProps.countColsTranslated(),
-      translateCoords: coords => this.tableProps.translateCoords(coords),
-      untranslateCoords: coords => this.tableProps.untranslateCoords(coords),
+      visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
+      renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,

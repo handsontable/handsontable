@@ -148,7 +148,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
 
-  const fromVisualToRenderableCoords = (coords) => {
+  const visualToRenderableCoords = (coords) => {
     const { row: visualRow, col: visualColumn } = coords;
 
     return new CellCoords(
@@ -157,7 +157,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     );
   };
 
-  const fromRenderableToVisualCoords = (coords) => {
+  const renderableToVisualCoords = (coords) => {
     const { row: renderableRow, col: renderableColumn } = coords;
 
     return new CellCoords(
@@ -172,8 +172,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
     countColsTranslated: () => this.view.countRenderableColumns(),
-    translateCoords: fromVisualToRenderableCoords,
-    untranslateCoords: fromRenderableToVisualCoords
+    visualToRenderableCoords,
+    renderableToVisualCoords
   });
 
   this.selection = selection;
@@ -233,9 +233,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (scrollToCell !== false) {
       if (!isSelectedByAnyHeader) {
         if (currentSelectedRange && !this.selection.isMultiple()) {
-          this.view.scrollViewport(fromVisualToRenderableCoords(currentSelectedRange.from));
+          this.view.scrollViewport(visualToRenderableCoords(currentSelectedRange.from));
         } else {
-          this.view.scrollViewport(fromVisualToRenderableCoords(cellCoords));
+          this.view.scrollViewport(visualToRenderableCoords(cellCoords));
         }
 
       } else if (isSelectedByRowHeader) {

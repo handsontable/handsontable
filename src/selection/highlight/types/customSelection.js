@@ -6,10 +6,10 @@ import VisualSelection from '../visualSelection';
  *
  * @returns {Selection}
  */
-function createHighlight({ translateCoords, untranslateCoords, border, cellRange }) {
+function createHighlight({ visualToRenderableCoords, renderableToVisualCoords, border, cellRange }) {
   const s = new VisualSelection({
-    translateCoords,
-    untranslateCoords,
+    visualToRenderableCoords,
+    renderableToVisualCoords,
     ...border,
   }, cellRange);
 

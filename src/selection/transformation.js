@@ -1,5 +1,5 @@
 import { CellCoords } from './../3rdparty/walkontable/src';
-import { mixin } from './../helpers/object';
+import { mixin } from '../helpers/object';
 import localHooks from './../mixins/localHooks';
 
 /**
@@ -20,7 +20,8 @@ class Transformation {
      */
     this.range = range;
     /**
-     * Additional options which define the state of the settings which can infer transformation.
+     * Additional options which define the state of the settings which can infer transformation and
+     * give the possibility to translate indexes.
      *
      * @type {object}
      */
@@ -34,19 +35,19 @@ class Transformation {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    * @param {boolean} force If `true` the new rows/columns will be created if necessary. Otherwise, row/column will
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
-   * @returns {CellCoords}
+   * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformStart(rowDelta, colDelta, force) {
     const delta = new CellCoords(rowDelta, colDelta);
     const highlightCoords = this.range.current().highlight;
-    const { row, col } = this.options.translateCoords(highlightCoords);
-    let untransformedCoords = highlightCoords;
+    const { row: renderableRow, col: renderableColumn } = this.options.visualToRenderableCoords(highlightCoords);
+    let visualCoords = highlightCoords;
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformStart', delta);
 
-    if (row !== null && col !== null) {
+    if (renderableRow !== null && renderableColumn !== null) {
       let totalRows = this.options.countRows();
       let totalCols = this.options.countCols();
       const fixedRowsBottom = this.options.fixedRowsBottom();
@@ -55,35 +56,35 @@ class Transformation {
       const autoWrapRow = this.options.autoWrapRow();
       const autoWrapCol = this.options.autoWrapCol();
 
-      if (row + rowDelta > totalRows - 1) {
-        if (force && minSpareRows > 0 && !(fixedRowsBottom && row >= totalRows - fixedRowsBottom - 1)) {
+      if (renderableRow + rowDelta > totalRows - 1) {
+        if (force && minSpareRows > 0 && !(fixedRowsBottom && renderableRow >= totalRows - fixedRowsBottom - 1)) {
           this.runLocalHooks('insertRowRequire', totalRows);
           totalRows = this.options.countRows();
 
         } else if (autoWrapCol) {
           delta.row = 1 - totalRows;
-          delta.col = col + delta.col === totalCols - 1 ? 1 - totalCols : 1;
+          delta.col = renderableColumn + delta.col === totalCols - 1 ? 1 - totalCols : 1;
         }
-      } else if (autoWrapCol && row + delta.row < 0 && col + delta.col >= 0) {
+      } else if (autoWrapCol && renderableRow + delta.row < 0 && renderableColumn + delta.col >= 0) {
         delta.row = totalRows - 1;
-        delta.col = col + delta.col === 0 ? totalCols - 1 : -1;
+        delta.col = renderableColumn + delta.col === 0 ? totalCols - 1 : -1;
       }
 
-      if (col + delta.col > totalCols - 1) {
+      if (renderableColumn + delta.col > totalCols - 1) {
         if (force && minSpareCols > 0) {
           this.runLocalHooks('insertColRequire', totalCols);
           totalCols = this.options.countCols();
 
         } else if (autoWrapRow) {
-          delta.row = row + delta.row === totalRows - 1 ? 1 - totalRows : 1;
+          delta.row = renderableRow + delta.row === totalRows - 1 ? 1 - totalRows : 1;
           delta.col = 1 - totalCols;
         }
-      } else if (autoWrapRow && col + delta.col < 0 && row + delta.row >= 0) {
-        delta.row = row + delta.row === 0 ? totalRows - 1 : -1;
+      } else if (autoWrapRow && renderableColumn + delta.col < 0 && renderableRow + delta.row >= 0) {
+        delta.row = renderableRow + delta.row === 0 ? totalRows - 1 : -1;
         delta.col = totalCols - 1;
       }
 
-      const coords = new CellCoords(row + delta.row, col + delta.col);
+      const coords = new CellCoords(renderableRow + delta.row, renderableColumn + delta.col);
       rowTransformDir = 0;
       colTransformDir = 0;
 
@@ -105,12 +106,12 @@ class Transformation {
         coords.col = totalCols - 1;
       }
 
-      untransformedCoords = this.options.untranslateCoords(coords);
+      visualCoords = this.options.renderableToVisualCoords(coords);
     }
 
-    this.runLocalHooks('afterTransformStart', untransformedCoords, rowTransformDir, colTransformDir);
+    this.runLocalHooks('afterTransformStart', visualCoords, rowTransformDir, colTransformDir);
 
-    return untransformedCoords;
+    return visualCoords;
   }
 
   /**
@@ -118,24 +119,24 @@ class Transformation {
    *
    * @param {number} rowDelta Rows number to move, value can be passed as negative number.
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
-   * @returns {CellCoords}
+   * @returns {CellCoords} Visual coordinates after transformation.
    */
   transformEnd(rowDelta, colDelta) {
     const delta = new CellCoords(rowDelta, colDelta);
     const cellRange = this.range.current();
-    let untransformedCoords = cellRange.to;
+    let visualCoords = cellRange.to;
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
     this.runLocalHooks('beforeTransformEnd', delta);
 
-    const { row: rowHighlight, col: colHighlight } = this.options.translateCoords(cellRange.highlight);
+    const { row: rowHighlight, col: colHighlight } = this.options.visualToRenderableCoords(cellRange.highlight);
 
     // We have highlight (start point for the selection).
     if (rowHighlight !== null && colHighlight !== null) {
       const totalRows = this.options.countRows();
       const totalCols = this.options.countCols();
-      const { row: rowTo, col: colTo } = this.options.translateCoords(cellRange.to);
+      const { row: rowTo, col: colTo } = this.options.visualToRenderableCoords(cellRange.to);
       const coords = new CellCoords(rowTo + delta.row, colTo + delta.col);
 
       rowTransformDir = 0;
@@ -159,12 +160,12 @@ class Transformation {
         coords.col = totalCols - 1;
       }
 
-      untransformedCoords = this.options.untranslateCoords(coords);
+      visualCoords = this.options.renderableToVisualCoords(coords);
     }
 
-    this.runLocalHooks('afterTransformEnd', untransformedCoords, rowTransformDir, colTransformDir);
+    this.runLocalHooks('afterTransformEnd', visualCoords, rowTransformDir, colTransformDir);
 
-    return untransformedCoords;
+    return visualCoords;
   }
 }
 

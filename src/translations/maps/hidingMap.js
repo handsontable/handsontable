@@ -18,8 +18,8 @@ class HidingMap extends PhysicalIndexToValueMap {
    * @returns {Array}
    */
   getHiddenIndexes() {
-    return arrayReduce(this.getValues(), (indexesList, isTrimmed, physicalIndex) => {
-      if (isTrimmed) {
+    return arrayReduce(this.getValues(), (indexesList, isHidden, physicalIndex) => {
+      if (isHidden) {
         indexesList.push(physicalIndex);
       }
 
