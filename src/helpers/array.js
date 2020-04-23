@@ -322,7 +322,7 @@ export function getUnionOfArrays(...arrays) {
  * @param {string|string[]} value String or array of strings.
  * @returns {string[]} Returns array of string or empty array.
  */
-export function convertToArrayOfString(value) {
+export function stringToArray(value) {
   let arrayOfValue;
 
   if (Array.isArray(value)) {
