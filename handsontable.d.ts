@@ -93,7 +93,7 @@ declare namespace _Handsontable {
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
-    redo: boolean | undefined;
+    redo(): void;
     refreshDimensions(): void;
     removeCellMeta(row: number, col: number, key: string): void;
     removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
