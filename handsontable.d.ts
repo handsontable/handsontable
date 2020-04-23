@@ -133,7 +133,7 @@ declare namespace _Handsontable {
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
     toTableElement(): HTMLTableElement;
-    undo: boolean | undefined;
+    undo(): void;
     undoRedo: Handsontable.UndoRedo;
     unlisten(): void;
     updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
