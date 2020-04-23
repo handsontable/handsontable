@@ -317,7 +317,7 @@ export function getUnionOfArrays(...arrays) {
 }
 
 /**
- * Change string to array of string and return array of string.
+ * Convert a space-separated string to an array of strings.
  *
  * @param {string|string[]} value String or array of strings.
  * @returns {string[]} Returns array of string or empty array.
