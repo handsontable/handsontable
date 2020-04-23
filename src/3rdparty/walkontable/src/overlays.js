@@ -586,7 +586,7 @@ class Overlays {
   }
 
   /**
-   * Update the clones tables class name.
+   * Synchronize the class names between the main overlay table and the tables on the other overlays.
    *
    */
   updateTableClassName() {
