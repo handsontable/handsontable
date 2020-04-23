@@ -279,7 +279,7 @@ export function getDifferenceOfArrays(...arrays) {
 }
 
 /**
- * Intersection in two or more array.
+ * Intersection of two or more arrays.
  *
  * @param {...[]} arrays Array of strings or array of number.
  * @returns {Array} Returns elements that exists in every arrays.
