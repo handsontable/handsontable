@@ -848,7 +848,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Internal function to set `className` or `tableClassName`, depending on the key from the settings object.
    *
    * @private
-   * @param {string} className `className` or `tableClassName` from key of settings.
+   * @param {string} className `className` or `tableClassName` from the key in the settings object.
    * @param {string|string[]} classSettings String or array of string contains class name(s) from settings object.
    */
   function setClassName(className, classSettings) {
