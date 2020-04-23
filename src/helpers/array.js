@@ -264,7 +264,7 @@ export function arrayUnique(array) {
 /**
  * Differences in two or more array.
  *
- * @param {...[]} arrays Array of strings or array of number.
+ * @param {...[]} arrays Array of strings or array of numbers.
  * @returns {Array} Returns the difference between arrays.
  */
 export function getDifferenceOfArrays(...arrays) {
