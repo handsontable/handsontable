@@ -858,27 +858,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(element, classSettings);
 
     } else {
-      let globalMetaSettingsArray;
-      let settingsArray;
+      let globalMetaSettingsArray = [];
+      let settingsArray = [];
 
-      if (Array.isArray(globalMeta[className])) {
-        globalMetaSettingsArray = globalMeta[className];
-
-      } else if (typeof value === 'string') {
-        globalMetaSettingsArray = stringToArray(globalMeta[className]);
-
-      } else {
-        globalMetaSettingsArray = [];
+      if (globalMeta[className]) {
+        globalMetaSettingsArray = Array.isArray(globalMeta[className]) ? globalMeta[className] : stringToArray(globalMeta[className]);
       }
 
-      if (Array.isArray(classSettings)) {
-        settingsArray = classSettings;
-
-      } else if (typeof value === 'string') {
-        settingsArray = stringToArray(classSettings);
-
-      } else {
-        settingsArray = [];
+      if (classSettings) {
+        settingsArray = Array.isArray(classSettings) ? classSettings : stringToArray(classSettings);
       }
 
       const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
