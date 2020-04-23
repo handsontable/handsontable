@@ -299,7 +299,7 @@ export function getIntersectionOfArrays(...arrays) {
  * Union of two or more arrays.
  *
  * @param {...[]} arrays Array of strings or array of numbers.
- * @returns {Array} Returns elements exists in any of the arrays once.
+ * @returns {Array} Returns the elements that exist in any of the arrays, without duplicates.
  */
 export function getUnionOfArrays(...arrays) {
   const [first, ...rest] = [...arrays];
