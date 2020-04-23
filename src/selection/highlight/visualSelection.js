@@ -1,5 +1,4 @@
-import { Selection, CellCoords } from './../../3rdparty/walkontable/src';
-import CellRange from '../../3rdparty/walkontable/src/cell/range';
+import { Selection, CellCoords, CellRange } from './../../3rdparty/walkontable/src';
 
 class VisualSelection extends Selection {
   constructor(...args) {
@@ -95,6 +94,11 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   commit() {
+    // There is no information about visual ranges, thus no selection may be displayed.
+    if (this.visualCellRange === null) {
+      return this;
+    }
+
     const fromRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
     const toRangeTranslated = this.findVisibleCoordsInRange(this.visualCellRange.to, this.visualCellRange.from, -1);
 

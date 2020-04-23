@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { TrimmingMap } from '../../translations';
-import { arrayEach, arrayReduce } from '../../helpers/array';
+import { arrayEach } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
@@ -114,13 +114,7 @@ class TrimRows extends BasePlugin {
    * @returns {Array} Physical rows.
    */
   getTrimmedRows() {
-    return arrayReduce(this.trimmedRowsMap.getValues(), (indexesList, isTrimmed, physicalIndex) => {
-      if (isTrimmed) {
-        return indexesList.concat(physicalIndex);
-      }
-
-      return indexesList;
-    }, []);
+    return this.trimmedRowsMap.getTrimmedIndexes();
   }
 
   /**

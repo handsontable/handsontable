@@ -1,4 +1,4 @@
-import { arrayEach, arrayFilter, arrayUnique, arrayReduce } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import {
@@ -373,13 +373,7 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {number[]}
    */
   getCollapsedColumns() {
-    return arrayReduce(this.#collapsedColumnsMap.getValues(), (indexesList, isCollapsed, physicalIndex) => {
-      if (isCollapsed) {
-        indexesList.push(physicalIndex);
-      }
-
-      return indexesList;
-    }, []);
+    return this.#collapsedColumnsMap.getHiddenIndexes();
   }
 
   /**

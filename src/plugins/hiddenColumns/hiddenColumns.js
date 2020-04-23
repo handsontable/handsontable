@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayReduce } from '../../helpers/array';
+import { arrayEach } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -230,13 +230,7 @@ class HiddenColumns extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenColumns() {
-    return arrayReduce(this.hiddenColumnsMap.getValues(), (indexesList, isHidden, physicalIndex) => {
-      if (isHidden) {
-        indexesList.push(physicalIndex);
-      }
-
-      return indexesList;
-    }, []);
+    return this.hiddenColumnsMap.getHiddenIndexes();
   }
 
   /**

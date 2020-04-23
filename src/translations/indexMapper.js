@@ -1,5 +1,5 @@
-import { arrayFilter, arrayMap } from './../helpers/array';
-import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/visuallyIndexed';
+import { arrayFilter, arrayMap } from '../helpers/array';
+import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
 import IndexToIndexMap from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
@@ -519,8 +519,10 @@ class IndexMapper {
   insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
     const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
     const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
-    const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ? this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
-    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex), (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
+    const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
+      this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
+    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
+      (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.executeBatchOperations(() => {
       this.indexesSequence.insert(insertionIndex, insertedIndexes);

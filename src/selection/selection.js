@@ -609,17 +609,9 @@ class Selection {
       const headerHighlight = this.highlight.createOrGetHeader();
       const activeHeaderHighlight = this.highlight.createOrGetActiveHeader();
 
-      if (areaHighlight.visualCellRange !== null) {
-        areaHighlight.commit();
-      }
-
-      if (headerHighlight.visualCellRange !== null) {
-        headerHighlight.commit();
-      }
-
-      if (activeHeaderHighlight.visualCellRange !== null) {
-        activeHeaderHighlight.commit();
-      }
+      areaHighlight.commit();
+      headerHighlight.commit();
+      activeHeaderHighlight.commit();
     });
 
     // Reverting starting layer for the Highlight.
