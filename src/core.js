@@ -849,7 +849,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @private
    * @param {string} className `className` or `tableClassName` from the key in the settings object.
-   * @param {string|string[]} classSettings String or array of string contains class name(s) from settings object.
+   * @param {string|string[]} classSettings String or array of strings. Contains class name(s) from settings object.
    */
   function setClassName(className, classSettings) {
     const element = className === 'className' ? instance.rootElement : instance.table;
