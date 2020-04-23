@@ -8,7 +8,7 @@ import {
   arrayMin,
   arrayReduce,
   arraySum,
-  convertToArrayOfString,
+  stringToArray,
   getDifferenceOfArrays,
   getIntersectionOfArrays,
   getUnionOfArrays
@@ -363,19 +363,19 @@ describe('Array helper', () => {
   });
 
   //
-  // Handsontable.helper.convertToArrayOfString
+  // Handsontable.helper.stringToArray
   //
-  describe('convertToArrayOfString', () => {
-    describe('works with parameters as array of string', () => {
-      it('should return array of string.', () => {
+  describe('stringToArray', () => {
+    describe('works with parameter as string without the specified second parameter', () => {
+      it('should return array of strings.', () => {
 
-        expect(convertToArrayOfString(['class-1', 'class-2', 'class-3'])).toStrictEqual(['class-1', 'class-2', 'class-3']);
+        expect(stringToArray('class-1 class-2 class-3')).toStrictEqual(['class-1', 'class-2', 'class-3']);
       });
     });
 
-    describe('works with parameters as string', () => {
-      it('should return array of string.', () => {
-        expect(convertToArrayOfString('class-1')).toStrictEqual(['class-1']);
+    describe('works with parameter as a string with the specified second parameter', () => {
+      it('should return array of strings.', () => {
+        expect(stringToArray('class-1,class-2,class-3', ',')).toStrictEqual(['class-1', 'class-2', 'class-3']);
       });
     });
   });

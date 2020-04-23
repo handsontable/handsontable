@@ -14,7 +14,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, convertToArrayOfString } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -858,8 +858,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(element, classSettings);
 
     } else {
-      const globalMetaSettingsArray = convertToArrayOfString(globalMeta[className]);
-      const settingsArray = convertToArrayOfString(classSettings);
+      let globalMetaSettingsArray;
+      let settingsArray;
+
+      if (Array.isArray(globalMeta[className])) {
+        globalMetaSettingsArray = globalMeta[className];
+
+      } else if (typeof value === 'string') {
+        globalMetaSettingsArray = stringToArray(globalMeta[className]);
+
+      } else {
+        globalMetaSettingsArray = [];
+      }
+
+      if (Array.isArray(classSettings)) {
+        settingsArray = classSettings;
+
+      } else if (typeof value === 'string') {
+        settingsArray = stringToArray(classSettings);
+
+      } else {
+        settingsArray = [];
+      }
 
       const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
       const classNameToAdd = getDifferenceOfArrays(settingsArray, globalMetaSettingsArray);
@@ -1810,7 +1830,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       } else if (i === 'tableClassName' && instance.table) {
         setClassName('tableClassName', settings.tableClassName);
 
-        instance.view.wt.wtOverlays.updateTableClassName();
+        instance.view.wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
 

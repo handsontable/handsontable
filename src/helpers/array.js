@@ -262,7 +262,7 @@ export function arrayUnique(array) {
 }
 
 /**
- * Differences in two or more array.
+ * Differences from two or more arrays.
  *
  * @param {...[]} arrays Array of strings or array of numbers.
  * @returns {Array} Returns the difference between arrays.
@@ -317,23 +317,12 @@ export function getUnionOfArrays(...arrays) {
 }
 
 /**
- * Convert a space-separated string to an array of strings.
+ * Convert a separated strings to an array of strings.
  *
- * @param {string|string[]} value String or array of strings.
+ * @param {string} value A string of class name(s).
+ * @param {string|RegExp} delimiter The pattern describing where each split should occur.
  * @returns {string[]} Returns array of string or empty array.
  */
-export function stringToArray(value) {
-  let arrayOfValue;
-
-  if (Array.isArray(value)) {
-    arrayOfValue = value;
-
-  } else if (typeof value === 'string') {
-    arrayOfValue = value.split(' ');
-
-  } else {
-    arrayOfValue = [];
-  }
-
-  return arrayOfValue;
+export function stringToArray(value, delimiter = ' ') {
+  return value.split(delimiter);
 }

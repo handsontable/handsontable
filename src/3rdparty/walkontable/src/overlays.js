@@ -589,7 +589,7 @@ class Overlays {
    * Synchronize the class names between the main overlay table and the tables on the other overlays.
    *
    */
-  updateTableClassName() {
+  syncOverlayTableClassNames() {
     const masterTable = this.instance.wtTable.TABLE;
     const overlays = [
       this.topOverlay,
