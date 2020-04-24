@@ -1372,7 +1372,7 @@ declare namespace Handsontable {
       clearManualSize(column: number): void;
       getTHFromTargetElement(element: HTMLElement): HTMLElement;
       hideHandleAndGuide(): void;
-      loadManualColumnWidths(): void;
+      loadManualColumnWidths(): (number | null)[];
       refreshGuidePosition(): void;
       refreshHandlePosition(): void;
       saveManualColumnWidths(): void;
@@ -1414,7 +1414,7 @@ declare namespace Handsontable {
       clearManualSize(column: number): void;
       getTHFromTargetElement(element: HTMLElement): HTMLElement;
       hideHandleAndGuide(): void;
-      loadManualRowHeights(): void;
+      loadManualRowHeights(): (number|null)[];
       refreshGuidePosition(): void;
       refreshHandlePosition(): void;
       saveManualRowHeights(): void;
