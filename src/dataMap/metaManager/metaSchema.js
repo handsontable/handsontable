@@ -2808,6 +2808,11 @@ export default () => {
     observeChanges: void 0,
 
     /**
+     * TODO: The description.
+     */
+    paging: void 0,
+
+    /**
      * If defined as `true`, the Autocomplete's suggestion list would be sorted by relevance (the closer to the left the
      * match is, the higher the suggestion).
      *

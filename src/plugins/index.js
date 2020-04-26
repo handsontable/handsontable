@@ -18,6 +18,7 @@ import MergeCells from './mergeCells/mergeCells';
 import MultipleSelectionHandles from './multipleSelectionHandles/multipleSelectionHandles';
 import MultiColumnSorting from './multiColumnSorting/multiColumnSorting';
 import ObserveChanges from './observeChanges/observeChanges';
+import Paging from './paging/paging';
 import Search from './search/search';
 import TouchScroll from './touchScroll/touchScroll';
 import UndoRedo from './undoRedo/undoRedo';
@@ -72,6 +73,7 @@ export {
   NestedHeaders,
   NestedRows,
   ObserveChanges,
+  Paging,
   PersistentState,
   Search,
   TouchScroll,
