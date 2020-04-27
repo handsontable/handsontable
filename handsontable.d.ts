@@ -910,6 +910,8 @@ declare namespace Handsontable {
     }
 
     interface ContextMenu extends Base {
+      DEFAULT_ITEMS: contextMenu.PredefinedMenuItemKey[];
+      SEPARATOR: SeparatorObject;
       eventManager: EventManager;
       commandExecutor: CommandExecutor;
       itemsFactory: ItemsFactory | void;
