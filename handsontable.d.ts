@@ -1995,7 +1995,7 @@ declare namespace Handsontable {
     count: number;
     startColumn: number | null;
     endColumn: number | null;
-    startPosition: number | number;
+    startPosition: number | null;
     startRow?: number;
     endRow?: number;
     stretchAllRatio: number;
