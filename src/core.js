@@ -383,7 +383,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           if (delta) {
             metaManager.createRow(instance.toPhysicalRow(index), amount);
 
-            const currentSelectedRange = selection?.selectedRange?.current();
+            const currentSelectedRange = selection.selectedRange.current();
             const currentFromRange = currentSelectedRange?.from;
             const currentFromRow = currentFromRange?.row;
 
@@ -3390,13 +3390,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   const getIndexToScroll = (indexMapper, visualIndex) => {
-    const firstColumnOnTheRight = indexMapper.getFirstNotHiddenIndex(visualIndex, 1);
-
-    if (firstColumnOnTheRight !== null) {
-      return firstColumnOnTheRight;
-    }
-
-    return indexMapper.getFirstNotHiddenIndex(visualIndex, -1); // Looking for a index on the left.
+    // Looking for a visual index on the right and then (when not found) on the left.
+    return indexMapper.getFirstNotHiddenIndex(visualIndex, 1, true);
   };
 
   /**

@@ -299,7 +299,7 @@ class IndexMapper {
   /**
    * Search for the first visible, not hidden index (represented by a visual index).
    *
-   * @param {number} fromVisualIndex Start index. Starting point for finding destination index. Start point may be destination
+   * @param {number} fromVisualIndex Visual start index. Starting point for finding destination index. Start point may be destination
    * point when handled index is NOT hidden.
    * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
    * This variable represent indexes shift. We are looking for an index:
@@ -307,12 +307,21 @@ class IndexMapper {
    * other way around (decreasing indexes, then variable should have the value -1)
    * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
    * or other way around (decreasing indexes, then variable should have the value -1).
+   * @param {boolean} searchAlsoOtherWayAround The argument determine if an additional other way around search should be
+   * performed, when the search in the first direction had no effect in finding visual index.
+   * @param {number} indexForNextSearch Visual index for next search, when the flag is truthy.
+   *
    * @returns {number|null} Visual column index or `null`.
    */
-  getFirstNotHiddenIndex(fromVisualIndex, incrementBy) {
+  getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
+                         indexForNextSearch = fromVisualIndex) {
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
     if (physicalIndex === null) {
+      if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex) {
+        return this.getFirstNotHiddenIndex(indexForNextSearch, -incrementBy, false, indexForNextSearch);
+      }
+
       return null;
     }
 
@@ -320,7 +329,7 @@ class IndexMapper {
       return fromVisualIndex;
     }
 
-    return this.getFirstNotHiddenIndex(fromVisualIndex + incrementBy, incrementBy);
+    return this.getFirstNotHiddenIndex(fromVisualIndex + incrementBy, incrementBy, searchAlsoOtherWayAround, indexForNextSearch);
   }
 
   /**
