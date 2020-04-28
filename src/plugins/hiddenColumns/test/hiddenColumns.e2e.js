@@ -477,25 +477,178 @@ describe('HiddenColumns', () => {
 
     describe('commands', () => {
       describe('hiding', () => {
-        it('should hide selected columns', () => {
-          handsontable({
-            data: Handsontable.helper.createSpreadsheetData(1, 5),
-            colHeaders: true,
-            contextMenu: [CONTEXTMENU_ITEM_HIDE],
-            hiddenColumns: true,
+        describe('should hide selected columns ', () => {
+          describe('(selected from the left to the right)', () => {
+            it('hiding from a column "at the start" to the next column', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
+
+              selectColumns(0, 1);
+
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
+              expect(getCell(0, 0)).toBe(null);
+              expect(getCell(0, 1)).toBe(null);
+              expect(getCell(0, 2).innerText).toBe('C1');
+              expect(getCell(0, 3).innerText).toBe('D1');
+              expect(getCell(0, 4).innerText).toBe('E1');
+            });
+
+            it('hiding from a column "in the middle" to the next column', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
+
+              selectColumns(2, 3);
+
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
+              expect(getCell(0, 0).innerText).toBe('A1');
+              expect(getCell(0, 1).innerText).toBe('B1');
+              expect(getCell(0, 2)).toBe(null);
+              expect(getCell(0, 3)).toBe(null);
+              expect(getCell(0, 4).innerText).toBe('E1');
+            });
+
+            it('hiding columns at the end', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
+
+              selectColumns(3, 4);
+
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
+              expect(getCell(0, 0).innerText).toBe('A1');
+              expect(getCell(0, 1).innerText).toBe('B1');
+              expect(getCell(0, 2).innerText).toBe('C1');
+              expect(getCell(0, 3)).toBe(null);
+              expect(getCell(0, 4)).toBe(null);
+            });
+
+            it('hiding all columns', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
+
+              selectColumns(0, 4);
+
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(0);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(0);
+              expect(getCell(0, 0)).toBe(null);
+              expect(getCell(0, 1)).toBe(null);
+              expect(getCell(0, 2)).toBe(null);
+              expect(getCell(0, 3)).toBe(null);
+              expect(getCell(0, 4)).toBe(null);
+            });
           });
 
-          selectColumns(1, 2);
+          describe('(selected from the right to the left)', () => {
+            it('hiding from column "at the end" to the previous column', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
 
-          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+              selectColumns(4, 3);
 
-          expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
-          expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
-          expect(getCell(0, 0).innerText).toBe('A1');
-          expect(getCell(0, 1)).toBe(null);
-          expect(getCell(0, 2)).toBe(null);
-          expect(getCell(0, 3).innerText).toBe('D1');
-          expect(getCell(0, 4).innerText).toBe('E1');
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
+              expect(getCell(0, 0).innerText).toBe('A1');
+              expect(getCell(0, 1).innerText).toBe('B1');
+              expect(getCell(0, 2).innerText).toBe('C1');
+              expect(getCell(0, 3)).toBe(null);
+              expect(getCell(0, 4)).toBe(null);
+            });
+
+            it('hiding from a column "in the middle" to the previous column', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
+
+              selectColumns(3, 2);
+
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
+              expect(getCell(0, 0).innerText).toBe('A1');
+              expect(getCell(0, 1).innerText).toBe('B1');
+              expect(getCell(0, 2)).toBe(null);
+              expect(getCell(0, 3)).toBe(null);
+              expect(getCell(0, 4).innerText).toBe('E1');
+            });
+
+            it('hiding columns at the start', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
+
+              selectColumns(1, 0);
+
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(3);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(3);
+              expect(getCell(0, 0)).toBe(null);
+              expect(getCell(0, 1)).toBe(null);
+              expect(getCell(0, 2).innerText).toBe('C1');
+              expect(getCell(0, 3).innerText).toBe('D1');
+              expect(getCell(0, 4).innerText).toBe('E1');
+            });
+
+            it('hiding all columns', () => {
+              handsontable({
+                data: Handsontable.helper.createSpreadsheetData(1, 5),
+                colHeaders: true,
+                contextMenu: [CONTEXTMENU_ITEM_HIDE],
+                hiddenColumns: true,
+              });
+
+              selectColumns(4, 0);
+
+              getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
+
+              expect(spec().$container.find('tr:eq(0) th').length).toBe(0);
+              expect(spec().$container.find('tr:eq(1) td').length).toBe(0);
+              expect(getCell(0, 0)).toBe(null);
+              expect(getCell(0, 1)).toBe(null);
+              expect(getCell(0, 2)).toBe(null);
+              expect(getCell(0, 3)).toBe(null);
+              expect(getCell(0, 4)).toBe(null);
+            });
+          });
         });
 
         describe('should select column on the right side after hide action ' +

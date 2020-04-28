@@ -6,7 +6,7 @@ class VisualSelection extends Selection {
     /**
      * Range of selection visually. Visual representation may have representation in a rendered selection.
      *
-     * @type {null|Selection}
+     * @type {null|CellRange}
      */
     this.visualCellRange = null;
   }
@@ -45,15 +45,16 @@ class VisualSelection extends Selection {
    * @param {CellCoords} startCoords Visual start coordinates for the range. Starting point for finding destination coordinates
    * with visible coordinates (we are going from the starting coordinates to the end coordinates until the criteria are met).
    * @param {CellCoords} endCoords Visual end coordinates for the range.
-   * @param {number} incrementBy We are searching for a next visible indexes by increasing (to be precise, or decreasing) indexes.
+   * @param {number} incrementByRow We are searching for a next visible rows by increasing (to be precise, or decreasing) indexes.
    * This variable represent indexes shift. We are looking for an index:
    * - for rows: from the left to the right (increasing indexes, then variable should have value 1) or
    * other way around (decreasing indexes, then variable should have the value -1)
    * - for columns: from the top to the bottom (increasing indexes, then variable should have value 1)
    * or other way around (decreasing indexes, then variable should have the value -1).
+   * @param {number} incrementByColumn As above, just indexes shift for columns.
    * @returns {null|CellCoords} Visual cell coordinates.
    */
-  findVisibleCoordsInRange(startCoords, endCoords, incrementBy) {
+  findVisibleCoordsInRange(startCoords, endCoords, incrementByRow, incrementByColumn = incrementByRow) {
     const { row: startRow, col: startCol } = startCoords;
     const { row: endRow, col: endCol } = endCoords;
     const { row: startRowRenderable, col: startColumnRenderable } = this.settings.visualToRenderableCoords(startCoords);
@@ -70,17 +71,20 @@ class VisualSelection extends Selection {
 
     // We are looking for next visible row and column in the range.
     if (startRowRenderable === null && startColumnRenderable === null) {
-      return this.findVisibleCoordsInRange(new CellCoords(startRow + incrementBy, startCol + incrementBy), endCoords, incrementBy);
+      return this.findVisibleCoordsInRange(new CellCoords(
+        startRow + incrementByRow, startCol + incrementByColumn), endCoords, incrementByRow, incrementByColumn);
     }
 
     // We are looking for a next visible row in the range.
     if (startRowRenderable === null) {
-      return this.findVisibleCoordsInRange(new CellCoords(startRow + incrementBy, startCol), endCoords, incrementBy);
+      return this.findVisibleCoordsInRange(new CellCoords(
+        startRow + incrementByRow, startCol), endCoords, incrementByRow, incrementByColumn);
     }
 
     // We are looking for a next visible column in the range.
     if (startColumnRenderable === null) {
-      return this.findVisibleCoordsInRange(new CellCoords(startRow, startCol + incrementBy), endCoords, incrementBy);
+      return this.findVisibleCoordsInRange(new CellCoords(
+        startRow, startCol + incrementByColumn), endCoords, incrementByRow, incrementByColumn);
     }
 
     // We found visible coords in the range.
@@ -99,8 +103,13 @@ class VisualSelection extends Selection {
       return this;
     }
 
-    const fromRangeVisual = this.findVisibleCoordsInRange(this.visualCellRange.from, this.visualCellRange.to, 1);
-    const toRangeVisual = this.findVisibleCoordsInRange(this.visualCellRange.to, this.visualCellRange.from, -1);
+    // We may move in two different directions while searching for visible rows and visible columns.
+    const incrementByRow = this.getRowSearchDirection(this.visualCellRange);
+    const incrementByColumn = this.getColumnSearchDirection(this.visualCellRange);
+    const fromRangeVisual = this.findVisibleCoordsInRange(
+      this.visualCellRange.from, this.visualCellRange.to, incrementByRow, incrementByColumn);
+    const toRangeVisual = this.findVisibleCoordsInRange(
+      this.visualCellRange.to, this.visualCellRange.from, -incrementByRow, -incrementByColumn);
 
     // There is no visual start point (and also visual end point) in the range. We are looking for the first visible cell in a broader range.
     if (fromRangeVisual === null) {
@@ -131,7 +140,11 @@ class VisualSelection extends Selection {
   adjustCoordinates(broaderCellRange) {
     // We can't show selection visually now, but we try to find fist visible range in the broader cell range.
     if (this.cellRange === null && broaderCellRange) {
-      const singleCellRangeVisual = this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, 1);
+      // We may move in two different directions while searching for visible rows and visible columns.
+      const incrementByRow = this.getRowSearchDirection(broaderCellRange);
+      const incrementByColumn = this.getColumnSearchDirection(broaderCellRange);
+      const singleCellRangeVisual =
+        this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, incrementByRow, incrementByColumn);
 
       if (singleCellRangeVisual !== null) {
         const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
@@ -164,6 +177,38 @@ class VisualSelection extends Selection {
       bottomRight.row,
       bottomRight.col,
     ];
+  }
+
+  /**
+   * It returns rows shift needed for searching visual row.
+   *
+   * @private
+   * @param {CellRange} cellRange Selection range.
+   * @returns {number} Rows shift. It return 1 when we should increase indexes (moving from the top to the bottom) or
+   * -1 when we should decrease indexes (moving other way around).
+   */
+  getRowSearchDirection(cellRange) {
+    if (cellRange.from.row < cellRange.to.row) {
+      return 1; // Increasing row indexes.
+    }
+
+    return -1; // Decreasing row indexes.
+  }
+
+  /**
+   * It returns columns shift needed for searching visual column.
+   *
+   * @private
+   * @param {CellRange} cellRange Selection range.
+   * @returns {number} Columns shift. It return 1 when we should increase indexes (moving from the left to the right) or
+   * -1 when we should decrease indexes (moving other way around).
+   */
+  getColumnSearchDirection(cellRange) {
+    if (cellRange.from.col < cellRange.to.col) {
+      return 1; // Increasing column indexes.
+    }
+
+    return -1; // Decreasing column indexes.
   }
 }
 
