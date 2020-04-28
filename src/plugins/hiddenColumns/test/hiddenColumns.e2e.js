@@ -893,6 +893,50 @@ describe('HiddenColumns', () => {
           | - ║   :   : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
         });
+
+        it('should unhide all columns when they had been hidden previously', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 5),
+            rowHeaders: true,
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenColumns: {
+              columns: [0, 1, 2, 3, 4],
+            },
+          });
+
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(1);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(0);
+          expect(getCell(0, 0)).toBe(null);
+          expect(getCell(0, 1)).toBe(null);
+          expect(getCell(0, 2)).toBe(null);
+          expect(getCell(0, 3)).toBe(null);
+          expect(getCell(0, 4)).toBe(null);
+
+          const header = $('.ht_clone_left .htCore')
+            .find('tbody')
+            .find('th')
+            .eq(0);
+
+          selectAll();
+          contextMenu(header);
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(6);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(5);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+          expect(getSelected()).toEqual([[0, 0, 1, 4]]);
+          expect(`
+          |   ║ * : * : * : * : * |
+          |===:===:===:===:===:===|
+          | * ║ A : 0 : 0 : 0 : 0 |
+          | * ║ 0 : 0 : 0 : 0 : 0 |
+          `).toBeMatchToSelectionPattern();
+        });
       });
     });
 
