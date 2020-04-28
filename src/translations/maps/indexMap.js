@@ -50,6 +50,8 @@ class IndexMap {
   /**
    * Set new values for particular indexes.
    *
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
+   *
    * @param {Array} values List of set values.
    */
   setValues(values) {
@@ -66,6 +68,7 @@ class IndexMap {
    *
    * Note: Please keep in mind that it is not possible to set value beyond the map (not respecting already set
    * map's size). Please use the `setValues` method when you would like to extend the map.
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @returns {boolean}
    */
@@ -99,6 +102,8 @@ class IndexMap {
 
   /**
    * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
+   *
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @private
    * @param {number} [length] Length of list.
@@ -134,6 +139,8 @@ class IndexMap {
   /**
    * Add values to the list.
    *
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
+   *
    * @private
    */
   insert() {
@@ -142,6 +149,8 @@ class IndexMap {
 
   /**
    * Remove values from the list.
+   *
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @private
    */
