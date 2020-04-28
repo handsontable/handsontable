@@ -670,7 +670,7 @@ class Filters extends BasePlugin {
     const th = closest(event.target, 'TH');
 
     if (th) {
-      const visualIndex = this.hot.getCoords(th).col;
+      const visualIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.getCoords(th).col);
       const physicalIndex = this.hot.toPhysicalColumn(visualIndex);
 
       this.lastSelectedColumn = {
