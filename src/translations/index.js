@@ -4,6 +4,7 @@ import IndexesSequence from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
 import IndexMap from './maps/indexMap';
+import { getRegisteredMapsCounter } from './mapCollections/mapCollection';
 import { getIncreasedIndexes, getDecreasedIndexes, alterUtilsFactory } from './maps/utils';
 
 export {
@@ -15,5 +16,6 @@ export {
   IndexMap,
   getIncreasedIndexes,
   getDecreasedIndexes,
-  alterUtilsFactory
+  alterUtilsFactory,
+  getRegisteredMapsCounter,
 };

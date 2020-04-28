@@ -1,6 +1,6 @@
 import MapCollection from './mapCollection';
-import { arrayMap } from '../helpers/array';
-import { isDefined } from '../helpers/mixed';
+import { arrayMap } from '../../helpers/array';
+import { isDefined } from '../../helpers/mixed';
 
 /**
  * Collection of maps. This collection aggregate maps with the same type of values. Values from the registered maps
@@ -50,11 +50,11 @@ class AggregatedCollection extends MapCollection {
     // +---------+---------------------+
     // | indexes |     0    |    1     |
     // +---------+----------+----------+
-    // |    0    | [[ value,  value ], |
-    // |    1    | [  value,  value ], |
-    // |    2    | [  value,  value ]] |
-    // |    3    | [  value,  value ]] |
-    // |    4    | [  value,  value ]] |
+    // |    0    | [ value,   value ]  |
+    // |    1    | [ value,   value ]  |
+    // |    2    | [ value,   value ]  |
+    // |    3    | [ value,   value ]  |
+    // |    4    | [ value,   value ]  |
     // +---------+----------+----------+
     const indexesValuesMatrix = [];
     const mapsLength = (isDefined(mapsValuesMatrix[0]) && mapsValuesMatrix[0].length) || 0;

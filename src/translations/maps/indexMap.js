@@ -15,6 +15,7 @@ class IndexMap {
      * @type {Array}
      */
     this.indexedValues = [];
+    this.diffedValues = new Map();
     /**
      * Initial value or function for each existing index.
      *
@@ -53,6 +54,7 @@ class IndexMap {
    * @param {Array} values List of set values.
    */
   setValues(values) {
+    // this.diffedValues = new Map(this.indexedValues.entries());
     this.indexedValues = values.slice();
 
     this.runLocalHooks('change');
@@ -71,6 +73,7 @@ class IndexMap {
    */
   setValueAtIndex(index, value) {
     if (index < this.getLength()) {
+      this.diffedValues.set(index, this.indexedValues[index]);
       this.indexedValues[index] = value;
 
       this.runLocalHooks('change');
@@ -147,6 +150,10 @@ class IndexMap {
    */
   remove() {
     this.runLocalHooks('change');
+  }
+
+  resetDiff() {
+    this.diffedValues.clear();
   }
 }
 

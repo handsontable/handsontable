@@ -1,6 +1,6 @@
-import { isUndefined, isDefined } from '../helpers/mixed';
-import { mixin } from '../helpers/object';
-import localHooks from '../mixins/localHooks';
+import { isUndefined, isDefined } from '../../helpers/mixed';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
@@ -108,6 +108,18 @@ class MapCollection {
   initEvery(length) {
     this.collection.forEach((indexMap) => {
       indexMap.init(length);
+    });
+  }
+
+  getDiff() {
+    this.collection.forEach((indexMap) => {
+      console.log( Array.from(indexMap.diffedValues.entries()) );
+    });
+  }
+
+  resetDiff() {
+    this.collection.forEach((indexMap) => {
+      indexMap.resetDiff();
     });
   }
 }

@@ -3,8 +3,8 @@ import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/
 import IndexToIndexMap from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
-import MapCollection from './mapCollection';
-import AggregatedCollection from './aggregatedCollection';
+import MapCollection from './mapCollections/mapCollection';
+import AggregatedCollection from './mapCollections/aggregatedCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
@@ -565,6 +565,11 @@ class IndexMapper {
       this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
 
       this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.trimmedIndexesChanged, this.hiddenIndexesChanged);
+
+      this.indexesSequence.resetDiff();
+      this.trimmingMapsCollection.resetDiff();
+      this.hidingMapsCollection.resetDiff();
+      this.variousMapsCollection.resetDiff();
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;

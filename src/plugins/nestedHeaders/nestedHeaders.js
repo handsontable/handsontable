@@ -81,6 +81,12 @@ class NestedHeaders extends BasePlugin {
 
     const { nestedHeaders } = this.hot.getSettings();
 
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', (indexesSequenceChanged, trimmedIndexesChanged, hiddenIndexesChanged) => {
+      if (hiddenIndexesChanged) {
+        console.log('diff', this.hot.columnIndexMapper.hidingMapsCollection.getDiff());
+      }
+    })
+
     if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
       warn(toSingleLine`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);

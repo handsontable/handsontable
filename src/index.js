@@ -11,7 +11,7 @@ import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cel
 import Core from './core';
 import jQueryWrapper from './helpers/wrappers/jquery';
 import EventManager, { getListenersCounter } from './eventManager';
-import { getRegisteredMapsCounter } from './translations/mapCollection';
+import { getRegisteredMapsCounter } from './translations';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
