@@ -314,11 +314,14 @@ class IndexMapper {
    * @returns {number|null} Visual column index or `null`.
    */
   getFirstNotHiddenIndex(fromVisualIndex, incrementBy, searchAlsoOtherWayAround = false,
-                         indexForNextSearch = fromVisualIndex) {
+                         indexForNextSearch = fromVisualIndex - incrementBy) {
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
+    // First or next (it may be end of the table) index is beyond the table boundaries.
     if (physicalIndex === null) {
-      if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex) {
+      // Looking for the next index in the opposite direction. This conditional won't be fulfilled when we STARTED
+      // the search from the index beyond the table boundaries.
+      if (searchAlsoOtherWayAround === true && indexForNextSearch !== fromVisualIndex - incrementBy) {
         return this.getFirstNotHiddenIndex(indexForNextSearch, -incrementBy, false, indexForNextSearch);
       }
 
@@ -329,6 +332,7 @@ class IndexMapper {
       return fromVisualIndex;
     }
 
+    // Looking for the next index, as the current isn't visible.
     return this.getFirstNotHiddenIndex(fromVisualIndex + incrementBy, incrementBy, searchAlsoOtherWayAround, indexForNextSearch);
   }
 
