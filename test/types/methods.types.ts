@@ -173,6 +173,7 @@ const hiddenColumns: Handsontable.plugins.HiddenColumns = hot.getPlugin('hiddenC
 const hiddenRows: Handsontable.plugins.HiddenRows = hot.getPlugin('hiddenRows');
 const manualColumnFreeze: Handsontable.plugins.ManualColumnFreeze = hot.getPlugin('manualColumnFreeze');
 const manualColumnMove: Handsontable.plugins.ManualColumnMove = hot.getPlugin('manualColumnMove');
+const manualColumnResize: Handsontable.plugins.ManualColumnResize = hot.getPlugin('manualColumnResize');
 const manualRowMove: Handsontable.plugins.ManualRowMove = hot.getPlugin('manualRowMove');
 const manualRowResize: Handsontable.plugins.ManualRowResize = hot.getPlugin('manualRowResize');
 const mergeCells: Handsontable.plugins.MergeCells = hot.getPlugin('mergeCells');
