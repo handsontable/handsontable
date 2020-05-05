@@ -203,7 +203,7 @@ class DataMap {
     const physicalColumn = this.instance.toPhysicalColumn(column);
 
     // Out of range, not visible column index.
-    if (Number.isInteger(column) === false) {
+    if (physicalColumn === null) {
       return column;
     }
 
