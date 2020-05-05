@@ -117,6 +117,13 @@ class IndexMapper {
      * @type {Map}
      */
     this.fromPhysicalToVisualIndexesCache = new Map();
+    /**
+     * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
+     *
+     * @private
+     * @type {Map}
+     */
+    this.fromVisualToRenderableIndexesCache = new Map();
 
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;
@@ -284,22 +291,14 @@ class IndexMapper {
    * @returns {null|number}
    */
   getRenderableFromVisualIndex(visualIndex) {
-    // Index beyond the table boundaries provided by the `DataMap`.
-    if (isDefined(this.notTrimmedIndexesCache[visualIndex]) === false) {
-      return null;
+    const renderableIndex = this.fromVisualToRenderableIndexesCache.get(visualIndex);
+
+    // Index in the renderable table boundaries.
+    if (isDefined(renderableIndex)) {
+      return renderableIndex;
     }
 
-    const physicalIndex = this.getPhysicalFromVisualIndex(visualIndex);
-
-    if (this.isHidden(physicalIndex)) {
-      return null;
-    }
-
-    const notTrimmedIndexes = this.getNotTrimmedIndexes(); // Mappings from visual to physical indexes.
-    const isHiddenForVisualIndexes = notTrimmedIndexes.map(
-      physicalIndexForVisualIndex => this.isHidden(physicalIndexForVisualIndex));
-
-    return visualIndex - isHiddenForVisualIndexes.slice(0, visualIndex + 1).filter(isHidden => isHidden).length;
+    return null;
   }
 
   /**
@@ -583,6 +582,7 @@ class IndexMapper {
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
       this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
       this.cacheFromPhysicalToVisualIndexes();
+      this.cacheFromVisualToRenderabIendexes();
 
       this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.trimmedIndexesChanged, this.hiddenIndexesChanged);
 
@@ -612,6 +612,32 @@ class IndexMapper {
       // corresponding visual indexes (physical indexes may represent trimmed indexes, beyond the table boundaries)
       if (visualIndex !== -1) {
         this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
+      }
+    }
+  }
+
+  /**
+   * Update cache for translations from visual to renderable indexes.
+   *
+   * @private
+   */
+  cacheFromVisualToRenderabIendexes() {
+    const notTrimmedIndexes = this.notTrimmedIndexesCache;
+    const nrOfNotTrimmedIndexes = notTrimmedIndexes.length;
+    const isHiddenForVisualIndexes = notTrimmedIndexes.map(physicalIndexForVisualIndex => this.isHidden(physicalIndexForVisualIndex));
+
+    this.fromVisualToRenderableIndexesCache.clear();
+
+    let nrOfHiddenIndexesBefore = 0;
+
+    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
+      if (isHiddenForVisualIndexes[visualIndex]) {
+        nrOfHiddenIndexesBefore += 1;
+
+      } else {
+        const renderableIndex = visualIndex - nrOfHiddenIndexesBefore;
+
+        this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
       }
     }
   }
