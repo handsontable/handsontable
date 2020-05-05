@@ -152,8 +152,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const { row: visualRow, col: visualColumn } = coords;
 
     return new CellCoords(
-      instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow),
-      instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumn)
+      // We just store indexes for rows and columns without headers.
+      visualRow >= 0 ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) : visualRow,
+      visualColumn >= 0 ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumn) : visualColumn
     );
   };
 
@@ -161,8 +162,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const { row: renderableRow, col: renderableColumn } = coords;
 
     return new CellCoords(
-      instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow),
-      instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn)
+      // We just store indexes for rows and columns without headers.
+      renderableRow >= 0 ? instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow,
+      renderableColumn >= 0 ? instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn
     );
   };
 

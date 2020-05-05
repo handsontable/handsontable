@@ -17,7 +17,7 @@ export default function showColumnItem(hiddenColumnsPlugin) {
     callback() {
       const [, startVisualColumn, , endVisualColumn] = this.getSelectedLast();
       const noVisibleIndexesBefore =
-        this.columnIndexMapper.getFirstNotHiddenIndex(startVisualColumn - 1, -1) === -1;
+        this.columnIndexMapper.getFirstNotHiddenIndex(startVisualColumn - 1, -1) === null;
       const onlyFirstVisibleColumnSelected = noVisibleIndexesBefore && startVisualColumn === endVisualColumn;
       const noVisibleIndexesAfter =
         this.columnIndexMapper.getFirstNotHiddenIndex(endVisualColumn + 1, 1) === null;

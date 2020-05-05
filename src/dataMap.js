@@ -194,10 +194,16 @@ class DataMap {
    * @returns {string|number} Column property, physical column index or passed argument.
    */
   colToProp(column) {
+    // TODO: Should it work? Please, look at the test:
+    // "it should return the provided property name, when the user passes a property name as a column number".
+    if (Number.isInteger(column) === false) {
+      return column;
+    }
+
     const physicalColumn = this.instance.toPhysicalColumn(column);
 
     // Out of range, not visible column index.
-    if (physicalColumn === null) {
+    if (Number.isInteger(column) === false) {
       return column;
     }
 
@@ -878,7 +884,8 @@ class DataMap {
 
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
       row = [];
-      const physicalRow = this.instance.toPhysicalRow(r);
+      // We just store indexes for rows without headers.
+      const physicalRow = r >= 0 ? this.instance.toPhysicalRow(r) : r;
 
       for (c = Math.min(start.col, end.col); c <= clen; c++) {
 
