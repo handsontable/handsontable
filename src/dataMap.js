@@ -190,7 +190,7 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * @param {number} column Visual column index.
+   * @param {string|number} column Visual column index or another passed argument.
    * @returns {string|number} Column property, physical column index or passed argument.
    */
   colToProp(column) {
