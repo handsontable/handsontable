@@ -563,6 +563,72 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('hidingMap');
   });
 
+  it('should return proper values for the `getFirstNotHiddenIndex` method calls', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = new TrimmingMap();
+    const hidingMap = new HidingMap();
+
+    indexMapper.registerMap('trimmingMap', trimmingMap);
+    indexMapper.registerMap('hidingMap', hidingMap);
+    indexMapper.initToLength(10);
+    trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
+    hidingMap.setValues([false, true, true, false, false, true, true, false, true, false]);
+
+    // is renderable?  |    -  -  +  +  -  -  +  -
+    // visual          |    0  1  2  3  4  5  6  7
+    // physical        | 0  1  2  3  4  5  6  7  8  9
+
+    expect(indexMapper.getFirstNotHiddenIndex(6, 1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(6, -1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(7, -1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(7, 1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(7, 1, true)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(5, 1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(5, -1)).toBe(3);
+    expect(indexMapper.getFirstNotHiddenIndex(1, -1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(1, -1, true)).toBe(2);
+    expect(indexMapper.getFirstNotHiddenIndex(0, -1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(0, -1, true)).toBe(2);
+    expect(indexMapper.getFirstNotHiddenIndex(0, 1)).toBe(2);
+    expect(indexMapper.getFirstNotHiddenIndex(1, 1)).toBe(2);
+
+    indexMapper.unregisterMap('trimmingMap');
+    indexMapper.unregisterMap('hidingMap');
+  });
+
+  it('should return proper values for translating indexes beyond the table boundaries', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = new TrimmingMap();
+    const hidingMap = new HidingMap();
+
+    indexMapper.registerMap('trimmingMap', trimmingMap);
+    indexMapper.registerMap('hidingMap', hidingMap);
+    indexMapper.initToLength(10);
+    trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
+    hidingMap.setValues([false, true, false, false, false, false, false, false, true, false]);
+
+    // renderable  |       0  1  2  3  4  5
+    // visual      |    0  1  2  3  4  5  6  7
+    // physical    | 0  1  2  3  4  5  6  7  8  9
+
+    expect(indexMapper.getVisualFromPhysicalIndex(-1)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(-1)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(-1)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(-1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(-1, 1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(-1, -1)).toBe(null);
+
+    expect(indexMapper.getVisualFromPhysicalIndex(10)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(8)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(8)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(8, 1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(8, -1)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(null);
+
+    indexMapper.unregisterMap('trimmingMap');
+    indexMapper.unregisterMap('hidingMap');
+  });
+
   describe('removing indexes', () => {
     it('should remove multiple indexes from the start', () => {
       const indexMapper = new IndexMapper();
