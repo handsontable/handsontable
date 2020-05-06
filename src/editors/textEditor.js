@@ -169,7 +169,7 @@ class TextEditor extends BaseEditor {
       const restoreFocus = !fragmentSelection;
 
       if (restoreFocus && !isMobileBrowser()) {
-        this.hot._registerImmediate(() => this.focus(true));
+        this.focus(true);
       }
     }
   }

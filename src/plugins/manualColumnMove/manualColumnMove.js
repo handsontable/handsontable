@@ -232,7 +232,7 @@ class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   isMovePossible(movedColumns, finalIndex) {
-    const length = this.hot.columnIndexMapper.getNotSkippedIndexesLength();
+    const length = this.hot.columnIndexMapper.getNotTrimmedIndexesLength();
 
     // An attempt to transfer more columns to start destination than is possible (only when moving from the top to the bottom).
     const tooHighDestinationIndex = movedColumns.length + finalIndex > length;
@@ -294,29 +294,31 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Gets the sum of the heights of columns in the provided range.
+   * Gets the sum of the widths of columns in the provided range.
    *
    * @private
-   * @param {number} from Visual column index.
-   * @param {number} to Visual column index.
+   * @param {number} fromColumn Visual column index.
+   * @param {number} toColumn Visual column index.
    * @returns {number}
    */
-  getColumnsWidth(from, to) {
-    let width = 0;
+  getColumnsWidth(fromColumn, toColumn) {
+    const columnMapper = this.hot.columnIndexMapper;
+    let columnsWidth = 0;
 
-    for (let i = from; i < to; i++) {
-      let columnWidth = 0;
+    for (let visualColumnIndex = fromColumn; visualColumnIndex <= toColumn; visualColumnIndex += 1) {
+      // We can't use just `getColWidth` (even without indexes translation) as it doesn't return proper values
+      // when column is stretched.
+      const renderableIndex = columnMapper.getRenderableFromVisualIndex(visualColumnIndex);
 
-      if (i < 0) {
-        columnWidth = this.hot.view.wt.wtViewport.getRowHeaderWidth() || 0;
-      } else {
-        columnWidth = this.hot.view.wt.wtTable.getStretchedColumnWidth(i) || 0;
+      if (visualColumnIndex < 0) {
+        columnsWidth += this.hot.view.wt.wtViewport.getRowHeaderWidth() || 0;
+
+      } else if (renderableIndex !== null) {
+        columnsWidth += this.hot.view.wt.wtTable.getStretchedColumnWidth(renderableIndex) || 0;
       }
-
-      width += columnWidth;
     }
 
-    return width;
+    return columnsWidth;
   }
 
   /**
@@ -405,7 +407,7 @@ class ManualColumnMove extends BasePlugin {
     const wtTable = this.hot.view.wt.wtTable;
     const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
     const scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
-    let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coords);
+    let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coords - 1);
     const mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
     const hiderWidth = wtTable.hider.offsetWidth;
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
@@ -564,10 +566,10 @@ class ManualColumnMove extends BasePlugin {
       const wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
 
       const mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
-      const leftOffset = Math.abs(this.getColumnsWidth(start, coords.col) + mouseOffset);
+      const leftOffset = Math.abs(this.getColumnsWidth(start, coords.col - 1) + mouseOffset);
 
-      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start) + leftOffset);
-      this.backlight.setSize(this.getColumnsWidth(start, end + 1), wtTable.hider.offsetHeight - topPos);
+      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start - 1) + leftOffset);
+      this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
       this.backlight.setOffset(null, leftOffset * -1);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
@@ -675,7 +677,7 @@ class ManualColumnMove extends BasePlugin {
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
       const selectionEnd = selectionStart + columnsLen - 1;
 
-      this.hot.selectColumns(selectionStart, selectionEnd);
+      this.changeSelection(selectionStart, selectionEnd);
     }
   }
 

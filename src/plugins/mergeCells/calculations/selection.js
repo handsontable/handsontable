@@ -104,7 +104,7 @@ class SelectionCalculations {
    * Generate an additional class name for the entirely-selected merged cells.
    *
    * @param {number} currentRow Row index of the currently processed cell.
-   * @param {number} currentColumn Column index of the currently cell.
+   * @param {number} currentColumn Visual column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.

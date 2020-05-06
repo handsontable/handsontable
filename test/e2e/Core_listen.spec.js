@@ -46,7 +46,8 @@ describe('Core_listen', () => {
     expect(hot.isListening()).toEqual(true);
   });
 
-  it('should change focus on active element, when listen without arguments was called', () => {
+  // We have no idea why listen should change focus (behavior up to Handsontable 8.0).
+  it('should not change focus on active element, when listen was called', () => {
     const hot = handsontable();
     const input = document.createElement('input');
 
@@ -55,23 +56,6 @@ describe('Core_listen', () => {
     hot.selectCell(0, 0);
     input.focus();
     hot.listen();
-
-    expect(hot.isListening()).toEqual(true);
-    expect(document.activeElement).not.toBe(input);
-    expect(document.activeElement).toBe(document.body);
-
-    document.body.removeChild(input);
-  });
-
-  it('should not change focus on active element, when listen with first argument as `false` was called', () => {
-    const hot = handsontable();
-    const input = document.createElement('input');
-
-    document.body.appendChild(input);
-
-    hot.selectCell(0, 0);
-    input.focus();
-    hot.listen(false);
 
     expect(hot.isListening()).toEqual(true);
     expect(document.activeElement).toBe(input);

@@ -1443,30 +1443,40 @@ describe('TextEditor', () => {
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality.
   it('should not lose the focus on input element while inserting new characters (#839)', async() => {
-    let blured = false;
-    const listener = () => {
-      blured = true;
-    };
     const hot = handsontable({
       data: [['']],
     });
 
     selectCell(0, 0);
+
+    const activeElement = hot.getActiveEditor().TEXTAREA;
+
+    expect(activeElement).toBeDefined();
+    expect(activeElement).not.toBe(null);
+    expect(document.activeElement).toBe(activeElement);
+
     keyDownUp('enter');
-    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+
+    expect(document.activeElement).toBe(activeElement);
 
     await sleep(200);
 
+    expect(document.activeElement).toBe(activeElement);
+
     hot.getActiveEditor().TEXTAREA.value = 'a';
     keyDownUp('a'.charCodeAt(0));
+
+    expect(document.activeElement).toBe(activeElement);
+
     hot.getActiveEditor().TEXTAREA.value = 'ab';
     keyDownUp('b'.charCodeAt(0));
+
+    expect(document.activeElement).toBe(activeElement);
+
     hot.getActiveEditor().TEXTAREA.value = 'abc';
     keyDownUp('c'.charCodeAt(0));
 
-    expect(blured).toBeFalsy();
-
-    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
+    expect(document.activeElement).toBe(activeElement);
   });
 
   it('should not throw an exception when window.attachEvent is defined but the text area does not have attachEvent', (done) => {

@@ -60,11 +60,16 @@ export function inherit(Child, Parent) {
  *
  * @param {object} target An object that will receive the new properties.
  * @param {object} extension An object containing additional properties to merge into the target.
+ * @param {string[]} [writableKeys] An array of keys that are writable to target object.
  * @returns {object}
  */
-export function extend(target, extension) {
+export function extend(target, extension, writableKeys) {
+  const hasWritableKeys = Array.isArray(writableKeys);
+
   objectEach(extension, (value, key) => {
-    target[key] = value;
+    if (hasWritableKeys === false || writableKeys.includes(key)) {
+      target[key] = value;
+    }
   });
 
   return target;

@@ -75,10 +75,19 @@ describe('Core_selection', () => {
     $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
+    expect(`
+    |   :   :   :   :   |
+    |   :   :   :   :   |
+    |   :   :   :   :   |
+    |   :   :   :   :   |
+    |   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix start range if provided is out of bounds (to the left)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
       autoWrapCol: false,
@@ -88,10 +97,21 @@ describe('Core_selection', () => {
     keyDownUp('arrow_left');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(`
+    |   ║ - :   :   :   :   |
+    |===:===:===:===:===:===|
+    | - ║ # :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix start range if provided is out of bounds (to the top)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
       autoWrapCol: false,
@@ -101,10 +121,21 @@ describe('Core_selection', () => {
     keyDownUp('arrow_up');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(`
+    |   ║ - :   :   :   :   |
+    |===:===:===:===:===:===|
+    | - ║ # :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix start range if provided is out of bounds (to the right)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
       autoWrapCol: false,
@@ -114,10 +145,21 @@ describe('Core_selection', () => {
     keyDownUp('arrow_right');
 
     expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+    expect(`
+    |   ║   :   :   :   : - |
+    |===:===:===:===:===:===|
+    | - ║   :   :   :   : # |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix start range if provided is out of bounds (to the bottom)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
       autoWrapCol: false,
@@ -127,10 +169,21 @@ describe('Core_selection', () => {
     keyDownUp('arrow_down');
 
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+    expect(`
+    |   ║ - :   :   :   :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    | - ║ # :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix end range if provided is out of bounds (to the left)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
@@ -139,10 +192,21 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_left');
 
     expect(getSelected()).toEqual([[0, 1, 0, 0]]);
+    expect(`
+    |   ║ - : - :   :   :   |
+    |===:===:===:===:===:===|
+    | - ║ 0 : A :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix end range if provided is out of bounds (to the top)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
@@ -151,10 +215,21 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_up');
 
     expect(getSelected()).toEqual([[1, 0, 0, 0]]);
+    expect(`
+    |   ║ - :   :   :   :   |
+    |===:===:===:===:===:===|
+    | - ║ 0 :   :   :   :   |
+    | - ║ A :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix end range if provided is out of bounds (to the right)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
@@ -163,10 +238,21 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_right');
 
     expect(getSelected()).toEqual([[0, 3, 0, 4]]);
+    expect(`
+    |   ║   :   :   : - : - |
+    |===:===:===:===:===:===|
+    | - ║   :   :   : A : 0 |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should fix end range if provided is out of bounds (to the bottom)', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
@@ -176,16 +262,36 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_down');
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
+    expect(`
+    |   ║ - :   :   :   :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    | - ║ A :   :   :   :   |
+    | - ║ 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should select multiple cells', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
     selectCell(3, 0, 4, 1);
 
     expect(getSelected()).toEqual([[3, 0, 4, 1]]);
+    expect(`
+    |   ║ - : - :   :   :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    | - ║ A : 0 :   :   :   |
+    | - ║ 0 : 0 :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should call onSelectionEnd as many times as onSelection when `selectCell` is called', () => {
@@ -213,6 +319,8 @@ describe('Core_selection', () => {
     let tick = 0;
 
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
       afterSelectionEnd() {
@@ -225,6 +333,15 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_down'); // makes tick++
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
+    expect(`
+    |   ║ - :   :   :   :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    | - ║ A :   :   :   :   |
+    | - ║ 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
     expect(tick).toEqual(4);
   });
 
@@ -232,6 +349,8 @@ describe('Core_selection', () => {
     let tick = 0;
 
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
       afterSelectionEnd() {
@@ -244,87 +363,118 @@ describe('Core_selection', () => {
     keyDownUp('shift+arrow_down'); // makes tick++
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
+    expect(`
+    |   ║ - :   :   :   :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    | - ║ A :   :   :   :   |
+    | - ║ 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
     expect(tick).toEqual(2);
   });
 
   it('should select columns by click on header with SHIFT key', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
-      colHeaders: true
     });
 
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mousedown');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mouseup');
 
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 4, 4]]);
+    expect(`
+    |   ║   : * : * : * : * |
+    |===:===:===:===:===:===|
+    | - ║   : A : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should select rows by click on header with SHIFT key', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
-      rowHeaders: true
     });
 
-    spec().$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mousedown');
-    spec().$container.find('.ht_clone_left tr:eq(1) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)').simulate('mousedown');
+    spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)').simulate('mouseup');
 
-    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
+    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[1, 0, 4, 4]]);
-  });
-
-  it('should select columns by click on header with SHIFT key', () => {
-    handsontable({
-      startRows: 5,
-      startCols: 5,
-      colHeaders: true
-    });
-
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mousedown');
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)').simulate('mouseup');
-
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
-
-    expect(getSelected()).toEqual([[0, 1, 4, 4]]);
-
-  });
-
-  it('should change selection after click on row header with SHIFT key', () => {
-    handsontable({
-      startRows: 5,
-      startCols: 5,
-      rowHeaders: true
-    });
-
-    selectCell(1, 1, 3, 3);
-
-    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_left tr:eq(4) th:eq(0)').simulate('mouseup');
-
-    expect(getSelected()).toEqual([[1, 0, 4, 4]]);
-
+    expect(`
+    |   ║ - : - : - : - : - |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    | * ║ A : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should change selection after click on column header with SHIFT key', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
-      colHeaders: true
     });
 
     selectCell(1, 1, 3, 3);
 
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mousedown', { shiftKey: true });
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)').simulate('mouseup');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 4, 4]]);
+    expect(`
+    |   ║   : * : * : * : * |
+    |===:===:===:===:===:===|
+    | - ║   : A : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    | - ║   : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should change selection after click on row header with SHIFT key', () => {
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+    });
+
+    selectCell(1, 1, 3, 3);
+
+    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([[1, 0, 4, 4]]);
+    expect(`
+    |   ║ - : - : - : - : - |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    | * ║ A : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', () => {
@@ -332,6 +482,8 @@ describe('Core_selection', () => {
     let tickEnd = 0;
 
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
       afterSelection() {
@@ -342,32 +494,51 @@ describe('Core_selection', () => {
       }
     });
 
-    spec().$container.find('tr:eq(0) td:eq(0)').simulate('mousedown');
-    spec().$container.find('tr:eq(0) td:eq(1)').simulate('mouseover');
-    spec().$container.find('tr:eq(1) td:eq(3)').simulate('mouseover');
+    spec().$container.find('tr:eq(1) td:eq(0)').simulate('mousedown');
+    spec().$container.find('tr:eq(1) td:eq(1)').simulate('mouseover');
+    spec().$container.find('tr:eq(2) td:eq(3)').simulate('mouseover');
 
-    spec().$container.find('tr:eq(1) td:eq(3)').simulate('mouseup');
+    spec().$container.find('tr:eq(2) td:eq(3)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 0, 1, 3]]);
+    expect(`
+    |   ║ - : - : - : - :   |
+    |===:===:===:===:===:===|
+    | - ║ A : 0 : 0 : 0 :   |
+    | - ║ 0 : 0 : 0 : 0 :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
     expect(tick).toEqual(3);
     expect(tickEnd).toEqual(1);
   });
 
   it('should properly select columns, when the user moves the cursor over column headers across two overlays', () => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5,
-      colHeaders: true,
       fixedColumnsLeft: 2
     });
 
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mousedown');
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
-    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)').simulate('mouseover');
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseover');
-    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(1)').simulate('mouseup');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mousedown');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseover');
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(3)').simulate('mouseover');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseover');
+    spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseup');
 
     expect(getSelected()).toEqual([[0, 1, 4, 1]]);
+    expect(`
+    |   ║   : * |   :   :   |
+    |===:===:===:===:===:===|
+    | - ║   : A |   :   :   |
+    | - ║   : 0 |   :   :   |
+    | - ║   : 0 |   :   :   |
+    | - ║   : 0 |   :   :   |
+    | - ║   : 0 |   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should move focus to selected cell', () => {
@@ -615,6 +786,30 @@ describe('Core_selection', () => {
     await sleep(30);
 
     expect(getSelected()).toEqual([[12, 11, 10, 11]]);
+    expect(`
+    |   ║   : - :   :   :   :   :   :   :   :   |
+    |===:===:===:===:===:===:===:===:===:===:===|
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    | - ║   : 0 :   :   :   :   :   :   :   :   |
+    | - ║   : 0 :   :   :   :   :   :   :   :   |
+    | - ║   : A :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should render selection borders with set proper z-indexes', () => {
@@ -654,6 +849,30 @@ describe('Core_selection', () => {
     await sleep(30);
 
     expect(getSelected()).toEqual([[12, 11, 12, 10]]);
+    expect(`
+    |   ║ - : - :   :   :   :   :   :   :   :   |
+    |===:===:===:===:===:===:===:===:===:===:===|
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    | - ║ 0 : A :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+    |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', async() => {
@@ -853,14 +1072,36 @@ describe('Core_selection', () => {
 
     spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([[1, 0, 1, 4]]);
+    expect(`
+    |   ║ - : - | - : - : - |
+    |===:===:===:===:===:===|
+    |   ║   :   |   :   :   |
+    | * ║ A : 0 | 0 : 0 : 0 |
+    |---:---:---:---:---:---|
+    |   ║   :   |   :   :   |
+    |   ║   :   |   :   :   |
+    |   ║   :   |   :   :   |
+    `).toBeMatchToSelectionPattern();
 
     spec().$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
     expect(getSelected()).toEqual([[2, 0, 2, 4]]);
+    expect(`
+    |   ║ - : - | - : - : - |
+    |===:===:===:===:===:===|
+    |   ║   :   |   :   :   |
+    |   ║   :   |   :   :   |
+    |---:---:---:---:---:---|
+    | * ║ A : 0 | 0 : 0 : 0 |
+    |   ║   :   |   :   :   |
+    |   ║   :   |   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should select a cell in a newly added row after automatic row adding, triggered by editing a cell in the last row with minSpareRows > 0, ' +
     'unless editing happened within the fixed bottom rows', async() => {
     handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 2,
       minSpareRows: 1
@@ -876,6 +1117,16 @@ describe('Core_selection', () => {
     await sleep(100);
     expect(countRows()).toEqual(6);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
+    expect(`
+    |   ║ - :   |
+    |===:===:===|
+    |   ║   :   |
+    |   ║   :   |
+    |   ║   :   |
+    |   ║   :   |
+    |   ║   :   |
+    | - ║ # :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should select a cell which one was added automatically by minSpareCols', () => {
@@ -889,6 +1140,9 @@ describe('Core_selection', () => {
 
     expect(countCols()).toEqual(7);
     expect(getSelected()).toEqual([[0, 6, 0, 6]]);
+    expect(`
+    |   :   :   :   :   :   : # |
+    `).toBeMatchToSelectionPattern();
     expect(getDataAtCell(0, 0)).toEqual('A1');
     expect(getDataAtCell(0, 1)).toEqual('B1');
     expect(getDataAtCell(0, 2)).toEqual('C1');
@@ -900,6 +1154,8 @@ describe('Core_selection', () => {
 
   it('should change selected coords by modifying coords object via `modifyTransformStart` hook', () => {
     const hot = handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
@@ -913,10 +1169,21 @@ describe('Core_selection', () => {
     keyDown('arrow_down');
 
     expect(getSelected()).toEqual([[2, 1, 2, 1]]);
+    expect(`
+    |   ║   : - :   :   :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    | - ║   : # :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', () => {
     const hot = handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
@@ -930,6 +1197,15 @@ describe('Core_selection', () => {
     keyDown('shift+arrow_down');
 
     expect(getSelected()).toEqual([[0, 0, 2, 2]]);
+    expect(`
+    |   ║ - : - : - :   :   |
+    |===:===:===:===:===:===|
+    | - ║ A : 0 : 0 :   :   |
+    | - ║ 0 : 0 : 0 :   :   |
+    | - ║ 0 : 0 : 0 :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', () => {
@@ -1008,6 +1284,8 @@ describe('Core_selection', () => {
 
   it('should change selection after left mouse button on one of selected cell', () => {
     const hot = handsontable({
+      rowHeaders: true,
+      colHeaders: true,
       startRows: 5,
       startCols: 5
     });
@@ -1018,14 +1296,32 @@ describe('Core_selection', () => {
     cells.eq(18).simulate('mouseup');
 
     expect(hot.getSelected()).toEqual([[1, 1, 3, 3]]);
+    expect(`
+    |   ║   : - : - : - :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    | - ║   : A : 0 : 0 :   |
+    | - ║   : 0 : 0 : 0 :   |
+    | - ║   : 0 : 0 : 0 :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
 
     cells.eq(16).simulate('mousedown');
     cells.eq(16).simulate('mouseup');
 
     expect(hot.getSelected()).toEqual([[3, 1, 3, 1]]);
+    expect(`
+    |   ║   : - :   :   :   |
+    |===:===:===:===:===:===|
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    | - ║   : # :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the first row after corner header is clicked', () => {
+  it('should select all cells when corner header is clicked', () => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -1035,16 +1331,16 @@ describe('Core_selection', () => {
 
     spec().$container.find('thead').find('th').eq(0).simulate('mousedown');
 
-    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getSelected()).toEqual([[0, 0, 4, 4]]);
     expect(`
-      |   ║ - :   :   :   :   |
-      |===:===:===:===:===:===|
-      | - ║ # :   :   :   :   |
-      |   ║   :   :   :   :   |
-      |   ║   :   :   :   :   |
-      |   ║   :   :   :   :   |
-      |   ║   :   :   :   :   |
-      `).toBeMatchToSelectionPattern();
+    |   ║ * : * : * : * : * |
+    |===:===:===:===:===:===|
+    | * ║ A : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
   });
 
   it('should redraw selection when option `colHeaders` is set and user scrolled', async() => {
@@ -1105,9 +1401,59 @@ describe('Core_selection', () => {
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
+  it('should scroll viewport properly when selecting singe cell beyond the table boundaries (when some columns are hidden)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    selectCell(0, 15);
+
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
+  });
+
+  it('should scroll viewport properly when selecting multiple cells beyond the table boundaries (when some columns are hidden)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    selectCells([[0, 4], [0, 15]]);
+
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
+  });
+
+  it('should scroll viewport properly when selecting singe column beyond the table boundaries (when some columns are hidden)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    selectColumns(15);
+
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
+  });
+
   describe('multiple selection mode', () => {
     it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
       handsontable({
+        rowHeaders: true,
+        colHeaders: true,
         startRows: 8,
         startCols: 10
       });
@@ -1117,6 +1463,18 @@ describe('Core_selection', () => {
       $(getCell(4, 4)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+      expect(`
+      |   ║   : - : - : - : - :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : A : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
 
       keyDown('ctrl');
 
@@ -1125,10 +1483,24 @@ describe('Core_selection', () => {
       $(getCell(5, 6)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 1, 4, 4], [3, 3, 5, 6]]);
+      expect(`
+      |   ║   : - : - : - : - : - : - :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : B : 1 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 0 : 1 : 1 : 0 : 0 :   :   :   |
+      | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should be disallowed to select non-consecutive cells when selectionMode is set as `single`', () => {
       handsontable({
+        rowHeaders: true,
+        colHeaders: true,
         startRows: 8,
         startCols: 10,
         selectionMode: 'single',
@@ -1139,6 +1511,18 @@ describe('Core_selection', () => {
       $(getCell(4, 4)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+      expect(`
+      |   ║   : - :   :   :   :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : # :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
 
       keyDown('ctrl');
 
@@ -1147,10 +1531,24 @@ describe('Core_selection', () => {
       $(getCell(5, 6)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+      expect(`
+      |   ║   :   :   : - :   :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   :   :   : # :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should be allowed to select consecutive cells when selectionMode is set as `range`', () => {
       handsontable({
+        rowHeaders: true,
+        colHeaders: true,
         startRows: 8,
         startCols: 10,
         selectionMode: 'range',
@@ -1161,16 +1559,42 @@ describe('Core_selection', () => {
       $(getCell(4, 4)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+      expect(`
+      |   ║   : - : - : - : - :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : A : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
 
       $(getCell(3, 3)).simulate('mousedown');
       $(getCell(5, 6)).simulate('mouseover');
       $(getCell(5, 6)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[3, 3, 5, 6]]);
+      expect(`
+      |   ║   :   :   : - : - : - : - :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   :   :   : A : 0 : 0 : 0 :   :   :   |
+      | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   |
+      | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should be disallowed to select non-consecutive cells when selectionMode is set as `range`', () => {
       handsontable({
+        rowHeaders: true,
+        colHeaders: true,
         startRows: 8,
         startCols: 10,
         selectionMode: 'range',
@@ -1181,6 +1605,18 @@ describe('Core_selection', () => {
       $(getCell(4, 4)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+      expect(`
+      |   ║   : - : - : - : - :   :   :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   : A : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 : 0 :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
 
       keyDown('ctrl');
 
@@ -1189,6 +1625,18 @@ describe('Core_selection', () => {
       $(getCell(5, 6)).simulate('mouseup');
 
       expect(getSelected()).toEqual([[3, 3, 5, 6]]);
+      expect(`
+      |   ║   :   :   : - : - : - : - :   :   :   |
+      |===:===:===:===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      | - ║   :   :   : A : 0 : 0 : 0 :   :   :   |
+      | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   |
+      | - ║   :   :   : 0 : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should properly colorize selection layers including layer intersections', () => {

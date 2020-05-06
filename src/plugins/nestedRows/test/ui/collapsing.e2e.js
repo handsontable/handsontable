@@ -23,18 +23,18 @@ describe('NestedRows Collapsing UI', () => {
         const plugin = getPlugin('nestedRows');
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(hot.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
 
         plugin.collapsingUI.collapseChildren(0);
 
-        expect(hot.rowIndexMapper.isSkipped(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(hot.rowIndexMapper.isSkipped(i + 1)).toEqual(true);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(true);
         }
 
-        expect(hot.rowIndexMapper.isSkipped(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
 
       it('should keep collapsed rows after collapsing next ones', () => {
@@ -48,31 +48,31 @@ describe('NestedRows Collapsing UI', () => {
 
         plugin.collapsingUI.collapseChildren(0);
 
-        expect(hot.rowIndexMapper.isSkipped(0)).toEqual(false);
-        expect(hot.rowIndexMapper.isSkipped(1)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(2)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(3)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(4)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(5)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(6)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(1)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(2)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(3)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(4)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(5)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(6)).toEqual(false);
 
         plugin.collapsingUI.collapseChildren(6);
 
-        expect(hot.rowIndexMapper.isSkipped(0)).toEqual(false);
-        expect(hot.rowIndexMapper.isSkipped(1)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(2)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(3)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(4)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(5)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(6)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(1)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(2)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(3)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(4)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(5)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(6)).toEqual(false);
 
-        expect(hot.rowIndexMapper.isSkipped(6)).toEqual(false);
-        expect(hot.rowIndexMapper.isSkipped(7)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(8)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(9)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(10)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(11)).toEqual(true);
-        expect(hot.rowIndexMapper.isSkipped(12)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(6)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(7)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(8)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(9)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(10)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(11)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(12)).toEqual(false);
       });
 
       it('should collapse all children nodes of the row provided as an object', () => {
@@ -87,18 +87,18 @@ describe('NestedRows Collapsing UI', () => {
         const child = sourceDataReference[0];
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(hot.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
 
         plugin.collapsingUI.collapseChildren(child);
 
-        expect(hot.rowIndexMapper.isSkipped(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(hot.rowIndexMapper.isSkipped(i + 1)).toEqual(true);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(true);
         }
 
-        expect(hot.rowIndexMapper.isSkipped(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
     });
 
@@ -115,7 +115,7 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(0);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(hot.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
       });
 
@@ -131,7 +131,7 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(0);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(hot.rowIndexMapper.isSkipped(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
       });
     });

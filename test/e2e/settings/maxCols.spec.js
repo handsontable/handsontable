@@ -25,6 +25,7 @@ describe('settings', () => {
         expect(getData().length).toEqual(0);
         expect(getDataAtRow(0)).toEqual([]);
         expect(countCols()).toEqual(0);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(0);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(0)).toEqual([]);
         expect(getDataAtCol(1)).toEqual([]);
@@ -41,6 +42,7 @@ describe('settings', () => {
         expect(getData()[0].length).toEqual(5);
         expect(getDataAtRow(0).length).toEqual(5);
         expect(countCols()).toEqual(5);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(5);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(6)).toEqual([]);
       });
@@ -56,6 +58,7 @@ describe('settings', () => {
         expect(getData()[0].length).toEqual(10);
         expect(getDataAtRow(0).length).toEqual(10);
         expect(countCols()).toEqual(10);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(10);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -77,6 +80,7 @@ describe('settings', () => {
           expect(getSourceDataAtRow(0).length).toEqual(5);
           expect(countSourceCols()).toEqual(5);
           expect(getData()[0].length).toEqual(2);
+          expect(spec().$container.find('tr:eq(0) td').length).toBe(2);
           expect(getDataAtRow(0).length).toEqual(2);
           expect(countCols()).toEqual(2);
           expect(getDataAtCol(3)).toEqual([]);
@@ -99,6 +103,7 @@ describe('settings', () => {
         expect(getData().length).toEqual(0);
         expect(getDataAtRow(0)).toEqual([]);
         expect(countCols()).toEqual(0);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(0);
         expect(getDataAtCol(0)).toEqual([]);
         expect(getDataAtCol(1)).toEqual([]);
       });
@@ -117,6 +122,7 @@ describe('settings', () => {
         expect(getData()[0].length).toEqual(2);
         expect(getDataAtRow(0).length).toEqual(2);
         expect(countCols()).toEqual(2);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(2);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(3)).toEqual([]);
       });
@@ -136,6 +142,7 @@ describe('settings', () => {
         expect(getData()[0].length).toEqual(2);
         expect(getDataAtRow(0).length).toEqual(2);
         expect(countCols()).toEqual(2);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(2);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(3)).toEqual([]);
       });
@@ -155,6 +162,7 @@ describe('settings', () => {
         expect(getData()[0].length).toEqual(5);
         expect(getDataAtRow(0).length).toEqual(5);
         expect(countCols()).toEqual(5);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(5);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(6)).toEqual([]);
       });
@@ -173,6 +181,7 @@ describe('settings', () => {
         expect(getData()[0].length).toEqual(10);
         expect(getDataAtRow(0).length).toEqual(10);
         expect(countCols()).toEqual(10);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(10);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -192,6 +201,7 @@ describe('settings', () => {
         expect(getData()[0].length).toEqual(10);
         expect(getDataAtRow(0).length).toEqual(10);
         expect(countCols()).toEqual(10);
+        expect(spec().$container.find('tr:eq(0) td').length).toBe(10);
         expect(countEmptyCols()).toEqual(0);
         expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
@@ -218,6 +228,7 @@ describe('settings', () => {
           expect(getData()[0].length).toEqual(2);
           expect(getDataAtRow(0).length).toEqual(2);
           expect(countCols()).toEqual(2);
+          expect(spec().$container.find('tr:eq(0) td').length).toBe(2);
           expect(getDataAtCol(0).length).toEqual(10);
         });
       });

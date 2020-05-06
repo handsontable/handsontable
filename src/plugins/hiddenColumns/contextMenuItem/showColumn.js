@@ -1,4 +1,3 @@
-import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -6,112 +5,94 @@ import * as C from '../../../i18n/constants';
  * @returns {object}
  */
 export default function showColumnItem(hiddenColumnsPlugin) {
-  const beforeHiddenColumns = [];
-  const afterHiddenColumns = [];
+  const columns = [];
 
   return {
     key: 'hidden_columns_show',
     name() {
-      const selection = this.getSelectedLast();
-      let pluralForm = 0;
-
-      if (Array.isArray(selection)) {
-        let [, fromColumn, , toColumn] = selection;
-
-        if (fromColumn > toColumn) {
-          [fromColumn, toColumn] = [toColumn, fromColumn];
-        }
-
-        let hiddenColumns = 0;
-
-        if (fromColumn === toColumn) {
-          hiddenColumns = beforeHiddenColumns.length + afterHiddenColumns.length;
-
-        } else {
-          rangeEach(fromColumn, toColumn, (column) => {
-            if (hiddenColumnsPlugin.isHidden(column)) {
-              hiddenColumns += 1;
-            }
-          });
-        }
-
-        pluralForm = hiddenColumns <= 1 ? 0 : 1;
-      }
+      const pluralForm = columns.length > 1 ? 1 : 0;
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
-      const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.col, to.col);
-      const end = Math.max(from.col, to.col);
+      const [, startVisualColumn, , endVisualColumn] = this.getSelectedLast();
+      const noVisibleIndexesBefore =
+        this.columnIndexMapper.getFirstNotHiddenIndex(startVisualColumn - 1, -1) === null;
+      const onlyFirstVisibleColumnSelected = noVisibleIndexesBefore && startVisualColumn === endVisualColumn;
+      const noVisibleIndexesAfter =
+        this.columnIndexMapper.getFirstNotHiddenIndex(endVisualColumn + 1, 1) === null;
+      const onlyLastVisibleColumnSelected = noVisibleIndexesAfter && startVisualColumn === endVisualColumn;
 
-      if (start === end) {
-        if (beforeHiddenColumns.length === start) {
-          hiddenColumnsPlugin.showColumns(beforeHiddenColumns);
-          beforeHiddenColumns.length = 0;
-        }
-        if (afterHiddenColumns.length === this.countSourceCols() - (start + 1)) {
-          hiddenColumnsPlugin.showColumns(afterHiddenColumns);
-          afterHiddenColumns.length = 0;
-        }
+      let startPhysicalColumn = this.toPhysicalColumn(startVisualColumn);
+      let endPhysicalColumn = this.toPhysicalColumn(endVisualColumn);
 
-      } else {
-        rangeEach(start, end, column => hiddenColumnsPlugin.showColumn(column));
+      if (onlyFirstVisibleColumnSelected) {
+        startPhysicalColumn = 0;
       }
 
+      if (onlyLastVisibleColumnSelected) {
+        endPhysicalColumn = this.countSourceCols() - 1; // All columns after the selected column will be shown.
+      }
+
+      hiddenColumnsPlugin.showColumns(columns);
+
+      const startVisualColumnAfterAction = this.toVisualColumn(startPhysicalColumn);
+      const endVisualColumnAfterAction = this.toVisualColumn(endPhysicalColumn);
+      const allColumnsSelected = endVisualColumnAfterAction - startVisualColumnAfterAction + 1 === this.countCols();
+      // TODO: Workaround, because selection doesn't select headers properly in a case when we select all columns
+      // from `0` to `n`, where `n` is number of columns in the `DataMap`.
+      const selectionStart = allColumnsSelected ? -1 : startVisualColumnAfterAction;
+
+      // Selection start and selection end coordinates might be changed after showing some items.
+      this.selectColumns(selectionStart, endVisualColumnAfterAction);
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
     },
     disabled: false,
     hidden() {
-      if (!hiddenColumnsPlugin.hiddenColumns.length || !this.selection.isSelectedByColumnHeader()) {
+      if (!this.selection.isSelectedByColumnHeader() || hiddenColumnsPlugin.getHiddenColumns().length < 1) {
         return true;
       }
 
-      beforeHiddenColumns.length = 0;
-      afterHiddenColumns.length = 0;
+      columns.length = 0;
 
-      const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.col, to.col);
-      const end = Math.max(from.col, to.col);
-      let hiddenInSelection = false;
+      const [, startColumn, , endColumn] = this.getSelectedLast();
+      const visualStartColumn = Math.min(startColumn, endColumn);
+      const visualEndColumn = Math.max(startColumn, endColumn);
+      const renderableStartColumn = this.columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
+      const renderableEndColumn = this.columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
 
-      if (start === end) {
-        let totalColumnLength = this.countSourceCols();
+      if (visualStartColumn === visualEndColumn) {
+        // Handled column is the first rendered index and there are some visual indexes before it.
+        if (renderableStartColumn === 0 && renderableStartColumn < visualStartColumn) {
+          // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
+          columns.push(...this.columnIndexMapper.getNotTrimmedIndexes().slice(0, visualStartColumn)); // physical indexes
 
-        rangeEach(0, totalColumnLength, (column) => {
-          const partedHiddenLength = beforeHiddenColumns.length + afterHiddenColumns.length;
-
-          if (partedHiddenLength === hiddenColumnsPlugin.hiddenColumns.length) {
-            return false;
-          }
-
-          if (column < start && hiddenColumnsPlugin.isHidden(column)) {
-            beforeHiddenColumns.push(column);
-
-          } else if (hiddenColumnsPlugin.isHidden(column)) {
-            afterHiddenColumns.push(column);
-          }
-        });
-
-        totalColumnLength -= 1;
-
-        if ((beforeHiddenColumns.length === start && start > 0) ||
-          (afterHiddenColumns.length === totalColumnLength - start && start < totalColumnLength)) {
-          hiddenInSelection = true;
+          return false;
         }
 
-      } else {
-        rangeEach(start, end, (column) => {
-          if (hiddenColumnsPlugin.isHidden(column)) {
-            hiddenInSelection = true;
+        const lastVisualIndex = this.countCols() - 1;
+        const lastRenderableIndex = this.columnIndexMapper.getRenderableFromVisualIndex(
+          this.columnIndexMapper.getFirstNotHiddenIndex(lastVisualIndex, -1)
+        );
 
-            return false;
-          }
-        });
+        // Handled column is the last rendered index and there are some visual indexes after it.
+        if (renderableEndColumn === lastRenderableIndex && lastVisualIndex > visualEndColumn) {
+          columns.push(...this.columnIndexMapper.getNotTrimmedIndexes().slice(visualEndColumn + 1));
+        }
+      } else {
+        const visualColumnsInRange = visualEndColumn - visualStartColumn + 1;
+        const renderedColumnsInRange = renderableEndColumn - renderableStartColumn + 1;
+
+        if (visualColumnsInRange > renderedColumnsInRange) {
+          const hiddenColumns = hiddenColumnsPlugin.getHiddenColumns();
+          const physicalIndexesInRange = this.columnIndexMapper.getNotTrimmedIndexes().slice(visualStartColumn, visualEndColumn + 1);
+
+          columns.push(...physicalIndexesInRange.filter(physicalIndex => hiddenColumns.includes(physicalIndex)));
+        }
       }
 
-      return !hiddenInSelection;
+      return columns.length === 0;
     }
   };
 }
