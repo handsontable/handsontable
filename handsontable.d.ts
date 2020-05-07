@@ -2034,7 +2034,7 @@ declare namespace Handsontable {
       getPhysicalFromRenderableIndex: (renderableIndex: number) => number | null;
       getVisualFromRenderableIndex: (renderableIndex: number) => number | null;
       getRenderableFromVisualIndex: (visualIndex: number) => number | null;
-      getFirstNotHiddenIndex: (fromVisualIndex: number, incrementBy: number, searchAlsoOtherWayAround?: true, indexForNextSearch?: number) => number | null;
+      getFirstNotHiddenIndex: (fromVisualIndex: number, incrementBy: number, searchAlsoOtherWayAround?: boolean, indexForNextSearch?: number) => number | null;
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
       setIndexesSequence: (indexes: number[]) => void;
