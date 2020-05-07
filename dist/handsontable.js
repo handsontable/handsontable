@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev1
- * Release date: 23/10/2019 (built at 06/05/2020 17:08:22)
+ * Version: 8.0.0-beta.2-rev2
+ * Release date: 23/10/2019 (built at 07/05/2020 10:06:26)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3445,7 +3445,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev1";
+  var hotVersion = "8.0.0-beta.2-rev2";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -42269,8 +42269,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "06/05/2020 17:08:22";
-Handsontable.version = "8.0.0-beta.2-rev1"; // Export Hooks singleton
+Handsontable.buildDate = "07/05/2020 10:06:26";
+Handsontable.version = "8.0.0-beta.2-rev2"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -51800,6 +51800,8 @@ var IndexMapper = /*#__PURE__*/function () {
     /**
      * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
      *
+     * Note: Please keep in mind that hidden indexes doesn't 
+     *
      * @private
      * @type {Array}
      */
@@ -52644,8 +52646,8 @@ var AggregatedCollection = /*#__PURE__*/function (_MapCollection) {
       // +---------+----------+----------+
       // |    0    | [[ value,  value ], |
       // |    1    | [  value,  value ], |
-      // |    2    | [  value,  value ]] |
-      // |    3    | [  value,  value ]] |
+      // |    2    | [  value,  value ], |
+      // |    3    | [  value,  value ], |
       // |    4    | [  value,  value ]] |
       // +---------+----------+----------+
 
