@@ -345,16 +345,12 @@ class TableView {
    * @returns {CellCoords}
    */
   translateFromRenderableToVisualCoords(renderableRow, renderableColumn) {
-    let visualRow = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
-    let visualColumn = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
-
-    if (visualRow === null) {
-      visualRow = renderableRow;
-    }
-
-    if (visualColumn === null) {
-      visualColumn = renderableColumn;
-    }
+    // TODO: Some helper may be needed.
+    // We perform translation for indexes (without headers).
+    const visualRow = renderableRow >= 0 ?
+      this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow;
+    const visualColumn = renderableColumn >= 0 ?
+      this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn;
 
     return new CellCoords(visualRow, visualColumn);
   }
@@ -841,11 +837,10 @@ class TableView {
       TH.appendChild(div);
     }
 
-    let visualColumnsIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-
-    if (visualColumnsIndex === null) {
-      visualColumnsIndex = renderedColumnIndex;
-    }
+    // TODO: Some helper may be needed.
+    // We perform translation for columns indexes (without column headers).
+    const visualColumnsIndex = renderedColumnIndex >= 0 ?
+      this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
 
     this.instance.runHooks('afterGetColHeader', visualColumnsIndex, TH);
   }
