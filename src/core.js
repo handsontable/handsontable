@@ -13,7 +13,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -884,6 +884,46 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     } else {
       warnUserAboutLanguageRegistration(languageCode);
     }
+  }
+
+  /**
+   * Internal function to set `className` or `tableClassName`, depending on the key from the settings object.
+   *
+   * @private
+   * @param {string} className `className` or `tableClassName` from the key in the settings object.
+   * @param {string|string[]} classSettings String or array of strings. Contains class name(s) from settings object.
+   */
+  function setClassName(className, classSettings) {
+    const element = className === 'className' ? instance.rootElement : instance.table;
+
+    if (firstRun) {
+      addClass(element, classSettings);
+
+    } else {
+      let globalMetaSettingsArray = [];
+      let settingsArray = [];
+
+      if (globalMeta[className]) {
+        globalMetaSettingsArray = Array.isArray(globalMeta[className]) ? globalMeta[className] : stringToArray(globalMeta[className]);
+      }
+
+      if (classSettings) {
+        settingsArray = Array.isArray(classSettings) ? classSettings : stringToArray(classSettings);
+      }
+
+      const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
+      const classNameToAdd = getDifferenceOfArrays(settingsArray, globalMetaSettingsArray);
+
+      if (classNameToRemove.length) {
+        removeClass(element, classNameToRemove);
+      }
+
+      if (classNameToAdd.length) {
+        addClass(element, classNameToAdd);
+      }
+    }
+
+    globalMeta[className] = classSettings;
   }
 
   /**
@@ -1826,7 +1866,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable-next-line no-continue */
         continue;
 
+      } else if (i === 'className') {
+        setClassName('className', settings.className);
+
+      } else if (i === 'tableClassName' && instance.table) {
+        setClassName('tableClassName', settings.tableClassName);
+
+        instance.view.wt.wtOverlays.syncOverlayTableClassNames();
+
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
+
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
           settings[i].initialHook = true;
           instance.addHook(i, settings[i]);
@@ -1886,15 +1935,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     instance.runHooks('afterCellMetaReset');
-
-    if (isDefined(settings.className)) {
-      if (globalMeta.className) {
-        removeClass(instance.rootElement, globalMeta.className);
-      }
-      if (settings.className) {
-        addClass(instance.rootElement, settings.className);
-      }
-    }
 
     let currentHeight = instance.rootElement.style.height;
     if (currentHeight !== '') {
