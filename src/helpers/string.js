@@ -89,3 +89,13 @@ const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
 export function stripTags(string) {
   return `${string}`.replace(STRIP_TAGS_REGEX, '');
 }
+
+/**
+ * Transforms hyphenated string ('get-user-from-db') into camel case variant ('getUserFromDb').
+ *
+ * @param {string} string String to transform.
+ * @returns {string}
+ */
+export function camelCase(string) {
+  return string.replace(/-\D/g, (match) => match.charAt(1).toUpperCase());
+}

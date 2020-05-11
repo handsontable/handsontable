@@ -8,6 +8,7 @@ import AggregatedCollection from './mapCollections/aggregatedCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
+import ChangesObservable from './changesObservable/observable';
 
 /**
  * Index mapper manages the mappings provided by "smaller" maps called index map(s). Those maps provide links from
@@ -29,6 +30,7 @@ import { isDefined } from '../helpers/mixed';
  */
 class IndexMapper {
   constructor() {
+    this.changesObservable = new ChangesObservable();
     /**
      * Map storing the sequence of indexes.
      *
@@ -120,7 +122,8 @@ class IndexMapper {
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.trimmingMapsCollection.addLocalHook('change', (changedMap) => {
+    this.trimmingMapsCollection.addLocalHook('change', (mapName, changedMap, changes) => {
+      this.changesObservable.collect('trimming', mapName, changes);
       this.trimmedIndexesChanged = true;
 
       // Number of trimmed indexes might change.
@@ -129,7 +132,8 @@ class IndexMapper {
       this.runLocalHooks('change', changedMap, this.trimmingMapsCollection);
     });
 
-    this.hidingMapsCollection.addLocalHook('change', (changedMap) => {
+    this.hidingMapsCollection.addLocalHook('change', (mapName, changedMap, changes) => {
+      this.changesObservable.collect('hiding', mapName, changes);
       this.hiddenIndexesChanged = true;
 
       // Number of hidden indexes might change.
@@ -138,7 +142,7 @@ class IndexMapper {
       this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
-    this.variousMapsCollection.addLocalHook('change', (changedMap) => {
+    this.variousMapsCollection.addLocalHook('change', (mapName, changedMap) => {
       this.runLocalHooks('change', changedMap, this.variousMapsCollection);
     });
   }
@@ -159,6 +163,10 @@ class IndexMapper {
     this.isBatched = actualFlag;
 
     this.updateCache();
+  }
+
+  createChangesListener({ collectionName, ...observerOptions }) {
+    return this.changesObservable.createObserver(collectionName, observerOptions);
   }
 
   /**
@@ -564,12 +572,12 @@ class IndexMapper {
       this.notHiddenIndexesCache = this.getNotHiddenIndexes(false);
       this.renderablePhysicalIndexesCache = this.getRenderableIndexes(false);
 
-      this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.trimmedIndexesChanged, this.hiddenIndexesChanged);
-
-      this.indexesSequence.resetDiff();
-      this.trimmingMapsCollection.resetDiff();
-      this.hidingMapsCollection.resetDiff();
-      this.variousMapsCollection.resetDiff();
+      this.runLocalHooks('cacheUpdated', {
+        indexesSequenceChanged: this.indexesSequenceChanged,
+        trimmedIndexesChanged: this.trimmedIndexesChanged,
+        hiddenIndexesChanged: this.hiddenIndexesChanged,
+      });
+      this.changesObservable.flush();
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;

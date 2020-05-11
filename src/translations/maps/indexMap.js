@@ -15,7 +15,6 @@ class IndexMap {
      * @type {Array}
      */
     this.indexedValues = [];
-    this.diffedValues = new Map();
     /**
      * Initial value or function for each existing index.
      *
@@ -54,10 +53,19 @@ class IndexMap {
    * @param {Array} values List of set values.
    */
   setValues(values) {
-    // this.diffedValues = new Map(this.indexedValues.entries());
+    if (values.length !== this.getLength()) {
+      throw new Error('The values must be the same length as the index map.');
+    }
+
+    const oldValues = this.indexedValues.slice();
+
     this.indexedValues = values.slice();
 
-    this.runLocalHooks('change');
+    this.runLocalHooks('change', {
+      changeType: 'multiple',
+      oldValue: oldValues,
+      newValue: this.indexedValues,
+    });
   }
 
   /**
@@ -73,10 +81,15 @@ class IndexMap {
    */
   setValueAtIndex(index, value) {
     if (index < this.getLength()) {
-      this.diffedValues.set(index, this.indexedValues[index]);
+      const oldValue = this.indexedValues[index];
+
       this.indexedValues[index] = value;
 
-      this.runLocalHooks('change');
+      this.runLocalHooks('change', {
+        changeType: 'single',
+        oldValue: { index, value: oldValue },
+        newValue: { index, value },
+      });
 
       return true;
     }
@@ -116,7 +129,11 @@ class IndexMap {
       rangeEach(length - 1, () => this.indexedValues.push(this.initValueOrFn));
     }
 
-    this.runLocalHooks('change');
+    this.runLocalHooks('change', {
+      changeType: 'default',
+      oldValue: [],
+      newValue: this.indexedValues,
+    });
   }
 
   /**
@@ -139,8 +156,12 @@ class IndexMap {
    *
    * @private
    */
-  insert() {
-    this.runLocalHooks('change');
+  insert(insertionIndex, insertedIndexes) {
+    this.runLocalHooks('change', {
+      changeType: 'insert',
+      oldValue: void 0,
+      newValue: { index: insertionIndex, value: insertedIndexes },
+    });
   }
 
   /**
@@ -148,12 +169,24 @@ class IndexMap {
    *
    * @private
    */
-  remove() {
-    this.runLocalHooks('change');
+  remove(removedIndexes) {
+    this.runLocalHooks('change', {
+      changeType: 'remove',
+      oldValue: void 0,
+      newValue: { value: removedIndexes },
+    });
   }
 
-  resetDiff() {
-    this.diffedValues.clear();
+  destroy() {
+    this.runLocalHooks('change', {
+      changeType: 'destroy',
+      oldValue: this.indexedValues,
+      newValue: [],
+    });
+    this.clearLocalHooks();
+
+    this.indexedValues = null;
+    this.initValueOrFn = null;
   }
 }
 

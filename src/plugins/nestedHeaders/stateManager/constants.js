@@ -22,6 +22,7 @@ export const HEADER_DEFAULT_SETTINGS = {
    * @type {number}
    */
   origColspan: 1,
+  offset: 0,
   /**
    * The flag which determines whether the node is collapsible (can be collpased/expanded).
    *
