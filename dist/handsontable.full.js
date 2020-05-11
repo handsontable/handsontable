@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev2
- * Release date: 23/10/2019 (built at 07/05/2020 10:06:26)
+ * Version: 8.0.0-beta.2-rev3
+ * Release date: 23/10/2019 (built at 11/05/2020 17:49:31)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3445,7 +3445,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev2";
+  var hotVersion = "8.0.0-beta.2-rev3";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -39829,6 +39829,8 @@ var GhostTable = /*#__PURE__*/function () {
       this.table = this.createTable(this.hot.table.className);
 
       if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
+        // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
+        // We render all columns.
         this.hot.view.appendColHeader(column, this.table.th);
       }
 
@@ -40008,7 +40010,8 @@ var GhostTable = /*#__PURE__*/function () {
       this.samples.forEach(function (sample) {
         (0, _array.arrayEach)(sample.strings, function (string) {
           var column = string.col;
-          var th = rootDocument.createElement('th');
+          var th = rootDocument.createElement('th'); // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
+          // We render all columns.
 
           _this3.hot.view.appendColHeader(column, th);
 
@@ -63106,8 +63109,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "07/05/2020 10:06:26";
-Handsontable.version = "8.0.0-beta.2-rev2"; // Export Hooks singleton
+Handsontable.buildDate = "11/05/2020 17:49:31";
+Handsontable.version = "8.0.0-beta.2-rev3"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -72973,17 +72976,10 @@ var TableView = /*#__PURE__*/function () {
   }, {
     key: "translateFromRenderableToVisualCoords",
     value: function translateFromRenderableToVisualCoords(renderableRow, renderableColumn) {
-      var visualRow = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
-      var visualColumn = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
-
-      if (visualRow === null) {
-        visualRow = renderableRow;
-      }
-
-      if (visualColumn === null) {
-        visualColumn = renderableColumn;
-      }
-
+      // TODO: Some helper may be needed.
+      // We perform translation for indexes (without headers).
+      var visualRow = renderableRow >= 0 ? this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow;
+      var visualColumn = renderableColumn >= 0 ? this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn;
       return new _src.CellCoords(visualRow, visualColumn);
     }
     /**
@@ -73063,7 +73059,11 @@ var TableView = /*#__PURE__*/function () {
 
           if (_this2.instance.hasColHeaders()) {
             headerRenderers.push(function (renderedColumnIndex, TH) {
-              _this2.appendColHeader(renderedColumnIndex, TH);
+              // TODO: Some helper may be needed.
+              // We perform translation for columns indexes (without column headers).
+              var visualColumnsIndex = renderedColumnIndex >= 0 ? _this2.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
+
+              _this2.appendColHeader(visualColumnsIndex, TH);
             });
           }
 
@@ -73513,21 +73513,21 @@ var TableView = /*#__PURE__*/function () {
      * Append column header to a TH element.
      *
      * @private
-     * @param {number} renderedColumnIndex The rendered column index.
+     * @param {number} visualColumnIndex Visual column index.
      * @param {HTMLTableHeaderCellElement} TH The table header element.
      */
 
   }, {
     key: "appendColHeader",
-    value: function appendColHeader(renderedColumnIndex, TH) {
+    value: function appendColHeader(visualColumnIndex, TH) {
       if (TH.firstChild) {
         var container = TH.firstChild;
 
         if ((0, _element.hasClass)(container, 'relative')) {
-          this.updateCellHeader(container.querySelector('.colHeader'), renderedColumnIndex, this.instance.getColHeader);
+          this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, this.instance.getColHeader);
         } else {
           (0, _element.empty)(TH);
-          this.appendColHeader(renderedColumnIndex, TH);
+          this.appendColHeader(visualColumnIndex, TH);
         }
       } else {
         var rootDocument = this.instance.rootDocument;
@@ -73535,18 +73535,12 @@ var TableView = /*#__PURE__*/function () {
         var span = rootDocument.createElement('span');
         div.className = 'relative';
         span.className = 'colHeader';
-        this.updateCellHeader(span, renderedColumnIndex, this.instance.getColHeader);
+        this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader);
         div.appendChild(span);
         TH.appendChild(div);
       }
 
-      var visualColumnsIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-
-      if (visualColumnsIndex === null) {
-        visualColumnsIndex = renderedColumnIndex;
-      }
-
-      this.instance.runHooks('afterGetColHeader', visualColumnsIndex, TH);
+      this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH);
     }
     /**
      * Updates header cell content.
@@ -74178,6 +74172,8 @@ var IndexMapper = /*#__PURE__*/function () {
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
+     * Note: Please keep in mind that trimmed index can be also hidden.
+     *
      * @private
      * @type {Array}
      */
@@ -74186,7 +74182,7 @@ var IndexMapper = /*#__PURE__*/function () {
     /**
      * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
      *
-     * Note: Please keep in mind that hidden indexes doesn't 
+     * Note: Please keep in mind that hidden index can be also trimmed.
      *
      * @private
      * @type {Array}
