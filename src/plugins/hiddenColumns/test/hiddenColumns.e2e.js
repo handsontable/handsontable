@@ -4973,4 +4973,20 @@ describe('HiddenColumns', () => {
       expect(getDataAtRow(0)).toEqual(['E1', 'A1', 'I1', 'F1', 'C1', 'G1', 'B1', null, null, 'H1', 'D1', 'J1']);
     });
   });
+
+  it('should show proper column headers for the table with hidden column', () => {
+    handsontable({
+      rowHeaders: true,
+      colHeaders: ['AA', 'BB', 'CC', 'DD', 'EE'],
+      hiddenColumns: {
+        columns: [1]
+      }
+    });
+
+    expect($(getCell(-1, 0).querySelector('span')).text()).toBe('AA');
+    expect(getCell(-1, 1)).toBe(null);
+    expect($(getCell(-1, 2).querySelector('span')).text()).toBe('CC');
+    expect($(getCell(-1, 3).querySelector('span')).text()).toBe('DD');
+    expect($(getCell(-1, 4).querySelector('span')).text()).toBe('EE');
+  });
 });
