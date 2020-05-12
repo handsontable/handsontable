@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev3
- * Release date: 23/10/2019 (built at 11/05/2020 17:49:31)
+ * Version: 8.0.0-beta.2-rev4
+ * Release date: 23/10/2019 (built at 12/05/2020 13:36:15)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3445,7 +3445,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev3";
+  var hotVersion = "8.0.0-beta.2-rev4";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -63109,8 +63109,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "11/05/2020 17:49:31";
-Handsontable.version = "8.0.0-beta.2-rev3"; // Export Hooks singleton
+Handsontable.buildDate = "12/05/2020 13:36:15";
+Handsontable.version = "8.0.0-beta.2-rev4"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -73029,7 +73029,9 @@ var TableView = /*#__PURE__*/function () {
           return _this2.countRenderableColumns();
         },
         fixedColumnsLeft: function fixedColumnsLeft() {
-          return _this2.settings.fixedColumnsLeft;
+          var firstVisibleIndex = _this2.instance.columnIndexMapper.getFirstNotHiddenIndex(_this2.settings.fixedColumnsLeft, -1);
+
+          return _this2.instance.columnIndexMapper.getRenderableFromVisualIndex(firstVisibleIndex) || 0;
         },
         fixedRowsTop: function fixedRowsTop() {
           return _this2.settings.fixedRowsTop;
