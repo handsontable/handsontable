@@ -384,7 +384,12 @@ class TableView {
       },
       totalRows: () => this.instance.countRows(),
       totalColumns: () => this.countRenderableColumns(),
-      fixedColumnsLeft: () => this.settings.fixedColumnsLeft,
+      fixedColumnsLeft: () => {
+        const firstVisibleIndex =
+          this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.settings.fixedColumnsLeft, -1);
+
+        return this.instance.columnIndexMapper.getRenderableFromVisualIndex(firstVisibleIndex) || 0;
+      },
       fixedRowsTop: () => this.settings.fixedRowsTop,
       fixedRowsBottom: () => this.settings.fixedRowsBottom,
       minSpareRows: () => this.settings.minSpareRows,

@@ -4974,6 +4974,86 @@ describe('HiddenColumns', () => {
     });
   });
 
+  describe('should cooperate with the `fixedColumnsLeft` option properly', () => {
+    it('when there are hidden columns in the middle of fixed columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2, 3],
+          indicators: true
+        },
+        fixedColumnsLeft: 6
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 2);
+      expect(getLeftClone().width()).toBe((4 * 50) + (2 * 15)); // 4 fixed, visible columns, with space for indicators.
+      expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
+      expect($(getCell(-1, 1).querySelector('span')).text()).toBe('B');
+      expect(getCell(-1, 2)).toBe(null);
+      expect(getCell(-1, 3)).toBe(null);
+      expect($(getCell(-1, 4).querySelector('span')).text()).toBe('E');
+      expect($(getCell(-1, 5).querySelector('span')).text()).toBe('F');
+    });
+
+    it('when there are hidden columns at the start of fixed columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2],
+          indicators: true
+        },
+        fixedColumnsLeft: 6
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
+      expect(getLeftClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
+      expect(getCell(-1, 0)).toBe(null);
+      expect(getCell(-1, 1)).toBe(null);
+      expect(getCell(-1, 2)).toBe(null);
+      expect($(getCell(-1, 3).querySelector('span')).text()).toBe('D');
+      expect($(getCell(-1, 4).querySelector('span')).text()).toBe('E');
+      expect($(getCell(-1, 5).querySelector('span')).text()).toBe('F');
+    });
+
+    it('when there are hidden columns at the end of fixed columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [3, 4, 5],
+          indicators: true
+        },
+        fixedColumnsLeft: 6
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
+      expect(getLeftClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
+      expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
+      expect($(getCell(-1, 1).querySelector('span')).text()).toBe('B');
+      expect($(getCell(-1, 2).querySelector('span')).text()).toBe('C');
+      expect(getCell(-1, 3)).toBe(null);
+      expect(getCell(-1, 4)).toBe(null);
+      expect(getCell(-1, 5)).toBe(null);
+    });
+
+    it('when all fixed columns are hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1, 2, 3],
+          indicators: true
+        },
+        fixedColumnsLeft: 4
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(0);
+      expect(getLeftClone().width()).toBe(0);
+    });
+  });
+
   it('should show proper column headers for the table with hidden column', () => {
     handsontable({
       rowHeaders: true,
