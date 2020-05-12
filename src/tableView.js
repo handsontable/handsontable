@@ -386,9 +386,14 @@ class TableView {
       totalColumns: () => this.countRenderableColumns(),
       fixedColumnsLeft: () => {
         const firstVisibleIndex =
-          this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.settings.fixedColumnsLeft, -1);
+          this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.settings.fixedColumnsLeft - 1, -1);
+        const renderableIndex = this.instance.columnIndexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
 
-        return this.instance.columnIndexMapper.getRenderableFromVisualIndex(firstVisibleIndex) || 0;
+        if (Number.isInteger(renderableIndex)) { // We found renderable column index.
+          return renderableIndex + 1; // Zero-based numbering for renderable indexes. Index `0` is fixed for `fixedColumnsLeft: 1`
+        }
+
+        return 0;
       },
       fixedRowsTop: () => this.settings.fixedRowsTop,
       fixedRowsBottom: () => this.settings.fixedRowsBottom,

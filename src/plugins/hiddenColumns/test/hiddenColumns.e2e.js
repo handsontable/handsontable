@@ -4996,6 +4996,24 @@ describe('HiddenColumns', () => {
       expect($(getCell(-1, 5).querySelector('span')).text()).toBe('F');
     });
 
+    it('when there is hidden column by the fixed column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        fixedColumnsLeft: 1
+      });
+
+      expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(1);
+      expect(getLeftClone().width()).toBe(50 + 15); // 1 fixed, visible column, with space for indicator.
+      expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
+      expect(getCell(-1, 1)).toBe(null);
+      expect($(getCell(-1, 2).querySelector('span')).text()).toBe('C');
+    });
+
     it('when there are hidden columns at the start of fixed columns', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 10),
