@@ -264,7 +264,7 @@ export function arrayUnique(array) {
 /**
  * Differences from two or more arrays.
  *
- * @param {...[]} arrays Array of strings or array of numbers.
+ * @param {...Array} arrays Array of strings or array of numbers.
  * @returns {Array} Returns the difference between arrays.
  */
 export function getDifferenceOfArrays(...arrays) {
@@ -281,7 +281,7 @@ export function getDifferenceOfArrays(...arrays) {
 /**
  * Intersection of two or more arrays.
  *
- * @param {...[]} arrays Array of strings or array of numbers.
+ * @param {...Array} arrays Array of strings or array of numbers.
  * @returns {Array} Returns elements that exists in every array.
  */
 export function getIntersectionOfArrays(...arrays) {
@@ -298,7 +298,7 @@ export function getIntersectionOfArrays(...arrays) {
 /**
  * Union of two or more arrays.
  *
- * @param {...[]} arrays Array of strings or array of numbers.
+ * @param {...Array} arrays Array of strings or array of numbers.
  * @returns {Array} Returns the elements that exist in any of the arrays, without duplicates.
  */
 export function getUnionOfArrays(...arrays) {
