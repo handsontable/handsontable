@@ -937,6 +937,66 @@ describe('HiddenColumns', () => {
           | * ║ 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
         });
+
+        it('should cooperate with the `fixedColumnsLeft` option properly', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 10),
+            width: 300,
+            height: 200,
+            rowHeaders: true,
+            colHeaders: true,
+            contextMenu: true,
+            hiddenColumns: {
+              columns: [1]
+            },
+            fixedColumnsLeft: 3,
+          });
+
+          selectColumns(0, 2);
+
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(11 - 1);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(10 - 1);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1)).toBe(null);
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+          expect(getCell(0, 5).innerText).toBe('F1');
+          expect(getCell(0, 6).innerText).toBe('G1');
+          expect(getCell(0, 7).innerText).toBe('H1');
+          expect(getCell(0, 8).innerText).toBe('I1');
+          expect(getCell(0, 9).innerText).toBe('J1');
+          expect(getSelected()).toEqual([[0, 0, 1, 2]]);
+          expect(`
+          |   ║ * : * |   :   :   :   :   :   :   |
+          |===:===:===:===:===:===:===:===:===:===|
+          | - ║ A : 0 |   :   :   :   :   :   :   |
+          | - ║ 0 : 0 |   :   :   :   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+
+          contextMenu();
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(spec().$container.find('tr:eq(0) th').length).toBe(11);
+          expect(spec().$container.find('tr:eq(1) td').length).toBe(10);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(0, 1).innerText).toBe('B1');
+          expect(getCell(0, 2).innerText).toBe('C1');
+          expect(getCell(0, 3).innerText).toBe('D1');
+          expect(getCell(0, 4).innerText).toBe('E1');
+          expect(getCell(0, 5).innerText).toBe('F1');
+          expect(getCell(0, 6).innerText).toBe('G1');
+          expect(getCell(0, 7).innerText).toBe('H1');
+          expect(getCell(0, 8).innerText).toBe('I1');
+          expect(getCell(0, 9).innerText).toBe('J1');
+          expect(getSelected()).toEqual([[0, 0, 1, 2]]);
+          expect(`
+          |   ║ * : * : * |   :   :   :   :   :   :   |
+          |===:===:===:===:===:===:===:===:===:===:===|
+          | - ║ A : 0 : 0 |   :   :   :   :   :   :   |
+          | - ║ 0 : 0 : 0 |   :   :   :   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+        });
       });
     });
 
