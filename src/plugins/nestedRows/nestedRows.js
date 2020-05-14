@@ -54,6 +54,7 @@ class NestedRows extends BasePlugin {
       movedToFirstChild: false,
       movedToCollapsed: false,
       skipRender: null,
+      skipModifyHooks: false
     });
   }
 
@@ -116,7 +117,12 @@ class NestedRows extends BasePlugin {
    */
   updatePlugin() {
     this.disablePlugin();
+
+    const vanillaSourceData = this.hot.getSourceData();
+
     this.enablePlugin();
+
+    this.dataManager.updateWithData(vanillaSourceData);
 
     super.updatePlugin();
   }
@@ -331,6 +337,24 @@ class NestedRows extends BasePlugin {
   }
 
   /**
+   * Enable the modify hook skipping flag - allows retrieving the data from Handsontable without this plugin's modifications.
+   */
+  enableModifyHookSkipping() {
+    const priv = privatePool.get(this);
+
+    priv.skipModifyHooks = true;
+  }
+
+  /**
+   * Disable the modify hook skipping flag.
+   */
+  disableModifyHookSkipping() {
+    const priv = privatePool.get(this);
+
+    priv.skipModifyHooks = false;
+  }
+
+  /**
    * `beforeOnCellMousedown` hook callback.
    *
    * @private
@@ -350,6 +374,12 @@ class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onModifyRowData(row) {
+    const priv = privatePool.get(this);
+
+    if (priv.skipModifyHooks) {
+      return;
+    }
+
     return this.dataManager.getDataObject(row);
   }
 
@@ -360,6 +390,12 @@ class NestedRows extends BasePlugin {
    * @returns {number}
    */
   onModifySourceLength() {
+    const priv = privatePool.get(this);
+
+    if (priv.skipModifyHooks) {
+      return;
+    }
+
     return this.dataManager.countAllRows();
   }
 
@@ -565,7 +601,8 @@ class NestedRows extends BasePlugin {
     if (source === this.pluginName) {
       return;
     }
-    this.dataManager.rewriteCache();
+
+    this.dataManager.updateWithData(this.dataManager.getRawSourceData());
   }
 
   /**
@@ -612,7 +649,7 @@ class NestedRows extends BasePlugin {
    * @private
    */
   onBeforeLoadData(data) {
-    this.dataManager.data = data;
+    this.dataManager.setData(data);
     this.dataManager.rewriteCache();
   }
 }

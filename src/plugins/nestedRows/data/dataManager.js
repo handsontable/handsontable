@@ -19,7 +19,7 @@ class DataManager {
     /**
      * Reference to the source data object.
      *
-     * @type {object}
+     * @type {Handsontable.CellValue[][]|Handsontable.RowObject[]}
      */
     this.data = null;
     /**
@@ -45,6 +45,49 @@ class DataManager {
       rows: [],
       nodeInfo: new WeakMap()
     };
+  }
+
+  /**
+   * Set the data for the manager.
+   *
+   * @param {Handsontable.CellValue[][]|Handsontable.RowObject[]} data Data for the manager.
+   */
+  setData(data) {
+    this.data = data;
+  }
+
+  /**
+   * Get the data cached in the manager.
+   *
+   * @returns {Handsontable.CellValue[][]|Handsontable.RowObject[]}
+   */
+  getData() {
+    return this.data;
+  }
+
+  /**
+   * Load the "raw" source data, without NestedRows' modifications.
+   *
+   * @returns {Handsontable.CellValue[][]|Handsontable.RowObject[]}
+   */
+  getRawSourceData() {
+    let rawSourceData = null;
+
+    this.plugin.enableModifyHookSkipping();
+    rawSourceData = this.hot.getSourceData();
+    this.plugin.disableModifyHookSkipping();
+
+    return rawSourceData;
+  }
+
+  /**
+   * Update the Data Manager with new data and refresh cache.
+   *
+   * @param {Handsontable.CellValue[][]|Handsontable.RowObject[]} data Data for the manager.
+   */
+  updateWithData(data) {
+    this.setData(data);
+    this.rewriteCache();
   }
 
   /**
@@ -556,18 +599,16 @@ class DataManager {
    * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the default script.
    *
    * @private
-   * @param {number} index Index of the element at the splice beginning.
+   * @param {number} index Physical index of the element at the splice beginning.
    * @param {number} amount Number of elements to be removed.
-   * @param {object} element Row to add.
+   * @param {object[]} elements Array of row objects to add.
    */
-  spliceData(index, amount, element) {
-    const elementIndex = this.translateTrimmedRow(index);
-
-    if (elementIndex === null || elementIndex === void 0) {
+  spliceData(index, amount, elements) {
+    if (index === null || index === void 0) {
       return;
     }
 
-    const previousElement = this.getDataObject(elementIndex - 1);
+    const previousElement = this.getDataObject(index - 1);
     let newRowParent = null;
     let indexWithinParent = null;
 
@@ -575,20 +616,24 @@ class DataManager {
       newRowParent = previousElement;
       indexWithinParent = 0;
 
+    } else if (index < this.countAllRows()) {
+      newRowParent = this.getRowParent(index);
+      indexWithinParent = this.getRowIndexWithinParent(index);
+
     } else {
-      newRowParent = this.getRowParent(elementIndex);
-      indexWithinParent = this.getRowIndexWithinParent(elementIndex);
+      indexWithinParent = index;
     }
 
     if (newRowParent) {
-      if (element) {
-        newRowParent.__children.splice(indexWithinParent, amount, element);
+      if (elements) {
+        newRowParent.__children.splice(indexWithinParent, amount, ...elements);
+
       } else {
         newRowParent.__children.splice(indexWithinParent, amount);
       }
 
-    } else if (element) {
-      this.data.splice(indexWithinParent, amount, element);
+    } else if (elements) {
+      this.data.splice(indexWithinParent, amount, ...elements);
 
     } else {
       this.data.splice(indexWithinParent, amount);
