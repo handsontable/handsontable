@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev5
- * Release date: 23/10/2019 (built at 13/05/2020 19:41:01)
+ * Version: 8.0.0-beta.2-rev6
+ * Release date: 23/10/2019 (built at 14/05/2020 13:32:39)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3354,7 +3354,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev5";
+  var hotVersion = "8.0.0-beta.2-rev6";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -42121,8 +42121,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "13/05/2020 19:41:01";
-Handsontable.version = "8.0.0-beta.2-rev5"; // Export Hooks singleton
+Handsontable.buildDate = "14/05/2020 13:32:39";
+Handsontable.version = "8.0.0-beta.2-rev6"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -91367,10 +91367,14 @@ function (_BaseUI) {
     _this = (0, _possibleConstructorReturn2.default)(this, (0, _getPrototypeOf2.default)(ContextMenuUI).call(this, nestedRowsPlugin, hotInstance));
     privatePool.set((0, _assertThisInitialized2.default)(_this), {
       row_above: function row_above(key, selection) {
-        _this.dataManager.addSibling(selection.start.row, 'above');
+        var lastSelection = selection[selection.length - 1];
+
+        _this.dataManager.addSibling(lastSelection.start.row, 'above');
       },
       row_below: function row_below(key, selection) {
-        _this.dataManager.addSibling(selection.start.row, 'below');
+        var lastSelection = selection[selection.length - 1];
+
+        _this.dataManager.addSibling(lastSelection.start.row, 'below');
       }
     });
     /**
