@@ -611,12 +611,12 @@ class Filters extends BasePlugin {
    */
   onComponentChange(component, command) {
     if (component === this.components.get('filter_by_condition')) {
-      if (command.showOperators) {
-        this.showComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
+      const componentsToShow = [
+        this.components.get('filter_by_condition2'),
+        this.components.get('filter_operators')
+      ];
 
-      } else {
-        this.hideComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
-      }
+      this[command.showOperators ? 'showComponents' : 'hideComponents'](...componentsToShow);
     }
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
@@ -823,13 +823,13 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Saves `hiddenRows` cache for particular row.
+   * Saves `hiddenRows` cache for particular column.
    *
    * @private
-   * @param {number} rowIndex Physical row index.
+   * @param {number} columnIndex Physical column index.
    */
-  saveHiddenRowsCache(rowIndex) {
-    this.hiddenRowsCache.set(rowIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').hiddenRows);
+  saveHiddenRowsCache(columnIndex) {
+    this.hiddenRowsCache.set(columnIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').getHiddenRows());
   }
 
   /**
