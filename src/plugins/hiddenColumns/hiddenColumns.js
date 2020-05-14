@@ -9,7 +9,6 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
-
 import { HidingMap } from '../../translations';
 
 import './hiddenColumns.css';
@@ -272,7 +271,7 @@ class HiddenColumns extends BasePlugin {
    * Adds the additional column width for the hidden column indicators.
    *
    * @private
-   * @param {number} width Column width.
+   * @param {number|undefined} width Column width.
    * @param {number} column Visual column index.
    * @returns {number}
    */
@@ -286,7 +285,7 @@ class HiddenColumns extends BasePlugin {
     if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
       // Add additional space for hidden column indicator.
-      if (this.hot.hasColHeaders()) {
+      if (typeof width === 'number' && this.hot.hasColHeaders()) {
         return width + 15;
       }
     }

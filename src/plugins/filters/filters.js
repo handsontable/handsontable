@@ -131,7 +131,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap('filters', new TrimmingMap());
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
@@ -220,7 +220,7 @@ class Filters extends BasePlugin {
 
       this.conditionCollection.clean();
 
-      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
     super.disablePlugin();
@@ -861,7 +861,7 @@ class Filters extends BasePlugin {
         component.destroy();
       });
 
-      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();
