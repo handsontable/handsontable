@@ -414,7 +414,13 @@ class TableView {
         const headerRenderers = [];
 
         if (this.instance.hasRowHeaders()) {
-          headerRenderers.push((row, TH) => this.appendRowHeader(row, TH));
+          headerRenderers.push((renderableRowIndex, TH) => {
+            // TODO: Some helper may be needed.
+            // We perform translation for row indexes (without row headers).
+            const visualRowIndex = renderableRowIndex >= 0 ?
+              this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+            this.appendRowHeader(visualRowIndex, TH);
+          });
         }
 
         this.instance.runHooks('afterGetRowHeaderRenderers', headerRenderers);
@@ -802,21 +808,21 @@ class TableView {
    * Append row header to a TH element.
    *
    * @private
-   * @param {number} renderedRowIndex The renderable row index.
+   * @param {number} visualRowIndex The visual row index.
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
-  appendRowHeader(renderedRowIndex, TH) {
+  appendRowHeader(visualRowIndex, TH) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (!hasClass(container, 'relative')) {
         empty(TH);
-        this.appendRowHeader(renderedRowIndex, TH);
+        this.appendRowHeader(visualRowIndex, TH);
 
         return;
       }
 
-      this.updateCellHeader(container.querySelector('.rowHeader'), renderedRowIndex, this.instance.getRowHeader);
+      this.updateCellHeader(container.querySelector('.rowHeader'), visualRowIndex, this.instance.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.instance;
@@ -825,16 +831,10 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'rowHeader';
-      this.updateCellHeader(span, renderedRowIndex, getRowHeader);
+      this.updateCellHeader(span, visualRowIndex, getRowHeader);
 
       div.appendChild(span);
       TH.appendChild(div);
-    }
-
-    let visualRowIndex = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
-
-    if (visualRowIndex === null) {
-      visualRowIndex = renderedRowIndex;
     }
 
     this.instance.runHooks('afterGetRowHeader', visualRowIndex, TH);

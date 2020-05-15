@@ -15,16 +15,18 @@ export default function showRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
     },
     callback() {
-      const [startVisualRow,, endVisualRow] = this.getSelectedLast();
+      const selectedRangeLast = this.getSelectedRangeLast();
+      const visualStartRow = selectedRangeLast.getTopLeftCorner().row;
+      const visualEndRow = selectedRangeLast.getBottomRightCorner().row;
       const noVisibleIndexesBefore =
-        this.rowIndexMapper.getFirstNotHiddenIndex(startVisualRow - 1, -1) === null;
-      const onlyFirstVisibleRowSelected = noVisibleIndexesBefore && startVisualRow === endVisualRow;
+        this.rowIndexMapper.getFirstNotHiddenIndex(visualStartRow - 1, -1) === null;
+      const onlyFirstVisibleRowSelected = noVisibleIndexesBefore && visualStartRow === visualEndRow;
       const noVisibleIndexesAfter =
-        this.rowIndexMapper.getFirstNotHiddenIndex(endVisualRow + 1, 1) === null;
-      const onlyLastVisibleRowSelected = noVisibleIndexesAfter && startVisualRow === endVisualRow;
+        this.rowIndexMapper.getFirstNotHiddenIndex(visualEndRow + 1, 1) === null;
+      const onlyLastVisibleRowSelected = noVisibleIndexesAfter && visualStartRow === visualEndRow;
 
-      let startPhysicalRow = this.toPhysicalRow(startVisualRow);
-      let endPhysicalRow = this.toPhysicalRow(endVisualRow);
+      let startPhysicalRow = this.toPhysicalRow(visualStartRow);
+      let endPhysicalRow = this.toPhysicalRow(visualEndRow);
 
       if (onlyFirstVisibleRowSelected) {
         startPhysicalRow = 0;
@@ -52,9 +54,9 @@ export default function showRowItem(hiddenRowsPlugin) {
 
       rows.length = 0;
 
-      const [startRow, , endRow] = this.getSelectedLast();
-      const visualStartRow = Math.min(startRow, endRow);
-      const visualEndRow = Math.max(startRow, endRow);
+      const selectedRangeLast = this.getSelectedRangeLast();
+      const visualStartRow = selectedRangeLast.getTopLeftCorner().row;
+      const visualEndRow = selectedRangeLast.getBottomRightCorner().row;
       const renderableStartRow = this.rowIndexMapper.getRenderableFromVisualIndex(visualStartRow);
       const renderableEndRow = this.rowIndexMapper.getRenderableFromVisualIndex(visualEndRow);
 
