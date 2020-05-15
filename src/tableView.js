@@ -393,7 +393,7 @@ class TableView {
    *
    * @param {number} visualIndex The visual index from which the counting begins.
    * @param {string} axix The axis as 'row' or 'column'.
-   * @param {number} incrementBy if `-1` then counting is backwards or forward when `1`.
+   * @param {number} incrementBy If `-1` then counting is backwards or forward when `1`.
    * @returns {number}
    */
   countNotHiddenRecords(visualIndex, axix, incrementBy) {
