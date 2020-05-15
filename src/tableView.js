@@ -388,6 +388,31 @@ class TableView {
   }
 
   /**
+   * Returns number of not hidden records counting from the passed starting index.
+   * The counting direction can be controlled by `incrementBy` argument.
+   *
+   * @param {number} visualIndex The visual index from which the counting begins.
+   * @param {string} axix The axis as 'row' or 'column'.
+   * @param {number} incrementBy if `-1` then counting is backwards or forward when `1`.
+   * @returns {number}
+   */
+  countNotHiddenRecords(visualIndex, axix, incrementBy) {
+    const indexMapper = this.instance[`${axix}IndexMapper`];
+    let nonHiddenRecords = 0;
+
+    for (let nonHiddenIndex = visualIndex; nonHiddenIndex !== null;) {
+      nonHiddenIndex = indexMapper.getFirstNotHiddenIndex(nonHiddenIndex, incrementBy);
+
+      if (nonHiddenIndex !== null) {
+        nonHiddenIndex += incrementBy;
+        nonHiddenRecords += 1;
+      }
+    }
+
+    return nonHiddenRecords;
+  }
+
+  /**
    * Defines default configuration and initializes WalkOnTable intance.
    *
    * @private
@@ -406,8 +431,24 @@ class TableView {
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
       fixedColumnsLeft: () => this.settings.fixedColumnsLeft,
-      fixedRowsTop: () => this.settings.fixedRowsTop,
-      fixedRowsBottom: () => this.settings.fixedRowsBottom,
+      fixedRowsTop: () => {
+        const fixedRowsTop = parseInt(this.settings.fixedRowsTop, 10);
+
+        if (isNaN(fixedRowsTop) || fixedRowsTop === 0) {
+          return 0;
+        }
+
+        return this.countNotHiddenRecords(fixedRowsTop - 1, 'row', -1);
+      },
+      fixedRowsBottom: () => {
+        const fixedRowsBottom = parseInt(this.settings.fixedRowsBottom, 10);
+
+        if (isNaN(fixedRowsBottom) || fixedRowsBottom === 0) {
+          return 0;
+        }
+
+        return this.countNotHiddenRecords(this.instance.countRows() - fixedRowsBottom, 'row', 1);
+      },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
       rowHeaders: () => {

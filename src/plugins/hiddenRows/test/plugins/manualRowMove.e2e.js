@@ -1,9 +1,6 @@
 describe('HiddenRows', () => {
   const id = 'testContainer';
 
-  const CSS_CLASS_BEFORE_HIDDEN = 'beforeHiddenRow';
-  const CSS_CLASS_AFTER_HIDDEN = 'afterHiddenRow';
-
   function extractDOMStructure(overlay) {
     const overlayBody = overlay.find('tbody')[0].cloneNode(true);
 
@@ -69,7 +66,7 @@ describe('HiddenRows', () => {
             <td class="">B5</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">4</th>
+            <th class="${CSS_CLASS_AFTER_HIDDEN}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A2</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">B2</td>
           </tr>
@@ -108,17 +105,17 @@ describe('HiddenRows', () => {
             <td class="">B4</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">2</th>
+            <th class="${CSS_CLASS_AFTER_HIDDEN}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A1</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">B1</td>
           </tr>
           <tr>
-            <th class="">3</th>
+            <th class="">4</th>
             <td class="">A2</td>
             <td class="">B2</td>
           </tr>
           <tr>
-            <th class="">4</th>
+            <th class="">5</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
@@ -157,17 +154,17 @@ describe('HiddenRows', () => {
             <td class="">B1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">2</th>
+            <th class="${CSS_CLASS_AFTER_HIDDEN}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A2</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">B2</td>
           </tr>
           <tr>
-            <th class="">3</th>
+            <th class="">4</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
           <tr>
-            <th class="">4</th>
+            <th class="">5</th>
             <td class="">A4</td>
             <td class="">B4</td>
           </tr>
@@ -211,12 +208,12 @@ describe('HiddenRows', () => {
             <td class="">B3</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">3</th>
+            <th class="${CSS_CLASS_AFTER_HIDDEN}">4</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A5</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">B5</td>
           </tr>
           <tr>
-            <th class="">4</th>
+            <th class="">5</th>
             <td class="">A2</td>
             <td class="">B2</td>
           </tr>
@@ -259,7 +256,7 @@ describe('HiddenRows', () => {
             <td class="">B1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">2</th>
+            <th class="${CSS_CLASS_AFTER_HIDDEN}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A5</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">B5</td>
           </tr>
@@ -297,12 +294,12 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN} ${CSS_CLASS_BEFORE_HIDDEN}">1</th>
+            <th class="${CSS_CLASS_AFTER_HIDDEN} ${CSS_CLASS_BEFORE_HIDDEN}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A1</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">B1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">2</th>
+            <th class="${CSS_CLASS_AFTER_HIDDEN}">5</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A3</td>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">B3</td>
           </tr>

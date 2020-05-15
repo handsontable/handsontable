@@ -1,9 +1,6 @@
 describe('HiddenRows', () => {
   const id = 'testContainer';
 
-  const CSS_CLASS_BEFORE_HIDDEN = 'beforeHiddenRow';
-  const CSS_CLASS_AFTER_HIDDEN = 'afterHiddenRow';
-
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
