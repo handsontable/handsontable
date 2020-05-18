@@ -1428,6 +1428,22 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'topLeftCorner').toBe(0);
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(0);
     });
+
+    it('should return 0 as the first rendered row, when there\'s more fixed bottom rows than rows in total', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: [[1], [1]],
+        totalRows: 2,
+        totalColumns: 1,
+        fixedRowsBottom: 3,
+      });
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(0);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(0);
+    });
   });
 
   describe('isRowBeforeRenderedRows', () => {
