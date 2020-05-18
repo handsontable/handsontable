@@ -2137,7 +2137,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getCoords
    * @param {HTMLTableCellElement} element The HTML Element representing the cell.
-   * @returns {CellCoords} Visual coordinates object.
+   * @returns {CellCoords|null} Visual coordinates object.
    * @example
    * ```js
    * hot.getCoords(hot.getCell(1, 1));
@@ -2145,7 +2145,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCoords = function(element) {
-    return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, element);
+    const renderableCoords = this.view.wt.wtTable.getCoords(element);
+
+    if (renderableCoords === null) {
+      return null;
+    }
+
+    const { row: renderableRow, col: renderableColumn } = renderableCoords;
+
+    let visualRow = renderableRow;
+    let visualColumn = renderableColumn;
+
+    if (renderableRow >= 0) {
+      visualRow = this.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
+    }
+    if (renderableColumn >= 0) {
+      visualColumn = this.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+    }
+
+    return new CellCoords(visualRow, visualColumn);
   };
 
   /**
