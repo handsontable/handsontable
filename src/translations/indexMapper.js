@@ -1,6 +1,6 @@
 import { arrayFilter, arrayMap } from '../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
-import IndexToIndexMap from './maps/indexesSequence';
+import IndexesSequence from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
 import MapCollection from './mapCollection';
@@ -35,7 +35,7 @@ class IndexMapper {
      * @private
      * @type {IndexesSequence}
      */
-    this.indexesSequence = new IndexToIndexMap();
+    this.indexesSequence = new IndexesSequence();
     /**
      * Collection for different trimming maps. Indexes marked as trimmed in any map WILL NOT be included in
      * the {@link DataMap} and won't be rendered.
@@ -64,12 +64,16 @@ class IndexMapper {
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
+     * Note: Please keep in mind that trimmed index can be also hidden.
+     *
      * @private
      * @type {Array}
      */
     this.notTrimmedIndexesCache = [];
     /**
      * Cache for list of not hidden indexes, respecting the indexes sequence (physical indexes).
+     *
+     * Note: Please keep in mind that hidden index can be also trimmed.
      *
      * @private
      * @type {Array}
