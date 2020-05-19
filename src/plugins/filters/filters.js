@@ -616,7 +616,11 @@ class Filters extends BasePlugin {
         this.components.get('filter_operators')
       ];
 
-      this[command.showOperators ? 'showComponents' : 'hideComponents'](...componentsToShow);
+      if (command.showOperators) {
+        this.showComponents(...componentsToShow);
+      } else {
+        this.hideComponents(...componentsToShow);
+      }
     }
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
