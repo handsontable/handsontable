@@ -1,6 +1,5 @@
 import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
 import EditorManager from './editorManager';
@@ -14,7 +13,7 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { arrayMap, arrayEach, arrayReduce } from './helpers/array';
+import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
@@ -149,14 +148,43 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
 
+  const visualToRenderableCoords = (coords) => {
+    const { row: visualRow, col: visualColumn } = coords;
+
+    return new CellCoords(
+      // We just store indexes for rows and columns without headers.
+      visualRow >= 0 ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) : visualRow,
+      visualColumn >= 0 ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumn) : visualColumn
+    );
+  };
+
+  const renderableToVisualCoords = (coords) => {
+    const { row: renderableRow, col: renderableColumn } = coords;
+
+    return new CellCoords(
+      // We just store indexes for rows and columns without headers.
+      renderableRow >= 0 ? instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow,
+      renderableColumn >= 0 ? instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn
+    );
+  };
+
   let selection = new Selection(tableMeta, {
     countCols: () => instance.countCols(),
     countRows: () => instance.countRows(),
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
+    countColsTranslated: () => this.view.countRenderableColumns(),
+    visualToRenderableCoords,
+    renderableToVisualCoords
   });
 
   this.selection = selection;
+
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
+    if (hiddenIndexesChanged) {
+      this.selection.refresh();
+    }
+  });
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
     this.runHooks('beforeSetRangeStart', cellCoords);
@@ -207,16 +235,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (scrollToCell !== false) {
       if (!isSelectedByAnyHeader) {
         if (currentSelectedRange && !this.selection.isMultiple()) {
-          this.view.scrollViewport(currentSelectedRange.from);
+          this.view.scrollViewport(visualToRenderableCoords(currentSelectedRange.from));
         } else {
-          this.view.scrollViewport(cellCoords);
+          this.view.scrollViewport(visualToRenderableCoords(cellCoords));
         }
 
       } else if (isSelectedByRowHeader) {
-        this.view.scrollViewportVertically(cellCoords.row);
+        this.view.scrollViewportVertically(instance.rowIndexMapper.getRenderableFromVisualIndex(cellCoords.row));
 
       } else if (isSelectedByColumnHeader) {
-        this.view.scrollViewportHorizontally(cellCoords.col);
+        this.view.scrollViewportHorizontally(instance.columnIndexMapper.getRenderableFromVisualIndex(cellCoords.col));
       }
     }
 
@@ -357,9 +385,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           if (delta) {
             metaManager.createRow(instance.toPhysicalRow(index), amount);
 
-            if (selection.isSelected() && selection.selectedRange.current().from.row >= index) {
-              selection.selectedRange.current().from.row += delta;
-              selection.transformEnd(delta, 0); // will call render() internally
+            const currentSelectedRange = selection.selectedRange.current();
+            const currentFromRange = currentSelectedRange?.from;
+            const currentFromRow = currentFromRange?.row;
+
+            // Moving down the selection (when it exist). It should be present on the "old" row.
+            if (isDefined(currentFromRow) && currentFromRow >= index) {
+              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
+              let currentFromColumn = currentFromRange.col;
+
+              // Workaround: headers are not stored inside selection.
+              if (selection.isSelectedByRowHeader()) {
+                currentFromColumn = -1;
+              }
+
+              // I can't use transforms as they don't work in negative indexes.
+              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn));
+              selection.setRangeEnd(new CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -845,6 +887,46 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
+   * Internal function to set `className` or `tableClassName`, depending on the key from the settings object.
+   *
+   * @private
+   * @param {string} className `className` or `tableClassName` from the key in the settings object.
+   * @param {string|string[]} classSettings String or array of strings. Contains class name(s) from settings object.
+   */
+  function setClassName(className, classSettings) {
+    const element = className === 'className' ? instance.rootElement : instance.table;
+
+    if (firstRun) {
+      addClass(element, classSettings);
+
+    } else {
+      let globalMetaSettingsArray = [];
+      let settingsArray = [];
+
+      if (globalMeta[className]) {
+        globalMetaSettingsArray = Array.isArray(globalMeta[className]) ? globalMeta[className] : stringToArray(globalMeta[className]);
+      }
+
+      if (classSettings) {
+        settingsArray = Array.isArray(classSettings) ? classSettings : stringToArray(classSettings);
+      }
+
+      const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
+      const classNameToAdd = getDifferenceOfArrays(settingsArray, globalMetaSettingsArray);
+
+      if (classNameToRemove.length) {
+        removeClass(element, classNameToRemove);
+      }
+
+      if (classNameToAdd.length) {
+        addClass(element, classNameToAdd);
+      }
+    }
+
+    globalMeta[className] = classSettings;
+  }
+
+  /**
    * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
    * mapper's and column index mapper's cache at most once, even when there is more then one operation inside their
    * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
@@ -874,9 +956,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.view = new TableView(this);
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
-    this.forceFullRender = true; // used when data was changed
-
     instance.runHooks('init');
+
+    this.forceFullRender = true; // used when data was changed
     this.view.render();
 
     if (typeof firstRun === 'object') {
@@ -946,10 +1028,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     let shouldBeCanceled = true;
 
-    if (isFunction(beforeChangeResult)) {
-      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-
-    } else if (beforeChangeResult === false) {
+    if (beforeChangeResult === false) {
 
       if (activeEditor) {
         activeEditor.cancelChanges();
@@ -1275,23 +1354,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function listen
-   * @param {boolean} [modifyDocumentFocus=true] If `true`, currently focused element will be blured (which returns focus
-   *                                             to the document.body). Otherwise the active element does not lose its focus.
    * @fires Hooks#afterListen
    */
-  this.listen = function(modifyDocumentFocus = true) {
-    const { rootDocument } = instance;
-    if (modifyDocumentFocus) {
-      const invalidActiveElement = !rootDocument.activeElement || (rootDocument.activeElement && rootDocument.activeElement.nodeName === void 0);
-
-      if (rootDocument.activeElement && rootDocument.activeElement !== rootDocument.body && !invalidActiveElement) {
-        rootDocument.activeElement.blur();
-
-      } else if (invalidActiveElement) { // IE
-        rootDocument.body.focus();
-      }
-    }
-
+  this.listen = function() {
     if (instance && !instance.isListening()) {
       activeGuid = instance.guid;
       instance.runHooks('afterListen');
@@ -1623,23 +1688,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource.countCachedColumns = datamap.countCachedColumns.bind(datamap);
 
     metaManager.clearCellsCache();
-
-    const columnsSettings = tableMeta.columns;
-    let nrOfColumnsFromSettings = 0;
-
-    // We will check number of columns only when the `columns` property was defined as an array.
-    if (Array.isArray(columnsSettings)) {
-      nrOfColumnsFromSettings = columnsSettings.length;
-    }
-
-    /**
-     * We need to use `Math.max`, because:
-     * - we need information about `columns` as `data` may contains functions, less columns than defined by the property or even be empty.
-     * - we need also information about dataSchema as `data` and `columns` properties may not provide information about number of columns
-     * (ie. `data` may be empty, `columns` may be a function).
-     */
-    this.columnIndexMapper.initToLength(Math.max(this.countSourceCols(), nrOfColumnsFromSettings, deepObjectSize(datamap.getSchema())));
-    this.rowIndexMapper.initToLength(this.countSourceRows());
+    instance.initIndexMappers();
 
     grid.adjustRowsAndCols();
 
@@ -1651,6 +1700,51 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.runHooks('afterChange', null, 'loadData');
       instance.render();
     }
+  };
+
+  /**
+   * Init index mapper which manage indexes assigned to the data.
+   *
+   * @private
+   */
+  this.initIndexMappers = function() {
+    const columnsSettings = tableMeta.columns;
+    let finalNrOfColumns = 0;
+
+    // We will check number of columns when the `columns` property was defined as an array. Columns option may
+    // narrow down or expand displayed dataset in that case.
+    if (Array.isArray(columnsSettings)) {
+      finalNrOfColumns = columnsSettings.length;
+
+    } else if (isFunction(columnsSettings)) {
+      if (instance.dataType === 'array') {
+        const nrOfSourceColumns = this.countSourceCols();
+
+        for (let columnIndex = 0; columnIndex < nrOfSourceColumns; columnIndex += 1) {
+          if (columnsSettings(columnIndex)) {
+            finalNrOfColumns += 1;
+          }
+        }
+
+        // Extended dataset by the `columns` property? Moved code right from the refactored `countCols` method.
+      } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+        finalNrOfColumns = datamap.colToPropCache.length;
+      }
+
+      // In some cases we need to check columns length from the schema, i.e. `data` may be empty.
+    } else if (isDefined(tableMeta.dataSchema)) {
+      const schema = datamap.getSchema();
+
+      // Schema may be defined as an array of objects. Each object will define column.
+      finalNrOfColumns = Array.isArray(schema) ? schema.length : deepObjectSize(schema);
+
+    } else {
+      // We init index mappers by length of source data to provide indexes also for skipped indexes.
+      finalNrOfColumns = this.countSourceCols();
+    }
+
+    this.columnIndexMapper.initToLength(finalNrOfColumns);
+    this.rowIndexMapper.initToLength(this.countSourceRows());
   };
 
   /**
@@ -1772,7 +1866,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         /* eslint-disable-next-line no-continue */
         continue;
 
+      } else if (i === 'className') {
+        setClassName('className', settings.className);
+
+      } else if (i === 'tableClassName' && instance.table) {
+        setClassName('tableClassName', settings.tableClassName);
+
+        instance.view.wt.wtOverlays.syncOverlayTableClassNames();
+
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
+
         if (isFunction(settings[i]) || Array.isArray(settings[i])) {
           settings[i].initialHook = true;
           instance.addHook(i, settings[i]);
@@ -1792,6 +1895,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (settings.columns !== void 0) {
       datamap.createMap();
+
+      // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
+      instance.initIndexMappers();
     }
 
     const clen = instance.countCols();
@@ -1829,15 +1935,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     instance.runHooks('afterCellMetaReset');
-
-    if (isDefined(settings.className)) {
-      if (globalMeta.className) {
-        removeClass(instance.rootElement, globalMeta.className);
-      }
-      if (settings.className) {
-        addClass(instance.rootElement, settings.className);
-      }
-    }
 
     let currentHeight = instance.rootElement.style.height;
     if (currentHeight !== '') {
@@ -1992,7 +2089,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {HTMLTableCellElement|null} The cell's TD element.
    */
   this.getCell = function(row, column, topmost = false) {
-    return instance.view.getCellAtCoords(new CellCoords(row, column), topmost);
+    const physicalColumn = this.toPhysicalColumn(column);
+
+    if (this.columnIndexMapper.isHidden(physicalColumn)) {
+      return null;
+    }
+
+    let renderableColumnIndex = column; // Handling also column headers.
+
+    if (column >= 0) {
+      renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(column);
+    }
+
+    return instance.view.getCellAtCoords(new CellCoords(row, renderableColumnIndex), topmost);
   };
 
   /**
@@ -2048,7 +2157,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} row Physical row index.
    * @returns {number} Returns visual row index.
    */
-  this.toVisualRow = row => this.rowIndexMapper.getVisualIndex(row);
+  this.toVisualRow = row => this.rowIndexMapper.getVisualFromPhysicalIndex(row);
 
   /**
    * Translate physical column index into visual.
@@ -2061,7 +2170,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} column Physical column index.
    * @returns {number} Returns visual column index.
    */
-  this.toVisualColumn = column => this.columnIndexMapper.getVisualIndex(column);
+  this.toVisualColumn = column => this.columnIndexMapper.getVisualFromPhysicalIndex(column);
 
   /**
    * Translate visual row index into physical.
@@ -2074,7 +2183,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} row Visual row index.
    * @returns {number} Returns physical row index.
    */
-  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalIndex(row);
+  this.toPhysicalRow = row => this.rowIndexMapper.getPhysicalFromVisualIndex(row);
 
   /**
    * Translate visual column index into physical.
@@ -2087,7 +2196,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} column Visual column index.
    * @returns {number} Returns physical column index.
    */
-  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalIndex(column);
+  this.toPhysicalColumn = column => this.columnIndexMapper.getPhysicalFromVisualIndex(column);
 
   /**
    * @description
@@ -2433,9 +2542,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} column Visual column index.
    * @param {string} key Property name.
    * @param {string} value Property value.
+   * @fires Hooks#beforeSetCellMeta
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
+    const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
+
+    if (allowSetCellMeta === false) {
+      return;
+    }
+
     let physicalRow = row;
     let physicalColumn = column;
 
@@ -2520,7 +2636,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns an array of cell meta objects for specyfied physical row index.
+   * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#
    * @function getCellMetaAtRow
@@ -3030,59 +3146,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countCols = function() {
     const maxCols = tableMeta.maxCols;
-    let dataLen = this.columnIndexMapper.getNotSkippedIndexesLength();
-
-    if (tableMeta.columns) {
-      const columnsIsFunction = isFunction(tableMeta.columns);
-
-      if (columnsIsFunction) {
-        if (instance.dataType === 'array') {
-          let columnLen = 0;
-
-          for (let i = 0; i < dataLen; i++) {
-            if (tableMeta.columns(i)) {
-              columnLen += 1;
-            }
-          }
-
-          dataLen = columnLen;
-        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-          dataLen = datamap.colToPropCache.length;
-        }
-
-      } else {
-        dataLen = tableMeta.columns.length;
-      }
-
-    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-      dataLen = datamap.colToPropCache.length;
-    }
+    const dataLen = this.columnIndexMapper.getNotTrimmedIndexesLength();
 
     return Math.min(maxCols, dataLen);
-  };
-
-  /**
-   * Returns an visual index of the first rendered row.
-   * Returns -1 if no row is rendered.
-   *
-   * @memberof Core#
-   * @function rowOffset
-   * @returns {number} Visual index of first rendered row.
-   */
-  this.rowOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedRow();
-  };
-
-  /**
-   * Returns the visual index of the first rendered column.
-   * Returns -1 if no column is rendered.
-   *
-   * @memberof Core#
-   * @function colOffset
-   * @returns {number} Visual index of the first visible column.
-   */
-  this.colOffset = function() {
-    return instance.view.wt.wtTable.getFirstRenderedColumn();
   };
 
   /**
@@ -3365,33 +3431,64 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     preventScrollingToCell = false;
   };
 
+  const getIndexToScroll = (indexMapper, visualIndex) => {
+    // Looking for a visual index on the right and then (when not found) on the left.
+    return indexMapper.getFirstNotHiddenIndex(visualIndex, 1, true);
+  };
+
   /**
    * Scroll viewport to coordinates specified by the `row` and `column` arguments.
    *
    * @memberof Core#
    * @function scrollViewportTo
-   * @param {number} [row] Visual row index.
-   * @param {number} [column] Visual column index.
+   * @param {number} [row] Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise,
+   * we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows).
+   * @param {number} [column] Column index. If the last argument isn't defined we treat the index as a visual column index.
+   * Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns).
    * @param {boolean} [snapToBottom=false] If `true`, viewport is scrolled to show the cell on the bottom of the table.
    * @param {boolean} [snapToRight=false] If `true`, viewport is scrolled to show the cell on the right side of the table.
+   * @param {boolean} [considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
+   * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @returns {boolean} `true` if scroll was successful, `false` otherwise.
    */
-  this.scrollViewportTo = function(row, column, snapToBottom = false, snapToRight = false) {
+  this.scrollViewportTo = function(row, column, snapToBottom = false,
+                                   snapToRight = false, considerHiddenIndexes = true) {
     const snapToTop = !snapToBottom;
     const snapToLeft = !snapToRight;
-    let result = false;
+    let renderableRow = row;
+    let renderableColumn = column;
 
-    if (row !== void 0 && column !== void 0) {
-      result = instance.view.scrollViewport(new CellCoords(row, column), snapToTop, snapToRight, snapToBottom, snapToLeft);
-    }
-    if (typeof row === 'number' && typeof column !== 'number') {
-      result = instance.view.scrollViewportVertically(row, snapToTop, snapToBottom);
-    }
-    if (typeof column === 'number' && typeof row !== 'number') {
-      result = instance.view.scrollViewportHorizontally(column, snapToRight, snapToLeft);
+    if (considerHiddenIndexes) {
+      const isRowInteger = Number.isInteger(row);
+      const isColumnInteger = Number.isInteger(column);
+
+      const visualRowToScroll = isRowInteger ? getIndexToScroll(this.rowIndexMapper, row) : void 0;
+      const visualColumnToScroll = isColumnInteger ? getIndexToScroll(this.columnIndexMapper, column) : void 0;
+
+      if (visualRowToScroll === null || visualColumnToScroll === null) {
+        return false;
+      }
+
+      renderableRow = isRowInteger ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
+      renderableColumn = isColumnInteger ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
     }
 
-    return result;
+    const isRowInteger = Number.isInteger(renderableRow);
+    const isColumnInteger = Number.isInteger(renderableColumn);
+
+    if (isRowInteger && isColumnInteger) {
+      return instance.view.scrollViewport(new CellCoords(renderableRow, renderableColumn), snapToTop, snapToRight, snapToBottom, snapToLeft);
+    }
+
+    if (isRowInteger && isColumnInteger === false) {
+      return instance.view.scrollViewportVertically(renderableRow, snapToTop, snapToBottom);
+    }
+
+    if (isColumnInteger && isRowInteger === false) {
+      return instance.view.scrollViewportHorizontally(renderableColumn, snapToRight, snapToLeft);
+    }
+
+    return false;
   };
 
   /**

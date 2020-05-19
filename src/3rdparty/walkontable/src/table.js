@@ -571,14 +571,13 @@ class Table {
       return -4;
     }
 
-    if (row < 0) {
-      const columnHeaders = this.wot.getSetting('columnHeaders');
-      const columnHeadersCount = columnHeaders.length;
-      const zeroBasedHeaderLevel = columnHeadersCount + row;
-      return this.getColumnHeader(column, zeroBasedHeaderLevel);
-    }
+    let TR;
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    if (row < 0) {
+      TR = this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(row)];
+    } else {
+      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    }
 
     if (!TR && row >= 0) {
       throw new Error('TR was expected to be rendered but is not');

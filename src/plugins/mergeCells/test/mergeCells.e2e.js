@@ -113,7 +113,6 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('rowspan')).toBe(null);
       expect(TD.getAttribute('colspan')).toBe(null);
     });
-
   });
 
   describe('mergeCells copy', () => {
@@ -556,7 +555,6 @@ describe('MergeCells', () => {
 
       expect(hot.countRenderedCols()).toBe(39);
     });
-
   });
 
   describe('merge cells shift', () => {
@@ -1168,18 +1166,18 @@ describe('MergeCells', () => {
         mergeCells: true,
       });
 
-      $('.ht_clone_top_left_corner .htCore')
-        .find('thead')
-        .find('th')
-        .eq(0)
-        .simulate('mousedown', { which: 3 });
+      const corner = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
+
+      simulateClick(corner, 'RMB');
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+        'Insert row above',
+        'Insert row below',
         'Insert column left',
         'Insert column right',
-        'Remove row',
-        'Remove column',
+        'Remove rows',
+        'Remove columns',
         'Undo',
         'Redo',
         'Read only',
@@ -1309,6 +1307,62 @@ describe('MergeCells', () => {
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
       hot.redo();
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
+    });
+  });
+
+  describe('cooperation with the `Autofill` plugin', () => {
+    it('should add new merged areas when dragged the merged cell', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 2 }
+        ],
+        fillHandle: true
+      });
+
+      selectCell(0, 0);
+
+      // Dragging merged cell one level down.
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
+      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
+
+      // First merged cell.
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(47);
+      expect(getCell(0, 1).innerText).toBe('A1');
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      // Already populated merged cell.
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(46);
+      expect(getCell(2, 1).innerText).toBe('A1');
+      expect(getDataAtCell(2, 0)).toBe('A1');
+
+      selectCell(0, 0);
+
+      // Dragging merged cell one level right.
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+      spec().$container.find('tr:eq(0) td:eq(2)').simulate('mouseover');
+      spec().$container.find('tr:eq(0) td:eq(2)').simulate('mouseup');
+
+      // First merged cell.
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(47);
+      expect(getCell(0, 1).innerText).toBe('A1');
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      // Previously populated merged cell.
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(46);
+      expect(getCell(2, 1).innerText).toBe('A1');
+      expect(getDataAtCell(2, 0)).toBe('A1');
+      // Already populated merged cell.
+      expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).toBe(47);
+      expect(getCell(0, 3).innerText).toBe('A1');
+      expect(getDataAtCell(0, 2)).toBe('A1');
+
+      expect($(getHtCore())[0].offsetWidth).toBe(5 * 50);
+      expect($(getHtCore())[0].offsetHeight).toBe(24 + (4 * 23)); // First row is 1px higher than others.
     });
   });
 });

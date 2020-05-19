@@ -125,54 +125,56 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @param {boolean} [uncheckCheckbox=false] The new "checked" state for the checkbox elements.
    */
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
-    const selRange = instance.getSelectedRangeLast();
+    const selRange = instance.getSelectedRange();
 
     if (!selRange) {
       return;
     }
 
-    const { row: startRow, col: startColumn } = selRange.getTopLeftCorner();
-    const { row: endRow, col: endColumn } = selRange.getBottomRightCorner();
-    const changes = [];
+    for (let key = 0; key < selRange.length; key++) {
+      const { row: startRow, col: startColumn } = selRange[key].getTopLeftCorner();
+      const { row: endRow, col: endColumn } = selRange[key].getBottomRightCorner();
+      const changes = [];
 
-    for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
-      for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
-        const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
+      for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
+        for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
+          const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
 
-        if (cachedCellProperties.type !== 'checkbox') {
-          return;
-        }
-
-        /* eslint-disable no-continue */
-        if (cachedCellProperties.readOnly === true) {
-          continue;
-        }
-
-        if (typeof cachedCellProperties.checkedTemplate === 'undefined') {
-          cachedCellProperties.checkedTemplate = true;
-        }
-        if (typeof cachedCellProperties.uncheckedTemplate === 'undefined') {
-          cachedCellProperties.uncheckedTemplate = false;
-        }
-
-        const dataAtCell = instance.getDataAtCell(visualRow, visualColumn);
-
-        if (uncheckCheckbox === false) {
-          if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
-            changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
-
-          } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
-            changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
+          if (cachedCellProperties.type !== 'checkbox') {
+            return;
           }
 
-        } else {
-          changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+          /* eslint-disable no-continue */
+          if (cachedCellProperties.readOnly === true) {
+            continue;
+          }
+
+          if (typeof cachedCellProperties.checkedTemplate === 'undefined') {
+            cachedCellProperties.checkedTemplate = true;
+          }
+          if (typeof cachedCellProperties.uncheckedTemplate === 'undefined') {
+            cachedCellProperties.uncheckedTemplate = false;
+          }
+
+          const dataAtCell = instance.getDataAtCell(visualRow, visualColumn);
+
+          if (uncheckCheckbox === false) {
+            if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
+              changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+
+            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
+              changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
+            }
+
+          } else {
+            changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
+          }
         }
       }
-    }
 
-    if (changes.length > 0) {
-      instance.setDataAtCell(changes);
+      if (changes.length > 0) {
+        instance.setDataAtCell(changes);
+      }
     }
   }
 
@@ -183,32 +185,35 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
    * @param {Function} callback The callback function.
    */
   function eachSelectedCheckboxCell(callback) {
-    const selRange = instance.getSelectedRangeLast();
+    const selRange = instance.getSelectedRange();
 
     if (!selRange) {
       return;
     }
-    const topLeft = selRange.getTopLeftCorner();
-    const bottomRight = selRange.getBottomRightCorner();
 
-    for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
-      for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-        const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
+    for (let key = 0; key < selRange.length; key++) {
+      const topLeft = selRange[key].getTopLeftCorner();
+      const bottomRight = selRange[key].getBottomRightCorner();
 
-        if (cachedCellProperties.type !== 'checkbox') {
-          return;
-        }
+      for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
+        for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
+          const cachedCellProperties = instance.getCellMeta(visualRow, visualColumn);
 
-        const cell = instance.getCell(visualRow, visualColumn);
+          if (cachedCellProperties.type !== 'checkbox') {
+            return;
+          }
 
-        if (cell === null || cell === void 0) {
-          callback(visualRow, visualColumn, cachedCellProperties);
+          const cell = instance.getCell(visualRow, visualColumn);
 
-        } else {
-          const checkboxes = cell.querySelectorAll('input[type=checkbox]');
+          if (cell === null || cell === void 0) {
+            callback(visualRow, visualColumn, cachedCellProperties);
 
-          if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
-            callback(checkboxes);
+          } else {
+            const checkboxes = cell.querySelectorAll('input[type=checkbox]');
+
+            if (checkboxes.length > 0 && !cachedCellProperties.readOnly) {
+              callback(checkboxes);
+            }
           }
         }
       }

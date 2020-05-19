@@ -1,13 +1,13 @@
 import IndexMap from './indexMap';
-import { getListWithRemovedItems, getListWithInsertedItems } from './utils/visuallyIndexed';
-import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
+import { getListWithRemovedItems, getListWithInsertedItems } from './utils/indexesSequence';
+import { getDecreasedIndexes, getIncreasedIndexes } from './utils';
 
 /**
  * Map for storing mappings from an visual index to an physical index.
  *
  * It also updates the physical index on remove/add row or column action.
  */
-class VisualIndexToPhysicalIndexMap extends IndexMap {
+class IndexesSequence extends IndexMap {
   constructor() {
     // Not handling custom init function or init value.
     super(index => index);
@@ -43,4 +43,4 @@ class VisualIndexToPhysicalIndexMap extends IndexMap {
   }
 }
 
-export default VisualIndexToPhysicalIndexMap;
+export default IndexesSequence;

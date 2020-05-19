@@ -168,6 +168,7 @@ class Walkontable {
     if (column < 0) {
       return false;
     }
+
     return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
@@ -183,6 +184,7 @@ class Walkontable {
     if (row < 0) {
       return false;
     }
+
     return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 

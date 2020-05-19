@@ -759,4 +759,27 @@ describe('AutoColumnSize', () => {
       expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([colWidth(spec().$container, 2)]));
     });
   });
+
+  describe('should cooperate with the HiddenColumns plugin properly', () => {
+    it('should display proper sizes for columns', () => {
+      handsontable({
+        data: arrayOfObjects(),
+        autoColumnSize: true,
+        columns: [
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'lastName' },
+        ],
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        }
+      });
+
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(50 + 15, 3);
+      expect([216 + 15, 229 + 15, 247 + 15, 260 + 15, 261 + 15])
+        .toEqual(jasmine.arrayContaining([colWidth(spec().$container, 1)])); // Renderable index 1 for helper.
+    });
+  });
 });

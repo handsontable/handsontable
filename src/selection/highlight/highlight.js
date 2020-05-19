@@ -87,7 +87,7 @@ class Highlight {
   }
 
   /**
-   * Check if highlight cell rendering is disabled for specyfied highlight type.
+   * Check if highlight cell rendering is disabled for specified highlight type.
    *
    * @param {string} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
    * @returns {boolean}
@@ -239,7 +239,7 @@ class Highlight {
    * @param {object} selectionInstance The selection instance.
    */
   addCustomSelection(selectionInstance) {
-    this.customSelections.push(createHighlight(CUSTOM_SELECTION, { ...selectionInstance }));
+    this.customSelections.push(createHighlight(CUSTOM_SELECTION, { ...this.options, ...selectionInstance }));
   }
 
   /**

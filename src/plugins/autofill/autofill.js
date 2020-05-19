@@ -2,7 +2,6 @@ import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
 import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import { CellCoords } from './../../3rdparty/walkontable/src';
@@ -125,56 +124,36 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Prepares copyable ranges from the cells selection.
+   * Gets selection data.
    *
    * @private
    * @returns {object[]} Ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    */
-  getCopyableRanges() {
-    const selRange = this.hot.getSelectedRangeLast();
-    const topLeft = selRange.getTopLeftCorner();
-    const bottomRight = selRange.getBottomRightCorner();
-    const startRow = topLeft.row;
-    const startCol = topLeft.col;
-    const endRow = bottomRight.row;
-    const endCol = bottomRight.col;
-    let copyableRanges = [];
+  getSelectionData() {
+    const [startRow, startCol, endRow, endCol] = this.hot.getSelectedLast();
 
-    copyableRanges.push({
+    const copyableRanges = this.hot.runHooks('modifyCopyableRange', [{
       startRow,
       startCol,
       endRow,
       endCol
-    });
-
-    copyableRanges = this.hot.runHooks('modifyCopyableRange', copyableRanges);
-
-    return copyableRanges;
-  }
-
-  /**
-   * Gets selection data.
-   *
-   * @private
-   * @returns {Array} Array with the data.
-   */
-  getSelectionData() {
-    const copyableRanges = this.getCopyableRanges();
+    }]);
     const copyableRows = [];
     const copyableColumns = [];
     const data = [];
 
     arrayEach(copyableRanges, (range) => {
-      rangeEach(range.startRow, range.endRow, (row) => {
-        if (copyableRows.indexOf(row) === -1) {
-          copyableRows.push(row);
+      for (let visualRow = range.startRow; visualRow <= range.endRow; visualRow += 1) {
+        if (copyableRows.indexOf(visualRow) === -1) {
+          copyableRows.push(visualRow);
         }
-      });
-      rangeEach(range.startCol, range.endCol, (column) => {
-        if (copyableColumns.indexOf(column) === -1) {
-          copyableColumns.push(column);
+      }
+
+      for (let visualColumn = range.startCol; visualColumn <= range.endCol; visualColumn += 1) {
+        if (copyableColumns.indexOf(visualColumn) === -1) {
+          copyableColumns.push(visualColumn);
         }
-      });
+      }
     });
 
     arrayEach(copyableRows, (row) => {
@@ -205,11 +184,12 @@ class Autofill extends BasePlugin {
       return false;
     }
 
-    let cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getCorners();
+    let cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getVisualCorners();
 
     this.resetSelectionOfDraggedArea();
 
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+
     cornersOfSelectionAndDragAreas = this.hot.runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
 
     const { directionOfDrag, startOfDragCoords, endOfDragCoords } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
@@ -343,11 +323,11 @@ class Autofill extends BasePlugin {
    * @private
    */
   addRow() {
-    this.hot._registerTimeout(setTimeout(() => {
+    this.hot._registerTimeout(() => {
       this.hot.alter(INSERT_ROW_ALTER_ACTION_NAME, void 0, 1, `${this.pluginName}.fill`);
 
       this.addingStarted = false;
-    }, INTERVAL_FOR_ADDING_ROW));
+    }, INTERVAL_FOR_ADDING_ROW);
   }
 
   /**
@@ -356,9 +336,9 @@ class Autofill extends BasePlugin {
    * @private
    */
   addNewRowIfNeeded() {
-    if (this.hot.selection.highlight.getFill().cellRange && this.addingStarted === false && this.autoInsertRow) {
+    if (!this.hot.selection.highlight.getFill().isEmpty() && this.addingStarted === false && this.autoInsertRow) {
       const cornersOfSelectedCells = this.hot.getSelectedLast();
-      const cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getCorners();
+      const cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getVisualCorners();
       const nrOfTableRows = this.hot.countRows();
 
       if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
@@ -377,11 +357,10 @@ class Autofill extends BasePlugin {
    */
   getCornersOfSelectedCells() {
     if (this.hot.selection.isMultiple()) {
-      return this.hot.selection.highlight.createOrGetArea().getCorners();
-
+      return this.hot.selection.highlight.createOrGetArea().getVisualCorners();
     }
-    return this.hot.selection.highlight.getCell().getCorners();
 
+    return this.hot.selection.highlight.getCell().getVisualCorners();
   }
 
   /**
@@ -427,14 +406,9 @@ class Autofill extends BasePlugin {
   addSelectionFromStartAreaToSpecificRowIndex(selectStartArea, rowIndex) {
     this.hot.selection.highlight.getFill()
       .clear()
-      .add(new CellCoords(
-        selectStartArea[0],
-        selectStartArea[1])
-      )
-      .add(new CellCoords(
-        rowIndex,
-        selectStartArea[3])
-      );
+      .add(new CellCoords(selectStartArea[0], selectStartArea[1]))
+      .add(new CellCoords(rowIndex, selectStartArea[3]))
+      .commit();
   }
 
   /**
@@ -489,7 +463,8 @@ class Autofill extends BasePlugin {
       .clear()
       .add(this.hot.getSelectedRangeLast().from)
       .add(this.hot.getSelectedRangeLast().to)
-      .add(coords);
+      .add(coords)
+      .commit();
 
     this.hot.view.render();
   }
