@@ -537,6 +537,27 @@ describe('Core_alter', () => {
 
       expect(getCellMeta(0, 1).className).toEqual('test');
     });
+
+    it('should cooperate with the `modifyRemovedRows` hooks properly', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 5),
+      });
+
+      addHook('modifyRemovedRows', () => {
+        return [0, 1, 2, 3];
+      });
+
+      alter('remove_row', 5, 2);
+
+      expect(getData()).toEqual([
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ['A6', 'B6', 'C6', 'D6', 'E6'],
+        ['A7', 'B7', 'C7', 'D7', 'E7'],
+        ['A8', 'B8', 'C8', 'D8', 'E8'],
+        ['A9', 'B9', 'C9', 'D9', 'E9'],
+        ['A10', 'B10', 'C10', 'D10', 'E10'],
+      ]);
+    });
   });
 
   describe('remove column', () => {

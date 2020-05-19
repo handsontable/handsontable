@@ -297,6 +297,55 @@ describe('NestedRows', () => {
     });
   });
 
+  describe('Cooperation with the `alter` method', () => {
+    it('should remove collapsed indexes properly', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true
+      });
+
+      const plugin = getPlugin('nestedRows');
+
+      plugin.collapsingUI.collapseChildren(0);
+      plugin.collapsingUI.collapseChildren(6);
+      plugin.collapsingUI.collapseChildren(12);
+
+      alter('remove_row', 2);
+
+      await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+      alter('remove_row', 1);
+
+      await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+      alter('remove_row', 0);
+
+      await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+      expect(getData()).toEqual([]);
+    });
+
+    it('should trigger the `modifyRemovedRows` with proper parameters when removed rows are collapsed', () => {
+      const modifyRemovedRows = jasmine.createSpy('modifyRemovedRows');
+
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        modifyRemovedRows
+      });
+
+      const plugin = getPlugin('nestedRows');
+
+      plugin.collapsingUI.collapseChildren(0);
+      plugin.collapsingUI.collapseChildren(6);
+      plugin.collapsingUI.collapseChildren(12);
+
+      alter('remove_row', 2);
+
+      expect(modifyRemovedRows).toHaveBeenCalledWith([12, 13, 14, 15, 16, 17], void 0, void 0, void 0, void 0, void 0);
+    });
+  });
+
   it('should add child properly', () => {
     handsontable({
       data: getSimplerNestedData(),
