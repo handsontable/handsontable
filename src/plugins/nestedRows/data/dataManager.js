@@ -604,13 +604,9 @@ class DataManager {
    * @param {object[]} elements Array of row objects to add.
    */
   spliceData(index, amount, elements) {
-    if (index === null || index === void 0) {
-      return;
-    }
-
     const previousElement = this.getDataObject(index - 1);
     let newRowParent = null;
-    let indexWithinParent = null;
+    let indexWithinParent = index;
 
     if (previousElement && previousElement.__children && previousElement.__children.length === 0) {
       newRowParent = previousElement;
@@ -619,9 +615,6 @@ class DataManager {
     } else if (index < this.countAllRows()) {
       newRowParent = this.getRowParent(index);
       indexWithinParent = this.getRowIndexWithinParent(index);
-
-    } else {
-      indexWithinParent = index;
     }
 
     if (newRowParent) {

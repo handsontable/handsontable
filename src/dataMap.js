@@ -267,6 +267,7 @@ class DataMap {
    */
   createRow(index, amount = 1, source) {
     const sourceRowsCount = this.instance.countSourceRows();
+    let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
     let rowIndex = index;
 
@@ -274,16 +275,14 @@ class DataMap {
       rowIndex = sourceRowsCount;
     }
 
-    const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
-
-    if (continueProcess === false) {
-      return 0;
-    }
-
-    let physicalRowIndex = sourceRowsCount;
-
     if (rowIndex < this.instance.countRows()) {
       physicalRowIndex = this.instance.toPhysicalRow(rowIndex);
+    }
+
+    const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
+
+    if (continueProcess === false || physicalRowIndex === null) {
+      return 0;
     }
 
     const maxRows = this.tableMeta.maxRows;
