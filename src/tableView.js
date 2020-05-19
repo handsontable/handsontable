@@ -397,16 +397,16 @@ class TableView {
    * The counting direction can be controlled by `incrementBy` argument.
    *
    * @param {number} visualIndex The visual index from which the counting begins.
-   * @param {string} axix The axis as 'row' or 'column'.
+   * @param {string} axis The axis as 'row' or 'column'.
    * @param {number} incrementBy If `-1` then counting is backwards or forward when `1`.
    * @returns {number}
    */
-  countNotHiddenRecords(visualIndex, axix, incrementBy) {
+  countNotHiddenRecords(visualIndex, axis, incrementBy) {
     if (isNaN(visualIndex)) {
       return 0;
     }
 
-    const indexMapper = this.instance[`${axix}IndexMapper`];
+    const indexMapper = this.instance[`${axis}IndexMapper`];
     const firstVisibleIndex = indexMapper.getFirstNotHiddenIndex(visualIndex, incrementBy);
     const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
 
@@ -420,7 +420,15 @@ class TableView {
       // Zero-based numbering acts here as a count of not hidden rows.
       notHiddenRows = renderableIndex + 1;
     } else if (incrementBy > 0) {
-      notHiddenRows = this[`countRenderable${toUpperCaseFirst(axix)}s`]() - renderableIndex;
+      let renderableRecordsCount = 0;
+
+      if (axis === 'row') {
+        renderableRecordsCount = this.countRenderableRows();
+      } else if (axis === 'column') {
+        renderableRecordsCount = this.countRenderableColumns();
+      }
+
+      notHiddenRows = renderableRecordsCount - renderableIndex;
     }
 
     return notHiddenRows;
