@@ -181,16 +181,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection = selection;
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
+  const onIndexMapperCacheUpdate = (flag1, flag2, hiddenIndexesChanged) => {
     if (hiddenIndexesChanged) {
       this.selection.refresh();
     }
-  });
-  this.rowIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
-    if (hiddenIndexesChanged) {
-      this.selection.refresh();
-    }
-  });
+  };
+
+  this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
+  this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
     this.runHooks('beforeSetRangeStart', cellCoords);
@@ -2124,6 +2122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (column >= 0) {
       renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(column);
     }
+
     if (row >= 0) {
       renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(row);
     }
@@ -2159,6 +2158,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (renderableRow >= 0) {
       visualRow = this.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
     }
+
     if (renderableColumn >= 0) {
       visualColumn = this.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
     }

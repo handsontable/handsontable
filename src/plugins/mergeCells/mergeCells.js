@@ -811,9 +811,9 @@ class MergeCells extends BasePlugin {
         const renderableIndexAtMergeStart = rowMapper.getRenderableFromVisualIndex(
           rowMapper.getFirstNotHiddenIndex(mergeParentForViewportStart.row, 1));
 
-        // Merge start is out of the viewport (i.e. when we scrolled to the right and we can see just part of a merge).
+        // Merge start is out of the viewport (i.e. when we scrolled to the bottom and we can see just part of a merge).
         if (renderableIndexAtMergeStart < calc.startRow) {
-          // We extend viewport when some columns have been merged.
+          // We extend viewport when some rows have been merged.
           calc.startRow = renderableIndexAtMergeStart;
           // We are looking for next merges inside already extended viewport (starting again from row equal to 0).
           this.modifyViewportRowStart(calc, nrOfColumns); // recursively search upwards
@@ -845,7 +845,7 @@ class MergeCells extends BasePlugin {
 
         // Merge end is out of the viewport.
         if (renderableIndexAtMergeEnd > calc.endRow) {
-          // We extend the viewport when some columns have been merged.
+          // We extend the viewport when some rows have been merged.
           calc.endRow = renderableIndexAtMergeEnd;
           // We are looking for next merges inside already extended viewport (starting again from row equal to 0).
           this.modifyViewportRowEnd(calc, nrOfColumns); // recursively search upwards

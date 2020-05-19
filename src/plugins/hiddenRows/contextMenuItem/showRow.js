@@ -41,7 +41,7 @@ export default function showRowItem(hiddenRowsPlugin) {
       const startVisualRowAfterAction = this.toVisualRow(startPhysicalRow);
       const endVisualRowAfterAction = this.toVisualRow(endPhysicalRow);
 
-      // We render columns at first. It was needed for getting fixed columns.
+      // We render rows at first. It was needed for getting fixed rows.
       // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);

@@ -283,7 +283,7 @@ class HiddenRows extends BasePlugin {
    */
   onModifyRowHeight(height, row) {
     // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
-    // calls of the `getRowWidth` function on not visible indexes.
+    // calls of the `getRowHeight` function on not visible indexes.
     if (this.isHidden(row)) {
       return 0;
     }
@@ -382,7 +382,7 @@ class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetRowHeader(row, TH) {
-    if (!this.#settings.indicators || row === -1) {
+    if (!this.#settings.indicators || row < 0) {
       return;
     }
 

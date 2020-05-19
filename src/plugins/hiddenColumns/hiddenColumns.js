@@ -384,7 +384,7 @@ class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetColHeader(column, TH) {
-    if (!this.settings.indicators || column === -1) {
+    if (!this.settings.indicators || column < 0) {
       return;
     }
 
