@@ -39,10 +39,13 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       const startVisualColumnAfterAction = this.toVisualColumn(startPhysicalColumn);
       const endVisualColumnAfterAction = this.toVisualColumn(endPhysicalColumn);
 
-      // Selection start and selection end coordinates might be changed after showing some items.
-      this.selectColumns(startVisualColumnAfterAction, endVisualColumnAfterAction);
+      // We render columns at first. It was needed for getting fixed columns.
+      // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
+
+      // Selection start and selection end coordinates might be changed after showing some items.
+      this.selectColumns(startVisualColumnAfterAction, endVisualColumnAfterAction);
     },
     disabled: false,
     hidden() {

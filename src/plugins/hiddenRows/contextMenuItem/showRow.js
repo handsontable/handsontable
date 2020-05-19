@@ -41,10 +41,13 @@ export default function showRowItem(hiddenRowsPlugin) {
       const startVisualRowAfterAction = this.toVisualRow(startPhysicalRow);
       const endVisualRowAfterAction = this.toVisualRow(endPhysicalRow);
 
-      // Selection start and selection end coordinates might be changed after showing some items.
-      this.selectRows(startVisualRowAfterAction, endVisualRowAfterAction);
+      // We render columns at first. It was needed for getting fixed columns.
+      // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
+
+      // Selection start and selection end coordinates might be changed after showing some items.
+      this.selectRows(startVisualRowAfterAction, endVisualRowAfterAction);
     },
     disabled: false,
     hidden() {

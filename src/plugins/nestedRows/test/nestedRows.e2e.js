@@ -367,6 +367,34 @@ describe('NestedRows', () => {
     // expect(getPlugin('nestedRows').dataManager.isParent(18)).toBeFalsy(); // TODO: Bug? Element has null under the `__children` key.
   });
 
+  it('should allow user to insert row below and above the parent', () => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      contextMenu: true
+    });
+
+    selectCell(0, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown').simulate('mouseup'); // Insert row above.
+    expect(getDataAtRow(0)).toEqual([null, null, null, null]);
+    expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
+    expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
+    expect(getDataAtRow(7)).toEqual(['Best Metal Performance', null, null, null]);
+
+    selectCell(1, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown').simulate('mouseup'); // Insert row below.
+
+    expect(getDataAtRow(0)).toEqual([null, null, null, null]);
+    expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
+    expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
+    expect(getDataAtRow(7)).toEqual([null, null, null, null]);
+    expect(getDataAtRow(8)).toEqual(['Best Metal Performance', null, null, null]);
+  });
+
   it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', () => {
     const warnSpy = spyOn(console, 'warn');
 

@@ -62,8 +62,8 @@ class AggregatedCollection extends MapCollection {
     // +---------+----------+----------+
     // |    0    | [[ value,  value ], |
     // |    1    | [  value,  value ], |
-    // |    2    | [  value,  value ]] |
-    // |    3    | [  value,  value ]] |
+    // |    2    | [  value,  value ], |
+    // |    3    | [  value,  value ], |
     // |    4    | [  value,  value ]] |
     // +---------+----------+----------+
     const indexesValuesMatrix = [];

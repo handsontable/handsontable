@@ -12,6 +12,7 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import { toUpperCaseFirst } from './helpers/string';
 import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 
@@ -344,7 +345,8 @@ class TableView {
    * @returns {CellCoords}
    */
   translateFromRenderableToVisualCoords({ row, col }) {
-    return new CellCoords(...this.translateFromRenderableToVisual(row, col));
+    // TODO: To consider an idea to reusing the CellCoords instance instead creating new one.
+    return new CellCoords(...this.translateFromRenderableToVisualIndex(row, col));
   }
 
   /**
@@ -354,14 +356,17 @@ class TableView {
    * @param {number} renderableColumn Renderable columnIndex.
    * @returns {number[]}
    */
-  translateFromRenderableToVisual(renderableRow, renderableColumn) {
-    let visualRow = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
-    let visualColumn = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+  translateFromRenderableToVisualIndex(renderableRow, renderableColumn) {
+    // TODO: Some helper may be needed.
+    // We perform translation for indexes (without headers).
+    let visualRow = renderableRow >= 0 ?
+      this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow;
+    let visualColumn = renderableColumn >= 0 ?
+      this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn;
 
     if (visualRow === null) {
       visualRow = renderableRow;
     }
-
     if (visualColumn === null) {
       visualColumn = renderableColumn;
     }
@@ -397,19 +402,28 @@ class TableView {
    * @returns {number}
    */
   countNotHiddenRecords(visualIndex, axix, incrementBy) {
-    const indexMapper = this.instance[`${axix}IndexMapper`];
-    let nonHiddenRecords = 0;
-
-    for (let nonHiddenIndex = visualIndex; nonHiddenIndex !== null;) {
-      nonHiddenIndex = indexMapper.getFirstNotHiddenIndex(nonHiddenIndex, incrementBy);
-
-      if (nonHiddenIndex !== null) {
-        nonHiddenIndex += incrementBy;
-        nonHiddenRecords += 1;
-      }
+    if (isNaN(visualIndex)) {
+      return 0;
     }
 
-    return nonHiddenRecords;
+    const indexMapper = this.instance[`${axix}IndexMapper`];
+    const firstVisibleIndex = indexMapper.getFirstNotHiddenIndex(visualIndex, incrementBy);
+    const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
+
+    if (!Number.isInteger(renderableIndex)) {
+      return 0;
+    }
+
+    let notHiddenRows = 0;
+
+    if (incrementBy < 0) {
+      // Zero-based numbering acts here as a count of not hidden rows.
+      notHiddenRows = renderableIndex + 1;
+    } else if (incrementBy > 0) {
+      notHiddenRows = this[`countRenderable${toUpperCaseFirst(axix)}s`]() - renderableIndex;
+    }
+
+    return notHiddenRows;
   }
 
   /**
@@ -426,26 +440,22 @@ class TableView {
       preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
       data: (renderableRow, renderableColumn) => {
-        return this.instance.getDataAtCell(...this.translateFromRenderableToVisual(renderableRow, renderableColumn));
+        return this.instance.getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
-      fixedColumnsLeft: () => this.settings.fixedColumnsLeft,
+      fixedColumnsLeft: () => {
+        const fixedColumnsLeft = parseInt(this.settings.fixedColumnsLeft, 10);
+
+        return this.countNotHiddenRecords(fixedColumnsLeft - 1, 'column', -1);
+      },
       fixedRowsTop: () => {
         const fixedRowsTop = parseInt(this.settings.fixedRowsTop, 10);
-
-        if (isNaN(fixedRowsTop) || fixedRowsTop === 0) {
-          return 0;
-        }
 
         return this.countNotHiddenRecords(fixedRowsTop - 1, 'row', -1);
       },
       fixedRowsBottom: () => {
         const fixedRowsBottom = parseInt(this.settings.fixedRowsBottom, 10);
-
-        if (isNaN(fixedRowsBottom) || fixedRowsBottom === 0) {
-          return 0;
-        }
 
         return this.countNotHiddenRecords(this.instance.countRows() - fixedRowsBottom, 'row', 1);
       },
@@ -460,6 +470,7 @@ class TableView {
             // We perform translation for row indexes (without row headers).
             const visualRowIndex = renderableRowIndex >= 0 ?
               this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+
             this.appendRowHeader(visualRowIndex, TH);
           });
         }
@@ -473,7 +484,12 @@ class TableView {
 
         if (this.instance.hasColHeaders()) {
           headerRenderers.push((renderedColumnIndex, TH) => {
-            this.appendColHeader(renderedColumnIndex, TH);
+            // TODO: Some helper may be needed.
+            // We perform translation for columns indexes (without column headers).
+            const visualColumnsIndex = renderedColumnIndex >= 0 ?
+              this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
+
+            this.appendColHeader(visualColumnsIndex, TH);
           });
         }
 
@@ -498,7 +514,7 @@ class TableView {
         return this.instance.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
       },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
-        const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisual(renderedRowIndex, renderedColumnIndex);
+        const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
         const cellProperties = this.instance.getCellMeta(visualRowIndex, visualColumnIndex);
         const prop = this.instance.colToProp(visualColumnIndex);
         let value = this.instance.getDataAtRowProp(visualRowIndex, prop);
@@ -635,7 +651,7 @@ class TableView {
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
       onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
-        const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisual(currentRow, currentColumn);
+        const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
 
         return this.instance.runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
       },
@@ -885,19 +901,19 @@ class TableView {
    * Append column header to a TH element.
    *
    * @private
-   * @param {number} renderedColumnIndex The rendered column index.
+   * @param {number} visualColumnIndex Visual column index.
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
-  appendColHeader(renderedColumnIndex, TH) {
+  appendColHeader(visualColumnIndex, TH) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), renderedColumnIndex, this.instance.getColHeader);
+        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, this.instance.getColHeader);
 
       } else {
         empty(TH);
-        this.appendColHeader(renderedColumnIndex, TH);
+        this.appendColHeader(visualColumnIndex, TH);
       }
 
     } else {
@@ -907,19 +923,13 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, renderedColumnIndex, this.instance.getColHeader);
+      this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader);
 
       div.appendChild(span);
       TH.appendChild(div);
     }
 
-    let visualColumnsIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-
-    if (visualColumnsIndex === null) {
-      visualColumnsIndex = renderedColumnIndex;
-    }
-
-    this.instance.runHooks('afterGetColHeader', visualColumnsIndex, TH);
+    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH);
   }
 
   /**
