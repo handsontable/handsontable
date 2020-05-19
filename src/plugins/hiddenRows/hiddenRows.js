@@ -251,7 +251,7 @@ class HiddenRows extends BasePlugin {
   /**
    * Checks whether all of the provided row indexes are within the bounds of the table.
    *
-   * @param {Array} hiddenRows List of hidden row indexes.
+   * @param {Array} hiddenRows List of hidden visual row indexes.
    * @returns {boolean}
    */
   isValidConfig(hiddenRows) {
