@@ -305,7 +305,7 @@ class HiddenRows extends BasePlugin {
       cellProperties.skipRowOnPaste = true;
     }
 
-    if (this.isHidden(cellProperties.visualRow - 1)) {
+    if (this.isHidden(row - 1)) {
       cellProperties.className = cellProperties.className || '';
 
       if (cellProperties.className.indexOf('afterHiddenRow') === -1) {

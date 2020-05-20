@@ -310,7 +310,7 @@ class HiddenColumns extends BasePlugin {
       cellProperties.skipColumnOnPaste = true;
     }
 
-    if (this.isHidden(cellProperties.visualCol - 1)) {
+    if (this.isHidden(column - 1)) {
       cellProperties.className = cellProperties.className || '';
 
       if (cellProperties.className.indexOf('afterHiddenColumn') === -1) {
