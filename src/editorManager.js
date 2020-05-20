@@ -169,7 +169,19 @@ class EditorManager {
 
     if (editorClass && td) {
       const prop = this.instance.colToProp(col);
-      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), col);
+      const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
+      let visualRowToCheck = row;
+      let visualColumnToCheck = col;
+
+      if (Array.isArray(modifiedCellCoords)) {
+        const [renderableRowToCheck, renderableColumnToCheck] = modifiedCellCoords;
+
+        visualRowToCheck = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRowToCheck);
+        visualColumnToCheck = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumnToCheck);
+      }
+
+      const originalValue =
+        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
