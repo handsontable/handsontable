@@ -20,13 +20,7 @@ import { isDefined } from '../helpers/mixed';
  * **Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in {@link DataMap} (from 0 to n, where n is number of the cells on the axis of data set).
  * **Renderable index** is a type of an index from the sequence of indexes assigned to rows or columns whose may be rendered (when they are in a viewport; from 0 to n, where n is number of the cells renderable on the axis).
  *
- * To ensure the calculation is done correctly **index mapper** also registers the skipping process
- * and embeds **cache** which is triggered only when the data or structure changes.
- *
- *  **rowIndexMapper** and **columnIndexMapper** are instances of indexMapper which, respectively, manage **rows** and **columns** by calling methods.
- *
- * **Complementary to the above there are 3 main kinds of index maps which may be registered in the collections.**.
- * They are registered to collections and can be used by reference.
+ * There are different kinds of index maps which may be registered in the collections and can be used by a reference.
  * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
  * These are: {@link to IndexesSequence}, {@link to PhysicalIndexToValueMap}, {@link to HidingMap}, and {@link to TrimmingMap}.
