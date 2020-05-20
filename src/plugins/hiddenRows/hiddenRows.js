@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayMap } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -230,12 +230,14 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Returns an array of physical indexes of hidden rows.
+   * Returns an array of visual indexes of hidden rows.
    *
    * @returns {number[]}
    */
   getHiddenRows() {
-    return this.#hiddenRowsMap.getHiddenIndexes();
+    return arrayMap(this.#hiddenRowsMap.getHiddenIndexes(), (physicalRowIndex) => {
+      return this.hot.toVisualRow(physicalRowIndex);
+    });
   }
 
   /**

@@ -2109,22 +2109,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {HTMLTableCellElement|null} The cell's TD element.
    */
   this.getCell = function(row, column, topmost = false) {
-    const physicalColumn = this.toPhysicalColumn(column);
-    const physicalRow = this.toPhysicalRow(row);
-
-    if (this.columnIndexMapper.isHidden(physicalColumn) || this.rowIndexMapper.isHidden(physicalRow)) {
-      return null;
-    }
-
     let renderableColumnIndex = column; // Handling also column headers.
     let renderableRowIndex = row; // Handling also row headers.
 
     if (column >= 0) {
+      if (this.columnIndexMapper.isHidden(this.toPhysicalColumn(column))) {
+        return null;
+      }
+
       renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(column);
     }
 
     if (row >= 0) {
+      if (this.rowIndexMapper.isHidden(this.toPhysicalRow(row))) {
+        return null;
+      }
+
       renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(row);
+    }
+
+    if (renderableRowIndex === null || renderableColumnIndex === null) {
+      return null;
     }
 
     return instance.view.getCellAtCoords(new CellCoords(renderableRowIndex, renderableColumnIndex), topmost);

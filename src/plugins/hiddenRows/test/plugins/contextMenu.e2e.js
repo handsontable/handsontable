@@ -213,6 +213,26 @@ describe('HiddenRows', () => {
           expect(actions.text()).toEqual(MENU_ITEM_SHOW_ROWS);
         });
 
+        it('should render proper context menu item for unhiding if all rows are hidden', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            colHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [0, 1, 2, 3, 4],
+            },
+          });
+
+          const $header = getTopLeftClone().find('thead tr th');
+
+          contextMenu($header);
+
+          const actions = $('.htContextMenu tbody td').not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_ROWS);
+        });
+
         it('should render proper context menu item for unhiding a few rows', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -250,6 +270,58 @@ describe('HiddenRows', () => {
 
           const start = getCell(0, -1);
           const end = getCell(4, -1);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+
+          const items = $('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_ROW);
+        });
+
+        it('should render proper context menu item for unhiding one row placed before trimmed row', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [1],
+            },
+            trimRows: [2],
+          });
+
+          const start = getCell(0, -1);
+          const end = getCell(2, -1);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+
+          const items = $('.htContextMenu tbody td');
+          const actions = items.not('.htSeparator');
+
+          expect(actions.text()).toEqual(MENU_ITEM_SHOW_ROW);
+        });
+
+        it('should render proper context menu item for unhiding one row placed after trimmed row', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [1],
+            },
+            trimRows: [1],
+          });
+
+          const start = getCell(0, -1);
+          const end = getCell(2, -1);
 
           mouseDown(start);
           mouseOver(end);
@@ -698,12 +770,8 @@ describe('HiddenRows', () => {
           expect(getCell(3, 0)).toBe(null);
           expect(getCell(4, 0)).toBe(null);
 
-          const header = $('.ht_clone_left .htCore')
-            .find('thead')
-            .find('th')
-            .eq(0);
+          const header = getTopLeftClone().find('thead th:eq(0)');
 
-          selectAll();
           contextMenu(header);
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
@@ -722,6 +790,135 @@ describe('HiddenRows', () => {
             | * ║ 0 : 0 |
             | * ║ 0 : 0 |
             | * ║ 0 : 0 |
+          `).toBeMatchToSelectionPattern();
+        });
+
+        it('should unhide all hidden rows when some of the rows was hidden', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [1],
+            },
+            trimRows: [1],
+          });
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(3);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0)).toBe(null);
+          expect(getCell(2, 0).innerText).toBe('A4');
+          expect(getCell(3, 0).innerText).toBe('A5');
+          expect(getCell(4, 0)).toBe(null);
+
+          const start = getCell(0, -1);
+          const end = getCell(2, -1);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(4);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0).innerText).toBe('A3');
+          expect(getCell(2, 0).innerText).toBe('A4');
+          expect(getCell(3, 0).innerText).toBe('A5');
+          expect(getCell(4, 0)).toBe(null);
+          expect(getSelected()).toEqual([[0, 0, 2, 4]]);
+          expect(`
+            | * ║ A : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
+            |   ║   :   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+        });
+
+        it('should unhide all rows when the hidden row is placed before trimmed row', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [1],
+            },
+            trimRows: [2],
+          });
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(3);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0)).toBe(null);
+          expect(getCell(2, 0).innerText).toBe('A4');
+          expect(getCell(3, 0).innerText).toBe('A5');
+          expect(getCell(4, 0)).toBe(null);
+
+          const start = getCell(0, -1);
+          const end = getCell(2, -1);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(4);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0).innerText).toBe('A2');
+          expect(getCell(2, 0).innerText).toBe('A4');
+          expect(getCell(3, 0).innerText).toBe('A5');
+          expect(getCell(4, 0)).toBe(null);
+          expect(getSelected()).toEqual([[0, 0, 2, 4]]);
+          expect(`
+            | * ║ A : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
+            |   ║   :   :   :   :   |
+          `).toBeMatchToSelectionPattern();
+        });
+
+        it('should unhide all rows when the hidden row is placed after trimmed row', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            rowHeaders: true,
+            contextMenu: [CONTEXTMENU_ITEM_SHOW],
+            hiddenRows: {
+              rows: [1],
+            },
+            trimRows: [1],
+          });
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(3);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0)).toBe(null);
+          expect(getCell(2, 0).innerText).toBe('A4');
+          expect(getCell(3, 0).innerText).toBe('A5');
+          expect(getCell(4, 0)).toBe(null);
+
+          const start = getCell(0, -1);
+          const end = getCell(2, -1);
+
+          mouseDown(start);
+          mouseOver(end);
+          mouseUp(end);
+
+          contextMenu();
+          getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+          expect(spec().$container.find('.ht_master tr').length).toBe(4);
+          expect(getCell(0, 0).innerText).toBe('A1');
+          expect(getCell(1, 0).innerText).toBe('A3');
+          expect(getCell(2, 0).innerText).toBe('A4');
+          expect(getCell(3, 0).innerText).toBe('A5');
+          expect(getCell(4, 0)).toBe(null);
+          expect(getSelected()).toEqual([[0, 0, 2, 4]]);
+          expect(`
+            | * ║ A : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
+            |   ║   :   :   :   :   |
           `).toBeMatchToSelectionPattern();
         });
       });
