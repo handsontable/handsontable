@@ -259,7 +259,11 @@ class HiddenRows extends BasePlugin {
   isValidConfig(hiddenRows) {
     const nrOfRows = this.hot.countRows();
 
-    return hiddenRows.every(visualRow => Number.isInteger(visualRow) && visualRow >= 0 && visualRow < nrOfRows);
+    if (Array.isArray(hiddenRows) && hiddenRows.length > 0) {
+      return hiddenRows.every(visualRow => Number.isInteger(visualRow) && visualRow >= 0 && visualRow < nrOfRows);
+    }
+
+    return false;
   }
 
   /**

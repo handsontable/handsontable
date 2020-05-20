@@ -134,5 +134,46 @@ describe('HiddenRows', () => {
         expect(plugin.getHiddenRows()).toEqual([3, 6]);
       });
     });
+
+    describe('isValidConfig()', () => {
+      it('should return `false` for rows passed as not a number', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          hiddenRows: true,
+        });
+
+        const plugin = getPlugin('hiddenRows');
+
+        expect(plugin.isValidConfig()).toBe(false);
+        expect(plugin.isValidConfig(null)).toBe(false);
+        expect(plugin.isValidConfig(void 0)).toBe(false);
+        expect(plugin.isValidConfig(1)).toBe(false);
+        expect(plugin.isValidConfig({ index: 1 })).toBe(false);
+        expect(plugin.isValidConfig([])).toBe(false);
+        expect(plugin.isValidConfig([[]])).toBe(false);
+        expect(plugin.isValidConfig([null])).toBe(false);
+        expect(plugin.isValidConfig([void 0])).toBe(false);
+        expect(plugin.isValidConfig(['1'])).toBe(false);
+        expect(plugin.isValidConfig([{ index: 1 }])).toBe(false);
+      });
+
+      it('should return `true` for rows, which are within the range of the table size', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          hiddenRows: true,
+        });
+
+        const plugin = getPlugin('hiddenRows');
+
+        expect(plugin.isValidConfig([0])).toBe(true);
+        expect(plugin.isValidConfig([1, 2])).toBe(true);
+        expect(plugin.isValidConfig([0, 1, 2])).toBe(true);
+
+        expect(plugin.isValidConfig([-1])).toBe(false);
+        expect(plugin.isValidConfig([-1, 0])).toBe(false);
+        expect(plugin.isValidConfig([0, 1, 2, 3])).toBe(false);
+        expect(plugin.isValidConfig([3])).toBe(false);
+      });
+    });
   });
 });
