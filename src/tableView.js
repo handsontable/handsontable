@@ -401,7 +401,7 @@ class TableView {
    */
   countNotHiddenRowIndexes(visualIndex, incrementBy) {
     return this.countNotHiddenIndexes(
-      visualIndex, incrementBy, this.rowIndexMapper, this.countRenderableRows());
+      visualIndex, incrementBy, this.instance.rowIndexMapper, this.countRenderableRows());
   }
 
   /**
@@ -414,7 +414,7 @@ class TableView {
    */
   countNotHiddenColumnIndexes(visualIndex, incrementBy) {
     return this.countNotHiddenIndexes(
-      visualIndex, incrementBy, this.columnIndexMapper, this.countRenderableColumns());
+      visualIndex, incrementBy, this.instance.columnIndexMapper, this.countRenderableColumns());
   }
 
   /**
