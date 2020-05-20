@@ -38,8 +38,6 @@ describe('HiddenRows', () => {
         },
       });
 
-      expect(countRows()).toBe(5);
-
       getPlugin('hiddenRows').disablePlugin();
       render();
 

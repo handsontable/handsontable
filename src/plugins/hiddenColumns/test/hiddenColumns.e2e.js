@@ -59,8 +59,6 @@ describe('HiddenColumns', () => {
         },
       });
 
-      expect(countCols()).toBe(5);
-
       getPlugin('hiddenColumns').disablePlugin();
       render();
 
