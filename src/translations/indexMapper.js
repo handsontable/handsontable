@@ -30,7 +30,7 @@ import { isDefined } from '../helpers/mixed';
  *
  * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
  *
- * These are: {@link to VisualIndexToPhysicalIndexMap}, {@link to PhysicalIndexToValueMap} and {@link to SkipMap}.
+ * These are: {@link to IndexesSequence}, {@link to PhysicalIndexToValueMap}, {@link to HidingMap}, and {@link to TrimmingMap}.
  */
 class IndexMapper {
   constructor() {
