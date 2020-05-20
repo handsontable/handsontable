@@ -207,7 +207,7 @@ class ConditionComponent extends BaseComponent {
     arrayEach(this.getInputElements(), (element, index) => {
       element[command.inputsCount > index ? 'show' : 'hide']();
 
-      if (!index) {
+      if (index === 0) {
         setTimeout(() => element.focus(), 10);
       }
     });

@@ -1,4 +1,3 @@
-import { rangeEach } from '../../../helpers/number';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -6,114 +5,95 @@ import * as C from '../../../i18n/constants';
  * @returns {object}
  */
 export default function showRowItem(hiddenRowsPlugin) {
-  const beforeHiddenRows = [];
-  const afterHiddenRows = [];
+  const rows = [];
 
   return {
     key: 'hidden_rows_show',
     name() {
-      const selection = this.getSelectedLast();
-      let pluralForm = 0;
-
-      if (Array.isArray(selection)) {
-        let [fromRow, , toRow] = selection;
-
-        if (fromRow > toRow) {
-          [fromRow, toRow] = [toRow, fromRow];
-        }
-
-        let hiddenRows = 0;
-
-        if (fromRow === toRow) {
-          hiddenRows = beforeHiddenRows.length + afterHiddenRows.length;
-
-        } else {
-          rangeEach(fromRow, toRow, (column) => {
-            if (hiddenRowsPlugin.isHidden(column)) {
-              hiddenRows += 1;
-            }
-          });
-        }
-
-        pluralForm = hiddenRows <= 1 ? 0 : 1;
-      }
+      const pluralForm = rows.length > 1 ? 1 : 0;
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
     },
     callback() {
-      const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.row, to.row);
-      const end = Math.max(from.row, to.row);
+      const selectedRangeLast = this.getSelectedRangeLast();
+      const visualStartRow = selectedRangeLast.getTopLeftCorner().row;
+      const visualEndRow = selectedRangeLast.getBottomRightCorner().row;
+      const noVisibleIndexesBefore =
+        this.rowIndexMapper.getFirstNotHiddenIndex(visualStartRow - 1, -1) === null;
+      const onlyFirstVisibleRowSelected = noVisibleIndexesBefore && visualStartRow === visualEndRow;
+      const noVisibleIndexesAfter =
+        this.rowIndexMapper.getFirstNotHiddenIndex(visualEndRow + 1, 1) === null;
+      const onlyLastVisibleRowSelected = noVisibleIndexesAfter && visualStartRow === visualEndRow;
 
-      if (start === end) {
-        if (beforeHiddenRows.length === start) {
-          hiddenRowsPlugin.showRows(beforeHiddenRows);
-          beforeHiddenRows.length = 0;
-        }
-        if (afterHiddenRows.length === this.countSourceRows() - (start + 1)) {
-          hiddenRowsPlugin.showRows(afterHiddenRows);
-          afterHiddenRows.length = 0;
-        }
+      let startPhysicalRow = this.toPhysicalRow(visualStartRow);
+      let endPhysicalRow = this.toPhysicalRow(visualEndRow);
 
-      } else {
-        rangeEach(start, end, row => hiddenRowsPlugin.showRow(row));
+      if (onlyFirstVisibleRowSelected) {
+        startPhysicalRow = 0;
       }
 
+      if (onlyLastVisibleRowSelected) {
+        endPhysicalRow = this.countSourceRows() - 1; // All rows after the selected row will be shown.
+      }
+
+      hiddenRowsPlugin.showRows(rows);
+
+      const startVisualRowAfterAction = this.toVisualRow(startPhysicalRow);
+      const endVisualRowAfterAction = this.toVisualRow(endPhysicalRow);
+
+      // We render columns at first. It was needed for getting fixed columns.
+      // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
+
+      // Selection start and selection end coordinates might be changed after showing some items.
+      this.selectRows(startVisualRowAfterAction, endVisualRowAfterAction);
     },
     disabled: false,
     hidden() {
-      if (!hiddenRowsPlugin.hiddenRows.length || !this.selection.isSelectedByRowHeader()) {
+      if (!this.selection.isSelectedByRowHeader() || hiddenRowsPlugin.getHiddenRows().length < 1) {
         return true;
       }
 
-      beforeHiddenRows.length = 0;
-      afterHiddenRows.length = 0;
+      rows.length = 0;
 
-      const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.row, to.row);
-      const end = Math.max(from.row, to.row);
+      const selectedRangeLast = this.getSelectedRangeLast();
+      const visualStartRow = selectedRangeLast.getTopLeftCorner().row;
+      const visualEndRow = selectedRangeLast.getBottomRightCorner().row;
+      const renderableStartRow = this.rowIndexMapper.getRenderableFromVisualIndex(visualStartRow);
+      const renderableEndRow = this.rowIndexMapper.getRenderableFromVisualIndex(visualEndRow);
 
-      let hiddenInSelection = false;
+      if (visualStartRow === visualEndRow) {
+        // Handled row is the first rendered index and there are some visual indexes before it.
+        if (renderableStartRow === 0 && renderableStartRow < visualStartRow) {
+          // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
+          rows.push(...this.rowIndexMapper.getNotTrimmedIndexes().slice(0, visualStartRow)); // physical indexes
 
-      if (start === end) {
-        let totalRowsLength = this.countSourceRows();
-
-        rangeEach(0, totalRowsLength, (i) => {
-          const partedHiddenLength = beforeHiddenRows.length + afterHiddenRows.length;
-
-          if (partedHiddenLength === hiddenRowsPlugin.hiddenRows.length) {
-            return false;
-          }
-
-          if (i < start) {
-            if (hiddenRowsPlugin.isHidden(i)) {
-              beforeHiddenRows.push(i);
-            }
-          } else if (hiddenRowsPlugin.isHidden(i)) {
-            afterHiddenRows.push(i);
-          }
-        });
-
-        totalRowsLength -= 1;
-
-        if ((beforeHiddenRows.length === start && start > 0) ||
-          (afterHiddenRows.length === totalRowsLength - start && start < totalRowsLength)) {
-          hiddenInSelection = true;
+          return false;
         }
 
-      } else {
-        rangeEach(start, end, (i) => {
-          if (hiddenRowsPlugin.isHidden(i)) {
-            hiddenInSelection = true;
+        const lastVisualIndex = this.countRows() - 1;
+        const lastRenderableIndex = this.rowIndexMapper.getRenderableFromVisualIndex(
+          this.rowIndexMapper.getFirstNotHiddenIndex(lastVisualIndex, -1)
+        );
 
-            return false;
-          }
-        });
+        // Handled row is the last rendered index and there are some visual indexes after it.
+        if (renderableEndRow === lastRenderableIndex && lastVisualIndex > visualEndRow) {
+          rows.push(...this.rowIndexMapper.getNotTrimmedIndexes().slice(visualEndRow + 1));
+        }
+      } else {
+        const visualRowsInRange = visualEndRow - visualStartRow + 1;
+        const renderedRowsInRange = renderableEndRow - renderableStartRow + 1;
+
+        if (visualRowsInRange > renderedRowsInRange) {
+          const hiddenRows = hiddenRowsPlugin.getHiddenRows();
+          const physicalIndexesInRange = this.rowIndexMapper.getNotTrimmedIndexes().slice(visualStartRow, visualEndRow + 1);
+
+          rows.push(...physicalIndexesInRange.filter(physicalIndex => hiddenRows.includes(physicalIndex)));
+        }
       }
 
-      return !hiddenInSelection;
+      return rows.length === 0;
     }
   };
 }

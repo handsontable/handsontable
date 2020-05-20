@@ -931,10 +931,10 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelected()).toEqual([[0, 0, 1, 4]]);
           expect(`
-          |   ║ * : * : * : * : * |
-          |===:===:===:===:===:===|
-          | * ║ A : 0 : 0 : 0 : 0 |
-          | * ║ 0 : 0 : 0 : 0 : 0 |
+            |   ║ * : * : * : * : * |
+            |===:===:===:===:===:===|
+            | - ║ A : 0 : 0 : 0 : 0 |
+            | - ║ 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
         });
 
