@@ -715,7 +715,7 @@ class MergeCells extends BasePlugin {
       mergedCellCopy.row = rowMapper.getFirstNotHiddenIndex(mergedCellCopy.row, 1);
       // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
       mergedCellCopy.col = columnMapper.getFirstNotHiddenIndex(mergedCellCopy.col, 1);
-      // The `rowSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
+      // The `rowSpan` property for a `TD` element should be at most equal to number of rendered rows in the merge area.
       mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
       // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
       mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
