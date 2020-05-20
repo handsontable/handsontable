@@ -69,8 +69,6 @@ describe('HiddenRows', () => {
       render();
 
       expect(countRows()).toBe(5);
-
-      expect(countRows()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(1, 0)).toBe(null);
       expect(getCell(2, 0).innerText).toBe('A3');

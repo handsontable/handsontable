@@ -90,8 +90,6 @@ describe('HiddenColumns', () => {
       render();
 
       expect(countCols()).toBe(5);
-
-      expect(countCols()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(0, 1)).toBe(null);
       expect(getCell(0, 2).innerText).toBe('C1');
