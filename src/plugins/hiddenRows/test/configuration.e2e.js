@@ -13,7 +13,7 @@ describe('HiddenRows', () => {
   });
 
   describe('configuration', () => {
-    it('should hide rows if the "hiddenRows" property is set', () => {
+    it('should hide rows if the "hiddenRows" has "rows" property set', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenRows: {
