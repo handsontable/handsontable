@@ -933,8 +933,8 @@ describe('HiddenColumns', () => {
           expect(`
             |   ║ * : * : * : * : * |
             |===:===:===:===:===:===|
-            | - ║ A : 0 : 0 : 0 : 0 |
-            | - ║ 0 : 0 : 0 : 0 : 0 |
+            | * ║ A : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
         });
 

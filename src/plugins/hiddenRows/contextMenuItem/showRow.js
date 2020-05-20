@@ -41,13 +41,18 @@ export default function showRowItem(hiddenRowsPlugin) {
       const startVisualRowAfterAction = this.toVisualRow(startPhysicalRow);
       const endVisualRowAfterAction = this.toVisualRow(endPhysicalRow);
 
+      const allRowsSelected = endVisualRowAfterAction - startVisualRowAfterAction + 1 === this.countRows();
+      // TODO: Workaround, because selection doesn't select headers properly in a case when we select all rows
+      // from `0` to `n`, where `n` is number of rows in the `DataMap`.
+      const selectionStart = allRowsSelected ? -1 : startVisualRowAfterAction;
+
       // We render rows at first. It was needed for getting fixed rows.
       // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
 
       // Selection start and selection end coordinates might be changed after showing some items.
-      this.selectRows(startVisualRowAfterAction, endVisualRowAfterAction);
+      this.selectRows(selectionStart, endVisualRowAfterAction);
     },
     disabled: false,
     hidden() {

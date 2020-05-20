@@ -715,7 +715,7 @@ describe('HiddenRows', () => {
           expect(getCell(4, 0).innerText).toBe('A5');
           expect(getSelected()).toEqual([[0, 0, 4, 1]]);
           expect(`
-            |   ║ - : - |
+            |   ║ * : * |
             |===:===:===|
             | * ║ A : 0 |
             | * ║ 0 : 0 |

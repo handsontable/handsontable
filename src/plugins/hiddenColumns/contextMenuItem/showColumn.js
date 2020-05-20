@@ -39,13 +39,18 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       const startVisualColumnAfterAction = this.toVisualColumn(startPhysicalColumn);
       const endVisualColumnAfterAction = this.toVisualColumn(endPhysicalColumn);
 
+      const allColumnsSelected = endVisualColumnAfterAction - startVisualColumnAfterAction + 1 === this.countCols();
+      // TODO: Workaround, because selection doesn't select headers properly in a case when we select all columns
+      // from `0` to `n`, where `n` is number of columns in the `DataMap`.
+      const selectionStart = allColumnsSelected ? -1 : startVisualColumnAfterAction;
+
       // We render columns at first. It was needed for getting fixed columns.
       // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
 
       // Selection start and selection end coordinates might be changed after showing some items.
-      this.selectColumns(startVisualColumnAfterAction, endVisualColumnAfterAction);
+      this.selectColumns(selectionStart, endVisualColumnAfterAction);
     },
     disabled: false,
     hidden() {
