@@ -344,6 +344,30 @@ describe('NestedRows', () => {
 
       expect(modifyRemovedRows).toHaveBeenCalledWith([12, 13, 14, 15, 16, 17], void 0, void 0, void 0, void 0, void 0);
     });
+
+    it('should trigger the `beforeRemoveRow` and `afterRemoveRow` with proper parameters ' +
+      'when removed rows are collapsed', () => {
+      const beforeRemoveRow = jasmine.createSpy('modifyRemovedRows');
+      const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
+
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        beforeRemoveRow,
+        afterRemoveRow
+      });
+
+      const plugin = getPlugin('nestedRows');
+
+      plugin.collapsingUI.collapseChildren(0);
+      plugin.collapsingUI.collapseChildren(6);
+      plugin.collapsingUI.collapseChildren(12);
+
+      alter('remove_row', 2);
+
+      expect(beforeRemoveRow).toHaveBeenCalledWith(2, 6, [12, 13, 14, 15, 16, 17], void 0, void 0, void 0);
+      expect(afterRemoveRow).toHaveBeenCalledWith(2, 6, [12, 13, 14, 15, 16, 17], void 0, void 0, void 0);
+    });
   });
 
   it('should add child properly', () => {
