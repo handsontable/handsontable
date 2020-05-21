@@ -828,6 +828,12 @@ describe('HiddenRows', () => {
           expect(getCell(3, 0).innerText).toBe('A5');
           expect(getCell(4, 0)).toBe(null);
           expect(getSelected()).toEqual([[0, 0, 2, 4]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(0);
+          expect(getSelectedRangeLast().from.row).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().to.row).toBe(2);
+          expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
             | * ║ A : 0 : 0 : 0 : 0 |
             | * ║ 0 : 0 : 0 : 0 : 0 |
