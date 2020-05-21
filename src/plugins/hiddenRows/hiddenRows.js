@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayMap } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -230,12 +230,14 @@ class HiddenRows extends BasePlugin {
   }
 
   /**
-   * Returns an array of physical indexes of hidden rows.
+   * Returns an array of visual indexes of hidden rows.
    *
    * @returns {number[]}
    */
   getHiddenRows() {
-    return this.#hiddenRowsMap.getHiddenIndexes();
+    return arrayMap(this.#hiddenRowsMap.getHiddenIndexes(), (physicalRowIndex) => {
+      return this.hot.toVisualRow(physicalRowIndex);
+    });
   }
 
   /**
@@ -257,7 +259,11 @@ class HiddenRows extends BasePlugin {
   isValidConfig(hiddenRows) {
     const nrOfRows = this.hot.countRows();
 
-    return hiddenRows.every(visualRow => Number.isInteger(visualRow) && visualRow >= 0 && visualRow < nrOfRows);
+    if (Array.isArray(hiddenRows) && hiddenRows.length > 0) {
+      return hiddenRows.every(visualRow => Number.isInteger(visualRow) && visualRow >= 0 && visualRow < nrOfRows);
+    }
+
+    return false;
   }
 
   /**
@@ -283,7 +289,7 @@ class HiddenRows extends BasePlugin {
    */
   onModifyRowHeight(height, row) {
     // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
-    // calls of the `getRowWidth` function on not visible indexes.
+    // calls of the `getRowHeight` function on not visible indexes.
     if (this.isHidden(row)) {
       return 0;
     }
@@ -305,7 +311,7 @@ class HiddenRows extends BasePlugin {
       cellProperties.skipRowOnPaste = true;
     }
 
-    if (this.isHidden(cellProperties.visualRow - 1)) {
+    if (this.isHidden(row - 1)) {
       cellProperties.className = cellProperties.className || '';
 
       if (cellProperties.className.indexOf('afterHiddenRow') === -1) {
@@ -382,7 +388,7 @@ class HiddenRows extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetRowHeader(row, TH) {
-    if (!this.#settings.indicators || row === -1) {
+    if (!this.#settings.indicators || row < 0) {
       return;
     }
 

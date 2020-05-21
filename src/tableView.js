@@ -12,7 +12,6 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
-import { toUpperCaseFirst } from './helpers/string';
 import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 
@@ -393,20 +392,46 @@ class TableView {
   }
 
   /**
-   * Returns number of not hidden records counting from the passed starting index.
+   * Returns number of not hidden row indexes counting from the passed starting index.
    * The counting direction can be controlled by `incrementBy` argument.
    *
    * @param {number} visualIndex The visual index from which the counting begins.
-   * @param {string} axix The axis as 'row' or 'column'.
    * @param {number} incrementBy If `-1` then counting is backwards or forward when `1`.
    * @returns {number}
    */
-  countNotHiddenRecords(visualIndex, axix, incrementBy) {
-    if (isNaN(visualIndex)) {
+  countNotHiddenRowIndexes(visualIndex, incrementBy) {
+    return this.countNotHiddenIndexes(
+      visualIndex, incrementBy, this.instance.rowIndexMapper, this.countRenderableRows());
+  }
+
+  /**
+   * Returns number of not hidden column indexes counting from the passed starting index.
+   * The counting direction can be controlled by `incrementBy` argument.
+   *
+   * @param {number} visualIndex The visual index from which the counting begins.
+   * @param {number} incrementBy If `-1` then counting is backwards or forward when `1`.
+   * @returns {number}
+   */
+  countNotHiddenColumnIndexes(visualIndex, incrementBy) {
+    return this.countNotHiddenIndexes(
+      visualIndex, incrementBy, this.instance.columnIndexMapper, this.countRenderableColumns());
+  }
+
+  /**
+   * Returns number of not hidden indexes counting from the passed starting index.
+   * The counting direction can be controlled by `incrementBy` argument.
+   *
+   * @param {number} visualIndex The visual index from which the counting begins.
+   * @param {number} incrementBy If `-1` then counting is backwards or forward when `1`.
+   * @param {IndexMapper} indexMapper The IndexMapper instance for specific axis.
+   * @param {number} renderableIndexesCount Total count of renderable indexes for specific axis.
+   * @returns {number}
+   */
+  countNotHiddenIndexes(visualIndex, incrementBy, indexMapper, renderableIndexesCount) {
+    if (isNaN(visualIndex) || visualIndex < 0) {
       return 0;
     }
 
-    const indexMapper = this.instance[`${axix}IndexMapper`];
     const firstVisibleIndex = indexMapper.getFirstNotHiddenIndex(visualIndex, incrementBy);
     const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
 
@@ -414,16 +439,16 @@ class TableView {
       return 0;
     }
 
-    let notHiddenRows = 0;
+    let notHiddenIndexes = 0;
 
     if (incrementBy < 0) {
-      // Zero-based numbering acts here as a count of not hidden rows.
-      notHiddenRows = renderableIndex + 1;
+      // Zero-based numbering for renderable indexes corresponds to a number of not hidden indexes.
+      notHiddenIndexes = renderableIndex + 1;
     } else if (incrementBy > 0) {
-      notHiddenRows = this[`countRenderable${toUpperCaseFirst(axix)}s`]() - renderableIndex;
+      notHiddenIndexes = renderableIndexesCount - renderableIndex;
     }
 
-    return notHiddenRows;
+    return notHiddenIndexes;
   }
 
   /**
@@ -447,17 +472,17 @@ class TableView {
       fixedColumnsLeft: () => {
         const fixedColumnsLeft = parseInt(this.settings.fixedColumnsLeft, 10);
 
-        return this.countNotHiddenRecords(fixedColumnsLeft - 1, 'column', -1);
+        return this.countNotHiddenColumnIndexes(fixedColumnsLeft - 1, -1);
       },
       fixedRowsTop: () => {
         const fixedRowsTop = parseInt(this.settings.fixedRowsTop, 10);
 
-        return this.countNotHiddenRecords(fixedRowsTop - 1, 'row', -1);
+        return this.countNotHiddenRowIndexes(fixedRowsTop - 1, -1);
       },
       fixedRowsBottom: () => {
         const fixedRowsBottom = parseInt(this.settings.fixedRowsBottom, 10);
 
-        return this.countNotHiddenRecords(this.instance.countRows() - fixedRowsBottom, 'row', 1);
+        return this.countNotHiddenRowIndexes(this.instance.countRows() - fixedRowsBottom, 1);
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
@@ -508,9 +533,6 @@ class TableView {
       rowHeight: (renderedRowIndex) => {
         const visualIndex = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
 
-        // It's not a bug that we can't find visual index for some handled by method indexes. The function is called also
-        // for not displayed indexes (beyond the table boundaries), i.e. when `fixedRowLeft` > `startRows` (wrong config?) or
-        // scrolling and dataset is empty (scroll should handle that?).
         return this.instance.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
       },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {

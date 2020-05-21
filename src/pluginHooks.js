@@ -1902,7 +1902,8 @@ const REMOVED_HOOKS = new Map([
   ['unmodifyRow', '8.0.0'],
   ['unmodifyCol', '8.0.0'],
   ['skipLengthCache', '8.0.0'],
-  ['hiddenColumn', '8.0.0']
+  ['hiddenColumn', '8.0.0'],
+  ['hiddenRow', '8.0.0'],
 ]);
 
 /**

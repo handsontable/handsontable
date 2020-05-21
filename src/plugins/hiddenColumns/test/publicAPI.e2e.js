@@ -1,4 +1,4 @@
-describe('HiddenRows', () => {
+describe('HiddenColumns', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -13,63 +13,61 @@ describe('HiddenRows', () => {
   });
 
   describe('public API', () => {
-    describe('hideRow()', () => {
-      it('should hide row by passing the visual row index', () => {
+    describe('hideColumn()', () => {
+      it('should hide column by passing the visual column index', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
-          hiddenRows: true,
+          data: Handsontable.helper.createSpreadsheetData(1, 3),
+          hiddenColumns: true,
         });
 
-        expect(getCell(1, 0).innerText).toBe('A2');
+        expect(getCell(0, 1).innerText).toBe('B1');
 
-        getPlugin('hiddenRows').hideRow(1);
+        getPlugin('hiddenColumns').hideColumn(1);
         render();
 
-        expect(getCell(1, 0)).toBe(null);
+        expect(getCell(0, 1)).toBe(null);
       });
-    });
 
-    describe('showRow()', () => {
-      it('should show row by passing the visual row index', () => {
+      it('should show column by passing the visual column index', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
-          hiddenRows: {
-            rows: [1],
+          data: Handsontable.helper.createSpreadsheetData(1, 3),
+          hiddenColumns: {
+            columns: [1],
           },
         });
 
-        expect(getCell(1, 0)).toBe(null);
+        expect(getCell(0, 1)).toBe(null);
 
-        getPlugin('hiddenRows').showRow(1);
+        getPlugin('hiddenColumns').showColumn(1);
         render();
 
-        expect(getCell(1, 0).innerText).toBe('A2');
+        expect(getCell(0, 1).innerText).toBe('B1');
       });
     });
 
     describe('isHidden()', () => {
-      it('should return `true` for hidden row', () => {
+      it('should return `true` for hidden column', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(3, 3),
-          hiddenRows: {
-            rows: [1],
+          hiddenColumns: {
+            columns: [1],
           },
         });
 
-        const plugin = getPlugin('hiddenRows');
+        const plugin = getPlugin('hiddenColumns');
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(true);
         expect(plugin.isHidden(2)).toBe(false);
 
-        getPlugin('hiddenRows').showRow(1);
+        getPlugin('hiddenColumns').showColumn(1);
         render();
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(false);
         expect(plugin.isHidden(2)).toBe(false);
 
-        getPlugin('hiddenRows').hideRow(2);
+        getPlugin('hiddenColumns').hideColumn(2);
         render();
 
         expect(plugin.isHidden(0)).toBe(false);
@@ -78,67 +76,67 @@ describe('HiddenRows', () => {
       });
     });
 
-    describe('getHiddenRows()', () => {
-      it('should return collection of hidden visual row indexes', () => {
+    describe('getHiddenColumns()', () => {
+      it('should return collection of hidden visual column indexes', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(3, 3),
-          hiddenRows: {
-            rows: [1],
+          hiddenColumns: {
+            columns: [1],
           },
         });
 
-        const plugin = getPlugin('hiddenRows');
+        const plugin = getPlugin('hiddenColumns');
 
-        expect(plugin.getHiddenRows()).toEqual([1]);
+        expect(plugin.getHiddenColumns()).toEqual([1]);
 
-        getPlugin('hiddenRows').showRow(1);
+        getPlugin('hiddenColumns').showColumn(1);
         render();
 
-        expect(plugin.getHiddenRows()).toEqual([]);
+        expect(plugin.getHiddenColumns()).toEqual([]);
 
-        getPlugin('hiddenRows').hideRows([0, 2]);
+        getPlugin('hiddenColumns').hideColumns([0, 2]);
         render();
 
-        expect(plugin.getHiddenRows()).toEqual([0, 2]);
+        expect(plugin.getHiddenColumns()).toEqual([0, 2]);
       });
 
-      it('should return correct visual indexes when rows sequence is non-contiguous ' +
+      it('should return correct visual indexes when columns sequence is non-contiguous ' +
          '(force desync between physical and visual indexes)', () => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 1),
-          rowHeaders: true,
-          hiddenRows: {
-            rows: [1],
+          data: Handsontable.helper.createSpreadsheetData(1, 10),
+          colHeaders: true,
+          hiddenColumns: {
+            columns: [1],
             indicators: true,
           },
         });
 
-        hot.rowIndexMapper.setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
+        hot.columnIndexMapper.setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
 
-        const plugin = getPlugin('hiddenRows');
+        const plugin = getPlugin('hiddenColumns');
 
-        expect(plugin.getHiddenRows()).toEqual([2]);
+        expect(plugin.getHiddenColumns()).toEqual([2]);
 
-        getPlugin('hiddenRows').showRow(2);
+        getPlugin('hiddenColumns').showColumn(2);
         render();
 
-        expect(plugin.getHiddenRows()).toEqual([]);
+        expect(plugin.getHiddenColumns()).toEqual([]);
 
-        getPlugin('hiddenRows').hideRows([3, 6]);
+        getPlugin('hiddenColumns').hideColumns([3, 6]);
         render();
 
-        expect(plugin.getHiddenRows()).toEqual([3, 6]);
+        expect(plugin.getHiddenColumns()).toEqual([3, 6]);
       });
     });
 
     describe('isValidConfig()', () => {
-      it('should return `false` for rows passed as not a number', () => {
+      it('should return `false` for columns passed as not a number', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(3, 3),
-          hiddenRows: true,
+          hiddenColumns: true,
         });
 
-        const plugin = getPlugin('hiddenRows');
+        const plugin = getPlugin('hiddenColumns');
 
         expect(plugin.isValidConfig()).toBe(false);
         expect(plugin.isValidConfig(null)).toBe(false);
@@ -153,13 +151,13 @@ describe('HiddenRows', () => {
         expect(plugin.isValidConfig([{ index: 1 }])).toBe(false);
       });
 
-      it('should return `true` for rows, which are within the range of the table size', () => {
+      it('should return `true` for columns, which are within the range of the table size', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(3, 3),
-          hiddenRows: true,
+          hiddenColumns: true,
         });
 
-        const plugin = getPlugin('hiddenRows');
+        const plugin = getPlugin('hiddenColumns');
 
         expect(plugin.isValidConfig([0])).toBe(true);
         expect(plugin.isValidConfig([1, 2])).toBe(true);

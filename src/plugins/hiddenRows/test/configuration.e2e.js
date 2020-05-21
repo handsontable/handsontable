@@ -13,7 +13,7 @@ describe('HiddenRows', () => {
   });
 
   describe('configuration', () => {
-    it('should hide rows if the "hiddenRows" property is set', () => {
+    it('should hide rows if the "hiddenRows" has "rows" property set', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenRows: {
@@ -37,8 +37,6 @@ describe('HiddenRows', () => {
           rows: [1, 3],
         },
       });
-
-      expect(countRows()).toBe(5);
 
       getPlugin('hiddenRows').disablePlugin();
       render();
@@ -67,8 +65,6 @@ describe('HiddenRows', () => {
 
       plugin.enablePlugin();
       render();
-
-      expect(countRows()).toBe(5);
 
       expect(countRows()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');

@@ -1217,8 +1217,6 @@ declare namespace Handsontable {
     }
 
     interface HiddenColumns extends Base {
-      settings: object | void;
-
       isHidden(column: number): boolean;
       hideColumn(column: number): void;
       hideColumns(columns: number[]): void;

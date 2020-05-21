@@ -275,7 +275,7 @@ describe('HiddenRows', () => {
 
       // The same as at the start.
       expect($(getHtCore()).find('td').length).toBe(5);
-      // Still the same width for the whole table.
+      // Still the same height for the whole table.
       expect(getHtCore().outerHeight()).toBe(116);
       expect(getHtCore().find('td:eq(1)').outerHeight()).toBe(69);
     });
