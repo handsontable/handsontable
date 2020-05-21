@@ -52,6 +52,7 @@ class NestedRows extends BasePlugin {
       movedToFirstChild: false,
       movedToCollapsed: false,
       skipRender: null,
+      skipCoreAPIModifiers: false
     });
   }
 
@@ -118,7 +119,12 @@ class NestedRows extends BasePlugin {
    */
   updatePlugin() {
     this.disablePlugin();
+
+    const vanillaSourceData = this.hot.getSourceData();
+
     this.enablePlugin();
+
+    this.dataManager.updateWithData(vanillaSourceData);
 
     super.updatePlugin();
   }
@@ -333,6 +339,24 @@ class NestedRows extends BasePlugin {
   }
 
   /**
+   * Enable the modify hook skipping flag - allows retrieving the data from Handsontable without this plugin's modifications.
+   */
+  disableCoreAPIModifiers() {
+    const priv = privatePool.get(this);
+
+    priv.skipCoreAPIModifiers = true;
+  }
+
+  /**
+   * Disable the modify hook skipping flag.
+   */
+  enableCoreAPIModifiers() {
+    const priv = privatePool.get(this);
+
+    priv.skipCoreAPIModifiers = false;
+  }
+
+  /**
    * `beforeOnCellMousedown` hook callback.
    *
    * @private
@@ -352,6 +376,12 @@ class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onModifyRowData(row) {
+    const priv = privatePool.get(this);
+
+    if (priv.skipCoreAPIModifiers) {
+      return;
+    }
+
     return this.dataManager.getDataObject(row);
   }
 
@@ -362,6 +392,12 @@ class NestedRows extends BasePlugin {
    * @returns {number}
    */
   onModifySourceLength() {
+    const priv = privatePool.get(this);
+
+    if (priv.skipCoreAPIModifiers) {
+      return;
+    }
+
     return this.dataManager.countAllRows();
   }
 
@@ -373,6 +409,12 @@ class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onBeforeDataSplice(index, amount, element) {
+    const priv = privatePool.get(this);
+
+    if (priv.skipCoreAPIModifiers || this.dataManager.isRowHighestLevel(index)) {
+      return true;
+    }
+
     this.dataManager.spliceData(index, amount, element);
 
     return false;
@@ -540,7 +582,8 @@ class NestedRows extends BasePlugin {
     if (source === this.pluginName) {
       return;
     }
-    this.dataManager.rewriteCache();
+
+    this.dataManager.updateWithData(this.dataManager.getRawSourceData());
   }
 
   /**
@@ -587,7 +630,7 @@ class NestedRows extends BasePlugin {
    * @private
    */
   onBeforeLoadData(data) {
-    this.dataManager.data = data;
+    this.dataManager.setData(data);
     this.dataManager.rewriteCache();
   }
 }
