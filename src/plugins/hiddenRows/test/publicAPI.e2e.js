@@ -102,22 +102,18 @@ describe('HiddenRows', () => {
         expect(plugin.getHiddenRows()).toEqual([0, 2]);
       });
 
-      it('should return correct visual indexes when some rows are sorted ' +
+      it('should return correct visual indexes when rows sequence is non-contiguous ' +
          '(force desync between physical and visual indexes)', () => {
-        handsontable({
+        const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 1),
           rowHeaders: true,
           hiddenRows: {
             rows: [1],
             indicators: true,
           },
-          columnSorting: {
-            initialConfig: {
-              column: 0,
-              sortOrder: 'asc'
-            }
-          },
         });
+
+        hot.rowIndexMapper.setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
 
         const plugin = getPlugin('hiddenRows');
 

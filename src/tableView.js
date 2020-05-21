@@ -442,7 +442,7 @@ class TableView {
     let notHiddenIndexes = 0;
 
     if (incrementBy < 0) {
-      // Zero-based numbering for renderable indexes corresponds to a number of not hidden rows indexes.
+      // Zero-based numbering for renderable indexes corresponds to a number of not hidden indexes.
       notHiddenIndexes = renderableIndex + 1;
     } else if (incrementBy > 0) {
       notHiddenIndexes = renderableIndexesCount - renderableIndex;
