@@ -158,6 +158,13 @@ class EditorManager {
 
     this.cellProperties = this.instance.getCellMeta(row, col);
 
+    const { activeElement } = this.instance.rootDocument;
+
+    if (activeElement) {
+      // Bluring prepares an editor to focus its input element to interact with the user.
+      activeElement.blur();
+    }
+
     if (this.cellProperties.readOnly) {
       this.clearActiveEditor();
 
