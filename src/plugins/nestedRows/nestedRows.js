@@ -54,7 +54,7 @@ class NestedRows extends BasePlugin {
       movedToFirstChild: false,
       movedToCollapsed: false,
       skipRender: null,
-      skipModifyHooks: false
+      skipCoreAPIModifiers: false
     });
   }
 
@@ -339,19 +339,19 @@ class NestedRows extends BasePlugin {
   /**
    * Enable the modify hook skipping flag - allows retrieving the data from Handsontable without this plugin's modifications.
    */
-  enableModifyHookSkipping() {
+  disableCoreAPIModifiers() {
     const priv = privatePool.get(this);
 
-    priv.skipModifyHooks = true;
+    priv.skipCoreAPIModifiers = true;
   }
 
   /**
    * Disable the modify hook skipping flag.
    */
-  disableModifyHookSkipping() {
+  enableCoreAPIModifiers() {
     const priv = privatePool.get(this);
 
-    priv.skipModifyHooks = false;
+    priv.skipCoreAPIModifiers = false;
   }
 
   /**
@@ -376,7 +376,7 @@ class NestedRows extends BasePlugin {
   onModifyRowData(row) {
     const priv = privatePool.get(this);
 
-    if (priv.skipModifyHooks) {
+    if (priv.skipCoreAPIModifiers) {
       return;
     }
 
@@ -392,7 +392,7 @@ class NestedRows extends BasePlugin {
   onModifySourceLength() {
     const priv = privatePool.get(this);
 
-    if (priv.skipModifyHooks) {
+    if (priv.skipCoreAPIModifiers) {
       return;
     }
 
@@ -407,6 +407,12 @@ class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onBeforeDataSplice(index, amount, element) {
+    const priv = privatePool.get(this);
+
+    if (priv.skipCoreAPIModifiers || this.dataManager.isRowHighestLevel(index)) {
+      return true;
+    }
+
     this.dataManager.spliceData(index, amount, element);
 
     return false;

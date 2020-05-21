@@ -73,9 +73,9 @@ class DataManager {
   getRawSourceData() {
     let rawSourceData = null;
 
-    this.plugin.enableModifyHookSkipping();
+    this.plugin.disableCoreAPIModifiers();
     rawSourceData = this.hot.getSourceData();
-    this.plugin.disableModifyHookSkipping();
+    this.plugin.enableCoreAPIModifiers();
 
     return rawSourceData;
   }
@@ -392,6 +392,28 @@ class DataManager {
     return !!(rowObj.__children && rowObj.__children.length);
   }
 
+  /**
+   * Returns `true` if the row at the provided index has a parent.
+   *
+   * @param {number} index Row index.
+   * @returns {boolean} `true` if the row at the provided index has a parent, `false` otherwise.
+   */
+  hasRowParent(index) {
+    const rowObject = this.getDataObject(index);
+
+    return rowObject ? !!this.cache.nodeInfo.get(rowObject).parent : false;
+  }
+
+  /**
+   * Return `true` of the row at the provided index is located at the topmost level.
+   *
+   * @param {number} index Row index.
+   * @returns {boolean} `true` of the row at the provided index is located at the topmost level, `false` otherwise.
+   */
+  isRowHighestLevel(index) {
+    return !this.hasRowParent(index);
+  }
+
   isParent(row) {
     let rowObj = row;
 
@@ -448,31 +470,34 @@ class DataManager {
    * @param {object} parent Parent node.
    * @param {number} index Index to insert the child element at.
    * @param {object} [element] Element (node) to insert.
-   * @param {number} [globalIndex] Global index of the inserted row.
    */
-  addChildAtIndex(parent, index, element, globalIndex) {
+  addChildAtIndex(parent, index, element) {
     let childElement = element;
-    this.hot.runHooks('beforeAddChild', parent, childElement, index);
-    this.hot.runHooks('beforeCreateRow', globalIndex + 1, 1);
-    let functionalParent = parent;
-
-    if (!parent) {
-      functionalParent = this.mockParent();
-    }
-
-    if (!functionalParent.__children) {
-      functionalParent.__children = [];
-    }
 
     if (!childElement) {
       childElement = this.mockNode();
     }
 
-    functionalParent.__children.splice(index, null, childElement);
+    this.hot.runHooks('beforeAddChild', parent, childElement, index);
 
-    this.rewriteCache();
+    if (parent) {
+      this.hot.runHooks('beforeCreateRow', index, 1);
 
-    this.hot.runHooks('afterCreateRow', globalIndex + 1, 1);
+      parent.__children.splice(index, null, childElement);
+
+      this.hot.runHooks('afterCreateRow', index, 1);
+
+    } else {
+      this.plugin.disableCoreAPIModifiers();
+      this.hot.alter('insert_row', index, 1, 'NestedRows');
+      this.plugin.enableCoreAPIModifiers();
+    }
+
+    this.updateWithData(this.getRawSourceData());
+
+    // Workaround for refreshing cache losing the reference to the mocked row.
+    childElement = this.getDataObject(index);
+
     this.hot.runHooks('afterAddChild', parent, childElement, index);
   }
 

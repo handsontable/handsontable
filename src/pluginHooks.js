@@ -223,16 +223,6 @@ const REGISTERED_HOOKS = [
   'afterCreateRow',
 
   /**
-   * Fired before splicing the data during row creation process.
-   *
-   * @event Hooks#beforeDataSplice
-   * @param {number} index Physical index of the element to add/remove.
-   * @param {number} amount Number of rows to add/remove.
-   * @param {object[]} elements Array of row elements to be added.
-   */
-  'beforeDataSplice',
-
-  /**
    * Fired after the current cell is deselected.
    *
    * @event Hooks#afterDeselect
