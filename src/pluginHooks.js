@@ -1023,6 +1023,15 @@ const REGISTERED_HOOKS = [
   'modifyRowData',
 
   /**
+   * Fired when there is a try of removing rows. Callback to this hook may change list of removed indexes.
+   *
+   * @event Hooks#modifyRemovedRows
+   * @since 8.0.0
+   * @param {number} physicalIndexes List of physical row indexes.
+   */
+  'modifyRemovedRows',
+
+  /**
    * Used to modify the cell coordinates when using the `getCell` method.
    *
    * @event Hooks#modifyGetCellCoords
