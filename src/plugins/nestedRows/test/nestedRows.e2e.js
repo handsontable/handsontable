@@ -297,6 +297,53 @@ describe('NestedRows', () => {
     });
   });
 
+  describe('API', () => {
+    describe('disableCoreAPIModifiers and enableCoreAPIModifiers', () => {
+      it('should kill the runtime of the core API modifying hook callbacks - onModifyRowData, onModifySourceLength and onBeforeDataSplice', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          manualRowMove: true,
+          rowHeaders: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+
+        nrPlugin.disableCoreAPIModifiers();
+
+        expect(nrPlugin.onModifyRowData()).toEqual(void 0);
+        expect(nrPlugin.onModifySourceLength()).toEqual(void 0);
+        expect(nrPlugin.onBeforeDataSplice(1)).toEqual(true);
+
+        nrPlugin.enableCoreAPIModifiers();
+
+        expect(nrPlugin.onModifyRowData()).not.toEqual(void 0);
+        expect(nrPlugin.onModifySourceLength()).not.toEqual(void 0);
+        expect(nrPlugin.onBeforeDataSplice(1)).toEqual(false);
+      });
+    });
+  });
+
+  describe('Core HOT API', () => {
+    it('should recreate the nested structure when updating the data with the `updateSettings` method', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: true
+      });
+
+      updateSettings({
+        data: getMoreComplexNestedData()
+      });
+
+      const nrPlugin = getPlugin('nestedRows');
+
+      expect(nrPlugin.dataManager.countAllRows()).toEqual(13);
+      expect(nrPlugin.dataManager.getRowLevel(5)).toEqual(3);
+      expect(nrPlugin.dataManager.getRowParent(5).a).toEqual('a0-a2-a0');
+    });
+  });
+
   it('should add child properly', () => {
     handsontable({
       data: getSimplerNestedData(),

@@ -19,7 +19,7 @@ class DataManager {
     /**
      * Reference to the source data object.
      *
-     * @type {object}
+     * @type {Handsontable.CellValue[][]|Handsontable.RowObject[]}
      */
     this.data = null;
     /**
@@ -45,6 +45,49 @@ class DataManager {
       rows: [],
       nodeInfo: new WeakMap()
     };
+  }
+
+  /**
+   * Set the data for the manager.
+   *
+   * @param {Handsontable.CellValue[][]|Handsontable.RowObject[]} data Data for the manager.
+   */
+  setData(data) {
+    this.data = data;
+  }
+
+  /**
+   * Get the data cached in the manager.
+   *
+   * @returns {Handsontable.CellValue[][]|Handsontable.RowObject[]}
+   */
+  getData() {
+    return this.data;
+  }
+
+  /**
+   * Load the "raw" source data, without NestedRows' modifications.
+   *
+   * @returns {Handsontable.CellValue[][]|Handsontable.RowObject[]}
+   */
+  getRawSourceData() {
+    let rawSourceData = null;
+
+    this.plugin.disableCoreAPIModifiers();
+    rawSourceData = this.hot.getSourceData();
+    this.plugin.enableCoreAPIModifiers();
+
+    return rawSourceData;
+  }
+
+  /**
+   * Update the Data Manager with new data and refresh cache.
+   *
+   * @param {Handsontable.CellValue[][]|Handsontable.RowObject[]} data Data for the manager.
+   */
+  updateWithData(data) {
+    this.setData(data);
+    this.rewriteCache();
   }
 
   /**
@@ -115,10 +158,10 @@ class DataManager {
    */
   readTreeNodes(parent, readCount, neededIndex, neededObject) {
     let rootLevel = false;
-    let readedNodesCount = readCount;
+    let readNodesCount = readCount;
 
-    if (isNaN(readedNodesCount) && readedNodesCount.end) {
-      return readedNodesCount;
+    if (isNaN(readNodesCount) && readNodesCount.end) {
+      return readNodesCount;
     }
 
     let parentObj = parent;
@@ -128,42 +171,33 @@ class DataManager {
         __children: this.data
       };
       rootLevel = true;
-      readedNodesCount -= 1;
+      readNodesCount -= 1;
     }
 
-    if (neededIndex !== null && neededIndex !== void 0 && readedNodesCount === neededIndex) {
+    if (neededIndex !== null && neededIndex !== void 0 && readNodesCount === neededIndex) {
       return { result: parentObj, end: true };
     }
 
     if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
-      return { result: readedNodesCount, end: true };
+      return { result: readNodesCount, end: true };
     }
 
-    readedNodesCount += 1;
+    readNodesCount += 1;
 
     if (parentObj.__children) {
       arrayEach(parentObj.__children, (val) => {
 
         this.parentReference.set(val, rootLevel ? null : parentObj);
 
-        readedNodesCount = this.readTreeNodes(val, readedNodesCount, neededIndex, neededObject);
+        readNodesCount = this.readTreeNodes(val, readNodesCount, neededIndex, neededObject);
 
-        if (isNaN(readedNodesCount) && readedNodesCount.end) {
+        if (isNaN(readNodesCount) && readNodesCount.end) {
           return false;
         }
       });
     }
 
-    return readedNodesCount;
-  }
-
-  /**
-   * Update the parent reference map.
-   *
-   * @private
-   */
-  updateParentReference() {
-    this.readTreeNodes({ __children: this.data }, 0, this.hot.countRows());
+    return readNodesCount;
   }
 
   /**
@@ -349,6 +383,32 @@ class DataManager {
     return !!(rowObj.__children && rowObj.__children.length);
   }
 
+  /**
+   * Returns `true` if the row at the provided index has a parent.
+   *
+   * @param {number} index Row index.
+   * @returns {boolean} `true` if the row at the provided index has a parent, `false` otherwise.
+   */
+  isChild(index) {
+    return this.getRowParent(index) !== null;
+  }
+
+  /**
+   * Return `true` of the row at the provided index is located at the topmost level.
+   *
+   * @param {number} index Row index.
+   * @returns {boolean} `true` of the row at the provided index is located at the topmost level, `false` otherwise.
+   */
+  isRowHighestLevel(index) {
+    return !this.isChild(index);
+  }
+
+  /**
+   * Return `true` if the provided row index / row object represents a parent in the nested structure.
+   *
+   * @param {number|object} row Row index / row object.
+   * @returns {boolean} `true` if the row is a parent, `false` otherwise.
+   */
   isParent(row) {
     let rowObj = row;
 
@@ -405,31 +465,38 @@ class DataManager {
    * @param {object} parent Parent node.
    * @param {number} index Index to insert the child element at.
    * @param {object} [element] Element (node) to insert.
-   * @param {number} [globalIndex] Global index of the inserted row.
    */
-  addChildAtIndex(parent, index, element, globalIndex) {
+  addChildAtIndex(parent, index, element) {
     let childElement = element;
-    this.hot.runHooks('beforeAddChild', parent, childElement, index);
-    this.hot.runHooks('beforeCreateRow', globalIndex + 1, 1);
-    let functionalParent = parent;
-
-    if (!parent) {
-      functionalParent = this.mockParent();
-    }
-
-    if (!functionalParent.__children) {
-      functionalParent.__children = [];
-    }
 
     if (!childElement) {
       childElement = this.mockNode();
     }
 
-    functionalParent.__children.splice(index, null, childElement);
+    this.hot.runHooks('beforeAddChild', parent, childElement, index);
 
-    this.rewriteCache();
+    if (parent) {
+      this.hot.runHooks('beforeCreateRow', index, 1);
 
-    this.hot.runHooks('afterCreateRow', globalIndex + 1, 1);
+      parent.__children.splice(index, null, childElement);
+
+      this.plugin.disableCoreAPIModifiers();
+      this.hot.setSourceDataAtCell(this.getRowIndexWithinParent(parent), '__children', parent.__children);
+      this.plugin.enableCoreAPIModifiers();
+
+      this.hot.runHooks('afterCreateRow', index, 1);
+
+    } else {
+      this.plugin.disableCoreAPIModifiers();
+      this.hot.alter('insert_row', index, 1, 'NestedRows.addChildAtIndex');
+      this.plugin.enableCoreAPIModifiers();
+    }
+
+    this.updateWithData(this.getRawSourceData());
+
+    // Workaround for refreshing cache losing the reference to the mocked row.
+    childElement = this.getDataObject(index);
+
     this.hot.runHooks('afterAddChild', parent, childElement, index);
   }
 
@@ -446,10 +513,10 @@ class DataManager {
 
     switch (where) {
       case 'below':
-        this.addChildAtIndex(parent, indexWithinParent + 1, null, index);
+        this.addChildAtIndex(parent, indexWithinParent + 1, null);
         break;
       case 'above':
-        this.addChildAtIndex(parent, indexWithinParent, null, index);
+        this.addChildAtIndex(parent, indexWithinParent, null);
         break;
       default:
         break;
@@ -532,6 +599,8 @@ class DataManager {
    * @param {Array} logicRows Array of indexes to remove.
    */
   filterData(index, amount, logicRows) {
+    // TODO: why are the first 2 arguments not used?
+
     const elementsToRemove = [];
 
     arrayEach(logicRows, (elem) => {
@@ -556,39 +625,34 @@ class DataManager {
    * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the default script.
    *
    * @private
-   * @param {number} index Index of the element at the splice beginning.
+   * @param {number} index Physical index of the element at the splice beginning.
    * @param {number} amount Number of elements to be removed.
-   * @param {object} element Row to add.
+   * @param {object[]} elements Array of row objects to add.
    */
-  spliceData(index, amount, element) {
-    const elementIndex = this.translateTrimmedRow(index);
-
-    if (elementIndex === null || elementIndex === void 0) {
-      return;
-    }
-
-    const previousElement = this.getDataObject(elementIndex - 1);
+  spliceData(index, amount, elements) {
+    const previousElement = this.getDataObject(index - 1);
     let newRowParent = null;
-    let indexWithinParent = null;
+    let indexWithinParent = index;
 
     if (previousElement && previousElement.__children && previousElement.__children.length === 0) {
       newRowParent = previousElement;
       indexWithinParent = 0;
 
-    } else {
-      newRowParent = this.getRowParent(elementIndex);
-      indexWithinParent = this.getRowIndexWithinParent(elementIndex);
+    } else if (index < this.countAllRows()) {
+      newRowParent = this.getRowParent(index);
+      indexWithinParent = this.getRowIndexWithinParent(index);
     }
 
     if (newRowParent) {
-      if (element) {
-        newRowParent.__children.splice(indexWithinParent, amount, element);
+      if (elements) {
+        newRowParent.__children.splice(indexWithinParent, amount, ...elements);
+
       } else {
         newRowParent.__children.splice(indexWithinParent, amount);
       }
 
-    } else if (element) {
-      this.data.splice(indexWithinParent, amount, element);
+    } else if (elements) {
+      this.data.splice(indexWithinParent, amount, ...elements);
 
     } else {
       this.data.splice(indexWithinParent, amount);
