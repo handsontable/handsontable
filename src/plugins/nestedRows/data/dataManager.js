@@ -158,10 +158,10 @@ class DataManager {
    */
   readTreeNodes(parent, readCount, neededIndex, neededObject) {
     let rootLevel = false;
-    let readedNodesCount = readCount;
+    let readNodesCount = readCount;
 
-    if (isNaN(readedNodesCount) && readedNodesCount.end) {
-      return readedNodesCount;
+    if (isNaN(readNodesCount) && readNodesCount.end) {
+      return readNodesCount;
     }
 
     let parentObj = parent;
@@ -171,42 +171,33 @@ class DataManager {
         __children: this.data
       };
       rootLevel = true;
-      readedNodesCount -= 1;
+      readNodesCount -= 1;
     }
 
-    if (neededIndex !== null && neededIndex !== void 0 && readedNodesCount === neededIndex) {
+    if (neededIndex !== null && neededIndex !== void 0 && readNodesCount === neededIndex) {
       return { result: parentObj, end: true };
     }
 
     if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
-      return { result: readedNodesCount, end: true };
+      return { result: readNodesCount, end: true };
     }
 
-    readedNodesCount += 1;
+    readNodesCount += 1;
 
     if (parentObj.__children) {
       arrayEach(parentObj.__children, (val) => {
 
         this.parentReference.set(val, rootLevel ? null : parentObj);
 
-        readedNodesCount = this.readTreeNodes(val, readedNodesCount, neededIndex, neededObject);
+        readNodesCount = this.readTreeNodes(val, readNodesCount, neededIndex, neededObject);
 
-        if (isNaN(readedNodesCount) && readedNodesCount.end) {
+        if (isNaN(readNodesCount) && readNodesCount.end) {
           return false;
         }
       });
     }
 
-    return readedNodesCount;
-  }
-
-  /**
-   * Update the parent reference map.
-   *
-   * @private
-   */
-  updateParentReference() {
-    this.readTreeNodes({ __children: this.data }, 0, this.hot.countRows());
+    return readNodesCount;
   }
 
   /**
@@ -398,10 +389,8 @@ class DataManager {
    * @param {number} index Row index.
    * @returns {boolean} `true` if the row at the provided index has a parent, `false` otherwise.
    */
-  hasRowParent(index) {
-    const rowObject = this.getDataObject(index);
-
-    return rowObject ? !!this.cache.nodeInfo.get(rowObject).parent : false;
+  isChild(index) {
+    return this.getRowParent(index) !== null;
   }
 
   /**
@@ -411,9 +400,15 @@ class DataManager {
    * @returns {boolean} `true` of the row at the provided index is located at the topmost level, `false` otherwise.
    */
   isRowHighestLevel(index) {
-    return !this.hasRowParent(index);
+    return !this.isChild(index);
   }
 
+  /**
+   * Return `true` if the provided row index / row object represents a parent in the nested structure.
+   *
+   * @param {number|object} row Row index / row object.
+   * @returns {boolean} `true` if the row is a parent, `false` otherwise.
+   */
   isParent(row) {
     let rowObj = row;
 
@@ -485,11 +480,15 @@ class DataManager {
 
       parent.__children.splice(index, null, childElement);
 
+      this.plugin.disableCoreAPIModifiers();
+      this.hot.setSourceDataAtCell(this.getRowIndexWithinParent(parent), '__children', parent.__children);
+      this.plugin.enableCoreAPIModifiers();
+
       this.hot.runHooks('afterCreateRow', index, 1);
 
     } else {
       this.plugin.disableCoreAPIModifiers();
-      this.hot.alter('insert_row', index, 1, 'NestedRows');
+      this.hot.alter('insert_row', index, 1, 'NestedRows.addChildAtIndex');
       this.plugin.enableCoreAPIModifiers();
     }
 
@@ -514,10 +513,10 @@ class DataManager {
 
     switch (where) {
       case 'below':
-        this.addChildAtIndex(parent, indexWithinParent + 1, null, index);
+        this.addChildAtIndex(parent, indexWithinParent + 1, null);
         break;
       case 'above':
-        this.addChildAtIndex(parent, indexWithinParent, null, index);
+        this.addChildAtIndex(parent, indexWithinParent, null);
         break;
       default:
         break;
@@ -600,6 +599,8 @@ class DataManager {
    * @param {Array} logicRows Array of indexes to remove.
    */
   filterData(index, amount, logicRows) {
+    // TODO: why are the first 2 arguments not used?
+
     const elementsToRemove = [];
 
     arrayEach(logicRows, (elem) => {
