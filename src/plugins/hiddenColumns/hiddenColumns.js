@@ -258,7 +258,11 @@ class HiddenColumns extends BasePlugin {
   isValidConfig(hiddenColumns) {
     const nrOfColumns = this.hot.countCols();
 
-    return hiddenColumns.every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfColumns);
+    if (Array.isArray(hiddenColumns) && hiddenColumns.length > 0) {
+      return hiddenColumns.every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfColumns);
+    }
+
+    return false;
   }
 
   /**
