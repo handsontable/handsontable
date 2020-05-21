@@ -21,6 +21,7 @@ const privatePool = new WeakMap();
  *
  * @description
  * Plugin responsible for displaying and operating on data sources with nested structures.
+ * Please note that nested rows does not support filtering and sorting currently.
  */
 class NestedRows extends BasePlugin {
   constructor(hotInstance) {
