@@ -71,6 +71,10 @@ class NestedRows extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+
     this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
     this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap());
 
