@@ -131,7 +131,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap('filters', new TrimmingMap());
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
@@ -220,7 +220,7 @@ class Filters extends BasePlugin {
 
       this.conditionCollection.clean();
 
-      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
     super.disablePlugin();
@@ -611,11 +611,15 @@ class Filters extends BasePlugin {
    */
   onComponentChange(component, command) {
     if (component === this.components.get('filter_by_condition')) {
-      if (command.showOperators) {
-        this.showComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
+      const componentsToShow = [
+        this.components.get('filter_by_condition2'),
+        this.components.get('filter_operators')
+      ];
 
+      if (command.showOperators) {
+        this.showComponents(...componentsToShow);
       } else {
-        this.hideComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
+        this.hideComponents(...componentsToShow);
       }
     }
 
@@ -670,7 +674,7 @@ class Filters extends BasePlugin {
     const th = closest(event.target, 'TH');
 
     if (th) {
-      const visualIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.getCoords(th).col);
+      const visualIndex = this.hot.getCoords(th).col;
       const physicalIndex = this.hot.toPhysicalColumn(visualIndex);
 
       this.lastSelectedColumn = {
@@ -823,13 +827,13 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Saves `hiddenRows` cache for particular row.
+   * Saves `hiddenRows` cache for particular column.
    *
    * @private
-   * @param {number} rowIndex Physical row index.
+   * @param {number} columnIndex Physical column index.
    */
-  saveHiddenRowsCache(rowIndex) {
-    this.hiddenRowsCache.set(rowIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').hiddenRows);
+  saveHiddenRowsCache(columnIndex) {
+    this.hiddenRowsCache.set(columnIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').getHiddenRows());
   }
 
   /**
@@ -861,7 +865,7 @@ class Filters extends BasePlugin {
         component.destroy();
       });
 
-      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();

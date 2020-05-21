@@ -74,6 +74,7 @@ export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
 export const getCellValidator = handsontableMethodFactory('getCellValidator');
 export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
 export const getData = handsontableMethodFactory('getData');
