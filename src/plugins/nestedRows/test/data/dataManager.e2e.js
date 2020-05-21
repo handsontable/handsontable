@@ -384,7 +384,7 @@ describe('NestedRows Data Manager', () => {
     describe('isChild', () => {
       it('should return if row with the provided index is a child of any other row', () => {
         handsontable({
-          data: getSimplerNestedData(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
@@ -393,15 +393,24 @@ describe('NestedRows Data Manager', () => {
 
         expect(dataManager.isChild(0)).toEqual(false);
         expect(dataManager.isChild(1)).toEqual(true);
-        expect(dataManager.isChild(6)).toEqual(false);
-        expect(dataManager.isChild(7)).toEqual(true);
+        expect(dataManager.isChild(2)).toEqual(true);
+        expect(dataManager.isChild(3)).toEqual(true);
+        expect(dataManager.isChild(4)).toEqual(true);
+        expect(dataManager.isChild(5)).toEqual(true);
+        expect(dataManager.isChild(6)).toEqual(true);
+        expect(dataManager.isChild(7)).toEqual(false);
+        expect(dataManager.isChild(8)).toEqual(false);
+        expect(dataManager.isChild(9)).toEqual(true);
+        expect(dataManager.isChild(10)).toEqual(true);
+        expect(dataManager.isChild(11)).toEqual(true);
+        expect(dataManager.isChild(12)).toEqual(true);
       });
     });
 
     describe('isRowHighestLevel', () => {
       it('should return if row with the provided index is at the highest level of the table', () => {
         handsontable({
-          data: getSimplerNestedData(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
@@ -410,8 +419,17 @@ describe('NestedRows Data Manager', () => {
 
         expect(dataManager.isRowHighestLevel(0)).toEqual(true);
         expect(dataManager.isRowHighestLevel(1)).toEqual(false);
-        expect(dataManager.isRowHighestLevel(6)).toEqual(true);
-        expect(dataManager.isRowHighestLevel(7)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(2)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(3)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(4)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(5)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(6)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(7)).toEqual(true);
+        expect(dataManager.isRowHighestLevel(8)).toEqual(true);
+        expect(dataManager.isRowHighestLevel(9)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(10)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(11)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(12)).toEqual(false);
       });
     });
 
