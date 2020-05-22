@@ -12,6 +12,51 @@ describe('BaseEditor', () => {
     }
   });
 
+  it('should exported all editors into Handsontable.editors object', () => {
+    expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
+    expect(Handsontable.editors.BaseEditor).toBeDefined();
+    expect(Handsontable.editors.CheckboxEditor).toBeDefined();
+    expect(Handsontable.editors.DateEditor).toBeDefined();
+    expect(Handsontable.editors.DropdownEditor).toBeDefined();
+    expect(Handsontable.editors.HandsontableEditor).toBeDefined();
+    expect(Handsontable.editors.NumericEditor).toBeDefined();
+    expect(Handsontable.editors.PasswordEditor).toBeDefined();
+    expect(Handsontable.editors.SelectEditor).toBeDefined();
+    expect(Handsontable.editors.TextEditor).toBeDefined();
+  });
+
+  it('should blur activeElement while preparing the editor to open', () => {
+    const externalInputElement = document.createElement('input');
+
+    document.body.appendChild(externalInputElement);
+
+    handsontable();
+
+    externalInputElement.select();
+    selectCell(2, 2);
+
+    expect(document.activeElement).not.toBe(externalInputElement);
+
+    document.body.removeChild(externalInputElement);
+  });
+
+  it('should blur activeElement while preparing the editor to open even when readOnly is enabled', () => {
+    const externalInputElement = document.createElement('input');
+
+    document.body.appendChild(externalInputElement);
+
+    handsontable({
+      readOnly: true,
+    });
+
+    externalInputElement.select();
+    selectCell(2, 2);
+
+    expect(document.activeElement).not.toBe(externalInputElement);
+
+    document.body.removeChild(externalInputElement);
+  });
+
   describe('ctrl + enter when editor is active', () => {
     it('should populate value from the currently active cell to every cell in the selected range', () => {
       handsontable({
@@ -70,19 +115,6 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 1)).toEqual('B3');
       expect(getDataAtCell(2, 2)).toEqual('B3');
     });
-  });
-
-  it('should exported all editors into Handsontable.editors object', () => {
-    expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
-    expect(Handsontable.editors.BaseEditor).toBeDefined();
-    expect(Handsontable.editors.CheckboxEditor).toBeDefined();
-    expect(Handsontable.editors.DateEditor).toBeDefined();
-    expect(Handsontable.editors.DropdownEditor).toBeDefined();
-    expect(Handsontable.editors.HandsontableEditor).toBeDefined();
-    expect(Handsontable.editors.NumericEditor).toBeDefined();
-    expect(Handsontable.editors.PasswordEditor).toBeDefined();
-    expect(Handsontable.editors.SelectEditor).toBeDefined();
-    expect(Handsontable.editors.TextEditor).toBeDefined();
   });
 
   describe('IME support', () => {

@@ -161,7 +161,9 @@ class EditorManager {
     const { activeElement } = this.instance.rootDocument;
 
     if (activeElement) {
-      // Bluring prepares an editor to focus its input element to interact with the user.
+      // Bluring the activeElement removes unwanted border around the focusable element
+      // (and resets activeElement prop). Without blurring the activeElement points to the
+      // previously focusable element after clicking onto the cell (#6877).
       activeElement.blur();
     }
 
