@@ -347,15 +347,15 @@ describe('HiddenRows', () => {
 
           $firstHeaderTH
             .simulate('mousedown')
-            ; // header "5"
+          ; // header "5"
           spec().$container.find('tbody tr:eq(3) th:eq(0)')
             .simulate('mouseover')
-            ; // header "6"
+          ; // header "6"
           spec().$container.find('tbody tr:eq(4) th:eq(0)')
             .simulate('mouseover')
             .simulate('mouseup')
             .simulate('mousedown') // Triggers backlight
-            ; // header "7"
+          ; // header "7"
 
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
@@ -401,15 +401,15 @@ describe('HiddenRows', () => {
 
           $firstHeaderTH
             .simulate('mousedown')
-            ; // header "3"
+          ; // header "3"
           spec().$container.find('tbody tr:eq(3) th:eq(0)')
             .simulate('mouseover')
-            ; // header "4"
+          ; // header "4"
           spec().$container.find('tbody tr:eq(4) th:eq(0)')
             .simulate('mouseover')
             .simulate('mouseup')
             .simulate('mousedown') // Triggers backlight
-            ; // header "5"
+          ; // header "5"
 
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
@@ -437,13 +437,13 @@ describe('HiddenRows', () => {
             .simulate('mousedown')
             .simulate('mouseup')
             .simulate('mousedown')
-            ; // Header "5"
+          ; // Header "5"
           $secondHeaderTH
             .simulate('mouseover')
             .simulate('mousemove', {
               clientY: $secondHeaderTH.offset().top,
-            }); // Header "6"
-            ;
+            })
+          ; // Header "6"
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
@@ -468,13 +468,13 @@ describe('HiddenRows', () => {
             .simulate('mousedown')
             .simulate('mouseup')
             .simulate('mousedown')
-            ; // Header "6"
+          ; // Header "6"
           $firstHeaderTH
             .simulate('mouseover')
             .simulate('mousemove', {
               clientY: $firstHeaderTH.offset().top + $firstHeaderTH.height(),
-            }); // Header "5"
-            ;
+            })
+          ; // Header "5"
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
@@ -499,13 +499,13 @@ describe('HiddenRows', () => {
             .simulate('mousedown')
             .simulate('mouseup')
             .simulate('mousedown')
-            ; // Header "3"
+          ; // Header "3"
           $secondHeaderTH
             .simulate('mouseover')
             .simulate('mousemove', {
               clientY: $secondHeaderTH.offset().top,
-            }); // Header "4"
-            ;
+            })
+          ; // Header "4"
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
@@ -530,13 +530,13 @@ describe('HiddenRows', () => {
             .simulate('mousedown')
             .simulate('mouseup')
             .simulate('mousedown')
-            ; // Header "4"
+          ; // Header "4"
           $firstHeaderTH
             .simulate('mouseover')
             .simulate('mousemove', {
               clientY: $firstHeaderTH.offset().top + $firstHeaderTH.height(),
-            }); // Header "3"
-            ;
+            })
+          ; // Header "3"
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 

@@ -283,8 +283,8 @@ class ManualRowMove extends BasePlugin {
    * Gets the sum of the heights of rows in the provided range.
    *
    * @private
-   * @param {number} from Visual row index.
-   * @param {number} to Visual row index.
+   * @param {number} fromRow Visual row index.
+   * @param {number} toRow Visual row index.
    * @returns {number}
    */
   getRowsHeight(fromRow, toRow) {
