@@ -2391,25 +2391,37 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number|string} column Physical column index / prop name.
    * @param {*} value The value to be set at the provided coordinates.
    * @param {string} [source] Source of the change as a string.
+   * @param {boolean} [silentMode=false] If `true`, the effects of the data source changing
+   *                                     will not be visible right after the method call.
+   *                                     But, right after the first table render cycle. Otherwise,
+   *                                     the changes are visibel right after the method call.
    */
-  this.setSourceDataAtCell = function(row, column, value, source) {
+  this.setSourceDataAtCell = function(row, column, value, source, silentMode = false) {
     const input = setDataInputToArray(row, column, value);
     const changes = [];
 
-    input.forEach((change, i) => {
-      const [changeRow, changeProp, changeValue] = change;
+    input.forEach(([changeRow, changeProp, changeValue]) => {
       changes.push([
-        input[i][0],
-        input[i][1],
-        dataSource.getAtCell(input[i][0], input[i][1]),
-        input[i][2],
+        changeRow,
+        changeProp,
+        dataSource.getAtCell(changeRow, changeProp), // The previous value.
+        changeValue,
       ]);
 
       dataSource.setAtCell(changeRow, changeProp, changeValue);
     });
 
     this.runHooks('afterSetSourceDataAtCell', changes, source);
-    this.render();
+
+    if (silentMode === false) {
+      this.render();
+    }
+
+    const activeEditor = instance.getActiveEditor();
+
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   };
 
   /**
