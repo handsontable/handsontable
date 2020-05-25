@@ -2394,7 +2394,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [silentMode=false] If `true`, the effects of the data source changing
    *                                     will not be visible right after the method call.
    *                                     But, right after the first table render cycle. Otherwise,
-   *                                     the changes are visibel right after the method call.
+   *                                     the changes are visible right after the method call.
    */
   this.setSourceDataAtCell = function(row, column, value, source, silentMode = false) {
     const input = setDataInputToArray(row, column, value);
