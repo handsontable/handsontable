@@ -1,7 +1,5 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
-import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
 import { isUndefined } from '../../helpers/mixed';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -93,8 +91,8 @@ class NestedRows extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetRowHeader', (...args) => this.onAfterGetRowHeader(...args));
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
-    this.addHook('modifyRemovedAmount', (...args) => this.onModifyRemovedAmount(...args));
     this.addHook('beforeAddChild', (...args) => this.onBeforeAddChild(...args));
     this.addHook('afterAddChild', (...args) => this.onAfterAddChild(...args));
     this.addHook('beforeDetachChild', (...args) => this.onBeforeDetachChild(...args));
@@ -428,21 +426,16 @@ class NestedRows extends BasePlugin {
    * @private
    * @param {number} index The index where the data filtering starts.
    * @param {number} amount An amount of rows which filtering applies to.
+   * @param {number} physicalRows Physical row indexes.
    * @returns {boolean}
    */
-  onBeforeDataFilter(index, amount) {
-    const realLogicRows = [];
-    const startIndex = this.dataManager.translateTrimmedRow(index);
+  onBeforeDataFilter(index, amount, physicalRows) {
     const priv = privatePool.get(this);
 
-    rangeEach(startIndex, startIndex + amount - 1, (i) => {
-      realLogicRows.push(i);
-    });
-
     this.collapsingUI.collapsedRowsStash.stash();
-    this.collapsingUI.collapsedRowsStash.trimStash(startIndex, amount);
-    this.collapsingUI.collapsedRowsStash.shiftStash(startIndex, (-1) * amount);
-    this.dataManager.filterData(index, amount, realLogicRows);
+    this.collapsingUI.collapsedRowsStash.trimStash(physicalRows[0], amount);
+    this.collapsingUI.collapsedRowsStash.shiftStash(physicalRows[0], (-1) * amount);
+    this.dataManager.filterData(index, amount, physicalRows);
 
     priv.skipRender = true;
 
@@ -506,51 +499,35 @@ class NestedRows extends BasePlugin {
   }
 
   /**
-   * `modifyRemovedAmount` hook callback.
+   * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
+   * has effect in removing children nodes.
    *
-   * @private
-   * @param {number} amount Initial amount.
-   * @param {number} index Index of the starting row.
-   * @returns {number} Modified amount.
+   * @param {number} index Visual index of starter row.
+   * @param {number} amount Amount of rows to be removed.
+   * @param {Array} physicalRows List of physical indexes.
    */
-  onModifyRemovedAmount(amount, index) {
-    const lastParents = [];
-    let childrenCount = 0;
+  onBeforeRemoveRow(index, amount, physicalRows) {
+    const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows, physicalIndex) => {
+      if (this.dataManager.isParent(physicalIndex)) {
+        const children = this.dataManager.getDataObject(physicalIndex).__children;
+        // Preserve a parent in the list of removed rows.
+        removedRows.add(physicalIndex);
 
-    rangeEach(index, index + amount - 1, (i) => {
-      let isChild = false;
-      const translated = this.collapsingUI.translateTrimmedRow(i);
-      const currentDataObj = this.dataManager.getDataObject(translated);
-
-      if (this.dataManager.hasChildren(currentDataObj)) {
-        lastParents.push(currentDataObj);
-
-        arrayEach(lastParents, (elem) => {
-          if (elem.__children.indexOf(currentDataObj) > -1) {
-            isChild = true;
-            return false;
-          }
-        });
-
-        if (!isChild) {
-          childrenCount += this.dataManager.countChildren(currentDataObj);
+        if (Array.isArray(children)) {
+          // Add a children to the list of removed rows.
+          children.forEach(child => removedRows.add(this.dataManager.getRowIndex(child)));
         }
+
+        return removedRows;
       }
 
-      isChild = false;
-      arrayEach(lastParents, (elem) => {
-        if (elem.__children.indexOf(currentDataObj) > -1) {
-          isChild = true;
-          return false;
-        }
-      });
+      // Don't modify list of removed rows when already checked element isn't a parent.
+      return removedRows.add(physicalIndex);
+    }, new Set()));
 
-      if (isChild) {
-        childrenCount -= 1;
-      }
-    });
-
-    return amount + childrenCount;
+    // Modifying hook's argument by the reference.
+    physicalRows.length = 0;
+    physicalRows.push(...modifiedPhysicalRows);
   }
 
   /**
