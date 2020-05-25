@@ -412,17 +412,14 @@ class DataMap {
    */
   removeRow(index, amount = 1, source) {
     let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
-    const physicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
-    // It handle also callback from the `NestedRows` plugin. Removing parent node has effect in removing children nodes.
-    const removedPhysicalIndexes = this.instance.runHooks('modifyRemovedRows', physicalIndexes);
-
-    const numberOfRemovedIndexes = removedPhysicalIndexes.length;
+    const removedPhysicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
     const sourceRowsLength = this.instance.countSourceRows();
 
     rowIndex = (sourceRowsLength + rowIndex) % sourceRowsLength;
 
+    // It handle also callback from the `NestedRows` plugin. Removing parent node has effect in removing children nodes.
     const actionWasNotCancelled = this.instance.runHooks(
-      'beforeRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source
+      'beforeRemoveRow', rowIndex, removedPhysicalIndexes.length, removedPhysicalIndexes, source
     );
 
     if (actionWasNotCancelled === false) {
@@ -430,6 +427,8 @@ class DataMap {
     }
 
     const data = this.dataSource;
+    // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
+    const numberOfRemovedIndexes = removedPhysicalIndexes.length;
     const newData = this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
     if (newData) {

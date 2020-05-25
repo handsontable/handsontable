@@ -91,8 +91,8 @@ class NestedRows extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetRowHeader', (...args) => this.onAfterGetRowHeader(...args));
     this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
-    this.addHook('modifyRemovedRows', (...args) => this.onModifyRemovedRows(...args));
     this.addHook('beforeAddChild', (...args) => this.onBeforeAddChild(...args));
     this.addHook('afterAddChild', (...args) => this.onAfterAddChild(...args));
     this.addHook('beforeDetachChild', (...args) => this.onBeforeDetachChild(...args));
@@ -499,29 +499,35 @@ class NestedRows extends BasePlugin {
   }
 
   /**
-   * Callback for the `modifyRemovedRows` return list of removed physical indexes. Removing parent node has effect in
-   * removing children nodes.
+   * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
+   * has effect in removing children nodes.
    *
-   * @param {Array}  physicalIndexes List of physical indexes.
-   * @returns {Array} List of physical row indexes.
+   * @param {number} index Visual index of starter row.
+   * @param {number} amount Amount of rows to be removed.
+   * @param {Array} physicalRows List of physical indexes.
    */
-  onModifyRemovedRows(physicalIndexes) {
-    return Array.from(physicalIndexes.reduce((removedRows, physicalIndex) => {
+  onBeforeRemoveRow(index, amount, physicalRows) {
+    const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows, physicalIndex) => {
       if (this.dataManager.isParent(physicalIndex)) {
         const children = this.dataManager.getDataObject(physicalIndex).__children;
-
-        // Preserve a parent in the list of removed indexes.
+        // Preserve a parent in the list of removed rows.
         removedRows.add(physicalIndex);
 
-        // Add a child to the list of removed indexes.
-        children.forEach(child => removedRows.add(this.dataManager.getRowIndex(child)));
+        if (Array.isArray(children)) {
+          // Add a children to the list of removed rows.
+          children.forEach(child => removedRows.add(this.dataManager.getRowIndex(child)));
+        }
 
         return removedRows;
       }
 
-      // Don't modify list of removed indexes when already checked element isn't a parent.
+      // Don't modify list of removed rows when already checked element isn't a parent.
       return removedRows.add(physicalIndex);
     }, new Set()));
+
+    // Modifying hook's argument by the reference.
+    physicalRows.length = 0;
+    physicalRows.push(...modifiedPhysicalRows);
   }
 
   /**

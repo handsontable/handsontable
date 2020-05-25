@@ -268,6 +268,7 @@ describe('NestedRows', () => {
       expect(getSelectedLast()).toEqual([6, 0, 6, 3]);
     });
 
+    // TODO: This test sometimes fail in the browser?
     it('should move single row between parents properly (moving from the bottom to the top)', () => {
       handsontable({
         data: getSimplerNestedData(),
@@ -276,11 +277,12 @@ describe('NestedRows', () => {
         rowHeaders: true
       });
 
+      const $fromHeader = spec().$container.find('tbody tr:eq(7) th:eq(0)');
       const $targetHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
 
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
+      $fromHeader.simulate('mousedown');
+      $fromHeader.simulate('mouseup');
+      $fromHeader.simulate('mousedown');
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
@@ -297,77 +299,38 @@ describe('NestedRows', () => {
     });
   });
 
-  describe('Cooperation with the `alter` method', () => {
-    it('should remove collapsed indexes properly', async() => {
-      handsontable({
-        data: getSimplerNestedData(),
-        nestedRows: true
-      });
-
-      const plugin = getPlugin('nestedRows');
-
-      plugin.collapsingUI.collapseChildren(0);
-      plugin.collapsingUI.collapseChildren(6);
-      plugin.collapsingUI.collapseChildren(12);
-
-      alter('remove_row', 2);
-
-      await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
-
-      alter('remove_row', 1);
-
-      await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
-
-      alter('remove_row', 0);
-
-      await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
-
-      expect(getData()).toEqual([]);
+  it('should remove collapsed indexes properly', async() => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true
     });
 
-    it('should trigger the `modifyRemovedRows` with proper parameters when removed rows are collapsed', () => {
-      const modifyRemovedRows = jasmine.createSpy('modifyRemovedRows');
+    const plugin = getPlugin('nestedRows');
 
-      handsontable({
-        data: getSimplerNestedData(),
-        nestedRows: true,
-        modifyRemovedRows
-      });
+    plugin.collapsingUI.collapseChildren(0);
+    plugin.collapsingUI.collapseChildren(6);
+    plugin.collapsingUI.collapseChildren(12);
 
-      const plugin = getPlugin('nestedRows');
+    alter('remove_row', 2);
 
-      plugin.collapsingUI.collapseChildren(0);
-      plugin.collapsingUI.collapseChildren(6);
-      plugin.collapsingUI.collapseChildren(12);
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
-      alter('remove_row', 2);
+    expect(getData()).toEqual([
+      ['Best Rock Performance', null, null, null],
+      ['Best Metal Performance', null, null, null],
+    ]);
 
-      expect(modifyRemovedRows).toHaveBeenCalledWith([12, 13, 14, 15, 16, 17], void 0, void 0, void 0, void 0, void 0);
-    });
+    alter('remove_row', 1);
 
-    it('should trigger the `beforeRemoveRow` and `afterRemoveRow` with proper parameters ' +
-      'when removed rows are collapsed', () => {
-      const beforeRemoveRow = jasmine.createSpy('modifyRemovedRows');
-      const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
-      handsontable({
-        data: getSimplerNestedData(),
-        nestedRows: true,
-        beforeRemoveRow,
-        afterRemoveRow
-      });
+    expect(getData()).toEqual([['Best Rock Performance', null, null, null]]);
 
-      const plugin = getPlugin('nestedRows');
+    alter('remove_row', 0);
 
-      plugin.collapsingUI.collapseChildren(0);
-      plugin.collapsingUI.collapseChildren(6);
-      plugin.collapsingUI.collapseChildren(12);
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
-      alter('remove_row', 2);
-
-      expect(beforeRemoveRow).toHaveBeenCalledWith(2, 6, [12, 13, 14, 15, 16, 17], void 0, void 0, void 0);
-      expect(afterRemoveRow).toHaveBeenCalledWith(2, 6, [12, 13, 14, 15, 16, 17], void 0, void 0, void 0);
-    });
+    expect(getData()).toEqual([]);
   });
 
   describe('API', () => {
