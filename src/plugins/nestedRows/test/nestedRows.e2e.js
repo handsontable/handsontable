@@ -268,6 +268,7 @@ describe('NestedRows', () => {
       expect(getSelectedLast()).toEqual([6, 0, 6, 3]);
     });
 
+    // TODO: This test sometimes fail in the browser?
     it('should move single row between parents properly (moving from the bottom to the top)', () => {
       handsontable({
         data: getSimplerNestedData(),
@@ -276,11 +277,12 @@ describe('NestedRows', () => {
         rowHeaders: true
       });
 
+      const $fromHeader = spec().$container.find('tbody tr:eq(7) th:eq(0)');
       const $targetHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
 
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
+      $fromHeader.simulate('mousedown');
+      $fromHeader.simulate('mouseup');
+      $fromHeader.simulate('mousedown');
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
@@ -294,6 +296,87 @@ describe('NestedRows', () => {
       expect(getDataAtCell(7, 0)).toEqual('Best Metal Performance');
       expect(getDataAtCell(8, 1)).toEqual('August Burns Red');
       expect(getSelectedLast()).toEqual([1, 0, 1, 3]);
+    });
+  });
+
+  it('should remove collapsed indexes properly', async() => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true
+    });
+
+    const plugin = getPlugin('nestedRows');
+
+    plugin.collapsingUI.collapseChildren(0);
+    plugin.collapsingUI.collapseChildren(6);
+    plugin.collapsingUI.collapseChildren(12);
+
+    alter('remove_row', 2);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([
+      ['Best Rock Performance', null, null, null],
+      ['Best Metal Performance', null, null, null],
+    ]);
+
+    alter('remove_row', 1);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([['Best Rock Performance', null, null, null]]);
+
+    alter('remove_row', 0);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([]);
+  });
+
+  describe('API', () => {
+    describe('disableCoreAPIModifiers and enableCoreAPIModifiers', () => {
+      it('should kill the runtime of the core API modifying hook callbacks - onModifyRowData, onModifySourceLength and onBeforeDataSplice', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          manualRowMove: true,
+          rowHeaders: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+
+        nrPlugin.disableCoreAPIModifiers();
+
+        expect(nrPlugin.onModifyRowData()).toEqual(void 0);
+        expect(nrPlugin.onModifySourceLength()).toEqual(void 0);
+        expect(nrPlugin.onBeforeDataSplice(1)).toEqual(true);
+
+        nrPlugin.enableCoreAPIModifiers();
+
+        expect(nrPlugin.onModifyRowData()).not.toEqual(void 0);
+        expect(nrPlugin.onModifySourceLength()).not.toEqual(void 0);
+        expect(nrPlugin.onBeforeDataSplice(1)).toEqual(false);
+      });
+    });
+  });
+
+  describe('Core HOT API', () => {
+    it('should recreate the nested structure when updating the data with the `updateSettings` method', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: true
+      });
+
+      updateSettings({
+        data: getMoreComplexNestedData()
+      });
+
+      const nrPlugin = getPlugin('nestedRows');
+
+      expect(nrPlugin.dataManager.countAllRows()).toEqual(13);
+      expect(nrPlugin.dataManager.getRowLevel(5)).toEqual(3);
+      expect(nrPlugin.dataManager.getRowParent(5).a).toEqual('a0-a2-a0');
     });
   });
 

@@ -648,20 +648,28 @@ class MergeCells extends BasePlugin {
    * @private
    * @param {number} row Row index.
    * @param {number} column Visual column index.
-   * @returns {Array}
+   * @returns {Array|undefined}
    */
   onModifyGetCellCoords(row, column) {
-    const columnMapper = this.hot.columnIndexMapper;
+    if (row < 0 || column < 0) {
+      return;
+    }
+
     const mergeParent = this.mergedCellsCollection.get(row, column);
 
+    if (!mergeParent) {
+      return;
+    }
+
+    const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergeParent;
+
     // Result of that hook is handled by the Walkontable. We return renderable indexes.
-    return mergeParent && column >= 0 && row >= 0 ? [
-      mergeParent.row, mergeParent.col >= 0 ? columnMapper.getRenderableFromVisualIndex(
-        columnMapper.getFirstNotHiddenIndex(mergeParent.col, 1)) : mergeParent.col,
-      mergeParent.row + mergeParent.rowspan - 1,
-      columnMapper.getRenderableFromVisualIndex(
-        columnMapper.getFirstNotHiddenIndex(mergeParent.col + mergeParent.colspan - 1, -1))
-    ] : void 0;
+    return [
+      // Most top-left merged cell coords.
+      ...this.translateMergedCellToRenderable(mergeRow, 0, mergeColumn, 0),
+      // Most bottom-right merged cell coords.
+      ...this.translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan),
+    ];
   }
 
   /**
@@ -693,14 +701,22 @@ class MergeCells extends BasePlugin {
     const mergedCellCopy = isObject(mergedCell) ? clone(mergedCell) : void 0;
 
     if (isObject(mergedCellCopy)) {
-      const columnMapper = this.hot.columnIndexMapper;
+      const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
+      const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergedCellCopy;
+      const [lastMergedRowIndex, lastMergedColumnIndex] = this.translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan);
+
+      const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
       const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
-      const lastMergedColumnIndex = columnMapper.getRenderableFromVisualIndex(
-        columnMapper.getFirstNotHiddenIndex(mergedCellCopy.col + mergedCellCopy.colspan - 1, -1));
+
+      const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
       const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.
 
       // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
+      mergedCellCopy.row = rowMapper.getFirstNotHiddenIndex(mergedCellCopy.row, 1);
+      // We just try to determine some values basing on the actual number of rendered indexes (some columns may be hidden).
       mergedCellCopy.col = columnMapper.getFirstNotHiddenIndex(mergedCellCopy.col, 1);
+      // The `rowSpan` property for a `TD` element should be at most equal to number of rendered rows in the merge area.
+      mergedCellCopy.rowspan = Math.min(mergedCellCopy.rowspan, maxRowSpan);
       // The `colSpan` property for a `TD` element should be at most equal to number of rendered columns in the merge area.
       mergedCellCopy.colspan = Math.min(mergedCellCopy.colspan, maxColSpan);
     }
@@ -771,30 +787,73 @@ class MergeCells extends BasePlugin {
    * @param {object} calc The row calculator object.
    */
   onAfterViewportRowCalculatorOverride(calc) {
-    const colCount = this.hot.countCols();
-    let mergeParent;
+    const nrOfColumns = this.hot.countCols();
 
-    rangeEach(0, colCount - 1, (c) => {
-      mergeParent = this.mergedCellsCollection.get(calc.startRow, c);
-      if (mergeParent) {
-        if (mergeParent.row < calc.startRow) {
-          calc.startRow = mergeParent.row;
-          return this.onAfterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+    this.modifyViewportRowStart(calc, nrOfColumns);
+    this.modifyViewportRowEnd(calc, nrOfColumns);
+  }
+
+  /**
+   * Modify viewport start when needed. We extend viewport when merged cells aren't fully visible.
+   *
+   * @private
+   * @param {object} calc The row calculator object.
+   * @param {number} nrOfColumns Number of visual columns.
+   */
+  modifyViewportRowStart(calc, nrOfColumns) {
+    const rowMapper = this.hot.rowIndexMapper;
+    const visualStartRow = rowMapper.getVisualFromRenderableIndex(calc.startRow);
+
+    for (let visualColumnIndex = 0; visualColumnIndex < nrOfColumns; visualColumnIndex += 1) {
+      const mergeParentForViewportStart = this.mergedCellsCollection.get(visualStartRow, visualColumnIndex);
+
+      if (isObject(mergeParentForViewportStart)) {
+        const renderableIndexAtMergeStart = rowMapper.getRenderableFromVisualIndex(
+          rowMapper.getFirstNotHiddenIndex(mergeParentForViewportStart.row, 1));
+
+        // Merge start is out of the viewport (i.e. when we scrolled to the bottom and we can see just part of a merge).
+        if (renderableIndexAtMergeStart < calc.startRow) {
+          // We extend viewport when some rows have been merged.
+          calc.startRow = renderableIndexAtMergeStart;
+          // We are looking for next merges inside already extended viewport (starting again from row equal to 0).
+          this.modifyViewportRowStart(calc, nrOfColumns); // recursively search upwards
+
+          return; // Finish the current loop. Everything will be checked from the beginning by above recursion.
         }
       }
+    }
+  }
 
-      mergeParent = this.mergedCellsCollection.get(calc.endRow, c);
+  /**
+   *  Modify viewport end when needed. We extend viewport when merged cells aren't fully visible.
+   *
+   * @private
+   * @param {object} calc The row calculator object.
+   * @param {number} nrOfColumns Number of visual columns.
+   */
+  modifyViewportRowEnd(calc, nrOfColumns) {
+    const rowMapper = this.hot.rowIndexMapper;
+    const visualEndRow = rowMapper.getVisualFromRenderableIndex(calc.endRow);
 
-      if (mergeParent) {
-        const mergeEnd = mergeParent.row + mergeParent.rowspan - 1;
-        if (mergeEnd > calc.endRow) {
-          calc.endRow = mergeEnd;
-          return this.onAfterViewportRowCalculatorOverride.call(this, calc); // recursively search upwards
+    for (let visualColumnIndex = 0; visualColumnIndex < nrOfColumns; visualColumnIndex += 1) {
+      const mergeParentForViewportEnd = this.mergedCellsCollection.get(visualEndRow, visualColumnIndex);
+
+      if (isObject(mergeParentForViewportEnd)) {
+        const mergeEnd = mergeParentForViewportEnd.row + mergeParentForViewportEnd.rowspan - 1;
+        const renderableIndexAtMergeEnd = rowMapper.getRenderableFromVisualIndex(
+          rowMapper.getFirstNotHiddenIndex(mergeEnd, -1));
+
+        // Merge end is out of the viewport.
+        if (renderableIndexAtMergeEnd > calc.endRow) {
+          // We extend the viewport when some rows have been merged.
+          calc.endRow = renderableIndexAtMergeEnd;
+          // We are looking for next merges inside already extended viewport (starting again from row equal to 0).
+          this.modifyViewportRowEnd(calc, nrOfColumns); // recursively search upwards
+
+          return; // Finish the current loop. Everything will be checked from the beginning by above recursion.
         }
       }
-
-      return true;
-    });
+    }
   }
 
   /**
@@ -806,8 +865,8 @@ class MergeCells extends BasePlugin {
   onAfterViewportColumnCalculatorOverride(calc) {
     const nrOfRows = this.hot.countRows();
 
-    this.modifyViewportStart(calc, nrOfRows);
-    this.modifyViewportEnd(calc, nrOfRows);
+    this.modifyViewportColumnStart(calc, nrOfRows);
+    this.modifyViewportColumnEnd(calc, nrOfRows);
   }
 
   /**
@@ -817,7 +876,7 @@ class MergeCells extends BasePlugin {
    * @param {object} calc The column calculator object.
    * @param {number} nrOfRows Number of visual rows.
    */
-  modifyViewportStart(calc, nrOfRows) {
+  modifyViewportColumnStart(calc, nrOfRows) {
     const columnMapper = this.hot.columnIndexMapper;
     const visualStartCol = columnMapper.getVisualFromRenderableIndex(calc.startColumn);
 
@@ -833,7 +892,7 @@ class MergeCells extends BasePlugin {
           // We extend viewport when some columns have been merged.
           calc.startColumn = renderableIndexAtMergeStart;
           // We are looking for next merges inside already extended viewport (starting again from column equal to 0).
-          this.modifyViewportStart.call(this, calc, nrOfRows); // recursively search upwards
+          this.modifyViewportColumnStart(calc, nrOfRows); // recursively search upwards
 
           return; // Finish the current loop. Everything will be checked from the beginning by above recursion.
         }
@@ -848,7 +907,7 @@ class MergeCells extends BasePlugin {
    * @param {object} calc The column calculator object.
    * @param {number} nrOfRows Number of visual rows.
    */
-  modifyViewportEnd(calc, nrOfRows) {
+  modifyViewportColumnEnd(calc, nrOfRows) {
     const columnMapper = this.hot.columnIndexMapper;
     const visualEndCol = columnMapper.getVisualFromRenderableIndex(calc.endColumn);
 
@@ -865,12 +924,51 @@ class MergeCells extends BasePlugin {
           // We extend the viewport when some columns have been merged.
           calc.endColumn = renderableIndexAtMergeEnd;
           // We are looking for next merges inside already extended viewport (starting again from column equal to 0).
-          this.modifyViewportEnd.call(this, calc, nrOfRows); // recursively search upwards
+          this.modifyViewportColumnEnd(calc, nrOfRows); // recursively search upwards
 
           return; // Finish the current loop. Everything will be checked from the beginning by above recursion.
         }
       }
     }
+  }
+
+  /**
+   * Translates merged cell coordinates to renderable indexes.
+   *
+   * @private
+   * @param {[type]} parentRow Visual row index.
+   * @param {[type]} rowspan Rowspan which describes shift which will be applied to parent row
+   *                         to calculate renderable index which points to the most bottom
+   *                         index position. Pass rowspan as `0` to calculate the most top
+   *                         index position.
+   * @param {[type]} parentColumn Visual column index.
+   * @param {[type]} colspan Colspan which describes shift which will be applied to parent column
+   *                         to calculate renderable index which points to the most right
+   *                         index position. Pass colspan as `0` to calculate the most left
+   *                         index position.
+   * @returns {number[]}
+   */
+  translateMergedCellToRenderable(parentRow, rowspan, parentColumn, colspan) {
+    const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
+    let firstNonHiddenRow;
+    let firstNonHiddenColumn;
+
+    if (rowspan === 0) {
+      firstNonHiddenRow = rowMapper.getFirstNotHiddenIndex(parentRow, 1);
+    } else {
+      firstNonHiddenRow = rowMapper.getFirstNotHiddenIndex(parentRow + rowspan - 1, -1);
+    }
+
+    if (colspan === 0) {
+      firstNonHiddenColumn = columnMapper.getFirstNotHiddenIndex(parentColumn, 1);
+    } else {
+      firstNonHiddenColumn = columnMapper.getFirstNotHiddenIndex(parentColumn + colspan - 1, -1);
+    }
+
+    const renderableRow = parentRow >= 0 ? rowMapper.getRenderableFromVisualIndex(firstNonHiddenRow) : parentRow;
+    const renderableColumn = parentColumn >= 0 ? columnMapper.getRenderableFromVisualIndex(firstNonHiddenColumn) : parentColumn;
+
+    return [renderableRow, renderableColumn];
   }
 
   /**

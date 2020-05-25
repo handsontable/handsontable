@@ -174,17 +174,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     propToCol: prop => datamap.propToCol(prop),
     isEditorOpened: () => (instance.getActiveEditor() ? instance.getActiveEditor().isOpened() : false),
     countColsTranslated: () => this.view.countRenderableColumns(),
+    countRowsTranslated: () => this.view.countRenderableRows(),
     visualToRenderableCoords,
     renderableToVisualCoords
   });
 
   this.selection = selection;
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', (flag1, flag2, hiddenIndexesChanged) => {
+  const onIndexMapperCacheUpdate = (flag1, flag2, hiddenIndexesChanged) => {
     if (hiddenIndexesChanged) {
       this.selection.refresh();
     }
-  });
+  };
+
+  this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
+  this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
 
   this.selection.addLocalHook('beforeSetRangeStart', (cellCoords) => {
     this.runHooks('beforeSetRangeStart', cellCoords);
@@ -390,6 +394,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             const currentFromRow = currentFromRange?.row;
 
             // Moving down the selection (when it exist). It should be present on the "old" row.
+            // TODO: The logic here should be handled by selection module.
             if (isDefined(currentFromRow) && currentFromRow >= index) {
               const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
               let currentFromColumn = currentFromRange.col;
@@ -420,9 +425,24 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
-            if (selection.isSelected() && selection.selectedRange.current().from.col >= index) {
-              selection.selectedRange.current().from.col += delta;
-              selection.transformEnd(0, delta); // will call render() internally
+            const currentSelectedRange = selection.selectedRange.current();
+            const currentFromRange = currentSelectedRange?.from;
+            const currentFromColumn = currentFromRange?.col;
+
+            // Moving right the selection (when it exist). It should be present on the "old" row.
+            // TODO: The logic here should be handled by selection module.
+            if (isDefined(currentFromColumn) && currentFromColumn >= index) {
+              const { row: currentToRow, col: currentToColumn } = currentSelectedRange.to;
+              let currentFromRow = currentFromRange.row;
+
+              // Workaround: headers are not stored inside selection.
+              if (selection.isSelectedByColumnHeader()) {
+                currentFromRow = -1;
+              }
+
+              // I can't use transforms as they don't work in negative indexes.
+              selection.setRangeStartOnly(new CellCoords(currentFromRow, currentFromColumn + delta));
+              selection.setRangeEnd(new CellCoords(currentToRow, currentToColumn + delta)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
             }
@@ -2089,19 +2109,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {HTMLTableCellElement|null} The cell's TD element.
    */
   this.getCell = function(row, column, topmost = false) {
-    const physicalColumn = this.toPhysicalColumn(column);
-
-    if (this.columnIndexMapper.isHidden(physicalColumn)) {
-      return null;
-    }
-
     let renderableColumnIndex = column; // Handling also column headers.
+    let renderableRowIndex = row; // Handling also row headers.
 
     if (column >= 0) {
+      if (this.columnIndexMapper.isHidden(this.toPhysicalColumn(column))) {
+        return null;
+      }
+
       renderableColumnIndex = this.columnIndexMapper.getRenderableFromVisualIndex(column);
     }
 
-    return instance.view.getCellAtCoords(new CellCoords(row, renderableColumnIndex), topmost);
+    if (row >= 0) {
+      if (this.rowIndexMapper.isHidden(this.toPhysicalRow(row))) {
+        return null;
+      }
+
+      renderableRowIndex = this.rowIndexMapper.getRenderableFromVisualIndex(row);
+    }
+
+    if (renderableRowIndex === null || renderableColumnIndex === null) {
+      return null;
+    }
+
+    return instance.view.getCellAtCoords(new CellCoords(renderableRowIndex, renderableColumnIndex), topmost);
   };
 
   /**
@@ -2110,7 +2141,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getCoords
    * @param {HTMLTableCellElement} element The HTML Element representing the cell.
-   * @returns {CellCoords} Visual coordinates object.
+   * @returns {CellCoords|null} Visual coordinates object.
    * @example
    * ```js
    * hot.getCoords(hot.getCell(1, 1));
@@ -2118,7 +2149,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.getCoords = function(element) {
-    return this.view.wt.wtTable.getCoords.call(this.view.wt.wtTable, element);
+    const renderableCoords = this.view.wt.wtTable.getCoords(element);
+
+    if (renderableCoords === null) {
+      return null;
+    }
+
+    const { row: renderableRow, col: renderableColumn } = renderableCoords;
+
+    let visualRow = renderableRow;
+    let visualColumn = renderableColumn;
+
+    if (renderableRow >= 0) {
+      visualRow = this.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
+    }
+
+    if (renderableColumn >= 0) {
+      visualColumn = this.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
+    }
+
+    return new CellCoords(visualRow, visualColumn);
   };
 
   /**

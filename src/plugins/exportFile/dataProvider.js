@@ -134,7 +134,7 @@ class DataProvider {
    * @returns {boolean}
    */
   _isHiddenRow(row) {
-    return this.hot.hasHook('hiddenRow') && this.hot.runHooks('hiddenRow', row);
+    return this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row));
   }
 
   /**

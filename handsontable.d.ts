@@ -1217,27 +1217,23 @@ declare namespace Handsontable {
     }
 
     interface HiddenColumns extends Base {
-      hiddenColumns: boolean | any[];
-      lastSelectedColumn: number;
-      settings: object | void;
-
-      isHidden(column: number, isLogicIndex?: boolean): boolean;
+      isHidden(column: number): boolean;
       hideColumn(column: number): void;
-      hideColumns(columns: any[]): void;
+      hideColumns(columns: number[]): void;
       showColumn(column: number): void;
-      showColumns(columns: any[]): void;
+      showColumns(columns: number[]): void;
+      getHiddenColumns(): number[];
+      isValidConfig(hiddenColumns: number[]): boolean;
     }
 
     interface HiddenRows extends Base {
-      hiddenRows: boolean | any[];
-      lastSelectedRow: number;
-      settings: object | void;
-
-      isHidden(row: number, isLogicIndex?: boolean): boolean;
+      isHidden(row: number): boolean;
       hideRow(row: number): void;
-      hideRows(rows: any[]): void;
+      hideRows(rows: number[]): void;
       showRow(row: number): void;
-      showRows(rows: any[]): void;
+      showRows(rows: number[]): void;
+      getHiddenRows(): number[];
+      isValidConfig(hiddenRows: number[]): boolean;
     }
 
     interface ManualColumnFreeze extends Base {

@@ -319,5 +319,356 @@ describe('NestedRows Data Manager', () => {
         expect(grandparent.__children ? grandparent.__children[3] : data[3]).toEqual(child);
       });
     });
+
+    describe('setData', () => {
+      it('should set the internal data property of the class', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        dataManager.setData(getMoreComplexNestedData());
+        expect(dataManager.data).toEqual(getMoreComplexNestedData());
+      });
+    });
+
+    describe('getData', () => {
+      it('should get the internal data property of the class', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        expect(dataManager.getData()).toEqual(getSimplerNestedData());
+      });
+    });
+
+    describe('getRawSourceData', () => {
+      it('should return the "raw" non-flattened version of the source data', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        expect(getSourceData().length).toEqual(18);
+        expect(dataManager.getRawSourceData()).toEqual(getSimplerNestedData());
+      });
+    });
+
+    describe('updateWithData', () => {
+      it('should set the new data to the manager class and refresh the cache', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        dataManager.updateWithData(getMoreComplexNestedData());
+
+        expect(dataManager.getData()).toEqual(getMoreComplexNestedData());
+        expect(dataManager.cache.levelCount).toEqual(4);
+      });
+    });
+
+    describe('isChild', () => {
+      it('should return if row with the provided index is a child of any other row', () => {
+        handsontable({
+          data: getMoreComplexNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        expect(dataManager.isChild(0)).toEqual(false);
+        expect(dataManager.isChild(1)).toEqual(true);
+        expect(dataManager.isChild(2)).toEqual(true);
+        expect(dataManager.isChild(3)).toEqual(true);
+        expect(dataManager.isChild(4)).toEqual(true);
+        expect(dataManager.isChild(5)).toEqual(true);
+        expect(dataManager.isChild(6)).toEqual(true);
+        expect(dataManager.isChild(7)).toEqual(false);
+        expect(dataManager.isChild(8)).toEqual(false);
+        expect(dataManager.isChild(9)).toEqual(true);
+        expect(dataManager.isChild(10)).toEqual(true);
+        expect(dataManager.isChild(11)).toEqual(true);
+        expect(dataManager.isChild(12)).toEqual(true);
+      });
+    });
+
+    describe('isRowHighestLevel', () => {
+      it('should return if row with the provided index is at the highest level of the table', () => {
+        handsontable({
+          data: getMoreComplexNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        expect(dataManager.isRowHighestLevel(0)).toEqual(true);
+        expect(dataManager.isRowHighestLevel(1)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(2)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(3)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(4)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(5)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(6)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(7)).toEqual(true);
+        expect(dataManager.isRowHighestLevel(8)).toEqual(true);
+        expect(dataManager.isRowHighestLevel(9)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(10)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(11)).toEqual(false);
+        expect(dataManager.isRowHighestLevel(12)).toEqual(false);
+      });
+    });
+
+    describe('spliceData', () => {
+      it('should work analogously a native "splice" method, but for the nested data structure', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        let modifiedData = null;
+
+        dataManager.spliceData(1, 2, [{ a: 'test' }]);
+
+        modifiedData = getSourceData();
+
+        expect(modifiedData[1].a).toEqual('test');
+        expect(modifiedData[2].artist).toEqual('Foo Fighters');
+
+        dataManager.spliceData(0, 1, [{ b: 'test' }]);
+
+        modifiedData = getSourceData();
+
+        expect(modifiedData[0].b).toEqual('test');
+        expect(modifiedData[1].category).toEqual('Best Metal Performance');
+        expect(modifiedData[2].artist).toEqual('Ghost');
+      });
+    });
+
+    describe('rewriteCache', () => {
+      it('should refresh the cache with the current dataset', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        dataManager.setData(getMoreComplexNestedData());
+        dataManager.rewriteCache();
+
+        expect(dataManager.cache.levelCount).toEqual(4);
+      });
+    });
+
+    describe('cacheNode', () => {
+      it('should add a new node to cache', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        const dummyNode = { a: 'test' };
+
+        dataManager.cacheNode(dummyNode, 5, null);
+
+        expect(dataManager.cache.levels[5][0]).toEqual(dummyNode);
+        expect(dataManager.cache.levelCount).toEqual(3);
+        expect(dataManager.cache.nodeInfo.get(dummyNode)).toEqual({
+          parent: null,
+          row: 18,
+          level: 5
+        });
+      });
+    });
+
+    describe('mockParent', () => {
+      it('should mock a parent node, basing on the first node from the dataset, adding all 0-level nodes as children', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        expect(dataManager.mockParent()).toEqual({
+          category: null,
+          artist: null,
+          title: null,
+          label: null,
+          __children: dataManager.getRawSourceData()
+        });
+      });
+    });
+
+    describe('mockNode', () => {
+      it('should mock a node, basing on the first node from the dataset', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+
+        expect(dataManager.mockNode()).toEqual({
+          category: null,
+          artist: null,
+          title: null,
+          label: null,
+          __children: null
+        });
+      });
+    });
+
+    describe('getRowObjectParent', () => {
+      it('should return a parent of the provided row object', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        const dataInstance = getSimplerNestedData();
+
+        dataManager.updateWithData(dataInstance);
+
+        expect(dataManager.getRowObjectParent(dataInstance[0])).toEqual(null);
+        expect(dataManager.getRowObjectParent(dataInstance[0].__children[0])).toEqual(dataInstance[0]);
+      });
+    });
+
+    describe('getRowObjectLevel', () => {
+      it('should return the level of the provided row object', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        const dataInstance = getSimplerNestedData();
+
+        dataManager.updateWithData(dataInstance);
+
+        expect(dataManager.getRowObjectLevel(dataInstance[0])).toEqual(0);
+        expect(dataManager.getRowObjectLevel(dataInstance[0].__children[0])).toEqual(1);
+      });
+    });
+
+    describe('isParent', () => {
+      it('should return the level of the provided row object', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        const dataInstance = getSimplerNestedData();
+
+        dataManager.updateWithData(dataInstance);
+
+        expect(dataManager.isParent(dataInstance[0])).toEqual(true);
+        expect(dataManager.isParent(dataInstance[0].__children[0])).toEqual(false);
+      });
+    });
+
+    describe('addChildAtIndex', () => {
+      it('should add a child node at a specified index', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        const dataInstance = getSimplerNestedData();
+
+        dataManager.updateWithData(dataInstance);
+
+        dataManager.addChildAtIndex(dataInstance[0], 3, { a: 'test' });
+
+        expect(dataManager.getData()[0].__children[3].a).toEqual('test');
+      });
+    });
+
+    describe('addSibling', () => {
+      it('should add a new node next to the provided coordinates', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        const dataInstance = getSimplerNestedData();
+
+        dataManager.updateWithData(dataInstance);
+
+        // defaults to 'below'
+        dataManager.addSibling(1);
+        expect(dataManager.getData()[0].__children[1]).toEqual({
+          artist: null,
+          category: null,
+          label: null,
+          title: null,
+          __children: null
+        });
+
+        dataManager.addSibling(4, 'above');
+        expect(dataManager.getData()[0].__children[3]).toEqual({
+          artist: null,
+          category: null,
+          label: null,
+          title: null,
+          __children: null
+        });
+      });
+    });
+
+    describe('filterData', () => {
+      it('should remove the elements with indexes provided as the third argument of the method (TODO: probalby needs to be refactored)', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+        const dataManager = nrPlugin.dataManager;
+        const dataInstance = getSimplerNestedData();
+        const initialRowCount = dataManager.countAllRows();
+
+        dataManager.updateWithData(dataInstance);
+
+        dataManager.filterData(null, null, [0, 8, 9, 10]);
+
+        expect(dataManager.countAllRows()).toEqual(initialRowCount - 9);
+        expect(dataManager.getData()[0].category).toEqual('Best Metal Performance');
+        expect(dataManager.getData()[0].__children[0].artist).toEqual('Ghost');
+        expect(dataManager.getData()[0].__children[1].artist).toEqual('Slipknot');
+      });
+    });
   });
 });

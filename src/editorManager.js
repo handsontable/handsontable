@@ -158,6 +158,15 @@ class EditorManager {
 
     this.cellProperties = this.instance.getCellMeta(row, col);
 
+    const { activeElement } = this.instance.rootDocument;
+
+    if (activeElement) {
+      // Bluring the activeElement removes unwanted border around the focusable element
+      // (and resets activeElement prop). Without blurring the activeElement points to the
+      // previously focusable element after clicking onto the cell (#6877).
+      activeElement.blur();
+    }
+
     if (this.cellProperties.readOnly) {
       this.clearActiveEditor();
 

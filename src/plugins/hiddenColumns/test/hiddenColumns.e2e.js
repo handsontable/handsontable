@@ -59,8 +59,6 @@ describe('HiddenColumns', () => {
         },
       });
 
-      expect(countCols()).toBe(5);
-
       getPlugin('hiddenColumns').disablePlugin();
       render();
 
@@ -88,8 +86,6 @@ describe('HiddenColumns', () => {
 
       plugin.enablePlugin();
       render();
-
-      expect(countCols()).toBe(5);
 
       expect(countCols()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');
@@ -196,38 +192,6 @@ describe('HiddenColumns', () => {
 
       expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
       expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-    });
-  });
-
-  describe('API', () => {
-    it('should hide column after calling the hideColumn method', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 3),
-        hiddenColumns: true,
-      });
-
-      expect(getCell(0, 1).innerText).toBe('B1');
-
-      getPlugin('hiddenColumns').hideColumn(1);
-      render();
-
-      expect(getCell(0, 1)).toBe(null);
-    });
-
-    it('should show column after calling the showColumn method', () => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 3),
-        hiddenColumns: {
-          columns: [1],
-        },
-      });
-
-      expect(getCell(0, 1)).toBe(null);
-
-      getPlugin('hiddenColumns').showColumn(1);
-      render();
-
-      expect(getCell(0, 1).innerText).toBe('B1');
     });
   });
 
@@ -667,6 +631,12 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelected()).toEqual([[0, 3, 1, 3]]);
+            expect(getSelectedRangeLast().highlight.row).toBe(0);
+            expect(getSelectedRangeLast().highlight.col).toBe(3);
+            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(3);
+            expect(getSelectedRangeLast().to.row).toBe(1);
+            expect(getSelectedRangeLast().to.col).toBe(3);
             expect(`
             |   ║   : * :   |
             |===:===:===:===|
@@ -691,6 +661,12 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelected()).toEqual([[0, 8, 1, 8]]);
+            expect(getSelectedRangeLast().highlight.row).toBe(0);
+            expect(getSelectedRangeLast().highlight.col).toBe(8);
+            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(8);
+            expect(getSelectedRangeLast().to.row).toBe(1);
+            expect(getSelectedRangeLast().to.col).toBe(8);
             expect(`
             |   ║   : * :   |
             |===:===:===:===|
@@ -716,6 +692,12 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelected()).toEqual([[0, 2, 1, 2]]);
+            expect(getSelectedRangeLast().highlight.row).toBe(0);
+            expect(getSelectedRangeLast().highlight.col).toBe(2);
+            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(2);
+            expect(getSelectedRangeLast().to.row).toBe(1);
+            expect(getSelectedRangeLast().to.col).toBe(2);
             expect(`
             |   ║   :   : * |
             |===:===:===:===|
@@ -740,6 +722,12 @@ describe('HiddenColumns', () => {
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
             expect(getSelected()).toEqual([[0, 4, 1, 4]]);
+            expect(getSelectedRangeLast().highlight.row).toBe(0);
+            expect(getSelectedRangeLast().highlight.col).toBe(4);
+            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(4);
+            expect(getSelectedRangeLast().to.row).toBe(1);
+            expect(getSelectedRangeLast().to.col).toBe(4);
             expect(`
             |   ║   :   : * |
             |===:===:===:===|
@@ -806,6 +794,12 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelected()).toEqual([[0, 0, 1, 4]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(0);
+          expect(getSelectedRangeLast().from.row).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().to.row).toBe(1);
+          expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
           |   ║ * : * : * : * : * |
           |===:===:===:===:===:===|
@@ -846,6 +840,12 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelected()).toEqual([[0, 0, 1, 2]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(0);
+          expect(getSelectedRangeLast().from.row).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().to.row).toBe(1);
+          expect(getSelectedRangeLast().to.col).toBe(2);
           expect(`
           |   ║ * : * : * :   :   |
           |===:===:===:===:===:===|
@@ -886,6 +886,12 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelected()).toEqual([[0, 2, 1, 4]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(2);
+          expect(getSelectedRangeLast().from.row).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(2);
+          expect(getSelectedRangeLast().to.row).toBe(1);
+          expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
           |   ║   :   : * : * : * |
           |===:===:===:===:===:===|
@@ -930,11 +936,17 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 3).innerText).toBe('D1');
           expect(getCell(0, 4).innerText).toBe('E1');
           expect(getSelected()).toEqual([[0, 0, 1, 4]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(0);
+          expect(getSelectedRangeLast().from.row).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().to.row).toBe(1);
+          expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
-          |   ║ * : * : * : * : * |
-          |===:===:===:===:===:===|
-          | * ║ A : 0 : 0 : 0 : 0 |
-          | * ║ 0 : 0 : 0 : 0 : 0 |
+            |   ║ * : * : * : * : * |
+            |===:===:===:===:===:===|
+            | * ║ A : 0 : 0 : 0 : 0 |
+            | * ║ 0 : 0 : 0 : 0 : 0 |
           `).toBeMatchToSelectionPattern();
         });
 
@@ -967,6 +979,12 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 8).innerText).toBe('I1');
           expect(getCell(0, 9).innerText).toBe('J1');
           expect(getSelected()).toEqual([[0, 0, 1, 2]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(0);
+          expect(getSelectedRangeLast().from.row).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().to.row).toBe(1);
+          expect(getSelectedRangeLast().to.col).toBe(2);
           expect(`
           |   ║ * : * |   :   :   :   :   :   :   |
           |===:===:===:===:===:===:===:===:===:===|
@@ -990,6 +1008,12 @@ describe('HiddenColumns', () => {
           expect(getCell(0, 8).innerText).toBe('I1');
           expect(getCell(0, 9).innerText).toBe('J1');
           expect(getSelected()).toEqual([[0, 0, 1, 2]]);
+          expect(getSelectedRangeLast().highlight.row).toBe(0);
+          expect(getSelectedRangeLast().highlight.col).toBe(0);
+          expect(getSelectedRangeLast().from.row).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().to.row).toBe(1);
+          expect(getSelectedRangeLast().to.col).toBe(2);
           expect(`
           |   ║ * : * : * |   :   :   :   :   :   :   |
           |===:===:===:===:===:===:===:===:===:===:===|
@@ -1071,9 +1095,7 @@ describe('HiddenColumns', () => {
               .simulate('mousedown')
               .simulate('mouseup'); // Insert row above
 
-            expect(getSelected()).toEqual([
-              [1, 0, 1, 3]
-            ]);
+            expect(getSelected()).toEqual([[1, 0, 1, 3]]);
             expect(getSelectedRangeLast().highlight.row).toBe(1);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
             expect(getSelectedRangeLast().from.row).toBe(1);
@@ -1117,9 +1139,7 @@ describe('HiddenColumns', () => {
               .simulate('mousedown')
               .simulate('mouseup'); // Insert row below
 
-            expect(getSelected()).toEqual([
-              [0, 0, 0, 3]
-            ]);
+            expect(getSelected()).toEqual([[0, 0, 0, 3]]);
             expect(getSelectedRangeLast().highlight.row).toBe(0);
             expect(getSelectedRangeLast().highlight.col).toBe(1);
             expect(getSelectedRangeLast().from.row).toBe(0);
@@ -1162,9 +1182,7 @@ describe('HiddenColumns', () => {
               .simulate('mousedown')
               .simulate('mouseup'); // Insert row below
 
-            expect(getSelected()).toEqual([
-              [0, 0, 0, 3]
-            ]);
+            expect(getSelected()).toEqual([[0, 0, 0, 3]]);
             expect(getSelectedRangeLast().highlight.row).toBe(0);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
             expect(getSelectedRangeLast().from.row).toBe(0);
@@ -1474,6 +1492,12 @@ describe('HiddenColumns', () => {
         simulateClick(corner, 'LMB');
 
         expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(3); // Corner (col) is shifted to renderable index.
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
         |   ║ * : * |
         |===:===:===|
@@ -1502,6 +1526,12 @@ describe('HiddenColumns', () => {
         simulateClick(corner, 'LMB');
 
         expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
         |   |
         | * |
@@ -3785,187 +3815,6 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
         });
       });
-    });
-  });
-
-  describe('manualColumnMove', () => {
-    it('should properly render hidden ranges after moving action (moving not hidden columns just before the hidden one)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [0],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([2, 3, 4], 0);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['C1', 'D1', 'E1', 'A1', 'B1'],
-        ['C2', 'D2', 'E2', 'A2', 'B2'],
-      ]);
-      expect(hot.getColWidth(3)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('B1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving not hidden columns just after the hidden one)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [4],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([0, 1, 2], 2);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['D1', 'E1', 'A1', 'B1', 'C1'],
-        ['D2', 'E2', 'A2', 'B2', 'C2'],
-      ]);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('D1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('C1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving only hidden column)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [4],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([4], 1);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['A1', 'E1', 'B1', 'C1', 'D1'],
-        ['A2', 'E2', 'B2', 'C2', 'D2'],
-      ]);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('D1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving range of columns containing a hidden column)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [3],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([2, 3, 4], 1);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['A1', 'C1', 'D1', 'E1', 'B1'],
-        ['A2', 'C2', 'D2', 'E2', 'B2'],
-      ]);
-      expect(hot.getColWidth(2)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
-      expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 2)).toBe(null);
-      expect(getCell(-1, 3)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('B1');
-    });
-
-    it('should properly render hidden ranges after moving action (shifts between hidden columns)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [1, 2, 3],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([3, 1, 2], 1);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['A1', 'D1', 'B1', 'C1', 'E1'],
-        ['A2', 'D2', 'B2', 'C2', 'E2'],
-      ]);
-      expect(hot.getColWidth(2)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toBe(null);
-      expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('E1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving part of hidden columns)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [1, 3, 4],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([3, 4], 0);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['D1', 'E1', 'A1', 'B1', 'C1'],
-        ['D2', 'E2', 'A2', 'B2', 'C2'],
-      ]);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(hot.getColWidth(3)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(0)).toBeTruthy();
-      expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();
-      expect(getCell(-1, 0)).toBe(null);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
     });
   });
 
