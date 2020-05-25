@@ -306,5 +306,243 @@ describe('HiddenRows', () => {
         </tbody>
         `);
     });
+
+    describe('UI', () => {
+      describe('backlight', () => {
+        it('should get correct position and size while grabing the row placed after hidden rows', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [0, 1],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $headerTH = spec().$container.find('tbody tr:eq(2) th:eq(0)'); // header "5"
+
+          $headerTH.simulate('mousedown');
+          $headerTH.simulate('mouseup');
+          $headerTH.simulate('mousedown'); // Triggers backlight
+
+          const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
+
+          expect($backlight.offset().top).toBe($headerTH.offset().top);
+          expect($backlight.height()).toBe(23);
+        });
+
+        it('should get correct position and size while grabing the multiple rows placed after hidden rows', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [0, 1],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $firstHeaderTH = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+
+          $firstHeaderTH
+            .simulate('mousedown')
+          ; // header "5"
+          spec().$container.find('tbody tr:eq(3) th:eq(0)')
+            .simulate('mouseover')
+          ; // header "6"
+          spec().$container.find('tbody tr:eq(4) th:eq(0)')
+            .simulate('mouseover')
+            .simulate('mouseup')
+            .simulate('mousedown') // Triggers backlight
+          ; // header "7"
+
+          const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
+
+          expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
+          expect($backlight.height()).toBe(69); // 23 * 3
+        });
+
+        it('should get correct position and size while grabing the row placed before hidden rows', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [8, 9],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $headerTH = spec().$container.find('tbody tr:eq(2) th:eq(0)'); // header "3"
+
+          $headerTH.simulate('mousedown');
+          $headerTH.simulate('mouseup');
+          $headerTH.simulate('mousedown');
+
+          const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
+
+          expect($backlight.offset().top).toBe($headerTH.offset().top);
+          expect($backlight.height()).toBe(23);
+        });
+
+        it('should get correct position and size while grabing the multiple rows placed before hidden rows', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [8, 9],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $firstHeaderTH = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+
+          $firstHeaderTH
+            .simulate('mousedown')
+          ; // header "3"
+          spec().$container.find('tbody tr:eq(3) th:eq(0)')
+            .simulate('mouseover')
+          ; // header "4"
+          spec().$container.find('tbody tr:eq(4) th:eq(0)')
+            .simulate('mouseover')
+            .simulate('mouseup')
+            .simulate('mousedown') // Triggers backlight
+          ; // header "5"
+
+          const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
+
+          expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
+          expect($backlight.height()).toBe(69); // 23 * 3
+        });
+      });
+
+      describe('guideline', () => {
+        it('should get correct position while grabing the row placed after hidden rows (moving down)', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [0, 1],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $firstHeaderTH = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+          const $secondHeaderTH = spec().$container.find('tbody tr:eq(3) th:eq(0)');
+
+          $firstHeaderTH
+            .simulate('mousedown')
+            .simulate('mouseup')
+            .simulate('mousedown')
+          ; // Header "5"
+          $secondHeaderTH
+            .simulate('mouseover')
+            .simulate('mousemove', {
+              clientY: $secondHeaderTH.offset().top,
+            })
+          ; // Header "6"
+
+          const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
+
+          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+        });
+
+        it('should get correct position while grabing the row placed after hidden rows (moving up)', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [0, 1],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $firstHeaderTH = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+          const $secondHeaderTH = spec().$container.find('tbody tr:eq(3) th:eq(0)');
+
+          $secondHeaderTH
+            .simulate('mousedown')
+            .simulate('mouseup')
+            .simulate('mousedown')
+          ; // Header "6"
+          $firstHeaderTH
+            .simulate('mouseover')
+            .simulate('mousemove', {
+              clientY: $firstHeaderTH.offset().top + $firstHeaderTH.height(),
+            })
+          ; // Header "5"
+
+          const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
+
+          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+        });
+
+        it('should get correct position while grabing the row placed before hidden rows (moving down)', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [8, 9],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $firstHeaderTH = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+          const $secondHeaderTH = spec().$container.find('tbody tr:eq(3) th:eq(0)');
+
+          $firstHeaderTH
+            .simulate('mousedown')
+            .simulate('mouseup')
+            .simulate('mousedown')
+          ; // Header "3"
+          $secondHeaderTH
+            .simulate('mouseover')
+            .simulate('mousemove', {
+              clientY: $secondHeaderTH.offset().top,
+            })
+          ; // Header "4"
+
+          const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
+
+          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 2);
+        });
+
+        it('should get correct position while grabing the row placed before hidden rows (moving up)', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            rowHeaders: true,
+            hiddenRows: {
+              rows: [8, 9],
+              indicators: true
+            },
+            manualRowMove: true,
+          });
+
+          const $firstHeaderTH = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+          const $secondHeaderTH = spec().$container.find('tbody tr:eq(3) th:eq(0)');
+
+          $secondHeaderTH
+            .simulate('mousedown')
+            .simulate('mouseup')
+            .simulate('mousedown')
+          ; // Header "4"
+          $firstHeaderTH
+            .simulate('mouseover')
+            .simulate('mousemove', {
+              clientY: $firstHeaderTH.offset().top + $firstHeaderTH.height(),
+            })
+          ; // Header "3"
+
+          const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
+
+          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
+        });
+      });
+    });
   });
 });
