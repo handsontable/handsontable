@@ -537,6 +537,39 @@ describe('Core_alter', () => {
 
       expect(getCellMeta(0, 1).className).toEqual('test');
     });
+
+    it('should cooperate with the `beforeRemoveRow` changing list of the removed rows properly', () => {
+      const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
+      let hookArgumentsBefore;
+      let hookArgumentsAfter;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 5),
+        beforeRemoveRow(index, amount, physicalRows) {
+          hookArgumentsBefore = [index, amount, [...physicalRows]];
+
+          physicalRows.length = 0;
+          physicalRows.push(0, 1, 2, 3);
+
+          hookArgumentsAfter = [index, amount, [...physicalRows]];
+        },
+        afterRemoveRow
+      });
+
+      alter('remove_row', 5, 2);
+
+      expect(getData()).toEqual([
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ['A6', 'B6', 'C6', 'D6', 'E6'],
+        ['A7', 'B7', 'C7', 'D7', 'E7'],
+        ['A8', 'B8', 'C8', 'D8', 'E8'],
+        ['A9', 'B9', 'C9', 'D9', 'E9'],
+        ['A10', 'B10', 'C10', 'D10', 'E10'],
+      ]);
+      expect(hookArgumentsBefore).toEqual([5, 2, [5, 6]]);
+      expect(hookArgumentsAfter).toEqual([5, 2, [0, 1, 2, 3]]);
+      expect(afterRemoveRow).toHaveBeenCalledWith(5, 4, [0, 1, 2, 3], void 0, void 0, void 0);
+    });
   });
 
   describe('remove column', () => {
