@@ -10,10 +10,11 @@ import GanttChartDataFeed from './ganttChartDataFeed';
 
 import './ganttChart.css';
 
+let isDeprecationMessageShowed = false;
+
 /**
  * @plugin GanttChart
- * @experimental
- *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * GanttChart plugin enables a possibility to create a Gantt chart using a Handsontable instance.
  * In this case, the whole table becomes read-only.
@@ -202,6 +203,10 @@ class GanttChart extends BasePlugin {
       return;
     }
 
+    if (!isDeprecationMessageShowed) {
+      isDeprecationMessageShowed = true;
+      warn('The Gantt Chart plugin is deprecated and will be removed in the next major release');
+    }
     this.checkDependencies();
 
     this.parseSettings();
