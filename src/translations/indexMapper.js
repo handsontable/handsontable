@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap } from '../helpers/array';
+import { arrayMap } from '../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
 import IndexesSequence from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
@@ -605,13 +605,12 @@ class IndexMapper {
    * @private
    */
   cacheFromPhysicalToVisualIndexes() {
-    const notTrimmedIndexes = this.getNotTrimmedIndexes();
     const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
 
     this.fromPhysicalToVisualIndexesCache.clear();
 
     for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
-      const physicalIndex = notTrimmedIndexes[visualIndex];
+      const physicalIndex = this.getPhysicalFromVisualIndex(visualIndex);
 
       // Every visual index have corresponding physical index, but some physical indexes may don't have
       // corresponding visual indexes (physical indexes may represent trimmed indexes, beyond the table boundaries)
@@ -625,24 +624,16 @@ class IndexMapper {
    * @private
    */
   cacheFromVisualToRenderabIendexes() {
-    const notTrimmedIndexes = this.getNotTrimmedIndexes();
-    const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
+    const nrOfRenderableIndexes = this.getRenderableIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();
 
-    let nrOfHiddenIndexesBefore = 0;
+    for (let renderableIndex = 0; renderableIndex < nrOfRenderableIndexes; renderableIndex += 1) {
+      // Can't use getRenderableFromVisualIndex here because we're building the cache here
+      const physicalIndex = this.getPhysicalFromRenderableIndex(renderableIndex);
+      const visualIndex = this.getVisualFromPhysicalIndex(physicalIndex);
 
-    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
-      const physicalIndex = notTrimmedIndexes[visualIndex];
-
-      if (this.isHidden(physicalIndex)) {
-        nrOfHiddenIndexesBefore += 1;
-
-      } else {
-        const renderableIndex = visualIndex - nrOfHiddenIndexesBefore;
-
-        this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
-      }
+      this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
     }
   }
 }
