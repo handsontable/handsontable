@@ -2279,7 +2279,7 @@ describe('HiddenColumns', () => {
       });
     });
 
-    describe('by showing hidden, ', () => {
+    describe('by showing hidden,', () => {
       it('selected columns', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -4913,22 +4913,61 @@ describe('HiddenColumns', () => {
       selectCell(0, 1);
       keyDownUp('enter');
 
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
       keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
       selectCell(0, 3);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell.
+      mouseDoubleClick(getCell(0, 1));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
     });
 
@@ -4946,10 +4985,19 @@ describe('HiddenColumns', () => {
       selectCell(0, 0);
       keyDownUp('enter');
 
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
       keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
       keyDownUp('enter');
@@ -4959,17 +5007,52 @@ describe('HiddenColumns', () => {
       // Closing the editor.
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
       selectCell(0, 2);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
       selectCell(0, 3);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell.
+      mouseDoubleClick(getCell(0, 1));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
     });
 
@@ -4987,30 +5070,78 @@ describe('HiddenColumns', () => {
       selectCell(0, 1);
       keyDownUp('enter');
 
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
       keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
       keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
 
       // Closing the editor.
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
       selectCell(0, 4);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell.
+      mouseDoubleClick(getCell(0, 1));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
     });
 
@@ -5028,38 +5159,95 @@ describe('HiddenColumns', () => {
       selectCell(0, 0);
       keyDownUp('enter');
 
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
       keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 1);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
       keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 2);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
       keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
 
       selectCell(0, 3);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
       selectCell(0, 4);
       keyDownUp('enter');
 
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell.
+      mouseDoubleClick(getCell(0, 1));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
     });
   });

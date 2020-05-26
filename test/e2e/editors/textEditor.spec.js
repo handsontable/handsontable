@@ -683,16 +683,14 @@ describe('TextEditor', () => {
     cell
       .simulate('mousedown')
       .simulate('mouseup')
-      .simulate('click')
-    ;
+      .simulate('click');
 
     await sleep(100);
 
     cell
       .simulate('mousedown')
       .simulate('mouseup')
-      .simulate('click')
-    ;
+      .simulate('click');
 
     await sleep(100);
 
