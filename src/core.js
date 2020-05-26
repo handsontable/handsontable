@@ -1267,12 +1267,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array}
    */
   function setDataInputToArray(row, propOrCol, value) {
-    if (typeof row === 'object') { // is it an array of changes
+    if (Array.isArray(row)) { // it's an array of changes
       return row;
     }
-    return [
-      [row, propOrCol, value]
-    ];
+
+    return [[row, propOrCol, value]];
   }
 
   /**
@@ -2391,31 +2390,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number|string} column Physical column index / prop name.
    * @param {*} value The value to be set at the provided coordinates.
    * @param {string} [source] Source of the change as a string.
-   * @param {boolean} [silentMode=false] If `true`, the effects of the data source changing
-   *                                     will not be visible right after the method call.
-   *                                     But, right after the first table render cycle. Otherwise,
-   *                                     the changes are visible right after the method call.
    */
-  this.setSourceDataAtCell = function(row, column, value, source, silentMode = false) {
+  this.setSourceDataAtCell = function(row, column, value, source) {
     const input = setDataInputToArray(row, column, value);
-    const changes = [];
+    const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
+    const changesForHook = [];
 
-    input.forEach(([changeRow, changeProp, changeValue]) => {
-      changes.push([
-        changeRow,
-        changeProp,
-        dataSource.getAtCell(changeRow, changeProp), // The previous value.
-        changeValue,
-      ]);
+    if (isThereAnySetSourceListener) {
+      arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+        changesForHook.push([
+          changeRow,
+          changeProp,
+          dataSource.getAtCell(changeRow, changeProp), // The previous value.
+          changeValue,
+        ]);
+      });
+    }
 
+    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
       dataSource.setAtCell(changeRow, changeProp, changeValue);
     });
 
-    this.runHooks('afterSetSourceDataAtCell', changes, source);
-
-    if (silentMode === false) {
-      this.render();
+    if (isThereAnySetSourceListener) {
+      this.runHooks('afterSetSourceDataAtCell', changesForHook, source);
     }
+
+    this.render();
 
     const activeEditor = instance.getActiveEditor();
 

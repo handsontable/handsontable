@@ -49,16 +49,16 @@ describe('Core.setSourceDataAtCell', () => {
     expect(getSourceData()[2].lorem).toBe('amet');
   });
 
-  it('should not trigger table render cycle when method is called with "silentMode" set as `true`', () => {
+  it('should trigger table render cycle after changing the data', () => {
     const hot = handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
 
     spyOn(hot, 'render').and.callThrough();
 
-    setSourceDataAtCell(0, 1, 'foo', void 0, true);
+    setSourceDataAtCell(0, 1, 'foo');
 
-    expect(hot.render).not.toHaveBeenCalled();
+    expect(hot.render).toHaveBeenCalled();
   });
 
   it('should call "refreshValue" method of the active editor when new data is set', () => {
