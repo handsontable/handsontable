@@ -228,7 +228,7 @@ class NestedRows extends BasePlugin {
 
     for (i = 0; i < rowsLen; i++) {
       this.dataManager.moveRow(translatedStartIndexes[i], translatedDropIndex);
-      hasDataChanged = !hasDataChanged && translatedStartIndexes[i] !== translatedDropIndex;
+      hasDataChanged = hasDataChanged || translatedStartIndexes[i] !== translatedDropIndex;
     }
 
     if (!hasDataChanged) {
@@ -251,7 +251,7 @@ class NestedRows extends BasePlugin {
       rows.reverse();
     }
 
-    this.dataManager.rewriteCache();
+    this.dataManager.updateWithData(this.dataManager.getRawSourceData());
 
     // TODO: Trying to mock real work of the `ManualRowMove` plugin. It was blocked by returning `false` below.
     this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePossible && this.isRowOrderChanged(rows, finalIndex));
