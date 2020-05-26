@@ -601,21 +601,17 @@ class IndexMapper {
    * @private
    */
   cacheFromPhysicalToVisualIndexes() {
-    const notTrimmedIndexes = this.notTrimmedIndexesCache;
-    const sequenceOfPhysicalIndexes = this.getIndexesSequence(); // From visual to physical indexes.
-    const nrOfIndexes = sequenceOfPhysicalIndexes.length;
+    const notTrimmedIndexes = this.getNotTrimmedIndexes();
+    const nrOfIndexes = this.getNotHiddenIndexesLength();
 
     this.fromPhysicalToVisualIndexesCache.clear();
 
-    for (let index = 0; index < nrOfIndexes; index += 1) {
-      const physicalIndex = sequenceOfPhysicalIndexes[index];
-      const visualIndex = notTrimmedIndexes.indexOf(physicalIndex);
+    for (let visualIndex = 0; visualIndex < nrOfIndexes; visualIndex += 1) {
+      const physicalIndex = notTrimmedIndexes[visualIndex];
 
       // Every visual index have corresponding physical index, but some physical indexes may don't have
       // corresponding visual indexes (physical indexes may represent trimmed indexes, beyond the table boundaries)
-      if (visualIndex !== -1) {
-        this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
-      }
+      this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
     }
   }
 
