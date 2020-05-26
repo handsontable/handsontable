@@ -4932,8 +4932,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
     });
 
-    // TODO: It should work when issue #6871 will be fixed.
-    xit('should open properly merged area containing hidden columns (start from invisible cell, merging to visible cell)', () => {
+    it('should open properly merged area containing hidden columns (start from invisible cell, merging to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5015,8 +5014,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
     });
 
-    // TODO: It should work when issue #6871 will be fixed.
-    xit('should open properly merged area containing hidden columns (start from invisible cell, merging to invisible cell)', () => {
+    it('should open properly merged area containing hidden columns (start from invisible cell, merging to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {

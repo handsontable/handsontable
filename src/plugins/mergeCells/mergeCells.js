@@ -648,7 +648,7 @@ class MergeCells extends BasePlugin {
    * @private
    * @param {number} row Row index.
    * @param {number} column Visual column index.
-   * @returns {Array|undefined}
+   * @returns {Array|undefined} Visual coordinates of the merge.
    */
   onModifyGetCellCoords(row, column) {
     if (row < 0 || column < 0) {
@@ -663,13 +663,12 @@ class MergeCells extends BasePlugin {
 
     const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergeParent;
 
-    // Result of that hook is handled by the Walkontable. We return renderable indexes.
-    return [
+    return mergeParent ? [
       // Most top-left merged cell coords.
-      ...this.translateMergedCellToRenderable(mergeRow, 0, mergeColumn, 0),
+      mergeRow, mergeColumn,
       // Most bottom-right merged cell coords.
-      ...this.translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan),
-    ];
+      mergeRow + rowspan - 1,
+      mergeColumn + colspan - 1] : void 0;
   }
 
   /**

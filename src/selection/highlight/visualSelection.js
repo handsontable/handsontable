@@ -138,8 +138,11 @@ class VisualSelection extends Selection {
    * @returns {VisualSelection}
    */
   adjustCoordinates(broaderCellRange) {
+    if (this.cellRange !== null) {
+      return this;
+
     // We can't show selection visually now, but we try to find fist visible range in the broader cell range.
-    if (this.cellRange === null && broaderCellRange) {
+    } else if (broaderCellRange) {
       // We may move in two different directions while searching for visible rows and visible columns.
       const incrementByRow = this.getRowSearchDirection(broaderCellRange);
       const incrementByColumn = this.getColumnSearchDirection(broaderCellRange);

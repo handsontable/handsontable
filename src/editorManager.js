@@ -174,10 +174,7 @@ class EditorManager {
       let visualColumnToCheck = col;
 
       if (Array.isArray(modifiedCellCoords)) {
-        const [renderableRowToCheck, renderableColumnToCheck] = modifiedCellCoords;
-
-        visualRowToCheck = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRowToCheck);
-        visualColumnToCheck = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumnToCheck);
+        [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
       }
 
       const originalValue =
