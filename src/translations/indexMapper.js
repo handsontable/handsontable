@@ -402,7 +402,9 @@ class IndexMapper {
       return this.notTrimmedIndexesCache;
     }
 
-    return arrayFilter(this.getIndexesSequence(), physicalIndex => this.isTrimmed(physicalIndex) === false);
+    const indexesSequence = this.getIndexesSequence();
+
+    return indexesSequence.filter(physicalIndex => this.isTrimmed(physicalIndex) === false);
   }
 
   /**
@@ -429,7 +431,9 @@ class IndexMapper {
       return this.notHiddenIndexesCache;
     }
 
-    return arrayFilter(this.getIndexesSequence(), index => this.isHidden(index) === false);
+    const indexesSequence = this.getIndexesSequence();
+
+    return indexesSequence.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
 
   /**
