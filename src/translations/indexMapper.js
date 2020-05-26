@@ -623,14 +623,15 @@ class IndexMapper {
   cacheFromVisualToRenderabIendexes() {
     const notTrimmedIndexes = this.notTrimmedIndexesCache;
     const nrOfNotTrimmedIndexes = notTrimmedIndexes.length;
-    const isHiddenForVisualIndexes = notTrimmedIndexes.map(physicalIndexForVisualIndex => this.isHidden(physicalIndexForVisualIndex));
 
     this.fromVisualToRenderableIndexesCache.clear();
 
     let nrOfHiddenIndexesBefore = 0;
 
     for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
-      if (isHiddenForVisualIndexes[visualIndex]) {
+      const physicalIndex = notTrimmedIndexes[visualIndex];
+
+      if (this.isHidden(physicalIndex)) {
         nrOfHiddenIndexesBefore += 1;
 
       } else {
