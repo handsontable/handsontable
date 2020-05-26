@@ -13,7 +13,6 @@ import CellValue from './cell/value';
  * The formulas plugin.
  *
  * @plugin Formulas
- * @experimental
  */
 class Formulas extends BasePlugin {
   constructor(hotInstance) {

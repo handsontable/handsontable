@@ -411,21 +411,25 @@ class DataMap {
    * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
   removeRow(index, amount = 1, source) {
-    let rowIndex = typeof index !== 'number' ? -amount : index;
-    const rowsAmount = this.instance.runHooks('modifyRemovedAmount', amount, rowIndex);
+    let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
+    const removedPhysicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
     const sourceRowsLength = this.instance.countSourceRows();
 
     rowIndex = (sourceRowsLength + rowIndex) % sourceRowsLength;
 
-    const logicRows = this.visualRowsToPhysical(rowIndex, rowsAmount);
-    const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', rowIndex, rowsAmount, logicRows, source);
+    // It handle also callback from the `NestedRows` plugin. Removing parent node has effect in removing children nodes.
+    const actionWasNotCancelled = this.instance.runHooks(
+      'beforeRemoveRow', rowIndex, removedPhysicalIndexes.length, removedPhysicalIndexes, source
+    );
 
     if (actionWasNotCancelled === false) {
       return false;
     }
 
     const data = this.dataSource;
-    const newData = this.filterData(rowIndex, rowsAmount);
+    // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
+    const numberOfRemovedIndexes = removedPhysicalIndexes.length;
+    const newData = this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
     if (newData) {
       data.length = 0;
@@ -434,7 +438,7 @@ class DataMap {
 
     // TODO: Function `removeRow` should validate fully, probably above.
     if (rowIndex < this.instance.countRows()) {
-      this.instance.rowIndexMapper.removeIndexes(logicRows);
+      this.instance.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
 
       const customDefinedColumns = isDefined(this.tableMeta.columns) || isDefined(this.tableMeta.dataSchema);
 
@@ -444,7 +448,7 @@ class DataMap {
       }
     }
 
-    this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
+    this.instance.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
 
     this.instance.forceFullRender = true; // used when data was changed
 
@@ -588,10 +592,10 @@ class DataMap {
    *
    * @param {number} index Visual index of the element to remove.
    * @param {number} amount Number of rows to add/remove.
+   * @param {number} physicalRows Physical row indexes.
    * @returns {Array}
    */
-  filterData(index, amount) {
-    const physicalRows = this.visualRowsToPhysical(index, amount);
+  filterData(index, amount, physicalRows) {
     const continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
     if (continueSplicing !== false) {

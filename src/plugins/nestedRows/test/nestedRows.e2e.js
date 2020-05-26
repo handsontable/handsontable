@@ -268,6 +268,7 @@ describe('NestedRows', () => {
       expect(getSelectedLast()).toEqual([6, 0, 6, 3]);
     });
 
+    // TODO: This test sometimes fail in the browser?
     it('should move single row between parents properly (moving from the bottom to the top)', () => {
       handsontable({
         data: getSimplerNestedData(),
@@ -276,11 +277,12 @@ describe('NestedRows', () => {
         rowHeaders: true
       });
 
+      const $fromHeader = spec().$container.find('tbody tr:eq(7) th:eq(0)');
       const $targetHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
 
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
+      $fromHeader.simulate('mousedown');
+      $fromHeader.simulate('mouseup');
+      $fromHeader.simulate('mousedown');
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
@@ -295,6 +297,40 @@ describe('NestedRows', () => {
       expect(getDataAtCell(8, 1)).toEqual('August Burns Red');
       expect(getSelectedLast()).toEqual([1, 0, 1, 3]);
     });
+  });
+
+  it('should remove collapsed indexes properly', async() => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true
+    });
+
+    const plugin = getPlugin('nestedRows');
+
+    plugin.collapsingUI.collapseChildren(0);
+    plugin.collapsingUI.collapseChildren(6);
+    plugin.collapsingUI.collapseChildren(12);
+
+    alter('remove_row', 2);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([
+      ['Best Rock Performance', null, null, null],
+      ['Best Metal Performance', null, null, null],
+    ]);
+
+    alter('remove_row', 1);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([['Best Rock Performance', null, null, null]]);
+
+    alter('remove_row', 0);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([]);
   });
 
   describe('API', () => {
