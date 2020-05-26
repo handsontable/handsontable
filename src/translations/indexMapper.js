@@ -457,7 +457,7 @@ class IndexMapper {
 
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
 
-    return notTrimmedIndexes.filter(physicalIndex => !this.isHidden(physicalIndex));
+    return notTrimmedIndexes.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
 
   /**
@@ -602,7 +602,7 @@ class IndexMapper {
    */
   cacheFromPhysicalToVisualIndexes() {
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
-    const nrOfIndexes = this.getNotHiddenIndexesLength();
+    const nrOfIndexes = this.getNotTrimmedIndexesLength();
 
     this.fromPhysicalToVisualIndexesCache.clear();
 
