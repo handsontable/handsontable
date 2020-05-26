@@ -1,5 +1,5 @@
 import { rangeEach } from '../../../helpers/number';
-import { objectEach, hasOwnProperty } from '../../../helpers/object';
+import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 
 /**
@@ -416,8 +416,7 @@ class DataManager {
       rowObj = this.getDataObject(rowObj);
     }
 
-    // TODO: Bug? What about situation when an element has empty array under the `__children` key? Please take a look at another "TODO" within test cases.
-    return !!(hasOwnProperty(rowObj, '__children'));
+    return !!rowObj.__children && rowObj.__children?.length !== 0;
   }
 
   /**
@@ -671,15 +670,12 @@ class DataManager {
     let upmostParent = rowElement;
     let tempParent = null;
 
-    let tmp = 0;
-
     do {
       tempParent = this.getRowParent(tempParent);
 
       if (tempParent !== null) {
-       upmostParent = tempParent;
+        upmostParent = tempParent;
       }
-      tmp++;
 
     } while (tempParent !== null);
 
