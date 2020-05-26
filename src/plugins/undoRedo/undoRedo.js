@@ -453,17 +453,17 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
 
   // TODO Temporary hook for undo/redo mess
   if (isFormulaPluginEnabled) {
-    const changes = [];
+    const setDataAtCellChanges = [];
 
     arrayEach(instance.getSourceDataArray(), (rowData, rowIndex) => {
       arrayEach(ascendingIndexes, (changedIndex, contiquesIndex) => {
         rowData[changedIndex] = sortedData[rowIndex][contiquesIndex];
 
-        changes.push([rowIndex, changedIndex, null, rowData[changedIndex]]);
+        setDataAtCellChanges.push([rowIndex, changedIndex, null, rowData[changedIndex]]);
       });
     });
 
-    instance.getPlugin('formulas').onAfterSetDataAtCell(changes);
+    instance.getPlugin('formulas').onAfterSetDataAtCell(setDataAtCellChanges);
   }
 
   if (typeof this.headers !== 'undefined') {
