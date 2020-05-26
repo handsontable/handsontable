@@ -606,11 +606,11 @@ class IndexMapper {
    */
   cacheFromPhysicalToVisualIndexes() {
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
-    const nrOfIndexes = this.getNotTrimmedIndexesLength();
+    const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
 
     this.fromPhysicalToVisualIndexesCache.clear();
 
-    for (let visualIndex = 0; visualIndex < nrOfIndexes; visualIndex += 1) {
+    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
       const physicalIndex = notTrimmedIndexes[visualIndex];
 
       // Every visual index have corresponding physical index, but some physical indexes may don't have
@@ -625,8 +625,8 @@ class IndexMapper {
    * @private
    */
   cacheFromVisualToRenderabIendexes() {
-    const notTrimmedIndexes = this.notTrimmedIndexesCache;
-    const nrOfNotTrimmedIndexes = notTrimmedIndexes.length;
+    const notTrimmedIndexes = this.getNotTrimmedIndexes();
+    const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();
 
