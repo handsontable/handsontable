@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap } from '../helpers/array';
+import { arrayMap } from '../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
 import IndexesSequence from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
@@ -402,7 +402,9 @@ class IndexMapper {
       return this.notTrimmedIndexesCache;
     }
 
-    return arrayFilter(this.getIndexesSequence(), physicalIndex => this.isTrimmed(physicalIndex) === false);
+    const indexesSequence = this.getIndexesSequence();
+
+    return indexesSequence.filter(physicalIndex => this.isTrimmed(physicalIndex) === false);
   }
 
   /**
@@ -429,7 +431,9 @@ class IndexMapper {
       return this.notHiddenIndexesCache;
     }
 
-    return arrayFilter(this.getIndexesSequence(), index => this.isHidden(index) === false);
+    const indexesSequence = this.getIndexesSequence();
+
+    return indexesSequence.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
 
   /**
@@ -456,9 +460,8 @@ class IndexMapper {
     }
 
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
-    const notHiddenIndexes = this.getNotHiddenIndexes();
 
-    return notTrimmedIndexes.filter(physicalIndex => notHiddenIndexes.includes(physicalIndex));
+    return notTrimmedIndexes.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
 
   /**
@@ -602,21 +605,16 @@ class IndexMapper {
    * @private
    */
   cacheFromPhysicalToVisualIndexes() {
-    const notTrimmedIndexes = this.notTrimmedIndexesCache;
-    const sequenceOfPhysicalIndexes = this.getIndexesSequence(); // From visual to physical indexes.
-    const nrOfIndexes = sequenceOfPhysicalIndexes.length;
+    const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
 
     this.fromPhysicalToVisualIndexesCache.clear();
 
-    for (let index = 0; index < nrOfIndexes; index += 1) {
-      const physicalIndex = sequenceOfPhysicalIndexes[index];
-      const visualIndex = notTrimmedIndexes.indexOf(physicalIndex);
+    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
+      const physicalIndex = this.getPhysicalFromVisualIndex(visualIndex);
 
       // Every visual index have corresponding physical index, but some physical indexes may don't have
       // corresponding visual indexes (physical indexes may represent trimmed indexes, beyond the table boundaries)
-      if (visualIndex !== -1) {
-        this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
-      }
+      this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
     }
   }
 
@@ -626,23 +624,16 @@ class IndexMapper {
    * @private
    */
   cacheFromVisualToRenderabIendexes() {
-    const notTrimmedIndexes = this.notTrimmedIndexesCache;
-    const nrOfNotTrimmedIndexes = notTrimmedIndexes.length;
-    const isHiddenForVisualIndexes = notTrimmedIndexes.map(physicalIndexForVisualIndex => this.isHidden(physicalIndexForVisualIndex));
+    const nrOfRenderableIndexes = this.getRenderableIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();
 
-    let nrOfHiddenIndexesBefore = 0;
+    for (let renderableIndex = 0; renderableIndex < nrOfRenderableIndexes; renderableIndex += 1) {
+      // Can't use getRenderableFromVisualIndex here because we're building the cache here
+      const physicalIndex = this.getPhysicalFromRenderableIndex(renderableIndex);
+      const visualIndex = this.getVisualFromPhysicalIndex(physicalIndex);
 
-    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
-      if (isHiddenForVisualIndexes[visualIndex]) {
-        nrOfHiddenIndexesBefore += 1;
-
-      } else {
-        const renderableIndex = visualIndex - nrOfHiddenIndexesBefore;
-
-        this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
-      }
+      this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
     }
   }
 }
