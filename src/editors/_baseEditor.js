@@ -198,7 +198,16 @@ class BaseEditor {
         selection[3] = tmp;
       }
     } else {
-      selection = [this.row, this.col, null, null];
+      const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', this.row, this.col);
+      let visualRow = this.row;
+      let visualColumn = this.col;
+
+      if (Array.isArray(modifiedCellCoords)) {
+        [visualRow, visualColumn] = modifiedCellCoords;
+      }
+
+      // Saving values using the modified coordinates.
+      selection = [visualRow, visualColumn, null, null];
     }
 
     this.hot.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');

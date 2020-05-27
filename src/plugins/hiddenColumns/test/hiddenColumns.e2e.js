@@ -5272,7 +5272,7 @@ describe('HiddenColumns', () => {
       // Closing the editor.
       keyDownUp('enter');
 
-      expect(getData()).toBe([null, 'Edited value', null, null, null]);
+      expect(getData()).toEqual([['A1', 'Edited value', null, null, 'E1']]);
     });
 
     it('should edit merged cell properly (start from invisible cell, merging to visible cell)', () => {
@@ -5296,7 +5296,7 @@ describe('HiddenColumns', () => {
       // Closing the editor.
       keyDownUp('enter');
 
-      expect(getData()).toBe(['Edited value', null, null, null, null]);
+      expect(getData()).toEqual([['Edited value', null, null, null, 'E1']]);
     });
 
     it('should edit merged cell properly (start from visible cell, merging to invisible cell)', () => {
@@ -5320,7 +5320,7 @@ describe('HiddenColumns', () => {
       // Closing the editor.
       keyDownUp('enter');
 
-      expect(getData()).toBe([null, 'Edited value', null, null, null]);
+      expect(getData()).toEqual([['A1', 'Edited value', null, null, null]]);
     });
 
     it('should edit merged cell properly (start from invisible cell, merging to invisible cell)', () => {
@@ -5344,7 +5344,7 @@ describe('HiddenColumns', () => {
       // Closing the editor.
       keyDownUp('enter');
 
-      expect(getData()).toBe(['Edited value', null, null, null, null]);
+      expect(getData()).toEqual([['Edited value', null, null, null, null]]);
     });
   });
 
