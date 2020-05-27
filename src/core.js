@@ -2381,6 +2381,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return dataSource.getAtColumn(column);
   };
 
+  /* eslint-disable jsdoc/require-param */
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
@@ -2391,6 +2392,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {*} value The value to be set at the provided coordinates.
    * @param {string} [source] Source of the change as a string.
    */
+  /* eslint-enable jsdoc/require-param */
   this.setSourceDataAtCell = function(row, column, value, source, silentMode = false) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');

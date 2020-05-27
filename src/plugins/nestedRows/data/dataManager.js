@@ -684,12 +684,14 @@ class DataManager {
     this.plugin.enableCoreAPIModifiers();
   }
 
+  /* eslint-disable jsdoc/require-param */
   /**
    * Move a single row.
    *
    * @param {number} fromIndex Index of the row to be moved.
    * @param {number} toIndex Index of the destination.
    */
+  /* eslint-enable jsdoc/require-param */
   moveRow(fromIndex, toIndex, silentMode = false) {
     const targetIsParent = this.isParent(toIndex);
 
