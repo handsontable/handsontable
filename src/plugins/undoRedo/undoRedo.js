@@ -435,7 +435,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
   }
 
   const sortedHeaders = arrayMap(this.headers, sortByIndexes);
-  const isFormulaPluginEnabled = instance.getPlugin('formulas') ? instance.getPlugin('formulas').enabled : false;
+  const isFormulaPluginEnabled = instance.getPlugin('formulas')?.enabled ?? false;
   const changes = [];
 
   instance.alter('insert_col', this.indexes[0], this.indexes.length, 'UndoRedo.undo');
