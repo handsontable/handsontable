@@ -239,7 +239,7 @@ class AutocompleteEditor extends HandsontableEditor {
       this.highlightBestMatchingChoice(highlightIndex);
     }
 
-    this.hot.listen(false);
+    this.hot.listen();
 
     setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
   }

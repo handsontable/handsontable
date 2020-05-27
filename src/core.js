@@ -1267,12 +1267,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array}
    */
   function setDataInputToArray(row, propOrCol, value) {
-    if (typeof row === 'object') { // is it an array of changes
+    if (Array.isArray(row)) { // it's an array of changes
       return row;
     }
-    return [
-      [row, propOrCol, value]
-    ];
+
+    return [[row, propOrCol, value]];
   }
 
   /**
@@ -2394,22 +2393,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.setSourceDataAtCell = function(row, column, value, source) {
     const input = setDataInputToArray(row, column, value);
-    const changes = [];
+    const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
+    const changesForHook = [];
 
-    input.forEach((change, i) => {
-      const [changeRow, changeProp, changeValue] = change;
-      changes.push([
-        input[i][0],
-        input[i][1],
-        dataSource.getAtCell(input[i][0], input[i][1]),
-        input[i][2],
-      ]);
+    if (isThereAnySetSourceListener) {
+      arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+        changesForHook.push([
+          changeRow,
+          changeProp,
+          dataSource.getAtCell(changeRow, changeProp), // The previous value.
+          changeValue,
+        ]);
+      });
+    }
 
+    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
       dataSource.setAtCell(changeRow, changeProp, changeValue);
     });
 
-    this.runHooks('afterSetSourceDataAtCell', changes, source);
+    if (isThereAnySetSourceListener) {
+      this.runHooks('afterSetSourceDataAtCell', changesForHook, source);
+    }
+
     this.render();
+
+    const activeEditor = instance.getActiveEditor();
+
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   };
 
   /**
