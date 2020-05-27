@@ -224,7 +224,7 @@ class NestedRows extends BasePlugin {
     let hasDataChanged = false;
 
     for (i = 0; i < rowsLen; i++) {
-      this.dataManager.moveRow(translatedStartIndexes[i], translatedDropIndex);
+      this.dataManager.moveRow(translatedStartIndexes[i], translatedDropIndex, true);
       hasDataChanged = hasDataChanged || translatedStartIndexes[i] !== translatedDropIndex;
     }
 

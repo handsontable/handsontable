@@ -480,7 +480,7 @@ class DataManager {
       parent.__children.splice(index, null, childElement);
 
       this.plugin.disableCoreAPIModifiers();
-      this.hot.setSourceDataAtCell(this.getRowIndexWithinParent(parent), '__children', parent.__children);
+      this.hot.setSourceDataAtCell(this.getRowIndexWithinParent(parent), '__children', parent.__children, 'NestedRows.addChildAtIndex');
       this.plugin.enableCoreAPIModifiers();
 
       this.hot.runHooks('afterCreateRow', index, 1);
@@ -680,10 +680,8 @@ class DataManager {
     } while (tempParent !== null);
 
     this.plugin.disableCoreAPIModifiers();
-    this.hot.setSourceDataAtCell(this.getRowIndex(upmostParent), '__children', upmostParent.__children);
+    this.hot.setSourceDataAtCell(this.getRowIndex(upmostParent), '__children', upmostParent.__children, 'NestedRows.syncRowWithRawSource', true);
     this.plugin.enableCoreAPIModifiers();
-
-    this.hot.render();
   }
 
   /**
@@ -692,7 +690,7 @@ class DataManager {
    * @param {number} fromIndex Index of the row to be moved.
    * @param {number} toIndex Index of the destination.
    */
-  moveRow(fromIndex, toIndex) {
+  moveRow(fromIndex, toIndex, silentMode = false) {
     const targetIsParent = this.isParent(toIndex);
 
     const fromParent = this.getRowParent(fromIndex);
@@ -729,6 +727,10 @@ class DataManager {
 
     if (fromParent !== toParent) {
       this.syncRowWithRawSource(toParent);
+    }
+
+    if (!silentMode) {
+      this.hot.render();
     }
   }
 
