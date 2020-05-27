@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev8
- * Release date: 23/10/2019 (built at 25/05/2020 15:51:27)
+ * Version: 8.0.0-beta.2-rev9
+ * Release date: 23/10/2019 (built at 27/05/2020 13:40:24)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3368,7 +3368,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev8";
+  var hotVersion = "8.0.0-beta.2-rev9";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -42342,8 +42342,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "25/05/2020 15:51:27";
-Handsontable.version = "8.0.0-beta.2-rev8"; // Export Hooks singleton
+Handsontable.buildDate = "27/05/2020 13:40:24";
+Handsontable.version = "8.0.0-beta.2-rev9"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
