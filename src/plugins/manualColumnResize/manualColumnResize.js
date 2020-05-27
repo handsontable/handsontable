@@ -8,7 +8,6 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
-const COLUMN_WIDTHS_MAP_NAME = 'manualColumnResize';
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
 /**
@@ -81,7 +80,7 @@ class ManualColumnResize extends BasePlugin {
 
     this.columnWidthsMap = new IndexToValueMap();
     this.columnWidthsMap.addLocalHook('init', () => this.onMapInit());
-    this.hot.columnIndexMapper.registerMap(COLUMN_WIDTHS_MAP_NAME, this.columnWidthsMap);
+    this.hot.columnIndexMapper.registerMap(this.pluginName, this.columnWidthsMap);
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
@@ -107,9 +106,9 @@ class ManualColumnResize extends BasePlugin {
    */
   disablePlugin() {
     const priv = privatePool.get(this);
-    priv.config = this.columnWidthsMap.getValues();
 
-    this.hot.columnIndexMapper.unregisterMap(COLUMN_WIDTHS_MAP_NAME);
+    priv.config = this.columnWidthsMap.getValues();
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
   }
 
@@ -176,15 +175,15 @@ class ManualColumnResize extends BasePlugin {
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
       this.hot.executeBatchOperations(() => {
-        loadedManualColumnWidths.forEach((width, index) => {
-          this.columnWidthsMap.setValueAtIndex(index, width);
+        loadedManualColumnWidths.forEach((width, physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
       });
 
     } else if (Array.isArray(initialSetting)) {
       this.hot.executeBatchOperations(() => {
-        initialSetting.forEach((width, index) => {
-          this.columnWidthsMap.setValueAtIndex(index, width);
+        initialSetting.forEach((width, physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
       });
 
@@ -192,8 +191,8 @@ class ManualColumnResize extends BasePlugin {
 
     } else if (initialSetting === true && Array.isArray(priv.config)) {
       this.hot.executeBatchOperations(() => {
-        priv.config.forEach((width, index) => {
-          this.columnWidthsMap.setValueAtIndex(index, width);
+        priv.config.forEach((width, physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
       });
     }
@@ -228,7 +227,7 @@ class ManualColumnResize extends BasePlugin {
         relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
       }
 
-      this.currentCol = col;
+      this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
       this.selectedCols = [];
 
       if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByColumnHeader()) {
@@ -343,8 +342,8 @@ class ManualColumnResize extends BasePlugin {
       if (element.tagName === 'TH') {
         return element;
       }
-      return this.getTHFromTargetElement(element.parentNode);
 
+      return this.getTHFromTargetElement(element.parentNode);
     }
 
     return null;
@@ -580,14 +579,14 @@ class ManualColumnResize extends BasePlugin {
    */
   onBeforeColumnResize() {
     // clear the header height cache information
-    this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
+    this.hot.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
   }
 
   /**
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(COLUMN_WIDTHS_MAP_NAME);
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
 
     super.destroy();
   }
