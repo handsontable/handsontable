@@ -663,12 +663,12 @@ class MergeCells extends BasePlugin {
 
     const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergeParent;
 
-    return mergeParent ? [
+    return [
       // Most top-left merged cell coords.
       mergeRow, mergeColumn,
       // Most bottom-right merged cell coords.
       mergeRow + rowspan - 1,
-      mergeColumn + colspan - 1] : void 0;
+      mergeColumn + colspan - 1];
   }
 
   /**
