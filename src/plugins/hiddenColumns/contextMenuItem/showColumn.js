@@ -28,8 +28,8 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       // Add to the selection one more visual column on the right.
       endVisualColumn = this.columnIndexMapper.getFirstNotHiddenIndex(endVisualColumn + 1, 1);
 
-      startVisualColumn = startVisualColumn === null ? 0 : startVisualColumn;
-      endVisualColumn = endVisualColumn === null ? this.countCols() - 1 : endVisualColumn;
+      startVisualColumn = startVisualColumn ?? 0;
+      endVisualColumn = endVisualColumn ?? this.countCols() - 1;
 
       hiddenColumnsPlugin.showColumns(columns);
 

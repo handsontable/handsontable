@@ -28,8 +28,8 @@ export default function showRowItem(hiddenRowsPlugin) {
       // Add to the selection one more visual row on the bottom.
       endVisualRow = this.rowIndexMapper.getFirstNotHiddenIndex(endVisualRow + 1, 1);
 
-      startVisualRow = startVisualRow === null ? 0 : startVisualRow;
-      endVisualRow = endVisualRow === null ? this.countRows() - 1 : endVisualRow;
+      startVisualRow = startVisualRow ?? 0;
+      endVisualRow = endVisualRow ?? this.countRows() - 1;
 
       hiddenRowsPlugin.showRows(rows);
 
