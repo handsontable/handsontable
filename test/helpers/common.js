@@ -713,12 +713,12 @@ export function createAccessorForProperty(name) {
 }
 
 /**
- * @param {number} displayedColumnIndex The visual column index.
+ * @param {number} renderableColumnIndex The renderable column index.
  * @param {number} width The target column width.
  */
-export function resizeColumn(displayedColumnIndex, width) {
+export function resizeColumn(renderableColumnIndex, width) {
   const $container = spec().$container;
-  const $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
+  const $th = $container.find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
 
   $th.simulate('mouseover');
 
@@ -739,12 +739,12 @@ export function resizeColumn(displayedColumnIndex, width) {
 }
 
 /**
- * @param {number} displayedRowIndex The visual row index.
+ * @param {number} renderableRowIndex The renderable row index.
  * @param {number} height The target row height.
  */
-export function resizeRow(displayedRowIndex, height) {
+export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
+  const $th = $container.find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
 
   $th.simulate('mouseover');
 

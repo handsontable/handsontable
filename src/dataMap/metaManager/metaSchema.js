@@ -1870,7 +1870,7 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Multi-column sorting](https://docs.handsontable.com/pro/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+     * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
      * * `initialConfig` - Array containing objects, every with predefined keys:
      *   * `column` - sorted column
      *   * `sortOrder` - order in which column will be sorted
@@ -2528,7 +2528,7 @@ export default () => {
      *  * `'average'`
      *  * `'custom'` - add `customFunction`.
      *
-     * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
+     * [See the demo for more information](https://docs.handsontable.com/demo-summary-calculations.html).
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -2899,7 +2899,7 @@ export default () => {
      * @description
      * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
      *
-     * See [quick setup of the Nested rows](https://docs.handsontable.kbudnik/pro/next/demo-nested-rows.html).
+     * See [quick setup of the Nested rows](https://handsontable.com/docs/demo-nested-rows.html).
      * @example
      * ```js
      * nestedRows: true,

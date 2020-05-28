@@ -1,4 +1,4 @@
-import { arrayFilter, arrayMap } from '../helpers/array';
+import { arrayMap } from '../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
 import IndexesSequence from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
@@ -10,27 +10,27 @@ import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
 
 /**
- * Index mapper manages the mappings provided by "smaller" maps called index map(s). Those maps provide links from
- * indexes (physical¹ or visual² depending on requirements) to another value. For example, we may link physical column
- * indexes with widths of columns. On every performed CRUD action such as insert column, move column and remove column
- * the value (column width) will stick to the proper index. The index mapper is used as the centralised source of truth
- * regarding row and column indexes (their sequence, information if they are skipped in the process of rendering,
- * values linked to them). It handles CRUD operations on indexes and translate the visual indexes to the physical
- * indexes and the other way round³. It has built in cache. Thus, this way, read operations are as fast as possible.
- * Cache updates are triggered only when the data or structure changes.
+ * Index mapper stores, registers and manages the indexes on the basis of calculations collected from the subsidiary maps.
+ * It should be seen as a single source of truth (regarding row and column indexes, for example, their sequence, information if they are skipped in the process of rendering (hidden or trimmed), values linked to them)
+ * for any operation that considers CRUD actions such as **insertion**, **movement**, **removal** etc, and is used to properly calculate physical and visual indexes translations in both ways.
+ * It has a built-in cache that is updated only when the data or structure changes.
  *
- * ¹ Physical index is particular index from the sequence of indexes assigned to the data source rows / columns
- * (from 0 to n, where n is number of the cells on the axis).
- * ² Visual index is particular index from the sequence of indexes assigned to visible rows / columns
- * (from 0 to n, where n is number of the cells on the axis).
- * ³ It maps from visible row / column to its representation in the data source and the other way round.
- * For example, when we sorted data, our 1st visible row can represent 4th row from the original source data,
- * 2nd can be mapped to 3rd, 3rd to 2nd, etc. (keep in mind that indexes are represent from the zero).
+ * **Physical index** is a type of an index from the sequence of indexes assigned to the data source rows or columns
+ *  (from 0 to n, where n is number of the cells on the axis of data set).
+ * **Visual index** is a type of an index from the sequence of indexes assigned to rows or columns existing in {@link DataMap} (from 0 to n, where n is number of the cells on the axis of data set).
+ * **Renderable index** is a type of an index from the sequence of indexes assigned to rows or columns whose may be rendered (when they are in a viewport; from 0 to n, where n is number of the cells renderable on the axis).
+ *
+ * There are different kinds of index maps which may be registered in the collections and can be used by a reference.
+ * They also expose public API and trigger two local hooks such as `init` (on initialization) and `change` (on change).
+ *
+ * These are: {@link to IndexesSequence}, {@link to PhysicalIndexToValueMap}, {@link to HidingMap}, and {@link to TrimmingMap}.
  */
 class IndexMapper {
   constructor() {
     /**
-     * Map storing the sequence of indexes.
+     * Map for storing the sequence of indexes.
+     *
+     * It is registered by default and may be used from API methods.
      *
      * @private
      * @type {IndexesSequence}
@@ -402,7 +402,9 @@ class IndexMapper {
       return this.notTrimmedIndexesCache;
     }
 
-    return arrayFilter(this.getIndexesSequence(), physicalIndex => this.isTrimmed(physicalIndex) === false);
+    const indexesSequence = this.getIndexesSequence();
+
+    return indexesSequence.filter(physicalIndex => this.isTrimmed(physicalIndex) === false);
   }
 
   /**
@@ -429,7 +431,9 @@ class IndexMapper {
       return this.notHiddenIndexesCache;
     }
 
-    return arrayFilter(this.getIndexesSequence(), index => this.isHidden(index) === false);
+    const indexesSequence = this.getIndexesSequence();
+
+    return indexesSequence.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
 
   /**
@@ -456,9 +460,8 @@ class IndexMapper {
     }
 
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
-    const notHiddenIndexes = this.getNotHiddenIndexes();
 
-    return notTrimmedIndexes.filter(physicalIndex => notHiddenIndexes.includes(physicalIndex));
+    return notTrimmedIndexes.filter(physicalIndex => this.isHidden(physicalIndex) === false);
   }
 
   /**
@@ -602,21 +605,16 @@ class IndexMapper {
    * @private
    */
   cacheFromPhysicalToVisualIndexes() {
-    const notTrimmedIndexes = this.notTrimmedIndexesCache;
-    const sequenceOfPhysicalIndexes = this.getIndexesSequence(); // From visual to physical indexes.
-    const nrOfIndexes = sequenceOfPhysicalIndexes.length;
+    const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
 
     this.fromPhysicalToVisualIndexesCache.clear();
 
-    for (let index = 0; index < nrOfIndexes; index += 1) {
-      const physicalIndex = sequenceOfPhysicalIndexes[index];
-      const visualIndex = notTrimmedIndexes.indexOf(physicalIndex);
+    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
+      const physicalIndex = this.getPhysicalFromVisualIndex(visualIndex);
 
       // Every visual index have corresponding physical index, but some physical indexes may don't have
       // corresponding visual indexes (physical indexes may represent trimmed indexes, beyond the table boundaries)
-      if (visualIndex !== -1) {
-        this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
-      }
+      this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
     }
   }
 
@@ -626,23 +624,16 @@ class IndexMapper {
    * @private
    */
   cacheFromVisualToRenderabIendexes() {
-    const notTrimmedIndexes = this.notTrimmedIndexesCache;
-    const nrOfNotTrimmedIndexes = notTrimmedIndexes.length;
-    const isHiddenForVisualIndexes = notTrimmedIndexes.map(physicalIndexForVisualIndex => this.isHidden(physicalIndexForVisualIndex));
+    const nrOfRenderableIndexes = this.getRenderableIndexesLength();
 
     this.fromVisualToRenderableIndexesCache.clear();
 
-    let nrOfHiddenIndexesBefore = 0;
+    for (let renderableIndex = 0; renderableIndex < nrOfRenderableIndexes; renderableIndex += 1) {
+      // Can't use getRenderableFromVisualIndex here because we're building the cache here
+      const physicalIndex = this.getPhysicalFromRenderableIndex(renderableIndex);
+      const visualIndex = this.getVisualFromPhysicalIndex(physicalIndex);
 
-    for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
-      if (isHiddenForVisualIndexes[visualIndex]) {
-        nrOfHiddenIndexesBefore += 1;
-
-      } else {
-        const renderableIndex = visualIndex - nrOfHiddenIndexesBefore;
-
-        this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
-      }
+      this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
     }
   }
 }

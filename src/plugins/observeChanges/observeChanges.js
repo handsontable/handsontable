@@ -1,12 +1,14 @@
 import BasePlugin from './../_base';
 import DataObserver from './dataObserver';
 import { arrayEach } from './../../helpers/array';
+import { warn } from '../../helpers/console';
 import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
 
 /**
  * @plugin ObserveChanges
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  *
  * @description
  * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
@@ -50,6 +52,7 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
+      warn('The Observe Changes plugin is deprecated and will be removed in the next major release');
       this.observer = new DataObserver(this.hot.getSettings().data);
       this._exposePublicApi();
     }
