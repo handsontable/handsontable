@@ -349,7 +349,12 @@ class Comments extends BasePlugin {
   show() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+
+    } else if (this.range.from.row < 0 || this.range.from.row > this.hot.countSourceRows() - 1 ||
+      this.range.from.col < 0 || this.range.from.col > this.hot.countSourceCols() - 1) {
+      return false;
     }
+
     const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
     this.refreshEditor(true);
@@ -395,15 +400,28 @@ class Comments extends BasePlugin {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
+
+    // targetingPreviousRow is used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords
+    let targetingPreviousRow = false;
+
     const { rootWindow } = this.hot;
     const { wtTable, wtOverlays, wtViewport } = this.hot.view.wt;
     const scrollableElement = wtOverlays.scrollableElement;
-    const TD = wtTable.getCell(this.range.from);
-    const row = this.range.from.row;
-    const column = this.range.from.col;
+    const visualRow = this.range.from.row;
+    const visualColumn = this.range.from.col;
+    const renderableRow = (this.hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow) ??
+      ((targetingPreviousRow = true) && this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.hot.rowIndexMapper.getFirstNotHiddenIndex(visualRow, -1))));
+    const renderableColumn = (this.hot.columnIndexMapper.getRenderableFromVisualIndex(visualColumn) ??
+      this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.hot.columnIndexMapper.getFirstNotHiddenIndex(visualColumn, -1)));
+    const isBeforeRenderedRows = renderableRow === null;
+    const isBeforeRenderedColumns = renderableColumn === null;
+    const TD = wtTable.getCell({
+      row: renderableRow ?? 0,
+      col: renderableColumn ?? 0
+    });
     const cellOffset = offset(TD);
-    const lastColWidth = wtTable.getStretchedColumnWidth(column);
-    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top + (targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0);
     let cellLeftOffset = cellOffset.left;
 
     if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
@@ -417,8 +435,8 @@ class Comments extends BasePlugin {
     const x = cellLeftOffset + lastColWidth;
     const y = cellTopOffset;
 
-    const commentStyle = this.getCommentMeta(row, column, META_STYLE);
-    const readOnly = this.getCommentMeta(row, column, META_READONLY);
+    const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
+    const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
