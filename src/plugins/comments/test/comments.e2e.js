@@ -723,5 +723,41 @@ describe('Comments', () => {
         left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
       });
     });
+
+    it('should display the correct values in the comment editor, for cells placed past hidden rows/columns', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        comments: true,
+        hiddenColumns: {
+          columns: [0, 1, 4],
+          indicators: true
+        },
+        hiddenRows: {
+          rows: [0, 1, 4],
+          indicators: true
+        },
+        cell: [
+          { row: 2, col: 2, comment: { value: 'Foo' } },
+          { row: 5, col: 5, comment: { value: 'Bar' } },
+        ],
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      plugin.showAtCell(2, 2);
+      expect($(editor).val()).toEqual('Foo');
+      expect(plugin.getCommentMeta(2, 2, 'value')).toEqual('Foo');
+      expect(plugin.getCommentAtCell(2, 2)).toEqual('Foo');
+      selectCell(2, 2);
+      expect(plugin.getComment()).toEqual('Foo');
+
+      plugin.showAtCell(5, 5);
+      expect($(editor).val()).toEqual('Bar');
+      expect(plugin.getCommentMeta(5, 5, 'value')).toEqual('Bar');
+      expect(plugin.getCommentAtCell(5, 5)).toEqual('Bar');
+      selectCell(5, 5);
+      expect(plugin.getComment()).toEqual('Bar');
+    });
   });
 });

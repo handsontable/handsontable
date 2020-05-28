@@ -558,7 +558,10 @@ class Comments extends BasePlugin {
     if (this.targetIsCellWithComment(event)) {
       const coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
       const range = {
-        from: new CellCoords(coordinates.row, coordinates.col)
+        from: new CellCoords(
+          this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
+          this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
+        )
       };
 
       this.displaySwitch.show(range);
