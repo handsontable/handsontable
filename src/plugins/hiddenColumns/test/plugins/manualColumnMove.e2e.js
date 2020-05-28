@@ -3,6 +3,7 @@ describe('HiddenColumns', () => {
 
   const CSS_CLASS_BEFORE_HIDDEN = 'beforeHiddenColumn';
   const CSS_CLASS_AFTER_HIDDEN = 'afterHiddenColumn';
+  const CONTEXTMENU_ITEM_SHOW = 'hidden_columns_show';
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -193,6 +194,51 @@ describe('HiddenColumns', () => {
       expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
+    });
+
+    describe('selection', () => {
+      it('should correctly set the selection of the unhidden column when it\'s placed as a most-left' +
+         'table record (caused by moving first visible column on the right of the hidden one)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, 5),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: [CONTEXTMENU_ITEM_SHOW],
+          hiddenColumns: {
+            columns: [1],
+          },
+          manualColumnMove: true,
+        });
+
+        getPlugin('manualColumnMove').moveColumn(0, 2);
+        render();
+
+        selectColumns(1);
+
+        contextMenu();
+        getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+        expect(spec().$container.find('tr:eq(0) th').length).toBe(6);
+        expect(spec().$container.find('tr:eq(1) td').length).toBe(5);
+        expect(getCell(0, 0).innerText).toBe('B1');
+        expect(getCell(0, 1).innerText).toBe('C1');
+        expect(getCell(0, 2).innerText).toBe('A1');
+        expect(getCell(0, 3).innerText).toBe('D1');
+        expect(getCell(0, 4).innerText).toBe('E1');
+        expect(getSelected()).toEqual([[0, 0, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║ * : * :   :   :   |
+        |===:===:===:===:===:===|
+        | - ║ A : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
     });
 
     describe('UI', () => {

@@ -1,6 +1,8 @@
 describe('HiddenRows', () => {
   const id = 'testContainer';
 
+  const CONTEXTMENU_ITEM_SHOW = 'hidden_rows_show';
+
   function extractDOMStructure(overlay) {
     const overlayBody = overlay.find('tbody')[0].cloneNode(true);
 
@@ -305,6 +307,53 @@ describe('HiddenRows', () => {
           </tr>
         </tbody>
         `);
+    });
+
+    describe('selection', () => {
+      it('should correctly set the selection of the unhidden row when it\'s placed as a most-top ' +
+         'table record (caused by moving first visible row under hidden one)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 2),
+          rowHeaders: true,
+          colHeaders: true,
+          contextMenu: [CONTEXTMENU_ITEM_SHOW],
+          hiddenRows: {
+            rows: [1],
+          },
+          manualRowMove: true,
+        });
+
+        getPlugin('manualRowMove').moveRow(0, 2);
+        render();
+
+        selectRows(1);
+
+        contextMenu();
+        getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
+
+        expect(spec().$container.find('.ht_master tbody th').length).toBe(5);
+        expect(getCell(0, 0).innerText).toBe('A2');
+        expect(getCell(1, 0).innerText).toBe('A3');
+        expect(getCell(2, 0).innerText).toBe('A1');
+        expect(getCell(3, 0).innerText).toBe('A4');
+        expect(getCell(4, 0).innerText).toBe('A5');
+        expect(getSelected()).toEqual([[0, 0, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+          |   ║ - : - |
+          |===:===:===|
+          | * ║ A : 0 |
+          | * ║ 0 : 0 |
+          |   ║   :   |
+          |   ║   :   |
+          |   ║   :   |
+        `).toBeMatchToSelectionPattern();
+      });
     });
 
     describe('UI', () => {
