@@ -24,12 +24,11 @@ export default function showRowItem(hiddenRowsPlugin) {
       let endVisualRow = rows[rows.length - 1];
 
       // Add to the selection one more visual row on the top.
-      startVisualRow = this.rowIndexMapper.getFirstNotHiddenIndex(startVisualRow - 1, -1);
+      startVisualRow = this.rowIndexMapper
+        .getFirstNotHiddenIndex(startVisualRow - 1, -1) ?? 0;
       // Add to the selection one more visual row on the bottom.
-      endVisualRow = this.rowIndexMapper.getFirstNotHiddenIndex(endVisualRow + 1, 1);
-
-      startVisualRow = startVisualRow ?? 0;
-      endVisualRow = endVisualRow ?? this.countRows() - 1;
+      endVisualRow = this.rowIndexMapper
+        .getFirstNotHiddenIndex(endVisualRow + 1, 1) ?? this.countRows() - 1;
 
       hiddenRowsPlugin.showRows(rows);
 

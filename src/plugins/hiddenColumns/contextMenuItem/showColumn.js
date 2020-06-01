@@ -24,12 +24,11 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       let endVisualColumn = columns[columns.length - 1];
 
       // Add to the selection one more visual column on the left.
-      startVisualColumn = this.columnIndexMapper.getFirstNotHiddenIndex(startVisualColumn - 1, -1);
+      startVisualColumn = this.columnIndexMapper
+        .getFirstNotHiddenIndex(startVisualColumn - 1, -1) ?? 0;
       // Add to the selection one more visual column on the right.
-      endVisualColumn = this.columnIndexMapper.getFirstNotHiddenIndex(endVisualColumn + 1, 1);
-
-      startVisualColumn = startVisualColumn ?? 0;
-      endVisualColumn = endVisualColumn ?? this.countCols() - 1;
+      endVisualColumn = this.columnIndexMapper
+        .getFirstNotHiddenIndex(endVisualColumn + 1, 1) ?? this.countCols() - 1;
 
       hiddenColumnsPlugin.showColumns(columns);
 
