@@ -211,20 +211,32 @@ class ManualColumnResize extends BasePlugin {
 
     this.currentTH = TH;
 
-    const cellCoords = this.hot.view.wt.wtTable.getCoords(this.currentTH);
+    const { view: { wt } } = this.hot;
+    const cellCoords = wt.wtTable.getCoords(this.currentTH);
     const col = cellCoords.col;
     const headerHeight = outerHeight(this.currentTH);
 
     if (col >= 0) { // if col header
       const box = this.currentTH.getBoundingClientRect();
-      const fixedColumn = col < this.hot.getSettings().fixedColumnsLeft;
-      const parentOverlay = fixedColumn ? this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.topOverlay;
-      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+      // Read "fixedColumnsLeft" through the Walkontable as in that context, the fixed columns
+      // are modified (decreased if there are no renderable columns) by TableView module.
+      const fixedColumn = col < wt.getSetting('fixedColumnsLeft');
+      let relativeHeaderPosition;
 
-      // If the TH is not a child of the top/top-left overlay, recalculate using the top-most header
+      if (fixedColumn) {
+        relativeHeaderPosition = wt
+          .wtOverlays
+          .topLeftCornerOverlay
+          .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+      }
+
+      // If the TH is not a child of the top-left overlay, recalculate using
+      // the top overlay - as this overlay contains the rest of the headers.
       if (!relativeHeaderPosition) {
-        const topMostHeader = parentOverlay.clone.wtTable.THEAD.lastChild.children[+!!this.hot.getSettings().rowHeaders + col];
-        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
+        const fallbackOverlay = wt.wtOverlays.topOverlay;
+        const currentTH = fallbackOverlay.clone.wtTable.THEAD.lastChild[col];
+
+        relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
       }
 
       this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);

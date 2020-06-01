@@ -162,31 +162,41 @@ class ManualRowResize extends BasePlugin {
   setupHandlePosition(TH) {
     this.currentTH = TH;
 
-    const cellCoords = this.hot.view.wt.wtTable.getCoords(this.currentTH);
+    const { view } = this.hot;
+    const { wt } = view;
+    const cellCoords = view.wt.wtTable.getCoords(this.currentTH);
 
     const row = cellCoords.row;
     const headerWidth = outerWidth(this.currentTH);
 
     if (row >= 0) { // if not col header
       const box = this.currentTH.getBoundingClientRect();
-      const fixedRowTop = row < this.hot.getSettings().fixedRowsTop;
-      const fixedRowBottom = row >= this.hot.countRows() - this.hot.getSettings().fixedRowsBottom;
-      let parentOverlay = this.hot.view.wt.wtOverlays.leftOverlay;
+      // Read "fixedRowsTop" through the Walkontable as in that context, the fixed rows
+      // are modified (decreased if there are no renderable columns) by TableView module.
+      const fixedRowTop = row < wt.getSetting('fixedRowsTop');
+      const fixedRowBottom = row >= view.countNotHiddenRowIndexes(0, 1) - wt.getSetting('fixedRowsBottom');
+      let relativeHeaderPosition;
 
       if (fixedRowTop) {
-        parentOverlay = this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
+        relativeHeaderPosition = wt
+          .wtOverlays
+          .topLeftCornerOverlay
+          .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
       } else if (fixedRowBottom) {
-        parentOverlay = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay;
+        relativeHeaderPosition = wt
+          .wtOverlays
+          .bottomLeftCornerOverlay
+          .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
       }
 
-      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
-
-      // If the TH is not a child of the left/top-left/bottom-left overlay, recalculate using the top-most header
+      // If the TH is not a child of the top-left/bottom-left overlay, recalculate using
+      // the left overlay - as this overlay contains the rest of the headers.
       if (!relativeHeaderPosition) {
-        const topMostHeader = parentOverlay.clone.wtTable.TBODY.children[+!!this.hot.getSettings().colHeaders + row].firstChild;
+        const fallbackOverlay = wt.wtOverlays.leftOverlay;
+        const currentTH = fallbackOverlay.clone.wtTable.TBODY.children[row].firstChild;
 
-        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
+        relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
       }
 
       const rowIndexMapper = this.hot.rowIndexMapper;

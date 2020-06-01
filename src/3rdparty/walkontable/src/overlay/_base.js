@@ -214,6 +214,7 @@ class Overlay {
     const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
     const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
     const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+
     const spreaderOffset = {
       left: this.clone.wtTable.spreader.offsetLeft,
       top: this.clone.wtTable.spreader.offsetTop
