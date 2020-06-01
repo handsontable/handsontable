@@ -77,6 +77,36 @@ describe('HiddenColumns', () => {
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
 
+    it('should display the resize handler in the proper position when the table contains hidden fixed left column', () => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
+          { id: 2, name: 'Frank', lastName: 'Honest', addr: 'NYC' },
+          { id: 3, name: 'Joan', lastName: 'Well', addr: 'NYC' },
+          { id: 4, name: 'Sid', lastName: 'Strong', addr: 'NYC' },
+          { id: 5, name: 'Jane', lastName: 'Neat', addr: 'NYC' }
+        ],
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true,
+        },
+        fixedColumnsLeft: 3,
+        manualColumnResize: true
+      });
+
+      // Show resize handler using the third renderable column. This column belongs to master as
+      // the "fixedColumnsLeft" is decreased to 2.
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(2)'); // Header "D"
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualColumnResizer');
+
+      expect($handle.offset().left).toBe($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+      expect($handle.height()).toBe($headerTH.outerHeight());
+    });
+
     it('should resize a proper column using the resize handler when the table contains hidden column', () => {
       handsontable({
         data: [

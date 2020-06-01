@@ -234,7 +234,8 @@ class ManualColumnResize extends BasePlugin {
       // the top overlay - as this overlay contains the rest of the headers.
       if (!relativeHeaderPosition) {
         const fallbackOverlay = wt.wtOverlays.topOverlay;
-        const currentTH = fallbackOverlay.clone.wtTable.THEAD.lastChild[col];
+        const rowHeadersCount = this.hot.getSettings().rowHeaders ? 1 : 0;
+        const currentTH = fallbackOverlay.clone.wtTable.THEAD.lastChild.children[col + rowHeadersCount];
 
         relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
       }
