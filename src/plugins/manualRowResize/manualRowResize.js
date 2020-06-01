@@ -171,8 +171,8 @@ class ManualRowResize extends BasePlugin {
 
     if (row >= 0) { // if not col header
       const box = this.currentTH.getBoundingClientRect();
-      // Read "fixedRowsTop" through the Walkontable as in that context, the fixed rows
-      // are modified (decreased if there are no renderable columns) by TableView module.
+      // Read "fixedRowsTop" and "fixedRowsBottom" through the Walkontable as in that context, the fixed
+      // rows are modified (reduced by the number of hidden rows) by TableView module.
       const fixedRowTop = row < wt.getSetting('fixedRowsTop');
       const fixedRowBottom = row >= view.countNotHiddenRowIndexes(0, 1) - wt.getSetting('fixedRowsBottom');
       let relativeHeaderPosition;

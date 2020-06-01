@@ -219,7 +219,7 @@ class ManualColumnResize extends BasePlugin {
     if (col >= 0) { // if col header
       const box = this.currentTH.getBoundingClientRect();
       // Read "fixedColumnsLeft" through the Walkontable as in that context, the fixed columns
-      // are modified (decreased if there are no renderable columns) by TableView module.
+      // are modified (reduced by the number of hidden columns) by TableView module.
       const fixedColumn = col < wt.getSetting('fixedColumnsLeft');
       let relativeHeaderPosition;
 
