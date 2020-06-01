@@ -91,7 +91,7 @@ describe('Comments', () => {
       expect(getCell(2, 2).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
     });
 
-    it('should display the comment edditor in the correct place', () => {
+    it('should display the comment editor in the correct place', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         comments: true,
@@ -670,7 +670,7 @@ describe('Comments', () => {
   });
 
   describe('hidden row an column integration', () => {
-    it('should display the comment edditor in the correct place, when the active cell is past hidden rows/columns', () => {
+    it('should display the comment editor in the correct place, when the active cell is past hidden rows/columns', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         comments: true,
@@ -688,36 +688,45 @@ describe('Comments', () => {
       const editor = plugin.editor.getInputElement();
 
       plugin.showAtCell(0, 0);
+
       expect($(editor.parentNode).offset()).toEqual($(hot.rootElement).offset());
 
       plugin.showAtCell(1, 1);
+
       expect($(editor.parentNode).offset()).toEqual($(hot.rootElement).offset());
 
       plugin.showAtCell(2, 2);
+
       expect($(editor.parentNode).offset()).toEqual($(getCell(2, 3)).offset());
 
       plugin.showAtCell(3, 3);
+
       expect($(editor.parentNode).offset()).toEqual($(getCell(3, 5)).offset());
 
       plugin.showAtCell(4, 4);
+
       expect($(editor.parentNode).offset()).toEqual($(getCell(5, 5)).offset());
 
       plugin.showAtCell(5, 5);
+
       expect($(editor.parentNode).offset()).toEqual($(getCell(5, 6)).offset());
 
       plugin.showAtCell(7, 7);
+
       expect($(editor.parentNode).offset()).toEqual({
         top: $(getCell(7, 7)).offset().top,
         left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
       });
 
       plugin.showAtCell(8, 8);
+
       expect($(editor.parentNode).offset()).toEqual({
         top: $(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(),
         left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
       });
 
       plugin.showAtCell(9, 9);
+
       expect($(editor.parentNode).offset()).toEqual({
         top: $(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(),
         left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()

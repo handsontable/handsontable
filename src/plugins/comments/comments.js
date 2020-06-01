@@ -350,8 +350,11 @@ class Comments extends BasePlugin {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
 
-    } else if (this.range.from.row < 0 || this.range.from.row > this.hot.countSourceRows() - 1 ||
-      this.range.from.col < 0 || this.range.from.col > this.hot.countSourceCols() - 1) {
+    }
+
+    const { from: { row, col } } = this.range;
+
+    if (row < 0 || row > this.hot.countSourceRows() - 1 || col < 0 || col > this.hot.countSourceCols() - 1) {
       return false;
     }
 
@@ -401,27 +404,43 @@ class Comments extends BasePlugin {
       return;
     }
 
-    // targetingPreviousRow is used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords
-    let targetingPreviousRow = false;
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { row: visualRow, col: visualColumn } = this.range.from;
 
-    const { rootWindow } = this.hot;
-    const { wtTable, wtOverlays, wtViewport } = this.hot.view.wt;
-    const scrollableElement = wtOverlays.scrollableElement;
-    const visualRow = this.range.from.row;
-    const visualColumn = this.range.from.col;
-    const renderableRow = (this.hot.rowIndexMapper.getRenderableFromVisualIndex(visualRow) ??
-      ((targetingPreviousRow = true) && this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.hot.rowIndexMapper.getFirstNotHiddenIndex(visualRow, -1))));
-    const renderableColumn = (this.hot.columnIndexMapper.getRenderableFromVisualIndex(visualColumn) ??
-      this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.hot.columnIndexMapper.getFirstNotHiddenIndex(visualColumn, -1)));
+    let renderableRow = rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+    let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
+    // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
+    const targetingPreviousRow = renderableRow === null;
+
+    if (renderableRow === null) {
+      renderableRow = rowIndexMapper
+        .getRenderableFromVisualIndex(rowIndexMapper.getFirstNotHiddenIndex(visualRow, -1));
+    }
+
+    if (renderableColumn === null) {
+      renderableColumn = columnIndexMapper
+        .getRenderableFromVisualIndex(columnIndexMapper.getFirstNotHiddenIndex(visualColumn, -1));
+    }
+
     const isBeforeRenderedRows = renderableRow === null;
     const isBeforeRenderedColumns = renderableColumn === null;
+
+    renderableRow = renderableRow ?? 0;
+    renderableColumn = renderableColumn ?? 0;
+
+    const { rootWindow, view: { wt } } = this.hot;
+    const { wtTable, wtOverlays, wtViewport } = wt;
+    const scrollableElement = wtOverlays.scrollableElement;
+
     const TD = wtTable.getCell({
-      row: renderableRow ?? 0,
-      col: renderableColumn ?? 0
+      row: renderableRow,
+      col: renderableColumn,
     });
+
     const cellOffset = offset(TD);
     const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
-    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top + (targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0);
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+    let cellTopOffset = cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
     if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
@@ -433,13 +452,14 @@ class Comments extends BasePlugin {
     }
 
     const x = cellLeftOffset + lastColWidth;
-    const y = cellTopOffset;
+    const y = cellTopOffset + lastRowHeight;
 
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
     const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
+
     } else {
       this.editor.resetSize();
     }
@@ -529,6 +549,10 @@ class Comments extends BasePlugin {
 
       if (eventCell) {
         coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+        coordinates = {
+          row: this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
+          col: this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
+        };
       }
 
       if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
