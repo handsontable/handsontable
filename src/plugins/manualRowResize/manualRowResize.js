@@ -165,75 +165,77 @@ class ManualRowResize extends BasePlugin {
     const { view } = this.hot;
     const { wt } = view;
     const cellCoords = view.wt.wtTable.getCoords(this.currentTH);
-
     const row = cellCoords.row;
+
+    // Ignore row headers.
+    if (row < 0) {
+      return;
+    }
+
     const headerWidth = outerWidth(this.currentTH);
+    const box = this.currentTH.getBoundingClientRect();
+    // Read "fixedRowsTop" and "fixedRowsBottom" through the Walkontable as in that context, the fixed
+    // rows are modified (reduced by the number of hidden rows) by TableView module.
+    const fixedRowTop = row < wt.getSetting('fixedRowsTop');
+    const fixedRowBottom = row >= view.countNotHiddenRowIndexes(0, 1) - wt.getSetting('fixedRowsBottom');
+    let relativeHeaderPosition;
 
-    if (row >= 0) { // if not col header
-      const box = this.currentTH.getBoundingClientRect();
-      // Read "fixedRowsTop" and "fixedRowsBottom" through the Walkontable as in that context, the fixed
-      // rows are modified (reduced by the number of hidden rows) by TableView module.
-      const fixedRowTop = row < wt.getSetting('fixedRowsTop');
-      const fixedRowBottom = row >= view.countNotHiddenRowIndexes(0, 1) - wt.getSetting('fixedRowsBottom');
-      let relativeHeaderPosition;
+    if (fixedRowTop) {
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .topLeftCornerOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
-      if (fixedRowTop) {
-        relativeHeaderPosition = wt
-          .wtOverlays
-          .topLeftCornerOverlay
-          .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    } else if (fixedRowBottom) {
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .bottomLeftCornerOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    }
 
-      } else if (fixedRowBottom) {
-        relativeHeaderPosition = wt
-          .wtOverlays
-          .bottomLeftCornerOverlay
-          .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    // If the TH is not a child of the top-left/bottom-left overlay, recalculate using
+    // the master overlay - as this overlay contains the rest of the headers.
+    if (!relativeHeaderPosition) {
+      const fallbackOverlay = wt.wtOverlays.leftOverlay;
+      const currentTH = fallbackOverlay.clone.wtTable.TBODY.children[row].firstChild;
+
+      relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
+    }
+
+    const rowIndexMapper = this.hot.rowIndexMapper;
+
+    this.currentRow = rowIndexMapper.getVisualFromRenderableIndex(row);
+    this.selectedRows = [];
+
+    if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByRowHeader()) {
+      const { from, to } = this.hot.getSelectedRangeLast();
+      let start = from.row;
+      let end = to.row;
+
+      if (start >= end) {
+        start = to.row;
+        end = from.row;
       }
 
-      // If the TH is not a child of the top-left/bottom-left overlay, recalculate using
-      // the left overlay - as this overlay contains the rest of the headers.
-      if (!relativeHeaderPosition) {
-        const fallbackOverlay = wt.wtOverlays.leftOverlay;
-        const currentTH = fallbackOverlay.clone.wtTable.TBODY.children[row].firstChild;
-
-        relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
-      }
-
-      const rowIndexMapper = this.hot.rowIndexMapper;
-
-      this.currentRow = rowIndexMapper.getVisualFromRenderableIndex(row);
-      this.selectedRows = [];
-
-      if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByRowHeader()) {
-        const { from, to } = this.hot.getSelectedRangeLast();
-        let start = from.row;
-        let end = to.row;
-
-        if (start >= end) {
-          start = to.row;
-          end = from.row;
-        }
-
-        if (this.currentRow >= start && this.currentRow <= end) {
-          rangeEach(start, end, i => this.selectedRows.push(i));
-
-        } else {
-          this.selectedRows.push(this.currentRow);
-        }
+      if (this.currentRow >= start && this.currentRow <= end) {
+        rangeEach(start, end, i => this.selectedRows.push(i));
 
       } else {
         this.selectedRows.push(this.currentRow);
       }
 
-      this.startOffset = relativeHeaderPosition.top - 6;
-      this.startHeight = parseInt(box.height, 10);
-
-      this.handle.style.top = `${this.startOffset + this.startHeight}px`;
-      this.handle.style.left = `${relativeHeaderPosition.left}px`;
-
-      this.handle.style.width = `${headerWidth}px`;
-      this.hot.rootElement.appendChild(this.handle);
+    } else {
+      this.selectedRows.push(this.currentRow);
     }
+
+    this.startOffset = relativeHeaderPosition.top - 6;
+    this.startHeight = parseInt(box.height, 10);
+
+    this.handle.style.top = `${this.startOffset + this.startHeight}px`;
+    this.handle.style.left = `${relativeHeaderPosition.left}px`;
+
+    this.handle.style.width = `${headerWidth}px`;
+    this.hot.rootElement.appendChild(this.handle);
   }
 
   /**
