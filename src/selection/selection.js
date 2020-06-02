@@ -453,6 +453,7 @@ class Selection {
    * Clear the selection by resetting the collected ranges and highlights.
    */
   clear() {
+    // TODO: collections selectedByColumnHeader and selectedByRowHeader should be clear too.
     this.selectedRange.clear();
     this.highlight.clear();
   }
@@ -488,6 +489,7 @@ class Selection {
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(nrOfRows - 1, nrOfColumns - 1));
     this.finish();
+
   }
 
   /**
