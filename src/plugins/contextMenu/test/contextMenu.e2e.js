@@ -3976,6 +3976,50 @@ describe('ContextMenu', () => {
     });
   });
 
+  describe('table listening', () => {
+    it('should listen to changes after removing all rows', () => {
+      const hot = handsontable({
+        data: [[1]],
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['remove_row'],
+      });
+
+      selectRows(0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td:eq(0)')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      expect(hot.countRows()).toBe(0);
+      expect(hot.isListening()).toBe(true);
+    });
+
+    it('should listen to changes after removing all columns', () => {
+      const hot = handsontable({
+        data: [[1]],
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['remove_col'],
+      });
+
+      selectColumns(0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td:eq(0)')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      expect(hot.countCols()).toBe(0);
+      expect(hot.isListening()).toBe(true);
+    });
+  });
+
   describe('Cleaning up after the context menu', () => {
     it('should not leave any context menu containers after destroying the Handsontable instance', () => {
       handsontable({
