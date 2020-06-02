@@ -163,11 +163,12 @@ class NestedRows extends BasePlugin {
     let toParent = null;
     let sameParent = null;
 
-    // We can't move rows when any of them is a parent
+    // We can't move rows when any of them is a parent or a top-level element
     for (i = 0; i < rowsLen; i++) {
-      translatedStartIndexes.push(this.dataManager.translateTrimmedRow(rows[i]));
+      let rowIndex = rows[i];
+      translatedStartIndexes.push(this.dataManager.translateTrimmedRow(rowIndex));
 
-      if (this.dataManager.isParent(translatedStartIndexes[i])) {
+      if (this.dataManager.isParent(rowIndex) || this.dataManager.isRowHighestLevel(rowIndex)) {
         allowMove = false;
       }
     }
