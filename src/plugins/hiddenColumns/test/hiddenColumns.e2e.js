@@ -4574,7 +4574,7 @@ describe('HiddenColumns', () => {
   });
 
   describe('cooperation with the `MergeCells` plugin', () => {
-    it('should display properly merged area basing on the settings', () => {
+    it('should display properly merged cells basing on the settings', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
         mergeCells: [
@@ -4609,7 +4609,7 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
     });
 
-    it('should display properly merged area containing hidden columns (start from visible cell, merging to visible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4647,7 +4647,7 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(150);
     });
 
-    it('should display properly merged area containing hidden columns (start from invisible cell, merging to visible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4695,7 +4695,7 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
     });
 
-    it('should display properly merged area containing hidden columns (start from visible cell, merging to invisible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4739,7 +4739,7 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(200);
     });
 
-    it('should display properly merged area containing hidden columns (start from invisible cell, merging to invisible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4899,7 +4899,7 @@ describe('HiddenColumns', () => {
       // TODO: `selectCell(0, 4)` should give the same effect. There is bug at least from Handsontable 7.
     });
 
-    it('should open properly merged area containing hidden columns (start from visible cell, merging to visible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4971,7 +4971,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
     });
 
-    it('should open properly merged area containing hidden columns (merge area from invisible cell to visible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5056,7 +5056,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
     });
 
-    it('should open properly merged area containing hidden columns (merge area from visible cell to invisible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5145,7 +5145,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
     });
 
-    it('should open properly merged area containing hidden columns (merge area from invisible cell to invisible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5251,7 +5251,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
     });
 
-    it('should edit merged cell properly (merge area from visible cell to visible cell)', () => {
+    it('should edit merged cells properly (merge area from visible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5275,7 +5275,7 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['A1', 'Edited value', null, null, 'E1']]);
     });
 
-    it('should edit merged cell properly (merge area from invisible cell to visible cell)', () => {
+    it('should edit merged cells properly (merge area from invisible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5299,7 +5299,7 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['Edited value', null, null, null, 'E1']]);
     });
 
-    it('should edit merged cell properly (merge area from visible cell to invisible cell)', () => {
+    it('should edit merged cells properly (merge area from visible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5323,7 +5323,7 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['A1', 'Edited value', null, null, null]]);
     });
 
-    it('should edit merged cell properly (merge area from invisible cell to invisible cell)', () => {
+    it('should edit merged cells properly (merge area from invisible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -5347,7 +5347,7 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['Edited value', null, null, null, null]]);
     });
 
-    it('should populate merged cell properly (merge area from visible cell to visible cell)', () => {
+    it('should populate merged cells properly (merge area from visible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenColumns: {
@@ -5373,7 +5373,7 @@ describe('HiddenColumns', () => {
       ]);
     });
 
-    it('should populate merged cell properly (merge area from invisible cell to visible cell)', () => {
+    it('should populate merged cells properly (merge area from invisible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenColumns: {
@@ -5399,7 +5399,7 @@ describe('HiddenColumns', () => {
       ]);
     });
 
-    it('should populate merged cell properly (merge area from visible cell to invisible cell)', () => {
+    it('should populate merged cells properly (merge area from visible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenColumns: {
@@ -5425,7 +5425,7 @@ describe('HiddenColumns', () => {
       ]);
     });
 
-    it('should populate merged cell properly (merge area from invisible cell to invisible cell)', () => {
+    it('should populate merged cells properly (merge area from invisible cell to invisible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         hiddenColumns: {
