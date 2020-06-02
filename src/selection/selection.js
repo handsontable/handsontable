@@ -47,13 +47,13 @@ class Selection {
      */
     this.selectedByCorner = false;
     /**
-     * The collection of the selection layer levels where the whole row was selected using the row header.
+     * The collection of the selection layer levels where the whole row was selected using the row header or the corner header.
      *
      * @type {Set.<number>}
      */
     this.selectedByRowHeader = new Set();
     /**
-     * The collection of the selection layer levels where the whole column was selected using the column header.
+     * The collection of the selection layer levels where the whole column was selected using the column header or the corner header.
      *
      * @type {Set.<number>}
      */
@@ -282,7 +282,7 @@ class Selection {
       }
     }
 
-    if (this.isSelectedByRowHeader()) {
+    if (this.isEntireRowSelected()) {
       const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
       // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
@@ -294,7 +294,7 @@ class Selection {
       }
     }
 
-    if (this.isSelectedByColumnHeader()) {
+    if (this.isEntireColumnSelected()) {
       const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
       // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
@@ -381,6 +381,17 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
+    return !this.isSelectedByCorner(layerLevel) && this.isEntireRowSelected(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection consists of entire rows. If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
+   *
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
+   */
+  isEntireRowSelected(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
   }
 
@@ -393,6 +404,17 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
+    return !this.isSelectedByCorner() && this.isEntireColumnSelected(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection consists of entire columns. If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
+   *
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
+   */
+  isEntireColumnSelected(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
   }
 
@@ -402,7 +424,7 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByAnyHeader() {
-    return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1);
+    return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1) || this.isSelectedByCorner();
   }
 
   /**
@@ -472,10 +494,15 @@ class Selection {
 
   /**
    * Select all cells.
+   *
+   * @param {boolean} includeCorner `true` If the selection should include the corner header, `false` otherwise.
    */
-  selectAll() {
+  selectAll(includeCorner = false) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
+    const startCoords = includeCorner ?
+      new CellCoords(-1, -1) :
+      new CellCoords(0, 0);
 
     // We can't select cells when there is no data.
     if (nrOfRows === 0 || nrOfColumns === 0) {
@@ -483,7 +510,7 @@ class Selection {
     }
 
     this.clear();
-    this.setRangeStartOnly(new CellCoords(-1, -1));
+    this.setRangeStartOnly(startCoords);
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(nrOfRows - 1, nrOfColumns - 1));

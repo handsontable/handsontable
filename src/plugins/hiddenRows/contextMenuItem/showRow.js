@@ -62,7 +62,7 @@ export default function showRowItem(hiddenRowsPlugin) {
         return this.toPhysicalRow(visualRowIndex);
       });
 
-      if (!this.selection.isSelectedByRowHeader() || hiddenPhysicalRows.length < 1) {
+      if ((!this.selection.isSelectedByRowHeader() && !this.selection.isSelectedByCorner()) || hiddenPhysicalRows.length < 1) {
         return true;
       }
 
