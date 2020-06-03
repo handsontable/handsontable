@@ -78,6 +78,66 @@ describe('HiddenRows', () => {
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
+    it('should display the resize handler in the proper position when the table contains hidden fixed top row', () => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
+        ],
+        rowHeaders: true,
+        hiddenRows: {
+          rows: [1],
+          indicators: true,
+        },
+        fixedRowsTop: 3,
+        manualRowResize: true
+      });
+
+      // Show resize handler using the third renderable row. This row belongs to master as
+      // the "fixedRowsTop" is decreased to 2.
+      const $headerTH = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualRowResizer');
+
+      expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
+    });
+
+    it('should display the resize handler in the proper position when the table contains hidden fixed bottom row', () => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted', lastName: 'Right' },
+          { id: 2, name: 'Frank', lastName: 'Honest' },
+          { id: 3, name: 'Joan', lastName: 'Well' },
+          { id: 4, name: 'Sid', lastName: 'Strong' },
+          { id: 5, name: 'Jane', lastName: 'Neat' }
+        ],
+        rowHeaders: true,
+        hiddenRows: {
+          rows: [3],
+          indicators: true,
+        },
+        fixedRowsBottom: 3,
+        manualRowResize: true
+      });
+
+      // Show resize handler using the second renderable row. This row belongs to master as
+      // the "fixedRowsBottom" is decreased to 2.
+      const $headerTH = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualRowResizer');
+
+      expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
+    });
+
     it('should resize a proper row using the resize handler when the table contains hidden row', () => {
       handsontable({
         data: [
