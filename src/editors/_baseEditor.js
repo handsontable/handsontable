@@ -220,7 +220,8 @@ class BaseEditor {
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
     if (this.isInFullEditMode()) {
-      const stringifiedInitialValue = typeof newInitialValue === 'string' ? newInitialValue : stringify(this.originalValue);
+      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
+        newInitialValue : stringify(this.originalValue);
 
       this.setValue(stringifiedInitialValue);
     }
@@ -431,7 +432,8 @@ class BaseEditor {
       } else {
         section = 'top';
       }
-    } else if (this.hot.getSettings().fixedRowsBottom && this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
+    } else if (this.hot.getSettings().fixedRowsBottom &&
+               this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
       if (this.col < this.hot.getSettings().fixedColumnsLeft) {
         section = 'bottom-left-corner';
       } else {

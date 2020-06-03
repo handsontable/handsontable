@@ -3,7 +3,12 @@ import { arrayEach } from '../../helpers/array';
 import { isObject, objectEach } from '../../helpers/object';
 import EventManager from '../../eventManager';
 import { registerPlugin } from '../../plugins';
-import { isFormulaExpression, toUpperCaseFormula, isFormulaExpressionEscaped, unescapeFormulaExpression } from './utils';
+import {
+  isFormulaExpression,
+  toUpperCaseFormula,
+  isFormulaExpressionEscaped,
+  unescapeFormulaExpression
+} from './utils';
 import Sheet from './sheet';
 import DataProvider from './dataProvider';
 import UndoRedoSnapshot from './undoRedoSnapshot';

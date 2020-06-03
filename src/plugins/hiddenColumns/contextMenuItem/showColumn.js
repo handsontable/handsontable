@@ -74,7 +74,8 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         if (visualColumnsInRange > renderedColumnsInRange) {
           const physicalIndexesInRange = notTrimmedColumnIndexes.slice(visualStartColumn, visualEndColumn + 1);
 
-          physicalColumnIndexes.push(...physicalIndexesInRange.filter(physicalIndex => hiddenPhysicalColumns.includes(physicalIndex)));
+          physicalColumnIndexes.push(...physicalIndexesInRange
+            .filter(physicalIndex => hiddenPhysicalColumns.includes(physicalIndex)));
         }
 
       // Handled column is the first rendered index and there are some visual indexes before it.

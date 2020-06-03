@@ -593,7 +593,8 @@ describe('manualRowMove', () => {
     });
 
     describe('by drag', () => {
-      describe('should trigger the `beforeRowMove` and `afterRowMove` hooks with proper parameters (moving single row)', () => {
+      describe('should trigger the `beforeRowMove` and `afterRowMove` hooks with proper ' +
+               'parameters (moving single row)', () => {
         it('visual indexes as parameters', () => {
           const beforeRowMoveCallback = jasmine.createSpy('beforeRowMoveCallback');
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');

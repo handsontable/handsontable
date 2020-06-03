@@ -36,8 +36,9 @@ module.exports = {
     "max-len": [
       "error",
       {
-        "code": 170,
-        "ignoreComments": true
+        "code": 120,
+        "ignoreComments": true,
+        "ignorePattern": "^\\s*x?it\\s*\\(", // Ignore long test names (e.q: `it("something long")`).
       }
     ],
     "newline-per-chained-call": "off",

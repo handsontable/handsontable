@@ -2,7 +2,8 @@ describe('TextEditor', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -795,14 +796,17 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toEqual(true);
 
-    document.activeElement.value = 'Very very very very very very very very very very very very very very very very very long text';
+    document.activeElement.value = 'Very very very very very very very very very very very very very ' +
+      'very very very very long text';
     keyDownUp(32); // space - trigger textarea resize
 
     const $textarea = $(document.activeElement);
     const $wtHider = spec().$container.find('.wtHider');
 
-    expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
-    expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
+    expect($textarea.offset().left + $textarea.outerWidth())
+      .not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
+    expect($textarea.offset().top + $textarea.outerHeight())
+      .not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
   });
 
   it('should open editor after selecting cell in another table and hitting enter', function() {
@@ -1279,7 +1283,8 @@ describe('TextEditor', () => {
     selectCell(0, 7);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
-    expect(Handsontable.dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toBeAroundValue(Handsontable.dom.outerWidth(hot.getCell(0, 7)));
+    expect(Handsontable.dom.outerWidth(hot.getActiveEditor().TEXTAREA))
+      .toBeAroundValue(Handsontable.dom.outerWidth(hot.getCell(0, 7)));
   });
 
   it('should display editor with the proper size, when editing a last row after the table is scrolled to the bottom', () => {
@@ -1378,7 +1383,8 @@ describe('TextEditor', () => {
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
     const data = [
       ['', '', '', '', ''],
-      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. It\'s good knowin\' he\'s out there. The ' +
+      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
+            'It\'s good knowin\' he\'s out there. The ' +
            'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
       ['', '', '', '', '']
     ];
@@ -1398,12 +1404,14 @@ describe('TextEditor', () => {
     const $editorInput = $('.handsontableInput');
     const $editedCell = $(hot.getCell(1, 1));
 
-    expect($editorInput.outerWidth()).toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
+    expect($editorInput.outerWidth())
+      .toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
     hot.scrollViewportTo(void 0, 3);
     hot.render();
 
-    expect($editorInput.width() + $editorInput.offset().left).toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
+    expect($editorInput.width() + $editorInput.offset().left)
+      .toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
   });
 
   it('should resize editor to properly size after focus', (done) => {

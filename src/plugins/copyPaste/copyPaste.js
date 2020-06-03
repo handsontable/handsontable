@@ -339,7 +339,8 @@ class CopyPaste extends BasePlugin {
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
     if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
+      this.hot
+        .runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
     }
   }
 
@@ -588,7 +589,8 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
 
-    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
+    if (isFragmentSelectionEnabled &&
+        this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
       return;
     }
 
@@ -608,7 +610,8 @@ class CopyPaste extends BasePlugin {
     const activeElement = this.hot.rootDocument.activeElement;
     const activeEditor = this.hot.getActiveEditor();
 
-    if (!activeEditor || (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {
+    if (!activeEditor ||
+        (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {
       return;
     }
 

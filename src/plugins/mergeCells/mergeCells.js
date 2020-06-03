@@ -104,8 +104,10 @@ class MergeCells extends BasePlugin {
     this.addHook('afterRenderer', (...args) => this.onAfterRenderer(...args));
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.addMergeActionsToContextMenu(...args));
     this.addHook('afterGetCellMeta', (...args) => this.onAfterGetCellMeta(...args));
-    this.addHook('afterViewportRowCalculatorOverride', (...args) => this.onAfterViewportRowCalculatorOverride(...args));
-    this.addHook('afterViewportColumnCalculatorOverride', (...args) => this.onAfterViewportColumnCalculatorOverride(...args));
+    this.addHook('afterViewportRowCalculatorOverride',
+      (...args) => this.onAfterViewportRowCalculatorOverride(...args));
+    this.addHook('afterViewportColumnCalculatorOverride',
+      (...args) => this.onAfterViewportColumnCalculatorOverride(...args));
     this.addHook('modifyAutofillRange', (...args) => this.onModifyAutofillRange(...args));
     this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
@@ -228,7 +230,7 @@ class MergeCells extends BasePlugin {
 
       arrayEach(mergedCellData, (mergedCellRow, rowIndex) => {
         arrayEach(mergedCellRow, (mergedCellElement, columnIndex) => {
-          newDataAtRange[mergedCellRowIndex - populationDataRange[0] + rowIndex][mergedCellColumnIndex - populationDataRange[1] + columnIndex] = mergedCellElement;
+          newDataAtRange[mergedCellRowIndex - populationDataRange[0] + rowIndex][mergedCellColumnIndex - populationDataRange[1] + columnIndex] = mergedCellElement; // eslint-disable-line max-len
         });
       });
     });
@@ -449,8 +451,10 @@ class MergeCells extends BasePlugin {
    */
   toggleMerge(cellRange) {
     const mergedCell = this.mergedCellsCollection.get(cellRange.from.row, cellRange.from.col);
-    const mergedCellCoversWholeRange = mergedCell.row === cellRange.from.row && mergedCell.col === cellRange.from.col &&
-      mergedCell.row + mergedCell.rowspan - 1 === cellRange.to.row && mergedCell.col + mergedCell.colspan - 1 === cellRange.to.col;
+    const mergedCellCoversWholeRange = mergedCell.row === cellRange.from.row &&
+      mergedCell.col === cellRange.from.col &&
+      mergedCell.row + mergedCell.rowspan - 1 === cellRange.to.row &&
+      mergedCell.col + mergedCell.colspan - 1 === cellRange.to.col;
 
     if (mergedCellCoversWholeRange) {
       this.unmergeRange(cellRange);
@@ -569,7 +573,10 @@ class MergeCells extends BasePlugin {
 
     if (mergedParent) { // only merge selected
       const mergeTopLeft = new CellCoords(mergedParent.row, mergedParent.col);
-      const mergeBottomRight = new CellCoords(mergedParent.row + mergedParent.rowspan - 1, mergedParent.col + mergedParent.colspan - 1);
+      const mergeBottomRight = new CellCoords(
+        mergedParent.row + mergedParent.rowspan - 1,
+        mergedParent.col + mergedParent.colspan - 1
+      );
       const mergeRange = new CellRange(mergeTopLeft, mergeTopLeft, mergeBottomRight);
 
       if (!mergeRange.includes(priv.lastDesiredCoords)) {
@@ -594,7 +601,10 @@ class MergeCells extends BasePlugin {
       }
     }
 
-    nextPosition = new CellCoords(currentlySelectedRange.highlight.row + newDelta.row, currentlySelectedRange.highlight.col + newDelta.col);
+    nextPosition = new CellCoords(
+      currentlySelectedRange.highlight.row + newDelta.row,
+      currentlySelectedRange.highlight.col + newDelta.col
+    );
 
     const nextParentIsMerged = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
 
@@ -703,7 +713,8 @@ class MergeCells extends BasePlugin {
     if (isObject(mergedCellCopy)) {
       const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
       const { row: mergeRow, col: mergeColumn, colspan, rowspan } = mergedCellCopy;
-      const [lastMergedRowIndex, lastMergedColumnIndex] = this.translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan);
+      const [lastMergedRowIndex, lastMergedColumnIndex] = this
+        .translateMergedCellToRenderable(mergeRow, rowspan, mergeColumn, colspan);
 
       const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
       const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
@@ -965,8 +976,10 @@ class MergeCells extends BasePlugin {
       firstNonHiddenColumn = columnMapper.getFirstNotHiddenIndex(parentColumn + colspan - 1, -1);
     }
 
-    const renderableRow = parentRow >= 0 ? rowMapper.getRenderableFromVisualIndex(firstNonHiddenRow) : parentRow;
-    const renderableColumn = parentColumn >= 0 ? columnMapper.getRenderableFromVisualIndex(firstNonHiddenColumn) : parentColumn;
+    const renderableRow = parentRow >= 0 ?
+      rowMapper.getRenderableFromVisualIndex(firstNonHiddenRow) : parentRow;
+    const renderableColumn = parentColumn >= 0 ?
+      columnMapper.getRenderableFromVisualIndex(firstNonHiddenColumn) : parentColumn;
 
     return [renderableRow, renderableColumn];
   }
@@ -1081,7 +1094,8 @@ class MergeCells extends BasePlugin {
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
 
       arrayEach(mergedCellsWithinRange, (mergedCell) => {
-        if (selectedRange.getBottomRightCorner().row === mergedCell.getLastRow() && selectedRange.getBottomRightCorner().col === mergedCell.getLastColumn()) {
+        if (selectedRange.getBottomRightCorner().row === mergedCell.getLastRow() &&
+            selectedRange.getBottomRightCorner().col === mergedCell.getLastColumn()) {
           corners[2] = mergedCell.row;
           corners[3] = mergedCell.col;
         }
@@ -1136,7 +1150,8 @@ class MergeCells extends BasePlugin {
    * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
   onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
-    return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
+    return this.selectionCalculations
+      .getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
   }
 
   /**

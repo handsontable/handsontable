@@ -44,9 +44,12 @@ describe('AutoFill', () => {
 
     hot.selectCell(1, 1, 2, 2);
 
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex).toBe('10');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex).toBe('6');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
+      .toBe('10');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
+      .toBe('8');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex)
+      .toBe('6');
   });
 
   it('should not change cell value (drag vertically when fillHandle option is set to `horizontal`)', () => {
@@ -818,7 +821,8 @@ describe('AutoFill', () => {
       ]
     });
 
-    expect(JSON.stringify(getData(0, 1, 3, 2))).toEqual(JSON.stringify([[null, null], [null, null], [null, null], [null, null]]));
+    expect(JSON.stringify(getData(0, 1, 3, 2)))
+      .toEqual(JSON.stringify([[null, null], [null, null], [null, null], [null, null]]));
 
     selectCell(4, 1, 6, 2);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
@@ -837,7 +841,8 @@ describe('AutoFill', () => {
       ]
     });
 
-    expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[null, null, null, null], [null, null, null, null]]));
+    expect(JSON.stringify(getData(1, 1, 2, 4)))
+      .toEqual(JSON.stringify([[null, null, null, null], [null, null, null, null]]));
 
     selectCell(1, 5, 2, 7);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
@@ -1026,7 +1031,8 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', () => {
+  describe('should works properly when two or more instances of Handsontable was initialized with ' +
+           'other settings (#3257)', () => {
     let getData;
     let $container1;
     let $container2;

@@ -89,11 +89,16 @@ class ValueComponent extends BaseComponent {
         }
 
         const selectedValues = [];
-        const itemsSnapshot = intersectValues(rowValues, firstByValueCondition.args[0], defaultBlankCellValue, (item) => {
-          if (item.checked) {
-            selectedValues.push(item.value);
+        const itemsSnapshot = intersectValues(
+          rowValues,
+          firstByValueCondition.args[0],
+          defaultBlankCellValue,
+          (item) => {
+            if (item.checked) {
+              selectedValues.push(item.value);
+            }
           }
-        });
+        );
 
         state.args = [selectedValues];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);

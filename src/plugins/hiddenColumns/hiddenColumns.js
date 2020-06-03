@@ -160,7 +160,8 @@ class HiddenColumns extends BasePlugin {
       destinationHideConfig = currentHideConfig.filter(column => columns.includes(column) === false);
     }
 
-    const continueHiding = this.hot.runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
+    const continueHiding = this.hot
+      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
 
     if (continueHiding === false) {
       return;
@@ -201,7 +202,8 @@ class HiddenColumns extends BasePlugin {
       destinationHideConfig = Array.from(new Set(currentHideConfig.concat(columns)));
     }
 
-    const continueHiding = this.hot.runHooks('beforeHideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
+    const continueHiding = this.hot
+      .runHooks('beforeHideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
 
     if (continueHiding === false) {
       return;
@@ -259,7 +261,8 @@ class HiddenColumns extends BasePlugin {
     const nrOfColumns = this.hot.countCols();
 
     if (Array.isArray(hiddenColumns) && hiddenColumns.length > 0) {
-      return hiddenColumns.every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfColumns);
+      return hiddenColumns
+        .every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfColumns);
     }
 
     return false;

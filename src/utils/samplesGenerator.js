@@ -108,7 +108,8 @@ class SamplesGenerator {
    */
   generateSamples(type, range, specifierRange) {
     const samples = new Map();
-    const { from, to } = typeof specifierRange === 'number' ? { from: specifierRange, to: specifierRange } : specifierRange;
+    const { from, to } = typeof specifierRange === 'number' ?
+      { from: specifierRange, to: specifierRange } : specifierRange;
 
     rangeEach(from, to, (index) => {
       const sample = this.generateSample(type, range, index);
@@ -137,7 +138,8 @@ class SamplesGenerator {
     const sampledValues = [];
 
     rangeEach(range.from, range.to, (index) => {
-      const { value, bundleCountSeed } = type === 'row' ? this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+      const { value, bundleCountSeed } = type === 'row' ?
+        this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
       const hasCustomBundleSeed = bundleCountSeed > 0;
       let length;
 

@@ -160,10 +160,12 @@ beforeEach(function() {
       return {
         compare(actual, expected, diff = 1) {
           const pass = actual >= expected - diff && actual <= expected + diff;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          let message = `Expected ${actual} to be around ${expected}
+ (between ${expected - diff} and ${expected + diff})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+            message = `Expected ${actual} NOT to be around ${expected}
+ (between ${expected - diff} and ${expected + diff})`;
           }
 
           return {

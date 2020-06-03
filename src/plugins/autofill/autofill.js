@@ -190,9 +190,14 @@ class Autofill extends BasePlugin {
 
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
 
-    cornersOfSelectionAndDragAreas = this.hot.runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
+    cornersOfSelectionAndDragAreas = this.hot
+      .runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
 
-    const { directionOfDrag, startOfDragCoords, endOfDragCoords } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    const {
+      directionOfDrag,
+      startOfDragCoords,
+      endOfDragCoords
+    } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
@@ -228,8 +233,10 @@ class Autofill extends BasePlugin {
 
           for (let i = 0; i < selectionData.length; i++) {
             fillData.push([]);
+
             for (let j = 0; j < dragLength; j++) {
-              fillData[i].push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
+              fillData[i]
+                .push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
             }
           }
         }

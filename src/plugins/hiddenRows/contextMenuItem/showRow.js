@@ -74,7 +74,8 @@ export default function showRowItem(hiddenRowsPlugin) {
         if (visualRowsInRange > renderedRowsInRange) {
           const physicalIndexesInRange = notTrimmedRowIndexes.slice(visualStartRow, visualEndRow + 1);
 
-          physicalRowIndexes.push(...physicalIndexesInRange.filter(physicalIndex => hiddenPhysicalRows.includes(physicalIndex)));
+          physicalRowIndexes.push(...physicalIndexesInRange
+            .filter(physicalIndex => hiddenPhysicalRows.includes(physicalIndex)));
         }
 
       // Handled row is the first rendered index and there are some visual indexes before it.

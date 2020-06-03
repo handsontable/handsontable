@@ -83,8 +83,10 @@ class ManualColumnResize extends BasePlugin {
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.columnWidthsMap);
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
-    this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize', (newSize, column, isDoubleClick) => this.onBeforeColumnResize(newSize, column, isDoubleClick));
+    this.addHook('beforeStretchingColumnWidth',
+      (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
+    this.addHook('beforeColumnResize',
+      (newSize, column, isDoubleClick) => this.onBeforeColumnResize(newSize, column, isDoubleClick));
 
     this.bindEvents();
 

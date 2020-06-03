@@ -1,4 +1,8 @@
-import { getLanguageDictionary, getLanguagesDictionaries, registerLanguageDictionary } from 'handsontable/i18n/dictionariesManager';
+import {
+  getLanguageDictionary,
+  getLanguagesDictionaries,
+  registerLanguageDictionary
+} from 'handsontable/i18n/dictionariesManager';
 import { register as registerPhraseFormatter } from 'handsontable/i18n/phraseFormatters';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import * as allLanguages from 'handsontable/i18n/languages';
@@ -25,14 +29,17 @@ describe('i18n', () => {
   });
 
   it('should get translated phrase by `getTranslatedPhrase` function', () => {
-    expect(Handsontable.languages.getTranslatedPhrase(plPL.languageCode, INSERT_ROW_ABOVE_DICTIONARY_KEY)).toEqual(plPL[INSERT_ROW_ABOVE_DICTIONARY_KEY]);
-    expect(Handsontable.languages.getTranslatedPhrase(plPL.languageCode, INSERT_ROW_ABOVE_DICTIONARY_KEY)).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
+    expect(Handsontable.languages.getTranslatedPhrase(plPL.languageCode, INSERT_ROW_ABOVE_DICTIONARY_KEY))
+      .toEqual(plPL[INSERT_ROW_ABOVE_DICTIONARY_KEY]);
+    expect(Handsontable.languages.getTranslatedPhrase(plPL.languageCode, INSERT_ROW_ABOVE_DICTIONARY_KEY))
+      .toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
   });
 
   it('should get `null` when trying to translate phrase by passing language code of not registered language', () => {
     const notRegisteredLanguageCode = 'br-Za';
 
-    expect(Handsontable.languages.getTranslatedPhrase(notRegisteredLanguageCode, INSERT_ROW_ABOVE_DICTIONARY_KEY)).toEqual(null);
+    expect(Handsontable.languages.getTranslatedPhrase(notRegisteredLanguageCode, INSERT_ROW_ABOVE_DICTIONARY_KEY))
+      .toEqual(null);
   });
 
   it('should call formatters when `getTranslatedPhrase` function is called', () => {
@@ -49,7 +56,8 @@ describe('i18n', () => {
 
   describe('Collection of language packs', () => {
     // One of keys can be `__esModule` added by Babel. We separate it.
-    const indexFileExportNames = Object.getOwnPropertyNames(allLanguages).filter(exportedKey => exportedKey !== '__esModule');
+    const indexFileExportNames = Object.getOwnPropertyNames(allLanguages)
+      .filter(exportedKey => exportedKey !== '__esModule');
     const dictionaries = indexFileExportNames.map(exportName => allLanguages[exportName]);
     const languageCodes = dictionaries.map(dictionary => dictionary.languageCode);
 
@@ -94,12 +102,14 @@ describe('i18n', () => {
       describe('Particular dictionary', () => {
         it('should contain language code of proper format', () => {
           // two lowercase letters, hyphen, two uppercase letters, for example: `es-PY`.
-          expect(languageCodes).toBeListFulfillingCondition(languageCode => /^([a-z]{2})-([A-Z]{2})$/.test(languageCode));
+          expect(languageCodes)
+            .toBeListFulfillingCondition(languageCode => /^([a-z]{2})-([A-Z]{2})$/.test(languageCode));
         });
 
         it('should have file name corresponding to its language code', () => {
           // two lowercase letters, hyphen, two uppercase letters and JavaScript file extension, for example: `es-PY.js`.
-          expect(languagePacks).toBeListFulfillingCondition(languagePack => languageCodes.includes(languagePack.replace('.js', '')));
+          expect(languagePacks)
+            .toBeListFulfillingCondition(languagePack => languageCodes.includes(languagePack.replace('.js', '')));
         });
 
         it('should contain only predefined keys (checking for typo)', () => {
@@ -107,14 +117,19 @@ describe('i18n', () => {
           // for it inside the `src/i18n/constants.js` file.
           const predefinedDictionaryKeys = Object.values(constants);
 
-          expect(dictionariesKeys).toBeListFulfillingCondition(dictionaryKey => predefinedDictionaryKeys.includes(dictionaryKey));
+          expect(dictionariesKeys)
+            .toBeListFulfillingCondition(dictionaryKey => predefinedDictionaryKeys.includes(dictionaryKey));
         });
 
         it('should contain values defined as strings or arrays of strings, without unnecessary whitespace characters', () => {
-          expect(dictionariesValuesWithArrays).toBeListFulfillingCondition(value => typeof value === 'string' || Array.isArray(value));
-          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition(value => typeof value === 'string');
-          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition(value => value === value.trim());
-          expect(dictionariesValuesWithoutArrays).toBeListFulfillingCondition(value => / {2,}/.test(value) === false);
+          expect(dictionariesValuesWithArrays)
+            .toBeListFulfillingCondition(value => typeof value === 'string' || Array.isArray(value));
+          expect(dictionariesValuesWithoutArrays)
+            .toBeListFulfillingCondition(value => typeof value === 'string');
+          expect(dictionariesValuesWithoutArrays)
+            .toBeListFulfillingCondition(value => value === value.trim());
+          expect(dictionariesValuesWithoutArrays)
+            .toBeListFulfillingCondition(value => / {2,}/.test(value) === false);
         });
       });
     });

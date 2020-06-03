@@ -80,7 +80,8 @@ describe('Core.spliceCellsMeta', () => {
     getCellMeta(3, 1)._test = 'foo-3x1';
     getCellMeta(3, 10)._test = 'foo-3x10';
 
-    spliceCellsMeta(1, 2, [{ _test: 'a' }, { _test: 'b' }], [{ _test: 'c' }, { _test: 'd' }], [{ _test: 'e' }, { _test: 'f' }]);
+    spliceCellsMeta(1, 2, [{ _test: 'a' }, { _test: 'b' }],
+      [{ _test: 'c' }, { _test: 'd' }], [{ _test: 'e' }, { _test: 'f' }]);
 
     expect(getCellMeta(0, 1)._test).toBe('foo-0x1');
     expect(getCellMeta(0, 10)._test).toBe('foo-0x10');

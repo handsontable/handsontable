@@ -132,7 +132,10 @@ describe('htmlToGridSettings', () => {
   it('should parse data with HTML-like content', () => {
     const tableInnerHTML = [
       '<table><tbody>',
-      '<tr><td>&lt;div class="test"&gt;A&lt;/div&gt;</td><td>&lt;script&gt;var b = 1 && 2 &lt;&lt; 1&lt;/script&gt;</td></tr>',
+      '<tr>' +
+        '<td>&lt;div class="test"&gt;A&lt;/div&gt;</td>' +
+        '<td>&lt;script&gt;var b = 1 && 2 &lt;&lt; 1&lt;/script&gt;</td>' +
+      '</tr>',
       '</tbody></table>',
     ].join('');
     const config = htmlToGridSettings(tableInnerHTML);
