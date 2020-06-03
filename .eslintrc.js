@@ -38,7 +38,7 @@ module.exports = {
       {
         "code": 120,
         "ignoreComments": true,
-        "ignorePattern": "^\\s*x?it\\s*\\(", // Ignore long test names (e.q: `it("something long")``).
+        "ignorePattern": "^\\s*x?it\\s*\\(", // Ignore long test names (e.q: `it("something long")`).
       }
     ],
     "newline-per-chained-call": "off",
