@@ -217,7 +217,7 @@ class TableView {
    */
   registerEvents() {
     const priv = privatePool.get(this);
-    const { rootElement, rootDocument } = this.instance;
+    const { rootElement, rootDocument, selection } = this.instance;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
@@ -245,34 +245,36 @@ class TableView {
     });
 
     this.eventManager.addEventListener(documentElement, 'keyup', (event) => {
-      if (this.instance.selection.isInProgress() && !event.shiftKey) {
-        this.instance.selection.finish();
+      if (selection.isInProgress() && !event.shiftKey) {
+        selection.finish();
       }
     });
 
     this.eventManager.addEventListener(documentElement, 'mouseup', (event) => {
-      if (this.instance.selection.isInProgress() && isLeftClick(event)) { // is left mouse button
-        this.instance.selection.finish();
+      if (selection.isInProgress() && isLeftClick(event)) { // is left mouse button
+        selection.finish();
       }
 
       priv.mouseDown = false;
 
-      if (isOutsideInput(rootDocument.activeElement) || (!this.instance.selection.isSelected() && !isRightClick(event))) {
+      if (isOutsideInput(rootDocument.activeElement) ||
+         (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+          !rootElement.contains(event.target) && !isRightClick(event))) {
         this.instance.unlisten();
       }
     });
 
     this.eventManager.addEventListener(documentElement, 'contextmenu', (event) => {
-      if (this.instance.selection.isInProgress() && isRightClick(event)) {
-        this.instance.selection.finish();
+      if (selection.isInProgress() && isRightClick(event)) {
+        selection.finish();
 
         priv.mouseDown = false;
       }
     });
 
     this.eventManager.addEventListener(documentElement, 'touchend', () => {
-      if (this.instance.selection.isInProgress()) {
-        this.instance.selection.finish();
+      if (selection.isInProgress()) {
+        selection.finish();
       }
 
       priv.mouseDown = false;
