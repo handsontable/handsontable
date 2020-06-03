@@ -47,13 +47,15 @@ class Selection {
      */
     this.selectedByCorner = false;
     /**
-     * The collection of the selection layer levels where the whole row was selected using the row header or the corner header.
+     * The collection of the selection layer levels where the whole row was selected using the row header or
+     * the corner header.
      *
      * @type {Set.<number>}
      */
     this.selectedByRowHeader = new Set();
     /**
-     * The collection of the selection layer levels where the whole column was selected using the column header or the corner header.
+     * The collection of the selection layer levels where the whole column was selected using the column header or
+     * the corner header.
      *
      * @type {Set.<number>}
      */
@@ -97,12 +99,18 @@ class Selection {
       autoWrapCol: () => settings.autoWrapCol,
     });
 
-    this.transformation.addLocalHook('beforeTransformStart', (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
-    this.transformation.addLocalHook('afterTransformStart', (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.transformation.addLocalHook('beforeTransformEnd', (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('afterTransformEnd', (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('insertRowRequire', (...args) => this.runLocalHooks('insertRowRequire', ...args));
-    this.transformation.addLocalHook('insertColRequire', (...args) => this.runLocalHooks('insertColRequire', ...args));
+    this.transformation.addLocalHook('beforeTransformStart',
+      (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
+    this.transformation.addLocalHook('afterTransformStart',
+      (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
+    this.transformation.addLocalHook('beforeTransformEnd',
+      (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
+    this.transformation.addLocalHook('afterTransformEnd',
+      (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
+    this.transformation.addLocalHook('insertRowRequire',
+      (...args) => this.runLocalHooks('insertRowRequire', ...args));
+    this.transformation.addLocalHook('insertColRequire',
+      (...args) => this.runLocalHooks('insertColRequire', ...args));
   }
 
   /**
@@ -336,9 +344,9 @@ class Selection {
     const rangeStartChanged = this.getSelectedRange().current().highlight !== rangeStartAfterTranslation;
 
     // This conditional handle situation when we select cells by headers and there are no visible cells
-    // (all rows / columns are hidden or there is specific cases described in the #6733). Cells in such case are selected
-    // with row headers, but selection is adjusted to start from index 0, not index -1. We loose some information, so
-    // performing "the same selection" basing on internally stored data would give other effect.
+    // (all rows / columns are hidden or there is specific cases described in the #6733). Cells in such case are
+    // selected with row headers, but selection is adjusted to start from index 0, not index -1. We loose some
+    // information, so performing "the same selection" basing on internally stored data would give other effect.
     if (rangeStartChanged) {
       this.setRangeStart(rangeStartAfterTranslation);
     }
@@ -385,7 +393,7 @@ class Selection {
   }
 
   /**
-   * Returns `true` if the selection consists of entire rows. If the `layerLevel`
+   * Returns `true` if the selection consists of entire rows (including their headers). If the `layerLevel`
    * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
    *
    * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
@@ -408,7 +416,7 @@ class Selection {
   }
 
   /**
-   * Returns `true` if the selection consists of entire columns. If the `layerLevel`
+   * Returns `true` if the selection consists of entire columns (including their headers). If the `layerLevel`
    * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
    *
    * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
@@ -424,7 +432,9 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByAnyHeader() {
-    return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1) || this.isSelectedByCorner();
+    return this.isSelectedByRowHeader(-1) ||
+      this.isSelectedByColumnHeader(-1) ||
+      this.isSelectedByCorner();
   }
 
   /**
@@ -500,14 +510,15 @@ class Selection {
   selectAll(includeCorner = false) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
-    const startCoords = includeCorner ?
-      new CellCoords(-1, -1) :
-      new CellCoords(0, 0);
 
     // We can't select cells when there is no data.
     if (nrOfRows === 0 || nrOfColumns === 0) {
       return;
     }
+
+    const startCoords = includeCorner ?
+      new CellCoords(-1, -1) :
+      new CellCoords(0, 0);
 
     this.clear();
     this.setRangeStartOnly(startCoords);
@@ -572,7 +583,8 @@ class Selection {
   }
 
   /**
-   * Select column specified by `startColumn` visual index or column property or a range of columns finishing at `endColumn`.
+   * Select column specified by `startColumn` visual index or column property or a range of columns finishing at
+   * `endColumn`.
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
