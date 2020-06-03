@@ -210,11 +210,13 @@ export function generateASCIITable(context) {
 
     if (consumedFlags.get('hasTopHeader')) {
       consumedFlags.delete('hasTopHeader');
-      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength).fill(COLUMN_HEADER_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
+      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength)
+        .fill(COLUMN_HEADER_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
     }
     if (insertTopOverlayRowSeparator) {
       insertTopOverlayRowSeparator = false;
-      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength).fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
+      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength)
+        .fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
     }
   }
 

@@ -129,7 +129,10 @@ class Matrix {
       if (deps.length) {
         arrayEach(deps, (cellValue) => {
           if (cellValue.hasPrecedents()) {
-            deps = deps.concat(getTotalDependencies({ row: this.hot.toVisualRow(cellValue.row), column: this.hot.toVisualColumn(cellValue.column) }));
+            deps = deps.concat(getTotalDependencies({
+              row: this.hot.toVisualRow(cellValue.row),
+              column: this.hot.toVisualColumn(cellValue.column)
+            }));
           }
         });
       }

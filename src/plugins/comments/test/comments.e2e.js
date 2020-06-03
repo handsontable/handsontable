@@ -259,7 +259,8 @@ describe('Comments', () => {
       const plugin = hot.getPlugin('comments');
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
+      expect(afterSetCellMetaCallback)
+        .toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
@@ -623,7 +624,8 @@ describe('Comments', () => {
 
       await sleep(400);
 
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
+      expect(afterSetCellMetaCallback)
+        .toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
     });
 
     it('should not editing comment by context menu if `beforeSetCellMeta` returned false', async() => {

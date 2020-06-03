@@ -7,7 +7,8 @@ let _cancelAnimationFrame = window.cancelAnimationFrame;
 
 for (let x = 0; x < vendors.length && !_requestAnimationFrame; ++x) {
   _requestAnimationFrame = window[`${vendors[x]}RequestAnimationFrame`];
-  _cancelAnimationFrame = window[`${vendors[x]}CancelAnimationFrame`] || window[`${vendors[x]}CancelRequestAnimationFrame`];
+  _cancelAnimationFrame = window[`${vendors[x]}CancelAnimationFrame`] ||
+    window[`${vendors[x]}CancelRequestAnimationFrame`];
 }
 
 if (!_requestAnimationFrame) {

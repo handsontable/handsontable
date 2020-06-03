@@ -216,8 +216,10 @@ describe('RowHeader', () => {
     });
     hot.render();
 
-    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth()).toEqual(66);
-    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth()).toEqual(96);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth())
+      .toEqual(66);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth())
+      .toEqual(96);
 
     expect(spec().$container.find('col').first().css('width')).toEqual('66px');
     expect(spec().$container.find('col').eq(1).css('width')).toEqual('96px');

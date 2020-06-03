@@ -225,7 +225,8 @@ export function countCells() {
  * @returns {boolean}
  */
 export function isEditorVisible(editableElement) {
-  if (editableElement && !(editableElement.hasClass('handsontableInput') || editableElement.hasClass('handsontableEditor'))) {
+  if (editableElement && !(editableElement.hasClass('handsontableInput') ||
+      editableElement.hasClass('handsontableEditor'))) {
     throw new Error('Editable element of the editor was not found.');
   }
 
@@ -881,7 +882,8 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
     changedTouches = document.createTouchList(touch);
   }
 
-  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
+  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false,
+    touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
 }
 

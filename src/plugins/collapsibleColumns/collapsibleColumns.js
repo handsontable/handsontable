@@ -326,7 +326,8 @@ class CollapsibleColumns extends BasePlugin {
       destinationCollapsedColumns = arrayUnique([...currentCollapsedColumns, ...affectedColumnsIndexes]);
 
     } else if (action === 'expand') {
-      destinationCollapsedColumns = arrayFilter(currentCollapsedColumns, index => !affectedColumnsIndexes.includes(index));
+      destinationCollapsedColumns = arrayFilter(currentCollapsedColumns,
+        index => !affectedColumnsIndexes.includes(index));
     }
 
     const actionTranslator = actionDictionary.get(action);
@@ -348,7 +349,8 @@ class CollapsibleColumns extends BasePlugin {
 
     this.hot.executeBatchOperations(() => {
       arrayEach(affectedColumnsIndexes, (visualColumn) => {
-        this.#collapsedColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
+        this.#collapsedColumnsMap
+          .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
       });
     });
 

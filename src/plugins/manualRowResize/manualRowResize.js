@@ -180,13 +180,16 @@ class ManualRowResize extends BasePlugin {
         parentOverlay = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay;
       }
 
-      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+      let relativeHeaderPosition = parentOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
       // If the TH is not a child of the left/top-left/bottom-left overlay, recalculate using the top-most header
       if (!relativeHeaderPosition) {
-        const topMostHeader = parentOverlay.clone.wtTable.TBODY.children[+!!this.hot.getSettings().colHeaders + row].firstChild;
+        const topMostHeader = parentOverlay.clone.wtTable.TBODY
+          .children[+!!this.hot.getSettings().colHeaders + row].firstChild;
 
-        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
+        relativeHeaderPosition = parentOverlay
+          .getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
       }
 
       const rowIndexMapper = this.hot.rowIndexMapper;

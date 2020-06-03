@@ -177,8 +177,10 @@ class CellRange {
    * @returns {boolean}
    */
   isOverlappingHorizontally(cellRange) {
-    return (this.getTopRightCorner().col >= cellRange.getTopLeftCorner().col && this.getTopRightCorner().col <= cellRange.getTopRightCorner().col)
-      || (this.getTopLeftCorner().col <= cellRange.getTopRightCorner().col && this.getTopLeftCorner().col >= cellRange.getTopLeftCorner().col);
+    return (this.getTopRightCorner().col >= cellRange.getTopLeftCorner().col &&
+            this.getTopRightCorner().col <= cellRange.getTopRightCorner().col) ||
+           (this.getTopLeftCorner().col <= cellRange.getTopRightCorner().col &&
+            this.getTopLeftCorner().col >= cellRange.getTopLeftCorner().col);
   }
 
   /**
@@ -189,8 +191,10 @@ class CellRange {
    * @returns {boolean}
    */
   isOverlappingVertically(cellRange) {
-    return (this.getBottomRightCorner().row >= cellRange.getTopRightCorner().row && this.getBottomRightCorner().row <= cellRange.getBottomRightCorner().row)
-      || (this.getTopRightCorner().row <= cellRange.getBottomRightCorner().row && this.getTopRightCorner().row >= cellRange.getTopRightCorner().row);
+    return (this.getBottomRightCorner().row >= cellRange.getTopRightCorner().row &&
+            this.getBottomRightCorner().row <= cellRange.getBottomRightCorner().row) ||
+           (this.getTopRightCorner().row <= cellRange.getBottomRightCorner().row &&
+            this.getTopRightCorner().row >= cellRange.getTopRightCorner().row);
   }
 
   /**

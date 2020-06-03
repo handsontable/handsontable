@@ -299,12 +299,18 @@ describe('Array helper', () => {
 
     describe('works with parameters as array of string', () => {
       it('should return the difference between two arrays.', () => {
-        expect(getDifferenceOfArrays(['class-1', 'class-2', 'class-3'], ['class-2', 'class-3', 'class-4'])).toStrictEqual(['class-1']);
+        expect(getDifferenceOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-2', 'class-3', 'class-4']
+        )).toStrictEqual(['class-1']);
       });
 
       it('should return the difference between more than two arrays.', () => {
-        expect(getDifferenceOfArrays(['class-1', 'class-2', 'class-3'], ['class-3', 'class-4'], ['class-3', 'class-4', 'class-5']))
-          .toStrictEqual(['class-1', 'class-2']);
+        expect(getDifferenceOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-3', 'class-4'],
+          ['class-3', 'class-4', 'class-5']
+        )).toStrictEqual(['class-1', 'class-2']);
       });
     });
   });
@@ -325,12 +331,18 @@ describe('Array helper', () => {
 
     describe('works with parameters as array of string', () => {
       it('should return elements that exists in two arrays.', () => {
-        expect(getIntersectionOfArrays(['class-1', 'class-2', 'class-3'], ['class-2', 'class-3', 'class-4'])).toStrictEqual(['class-2', 'class-3']);
+        expect(getIntersectionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-2', 'class-3', 'class-4']
+        )).toStrictEqual(['class-2', 'class-3']);
       });
 
       it('should return elements that exists in more than two arrays.', () => {
-        expect(getIntersectionOfArrays(['class-1', 'class-2', 'class-3'], ['class-3', 'class-4'], ['class-3', 'class-4', 'class-5']))
-          .toStrictEqual(['class-3']);
+        expect(getIntersectionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-3', 'class-4'],
+          ['class-3', 'class-4', 'class-5']
+        )).toStrictEqual(['class-3']);
       });
     });
   });
@@ -351,13 +363,18 @@ describe('Array helper', () => {
 
     describe('works with parameters as array of string', () => {
       it('should return elements exists in any of the two arrays.', () => {
-        expect(getUnionOfArrays(['class-1', 'class-2', 'class-3'], ['class-2', 'class-3', 'class-4']))
-          .toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4']);
+        expect(getUnionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-2', 'class-3', 'class-4']
+        )).toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4']);
       });
 
       it('should return elements that exists in any of the arrays.', () => {
-        expect(getUnionOfArrays(['class-1', 'class-2', 'class-3'], ['class-3', 'class-4'], ['class-3', 'class-4', 'class-5']))
-          .toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4', 'class-5']);
+        expect(getUnionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-3', 'class-4'],
+          ['class-3', 'class-4', 'class-5']
+        )).toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4', 'class-5']);
       });
     });
   });

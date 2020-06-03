@@ -261,7 +261,8 @@ class EditorManager {
    * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
    */
   moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ? this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
+    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ?
+      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
 
     if (isShiftPressed) {
       // move selection up
@@ -425,7 +426,8 @@ class EditorManager {
         break;
 
       case KEY_CODES.TAB:
-        tabMoves = typeof this.tableMeta.tabMoves === 'function' ? this.tableMeta.tabMoves(event) : this.tableMeta.tabMoves;
+        tabMoves = typeof this.tableMeta.tabMoves === 'function' ?
+          this.tableMeta.tabMoves(event) : this.tableMeta.tabMoves;
 
         if (isShiftPressed) {
           // move selection left
@@ -501,9 +503,15 @@ class EditorManager {
 
       case KEY_CODES.END:
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier.call(this.selection, new CellCoords(this.instance.countRows() - 1, this.selection.selectedRange.current().from.col));
+          rangeModifier.call(
+            this.selection,
+            new CellCoords(this.instance.countRows() - 1, this.selection.selectedRange.current().from.col)
+          );
         } else {
-          rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, this.instance.countCols() - 1));
+          rangeModifier.call(
+            this.selection,
+            new CellCoords(this.selection.selectedRange.current().from.row, this.instance.countCols() - 1)
+          );
         }
         event.preventDefault(); // don't scroll the window
         event.stopPropagation();

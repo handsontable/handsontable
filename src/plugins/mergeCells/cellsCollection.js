@@ -41,8 +41,9 @@ class MergedCellsCollection {
    * @returns {string}
    */
   static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps with the other declared merged\x20
-    cell. The overlapping merged cell was not added to the table, please fix your setup.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps\x20
+      with the other declared merged cell. The overlapping merged cell was not added to the table, please\x20
+      fix your setup.`;
   }
 
   /**
@@ -113,7 +114,10 @@ class MergedCellsCollection {
 
     arrayEach(mergedCells, (mergedCell) => {
       const mergedCellTopLeft = new CellCoords(mergedCell.row, mergedCell.col);
-      const mergedCellBottomRight = new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1);
+      const mergedCellBottomRight = new CellCoords(
+        mergedCell.row + mergedCell.rowspan - 1,
+        mergedCell.col + mergedCell.colspan - 1
+      );
       const mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
 
       if (countPartials) {
@@ -236,7 +240,11 @@ class MergedCellsCollection {
     let result = false;
 
     arrayEach(this.mergedCells, (col) => {
-      const currentRange = new CellRange(null, new CellCoords(col.row, col.col), new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1));
+      const currentRange = new CellRange(
+        null,
+        new CellCoords(col.row, col.col),
+        new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1)
+      );
 
       if (currentRange.overlaps(mergedCellRange)) {
         result = true;

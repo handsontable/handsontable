@@ -1,4 +1,10 @@
-import { holder, rootInstanceSymbol, registerAsRootInstance, hasValidParameter, isRootInstance } from 'handsontable/utils/rootInstance';
+import {
+  holder,
+  rootInstanceSymbol,
+  registerAsRootInstance,
+  hasValidParameter,
+  isRootInstance,
+} from 'handsontable/utils/rootInstance';
 
 describe('rootInstance', () => {
   describe('.registerAsRootInstance', () => {

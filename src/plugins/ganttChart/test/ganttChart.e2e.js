@@ -42,7 +42,8 @@ describe('GanttChart', () => {
 
       hot.render();
 
-      expect(ganttPlugin.uniformBackgroundRenderer.calls.count()).toEqual(hot.view.wt.wtTable.getRenderedColumnsCount());
+      expect(ganttPlugin.uniformBackgroundRenderer.calls.count())
+        .toEqual(hot.view.wt.wtTable.getRenderedColumnsCount());
     });
 
     it('should throw a warning if colHeaders property is not defined for the ganttChart-enabled instance', () => {
@@ -174,7 +175,8 @@ describe('GanttChart', () => {
       const postDaysInMonths = [6, 6, 2, 4, 0, 2, 5, 1, 3, 6, 1, 4];
 
       /* eslint-disable no-eval */
-      expect(plugin.overallWeekSectionCount).toEqual(eval(weeksInMonths.join('+')) + preDaysInMonths.length + postDaysInMonths.length - 2); // 2 is the number of '0's in pre and post days
+      expect(plugin.overallWeekSectionCount)
+        .toEqual(eval(weeksInMonths.join('+')) + preDaysInMonths.length + postDaysInMonths.length - 2); // 2 is the number of '0's in pre and post days
 
       for (let i = 0; i < 12; i++) {
         expect(plugin.monthList[i].daysBeforeFullWeeks).toEqual(preDaysInMonths[i]);
@@ -224,21 +226,23 @@ describe('GanttChart', () => {
       const postDaysInMonths = [6, 6, 2, 4, 0, 2, 5, 1, 3, 6, 1, 4];
 
       expect($(hot.rootElement).find('.ht_clone_top thead').find('tr').size()).toEqual(2);
-      expect($(hot.rootElement).find('.ht_clone_top thead tr:first-child').find('th:not(".hiddenHeader")').size()).toEqual(12);
+      expect($(hot.rootElement).find('.ht_clone_top thead tr:first-child').find('th:not(".hiddenHeader")').size())
+        .toEqual(12);
       /* eslint-disable no-eval */
       expect($(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th').size())
         .toEqual(eval(weeksInMonths.join('+')) + preDaysInMonths.length + postDaysInMonths.length - 2);
 
-      const monthHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:first-child').find('th:not(".hiddenHeader")');
+      const monthHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:first-child')
+        .find('th:not(".hiddenHeader")');
       let currentColspan;
 
       for (let i = 0; i < 12; i++) {
         /* eslint-disable no-extra-boolean-cast */
         currentColspan = (!!preDaysInMonths[i] ? 1 : 0) + weeksInMonths[i] + (!!postDaysInMonths[i] ? 1 : 0);
 
-        expect(parseInt(monthHeaders[i].getAttribute('colspan'), 0)).toEqual(currentColspan === 0 ? 'NaN' : currentColspan);
+        expect(parseInt(monthHeaders[i].getAttribute('colspan'), 0))
+          .toEqual(currentColspan === 0 ? 'NaN' : currentColspan);
       }
-
     });
 
     describe('the `weekHeaderGenerator` option', () => {
@@ -251,7 +255,9 @@ describe('GanttChart', () => {
           }
         });
 
-        let weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+        let weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)')
+          .find('th:not(".hiddenHeader")');
+
         expect(weekHeaders[0].querySelector('span').innerText).toEqual('1');
         expect(weekHeaders[1].querySelector('span').innerText).toEqual('2 - 8');
         expect(weekHeaders[2].querySelector('span').innerText).toEqual('9 - 15');
@@ -395,7 +401,8 @@ describe('GanttChart', () => {
 
       expect(hot.countCols()).toEqual(42);
 
-      const weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)').find('th:not(".hiddenHeader")');
+      const weekHeaders = $(hot.rootElement).find('.ht_clone_top thead tr:nth-child(2)')
+        .find('th:not(".hiddenHeader")');
 
       expect(weekHeaders[0].querySelector('span').innerText).toEqual('1 - 7');
       expect(weekHeaders[1].querySelector('span').innerText).toEqual('8 - 14');

@@ -115,7 +115,8 @@ class AutocompleteEditor extends HandsontableEditor {
         let match;
 
         if (cellValue && !allowHtml) {
-          indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(query) : cellValue.toLowerCase().indexOf(query.toLowerCase());
+          indexOfMatch = filteringCaseSensitive === true ?
+            cellValue.indexOf(query) : cellValue.toLowerCase().indexOf(query.toLowerCase());
 
           if (indexOfMatch !== -1) {
             match = cellValue.substr(indexOfMatch, query.length);
@@ -304,7 +305,7 @@ class AutocompleteEditor extends HandsontableEditor {
       height = tempHeight - lastRowHeight;
 
       if (this.htEditor.flipped) {
-        this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
+        this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`; // eslint-disable-line max-len
       }
 
       this.setDropdownHeight(tempHeight - lastRowHeight);
@@ -395,7 +396,7 @@ class AutocompleteEditor extends HandsontableEditor {
     const firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
     const visibleRows = this.cellProperties.visibleRows;
 
-    return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
+    return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8; // eslint-disable-line max-len
   }
 
   /**

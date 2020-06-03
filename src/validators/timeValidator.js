@@ -31,7 +31,8 @@ export default function timeValidator(value, callback) {
     valueToValidate += ':00';
   }
 
-  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ? moment(valueToValidate) : moment(valueToValidate, timeFormat);
+  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ?
+    moment(valueToValidate) : moment(valueToValidate, timeFormat);
   let isValidTime = date.isValid();
 
   // is it in the specified format

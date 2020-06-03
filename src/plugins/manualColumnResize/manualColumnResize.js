@@ -83,8 +83,10 @@ class ManualColumnResize extends BasePlugin {
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.columnWidthsMap);
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
-    this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize', (newSize, column, isDoubleClick) => this.onBeforeColumnResize(newSize, column, isDoubleClick));
+    this.addHook('beforeStretchingColumnWidth',
+      (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
+    this.addHook('beforeColumnResize',
+      (newSize, column, isDoubleClick) => this.onBeforeColumnResize(newSize, column, isDoubleClick));
 
     this.bindEvents();
 
@@ -218,12 +220,16 @@ class ManualColumnResize extends BasePlugin {
     if (col >= 0) { // if col header
       const box = this.currentTH.getBoundingClientRect();
       const fixedColumn = col < this.hot.getSettings().fixedColumnsLeft;
-      const parentOverlay = fixedColumn ? this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.topOverlay;
-      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+      const parentOverlay = fixedColumn ?
+        this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.topOverlay;
+      let relativeHeaderPosition = parentOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
 
       // If the TH is not a child of the top/top-left overlay, recalculate using the top-most header
       if (!relativeHeaderPosition) {
-        const topMostHeader = parentOverlay.clone.wtTable.THEAD.lastChild.children[+!!this.hot.getSettings().rowHeaders + col];
+        const topMostHeader = parentOverlay.clone.wtTable.THEAD.lastChild
+          .children[+!!this.hot.getSettings().rowHeaders + col];
+
         relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
       }
 

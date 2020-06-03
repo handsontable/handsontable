@@ -187,7 +187,9 @@ class IndexMapper {
    * @returns {IndexMap}
    */
   registerMap(uniqueName, indexMap) {
-    if (this.trimmingMapsCollection.get(uniqueName) || this.hidingMapsCollection.get(uniqueName) || this.variousMapsCollection.get(uniqueName)) {
+    if (this.trimmingMapsCollection.get(uniqueName) ||
+        this.hidingMapsCollection.get(uniqueName) ||
+        this.variousMapsCollection.get(uniqueName)) {
       throw Error(`Map with name "${uniqueName}" has been already registered.`);
     }
 
@@ -342,7 +344,12 @@ class IndexMapper {
     }
 
     // Looking for the next index, as the current isn't visible.
-    return this.getFirstNotHiddenIndex(fromVisualIndex + incrementBy, incrementBy, searchAlsoOtherWayAround, indexForNextSearch);
+    return this.getFirstNotHiddenIndex(
+      fromVisualIndex + incrementBy,
+      incrementBy,
+      searchAlsoOtherWayAround,
+      indexForNextSearch
+    );
   }
 
   /**
@@ -580,7 +587,8 @@ class IndexMapper {
    * @param {boolean} [force=false] Determine if force cache update.
    */
   updateCache(force = false) {
-    const anyCachedIndexChanged = this.indexesSequenceChanged || this.trimmedIndexesChanged || this.hiddenIndexesChanged;
+    const anyCachedIndexChanged = this.indexesSequenceChanged ||
+      this.trimmedIndexesChanged || this.hiddenIndexesChanged;
 
     if (force === true || (this.isBatched === false && anyCachedIndexChanged === true)) {
       this.trimmingMapsCollection.updateCache();
@@ -591,7 +599,12 @@ class IndexMapper {
       this.cacheFromPhysicalToVisualIndexes();
       this.cacheFromVisualToRenderabIendexes();
 
-      this.runLocalHooks('cacheUpdated', this.indexesSequenceChanged, this.trimmedIndexesChanged, this.hiddenIndexesChanged);
+      this.runLocalHooks(
+        'cacheUpdated',
+        this.indexesSequenceChanged,
+        this.trimmedIndexesChanged,
+        this.hiddenIndexesChanged
+      );
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;

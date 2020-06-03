@@ -1,7 +1,11 @@
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 
-  const { CONTEXTMENU_ITEMS_SHOW_COLUMN, CONTEXTMENU_ITEMS_HIDE_COLUMN, CONTEXTMENU_ITEMS_NO_ITEMS } = Handsontable.languages.dictionaryKeys;
+  const {
+    CONTEXTMENU_ITEMS_SHOW_COLUMN,
+    CONTEXTMENU_ITEMS_HIDE_COLUMN,
+    CONTEXTMENU_ITEMS_NO_ITEMS
+  } = Handsontable.languages.dictionaryKeys;
   const MENU_NO_ITEMS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_NO_ITEMS);
   const MENU_ITEM_SHOW_COLUMN = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_COLUMN);
   const MENU_ITEM_SHOW_COLUMNS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_COLUMN, 1);
@@ -3469,7 +3473,8 @@ describe('HiddenColumns', () => {
       });
     });
 
-    describe('should not change position and call hook when single hidden cell was selected and navigating by any arrow key', () => {
+    describe('should not change position and call hook when single hidden cell was selected and' +
+             'navigating by any arrow key', () => {
       describe('without shift key pressed', () => {
         it('hidden cell at the table start', () => {
           const hot = handsontable({

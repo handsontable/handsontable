@@ -1,10 +1,22 @@
 import { getDecreasedIndexes, getIncreasedIndexes } from './actionsOnIndexes';
-import { getListWithInsertedItems as sequenceStrategyInsert, getListWithRemovedItems as sequenceStrategyRemove } from './indexesSequence';
-import { getListWithInsertedItems as physicalStrategyInsert, getListWithRemovedItems as physicalStrategyRemove } from './physicallyIndexed';
+import {
+  getListWithInsertedItems as sequenceStrategyInsert,
+  getListWithRemovedItems as sequenceStrategyRemove
+} from './indexesSequence';
+import {
+  getListWithInsertedItems as physicalStrategyInsert,
+  getListWithRemovedItems as physicalStrategyRemove
+} from './physicallyIndexed';
 
 const alterStrategies = new Map([
-  ['indexesSequence', { getListWithInsertedItems: sequenceStrategyInsert, getListWithRemovedItems: sequenceStrategyRemove }],
-  ['physicallyIndexed', { getListWithInsertedItems: physicalStrategyInsert, getListWithRemovedItems: physicalStrategyRemove }],
+  ['indexesSequence', {
+    getListWithInsertedItems: sequenceStrategyInsert,
+    getListWithRemovedItems: sequenceStrategyRemove
+  }],
+  ['physicallyIndexed', {
+    getListWithInsertedItems: physicalStrategyInsert,
+    getListWithRemovedItems: physicalStrategyRemove
+  }],
 ]);
 
 const alterUtilsFactory = (indexationStrategy) => {

@@ -2420,7 +2420,9 @@ describe('UndoRedo', () => {
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
-            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
+            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' ||
+              cellMeta.className.trim() === 'htLeft';
+
             expect(finish).toBe(true);
           }
         }
@@ -2489,7 +2491,9 @@ describe('UndoRedo', () => {
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
-            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
+            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' ||
+              cellMeta.className.trim() === 'htLeft';
+
             expect(finish).toBe(true);
           }
         }

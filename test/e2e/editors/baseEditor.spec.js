@@ -125,7 +125,8 @@ describe('BaseEditor', () => {
       window.onerror = errorSpy.test;
 
       const hot1 = handsontable({});
-      const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+      const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`)
+        .appendTo('body');
       const hot2 = container2.handsontable().handsontable('getInstance');
 
       $(hot1.getCell(1, 1)).simulate('mousedown');

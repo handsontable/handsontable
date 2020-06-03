@@ -538,7 +538,10 @@ class CustomBorders extends BasePlugin {
    * @param {string} borderId Border id name as string.
    */
   clearBordersFromSelectionSettings(borderId) {
-    const index = arrayMap(this.hot.selection.highlight.customSelections, customSelection => customSelection.settings.id).indexOf(borderId);
+    const index = arrayMap(
+      this.hot.selection.highlight.customSelections,
+      customSelection => customSelection.settings.id
+    ).indexOf(borderId);
 
     if (index > -1) {
       this.hot.selection.highlight.customSelections[index].clear();

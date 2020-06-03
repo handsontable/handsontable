@@ -29,7 +29,8 @@ export function getDeltas(start, end, data, direction) {
     for (let col = 0; col < diffCol; col++) {
       const startValue = parseInt(data[0][col], 10);
       const endValue = parseInt(data[rowsLength - 1][col], 10);
-      const delta = (direction === 'down' ? (endValue - startValue) : (startValue - endValue)) / (rowsLength - 1) || 0;
+      const delta = (direction === 'down' ?
+        (endValue - startValue) : (startValue - endValue)) / (rowsLength - 1) || 0;
 
       arr.push(delta);
     }
@@ -41,7 +42,8 @@ export function getDeltas(start, end, data, direction) {
     for (let row = 0; row < diffRow; row++) {
       const startValue = parseInt(data[row][0], 10);
       const endValue = parseInt(data[row][columnsLength - 1], 10);
-      const delta = (direction === 'right' ? (endValue - startValue) : (startValue - endValue)) / (columnsLength - 1) || 0;
+      const delta = (direction === 'right' ?
+        (endValue - startValue) : (startValue - endValue)) / (columnsLength - 1) || 0;
 
       deltas.push([delta]);
     }
@@ -68,7 +70,8 @@ export function getDragDirectionAndRange(startSelection, endSelection) {
     startOfDragCoords = new CellCoords(endSelection[0], endSelection[1]);
     endOfDragCoords = new CellCoords(endSelection[2], startSelection[1] - 1);
 
-  } else if (endSelection[2] === startSelection[2] && endSelection[0] === startSelection[0] && endSelection[3] > startSelection[3]) {
+  } else if (endSelection[2] === startSelection[2] && endSelection[0] === startSelection[0] &&
+      endSelection[3] > startSelection[3]) {
     directionOfDrag = 'right';
 
     startOfDragCoords = new CellCoords(endSelection[0], startSelection[3] + 1);

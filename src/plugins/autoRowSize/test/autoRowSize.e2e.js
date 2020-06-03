@@ -95,7 +95,8 @@ describe('AutoRowSize', () => {
     expect(oldHeight).toBeLessThan(newHeight);
   });
 
-  describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option is set (`table td` element height set by CSS) #4000', () => {
+  describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option ' +
+           'is set (`table td` element height set by CSS) #4000', () => {
     const cellHeightInPx = 100;
     const nrOfColumns = 200;
     let style;
@@ -270,20 +271,23 @@ describe('AutoRowSize', () => {
     const hot1 = $container1.handsontable('getInstance');
     const hot2 = $container2.handsontable('getInstance');
 
-    expect(parseInt(hot1.getCell(0, 0).style.height, 10)).toEqual(parseInt(hot2.getCell(0, 0).style.height, 10));
+    expect(parseInt(hot1.getCell(0, 0).style.height, 10))
+      .toEqual(parseInt(hot2.getCell(0, 0).style.height, 10));
 
     $container1.addClass('big');
     hot1.render();
     hot2.render();
 
-    expect(parseInt(hot1.getCell(2, 0).style.height, 10)).toBeGreaterThan(parseInt(hot2.getCell(2, 0).style.height, 10));
+    expect(parseInt(hot1.getCell(2, 0).style.height, 10))
+      .toBeGreaterThan(parseInt(hot2.getCell(2, 0).style.height, 10));
 
     $container1.removeClass('big');
     hot1.render();
     $container2.addClass('big');
     hot2.render();
 
-    expect(parseInt(hot1.getCell(2, 0).style.height, 10)).toBeLessThan(parseInt(hot2.getCell(2, 0).style.height, 10));
+    expect(parseInt(hot1.getCell(2, 0).style.height, 10))
+      .toBeLessThan(parseInt(hot2.getCell(2, 0).style.height, 10));
 
     $style.remove();
     $container1.handsontable('destroy');

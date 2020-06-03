@@ -97,12 +97,18 @@ class Selection {
       autoWrapCol: () => settings.autoWrapCol,
     });
 
-    this.transformation.addLocalHook('beforeTransformStart', (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
-    this.transformation.addLocalHook('afterTransformStart', (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.transformation.addLocalHook('beforeTransformEnd', (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('afterTransformEnd', (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('insertRowRequire', (...args) => this.runLocalHooks('insertRowRequire', ...args));
-    this.transformation.addLocalHook('insertColRequire', (...args) => this.runLocalHooks('insertColRequire', ...args));
+    this.transformation.addLocalHook('beforeTransformStart',
+      (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
+    this.transformation.addLocalHook('afterTransformStart',
+      (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
+    this.transformation.addLocalHook('beforeTransformEnd',
+      (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
+    this.transformation.addLocalHook('afterTransformEnd',
+      (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
+    this.transformation.addLocalHook('insertRowRequire',
+      (...args) => this.runLocalHooks('insertRowRequire', ...args));
+    this.transformation.addLocalHook('insertColRequire',
+      (...args) => this.runLocalHooks('insertColRequire', ...args));
   }
 
   /**
@@ -509,8 +515,8 @@ class Selection {
 
     } else if (selectionType === SELECTION_TYPE_UNRECOGNIZED) {
       throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
-        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]])\x20
-        or as an array of CellRange objects.`);
+        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd,\x20
+        columnEnd/columnPropEnd]]) or as an array of CellRange objects.`);
     }
 
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {

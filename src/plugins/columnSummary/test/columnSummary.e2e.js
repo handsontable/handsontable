@@ -1,6 +1,7 @@
 describe('ColumnSummarySpec', () => {
   const id = 'testContainer';
-  const warnMessage = 'One of the Column Summary plugins\' destination points you provided is beyond the table boundaries!';
+  const warnMessage = 'One of the Column Summary plugins\' destination points you ' +
+    'provided is beyond the table boundaries!';
   const columnSummaryFunction = function() {
     // We're assuming there are two levels, and the upper level has the summary results, while its children contain the calculation data.
     const endpoints = [];
@@ -512,9 +513,13 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+        .toEqual('[[0,6]]');
+
       hot.getPlugin('manualRowMove').moveRow(10, 3);
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[10,10],[3,6]]');
+
+      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+        .toEqual('[[0,2],[10,10],[3,6]]');
     });
 
     it('should shift the visual calculation result position when a row was moved outside the endpoint range', function() {
