@@ -5548,6 +5548,56 @@ describe('HiddenColumns', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
+      '(selecting from non-merged cell to the merged cell; from the top to the bottom)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
+      });
+
+      const dragStart = spec().$container.find('tr:eq(1) td:eq(1)');
+      const dragEnd = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
+
+      mouseDown(dragStart);
+      mouseOver(dragEnd);
+      mouseUp(dragEnd);
+
+      // Third column is not displayed (CSS - display: none).
+      expect(`
+      |   ║   : - : - :   |
+      |===:===:===:===:===|
+      | - ║   : A : 0 :   |
+      | - ║   : 0 :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 1, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(1);
+      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-0')).toBeTrue();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
+
+    it('should select cells properly when there is a merged area within the selection' +
       '(selecting from non-merged cell to the merged cell; from the right to the left)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -5599,7 +5649,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the right to the left)', () => {
+      '(selecting from non-merged cell to the merged cell; from the bottom to the top)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -5612,8 +5662,9 @@ describe('HiddenColumns', () => {
         mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
       });
 
-      const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
-      const dragEnd = spec().$container.find('tr:eq(2) td:eq(0)');
+      // There is one `TD` element with `display: none`, just before the cell.
+      const dragStart = spec().$container.find('tr:eq(3) td:eq(1)');
+      const dragEnd = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
 
       mouseDown(dragStart);
       mouseOver(dragEnd);
@@ -5621,31 +5672,31 @@ describe('HiddenColumns', () => {
 
       // Third column is not displayed (CSS - display: none).
       expect(`
-      |   ║ - : - : - :   |
+      |   ║   : - : - :   |
       |===:===:===:===:===|
       |   ║   :   :   :   |
-      | - ║ 0 : A :   :   |
-      |   ║   :   :   :   |
+      | - ║   : 0 :   :   |
+      | - ║   : A : 0 :   |
       |   ║   :   :   :   |
       |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 3, 1, 0]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      // expect(getSelectedRangeLast().highlight.col).toBe(1); // TODO: There is a problem with that.
-      expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(3);
+      expect(getSelected()).toEqual([[2, 3, 1, 1]]); // TODO: There should be [2, 1, 1, 3] probably.
+      expect(getSelectedRangeLast().highlight.row).toBe(2);
+      expect(getSelectedRangeLast().highlight.col).toBe(3); // TODO: There should be 2 probably.
+      expect(getSelectedRangeLast().from.row).toBe(2);
+      expect(getSelectedRangeLast().from.col).toBe(3); // TODO: There should be 1 probably.
       expect(getSelectedRangeLast().to.row).toBe(1);
-      expect(getSelectedRangeLast().to.col).toBe(0);
-      expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-1')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-2')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-3')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-4')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-5')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-6')).toBeFalse();
-      expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+      expect(getSelectedRangeLast().to.col).toBe(1); // TODO: There should be 3 probably.
+      expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-0')).toBeTrue();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(dragEnd).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
     it('should select cells properly when there is a merged area within the selection' +
@@ -5682,11 +5733,162 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelected()).toEqual([[1, 1, 1, 4]]);
       expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
       expect(getSelectedRangeLast().from.row).toBe(1);
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
+
+    it('should select cells properly when there is a merged area within the selection' +
+      '(selecting from the merged cell to non-merged cell; from the top to the bottom)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
+      });
+
+      const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
+      // There is one `TD` element with `display: none`, just before the cell.
+      const dragEnd = spec().$container.find('tr:eq(3) td:eq(1)');
+
+      mouseDown(dragStart);
+      mouseOver(dragEnd);
+      mouseUp(dragEnd);
+
+      // Third column is not displayed (CSS - display: none).
+      expect(`
+      |   ║   : - : - :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      | - ║   : A :   :   |
+      | - ║   : 0 : 0 :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 1, 2, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(1);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(2);
+      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
+
+    it('should select cells properly when there is a merged area within the selection' +
+      '(selecting from the merged cell to non-merged cell; from the right to the left)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
+      });
+
+      const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
+      const dragEnd = spec().$container.find('tr:eq(2) td:eq(0)');
+
+      mouseDown(dragStart);
+      mouseOver(dragEnd);
+      mouseUp(dragEnd);
+
+      // Third column is not displayed (CSS - display: none).
+      expect(`
+      |   ║ - : - : - :   |
+      |===:===:===:===:===|
+      |   ║   :   :   :   |
+      | - ║ 0 : A :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 3, 1, 0]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(3);
+      expect(getSelectedRangeLast().from.row).toBe(1);
+      expect(getSelectedRangeLast().from.col).toBe(3);
+      expect(getSelectedRangeLast().to.row).toBe(1);
+      expect(getSelectedRangeLast().to.col).toBe(0);
+      expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
+
+    it('should select cells properly when there is a merged area within the selection' +
+      '(selecting from the merged cell to non-merged cell; from the bottom to the top', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
+      });
+
+      const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
+      const dragEnd = spec().$container.find('tr:eq(1) td:eq(1)');
+
+      mouseDown(dragStart);
+      mouseOver(dragEnd);
+      mouseUp(dragEnd);
+
+      // Third column is not displayed (CSS - display: none).
+      expect(`
+      |   ║   : - : - :   |
+      |===:===:===:===:===|
+      | - ║   : 0 : 0 :   |
+      | - ║   : A :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      |   ║   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[1, 1, 0, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(1);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(0);
+      expect(getSelectedRangeLast().to.col).toBe(3);
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
