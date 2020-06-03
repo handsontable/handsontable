@@ -5346,6 +5346,80 @@ describe('HiddenColumns', () => {
 
       expect(getData()).toEqual([['Edited value', null, null, null, null]]);
     });
+
+    it('should work properly when hidden column is read only', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 5 }
+        ],
+        cells(physicalRow, physicalColumn) {
+          const cellProperties = {};
+          const visualRowIndex = this.instance.toVisualRow(physicalRow);
+          const visualColIndex = this.instance.toVisualColumn(physicalColumn);
+
+          if (visualRowIndex === 0 && visualColIndex === 0) {
+            cellProperties.readOnly = true;
+          }
+
+          return cellProperties;
+        }
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      let editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+
+      // Try of opening the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+    });
+
+    it('should work properly when editor is set to `false` for hidden column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 5 }
+        ],
+        cells(physicalRow, physicalColumn) {
+          const cellProperties = {};
+          const visualRowIndex = this.instance.toVisualRow(physicalRow);
+          const visualColIndex = this.instance.toVisualColumn(physicalColumn);
+
+          if (visualRowIndex === 0 && visualColIndex === 0) {
+            cellProperties.editor = false;
+          }
+
+          return cellProperties;
+        }
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      let editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+
+      // Try of opening the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+    });
   });
 
   describe('alter actions', () => {

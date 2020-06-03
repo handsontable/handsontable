@@ -1023,7 +1023,8 @@ const REGISTERED_HOOKS = [
   'modifyRowData',
 
   /**
-   * Used to modify the cell coordinates when using the `getCell` method.
+   * Used to modify the cell coordinates when using the `getCell` method, opening editor, getting value from the editor
+   * and saving values from the closed editor.
    *
    * @event Hooks#modifyGetCellCoords
    * @since 0.36.0
