@@ -186,7 +186,8 @@ class Autofill extends BasePlugin {
 
     // Fill area may starts or ends with invisible cell. There won't be any information about it as highlighted selection
     // store just renderable indexes (It's part of Walkontable). I extrapolate where the start or/and the end is.
-    const [fillStartRow, fillStartColumn, fillEndRow, fillEndColumn] = this.hot.selection.highlight.getFill().getVisualCorners();
+    const [fillStartRow, fillStartColumn, fillEndRow, fillEndColumn] =
+      this.hot.selection.highlight.getFill().getVisualCorners();
     const [selectionStartRow, selectionStartColumn, selectionEndRow, selectionEndColumn] = this.hot.getSelectedLast();
     let cornersOfSelectionAndDragAreas = [
       Math.min(selectionStartRow, fillStartRow),
