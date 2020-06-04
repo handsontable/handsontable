@@ -30,7 +30,7 @@ export default function columnRightItem() {
       }
 
       // There is no selection, because we have clicked on the corner and there is no data (click on the corner by default
-      // select all cells, but there are no cells).
+      // selects all cells, but there are no cells).
       if (!anyCellVisible) {
         return false;
       }
@@ -39,12 +39,9 @@ export default function columnRightItem() {
         return true;
       }
 
-      const [startRow, startColumn, endRow] = selected[0];
-      const entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
-      const rowSelected = entireRowSelection.join(',') === selected.join(',');
-      const onlyOneColumn = this.countCols() === 1;
-
-      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
+      return this.selection.isSelectedByRowHeader() ||
+        this.selection.isSelectedByCorner() ||
+        this.countCols() >= this.getSettings().maxCols;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;

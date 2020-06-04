@@ -506,7 +506,7 @@ class Selection {
   /**
    * Select all cells.
    *
-   * @param {boolean} includeCorner `true` If the selection should include the corner header, `false` otherwise.
+   * @param {boolean} [includeCorner=false] `true` If the selection should include the corner header, `false` otherwise.
    */
   selectAll(includeCorner = false) {
     const nrOfRows = this.tableProps.countRows();
