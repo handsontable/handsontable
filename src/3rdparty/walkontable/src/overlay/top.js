@@ -201,8 +201,8 @@ class TopOverlay extends Overlay {
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     holder.style.width = holder.parentNode.style.width;
-    // Add corner protruding part to the holder total height to make sure that borders' corner
-    // won't be cut after vertical scroll (#6937).
+    // Add selection corner protruding part to the holder total height to make sure that
+    // borders' corner won't be cut after vertical scroll (#6937).
     holder.style.height = `${parseInt(holder.parentNode.style.height, 10) + selectionCornerOffset}px`;
   }
 

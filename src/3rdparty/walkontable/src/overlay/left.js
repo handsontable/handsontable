@@ -194,8 +194,8 @@ class LeftOverlay extends Overlay {
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;
-    // Add corner protruding part to the holder total width to make sure that borders' corner
-    // won't be cut after horizontal scroll (#6937).
+    // Add selection corner protruding part to the holder total width to make sure that
+    // borders' corner won't be cut after horizontal scroll (#6937).
     holder.style.width = `${parseInt(holder.parentNode.style.width, 10) + selectionCornerOffset}px`;
   }
 
