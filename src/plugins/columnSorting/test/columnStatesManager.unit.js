@@ -1,4 +1,8 @@
-import { ColumnStatesManager, ASC_SORT_STATE, DESC_SORT_STATE } from 'handsontable/plugins/columnSorting/columnStatesManager';
+import {
+  ColumnStatesManager,
+  ASC_SORT_STATE,
+  DESC_SORT_STATE
+} from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { deepClone } from '../../../helpers/object';
 
 describe('ColumnSorting', () => {

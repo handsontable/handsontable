@@ -10,7 +10,6 @@ import {
   setCaretPosition,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  selectElementIfAllowed,
   hasClass,
   removeClass
 } from './../helpers/dom/element';
@@ -157,19 +156,21 @@ class TextEditor extends BaseEditor {
       } = cellProperties;
 
       if (allowInvalid) {
-        this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME)
+        // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste
+        // functionality work with IME)
+        this.TEXTAREA.value = '';
       }
 
       if (previousState !== EditorState.FINISHED) {
         this.hideEditableElement();
       }
 
-      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature refocus has to
-      // be disabled (to make IME working).
+      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
+      // refocus has to be disabled (to make IME working).
       const restoreFocus = !fragmentSelection;
 
       if (restoreFocus && !isMobileBrowser()) {
-        this.focus(true);
+        this.focus();
       }
     }
   }
@@ -191,20 +192,13 @@ class TextEditor extends BaseEditor {
 
   /**
    * Sets focus state on the select element.
-   *
-   * @param {boolean} [safeFocus=false] If `true` select element only when is handsontableInput. Otherwise sets focus on this element.
-   * If focus is calling without param textarea need be select and set caret position.
    */
-  focus(safeFocus = false) {
-    // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
-    // the focused element which is undesire effect.
-    if (safeFocus) {
-      selectElementIfAllowed(this.TEXTAREA);
-
-    } else {
-      this.TEXTAREA.select();
-      setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
-    }
+  focus() {
+    // For IME editor textarea element must be focused using ".select" method.
+    // Using ".focus" browser automatically scroll into the focused element which
+    // is undesire effect.
+    this.TEXTAREA.select();
+    setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   }
 
   /**
@@ -346,8 +340,10 @@ class TextEditor extends BaseEditor {
     const scrollableContainerTop = wtOverlays.topOverlay.holder;
     const scrollableContainerLeft = wtOverlays.leftOverlay.holder;
     const totalRowsCount = this.hot.countRows();
-    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ? scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ? scrollableContainerLeft.scrollLeft : 0;
+    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ?
+      scrollableContainerTop.scrollTop : 0;
+    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ?
+      scrollableContainerLeft.scrollLeft : 0;
     const editorSection = this.checkEditorSection();
 
     const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
@@ -418,7 +414,7 @@ class TextEditor extends BaseEditor {
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
     const height = this.TD.scrollHeight + 1;
-    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
+    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
@@ -547,7 +543,9 @@ class TextEditor extends BaseEditor {
         break;
     }
 
-    if ([KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT].indexOf(event.keyCode) === -1) {
+    const arrowKeyCodes = [KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT];
+
+    if (arrowKeyCodes.indexOf(event.keyCode) === -1) {
       this.autoResize.resize(String.fromCharCode(event.keyCode));
     }
   }

@@ -389,7 +389,8 @@ class Table {
       }
       currentHeaderHeight = innerHeight(currentHeader);
 
-      if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
+      if (!previousColHeaderHeight &&
+          defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
       }
 
@@ -402,8 +403,9 @@ class Table {
         this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
 
-      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
-        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
+      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] ||
+          columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting); // eslint-disable-line max-len
       }
     }
   }

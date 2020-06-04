@@ -513,7 +513,8 @@ describe('HiddenRows', () => {
       });
     });
 
-    describe('should not change position and call hook when single hidden cell was selected and navigating by any arrow key', () => {
+    describe('should not change position and call hook when single hidden cell was selected and ' +
+             'navigating by any arrow key', () => {
       /**
        * Helper for removing undefined values from arguments. This fixes an issue couses by runHooks
        * which triggers subjects with fixed numbers of arguments.

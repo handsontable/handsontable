@@ -1885,7 +1885,8 @@ const REGISTERED_HOOKS = [
  * @type {string}
  */
 const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in Handsontable [removedInVersion].\x20
-  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to learn about the migration path.`;
+  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to\x20
+  learn about the migration path.`;
 
 /**
  * The list of the hooks which are removed from the API. The warning message is printed out in

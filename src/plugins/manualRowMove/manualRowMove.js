@@ -102,8 +102,10 @@ class ManualRowMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
-    this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseDown',
+      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseOver',
+      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterScrollHorizontally', () => this.onAfterScrollHorizontally());
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -283,20 +285,23 @@ class ManualRowMove extends BasePlugin {
    * Gets the sum of the heights of rows in the provided range.
    *
    * @private
-   * @param {number} from Visual row index.
-   * @param {number} to Visual row index.
+   * @param {number} fromRow Visual row index.
+   * @param {number} toRow Visual row index.
    * @returns {number}
    */
-  getRowsHeight(from, to) {
-    let height = 0;
+  getRowsHeight(fromRow, toRow) {
+    const rowMapper = this.hot.rowIndexMapper;
+    let rowsHeight = 0;
 
-    for (let i = from; i < to; i++) {
-      const rowHeight = this.hot.view.wt.wtTable.getRowHeight(i) || 23;
+    for (let visualRowIndex = fromRow; visualRowIndex <= toRow; visualRowIndex++) {
+      const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
-      height += rowHeight;
+      if (renderableIndex !== null) {
+        rowsHeight += this.hot.view.wt.wtTable.getRowHeight(renderableIndex) || 23;
+      }
     }
 
-    return height;
+    return rowsHeight;
   }
 
   /**
@@ -348,7 +353,8 @@ class ManualRowMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.rowIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
+    // The `PersistentState` plugin should be refactored.
+    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.rowIndexMapper.getIndexesSequence());
   }
 
   /**
@@ -414,7 +420,7 @@ class ManualRowMove extends BasePlugin {
     const wtTable = this.hot.view.wt.wtTable;
     const TD = priv.target.TD;
     const rootElementOffset = offset(this.hot.rootElement);
-    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row);
+    let tdOffsetTop = this.hot.view.THEAD.offsetHeight + this.getRowsHeight(0, coords.row - 1);
     const mouseOffsetTop = priv.target.eventPageY - rootElementOffset.top + wtTable.holder.scrollTop;
     const hiderHeight = wtTable.hider.offsetHeight;
     const tbodyOffsetTop = wtTable.TBODY.offsetTop;
@@ -540,8 +546,8 @@ class ManualRowMove extends BasePlugin {
       const leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
 
       this.backlight.setPosition(null, leftPos);
-      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end + 1));
-      this.backlight.setOffset((this.getRowsHeight(start, coords.row) + event.layerY) * -1, null);
+      this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
+      this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + event.layerY) * -1, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 

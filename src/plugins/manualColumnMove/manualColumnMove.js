@@ -104,8 +104,10 @@ class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
-    this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseDown',
+      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseDown(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseOver',
+      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterScrollVertically', () => this.onAfterScrollVertically());
     this.addHook('afterLoadData', () => this.onAfterLoadData());
 
@@ -282,18 +284,6 @@ class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Correct the cell selection after the move action. Fired only when action was made with a mouse.
-   * That means that changing the column order using the API won't correct the selection.
-   *
-   * @private
-   * @param {number} startColumn Visual column index for the start of the selection.
-   * @param {number} endColumn Visual column index for the end of the selection.
-   */
-  changeSelection(startColumn, endColumn) {
-    this.hot.selectColumns(startColumn, endColumn);
-  }
-
-  /**
    * Gets the sum of the widths of columns in the provided range.
    *
    * @private
@@ -406,9 +396,10 @@ class ManualColumnMove extends BasePlugin {
     const lastVisible = this.hot.view.wt.wtTable.getLastVisibleColumn();
     const wtTable = this.hot.view.wt.wtTable;
     const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
-    const scrollLeft = typeof scrollableElement.scrollX === 'number' ? scrollableElement.scrollX : scrollableElement.scrollLeft;
+    const scrollLeft = typeof scrollableElement.scrollX === 'number' ?
+      scrollableElement.scrollX : scrollableElement.scrollLeft;
     let tdOffsetLeft = this.hot.view.THEAD.offsetLeft + this.getColumnsWidth(0, priv.coords - 1);
-    const mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0));
+    const mouseOffsetLeft = priv.target.eventPageX - (priv.rootElementOffset - (scrollableElement.scrollX === void 0 ? scrollLeft : 0)); // eslint-disable-line max-len
     const hiderWidth = wtTable.hider.offsetWidth;
     const tbodyOffsetLeft = wtTable.TBODY.offsetLeft;
     const backlightElemMarginLeft = this.backlight.getOffset().left;
@@ -677,7 +668,7 @@ class ManualColumnMove extends BasePlugin {
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
       const selectionEnd = selectionStart + columnsLen - 1;
 
-      this.changeSelection(selectionStart, selectionEnd);
+      this.hot.selectColumns(selectionStart, selectionEnd);
     }
   }
 

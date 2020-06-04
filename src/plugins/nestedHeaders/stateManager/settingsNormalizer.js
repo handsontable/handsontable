@@ -109,7 +109,9 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
   // Normalize the length of each header layer to the same columns length.
   arrayEach(normalizedSettings, (headersSettings) => {
     if (headersSettings.length < columnsLength) {
-      const defaultSettings = arrayMap(new Array(columnsLength - headersSettings.length), () => ({ ...HEADER_DEFAULT_SETTINGS }));
+      const defaultSettings = arrayMap(
+        new Array(columnsLength - headersSettings.length), () => ({ ...HEADER_DEFAULT_SETTINGS })
+      );
 
       headersSettings.splice(headersSettings.length, 0, ...defaultSettings);
     }

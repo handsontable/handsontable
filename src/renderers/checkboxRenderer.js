@@ -62,7 +62,8 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
     let labelText = '';
 
     if (labelOptions.value) {
-      labelText = typeof labelOptions.value === 'function' ? labelOptions.value.call(this, row, col, prop, value) : labelOptions.value;
+      labelText = typeof labelOptions.value === 'function' ?
+        labelOptions.value.call(this, row, col, prop, value) : labelOptions.value;
 
     } else if (labelOptions.property) {
       const labelValue = instance.getDataAtRowProp(row, labelOptions.property);
@@ -159,10 +160,10 @@ function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
           const dataAtCell = instance.getDataAtCell(visualRow, visualColumn);
 
           if (uncheckCheckbox === false) {
-            if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) {
+            if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate]);
 
-            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) {
+            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, void 0].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate]);
             }
 

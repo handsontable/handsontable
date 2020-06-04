@@ -1,7 +1,11 @@
 describe('HiddenRows', () => {
   const id = 'testContainer';
 
-  const { CONTEXTMENU_ITEMS_SHOW_ROW, CONTEXTMENU_ITEMS_HIDE_ROW, CONTEXTMENU_ITEMS_NO_ITEMS } = Handsontable.languages.dictionaryKeys;
+  const {
+    CONTEXTMENU_ITEMS_SHOW_ROW,
+    CONTEXTMENU_ITEMS_HIDE_ROW,
+    CONTEXTMENU_ITEMS_NO_ITEMS
+  } = Handsontable.languages.dictionaryKeys;
   const MENU_NO_ITEMS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_NO_ITEMS);
   const MENU_ITEM_SHOW_ROW = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_ROW);
   const MENU_ITEM_SHOW_ROWS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_ROW, 1);

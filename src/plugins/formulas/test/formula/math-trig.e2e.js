@@ -515,7 +515,9 @@ describe('Formulas -> math trig functions', () => {
   });
 
   it('EXP', () => {
-    const data = getDataForFormulas(0, 'name', ['=EXP()', '=EXP(MY_VAR)', '=EXP(A1)', '=EXP("1")', '=EXP(1, 1)', '=EXP(1)']);
+    const data = getDataForFormulas(0, 'name', [
+      '=EXP()', '=EXP(MY_VAR)', '=EXP(A1)', '=EXP("1")', '=EXP(1, 1)', '=EXP(1)'
+    ]);
 
     data[0].id = 2;
 

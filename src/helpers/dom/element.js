@@ -665,7 +665,9 @@ export function getTrimmingContainer(base) {
     const propertyY = computedStyle.getPropertyValue('overflow-y');
     const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-    if (allowedProperties.includes(property) || allowedProperties.includes(propertyY) || allowedProperties.includes(propertyX)) {
+    if (allowedProperties.includes(property) ||
+        allowedProperties.includes(propertyY) ||
+        allowedProperties.includes(propertyX)) {
       return el;
     }
 

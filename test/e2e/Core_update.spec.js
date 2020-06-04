@@ -635,7 +635,8 @@ describe('Core_updateSettings', () => {
 
     updateSettings(newSettings);
 
-    expect(afterUpdateSettings).toHaveBeenCalledWith(newSettings, undefined, undefined, undefined, undefined, undefined);
+    expect(afterUpdateSettings)
+      .toHaveBeenCalledWith(newSettings, undefined, undefined, undefined, undefined, undefined);
   });
 
   it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {

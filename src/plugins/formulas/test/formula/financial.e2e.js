@@ -14,7 +14,9 @@ describe('Formulas -> financial functions', () => {
 
   it('ACCRINT', () => {
     const hot = handsontable({
-      data: getDataForFormulas(1, 'name', ['=ACCRINT()', '=ACCRINT("2/2/2012", "3/30/2012", "12/4/2013", 0.1, 1000, 1, 0)']),
+      data: getDataForFormulas(1, 'name', [
+        '=ACCRINT()', '=ACCRINT("2/2/2012", "3/30/2012", "12/4/2013", 0.1, 1000, 1, 0)'
+      ]),
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,

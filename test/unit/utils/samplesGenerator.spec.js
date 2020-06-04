@@ -164,7 +164,9 @@ describe('SamplesGenerator', () => {
     expect(sg.dataFactory.calls.mostRecent().args[1]).toBe(3);
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(3);
-    expect(result.get(1).strings).toEqual([{ value: 'D', row: 1 }, { value: [4], row: 3 }, { value: { id: 4 }, row: 4 }]);
+    expect(result.get(1).strings).toEqual([
+      { value: 'D', row: 1 }, { value: [4], row: 3 }, { value: { id: 4 }, row: 4 }
+    ]);
     expect(result.get(2).strings).toEqual([{ value: 44, row: 0 }]);
   });
 

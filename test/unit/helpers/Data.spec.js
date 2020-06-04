@@ -37,8 +37,10 @@ describe('Data helper', () => {
   describe('dataRowToChangesArray', () => {
     it('should transform an representation of a data row (object or array) into an array of changes in form of `[[row, col, val],...]` ' +
       'with an optional row offset', () => {
-      expect(dataRowToChangesArray(['first-column', 'second-column'])).toMatchObject([[0, 0, 'first-column'], [0, 1, 'second-column']]);
-      expect(dataRowToChangesArray(['first-column', 'second-column'], 3)).toMatchObject([[3, 0, 'first-column'], [3, 1, 'second-column']]);
+      expect(dataRowToChangesArray(['first-column', 'second-column']))
+        .toMatchObject([[0, 0, 'first-column'], [0, 1, 'second-column']]);
+      expect(dataRowToChangesArray(['first-column', 'second-column'], 3))
+        .toMatchObject([[3, 0, 'first-column'], [3, 1, 'second-column']]);
       expect(dataRowToChangesArray({
         a: 'first-column',
         b: 'second-column'

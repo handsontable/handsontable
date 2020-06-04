@@ -184,7 +184,7 @@ class AutoRowSize extends BasePlugin {
    * @param {number|object} colRange Column index or an object with `from` and `to` indexes as a range.
    * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateRowsHeight(rowRange = { from: 0, to: this.hot.countRows() - 1 }, colRange = { from: 0, to: this.hot.countCols() - 1 }, force = false) {
+  calculateRowsHeight(rowRange = { from: 0, to: this.hot.countRows() - 1 }, colRange = { from: 0, to: this.hot.countCols() - 1 }, force = false) { // eslint-disable-line max-len
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
 
@@ -242,7 +242,10 @@ class AutoRowSize extends BasePlugin {
 
         return;
       }
-      this.calculateRowsHeight({ from: current, to: Math.min(current + AutoRowSize.CALCULATION_STEP, length) }, colRange);
+      this.calculateRowsHeight({
+        from: current,
+        to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
+      }, colRange);
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
@@ -284,8 +287,10 @@ class AutoRowSize extends BasePlugin {
    */
   setSamplingOptions() {
     const setting = this.hot.getSettings().autoRowSize;
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
+      this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
+      this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
