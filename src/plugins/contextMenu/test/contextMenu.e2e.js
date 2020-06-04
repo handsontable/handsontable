@@ -228,7 +228,8 @@ describe('ContextMenu', () => {
         </head>`);
       docOutside.close();
 
-      const iframeInside = $('<iframe/>').css({ margin: '250px 500px 500px 250px', width: '500px', height: '500px' }).appendTo(docOutside.body);
+      const iframeInside = $('<iframe/>')
+        .css({ margin: '250px 500px 500px 250px', width: '500px', height: '500px' }).appendTo(docOutside.body);
       const docInside = iframeInside[0].contentDocument;
 
       docInside.open('text/html', 'replace');
@@ -980,7 +981,8 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      expect(contextSubMenu.offset().left)
+        .toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
     it('should open subMenu on the left-bottom of main menu if there\'s free space', async() => {
@@ -1006,8 +1008,10 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(parseInt(contextSubMenu.offset().top, 10)).toBeAroundValue(parseInt(item.offset().top, 10) - 1);
-      expect(parseInt(contextSubMenu.offset().left, 10)).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+      expect(parseInt(contextSubMenu.offset().top, 10))
+        .toBeAroundValue(parseInt(item.offset().top, 10) - 1);
+      expect(parseInt(contextSubMenu.offset().left, 10))
+        .toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
     it('should open subMenu on the right-bottom of main menu if there\'s free space', async() => {
@@ -1034,8 +1038,10 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(parseInt(contextSubMenu.offset().top, 10)).toBeAroundValue(parseInt(item.offset().top, 10) - 1);
-      expect(parseInt(contextSubMenu.offset().left, 10)).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      expect(parseInt(contextSubMenu.offset().top, 10))
+        .toBeAroundValue(parseInt(item.offset().top, 10) - 1);
+      expect(parseInt(contextSubMenu.offset().left, 10))
+        .toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
     it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', async() => {
@@ -1086,8 +1092,10 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
-      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28)
+        .toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().left)
+        .toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
   });
 
@@ -2335,7 +2343,8 @@ describe('ContextMenu', () => {
       contextMenu();
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
-      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual(['CustomItem1', 'CustomItem2'].join(''));
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text())
+        .toEqual(['CustomItem1', 'CustomItem2'].join(''));
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
@@ -2452,7 +2461,8 @@ describe('ContextMenu', () => {
       contextMenu();
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
-      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual(['Remove row', 'Delete column'].join(''));
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text())
+        .toEqual(['Remove row', 'Delete column'].join(''));
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
@@ -2604,7 +2614,8 @@ describe('ContextMenu', () => {
         keyDownUp('arrow_down');
         keyDownUp('arrow_down');
 
-        const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+        const scrollHeight = typeof window.scrollY !== 'undefined' ?
+          window.scrollY : document.documentElement.scrollTop;
 
         expect(scrollHeight).not.toBe(0);
       });
@@ -3973,6 +3984,50 @@ describe('ContextMenu', () => {
       expect(keys).toEqual(['make_read_only', 'col_left']);
 
       Handsontable.hooks.remove('beforeContextMenuSetItems', hookListener);
+    });
+  });
+
+  describe('table listening', () => {
+    it('should listen to changes after removing all rows', () => {
+      const hot = handsontable({
+        data: [[1]],
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['remove_row'],
+      });
+
+      selectRows(0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td:eq(0)')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      expect(hot.countRows()).toBe(0);
+      expect(hot.isListening()).toBe(true);
+    });
+
+    it('should listen to changes after removing all columns', () => {
+      const hot = handsontable({
+        data: [[1]],
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['remove_col'],
+      });
+
+      selectColumns(0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td:eq(0)')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      expect(hot.countCols()).toBe(0);
+      expect(hot.isListening()).toBe(true);
     });
   });
 

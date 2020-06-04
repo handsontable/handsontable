@@ -54,7 +54,8 @@ class DataProvider {
    * @returns {boolean}
    */
   isInDataRange(visualRow, visualColumn) {
-    return visualRow >= 0 && visualRow < this.hot.countRows() && visualColumn >= 0 && visualColumn < this.hot.countCols();
+    return visualRow >= 0 && visualRow < this.hot.countRows() &&
+      visualColumn >= 0 && visualColumn < this.hot.countCols();
   }
 
   /**
@@ -91,7 +92,10 @@ class DataProvider {
 
     arrayEach(result, (rowData, rowIndex) => {
       arrayEach(rowData, (value, columnIndex) => {
-        const id = this._coordId(this.hot.toPhysicalRow(rowIndex + visualRow1), this.hot.toPhysicalColumn(columnIndex + visualColumn1));
+        const id = this._coordId(
+          this.hot.toPhysicalRow(rowIndex + visualRow1),
+          this.hot.toPhysicalColumn(columnIndex + visualColumn1)
+        );
 
         if (hasOwnProperty(this.changes, id)) {
           result[rowIndex][columnIndex] = this.changes[id];
@@ -162,7 +166,10 @@ class DataProvider {
       const row = [];
 
       rangeEach(visualColumn1, visualColumn2, (visualColumn) => {
-        const [physicalRow, physicalColumn] = [this.hot.toPhysicalRow(visualRow), this.hot.toPhysicalColumn(visualColumn)];
+        const [physicalRow, physicalColumn] = [
+          this.hot.toPhysicalRow(visualRow),
+          this.hot.toPhysicalColumn(visualColumn)
+        ];
         const id = this._coordId(physicalRow, physicalColumn);
 
         if (hasOwnProperty(this.changes, id)) {

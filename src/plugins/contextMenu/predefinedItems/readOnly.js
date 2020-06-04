@@ -12,7 +12,10 @@ export default function readOnlyItem() {
     key: KEY,
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
-      const atLeastOneReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row, col) => this.getCellMeta(row, col).readOnly);
+      const atLeastOneReadOnly = checkSelectionConsistency(
+        this.getSelectedRange(),
+        (row, col) => this.getCellMeta(row, col).readOnly
+      );
 
       if (atLeastOneReadOnly) {
         label = markLabelAsSelected(label);
@@ -22,7 +25,10 @@ export default function readOnlyItem() {
     },
     callback() {
       const ranges = this.getSelectedRange();
-      const atLeastOneReadOnly = checkSelectionConsistency(ranges, (row, col) => this.getCellMeta(row, col).readOnly);
+      const atLeastOneReadOnly = checkSelectionConsistency(
+        ranges,
+        (row, col) => this.getCellMeta(row, col).readOnly
+      );
 
       arrayEach(ranges, (range) => {
         range.forAll((row, col) => {

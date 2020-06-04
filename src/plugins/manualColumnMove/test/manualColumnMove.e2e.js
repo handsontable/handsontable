@@ -636,7 +636,8 @@ describe('manualColumnMove', () => {
     });
 
     describe('by drag', () => {
-      describe('should trigger the `beforeColumnMove` and `afterColumnMove` hooks with proper parameters (moving single column)', () => {
+      describe('should trigger the `beforeColumnMove` and `afterColumnMove` hooks with proper ' +
+               'parameters (moving single column)', () => {
         it('visual indexes as parameters', () => {
           const beforeColumnMoveCallback = jasmine.createSpy('beforeColumnMoveCallback');
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');

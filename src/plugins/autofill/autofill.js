@@ -190,9 +190,14 @@ class Autofill extends BasePlugin {
 
     const cornersOfSelectedCells = this.getCornersOfSelectedCells();
 
-    cornersOfSelectionAndDragAreas = this.hot.runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
+    cornersOfSelectionAndDragAreas = this.hot
+      .runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
 
-    const { directionOfDrag, startOfDragCoords, endOfDragCoords } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    const {
+      directionOfDrag,
+      startOfDragCoords,
+      endOfDragCoords
+    } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
@@ -228,8 +233,10 @@ class Autofill extends BasePlugin {
 
           for (let i = 0; i < selectionData.length; i++) {
             fillData.push([]);
+
             for (let j = 0; j < dragLength; j++) {
-              fillData[i].push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
+              fillData[i]
+                .push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
             }
           }
         }
@@ -288,8 +295,16 @@ class Autofill extends BasePlugin {
     const bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
     let coords;
 
-    if (this.directions.includes(DIRECTIONS.vertical) &&
-      (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
+    if (this.directions.includes(DIRECTIONS.vertical) && this.directions.includes(DIRECTIONS.horizontal)) {
+      if (bottomRightCorner.col <= coordsOfSelection.col || topLeftCorner.col >= coordsOfSelection.col) {
+        coords = new CellCoords(bottomRightCorner.row, coordsOfSelection.col);
+      }
+
+      if (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row) {
+        coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
+      }
+
+    } else if (this.directions.includes(DIRECTIONS.vertical)) {
       coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
 
     } else if (this.directions.includes(DIRECTIONS.horizontal)) {

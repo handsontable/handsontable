@@ -1,3 +1,4 @@
+/* eslint max-len: ["error", { "code": 150 }] */
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 
 describe('SourceSettings', () => {

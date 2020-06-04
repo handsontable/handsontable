@@ -49,53 +49,66 @@ describe('MergeCells-Autofill calculations', () => {
       let dragDirection = 'up';
       const foundMergedCells = [new MergedCellCoords(5, 4, 2, 2)];
 
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[3,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[3,4,6,5]');
 
       dragArea = [2, 4, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[1,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[1,4,6,5]');
 
       baseArea = [5, 4, 7, 5];
       dragArea = [4, 4, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[4,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[4,4,6,5]');
 
       dragArea = [3, 4, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[2,4,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[2,4,6,5]');
 
       dragDirection = 'down';
       baseArea = [5, 4, 6, 5];
       dragArea = [5, 4, 7, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,8,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,4,8,5]');
 
       baseArea = [5, 4, 7, 5];
       dragArea = [5, 4, 8, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,9,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,4,9,5]');
 
       dragArea = [5, 4, 10, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,10,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,4,10,5]');
 
       dragDirection = 'left';
       baseArea = [5, 4, 6, 5];
       dragArea = [5, 3, 6, 5];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,2,6,5]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,2,6,5]');
 
       baseArea = [5, 4, 6, 6];
       dragArea = [5, 3, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,3,6,6]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,3,6,6]');
 
       dragArea = [5, 2, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,1,6,6]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,1,6,6]');
 
       dragDirection = 'right';
       baseArea = [5, 4, 6, 5];
       dragArea = [5, 4, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,4,6,7]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,4,6,7]');
 
       baseArea = [5, 3, 6, 5];
       dragArea = [5, 3, 6, 6];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,3,6,6]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,3,6,6]');
 
       dragArea = [5, 3, 6, 7];
-      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells))).toEqual('[5,3,6,8]');
+      expect(JSON.stringify(instance.snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells)))
+        .toEqual('[5,3,6,8]');
     });
   });
 
@@ -131,28 +144,35 @@ describe('MergeCells-Autofill calculations', () => {
       let direction = 'down';
       const mergedCellArray = [new MergedCellCoords(5, 4, 2, 2), new MergedCellCoords(8, 8, 2, 3)];
 
-      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[0]);
+      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
+        .toEqual(mergedCellArray[0]);
 
       dragArea = [3, 3, 16, 11];
-      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[1]);
+      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
+        .toEqual(mergedCellArray[1]);
 
       dragArea = [3, 3, 10, 13];
       direction = 'right';
-      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[0]);
+      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
+        .toEqual(mergedCellArray[0]);
 
       dragArea = [3, 3, 10, 17];
-      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[1]);
+      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
+        .toEqual(mergedCellArray[1]);
 
       dragArea = [1, 3, 10, 11];
       direction = 'up';
-      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[1]);
+      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
+        .toEqual(mergedCellArray[1]);
 
       dragArea = [3, 3, 13, 11];
       direction = 'down';
-      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[0]);
+      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
+        .toEqual(mergedCellArray[0]);
 
       dragArea = [3, 3, 16, 11];
-      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray)).toEqual(mergedCellArray[1]);
+      expect(instance.getFarthestCollection(baseArea, dragArea, direction, mergedCellArray))
+        .toEqual(mergedCellArray[1]);
 
     });
   });
@@ -191,21 +211,26 @@ describe('MergeCells-Autofill calculations', () => {
       });
 
       const changes = [
-        [10, 3, '[10, 3]', '[5, 3]'], [10, 4, '[10, 4]', '[5, 4]'], [10, 5, '[10, 5]', null], [10, 6, '[10, 6]', '[5, 6]'],
-        [10, 7, '[10, 7]', '[5, 7]'], [10, 8, '[10, 8]', '[5, 8]'], [10, 9, '[10, 9]', '[5, 9]'], [10, 10, '[10, 10]', '[5, 10]'],
-        [10, 11, '[10, 11]', '[5, 11]'], [11, 3, '[11, 3]', '[6, 3]'], [11, 4, '[11, 4]', null], [11, 5, '[11, 5]', null],
-        [11, 6, '[11, 6]', '[6, 6]'], [11, 7, '[11, 7]', '[6, 7]'], [11, 8, '[11, 8]', '[6, 8]'], [11, 9, '[11, 9]', '[6, 9]'],
-        [11, 10, '[11, 10]', '[6, 10]'], [11, 11, '[11, 11]', '[6, 11]'], [12, 3, '[12, 3]', '[7, 3]'], [12, 4, '[12, 4]', '[7, 4]'],
-        [12, 5, '[12, 5]', '[7, 5]'], [12, 6, '[12, 6]', '[7, 6]'], [12, 7, '[12, 7]', '[7, 7]'], [12, 8, '[12, 8]', '[7, 8]'],
-        [12, 9, '[12, 9]', '[7, 9]'], [12, 10, '[12, 10]', '[7, 10]'], [12, 11, '[12, 11]', '[7, 11]'], [13, 3, '[13, 3]', '[8, 3]'],
-        [13, 4, '[13, 4]', '[8, 4]'], [13, 5, '[13, 5]', '[8, 5]'], [13, 6, '[13, 6]', '[8, 6]'], [13, 7, '[13, 7]', '[8, 7]'],
-        [13, 8, '[13, 8]', '[8, 8]'], [13, 9, '[13, 9]', null], [13, 10, '[13, 10]', null], [13, 11, '[13, 11]', '[8, 11]'],
-        [14, 3, '[14, 3]', '[9, 3]'], [14, 4, '[14, 4]', '[9, 4]'], [14, 5, '[14, 5]', '[9, 5]'], [14, 6, '[14, 6]', '[9, 6]'],
-        [14, 7, '[14, 7]', '[9, 7]'], [14, 8, '[14, 8]', null], [14, 9, '[14, 9]', null], [14, 10, '[14, 10]', null],
-        [14, 11, '[14, 11]', '[9, 11]'], [15, 3, '[15, 3]', '[5, 3]'], [15, 4, '[15, 4]', '[5, 4]'], [15, 5, '[15, 5]', null],
-        [15, 6, '[15, 6]', '[5, 6]'], [15, 7, '[15, 7]', '[5, 7]'], [15, 8, '[15, 8]', '[5, 8]'], [15, 9, '[15, 9]', '[5, 9]'],
-        [15, 10, '[15, 10]', '[5, 10]'], [15, 11, '[15, 11]', '[5, 11]'], [16, 3, '[16, 3]', '[6, 3]'], [16, 4, '[16, 4]', null],
-        [16, 5, '[16, 5]', null], [16, 6, '[16, 6]', '[6, 6]'], [16, 7, '[16, 7]', '[6, 7]'], [16, 8, '[16, 8]', '[6, 8]'],
+        [10, 3, '[10, 3]', '[5, 3]'], [10, 4, '[10, 4]', '[5, 4]'], [10, 5, '[10, 5]', null],
+        [10, 6, '[10, 6]', '[5, 6]'], [10, 7, '[10, 7]', '[5, 7]'], [10, 8, '[10, 8]', '[5, 8]'],
+        [10, 9, '[10, 9]', '[5, 9]'], [10, 10, '[10, 10]', '[5, 10]'], [10, 11, '[10, 11]', '[5, 11]'],
+        [11, 3, '[11, 3]', '[6, 3]'], [11, 4, '[11, 4]', null], [11, 5, '[11, 5]', null],
+        [11, 6, '[11, 6]', '[6, 6]'], [11, 7, '[11, 7]', '[6, 7]'], [11, 8, '[11, 8]', '[6, 8]'],
+        [11, 9, '[11, 9]', '[6, 9]'], [11, 10, '[11, 10]', '[6, 10]'], [11, 11, '[11, 11]', '[6, 11]'],
+        [12, 3, '[12, 3]', '[7, 3]'], [12, 4, '[12, 4]', '[7, 4]'], [12, 5, '[12, 5]', '[7, 5]'],
+        [12, 6, '[12, 6]', '[7, 6]'], [12, 7, '[12, 7]', '[7, 7]'], [12, 8, '[12, 8]', '[7, 8]'],
+        [12, 9, '[12, 9]', '[7, 9]'], [12, 10, '[12, 10]', '[7, 10]'], [12, 11, '[12, 11]', '[7, 11]'],
+        [13, 3, '[13, 3]', '[8, 3]'], [13, 4, '[13, 4]', '[8, 4]'], [13, 5, '[13, 5]', '[8, 5]'],
+        [13, 6, '[13, 6]', '[8, 6]'], [13, 7, '[13, 7]', '[8, 7]'], [13, 8, '[13, 8]', '[8, 8]'],
+        [13, 9, '[13, 9]', null], [13, 10, '[13, 10]', null], [13, 11, '[13, 11]', '[8, 11]'],
+        [14, 3, '[14, 3]', '[9, 3]'], [14, 4, '[14, 4]', '[9, 4]'], [14, 5, '[14, 5]', '[9, 5]'],
+        [14, 6, '[14, 6]', '[9, 6]'], [14, 7, '[14, 7]', '[9, 7]'], [14, 8, '[14, 8]', null],
+        [14, 9, '[14, 9]', null], [14, 10, '[14, 10]', null], [14, 11, '[14, 11]', '[9, 11]'],
+        [15, 3, '[15, 3]', '[5, 3]'], [15, 4, '[15, 4]', '[5, 4]'], [15, 5, '[15, 5]', null],
+        [15, 6, '[15, 6]', '[5, 6]'], [15, 7, '[15, 7]', '[5, 7]'], [15, 8, '[15, 8]', '[5, 8]'],
+        [15, 9, '[15, 9]', '[5, 9]'], [15, 10, '[15, 10]', '[5, 10]'], [15, 11, '[15, 11]', '[5, 11]'],
+        [16, 3, '[16, 3]', '[6, 3]'], [16, 4, '[16, 4]', null], [16, 5, '[16, 5]', null],
+        [16, 6, '[16, 6]', '[6, 6]'], [16, 7, '[16, 7]', '[6, 7]'], [16, 8, '[16, 8]', '[6, 8]'],
         [16, 9, '[16, 9]', '[6, 9]'], [16, 10, '[16, 10]', '[6, 10]'], [16, 11, '[16, 11]', '[6, 11]']];
 
       instance.currentFillData = {
@@ -285,11 +310,13 @@ describe('MergeCells-Autofill calculations', () => {
           propToCol: el => el
         }
       });
-      const changes = [[7, 4, '[7, 4]', '[3, 4]'], [7, 5, '[7, 5]', null], [7, 6, '[7, 6]', '[3, 6]'], [7, 7, '[7, 7]', '[3, 7]'],
-        [7, 8, '[7, 8]', '[3, 8]'], [8, 4, '[8, 4]', null], [8, 5, '[8, 5]', null], [8, 6, '[8, 6]', '[4, 6]'], [8, 7, '[8, 7]', null],
-        [8, 8, '[8, 8]', null], [9, 4, '[9, 4]', '[5, 4]'], [9, 5, '[9, 5]', '[5, 5]'], [9, 6, '[9, 6]', null], [9, 7, '[9, 7]', null],
-        [9, 8, '[9, 8]', null], [10, 4, '[10, 4]', '[6, 4]'], [10, 5, '[10, 5]', '[6, 5]'], [10, 6, '[10, 6]', null], [10, 7, '[10, 7]', null],
-        [10, 8, '[10, 8]', null]];
+      const changes = [[7, 4, '[7, 4]', '[3, 4]'], [7, 5, '[7, 5]', null], [7, 6, '[7, 6]', '[3, 6]'],
+        [7, 7, '[7, 7]', '[3, 7]'], [7, 8, '[7, 8]', '[3, 8]'], [8, 4, '[8, 4]', null],
+        [8, 5, '[8, 5]', null], [8, 6, '[8, 6]', '[4, 6]'], [8, 7, '[8, 7]', null],
+        [8, 8, '[8, 8]', null], [9, 4, '[9, 4]', '[5, 4]'], [9, 5, '[9, 5]', '[5, 5]'],
+        [9, 6, '[9, 6]', null], [9, 7, '[9, 7]', null], [9, 8, '[9, 8]', null],
+        [10, 4, '[10, 4]', '[6, 4]'], [10, 5, '[10, 5]', '[6, 5]'], [10, 6, '[10, 6]', null],
+        [10, 7, '[10, 7]', null], [10, 8, '[10, 8]', null]];
 
       expect(JSON.stringify(instance.getRangeFromChanges(changes))).toEqual(JSON.stringify({
         from: { row: 7, column: 4 },
@@ -303,11 +330,16 @@ describe('MergeCells-Autofill calculations', () => {
           propToCol: string => parseInt(string.replace('propFor', ''), 10)
         }
       });
-      const changes = [[7, 'propFor4', '[7, 4]', '[3, 4]'], [7, 'propFor5', '[7, 5]', null], [7, 'propFor6', '[7, 6]', '[3, 6]'], [7, 'propFor7', '[7, 7]', '[3, 7]'],
-        [7, 'propFor8', '[7, 8]', '[3, 8]'], [8, 'propFor4', '[8, 4]', null], [8, 'propFor5', '[8, 5]', null], [8, 'propFor6', '[8, 6]', '[4, 6]'],
-        [8, 'propFor7', '[8, 7]', null], [8, 'propFor8', '[8, 8]', null], [9, 'propFor4', '[9, 4]', '[5, 4]'], [9, 'propFor5', '[9, 5]', '[5, 5]'],
-        [9, 'propFor6', '[9, 6]', null], [9, 'propFor7', '[9, 7]', null], [9, 'propFor8', '[9, 8]', null], [10, 'propFor4', '[10, 4]', '[6, 4]'],
-        [10, 'propFor5', '[10, 5]', '[6, 5]'], [10, 'propFor6', '[10, 6]', null], [10, 'propFor7', '[10, 7]', null], [10, 'propFor8', '[10, 8]', null]];
+      const changes = [[7, 'propFor4', '[7, 4]', '[3, 4]'], [7, 'propFor5', '[7, 5]', null],
+        [7, 'propFor6', '[7, 6]', '[3, 6]'], [7, 'propFor7', '[7, 7]', '[3, 7]'],
+        [7, 'propFor8', '[7, 8]', '[3, 8]'], [8, 'propFor4', '[8, 4]', null],
+        [8, 'propFor5', '[8, 5]', null], [8, 'propFor6', '[8, 6]', '[4, 6]'],
+        [8, 'propFor7', '[8, 7]', null], [8, 'propFor8', '[8, 8]', null],
+        [9, 'propFor4', '[9, 4]', '[5, 4]'], [9, 'propFor5', '[9, 5]', '[5, 5]'],
+        [9, 'propFor6', '[9, 6]', null], [9, 'propFor7', '[9, 7]', null],
+        [9, 'propFor8', '[9, 8]', null], [10, 'propFor4', '[10, 4]', '[6, 4]'],
+        [10, 'propFor5', '[10, 5]', '[6, 5]'], [10, 'propFor6', '[10, 6]', null],
+        [10, 'propFor7', '[10, 7]', null], [10, 'propFor8', '[10, 8]', null]];
 
       expect(JSON.stringify(instance.getRangeFromChanges(changes))).toEqual(JSON.stringify({
         from: { row: 7, column: 4 },

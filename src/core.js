@@ -30,7 +30,10 @@ import Hooks from './pluginHooks';
 import { getTranslatedPhrase } from './i18n';
 import { hasLanguageDictionary } from './i18n/dictionariesManager';
 import { warnUserAboutLanguageRegistration, getValidLanguageCode, normalizeLanguageCode } from './i18n/utils';
-import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
+import {
+  startObserving as keyStateStartObserving,
+  stopObserving as keyStateStopObserving
+} from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DataMap } from './dataMap/index';
 
@@ -54,7 +57,7 @@ let activeGuid = null;
  * const hot = new Handsontable(document.getElementById('example1'), options);
  *
  * // now, to use setDataAtCell method, you can either:
- * ht.setDataAtCell(0, 0, 'new value');
+ * hot.setDataAtCell(0, 0, 'new value');
  * ```.
  *
  * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
@@ -164,7 +167,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return new CellCoords(
       // We just store indexes for rows and columns without headers.
       renderableRow >= 0 ? instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow,
-      renderableColumn >= 0 ? instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn
+      renderableColumn >= 0 ? instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn // eslint-disable-line max-len
     );
   };
 
@@ -218,7 +221,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelection',
       from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
     this.runHooks('afterSelectionByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
+      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel); // eslint-disable-line max-len
 
     const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
     const currentSelectedRange = this.selection.selectedRange.current();
@@ -840,7 +843,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               };
 
               if (source === 'Autofill.fill') {
-                const result = instance.runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
+                const result = instance
+                  .runHooks('beforeAutofillInsidePopulate', index, direction, input, deltas, {}, selected);
 
                 if (result) {
                   value = isUndefined(result.value) ? value : result.value;
@@ -924,7 +928,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       let settingsArray = [];
 
       if (globalMeta[className]) {
-        globalMetaSettingsArray = Array.isArray(globalMeta[className]) ? globalMeta[className] : stringToArray(globalMeta[className]);
+        globalMetaSettingsArray = Array.isArray(globalMeta[className]) ?
+          globalMeta[className] : stringToArray(globalMeta[className]);
       }
 
       if (classSettings) {
@@ -1058,7 +1063,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const waitingForValidator = new ValidatorsQueue();
-    const isNumericData = value => value.length > 0 && /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
+    const isNumericData = value => value.length > 0 &&
+      /^\s*[+-.]?\s*(?:(?:\d+(?:(\.|,)\d+)?(?:e[+-]?\d+)?)|(?:0x[a-f\d]+))\s*$/.test(value);
 
     waitingForValidator.onQueueEmpty = (isValid) => {
       if (activeEditor && shouldBeCanceled) {
@@ -1154,7 +1160,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         }
       }
 
-      if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) && tableMeta.allowInsertColumn) {
+      if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
+          tableMeta.allowInsertColumn) {
         while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
 
@@ -1243,7 +1250,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             return;
           }
           // eslint-disable-next-line no-param-reassign
-          valid = instance.runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+          valid = instance
+            .runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
           done(valid);
@@ -1267,12 +1275,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array}
    */
   function setDataInputToArray(row, propOrCol, value) {
-    if (typeof row === 'object') { // is it an array of changes
+    if (Array.isArray(row)) { // it's an array of changes
       return row;
     }
-    return [
-      [row, propOrCol, value]
-    ];
+
+    return [[row, propOrCol, value]];
   }
 
   /**
@@ -1300,7 +1307,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
       if (typeof input[i][1] !== 'number') {
-        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
       }
 
       if (input[i][1] >= this.countCols()) {
@@ -1614,7 +1621,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
     const { width, height } = instance.rootElement.getBoundingClientRect();
     const isSizeChanged = width !== lastWidth || height !== lastHeight;
-    const isResizeBlocked = instance.runHooks('beforeRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged) === false;
+    const isResizeBlocked = instance.runHooks(
+      'beforeRefreshDimensions',
+      { width: lastWidth, height: lastHeight },
+      { width, height },
+      isSizeChanged
+    ) === false;
 
     if (isResizeBlocked) {
       return;
@@ -1625,7 +1637,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.render();
     }
 
-    instance.runHooks('afterRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged);
+    instance.runHooks(
+      'afterRefreshDimensions',
+      { width: lastWidth, height: lastHeight },
+      { width, height },
+      isSizeChanged
+    );
   };
 
   /**
@@ -2017,7 +2034,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.unlockEditor();
     }
 
-    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) && currentHeight !== height) {
+    if (!init && instance.view && (currentHeight === '' || height === '' || height === void 0) &&
+        currentHeight !== height) {
       instance.view.wt.wtOverlays.updateMainScrollableElements();
     }
   };
@@ -2291,7 +2309,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return [].concat(...datamap.getRange(new CellCoords(0, column), new CellCoords(tableMeta.data.length - 1, column), datamap.DESTINATION_RENDERER));
+    return [].concat(...datamap.getRange(
+      new CellCoords(0, column),
+      new CellCoords(tableMeta.data.length - 1, column),
+      datamap.DESTINATION_RENDERER
+    ));
   };
 
   /**
@@ -2394,22 +2416,35 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.setSourceDataAtCell = function(row, column, value, source) {
     const input = setDataInputToArray(row, column, value);
-    const changes = [];
+    const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
+    const changesForHook = [];
 
-    input.forEach((change, i) => {
-      const [changeRow, changeProp, changeValue] = change;
-      changes.push([
-        input[i][0],
-        input[i][1],
-        dataSource.getAtCell(input[i][0], input[i][1]),
-        input[i][2],
-      ]);
+    if (isThereAnySetSourceListener) {
+      arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+        changesForHook.push([
+          changeRow,
+          changeProp,
+          dataSource.getAtCell(changeRow, changeProp), // The previous value.
+          changeValue,
+        ]);
+      });
+    }
 
+    arrayEach(input, ([changeRow, changeProp, changeValue]) => {
       dataSource.setAtCell(changeRow, changeProp, changeValue);
     });
 
-    this.runHooks('afterSetSourceDataAtCell', changes, source);
+    if (isThereAnySetSourceListener) {
+      this.runHooks('afterSetSourceDataAtCell', changesForHook, source);
+    }
+
     this.render();
+
+    const activeEditor = instance.getActiveEditor();
+
+    if (activeEditor && isDefined(activeEditor.refreshValue)) {
+      activeEditor.refreshValue();
+    }
   };
 
   /**
@@ -2453,7 +2488,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of row's cell data.
    */
   this.getDataAtRow = function(row) {
-    const data = datamap.getRange(new CellCoords(row, 0), new CellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
+    const data = datamap.getRange(
+      new CellCoords(row, 0),
+      new CellCoords(row, this.countCols() - 1),
+      datamap.DESTINATION_RENDERER
+    );
 
     return data[0] || [];
   };
@@ -2474,7 +2513,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string} Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).
    */
   this.getDataType = function(rowFrom, columnFrom, rowTo, columnTo) {
-    const coords = rowFrom === void 0 ? [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
+    const coords = rowFrom === void 0 ?
+      [0, 0, this.countRows(), this.countCols()] : [rowFrom, columnFrom, rowTo, columnTo];
     const [rowStart, columnStart] = coords;
     let [,, rowEnd, columnEnd] = coords;
     let previousType = null;
@@ -3015,10 +3055,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (tableMeta.colHeaders === false) {
         result = null;
 
-      } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) && tableMeta.columns(prop).title) {
+      } else if (tableMeta.columns && isFunction(tableMeta.columns) && tableMeta.columns(prop) &&
+                 tableMeta.columns(prop).title) {
         result = tableMeta.columns(prop).title;
 
-      } else if (tableMeta.columns && tableMeta.columns[physicalColumn] && tableMeta.columns[physicalColumn].title) {
+      } else if (tableMeta.columns && tableMeta.columns[physicalColumn] &&
+                 tableMeta.columns[physicalColumn].title) {
         result = tableMeta.columns[physicalColumn].title;
 
       } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== void 0) {
@@ -3027,7 +3069,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       } else if (isFunction(tableMeta.colHeaders)) {
         result = tableMeta.colHeaders(physicalColumn);
 
-      } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' && typeof tableMeta.colHeaders !== 'number') {
+      } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
+                 typeof tableMeta.colHeaders !== 'number') {
         result = spreadsheetColumnLabel(columnIndex); // see #1458
       }
     }
@@ -3519,15 +3562,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         return false;
       }
 
-      renderableRow = isRowInteger ? instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
-      renderableColumn = isColumnInteger ? instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
+      renderableRow = isRowInteger ?
+        instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : void 0;
+      renderableColumn = isColumnInteger ?
+        instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : void 0;
     }
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
 
     if (isRowInteger && isColumnInteger) {
-      return instance.view.scrollViewport(new CellCoords(renderableRow, renderableColumn), snapToTop, snapToRight, snapToBottom, snapToLeft);
+      return instance.view.scrollViewport(
+        new CellCoords(renderableRow, renderableColumn),
+        snapToTop,
+        snapToRight,
+        snapToBottom,
+        snapToLeft
+      );
     }
 
     if (isRowInteger && isColumnInteger === false) {

@@ -20,8 +20,10 @@ describe('Selection', () => {
 
     hot.selectCell(1, 1);
 
-    const topLeftSelectionHandle = spec().$container.find('.ht_master .htBorders div:first-child .topLeftSelectionHandle')[0];
-    const bottomRightSelectionHandle = spec().$container.find('.ht_master .htBorders div:first-child .bottomRightSelectionHandle')[0];
+    const topLeftSelectionHandle = spec().$container
+      .find('.ht_master .htBorders div:first-child .topLeftSelectionHandle')[0];
+    const bottomRightSelectionHandle = spec().$container
+      .find('.ht_master .htBorders div:first-child .bottomRightSelectionHandle')[0];
 
     expect(topLeftSelectionHandle.style.display).toEqual('block');
     expect(bottomRightSelectionHandle.style.display).toEqual('block');
@@ -44,8 +46,10 @@ describe('Selection', () => {
 
     await sleep(100);
 
-    const topLeftSelectionHandle = spec().$container.find('.ht_master .htBorders div:last-child .topLeftSelectionHandle')[0];
-    const bottomRightSelectionHandle = spec().$container.find('.ht_master .htBorders div:last-child .bottomRightSelectionHandle')[0];
+    const topLeftSelectionHandle = spec().$container
+      .find('.ht_master .htBorders div:last-child .topLeftSelectionHandle')[0];
+    const bottomRightSelectionHandle = spec().$container
+      .find('.ht_master .htBorders div:last-child .bottomRightSelectionHandle')[0];
 
     expect(topLeftSelectionHandle.style.display).toBe('block');
     expect(bottomRightSelectionHandle.style.display).toBe('block');

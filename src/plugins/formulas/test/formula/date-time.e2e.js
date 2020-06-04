@@ -72,7 +72,9 @@ describe('Formulas -> date & time functions', () => {
 
   it('DAYS360', () => {
     const hot = handsontable({
-      data: getDataForFormulas(1, 'name', ['=DAYS360("1/1/1901", "12/31/1901", FALSE)', '=DAYS360("1/1/1901", "12/31/1901")']),
+      data: getDataForFormulas(1, 'name', [
+        '=DAYS360("1/1/1901", "12/31/1901", FALSE)', '=DAYS360("1/1/1901", "12/31/1901")'
+      ]),
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
@@ -176,7 +178,9 @@ describe('Formulas -> date & time functions', () => {
 
   it('NETWORKDAYS', () => {
     const hot = handsontable({
-      data: getDataForFormulas(1, 'name', ['=NETWORKDAYS("2013-12-04", "2013-12-06")', '=NETWORKDAYS("12/4/2013", "12/4/2013")']),
+      data: getDataForFormulas(1, 'name', [
+        '=NETWORKDAYS("2013-12-04", "2013-12-06")', '=NETWORKDAYS("12/4/2013", "12/4/2013")'
+      ]),
       columns: getColumnsForFormulas(),
       formulas: true,
       width: 500,
