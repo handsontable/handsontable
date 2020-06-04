@@ -547,8 +547,8 @@ class Selection {
 
     } else if (selectionType === SELECTION_TYPE_UNRECOGNIZED) {
       throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
-        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]])\x20
-        or as an array of CellRange objects.`);
+        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd,\x20
+        columnEnd/columnPropEnd]]) or as an array of CellRange objects.`);
     }
 
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {

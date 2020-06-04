@@ -461,13 +461,15 @@ class TableView {
   initializeWalkontable() {
     const priv = privatePool.get(this);
     const walkontableConfig = {
-      externalRowCalculator: this.instance.getPlugin('autoRowSize') && this.instance.getPlugin('autoRowSize').isEnabled(),
+      externalRowCalculator: this.instance.getPlugin('autoRowSize') &&
+        this.instance.getPlugin('autoRowSize').isEnabled(),
       table: priv.table,
       preventOverflow: () => this.settings.preventOverflow,
       preventWheel: () => this.settings.preventWheel,
       stretchH: () => this.settings.stretchH,
       data: (renderableRow, renderableColumn) => {
-        return this.instance.getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
+        return this.instance
+          .getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn));
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
@@ -538,7 +540,8 @@ class TableView {
         return this.instance.getRowHeight(visualIndex === null ? renderedRowIndex : visualIndex);
       },
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
-        const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
+        const [visualRowIndex, visualColumnIndex] = this
+          .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
         const cellProperties = this.instance.getCellMeta(visualRowIndex, visualColumnIndex);
         const prop = this.instance.colToProp(visualColumnIndex);
         let value = this.instance.getDataAtRowProp(visualRowIndex, prop);
@@ -548,7 +551,15 @@ class TableView {
         }
 
         this.instance.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
-        this.instance.getCellRenderer(cellProperties)(this.instance, TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
+        this.instance.getCellRenderer(cellProperties)(
+          this.instance,
+          TD,
+          visualRowIndex,
+          visualColumnIndex,
+          prop,
+          value,
+          cellProperties
+        );
         this.instance.runHooks('afterRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
       },
       selections: this.instance.selection.highlight,
@@ -675,9 +686,11 @@ class TableView {
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
       onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
-        const [visualRowIndex, visualColumnIndex] = this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
+        const [visualRowIndex, visualColumnIndex] = this
+          .translateFromRenderableToVisualIndex(currentRow, currentColumn);
 
-        return this.instance.runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
+        return this.instance
+          .runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
       },
       onBeforeDrawBorders: (corners, borderClassName) => {
         const [startRenderableRow, startRenderableColumn, endRenderableRow, endRenderableColumn] = corners;
@@ -699,12 +712,32 @@ class TableView {
       },
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost) => {
-        const visualColumnIndex = renderableColumnIndex >= 0 ?
-          this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
-        const visualRowIndex = renderableRowIndex >= 0 ?
-          this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+        const rowMapper = this.instance.rowIndexMapper;
+        const columnMapper = this.instance.columnIndexMapper;
 
-        return this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
+        // Callback handle also headers. We shouldn't translate them.
+        const visualColumnIndex = renderableColumnIndex >= 0 ?
+          columnMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
+        const visualRowIndex = renderableRowIndex >= 0 ?
+          rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+
+        const visualIndexes = this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
+
+        if (Array.isArray(visualIndexes)) {
+          const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
+
+          // Result of the hook is handled by the Walkontable (renderable indexes).
+          return [
+            visualRowFrom >= 0 ? rowMapper.getRenderableFromVisualIndex(
+              rowMapper.getFirstNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
+            visualColumnFrom >= 0 ? columnMapper.getRenderableFromVisualIndex(
+              columnMapper.getFirstNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
+            visualRowTo >= 0 ? rowMapper.getRenderableFromVisualIndex(
+              rowMapper.getFirstNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
+            visualColumnTo >= 0 ? columnMapper.getRenderableFromVisualIndex(
+              columnMapper.getFirstNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
+          ];
+        }
       },
       viewportRowCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportRowRenderingOffset;

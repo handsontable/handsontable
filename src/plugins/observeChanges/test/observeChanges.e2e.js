@@ -334,7 +334,8 @@ describe('HandsontableObserveChanges', () => {
         await sleep(200);
 
         expect(afterCreateRowCallback.calls.count()).toEqual(1);
-        expect(afterCreateRowCallback).toHaveBeenCalledWith(2, 1, 'ObserveChanges.change', undefined, undefined, undefined);
+        expect(afterCreateRowCallback)
+          .toHaveBeenCalledWith(2, 1, 'ObserveChanges.change', undefined, undefined, undefined);
       });
 
       it('should fire afterRemoveRow event after detecting that row has been removed', async() => {
@@ -348,7 +349,8 @@ describe('HandsontableObserveChanges', () => {
 
         await sleep(200);
         expect(afterRemoveRowCallback.calls.count()).toEqual(1);
-        expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, 'ObserveChanges.change', undefined, undefined, undefined);
+        expect(afterRemoveRowCallback)
+          .toHaveBeenCalledWith(1, 1, 'ObserveChanges.change', undefined, undefined, undefined);
       });
 
       it('should fire afterRemoveRow event after detecting that multiple rows have been removed', async() => {
@@ -383,7 +385,8 @@ describe('HandsontableObserveChanges', () => {
 
         await sleep(200);
         expect(afterCreateColCallback.calls.count()).toEqual(1);
-        expect(afterCreateColCallback.calls.argsFor(0)).toEqual([2, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
+        expect(afterCreateColCallback.calls.argsFor(0))
+          .toEqual([2, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
       });
 
       it('should fire afterRemoveCol event after detecting that col has been removed', async() => {
@@ -398,7 +401,8 @@ describe('HandsontableObserveChanges', () => {
 
         await sleep(200);
         expect(afterRemoveColCallback.calls.count()).toEqual(1);
-        expect(afterRemoveColCallback.calls.argsFor(0)).toEqual([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
+        expect(afterRemoveColCallback.calls.argsFor(0))
+          .toEqual([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
       });
 
       it('should fire afterRemoveCol event after detecting that multiple cols have been removed', async() => {
@@ -436,7 +440,14 @@ describe('HandsontableObserveChanges', () => {
         await sleep(200);
 
         expect(afterChangeCallback.calls.count()).toEqual(1);
-        expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
+        expect(afterChangeCallback).toHaveBeenCalledWith(
+          [[0, 0, null, 'new string']],
+          'ObserveChanges.change',
+          undefined,
+          undefined,
+          undefined,
+          undefined
+        );
       });
     });
     describe('object data', () => {
@@ -464,7 +475,8 @@ describe('HandsontableObserveChanges', () => {
 
         await sleep(200);
         expect(afterCreateRowCallback.calls.count()).toEqual(1);
-        expect(afterCreateRowCallback).toHaveBeenCalledWith(2, 1, 'ObserveChanges.change', undefined, undefined, undefined);
+        expect(afterCreateRowCallback)
+          .toHaveBeenCalledWith(2, 1, 'ObserveChanges.change', undefined, undefined, undefined);
       });
 
       it('should fire afterRemoveRow event after detecting that row has been removed', async() => {
@@ -478,7 +490,8 @@ describe('HandsontableObserveChanges', () => {
 
         await sleep(200);
         expect(afterRemoveRowCallback.calls.count()).toEqual(1);
-        expect(afterRemoveRowCallback).toHaveBeenCalledWith(1, 1, 'ObserveChanges.change', undefined, undefined, undefined);
+        expect(afterRemoveRowCallback)
+          .toHaveBeenCalledWith(1, 1, 'ObserveChanges.change', undefined, undefined, undefined);
       });
 
       it('should fire afterRemoveRow event after detecting that multiple rows have been removed', async() => {
@@ -512,7 +525,14 @@ describe('HandsontableObserveChanges', () => {
 
         await sleep(200);
         expect(afterChangeCallback.calls.count()).toEqual(1);
-        expect(afterChangeCallback).toHaveBeenCalledWith([[0, 'prop0', null, 'new string']], 'ObserveChanges.change', undefined, undefined, undefined, undefined);
+        expect(afterChangeCallback).toHaveBeenCalledWith(
+          [[0, 'prop0', null, 'new string']],
+          'ObserveChanges.change',
+          undefined,
+          undefined,
+          undefined,
+          undefined
+        );
       });
     });
   });

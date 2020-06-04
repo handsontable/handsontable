@@ -269,7 +269,8 @@ class DateCalculator {
    *
    * @private
    * @param {Date|string} date The date to check.
-   * @returns {Array|boolean} Returns null, if an invalid date was provided or an array of results ( [1,0] => is on the beginning of the week, [0,1] => is on the end of the week).
+   * @returns {Array|boolean} Returns null, if an invalid date was provided or an array of
+   *   results ( [1,0] => is on the beginning of the week, [0,1] => is on the end of the week).
    */
   isOnTheEdgeOfWeek(date) {
     const convertedDate = parseDate(date);
@@ -332,7 +333,7 @@ class DateCalculator {
       const areDaysAfterFullWeeks = month.daysAfterFullWeeks > 0 ? 1 : 0;
       const areDaysBeforeFullWeeksVisible = this.hideDaysBeforeFullWeeks ? 0 : areDaysBeforeFullWeeks;
       const areDaysAfterFullWeeksVisible = this.hideDaysAfterFullWeeks ? 0 : areDaysAfterFullWeeks;
-      const headerCount = month.fullWeeks + (this.allowSplitWeeks ? areDaysBeforeFullWeeksVisible + areDaysAfterFullWeeksVisible : 0);
+      const headerCount = month.fullWeeks + (this.allowSplitWeeks ? areDaysBeforeFullWeeksVisible + areDaysAfterFullWeeksVisible : 0); // eslint-disable-line max-len
       const monthNumber = parseInt(index, 10);
       let headerLabel = '';
 
@@ -600,7 +601,7 @@ class DateCalculator {
       }
 
       currentMonth.fullWeeks = Math.floor((currentMonth.days - currentMonth.daysBeforeFullWeeks) / 7);
-      currentMonth.daysAfterFullWeeks = currentMonth.days - currentMonth.daysBeforeFullWeeks - (7 * currentMonth.fullWeeks);
+      currentMonth.daysAfterFullWeeks = currentMonth.days - currentMonth.daysBeforeFullWeeks - (7 * currentMonth.fullWeeks); // eslint-disable-line max-len
 
       if (!this.allowSplitWeeks) {
         if (monthIndex === monthList.length - 1 && currentMonth.daysAfterFullWeeks) {

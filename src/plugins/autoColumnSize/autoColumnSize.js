@@ -104,7 +104,8 @@ class AutoColumnSize extends BasePlugin {
         let labelText = '';
 
         if (labelValue) {
-          labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
+          labelText = typeof labelValue === 'function' ?
+            labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
 
         } else if (labelProperty) {
           const labelData = this.hot.getDataAtRowProp(row, labelProperty);
@@ -144,7 +145,8 @@ class AutoColumnSize extends BasePlugin {
     this.columnWidthsMap = new IndexToValueMap();
 
     // moved to constructor to allow auto-sizing the columns when the plugin is disabled
-    this.addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+    this
+      .addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
   }
 
@@ -201,7 +203,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {number|object} rowRange Visual row index or an object with `from` and `to` visual indexes as a range.
    * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
+  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) { // eslint-disable-line max-len
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
@@ -212,7 +214,8 @@ class AutoColumnSize extends BasePlugin {
         physicalColumn = visualColumn;
       }
 
-      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn))) {
+      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
+          !this.hot._getColWidthFromSettings(physicalColumn))) {
         const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
@@ -298,8 +301,10 @@ class AutoColumnSize extends BasePlugin {
    */
   setSamplingOptions() {
     const setting = this.hot.getSettings().autoColumnSize;
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
+      this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
+      this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -479,7 +484,8 @@ class AutoColumnSize extends BasePlugin {
    * @returns {boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => (item === null)).length;
+    return !!arrayFilter(this.columnWidthsMap.getValues()
+      .slice(0, this.measuredColumns), item => (item === null)).length;
   }
 
   /**
@@ -534,7 +540,8 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([, columnProperty]) => this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
+    const changedColumns = arrayMap(changes, ([, columnProperty]) =>
+      this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
 
     this.clearCache(Array.from(new Set(changedColumns)));
   }

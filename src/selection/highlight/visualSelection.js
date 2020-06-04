@@ -130,34 +130,37 @@ class VisualSelection extends Selection {
    * Some selection may be a part of broader cell range. This function adjusting coordinates of current selection
    * and the broader cell range when needed (current selection can't be presented visually).
    *
-   * @param {CellRange} broaderCellRange Actual cell range may be contained in the broader cell range. When there is
-   * no way to represent some cell range visually we try to find range containing just the first visible cell.
+   * @param {CellRange} broaderCellRange Visual range. Actual cell range may be contained in the broader cell range.
+   * When there is no way to represent some cell range visually we try to find range containing just the first visible cell.
    *
    * Warn: Please keep in mind that this function may change coordinates of the handled broader range.
    *
    * @returns {VisualSelection}
    */
   adjustCoordinates(broaderCellRange) {
-    // We can't show selection visually now, but we try to find fist visible range in the broader cell range.
-    if (this.cellRange === null && broaderCellRange) {
-      // We may move in two different directions while searching for visible rows and visible columns.
-      const incrementByRow = this.getRowSearchDirection(broaderCellRange);
-      const incrementByColumn = this.getColumnSearchDirection(broaderCellRange);
-      const singleCellRangeVisual =
-        this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, incrementByRow, incrementByColumn);
+    // We may move in two different directions while searching for visible rows and visible columns.
+    const incrementByRow = this.getRowSearchDirection(broaderCellRange);
+    const incrementByColumn = this.getColumnSearchDirection(broaderCellRange);
+    const singleCellRangeVisual =
+      this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, incrementByRow, incrementByColumn);
 
-      if (singleCellRangeVisual !== null) {
+    if (singleCellRangeVisual !== null) {
+      // We can't show selection visually now, but we found fist visible range in the broader cell range.
+      if (this.cellRange === null) {
         const singleCellRangeRenderable = this.settings.visualToRenderableCoords(singleCellRangeVisual);
 
         this.cellRange = new CellRange(singleCellRangeRenderable);
-
-        broaderCellRange.setHighlight(singleCellRangeVisual);
-
-        return this;
       }
+
+      // We set new highlight as it might change (for example, when showing/hiding some cells from the broader selection range)
+      // TODO: It is also handled by the `MergeCells` plugin while adjusting already modified coordinates. Should it?
+      broaderCellRange.setHighlight(singleCellRangeVisual);
+
+      return this;
     }
 
-    broaderCellRange.setHighlight(broaderCellRange.from); // Fallback to the start of the range.
+    // Fallback to the start of the range. It resets the previous highlight (for example, when all columns have been hidden).
+    broaderCellRange.setHighlight(broaderCellRange.from);
 
     return this;
   }

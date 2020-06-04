@@ -268,7 +268,8 @@ class Viewport {
       }
     }
 
-    this.rowHeaderWidth = this.instance.getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
+    this.rowHeaderWidth = this.instance
+      .getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
 
     return this.rowHeaderWidth;
   }
@@ -395,7 +396,9 @@ class Viewport {
       overrideFn: wtSettings.settings.viewportColumnCalculatorOverride,
       calculationType,
       stretchMode: wot.getSetting('stretchH'),
-      stretchingItemWidthFn: (stretchedWidth, column) => wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column),
+      stretchingItemWidthFn: (stretchedWidth, column) => {
+        return wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
+      },
     });
   }
 

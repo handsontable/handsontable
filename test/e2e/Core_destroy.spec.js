@@ -52,7 +52,8 @@ describe('Core_destroy', () => {
 
     expect(() => {
       hot.getDataAtCell(0, 0);
-    }).toThrowError('The "getDataAtCell" method cannot be called because this Handsontable instance has been destroyed');
+    }).toThrowError('The "getDataAtCell" method cannot be called because this ' +
+      'Handsontable instance has been destroyed');
     expect(() => {
       hot.listen();
     }).toThrowError('The "listen" method cannot be called because this Handsontable instance has been destroyed');

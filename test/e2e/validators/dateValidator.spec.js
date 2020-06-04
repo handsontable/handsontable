@@ -338,7 +338,7 @@ describe('dateValidator', () => {
       }, 130);
     });
 
-    xit('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', (done) => {
+    xit('should rewrite the string to the correct format if a date-string in different format is provided (for non-default format)', () => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({

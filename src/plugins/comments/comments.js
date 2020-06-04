@@ -159,7 +159,8 @@ class Comments extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
-    this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
+    this.addHook('afterRenderer',
+      (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
     this.addHook('afterBeginEditing', () => this.onAfterBeginEditing());
@@ -202,8 +203,10 @@ class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', () => this.onEditorBlur());
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
+    this.eventManager
+      .addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
+    this.eventManager
+      .addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
   }
 
   /**
@@ -555,7 +558,8 @@ class Comments extends BasePlugin {
         };
       }
 
-      if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
+      if (!eventCell || ((this.range.from && coordinates) &&
+          (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
         this.hide();
       }
     }
@@ -652,7 +656,8 @@ class Comments extends BasePlugin {
     const currentWidth = outerWidth(event.target);
     const currentHeight = outerHeight(event.target);
 
-    if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
+    if (currentWidth !== priv.tempEditorDimensions.width + 1 ||
+        currentHeight !== priv.tempEditorDimensions.height + 2) {
       this.updateCommentMeta(this.range.from.row, this.range.from.col, {
         [META_STYLE]: {
           width: currentWidth,

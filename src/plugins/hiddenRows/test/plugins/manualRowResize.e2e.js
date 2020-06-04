@@ -74,7 +74,8 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.offset().top)
+        .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
@@ -104,7 +105,8 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.offset().top)
+        .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
@@ -134,7 +136,8 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top).toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
+      expect($handle.offset().top)
+        .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - $handle.outerHeight() - 1, 0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 

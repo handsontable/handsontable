@@ -161,7 +161,12 @@ class GanttChartDataFeed {
     const rangeBarData = [];
 
     if (row === void 0) {
-      sourceHotRows = hotSource.instance.getData(0, 0, hotSource.instance.countRows() - 1, hotSource.instance.countCols() - 1);
+      sourceHotRows = hotSource.instance.getData(
+        0,
+        0,
+        hotSource.instance.countRows() - 1,
+        hotSource.instance.countCols() - 1
+      );
 
     } else {
       sourceHotRows = [];

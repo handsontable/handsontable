@@ -60,8 +60,10 @@ describe('ConditionCollection', () => {
       const result = conditionCollection.isMatch('foo');
 
       expect(conditionCollection.getConditions).not.toHaveBeenCalled();
-      expect(conditionCollection.isMatchInConditions.calls.argsFor(0)).toEqual([[conditionMock], 'foo', OPERATION_AND]);
-      expect(conditionCollection.isMatchInConditions.calls.argsFor(1)).toEqual([[conditionMock2], 'foo', OPERATION_AND]);
+      expect(conditionCollection.isMatchInConditions.calls.argsFor(0))
+        .toEqual([[conditionMock], 'foo', OPERATION_AND]);
+      expect(conditionCollection.isMatchInConditions.calls.argsFor(1))
+        .toEqual([[conditionMock2], 'foo', OPERATION_AND]);
       expect(result).toBe(true);
     });
 
@@ -81,7 +83,8 @@ describe('ConditionCollection', () => {
 
       expect(conditionCollection.getConditions).not.toHaveBeenCalled();
       expect(conditionCollection.isMatchInConditions.calls.count()).toBe(1);
-      expect(conditionCollection.isMatchInConditions.calls.argsFor(0)).toEqual([[conditionMock], 'foo', OPERATION_AND]);
+      expect(conditionCollection.isMatchInConditions.calls.argsFor(0))
+        .toEqual([[conditionMock], 'foo', OPERATION_AND]);
       expect(result).toBe(false);
     });
   });
@@ -175,7 +178,8 @@ describe('ConditionCollection', () => {
         spyOn(conditionMock2, 'func').and.callThrough();
         spyOn(conditionMock3, 'func').and.callThrough();
 
-        const result = conditionCollection.isMatchInConditions([conditionMock, conditionMock2, conditionMock3], 'foo', OPERATION_OR);
+        const result = conditionCollection
+          .isMatchInConditions([conditionMock, conditionMock2, conditionMock3], 'foo', OPERATION_OR);
 
         expect(conditionMock3.func.calls.count()).toBe(0);
         expect(result).toBe(true);

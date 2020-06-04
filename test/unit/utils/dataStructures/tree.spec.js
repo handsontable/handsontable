@@ -229,7 +229,8 @@ describe('TreeNode', () => {
 
       tree.walkDown(node => void traversalOrder.push(node.data.id));
 
-      expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
+      expect(traversalOrder.join(' -> '))
+        .toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
     });
 
     it('should properly traverse a tree using depth-first pre-order startegy', () => {
@@ -266,7 +267,8 @@ describe('TreeNode', () => {
 
       tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_PRE);
 
-      expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> C1 -> D1 -> C2 -> D2 -> D3 -> D4 -> B2 -> C3 -> D5 -> D6 -> C4 -> D7 -> D8');
+      expect(traversalOrder.join(' -> '))
+        .toBe('A1 -> B1 -> C1 -> D1 -> C2 -> D2 -> D3 -> D4 -> B2 -> C3 -> D5 -> D6 -> C4 -> D7 -> D8');
     });
 
     it('should properly traverse a tree using depth-first post-order startegy', () => {
@@ -303,7 +305,8 @@ describe('TreeNode', () => {
 
       tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_DF_POST);
 
-      expect(traversalOrder.join(' -> ')).toBe('D1 -> C1 -> D2 -> D3 -> D4 -> C2 -> B1 -> D5 -> D6 -> C3 -> D7 -> D8 -> C4 -> B2 -> A1');
+      expect(traversalOrder.join(' -> '))
+        .toBe('D1 -> C1 -> D2 -> D3 -> D4 -> C2 -> B1 -> D5 -> D6 -> C3 -> D7 -> D8 -> C4 -> B2 -> A1');
     });
 
     it('should properly traverse a tree using breadth-first startegy', () => {
@@ -340,7 +343,8 @@ describe('TreeNode', () => {
 
       tree.walkDown(node => void traversalOrder.push(node.data.id), TRAVERSAL_BF);
 
-      expect(traversalOrder.join(' -> ')).toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
+      expect(traversalOrder.join(' -> '))
+        .toBe('A1 -> B1 -> B2 -> C1 -> C2 -> C3 -> C4 -> D1 -> D2 -> D3 -> D4 -> D5 -> D6 -> D7 -> D8');
     });
 
     it('should stop traversing when `false` is returned', () => {

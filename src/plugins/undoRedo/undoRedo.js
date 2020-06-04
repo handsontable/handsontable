@@ -294,15 +294,17 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   for (let i = 0, len = data.length; i < len; i++) {
     const [row, column] = data[i];
 
-    if (instance.getSettings().minSpareRows && row + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
-      emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
+    if (instance.getSettings().minSpareRows &&
+        row + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
+        emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
 
       instance.alter('remove_row', parseInt(row + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
     }
 
-    if (instance.getSettings().minSpareCols && column + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
-      emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
+    if (instance.getSettings().minSpareCols &&
+        column + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
+        emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
 
       instance.alter('remove_col', parseInt(column + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
@@ -580,7 +582,8 @@ class MergeCellsAction extends UndoRedo.Action {
     instance.addHookOnce('afterRender', undoneCallback);
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
-    instance.populateFromArray(this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
+    instance.populateFromArray(
+      this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
   }
 
   redo(instance, redoneCallback) {

@@ -1,6 +1,7 @@
 describe('DropdownEditor', () => {
   const id = 'testContainer';
-  const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
+  const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black',
+    'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');

@@ -392,7 +392,8 @@ describe('NestedRows', () => {
     selectCell(0, 0);
     contextMenu();
 
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown').simulate('mouseup'); // Insert child row.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+      .simulate('mousedown').simulate('mouseup'); // Insert child row.
 
     expect(countRows()).toEqual(19);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -409,7 +410,8 @@ describe('NestedRows', () => {
     selectCell(1, 0);
     contextMenu();
 
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown').simulate('mouseup'); // Insert child row.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+      .simulate('mousedown').simulate('mouseup'); // Insert child row.
 
     expect(countRows()).toEqual(20);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -437,11 +439,13 @@ describe('NestedRows', () => {
 
     selectCell(0, 0);
     contextMenu();
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown').simulate('mouseup'); // Insert child row.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+      .simulate('mousedown').simulate('mouseup'); // Insert child row.
 
     selectCell(6, 0);
     contextMenu();
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown').simulate('mouseup'); // Detach from parent.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
+      .simulate('mousedown').simulate('mouseup'); // Detach from parent.
 
     expect(getDataAtCell(6, 0)).toEqual('Best Metal Performance');
     expect(getDataAtCell(18, 1)).toEqual(null);
@@ -460,7 +464,8 @@ describe('NestedRows', () => {
     selectCell(0, 0);
     contextMenu();
 
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2).simulate('mousedown').simulate('mouseup'); // Insert row above.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
+      .simulate('mousedown').simulate('mouseup'); // Insert row above.
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
     expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
     expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
@@ -469,7 +474,8 @@ describe('NestedRows', () => {
     selectCell(1, 0);
     contextMenu();
 
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3).simulate('mousedown').simulate('mouseup'); // Insert row below.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
+      .simulate('mousedown').simulate('mouseup'); // Insert row below.
 
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
     expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
@@ -557,7 +563,8 @@ describe('NestedRows', () => {
     // Test with the `getColHeader` passed, but rendered headers weren't proper.
     let rowHeaders = $('.ht_clone_left').find('span.rowHeader').toArray().map(element => $(element).text());
 
-    expect(rowHeaders).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
+    expect(rowHeaders).toEqual([
+      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
 
     $('.ht_nestingButton').eq(0).simulate('mousedown');
     $('.ht_nestingButton').eq(0).simulate('click');

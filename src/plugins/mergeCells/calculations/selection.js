@@ -97,7 +97,11 @@ class SelectionCalculations {
    * @returns {CellRange} A new `CellRange` object.
    */
   getUpdatedSelectionRange(oldSelectionRange, delta) {
-    return new CellRange(oldSelectionRange.highlight, oldSelectionRange.from, new CellCoords(oldSelectionRange.to.row + delta.row, oldSelectionRange.to.col + delta.col));
+    return new CellRange(
+      oldSelectionRange.highlight,
+      oldSelectionRange.from,
+      new CellCoords(oldSelectionRange.to.row + delta.row, oldSelectionRange.to.col + delta.col)
+    );
   }
 
   /**
@@ -136,7 +140,7 @@ class SelectionCalculations {
       if (mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
         return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
 
-      } else if (this.plugin.selectionCalculations.isMergeCellFullySelected(mergedCell, this.plugin.hot.getSelectedRange())) {
+      } else if (this.plugin.selectionCalculations.isMergeCellFullySelected(mergedCell, this.plugin.hot.getSelectedRange())) { // eslint-disable-line max-len
         return `${this.fullySelectedMergedCellClassName}-multiple`;
       }
     }

@@ -91,7 +91,10 @@ describe('Core_view', () => {
     });
 
     const scrollbarSize = hot.view.wt.wtOverlays.scrollbarSize;
-    const { scrollWidth: masterScrollWidth, scrollHeight: masterScrollHeight } = spec().$container.find('.ht_master')[0];
+    const {
+      scrollWidth: masterScrollWidth,
+      scrollHeight: masterScrollHeight
+    } = spec().$container.find('.ht_master')[0];
     const topScrollWidth = spec().$container.find('.ht_clone_top')[0].scrollWidth;
     const leftScrollHeight = spec().$container.find('.ht_clone_left')[0].scrollHeight;
 
@@ -976,12 +979,14 @@ describe('Core_view', () => {
       const rowHeight = hot.getCell(1, 3).clientHeight;
       const mainHolder = hot.view.wt.wtTable.holder;
 
-      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
+        .toEqual(rowHeight);
 
       $(mainHolder).scrollTop(200);
       hot.render();
 
-      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight).toEqual(rowHeight);
+      expect(spec().$container.find('.ht_clone_top_left_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
+        .toEqual(rowHeight);
     });
   });
 

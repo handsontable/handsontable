@@ -400,7 +400,8 @@ class Endpoints {
       const alterRowOffset = endpoint.alterRowOffset || 0;
       const alterColOffset = endpoint.alterColumnOffset || 0;
 
-      if (endpoint.destinationRow + alterRowOffset >= this.hot.countRows() || endpoint.destinationColumn + alterColOffset >= this.hot.countCols()) {
+      if (endpoint.destinationRow + alterRowOffset >= this.hot.countRows() ||
+          endpoint.destinationColumn + alterColOffset >= this.hot.countCols()) {
         return true;
       }
 
@@ -526,7 +527,10 @@ class Endpoints {
       return;
     }
 
-    const cellMeta = this.hot.getCellMeta(this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset), endpoint.destinationColumn + reverseColOffset);
+    const cellMeta = this.hot.getCellMeta(
+      this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset),
+      endpoint.destinationColumn + reverseColOffset
+    );
 
     if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
       cellMeta.readOnly = endpoint.readOnly;
