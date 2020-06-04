@@ -16,45 +16,34 @@ export default function showRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
     },
     callback() {
-      const selectedRangeLast = this.getSelectedRangeLast();
-      const visualStartRow = selectedRangeLast.getTopLeftCorner().row;
-      const visualEndRow = selectedRangeLast.getBottomRightCorner().row;
-      const rowIndexMapper = this.rowIndexMapper;
-      const noVisibleIndexesBefore =
-        rowIndexMapper.getFirstNotHiddenIndex(visualStartRow - 1, -1) === null;
-      const onlyFirstVisibleRowSelected = noVisibleIndexesBefore && visualStartRow === visualEndRow;
-      const noVisibleIndexesAfter =
-        rowIndexMapper.getFirstNotHiddenIndex(visualEndRow + 1, 1) === null;
-      const onlyLastVisibleRowSelected = noVisibleIndexesAfter && visualStartRow === visualEndRow;
-
-      let startPhysicalRow = this.toPhysicalRow(visualStartRow);
-      let endPhysicalRow = this.toPhysicalRow(visualEndRow);
-
-      if (onlyFirstVisibleRowSelected) {
-        startPhysicalRow = 0;
+      if (rows.length === 0) {
+        return;
       }
 
-      if (onlyLastVisibleRowSelected) {
-        endPhysicalRow = this.countSourceRows() - 1; // All rows after the selected row will be shown.
-      }
+      let startVisualRow = rows[0];
+      let endVisualRow = rows[rows.length - 1];
+
+      // Add to the selection one more visual row on the top.
+      startVisualRow = this.rowIndexMapper
+        .getFirstNotHiddenIndex(startVisualRow - 1, -1) ?? 0;
+      // Add to the selection one more visual row on the bottom.
+      endVisualRow = this.rowIndexMapper
+        .getFirstNotHiddenIndex(endVisualRow + 1, 1) ?? this.countRows() - 1;
 
       hiddenRowsPlugin.showRows(rows);
-
-      const startVisualRowAfterAction = this.toVisualRow(startPhysicalRow);
-      const endVisualRowAfterAction = this.toVisualRow(endPhysicalRow);
-
-      const allRowsSelected = endVisualRowAfterAction - startVisualRowAfterAction + 1 === this.countRows();
-      // TODO: Workaround, because selection doesn't select headers properly in a case when we select all rows
-      // from `0` to `n`, where `n` is number of rows in the `DataMap`.
-      const selectionStart = allRowsSelected ? -1 : startVisualRowAfterAction;
 
       // We render rows at first. It was needed for getting fixed rows.
       // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
 
-      // Selection start and selection end coordinates might be changed after showing some items.
-      this.selectRows(selectionStart, endVisualRowAfterAction);
+      const allRowsSelected = endVisualRow - startVisualRow + 1 === this.countRows();
+
+      // When all headers needs to be selected then do nothing. The header selection is
+      // automatically handled by corner click.
+      if (!allRowsSelected) {
+        this.selectRows(startVisualRow, endVisualRow);
+      }
     },
     disabled: false,
     hidden() {
@@ -85,7 +74,8 @@ export default function showRowItem(hiddenRowsPlugin) {
         if (visualRowsInRange > renderedRowsInRange) {
           const physicalIndexesInRange = notTrimmedRowIndexes.slice(visualStartRow, visualEndRow + 1);
 
-          physicalRowIndexes.push(...physicalIndexesInRange.filter(physicalIndex => hiddenPhysicalRows.includes(physicalIndex)));
+          physicalRowIndexes.push(...physicalIndexesInRange
+            .filter(physicalIndex => hiddenPhysicalRows.includes(physicalIndex)));
         }
 
       // Handled row is the first rendered index and there are some visual indexes before it.

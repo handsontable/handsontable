@@ -1,3 +1,4 @@
+/* eslint max-len: ["error", { "code": 140 }] */
 import HeadersTree from 'handsontable/plugins/nestedHeaders/stateManager/headersTree';
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 import { generateMatrix } from 'handsontable/plugins/nestedHeaders/stateManager/matrixGenerator';

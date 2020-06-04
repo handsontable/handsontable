@@ -836,8 +836,9 @@ describe('CustomBorders', () => {
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should clear all borders when first was cleared borders by the clearBorders method with selections,' +
-  'then draw borders from context menu options, and then was cleared borders by the clearBorders method without selections', async() => {
+  it('should clear all borders when first was cleared borders by the clearBorders method with selections, ' +
+     'then draw borders from context menu options, and then was cleared borders by the clearBorders ' +
+     'method without selections', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),
       contextMenu: true,

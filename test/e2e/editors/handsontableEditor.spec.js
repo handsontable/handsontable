@@ -56,7 +56,8 @@ describe('HandsontableEditor', () => {
     selectCell(2, 0);
 
     keyDownUp('enter');
-    expect(spec().$container.find('.handsontableEditor')[0].offsetTop).toEqual(spec().$container.find('.handsontableInput')[0].offsetHeight);
+    expect(spec().$container.find('.handsontableEditor')[0].offsetTop)
+      .toEqual(spec().$container.find('.handsontableInput')[0].offsetHeight);
   });
 
   it('should prepare the editor only once per instance', () => {

@@ -68,9 +68,21 @@ describe('Core.spliceRow', () => {
 
     hot.spliceRow(2, 1, 3, 'X1');
 
-    expect(spyBefore.calls.argsFor(0)[0]).toEqual([[2, 1, 'B3', 'X1'], [2, 2, 'C3', 'E3'], [2, 3, 'D3', null], [2, 4, 'E3', null], [2, 5, undefined, null]]);
+    expect(spyBefore.calls.argsFor(0)[0]).toEqual([
+      [2, 1, 'B3', 'X1'],
+      [2, 2, 'C3', 'E3'],
+      [2, 3, 'D3', null],
+      [2, 4, 'E3', null],
+      [2, 5, undefined, null]
+    ]);
     expect(spyBefore.calls.argsFor(0)[1]).toBe('spliceRow');
-    expect(spyAfter.calls.argsFor(1)[0]).toEqual([[2, 1, 'B3', 'X1'], [2, 2, 'C3', 'E3'], [2, 3, 'D3', null], [2, 4, 'E3', null], [2, 5, undefined, null]]);
+    expect(spyAfter.calls.argsFor(1)[0]).toEqual([
+      [2, 1, 'B3', 'X1'],
+      [2, 2, 'C3', 'E3'],
+      [2, 3, 'D3', null],
+      [2, 4, 'E3', null],
+      [2, 5, undefined, null]
+    ]);
     expect(spyAfter.calls.argsFor(1)[1]).toBe('spliceRow');
   });
 

@@ -1,3 +1,4 @@
+/* eslint max-len: ["error", { "code": 140 }] */
 import { normalizeSettings } from 'handsontable/plugins/nestedHeaders/stateManager/settingsNormalizer';
 
 describe('normalizeSettings', () => {

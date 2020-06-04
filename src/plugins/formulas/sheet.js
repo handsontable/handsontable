@@ -267,7 +267,8 @@ class Sheet {
    * @param {Function} done Function to call with valid cells values.
    */
   _onCallRangeValue({ row: startRow, column: startColumn }, { row: endRow, column: endColumn }, done) {
-    const cellValues = this.dataProvider.getRawDataByRange(startRow.index, startColumn.index, endRow.index, endColumn.index);
+    const cellValues = this.dataProvider
+      .getRawDataByRange(startRow.index, startColumn.index, endRow.index, endColumn.index);
 
     const mapRowData = (rowData, rowIndex) => arrayMap(rowData, (cellData, columnIndex) => {
       const rowCellCoord = startRow.index + rowIndex;

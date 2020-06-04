@@ -114,7 +114,8 @@ function UndoRedo(instance) {
     }
 
     const columnsMap = instance.columnIndexMapper.getIndexesSequence();
-    const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap);
+    const rowsMap = instance.rowIndexMapper.getIndexesSequence();
+    const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap, rowsMap);
 
     plugin.done(action);
   });
@@ -293,15 +294,17 @@ UndoRedo.ChangeAction.prototype.undo = function(instance, undoneCallback) {
   for (let i = 0, len = data.length; i < len; i++) {
     const [row, column] = data[i];
 
-    if (instance.getSettings().minSpareRows && row + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
-      emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
+    if (instance.getSettings().minSpareRows &&
+        row + 1 + instance.getSettings().minSpareRows === instance.countRows() &&
+        emptyRowsAtTheEnd === instance.getSettings().minSpareRows) {
 
       instance.alter('remove_row', parseInt(row + 1, 10), instance.getSettings().minSpareRows);
       instance.undoRedo.doneActions.pop();
     }
 
-    if (instance.getSettings().minSpareCols && column + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
-      emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
+    if (instance.getSettings().minSpareCols &&
+        column + 1 + instance.getSettings().minSpareCols === instance.countCols() &&
+        emptyColsAtTheEnd === instance.getSettings().minSpareCols) {
 
       instance.alter('remove_col', parseInt(column + 1, 10), instance.getSettings().minSpareCols);
       instance.undoRedo.doneActions.pop();
@@ -411,14 +414,16 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * @param {Array} data The removed data.
  * @param {Array} headers The header values.
  * @param {number[]} columnPositions The column position.
+ * @param {number[]} rowPositions The row position.
  */
-UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions) {
+UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions) {
   this.index = index;
   this.indexes = indexes;
   this.data = data;
   this.amount = this.data[0].length;
   this.headers = headers;
   this.columnPositions = columnPositions.slice(0);
+  this.rowPositions = rowPositions.slice(0);
   this.actionType = 'remove_col';
 };
 inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
@@ -472,7 +477,12 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   }
 
-  instance.columnIndexMapper.setIndexesSequence(this.columnPositions);
+  instance.executeBatchOperations(() => {
+    // Restore row sequence in a case when all columns are removed. the original
+    // row sequence is lost in that case.
+    instance.rowIndexMapper.setIndexesSequence(this.rowPositions);
+    instance.columnIndexMapper.setIndexesSequence(this.columnPositions);
+  });
 
   instance.addHookOnce('afterRender', undoneCallback);
 
@@ -572,7 +582,8 @@ class MergeCellsAction extends UndoRedo.Action {
     instance.addHookOnce('afterRender', undoneCallback);
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
-    instance.populateFromArray(this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
+    instance.populateFromArray(
+      this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
   }
 
   redo(instance, redoneCallback) {

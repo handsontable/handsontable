@@ -641,6 +641,7 @@ describe('manualColumnResize', () => {
 
     handleBox = handle[0].getBoundingClientRect();
     thBox = th0[0].getBoundingClientRect();
+
     expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
   });
 
@@ -654,7 +655,7 @@ describe('manualColumnResize', () => {
     });
 
     const mainHolder = hot.view.wt.wtTable.holder;
-    let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
+    let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)'); // Header "C"
 
     $colHeader.simulate('mouseover');
 
@@ -670,6 +671,7 @@ describe('manualColumnResize', () => {
 
     $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
     $colHeader.simulate('mouseover');
+
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
@@ -703,6 +705,7 @@ describe('manualColumnResize', () => {
 
       $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
+
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
     });
@@ -732,6 +735,7 @@ describe('manualColumnResize', () => {
 
       $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
+
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
@@ -823,7 +827,8 @@ describe('manualColumnResize', () => {
 
       const $handle = $('.manualColumnResizer');
 
-      expect($handle.offset().left).toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
+      expect($handle.offset().left)
+        .toEqual($headerTH.offset().left + $headerTH.outerWidth() - $handle.outerWidth() - 1);
       expect($handle.height()).toEqual($headerTH.outerHeight());
     });
 

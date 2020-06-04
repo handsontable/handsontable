@@ -824,8 +824,10 @@ describe('Core_selection', () => {
 
     hot.selectCell(1, 1, 2, 2);
 
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex).toBe('10');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
+      .toBe('10');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
+      .toBe('8');
   });
 
   it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async() => {
@@ -1694,6 +1696,7 @@ describe('Core_selection', () => {
       $(getCell(10, 25)).simulate('mouseover');
       $(getCell(10, 25)).simulate('mouseup');
 
+      /* eslint-disable max-len */
       expect(`
         |   ║ - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - : - :   :   :   :   |
         |===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===:===|
@@ -1719,6 +1722,7 @@ describe('Core_selection', () => {
         | - ║ 0 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 1 : 0 :   :   :   :   :   :   :   :   :   :   :   :   :   |
         | - ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
+      /* eslint-enable max-len */
     });
 
     it('should call afterSelection and afterSelectionEnd hooks with proper arguments', () => {

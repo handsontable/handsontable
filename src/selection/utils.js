@@ -10,7 +10,12 @@ export const SELECTION_TYPES = [
   SELECTION_TYPE_OBJECT,
   SELECTION_TYPE_ARRAY,
 ];
-const ARRAY_TYPE_PATTERN = [['number'], ['number', 'string'], ['number', 'undefined'], ['number', 'string', 'undefined']];
+const ARRAY_TYPE_PATTERN = [
+  ['number'],
+  ['number', 'string'],
+  ['number', 'undefined'],
+  ['number', 'string', 'undefined']
+];
 const rootCall = Symbol('root');
 const childCall = Symbol('child');
 

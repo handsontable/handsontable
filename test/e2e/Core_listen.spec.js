@@ -12,10 +12,34 @@ describe('Core_listen', () => {
     }
   });
 
+  it('should not listen by default after initialization', () => {
+    const hot = handsontable();
+
+    expect(hot.isListening()).toBe(false);
+  });
+
   it('should listen to changes when cell is selected', () => {
     const hot = handsontable();
+
     hot.selectCell(0, 0);
-    expect(hot.isListening()).toEqual(true);
+
+    expect(hot.isListening()).toBe(true);
+  });
+
+  it('should listen to changes when the dataset is empty and the corner is clicked', () => {
+    const hot = handsontable({
+      data: [],
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    spec().$container.find('.ht_clone_top_left_corner thead tr:eq(0) th:eq(0)')
+      .simulate('mousedown')
+      .simulate('mouseup')
+      .simulate('click')
+    ;
+
+    expect(hot.isListening()).toBe(true);
   });
 
   it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', () => {
@@ -23,27 +47,33 @@ describe('Core_listen', () => {
 
     hot.unlisten();
 
-    expect(hot.isListening()).toEqual(false);
+    expect(hot.isListening()).toBe(false);
 
     hot.selectCell(0, 0, undefined, undefined, true, false);
 
-    expect(hot.isListening()).toEqual(false);
+    expect(hot.isListening()).toBe(false);
   });
 
   it('should unlisten changes', () => {
     const hot = handsontable();
+
     hot.selectCell(0, 0);
-    expect(hot.isListening()).toEqual(true);
+
+    expect(hot.isListening()).toBe(true);
+
     hot.unlisten();
-    expect(hot.isListening()).toEqual(false);
+
+    expect(hot.isListening()).toBe(false);
   });
 
   it('should listen to changes, when called after unlisten', () => {
     const hot = handsontable();
+
     hot.selectCell(0, 0);
     hot.unlisten();
     hot.listen();
-    expect(hot.isListening()).toEqual(true);
+
+    expect(hot.isListening()).toBe(true);
   });
 
   // We have no idea why listen should change focus (behavior up to Handsontable 8.0).
@@ -57,7 +87,7 @@ describe('Core_listen', () => {
     input.focus();
     hot.listen();
 
-    expect(hot.isListening()).toEqual(true);
+    expect(hot.isListening()).toBe(true);
     expect(document.activeElement).toBe(input);
 
     document.body.removeChild(input);
@@ -69,8 +99,8 @@ describe('Core_listen', () => {
     const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
     $container2.handsontable('selectCell', 0, 0);
 
-    expect($container1.handsontable('isListening')).toEqual(false);
-    expect($container2.handsontable('isListening')).toEqual(true);
+    expect($container1.handsontable('isListening')).toBe(false);
+    expect($container2.handsontable('isListening')).toBe(true);
 
     $container1.handsontable('destroy');
     $container1.remove();
@@ -85,8 +115,8 @@ describe('Core_listen', () => {
     $container2.handsontable('selectCell', 0, 0);
 
     $container1.handsontable('listen');
-    expect($container1.handsontable('isListening')).toEqual(true);
-    expect($container2.handsontable('isListening')).toEqual(false);
+    expect($container1.handsontable('isListening')).toBe(true);
+    expect($container2.handsontable('isListening')).toBe(false);
 
     $container1.handsontable('destroy');
     $container1.remove();

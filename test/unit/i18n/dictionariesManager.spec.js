@@ -12,7 +12,8 @@ import * as constants from 'handsontable/i18n/constants';
 describe('i18n dictionariesManager', () => {
   it('should register automatically default language', () => {
     const allLanguages = getLanguagesDictionaries();
-    const defaultLanguageIsRegistered = allLanguages.some(dictionary => dictionary.languageCode === DEFAULT_LANGUAGE_CODE);
+    const defaultLanguageIsRegistered = allLanguages
+      .some(dictionary => dictionary.languageCode === DEFAULT_LANGUAGE_CODE);
 
     expect(defaultLanguageIsRegistered).toEqual(true);
   });

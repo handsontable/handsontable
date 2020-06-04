@@ -1,6 +1,7 @@
 describe('AutocompleteEditor', () => {
   const id = 'testContainer';
-  const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'];
+  const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black',
+    'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
@@ -351,7 +352,8 @@ describe('AutocompleteEditor', () => {
 
       setTimeout(() => {
         // -2 for transparent borders
-        expect(editor.find('.autocompleteEditor .htCore td').width()).toEqual(editor.find('.handsontableInput').width() - 2);
+        expect(editor.find('.autocompleteEditor .htCore td').width())
+          .toEqual(editor.find('.handsontableInput').width() - 2);
         expect(editor.find('.autocompleteEditor .htCore td').width()).toBeGreaterThan(187);
         done();
       }, 200);
@@ -361,7 +363,8 @@ describe('AutocompleteEditor', () => {
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
-        process(['long text', 'even longer text', 'extremely long text in the suggestion list', 'short text', 'text', 'another', 'yellow', 'black']);
+        process(['long text', 'even longer text', 'extremely long text in the suggestion list',
+          'short text', 'text', 'another', 'yellow', 'black']);
       });
 
       handsontable({
@@ -382,7 +385,8 @@ describe('AutocompleteEditor', () => {
       keyDownUp('enter');
 
       setTimeout(() => {
-        expect(editor.find('.autocompleteEditor .htCore td').eq(0).width()).toBeGreaterThan(editor.find('.handsontableInput').width());
+        expect(editor.find('.autocompleteEditor .htCore td').eq(0).width())
+          .toBeGreaterThan(editor.find('.handsontableInput').width());
         done();
       }, 200);
     });
@@ -459,11 +463,13 @@ describe('AutocompleteEditor', () => {
           {
             type: 'autocomplete',
             source: [
-              'Acura', 'Audi', 'BMW', 'Buick', 'Cadillac', 'Chevrolet', 'Chrysler', 'Citroen', 'Dodge', 'Eagle', 'Ferrari',
-              'Ford', 'General Motors', 'GMC', 'Honda', 'Hummer', 'Hyundai', 'Infiniti', 'Isuzu', 'Jaguar', 'Jeep', 'Kia',
-              'Lamborghini', 'Land Rover', 'Lexus', 'Lincoln', 'Lotus', 'Mazda', 'Mercedes-Benz', 'Mercury', 'Mitsubishi',
-              'Nissan', 'Oldsmobile', 'Peugeot', 'Pontiac', 'Porsche', 'Regal', 'Renault', 'Saab', 'Saturn', 'Seat', 'Skoda',
-              'Subaru', 'Suzuki', 'Toyota', 'Volkswagen', 'Volvo']
+              'Acura', 'Audi', 'BMW', 'Buick', 'Cadillac', 'Chevrolet', 'Chrysler', 'Citroen',
+              'Dodge', 'Eagle', 'Ferrari', 'Ford', 'General Motors', 'GMC', 'Honda', 'Hummer',
+              'Hyundai', 'Infiniti', 'Isuzu', 'Jaguar', 'Jeep', 'Kia', 'Lamborghini', 'Land Rover',
+              'Lexus', 'Lincoln', 'Lotus', 'Mazda', 'Mercedes-Benz', 'Mercury', 'Mitsubishi',
+              'Nissan', 'Oldsmobile', 'Peugeot', 'Pontiac', 'Porsche', 'Regal', 'Renault',
+              'Saab', 'Saturn', 'Seat', 'Skoda', 'Subaru', 'Suzuki', 'Toyota', 'Volkswagen', 'Volvo'
+            ]
           }
         ]
       });
@@ -2235,7 +2241,8 @@ describe('AutocompleteEditor', () => {
 
       expect(getDataAtCell(0, 0)).toEqual('red');
       expect(onAfterChange.calls.count()).toEqual(1);
-      expect(onAfterChange).toHaveBeenCalledWith([[0, 0, null, 'red']], 'edit', undefined, undefined, undefined, undefined);
+      expect(onAfterChange)
+        .toHaveBeenCalledWith([[0, 0, null, 'red']], 'edit', undefined, undefined, undefined, undefined);
       done();
     }, 200);
   });

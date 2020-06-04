@@ -98,7 +98,8 @@ class Scroll {
 
       if (row >= fixedRowsTop && firstVisibleRow > -1 && (row < firstVisibleRow || snapToTop)) {
         result = topOverlay.scrollTo(row);
-      } else if (lastVisibleRow === -1 || lastVisibleRow > -1 && ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {
+      } else if (lastVisibleRow === -1 || lastVisibleRow > -1 &&
+                ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {
         result = topOverlay.scrollTo(row, true);
       }
     }

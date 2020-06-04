@@ -1,4 +1,9 @@
-import { conditions, getCondition, getConditionDescriptor, registerCondition } from 'handsontable/plugins/filters/conditionRegisterer';
+import {
+  conditions,
+  getCondition,
+  getConditionDescriptor,
+  registerCondition
+} from 'handsontable/plugins/filters/conditionRegisterer';
 
 describe('registerCondition', () => {
   it('should register condition function under its name', () => {

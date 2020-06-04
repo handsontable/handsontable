@@ -692,7 +692,8 @@ class DataManager {
     }
 
     const previousToTargetParent = this.getRowParent(toIndex - 1);
-    const indexInToParent = targetIsParent ? this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
+    const indexInToParent = targetIsParent ?
+      this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
 
     const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
 

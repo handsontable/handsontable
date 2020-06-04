@@ -303,8 +303,9 @@ describe('timeValidator', () => {
         const addLeadingZero = function(number) {
           return number < 10 ? `0${number}` : number;
         };
-        expect(getDataAtCell(1, 0)).toEqual(`${addLeadingZero(currentDateTime.getHours())}:${addLeadingZero(currentDateTime.getMinutes())}:${
-          addLeadingZero(currentDateTime.getSeconds())}`);
+        expect(getDataAtCell(1, 0))
+          .toEqual(`${addLeadingZero(currentDateTime.getHours())}:${addLeadingZero(currentDateTime.getMinutes())}:${
+            addLeadingZero(currentDateTime.getSeconds())}`);
         done();
       }, 130);
     });
@@ -326,7 +327,8 @@ describe('timeValidator', () => {
       setDataAtCell(1, 0, currentDateTime.toISOString()); // ISO-formatted datetime, sth like '2016-02-19T12:40:04.983Z'
 
       setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.toISOString(), 1, 'time', undefined, undefined);
+        expect(onAfterValidate)
+          .toHaveBeenCalledWith(true, currentDateTime.toISOString(), 1, 'time', undefined, undefined);
       }, 100);
 
       setTimeout(() => {
@@ -334,8 +336,9 @@ describe('timeValidator', () => {
           return number < 10 ? `0${number}` : number;
         };
 
-        expect(getDataAtCell(1, 0)).toEqual(`${addLeadingZero(currentDateTime.getHours())}:${addLeadingZero(currentDateTime.getMinutes())}:${
-          addLeadingZero(currentDateTime.getSeconds())}`);
+        expect(getDataAtCell(1, 0))
+          .toEqual(`${addLeadingZero(currentDateTime.getHours())}:${addLeadingZero(currentDateTime.getMinutes())}:${
+            addLeadingZero(currentDateTime.getSeconds())}`);
         done();
       }, 130);
     });

@@ -2,6 +2,7 @@ import BasePlugin from '../_base';
 import { objectEach } from '../../helpers/object';
 import { registerPlugin } from '../../plugins';
 import Endpoints from './endpoints';
+import { toSingleLine } from './../../helpers/templateLiteralTag';
 
 /**
  * @plugin ColumnSummary
@@ -73,15 +74,19 @@ class ColumnSummary extends BasePlugin {
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('afterChange', (...args) => this.onAfterChange(...args));
 
-    this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source));
-    this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source));
-    this.addHook('beforeRemoveRow', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args));
-    this.addHook('beforeRemoveCol', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args));
+    this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('beforeRemoveRow',
+      (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args));
+    this.addHook('beforeRemoveCol',
+      (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args));
 
-    this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source));
-    this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source));
-    this.addHook('afterRemoveRow', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
-    this.addHook('afterRemoveCol', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
+    this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterRemoveRow',
+      (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
+    this.addHook('afterRemoveCol',
+      (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
     this.addHook('afterRowMove', (...args) => this.onAfterRowMove(...args));
 
     super.enablePlugin();
@@ -342,7 +347,8 @@ class ColumnSummary extends BasePlugin {
 
     if (isNaN(cellValue)) {
       if (!this.endpoints.currentEndpoint.suppressDataTypeErrors) {
-        throw new Error(`ColumnSummary plugin: cell at (${row}, ${col}) is not in a numeric format. Cannot do the calculation.`);
+        throw new Error(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
+          numeric format. Cannot do the calculation.`);
       }
     }
 

@@ -340,8 +340,10 @@ class TextEditor extends BaseEditor {
     const scrollableContainerTop = wtOverlays.topOverlay.holder;
     const scrollableContainerLeft = wtOverlays.leftOverlay.holder;
     const totalRowsCount = this.hot.countRows();
-    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ? scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ? scrollableContainerLeft.scrollLeft : 0;
+    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ?
+      scrollableContainerTop.scrollTop : 0;
+    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ?
+      scrollableContainerLeft.scrollLeft : 0;
     const editorSection = this.checkEditorSection();
 
     const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
@@ -412,7 +414,7 @@ class TextEditor extends BaseEditor {
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
     const height = this.TD.scrollHeight + 1;
-    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
+    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
@@ -541,7 +543,9 @@ class TextEditor extends BaseEditor {
         break;
     }
 
-    if ([KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT].indexOf(event.keyCode) === -1) {
+    const arrowKeyCodes = [KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT];
+
+    if (arrowKeyCodes.indexOf(event.keyCode) === -1) {
       this.autoResize.resize(String.fromCharCode(event.keyCode));
     }
   }

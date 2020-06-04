@@ -161,7 +161,8 @@ class HiddenRows extends BasePlugin {
       destinationHideConfig = currentHideConfig.filter(row => rows.includes(row) === false);
     }
 
-    const continueHiding = this.hot.runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isConfigValid);
+    const continueHiding = this.hot
+      .runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isConfigValid);
 
     if (continueHiding === false) {
       return;

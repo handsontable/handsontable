@@ -15,7 +15,12 @@ class PhysicalIndexToValueMap extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.indexedValues = getListWithInsertedItems(this.indexedValues, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.indexedValues = getListWithInsertedItems(
+      this.indexedValues,
+      insertionIndex,
+      insertedIndexes,
+      this.initValueOrFn
+    );
 
     super.insert(insertionIndex, insertedIndexes);
   }

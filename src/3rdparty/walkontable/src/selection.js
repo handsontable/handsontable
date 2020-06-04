@@ -247,7 +247,8 @@ class Selection {
         if (sourceRow >= topRow && sourceRow <= bottomRow && sourceCol >= topColumn && sourceCol <= bottomColumn) {
           // selected cell
           if (this.settings.className) {
-            this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.className, this.settings.markIntersections);
+            this.addClassAtCoords(wotInstance, sourceRow, sourceCol,
+              this.settings.className, this.settings.markIntersections);
           }
 
         } else if (sourceRow >= topRow && sourceRow <= bottomRow) {
@@ -262,12 +263,12 @@ class Selection {
           }
         }
 
-        const additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
+        const additionalSelectionClass = wotInstance
+          .getSetting('onAfterDrawSelection', sourceRow, sourceCol, corners, this.settings.layerLevel);
 
         if (typeof additionalSelectionClass === 'string') {
           this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);
         }
-
       }
     }
 
