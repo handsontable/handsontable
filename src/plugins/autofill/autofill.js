@@ -295,8 +295,16 @@ class Autofill extends BasePlugin {
     const bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
     let coords;
 
-    if (this.directions.includes(DIRECTIONS.vertical) &&
-      (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
+    if (this.directions.includes(DIRECTIONS.vertical) && this.directions.includes(DIRECTIONS.horizontal)) {
+      if (bottomRightCorner.col <= coordsOfSelection.col || topLeftCorner.col >= coordsOfSelection.col) {
+        coords = new CellCoords(bottomRightCorner.row, coordsOfSelection.col);
+      }
+
+      if (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row) {
+        coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
+      }
+
+    } else if (this.directions.includes(DIRECTIONS.vertical)) {
       coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
 
     } else if (this.directions.includes(DIRECTIONS.horizontal)) {
