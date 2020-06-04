@@ -104,6 +104,19 @@ describe('NestedRows', () => {
       expect(getData()).toEqual(dataInOrder);
     });
 
+    it('should not move rows when they are on the highest level of nesting (don\'t have a parent)', () => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true
+      });
+
+      getPlugin('manualRowMove').dragRows([7], 0);
+
+      expect(getData()).toEqual(dataInOrder);
+    });
+
     // Another work than the `ManualRowMove` plugin.
     it('should not move rows when any of them is tried to be moved to the position of moved row', () => {
       handsontable({
