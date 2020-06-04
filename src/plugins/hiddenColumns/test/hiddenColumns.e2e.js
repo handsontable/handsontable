@@ -5171,8 +5171,6 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['Edited value', null, null, null, null]]);
     });
 
-<<<<<<< HEAD
-=======
     it('should work properly when hidden column is read only', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
@@ -6248,8 +6246,6 @@ describe('HiddenColumns', () => {
       expect($(dragStart).hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
-=======
->>>>>>> develop
   });
 
   describe('alter actions', () => {

@@ -164,7 +164,7 @@ class EditorManager {
     }
 
     // Getting values using the modified coordinates.
-    this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);\
+    this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
 
     const { activeElement } = this.instance.rootDocument;
 
@@ -173,7 +173,7 @@ class EditorManager {
       // (and resets activeElement prop). Without blurring the activeElement points to the
       // previously focusable element after clicking onto the cell (#6877).
       activeElement.blur();
-    }\
+    }
 
     if (this.cellProperties.readOnly) {
       this.clearActiveEditor();
