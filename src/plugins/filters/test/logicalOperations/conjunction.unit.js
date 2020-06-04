@@ -17,16 +17,48 @@ describe('Operation on set of conditions (`conjunction`)', () => {
   const cellData = data('Alibaba');
 
   it('should filter matching values', () => {
-    expect(conjunction([trueConditionMock(), trueConditionMock(), trueConditionMock()], anycellData)).toBe(true);
-    expect(conjunction([beginsWithConditionMock(['a']), endsWithConditionMock(['a']), containsWithConditionMock(['b'])], cellData)).toBe(true);
+    expect(conjunction([
+      trueConditionMock(),
+      trueConditionMock(),
+      trueConditionMock()
+    ], anycellData)).toBe(true);
+    expect(conjunction([
+      beginsWithConditionMock(['a']),
+      endsWithConditionMock(['a']),
+      containsWithConditionMock(['b'])
+    ], cellData)).toBe(true);
   });
 
   it('should filter not matching values', () => {
-    expect(conjunction([trueConditionMock(), falseConditionMock(), falseConditionMock()], anycellData)).toBe(false);
-    expect(conjunction([trueConditionMock(), falseConditionMock(), trueConditionMock()], anycellData)).toBe(false);
-    expect(conjunction([beginsWithConditionMock(['a']), falseConditionMock(), falseConditionMock()], cellData)).toBe(false);
-    expect(conjunction([beginsWithConditionMock(['a']), endsWithConditionMock(['a']), containsWithConditionMock(['z'])], cellData)).toBe(false);
-    expect(conjunction([falseConditionMock(), falseConditionMock(), falseConditionMock()], anycellData)).toBe(false);
-    expect(conjunction([beginsWithConditionMock(['b']), endsWithConditionMock(['b']), containsWithConditionMock(['z'])], cellData)).toBe(false);
+    expect(conjunction([
+      trueConditionMock(),
+      falseConditionMock(),
+      falseConditionMock()
+    ], anycellData)).toBe(false);
+    expect(conjunction([
+      trueConditionMock(),
+      falseConditionMock(),
+      trueConditionMock()
+    ], anycellData)).toBe(false);
+    expect(conjunction([
+      beginsWithConditionMock(['a']),
+      falseConditionMock(),
+      falseConditionMock()
+    ], cellData)).toBe(false);
+    expect(conjunction([
+      beginsWithConditionMock(['a']),
+      endsWithConditionMock(['a']),
+      containsWithConditionMock(['z'])
+    ], cellData)).toBe(false);
+    expect(conjunction([
+      falseConditionMock(),
+      falseConditionMock(),
+      falseConditionMock()
+    ], anycellData)).toBe(false);
+    expect(conjunction([
+      beginsWithConditionMock(['b']),
+      endsWithConditionMock(['b']),
+      containsWithConditionMock(['z'])
+    ], cellData)).toBe(false);
   });
 });

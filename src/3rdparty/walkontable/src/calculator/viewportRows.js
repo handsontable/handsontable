@@ -107,7 +107,7 @@ class ViewportRowsCalculator {
         this.startRow = i;
       }
 
-      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= scrollOffset + viewportHeight - horizontalScrollbarHeight) { // eslint-disable-line max-len
         if (this.startRow === null) {
           this.startRow = i;
         }

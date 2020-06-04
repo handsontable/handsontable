@@ -61,7 +61,8 @@ describe('selection utils', () => {
       expect(detectSelectionType(range(1, 2))).toBe(SELECTION_TYPE_UNRECOGNIZED);
       expect(detectSelectionType([[range(1, 2), range(1, 2)]])).toBe(SELECTION_TYPE_UNRECOGNIZED);
       expect(detectSelectionType([[range(1, 2), range(1, 2), range(1, 2)]])).toBe(SELECTION_TYPE_UNRECOGNIZED);
-      expect(detectSelectionType([[range(1, 2), range(1, 2), range(1, 2), range(1, 2)]])).toBe(SELECTION_TYPE_UNRECOGNIZED);
+      expect(detectSelectionType([[range(1, 2), range(1, 2), range(1, 2), range(1, 2)]]))
+        .toBe(SELECTION_TYPE_UNRECOGNIZED);
     });
 
     it('should ignore nested structures', () => {
@@ -171,12 +172,14 @@ describe('selection utils', () => {
       expect(transformSelectionToColumnDistance([[1, 1, 2, 2]])).toEqual([[1, 2]]);
       expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5]])).toEqual([[1, 1], [3, 3]]);
       expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3]])).toEqual([[1, 5]]);
-      expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3], [5, 7, 5, 7]])).toEqual([[1, 5], [7, 1]]);
+      expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3], [5, 7, 5, 7]]))
+        .toEqual([[1, 5], [7, 1]]);
     });
 
     it('should translate selection ranges passed as an array of CellRange objects to column distances', () => {
       expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2)])).toEqual([[1, 2]]);
-      expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 3, 5)])).toEqual([[1, 5]]);
+      expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 3, 5)]))
+        .toEqual([[1, 5]]);
     });
   });
 

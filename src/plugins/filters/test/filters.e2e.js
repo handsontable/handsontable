@@ -25,7 +25,9 @@ describe('Filters', () => {
 
     dropdownMenu(1);
     $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-    $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
+    $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
+      .simulate('mousedown')
+      .simulate('mouseup');
 
     setTimeout(() => {
       // Begins with 'c'
@@ -195,8 +197,9 @@ describe('Filters', () => {
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
-    expect(warnSpy).toHaveBeenCalledWith('The filter conditions have been applied properly, but couldn’t be displayed visually. ' +
-      'The overall amount of conditions exceed the capability of the dropdown menu. For more details see the documentation.');
+    expect(warnSpy).toHaveBeenCalledWith('The filter conditions have been applied properly, but couldn’t be ' +
+      'displayed visually. The overall amount of conditions exceed the capability of the dropdown menu. For ' +
+      'more details see the documentation.');
   });
 
   it('should not warn user by log at console when amount of conditions at specific column not exceed the capability of ' +
@@ -294,7 +297,8 @@ describe('Filters', () => {
       expect(getData()[0][4]).toBe('brown');
       expect(getData()[0][5]).toBe(1800.03);
       expect(getData()[0][6]).toBe(true);
-      expect(getDataAtCol(1).join()).toBe('Ernestine Wiggins,Becky Ross,Lee Reed,Gertrude Nielsen,Peterson Bowers,Ferguson Nichols');
+      expect(getDataAtCol(1).join())
+        .toBe('Ernestine Wiggins,Becky Ross,Lee Reed,Gertrude Nielsen,Peterson Bowers,Ferguson Nichols');
     });
 
     it('should filter date value (yesterday)', () => {

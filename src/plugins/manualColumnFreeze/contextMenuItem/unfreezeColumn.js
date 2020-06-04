@@ -28,7 +28,8 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
       } else if (selection.length > 1) {
         hide = true;
 
-      } else if ((selection[0].from.col !== selection[0].to.col) || selection[0].from.col >= this.getSettings().fixedColumnsLeft) {
+      } else if ((selection[0].from.col !== selection[0].to.col) ||
+                  selection[0].from.col >= this.getSettings().fixedColumnsLeft) {
         hide = true;
       }
 

@@ -58,10 +58,12 @@ class AutofillCalculations {
   getDirection(selectionArea, finalArea) {
     let direction = null;
 
-    if (finalArea[0] === selectionArea[0] && finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
+    if (finalArea[0] === selectionArea[0] &&
+        finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
       direction = 'down';
 
-    } else if (finalArea[2] === selectionArea[2] && finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
+    } else if (finalArea[2] === selectionArea[2] &&
+               finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
       direction = 'up';
 
     } else if (finalArea[1] === selectionArea[1] && finalArea[2] === selectionArea[2]) {
@@ -88,7 +90,8 @@ class AutofillCalculations {
     const fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
     const verticalDirection = ['up', 'down'].indexOf(dragDirection) > -1;
-    const fullCycle = verticalDirection ? baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
+    const fullCycle = verticalDirection ?
+      baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
     const farthestCollection = this.getFarthestCollection(baseArea, dragArea, dragDirection, foundMergedCells);
@@ -236,7 +239,8 @@ class AutofillCalculations {
     const baseEnd = verticalDirection ? baseAreaEndRow : baseAreaEndColumn;
     const baseStart = verticalDirection ? baseAreaStartRow : baseAreaStartColumn;
     const fillSize = this.getAutofillSize(baseArea, dragArea, direction);
-    const fullCycle = verticalDirection ? baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
+    const fullCycle = verticalDirection ?
+      baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
     let inclusionFunctionName = null;

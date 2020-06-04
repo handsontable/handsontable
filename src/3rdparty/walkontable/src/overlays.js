@@ -40,7 +40,8 @@ class Overlays {
     this.wot.update('scrollbarWidth', this.scrollbarSize);
     this.wot.update('scrollbarHeight', this.scrollbarSize);
 
-    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden';
+    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow') === 'hidden';
 
     this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
@@ -168,10 +169,19 @@ class Overlays {
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
-    this.eventManager.addEventListener(topOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true });
+    this.eventManager.addEventListener(
+      topOverlayScrollableElement,
+      'scroll', event => this.onTableScroll(event),
+      { passive: true }
+    );
 
     if (topOverlayScrollableElement !== leftOverlayScrollableElement) {
-      this.eventManager.addEventListener(leftOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true });
+      this.eventManager.addEventListener(
+        leftOverlayScrollableElement,
+        'scroll',
+        event => this.onTableScroll(event),
+        { passive: true }
+      );
     }
 
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
@@ -180,7 +190,12 @@ class Overlays {
     const wheelEventOptions = { passive: isScrollOnWindow };
 
     if (preventWheel || isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(this.wot.wtTable.wtRootElement, 'wheel', event => this.onCloneWheel(event, preventWheel), wheelEventOptions);
+      this.eventManager.addEventListener(
+        this.wot.wtTable.wtRootElement,
+        'wheel',
+        event => this.onCloneWheel(event, preventWheel),
+        wheelEventOptions
+      );
     }
 
     const overlays = [
@@ -194,7 +209,13 @@ class Overlays {
     overlays.forEach((overlay) => {
       if (overlay && overlay.needFullRender) {
         const { holder } = overlay.clone.wtTable;
-        this.eventManager.addEventListener(holder, 'wheel', event => this.onCloneWheel(event, preventWheel), wheelEventOptions);
+
+        this.eventManager.addEventListener(
+          holder,
+          'wheel',
+          event => this.onCloneWheel(event, preventWheel),
+          wheelEventOptions
+        );
       }
     });
 
@@ -259,8 +280,10 @@ class Overlays {
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    const shouldNotWheelVertically = masterVertical !== rootWindow && target !== rootWindow && !target.contains(masterVertical);
-    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow && target !== rootWindow && !target.contains(masterHorizontal);
+    const shouldNotWheelVertically = masterVertical !== rootWindow &&
+      target !== rootWindow && !target.contains(masterVertical);
+    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
+      target !== rootWindow && !target.contains(masterHorizontal);
 
     if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
       return;

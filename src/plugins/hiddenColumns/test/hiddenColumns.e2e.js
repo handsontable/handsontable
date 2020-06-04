@@ -1,7 +1,11 @@
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 
-  const { CONTEXTMENU_ITEMS_SHOW_COLUMN, CONTEXTMENU_ITEMS_HIDE_COLUMN, CONTEXTMENU_ITEMS_NO_ITEMS } = Handsontable.languages.dictionaryKeys;
+  const {
+    CONTEXTMENU_ITEMS_SHOW_COLUMN,
+    CONTEXTMENU_ITEMS_HIDE_COLUMN,
+    CONTEXTMENU_ITEMS_NO_ITEMS
+  } = Handsontable.languages.dictionaryKeys;
   const MENU_NO_ITEMS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_NO_ITEMS);
   const MENU_ITEM_SHOW_COLUMN = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_COLUMN);
   const MENU_ITEM_SHOW_COLUMNS = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_COLUMN, 1);
@@ -3469,7 +3473,8 @@ describe('HiddenColumns', () => {
       });
     });
 
-    describe('should not change position and call hook when single hidden cell was selected and navigating by any arrow key', () => {
+    describe('should not change position and call hook when single hidden cell was selected and' +
+             'navigating by any arrow key', () => {
       describe('without shift key pressed', () => {
         it('hidden cell at the table start', () => {
           const hot = handsontable({
@@ -3815,187 +3820,6 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
         });
       });
-    });
-  });
-
-  describe('manualColumnMove', () => {
-    it('should properly render hidden ranges after moving action (moving not hidden columns just before the hidden one)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [0],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([2, 3, 4], 0);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['C1', 'D1', 'E1', 'A1', 'B1'],
-        ['C2', 'D2', 'E2', 'A2', 'B2'],
-      ]);
-      expect(hot.getColWidth(3)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('B1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving not hidden columns just after the hidden one)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [4],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([0, 1, 2], 2);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['D1', 'E1', 'A1', 'B1', 'C1'],
-        ['D2', 'E2', 'A2', 'B2', 'C2'],
-      ]);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('D1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('C1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving only hidden column)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [4],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([4], 1);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['A1', 'E1', 'B1', 'C1', 'D1'],
-        ['A2', 'E2', 'B2', 'C2', 'D2'],
-      ]);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('D1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving range of columns containing a hidden column)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [3],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([2, 3, 4], 1);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['A1', 'C1', 'D1', 'E1', 'B1'],
-        ['A2', 'C2', 'D2', 'E2', 'B2'],
-      ]);
-      expect(hot.getColWidth(2)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
-      expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 2)).toBe(null);
-      expect(getCell(-1, 3)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('B1');
-    });
-
-    it('should properly render hidden ranges after moving action (shifts between hidden columns)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [1, 2, 3],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([3, 1, 2], 1);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['A1', 'D1', 'B1', 'C1', 'E1'],
-        ['A2', 'D2', 'B2', 'C2', 'E2'],
-      ]);
-      expect(hot.getColWidth(2)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toBe(null);
-      expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('E1');
-    });
-
-    it('should properly render hidden ranges after moving action (moving part of hidden columns)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
-        colHeaders: true,
-        hiddenColumns: {
-          columns: [1, 3, 4],
-          indicators: true
-        },
-        manualColumnMove: true
-      });
-
-      getPlugin('manualColumnMove').moveColumns([3, 4], 0);
-      render();
-
-      expect(hot.getData()).toEqual([
-        ['D1', 'E1', 'A1', 'B1', 'C1'],
-        ['D2', 'E2', 'A2', 'B2', 'C2'],
-      ]);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(hot.getColWidth(3)).toEqual(0);
-      expect(getPlugin('hiddenColumns').isHidden(0)).toBeTruthy();
-      expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();
-      expect(getCell(-1, 0)).toBe(null);
-      expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
     });
   });
 
@@ -5347,6 +5171,530 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['Edited value', null, null, null, null]]);
     });
 
+<<<<<<< HEAD
+=======
+    it('should work properly when hidden column is read only', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 5 }
+        ],
+        cells(physicalRow, physicalColumn) {
+          const cellProperties = {};
+          const visualRowIndex = this.instance.toVisualRow(physicalRow);
+          const visualColIndex = this.instance.toVisualColumn(physicalColumn);
+
+          if (visualRowIndex === 0 && visualColIndex === 0) {
+            cellProperties.readOnly = true;
+          }
+
+          return cellProperties;
+        }
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      let editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+
+      // Try of opening the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+    });
+
+    it('should work properly when editor is set to `false` for hidden column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 5 }
+        ],
+        cells(physicalRow, physicalColumn) {
+          const cellProperties = {};
+          const visualRowIndex = this.instance.toVisualRow(physicalRow);
+          const visualColIndex = this.instance.toVisualColumn(physicalColumn);
+
+          if (visualRowIndex === 0 && visualColIndex === 0) {
+            cellProperties.editor = false;
+          }
+
+          return cellProperties;
+        }
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      let editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+
+      // Try of opening the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor).toBeUndefined();
+    });
+
+    it('should open properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 1, 0, 3);
+
+      selectCell(0, 1);
+      keyDownUp('enter');
+
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 2);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 3);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+    });
+
+    it('should open properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 0, 0, 3);
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 1);
+      keyDownUp('enter');
+
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 2);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 3);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+    });
+
+    it('should open properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 1, 0, 4);
+
+      selectCell(0, 1);
+      keyDownUp('enter');
+
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 2);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 3);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 4);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+    });
+
+    it('should open properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: true
+      });
+
+      getPlugin('mergeCells').merge(0, 0, 0, 4);
+
+      selectCell(0, 0);
+      keyDownUp('enter');
+
+      let editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 1);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 2);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 3);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      selectCell(0, 4);
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(false);
+      expect(editor.isInFullEditMode()).toBe(false);
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.isInFullEditMode()).toBe(true);
+      expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
+    });
+
+    it('should edit merged cells properly (merge area from visible cell to visible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 1, colspan: 3 }
+        ]
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
+
+      textarea.value = 'Edited value';
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([['A1', 'Edited value', null, null, 'E1']]);
+    });
+
+    it('should edit merged cells properly (merge area from invisible cell to visible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 4 }
+        ]
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
+
+      textarea.value = 'Edited value';
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([['Edited value', null, null, null, 'E1']]);
+    });
+
+    it('should edit merged cells properly (merge area from visible cell to invisible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 1, colspan: 4 }
+        ],
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
+
+      textarea.value = 'Edited value';
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([['A1', 'Edited value', null, null, null]]);
+    });
+
+    it('should edit merged cells properly (merge area from invisible cell to invisible cell)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0, 2, 4],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 5 }
+        ],
+      });
+
+      // Double click on the first visible cell (merged area).
+      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+
+      const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
+
+      textarea.value = 'Edited value';
+
+      // Closing the editor.
+      keyDownUp('enter');
+
+      expect(getData()).toEqual([['Edited value', null, null, null, null]]);
+    });
+
     it('should populate merged cells properly (merge area from visible cell to visible cell)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -5900,6 +6248,8 @@ describe('HiddenColumns', () => {
       expect($(dragStart).hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
+=======
+>>>>>>> develop
   });
 
   describe('alter actions', () => {

@@ -5,15 +5,17 @@ import { warn } from '../../helpers/console';
 import { createEmptySpreadsheetData } from '../../helpers/data';
 import { registerPlugin } from '../../plugins';
 import { getDateYear, parseDate } from './utils';
+import { toSingleLine } from './../../helpers/templateLiteralTag';
 import DateCalculator from './dateCalculator';
 import GanttChartDataFeed from './ganttChartDataFeed';
 
 import './ganttChart.css';
 
+let isDeprecationMessageShowed = false;
+
 /**
  * @plugin GanttChart
- * @experimental
- *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * GanttChart plugin enables a possibility to create a Gantt chart using a Handsontable instance.
  * In this case, the whole table becomes read-only.
@@ -180,7 +182,8 @@ class GanttChart extends BasePlugin {
    */
   checkDependencies() {
     if (!this.hot.getSettings().colHeaders) {
-      warn('You need to enable the colHeaders property in your Gantt Chart Handsontable in order for it to work properly.');
+      warn(toSingleLine`You need to enable the colHeaders property in your Gantt Chart Handsontable in order for\x20
+        it to work properly.`);
     }
   }
 
@@ -202,6 +205,10 @@ class GanttChart extends BasePlugin {
       return;
     }
 
+    if (!isDeprecationMessageShowed) {
+      isDeprecationMessageShowed = true;
+      warn('The Gantt Chart plugin is deprecated and will be removed in the next major release');
+    }
     this.checkDependencies();
 
     this.parseSettings();
@@ -312,7 +319,8 @@ class GanttChart extends BasePlugin {
       const source = this.settings.dataSource;
 
       if (source.instance) {
-        this.loadData(source.instance, source.startDateColumn, source.endDateColumn, source.additionalData, source.asyncUpdates);
+        this.loadData(source.instance, source.startDateColumn, source.endDateColumn,
+          source.additionalData, source.asyncUpdates);
       } else {
         this.loadData(source);
       }
@@ -330,7 +338,8 @@ class GanttChart extends BasePlugin {
    * @param {boolean} asyncUpdates Indicates whether the action should be asynchronously updated.
    */
   loadData(data, startDateColumn, endDateColumn, additionalData, asyncUpdates) {
-    this.dataFeed = new GanttChartDataFeed(this.hot, data, startDateColumn, endDateColumn, additionalData, asyncUpdates);
+    this.dataFeed = new GanttChartDataFeed(this.hot, data, startDateColumn, endDateColumn,
+      additionalData, asyncUpdates);
 
     this.hot.render();
   }
@@ -529,7 +538,8 @@ class GanttChart extends BasePlugin {
       }
     }
 
-    if (!this.dateCalculator.isValidRangeBarData(startDate, endDate) || startDateColumn === false || endDateColumn === false) {
+    if (!this.dateCalculator.isValidRangeBarData(startDate, endDate) ||
+        startDateColumn === false || endDateColumn === false) {
       return false;
     }
 
@@ -600,7 +610,8 @@ class GanttChart extends BasePlugin {
     const rangeBarData = this.rangeBars[year][rangeBarCoords[0]][rangeBarCoords[1]];
 
     if (rangeBarData && row === rangeBarCoords[0] &&
-      (column === rangeBarCoords[1] || column > rangeBarCoords[1] && column < rangeBarCoords[1] + rangeBarData.barLength)) {
+       (column === rangeBarCoords[1] || column > rangeBarCoords[1] &&
+        column < rangeBarCoords[1] + rangeBarData.barLength)) {
       return rangeBarData;
     }
 

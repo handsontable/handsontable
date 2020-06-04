@@ -177,7 +177,8 @@ class TrimRows extends BasePlugin {
       destinationTrimConfig = currentTrimConfig.filter(trimmedRow => rows.includes(trimmedRow) === false);
     }
 
-    const allowUntrimRow = this.hot.runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig);
+    const allowUntrimRow = this.hot
+      .runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig);
 
     if (allowUntrimRow === false) {
       return;
@@ -230,7 +231,8 @@ class TrimRows extends BasePlugin {
   isValidConfig(trimmedRows) {
     const sourceRows = this.hot.countSourceRows();
 
-    return trimmedRows.every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < sourceRows));
+    return trimmedRows
+      .every(trimmedRow => (Number.isInteger(trimmedRow) && trimmedRow >= 0 && trimmedRow < sourceRows));
   }
 
   /**

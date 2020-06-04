@@ -47,5 +47,6 @@ export function getClassesToAdd(columnStatesManager, column, showSortIndicator, 
  * @returns {Array} Array of CSS classes.
  */
 export function getClassedToRemove() {
-  return Array.from(orderToCssClass.values()).concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
+  return Array.from(orderToCssClass.values())
+    .concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
 }

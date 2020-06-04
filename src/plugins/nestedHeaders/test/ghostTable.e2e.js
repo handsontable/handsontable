@@ -45,7 +45,8 @@ describe('NestedHeaders', () => {
           width: 300,
           nestedHeaders: [
             ['a', { label: 'b', colspan: 3 }, 'c', 'd', 'e'],
-            ['Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title']
+            ['Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title', 'Very Long Title',
+              'Very Long Title', 'Very Long Title']
           ]
         });
         const ghostTable = hot.getPlugin('nestedHeaders').ghostTable;

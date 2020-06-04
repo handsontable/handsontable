@@ -16,42 +16,34 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
-      const [, startVisualColumn, , endVisualColumn] = this.getSelectedLast();
-      const noVisibleIndexesBefore =
-        this.columnIndexMapper.getFirstNotHiddenIndex(startVisualColumn - 1, -1) === null;
-      const onlyFirstVisibleColumnSelected = noVisibleIndexesBefore && startVisualColumn === endVisualColumn;
-      const noVisibleIndexesAfter =
-        this.columnIndexMapper.getFirstNotHiddenIndex(endVisualColumn + 1, 1) === null;
-      const onlyLastVisibleColumnSelected = noVisibleIndexesAfter && startVisualColumn === endVisualColumn;
-
-      let startPhysicalColumn = this.toPhysicalColumn(startVisualColumn);
-      let endPhysicalColumn = this.toPhysicalColumn(endVisualColumn);
-
-      if (onlyFirstVisibleColumnSelected) {
-        startPhysicalColumn = 0;
+      if (columns.length === 0) {
+        return;
       }
 
-      if (onlyLastVisibleColumnSelected) {
-        endPhysicalColumn = this.countSourceCols() - 1; // All columns after the selected column will be shown.
-      }
+      let startVisualColumn = columns[0];
+      let endVisualColumn = columns[columns.length - 1];
+
+      // Add to the selection one more visual column on the left.
+      startVisualColumn = this.columnIndexMapper
+        .getFirstNotHiddenIndex(startVisualColumn - 1, -1) ?? 0;
+      // Add to the selection one more visual column on the right.
+      endVisualColumn = this.columnIndexMapper
+        .getFirstNotHiddenIndex(endVisualColumn + 1, 1) ?? this.countCols() - 1;
 
       hiddenColumnsPlugin.showColumns(columns);
-
-      const startVisualColumnAfterAction = this.toVisualColumn(startPhysicalColumn);
-      const endVisualColumnAfterAction = this.toVisualColumn(endPhysicalColumn);
-
-      const allColumnsSelected = endVisualColumnAfterAction - startVisualColumnAfterAction + 1 === this.countCols();
-      // TODO: Workaround, because selection doesn't select headers properly in a case when we select all columns
-      // from `0` to `n`, where `n` is number of columns in the `DataMap`.
-      const selectionStart = allColumnsSelected ? -1 : startVisualColumnAfterAction;
 
       // We render columns at first. It was needed for getting fixed columns.
       // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
 
-      // Selection start and selection end coordinates might be changed after showing some items.
-      this.selectColumns(selectionStart, endVisualColumnAfterAction);
+      const allColumnsSelected = endVisualColumn - startVisualColumn + 1 === this.countCols();
+
+      // When all headers needs to be selected then do nothing. The header selection is
+      // automatically handled by corner click.
+      if (!allColumnsSelected) {
+        this.selectColumns(startVisualColumn, endVisualColumn);
+      }
     },
     disabled: false,
     hidden() {
@@ -82,7 +74,8 @@ export default function showColumnItem(hiddenColumnsPlugin) {
         if (visualColumnsInRange > renderedColumnsInRange) {
           const physicalIndexesInRange = notTrimmedColumnIndexes.slice(visualStartColumn, visualEndColumn + 1);
 
-          physicalColumnIndexes.push(...physicalIndexesInRange.filter(physicalIndex => hiddenPhysicalColumns.includes(physicalIndex)));
+          physicalColumnIndexes.push(...physicalIndexesInRange
+            .filter(physicalIndex => hiddenPhysicalColumns.includes(physicalIndex)));
         }
 
       // Handled column is the first rendered index and there are some visual indexes before it.

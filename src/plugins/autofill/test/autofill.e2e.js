@@ -44,9 +44,12 @@ describe('AutoFill', () => {
 
     hot.selectCell(1, 1, 2, 2);
 
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex).toBe('10');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex).toBe('8');
-    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex).toBe('6');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
+      .toBe('10');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .area')).zIndex)
+      .toBe('8');
+    expect(Handsontable.dom.getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .fill')).zIndex)
+      .toBe('6');
   });
 
   it('should not change cell value (drag vertically when fillHandle option is set to `horizontal`)', () => {
@@ -818,7 +821,8 @@ describe('AutoFill', () => {
       ]
     });
 
-    expect(JSON.stringify(getData(0, 1, 3, 2))).toEqual(JSON.stringify([[null, null], [null, null], [null, null], [null, null]]));
+    expect(JSON.stringify(getData(0, 1, 3, 2)))
+      .toEqual(JSON.stringify([[null, null], [null, null], [null, null], [null, null]]));
 
     selectCell(4, 1, 6, 2);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
@@ -837,7 +841,8 @@ describe('AutoFill', () => {
       ]
     });
 
-    expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[null, null, null, null], [null, null, null, null]]));
+    expect(JSON.stringify(getData(1, 1, 2, 4)))
+      .toEqual(JSON.stringify([[null, null, null, null], [null, null, null, null]]));
 
     selectCell(1, 5, 2, 7);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
@@ -1026,7 +1031,8 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  describe('should works properly when two or more instances of Handsontable was initialized with other settings (#3257)', () => {
+  describe('should works properly when two or more instances of Handsontable was initialized with ' +
+           'other settings (#3257)', () => {
     let getData;
     let $container1;
     let $container2;
@@ -1138,5 +1144,52 @@ describe('AutoFill', () => {
     spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover').simulate('mouseup');
 
     expect(afterAutofill).toHaveBeenCalledTimes(0);
+  });
+
+  it('should not call beforeAutofill and afterAutofill if we return to the cell from where we start', () => {
+    const beforeAutofill = jasmine.createSpy('beforeAutofill');
+    const afterAutofill = jasmine.createSpy('afterAutofill');
+
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      beforeAutofill,
+      afterAutofill,
+      fillHandle: {
+        direction: 'vertical'
+      }
+    });
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover');
+    spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(beforeAutofill).toHaveBeenCalledTimes(0);
+    expect(afterAutofill).toHaveBeenCalledTimes(0);
+  });
+
+  it('should not change cell value if we return to the cell from where we start (when fillHandle option is set to `vertical`)', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: 'vertical'
+    });
+
+    selectCell(0, 0);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mouseover');
+    spec().$container.find('tbody tr:eq(0) td:eq(0)').simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 0)).toEqual(1);
+    expect(getDataAtCell(1, 0)).toEqual(7);
   });
 });

@@ -90,6 +90,20 @@ describe('Comments', () => {
       expect(getCell(1, 1).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
       expect(getCell(2, 2).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
     });
+
+    it('should display the comment editor in the correct place', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      plugin.showAtCell(0, 1);
+
+      expect($(editor.parentNode).offset()).toEqual($(getCell(0, 2)).offset());
+    });
   });
 
   describe('Displaying comment after `mouseover` event', () => {
@@ -245,7 +259,8 @@ describe('Comments', () => {
       const plugin = hot.getPlugin('comments');
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
+      expect(afterSetCellMetaCallback)
+        .toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
@@ -609,7 +624,8 @@ describe('Comments', () => {
 
       await sleep(400);
 
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
+      expect(afterSetCellMetaCallback)
+        .toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
     });
 
     it('should not editing comment by context menu if `beforeSetCellMeta` returned false', async() => {
@@ -652,6 +668,107 @@ describe('Comments', () => {
       await sleep(400);
 
       expect(getCellMeta(0, 0).comment.value).toEqual('test');
+    });
+  });
+
+  describe('hidden row an column integration', () => {
+    it('should display the comment editor in the correct place, when the active cell is past hidden rows/columns', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        comments: true,
+        hiddenColumns: {
+          columns: [0, 1, 4, 8, 9],
+          indicators: true
+        },
+        hiddenRows: {
+          rows: [0, 1, 4, 8, 9],
+          indicators: true
+        },
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      plugin.showAtCell(0, 0);
+
+      expect($(editor.parentNode).offset()).toEqual($(hot.rootElement).offset());
+
+      plugin.showAtCell(1, 1);
+
+      expect($(editor.parentNode).offset()).toEqual($(hot.rootElement).offset());
+
+      plugin.showAtCell(2, 2);
+
+      expect($(editor.parentNode).offset()).toEqual($(getCell(2, 3)).offset());
+
+      plugin.showAtCell(3, 3);
+
+      expect($(editor.parentNode).offset()).toEqual($(getCell(3, 5)).offset());
+
+      plugin.showAtCell(4, 4);
+
+      expect($(editor.parentNode).offset()).toEqual($(getCell(5, 5)).offset());
+
+      plugin.showAtCell(5, 5);
+
+      expect($(editor.parentNode).offset()).toEqual($(getCell(5, 6)).offset());
+
+      plugin.showAtCell(7, 7);
+
+      expect($(editor.parentNode).offset()).toEqual({
+        top: $(getCell(7, 7)).offset().top,
+        left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
+      });
+
+      plugin.showAtCell(8, 8);
+
+      expect($(editor.parentNode).offset()).toEqual({
+        top: $(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(),
+        left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
+      });
+
+      plugin.showAtCell(9, 9);
+
+      expect($(editor.parentNode).offset()).toEqual({
+        top: $(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(),
+        left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
+      });
+    });
+
+    it('should display the correct values in the comment editor, for cells placed past hidden rows/columns', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        comments: true,
+        hiddenColumns: {
+          columns: [0, 1, 4],
+          indicators: true
+        },
+        hiddenRows: {
+          rows: [0, 1, 4],
+          indicators: true
+        },
+        cell: [
+          { row: 2, col: 2, comment: { value: 'Foo' } },
+          { row: 5, col: 5, comment: { value: 'Bar' } },
+        ],
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      plugin.showAtCell(2, 2);
+      expect($(editor).val()).toEqual('Foo');
+      expect(plugin.getCommentMeta(2, 2, 'value')).toEqual('Foo');
+      expect(plugin.getCommentAtCell(2, 2)).toEqual('Foo');
+      selectCell(2, 2);
+      expect(plugin.getComment()).toEqual('Foo');
+
+      plugin.showAtCell(5, 5);
+      expect($(editor).val()).toEqual('Bar');
+      expect(plugin.getCommentMeta(5, 5, 'value')).toEqual('Bar');
+      expect(plugin.getCommentAtCell(5, 5)).toEqual('Bar');
+      selectCell(5, 5);
+      expect(plugin.getComment()).toEqual('Bar');
     });
   });
 });
