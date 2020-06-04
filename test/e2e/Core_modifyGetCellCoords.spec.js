@@ -18,7 +18,7 @@ describe('Core_modifyGetCellCoords', () => {
       rowHeaders: true,
       colHeaders: true,
       columns: [
-        { readOnly: true },
+        {},
         {},
         {},
         {},
@@ -42,7 +42,7 @@ describe('Core_modifyGetCellCoords', () => {
     expect(editor.isOpened()).toBe(true);
     expect(editor.isInFullEditMode()).toBe(true);
     expect(editor.TD).toBe(spec().$container.find('tr:eq(2) td:eq(0)')[0]);
-    expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('B1');
+    expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
     // Closing the editor.
     keyDownUp('enter');
@@ -59,7 +59,7 @@ describe('Core_modifyGetCellCoords', () => {
     expect(editor.isOpened()).toBe(true);
     expect(editor.isInFullEditMode()).toBe(true);
     expect(editor.TD).toBe(spec().$container.find('tr:eq(2) td:eq(2)')[0]);
-    expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('C1');
+    expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('C2');
   });
 
   it('shoud cooperate with cell meta properly', async() => {
@@ -71,8 +71,8 @@ describe('Core_modifyGetCellCoords', () => {
       rowHeaders: true,
       colHeaders: true,
       columns: [
-        { readOnly: true },
         { editor: 'select', selectOptions: ['one', 'two', 'three', 'four'] },
+        { readOnly: true }, // Should we be able to click on read only cell?
       ],
       modifyGetCellCoords(visualRow, visualColumn) {
         if (visualColumn === 1) {
@@ -94,6 +94,6 @@ describe('Core_modifyGetCellCoords', () => {
     expect(editor.TD).toBe(spec().$container.find('tr:eq(2) td:eq(0)')[0]);
     expect(editor.select).toBe(spec().$container.find('select')[0]);
     expect(editor.select.length).toBe(4);
-    expect(editor.select.value).toBe('two');
+    expect(editor.select.value).toBe('three');
   });
 });
