@@ -712,12 +712,32 @@ class TableView {
       },
       onModifyRowHeaderWidth: rowHeaderWidth => this.instance.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (renderableRowIndex, renderableColumnIndex, topmost) => {
-        const visualColumnIndex = renderableColumnIndex >= 0 ?
-          this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
-        const visualRowIndex = renderableRowIndex >= 0 ?
-          this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+        const rowMapper = this.instance.rowIndexMapper;
+        const columnMapper = this.instance.columnIndexMapper;
 
-        return this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
+        // Callback handle also headers. We shouldn't translate them.
+        const visualColumnIndex = renderableColumnIndex >= 0 ?
+          columnMapper.getVisualFromRenderableIndex(renderableColumnIndex) : renderableColumnIndex;
+        const visualRowIndex = renderableRowIndex >= 0 ?
+          rowMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
+
+        const visualIndexes = this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost);
+
+        if (Array.isArray(visualIndexes)) {
+          const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
+
+          // Result of the hook is handled by the Walkontable (renderable indexes).
+          return [
+            visualRowFrom >= 0 ? rowMapper.getRenderableFromVisualIndex(
+              rowMapper.getFirstNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
+            visualColumnFrom >= 0 ? columnMapper.getRenderableFromVisualIndex(
+              columnMapper.getFirstNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
+            visualRowTo >= 0 ? rowMapper.getRenderableFromVisualIndex(
+              rowMapper.getFirstNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
+            visualColumnTo >= 0 ? columnMapper.getRenderableFromVisualIndex(
+              columnMapper.getFirstNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
+          ];
+        }
       },
       viewportRowCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportRowRenderingOffset;

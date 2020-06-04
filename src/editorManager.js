@@ -155,8 +155,16 @@ class EditorManager {
     }
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
+    const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
+    let visualRowToCheck = row;
+    let visualColumnToCheck = col;
 
-    this.cellProperties = this.instance.getCellMeta(row, col);
+    if (Array.isArray(modifiedCellCoords)) {
+      [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
+    }
+
+    // Getting values using the modified coordinates.
+    this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
 
     const { activeElement } = this.instance.rootDocument;
 
@@ -174,13 +182,18 @@ class EditorManager {
     }
 
     const editorClass = this.instance.getCellEditor(this.cellProperties);
+    // Getting element using coordinates from the selection.
     const td = this.instance.getCell(row, col, true);
 
     if (editorClass && td) {
-      const prop = this.instance.colToProp(col);
-      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), col);
+      const prop = this.instance.colToProp(visualColumnToCheck);
+
+      const originalValue =
+        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);
+      // Using not modified coordinates, as we need to get the table element using selection coordinates.
+      // There is an extra translation in the editor for saving value.
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
 
     } else {
