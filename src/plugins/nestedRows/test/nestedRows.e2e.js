@@ -106,15 +106,49 @@ describe('NestedRows', () => {
 
     it('should not move rows when they are on the highest level of nesting (don\'t have a parent)', () => {
       handsontable({
-        data: getMoreComplexNestedData(),
+        data: [
+          {
+            category: 'Best Metal Performance',
+            __children: [
+              {
+                artist: 'Ghost',
+              },
+              {
+                artist: 'Slipknot',
+              }
+            ]
+          },
+          {
+            category: 'Best Rock Song'
+          },
+          {
+            category: 'test',
+            __children: []
+          }
+        ],
         nestedRows: true,
         manualRowMove: true,
-        rowHeaders: true
+        rowHeaders: true,
+        columns: [
+          {
+            data: 'category'
+          },
+          {
+            data: 'artist'
+          }
+        ]
       });
 
-      getPlugin('manualRowMove').dragRows([7], 0);
+      getPlugin('manualRowMove').dragRows([3], 1);
+      getPlugin('manualRowMove').dragRows([4], 1);
 
-      expect(getData()).toEqual(dataInOrder);
+      expect(getData()).toEqual([
+        ['Best Metal Performance', null],
+        [null, 'Ghost'],
+        [null, 'Slipknot'],
+        ['Best Rock Song', null],
+        ['test', null],
+      ]);
     });
 
     // Another work than the `ManualRowMove` plugin.
