@@ -47,13 +47,15 @@ class Selection {
      */
     this.selectedByCorner = false;
     /**
-     * The collection of the selection layer levels where the whole row was selected using the row header.
+     * The collection of the selection layer levels where the whole row was selected using the row header or
+     * the corner header.
      *
      * @type {Set.<number>}
      */
     this.selectedByRowHeader = new Set();
     /**
-     * The collection of the selection layer levels where the whole column was selected using the column header.
+     * The collection of the selection layer levels where the whole column was selected using the column header or
+     * the corner header.
      *
      * @type {Set.<number>}
      */
@@ -288,7 +290,7 @@ class Selection {
       }
     }
 
-    if (this.isSelectedByRowHeader()) {
+    if (this.isEntireRowSelected()) {
       const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
       // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
@@ -300,7 +302,7 @@ class Selection {
       }
     }
 
-    if (this.isSelectedByColumnHeader()) {
+    if (this.isEntireColumnSelected()) {
       const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
       // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
@@ -342,9 +344,9 @@ class Selection {
     const rangeStartChanged = this.getSelectedRange().current().highlight !== rangeStartAfterTranslation;
 
     // This conditional handle situation when we select cells by headers and there are no visible cells
-    // (all rows / columns are hidden or there is specific cases described in the #6733). Cells in such case are selected
-    // with row headers, but selection is adjusted to start from index 0, not index -1. We loose some information, so
-    // performing "the same selection" basing on internally stored data would give other effect.
+    // (all rows / columns are hidden or there is specific cases described in the #6733). Cells in such case are
+    // selected with row headers, but selection is adjusted to start from index 0, not index -1. We loose some
+    // information, so performing "the same selection" basing on internally stored data would give other effect.
     if (rangeStartChanged) {
       this.setRangeStart(rangeStartAfterTranslation);
     }
@@ -387,6 +389,17 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
+    return !this.isSelectedByCorner(layerLevel) && this.isEntireRowSelected(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection consists of entire rows (including their headers). If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
+   *
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
+   */
+  isEntireRowSelected(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
   }
 
@@ -399,6 +412,17 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
+    return !this.isSelectedByCorner() && this.isEntireColumnSelected(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection consists of entire columns (including their headers). If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
+   *
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
+   */
+  isEntireColumnSelected(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
   }
 
@@ -408,7 +432,9 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByAnyHeader() {
-    return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1);
+    return this.isSelectedByRowHeader(-1) ||
+      this.isSelectedByColumnHeader(-1) ||
+      this.isSelectedByCorner();
   }
 
   /**
@@ -479,8 +505,10 @@ class Selection {
 
   /**
    * Select all cells.
+   *
+   * @param {boolean} [includeCorner=false] `true` If the selection should include the corner header, `false` otherwise.
    */
-  selectAll() {
+  selectAll(includeCorner = false) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
 
@@ -489,8 +517,12 @@ class Selection {
       return;
     }
 
+    const startCoords = includeCorner ?
+      new CellCoords(-1, -1) :
+      new CellCoords(0, 0);
+
     this.clear();
-    this.setRangeStartOnly(new CellCoords(-1, -1));
+    this.setRangeStartOnly(startCoords);
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(nrOfRows - 1, nrOfColumns - 1));
@@ -553,7 +585,8 @@ class Selection {
   }
 
   /**
-   * Select column specified by `startColumn` visual index or column property or a range of columns finishing at `endColumn`.
+   * Select column specified by `startColumn` visual index or column property or a range of columns finishing at
+   * `endColumn`.
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.

@@ -1345,6 +1345,29 @@ describe('Core_selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
+  it('should not scroll the table after clicking the corner header', async() => {
+    const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
+    const onAfterScrollHorizontally = jasmine.createSpy('onAfterScrollHorizontally');
+
+    handsontable({
+      startRows: 50,
+      startCols: 50,
+      width: 100,
+      height: 100,
+      colHeaders: true,
+      rowHeaders: true,
+      afterScrollHorizontally: onAfterScrollHorizontally,
+      afterScrollVertically: onAfterScrollVertically
+    });
+
+    spec().$container.find('.ht_clone_top thead').find('th').eq(0).simulate('mousedown');
+
+    await sleep(100);
+
+    expect(onAfterScrollVertically).toHaveBeenCalledTimes(0);
+    expect(onAfterScrollHorizontally).toHaveBeenCalledTimes(0);
+  });
+
   it('should redraw selection when option `colHeaders` is set and user scrolled', async() => {
     const hot = handsontable({
       startRows: 20,

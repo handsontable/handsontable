@@ -2404,6 +2404,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return dataSource.getAtColumn(column);
   };
 
+  /* eslint-disable jsdoc/require-param */
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
@@ -2414,7 +2415,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {*} value The value to be set at the provided coordinates.
    * @param {string} [source] Source of the change as a string.
    */
-  this.setSourceDataAtCell = function(row, column, value, source) {
+  /* eslint-enable jsdoc/require-param */
+  this.setSourceDataAtCell = function(row, column, value, source, silentMode = false) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
     const changesForHook = [];
@@ -2438,7 +2440,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       this.runHooks('afterSetSourceDataAtCell', changesForHook, source);
     }
 
-    this.render();
+    if (!silentMode) {
+      this.render();
+    }
 
     const activeEditor = instance.getActiveEditor();
 
@@ -3517,10 +3521,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
+   * @param {boolean} [includeCorner=true] `true` If the selection should include the corner header, `false` otherwise.
    */
-  this.selectAll = function() {
+  this.selectAll = function(includeCorner = true) {
     preventScrollingToCell = true;
-    selection.selectAll();
+    selection.selectAll(includeCorner);
     preventScrollingToCell = false;
   };
 

@@ -52,7 +52,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
     },
     disabled: false,
     hidden() {
-      return !this.selection.isSelectedByRowHeader();
+      return !(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner());
     }
   };
 }

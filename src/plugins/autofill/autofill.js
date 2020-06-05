@@ -184,11 +184,21 @@ class Autofill extends BasePlugin {
       return false;
     }
 
-    let cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getVisualCorners();
+    // Fill area may starts or ends with invisible cell. There won't be any information about it as highlighted selection
+    // store just renderable indexes (It's part of Walkontable). I extrapolate where the start or/and the end is.
+    const [fillStartRow, fillStartColumn, fillEndRow, fillEndColumn] =
+      this.hot.selection.highlight.getFill().getVisualCorners();
+    const [selectionStartRow, selectionStartColumn, selectionEndRow, selectionEndColumn] = this.hot.getSelectedLast();
+    let cornersOfSelectionAndDragAreas = [
+      Math.min(selectionStartRow, fillStartRow),
+      Math.min(selectionStartColumn, fillStartColumn),
+      Math.max(selectionEndRow, fillEndRow),
+      Math.max(selectionEndColumn, fillEndColumn)
+    ];
 
     this.resetSelectionOfDraggedArea();
 
-    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const cornersOfSelectedCells = this.hot.getSelectedLast();
 
     cornersOfSelectionAndDragAreas = this.hot
       .runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
@@ -365,20 +375,6 @@ class Autofill extends BasePlugin {
   }
 
   /**
-   * Get corners of selected cells.
-   *
-   * @private
-   * @returns {Array}
-   */
-  getCornersOfSelectedCells() {
-    if (this.hot.selection.isMultiple()) {
-      return this.hot.selection.highlight.createOrGetArea().getVisualCorners();
-    }
-
-    return this.hot.selection.highlight.getCell().getVisualCorners();
-  }
-
-  /**
    * Get index of last adjacent filled in row.
    *
    * @private
@@ -443,7 +439,7 @@ class Autofill extends BasePlugin {
    * @returns {boolean}
    */
   selectAdjacent() {
-    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const cornersOfSelectedCells = this.hot.getSelectedLast();
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {

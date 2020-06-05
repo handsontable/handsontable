@@ -51,7 +51,8 @@ export default function showRowItem(hiddenRowsPlugin) {
         return this.toPhysicalRow(visualRowIndex);
       });
 
-      if (!this.selection.isSelectedByRowHeader() || hiddenPhysicalRows.length < 1) {
+      if (!(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner()) ||
+        hiddenPhysicalRows.length < 1) {
         return true;
       }
 
@@ -74,16 +75,17 @@ export default function showRowItem(hiddenRowsPlugin) {
         if (visualRowsInRange > renderedRowsInRange) {
           const physicalIndexesInRange = notTrimmedRowIndexes.slice(visualStartRow, visualEndRow + 1);
 
-          physicalRowIndexes.push(...physicalIndexesInRange
-            .filter(physicalIndex => hiddenPhysicalRows.includes(physicalIndex)));
+          physicalRowIndexes.push(
+            ...physicalIndexesInRange.filter(physicalIndex => hiddenPhysicalRows.includes(physicalIndex))
+          );
         }
 
-      // Handled row is the first rendered index and there are some visual indexes before it.
+        // Handled row is the first rendered index and there are some visual indexes before it.
       } else if (renderableStartRow === 0 && renderableStartRow < visualStartRow) {
         // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
         physicalRowIndexes.push(...notTrimmedRowIndexes.slice(0, visualStartRow)); // physical indexes
 
-      // When all rows are hidden and the context menu is triggered using top-left corner.
+        // When all rows are hidden and the context menu is triggered using top-left corner.
       } else if (renderableStartRow === null) {
         // Show all hidden rows.
         physicalRowIndexes.push(...notTrimmedRowIndexes.slice(0, this.countRows()));
