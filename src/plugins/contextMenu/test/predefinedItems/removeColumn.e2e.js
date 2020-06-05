@@ -96,7 +96,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
         height: 100,
         beforeContextMenuShow() {
-          this.deselectCell(0, 0);
+          this.deselectCell();
         }
       });
 
