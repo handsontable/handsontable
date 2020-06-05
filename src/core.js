@@ -3521,10 +3521,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
+   * @param {boolean} [includeCorner=true] `true` If the selection should include the corner header, `false` otherwise.
    */
-  this.selectAll = function() {
+  this.selectAll = function(includeCorner = true) {
     preventScrollingToCell = true;
-    selection.selectAll();
+    selection.selectAll(includeCorner);
     preventScrollingToCell = false;
   };
 

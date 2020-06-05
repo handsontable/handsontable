@@ -89,5 +89,54 @@ describe('ContextMenu', () => {
 
       expect(getDataAtRow(0)).toEqual(['C1']);
     });
+
+    it('should display a disabled entry for "Remove column", when there\'s nothing selected', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        beforeContextMenuShow() {
+          this.deselectCell();
+        }
+      });
+
+      contextMenu();
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should display a disabled entry for "Remove column", when clicking on a row header', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      contextMenu(spec().$container.find('.ht_clone_left tbody tr').eq(0).find('th').eq(0));
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should display a disabled entry for "Remove column", when clicking on a corner header', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      contextMenu(spec().$container.find('.ht_clone_top_left_corner thead th').eq(0));
+
+      const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(5);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+    });
   });
 });

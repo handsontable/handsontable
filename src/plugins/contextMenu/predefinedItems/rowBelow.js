@@ -25,8 +25,8 @@ export default function rowBelowItem() {
       const selected = getValidSelection(this);
       const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
 
-      // There is no selection, because we have clicked on the corner and there is no data (click on the corner by default
-      // select all cells, but there are no cells).
+      // There is no selection, because we have clicked on the corner and there is no data (click on the corner by
+      // default select all cells, but there are no cells).
       if (!anyCellVisible) {
         return false;
       }
@@ -35,7 +35,9 @@ export default function rowBelowItem() {
         return true;
       }
 
-      return this.selection.isSelectedByColumnHeader() || this.countRows() >= this.getSettings().maxRows;
+      return this.selection.isSelectedByColumnHeader() ||
+        this.selection.isSelectedByCorner() ||
+        this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {
       return !this.getSettings().allowInsertRow;
