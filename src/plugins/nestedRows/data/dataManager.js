@@ -480,7 +480,12 @@ class DataManager {
       parent.__children.splice(index, null, childElement);
 
       this.plugin.disableCoreAPIModifiers();
-      this.hot.setSourceDataAtCell(this.getRowIndexWithinParent(parent), '__children', parent.__children, 'NestedRows.addChildAtIndex');
+      this.hot.setSourceDataAtCell(
+        this.getRowIndexWithinParent(parent),
+        '__children',
+        parent.__children,
+        'NestedRows.addChildAtIndex'
+      );
       this.plugin.enableCoreAPIModifiers();
 
       this.hot.runHooks('afterCreateRow', index, 1);
@@ -621,7 +626,8 @@ class DataManager {
   }
 
   /**
-   * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the default script.
+   * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the
+   * default script.
    *
    * @private
    * @param {number} index Physical index of the element at the splice beginning.
@@ -680,7 +686,13 @@ class DataManager {
     } while (tempParent !== null);
 
     this.plugin.disableCoreAPIModifiers();
-    this.hot.setSourceDataAtCell(this.getRowIndex(upmostParent), '__children', upmostParent.__children, 'NestedRows.syncRowWithRawSource', true);
+    this.hot.setSourceDataAtCell(
+      this.getRowIndex(upmostParent),
+      '__children',
+      upmostParent.__children,
+      'NestedRows.syncRowWithRawSource',
+      true
+    );
     this.plugin.enableCoreAPIModifiers();
   }
 
