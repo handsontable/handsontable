@@ -1,6 +1,6 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
-  const getShowColumnCMelement = () => $('.htContextMenu tbody td').not('.htSeparator').filter(
+  const getShowColumnCMElement = () => $('.htContextMenu tbody td').not('.htSeparator').filter(
     (i, item) => {
       return $(item).text().toLowerCase().includes('show column');
     }
@@ -33,7 +33,7 @@ describe('ContextMenu', () => {
       selectCell(0, 1);
       contextMenu();
 
-      const compatibleEntries = getShowColumnCMelement();
+      const compatibleEntries = getShowColumnCMElement();
 
       expect(compatibleEntries.size()).toEqual(0);
     });
@@ -53,14 +53,14 @@ describe('ContextMenu', () => {
       selectColumns(1);
       contextMenu();
 
-      let compatibleEntries = getShowColumnCMelement();
+      let compatibleEntries = getShowColumnCMElement();
 
       expect(compatibleEntries.size()).toEqual(1);
 
       selectAll(true);
       contextMenu(getCell(-1, 1));
 
-      compatibleEntries = getShowColumnCMelement();
+      compatibleEntries = getShowColumnCMElement();
 
       expect(compatibleEntries.size()).toEqual(1);
     });

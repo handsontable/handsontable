@@ -1,6 +1,6 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
-  const getHideRowCMelement = () => $('.htContextMenu tbody td').not('.htSeparator').filter(
+  const getHideRowCMElement = () => $('.htContextMenu tbody td').not('.htSeparator').filter(
     (i, item) => {
       return $(item).text().toLowerCase().includes('hide row');
     }
@@ -31,7 +31,7 @@ describe('ContextMenu', () => {
       selectCell(0, 0);
       contextMenu();
 
-      const compatibleEntries = getHideRowCMelement();
+      const compatibleEntries = getHideRowCMElement();
 
       expect(compatibleEntries.size()).toEqual(0);
     });
@@ -49,14 +49,14 @@ describe('ContextMenu', () => {
       selectRows(0);
       contextMenu();
 
-      let compatibleEntries = getHideRowCMelement();
+      let compatibleEntries = getHideRowCMElement();
 
       expect(compatibleEntries.size()).toEqual(1);
 
       selectAll(true);
       contextMenu(getCell(0, -1));
 
-      compatibleEntries = getHideRowCMelement();
+      compatibleEntries = getHideRowCMElement();
 
       expect(compatibleEntries.size()).toEqual(1);
     });
