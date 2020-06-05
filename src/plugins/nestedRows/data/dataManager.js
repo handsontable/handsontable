@@ -1,5 +1,5 @@
 import { rangeEach } from '../../../helpers/number';
-import { objectEach, hasOwnProperty } from '../../../helpers/object';
+import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 
 /**
@@ -331,7 +331,7 @@ class DataManager {
    * @returns {object|null}
    */
   getRowObjectParent(rowObject) {
-    if (typeof rowObject !== 'object') {
+    if (!rowObject || typeof rowObject !== 'object') {
       return null;
     }
 
@@ -416,8 +416,7 @@ class DataManager {
       rowObj = this.getDataObject(rowObj);
     }
 
-    // TODO: Bug? What about situation when an element has empty array under the `__children` key? Please take a look at another "TODO" within test cases.
-    return !!(hasOwnProperty(rowObj, '__children'));
+    return !!rowObj.__children && rowObj.__children?.length !== 0;
   }
 
   /**
@@ -481,7 +480,7 @@ class DataManager {
       parent.__children.splice(index, null, childElement);
 
       this.plugin.disableCoreAPIModifiers();
-      this.hot.setSourceDataAtCell(this.getRowIndexWithinParent(parent), '__children', parent.__children);
+      this.hot.setSourceDataAtCell(this.getRowIndexWithinParent(parent), '__children', parent.__children, 'NestedRows.addChildAtIndex');
       this.plugin.enableCoreAPIModifiers();
 
       this.hot.runHooks('afterCreateRow', index, 1);
@@ -662,12 +661,38 @@ class DataManager {
   }
 
   /**
+   * Update the `__children` key of the upmost parent of the provided row object.
+   *
+   * @private
+   * @param {object} rowElement Row object.
+   */
+  syncRowWithRawSource(rowElement) {
+    let upmostParent = rowElement;
+    let tempParent = null;
+
+    do {
+      tempParent = this.getRowParent(tempParent);
+
+      if (tempParent !== null) {
+        upmostParent = tempParent;
+      }
+
+    } while (tempParent !== null);
+
+    this.plugin.disableCoreAPIModifiers();
+    this.hot.setSourceDataAtCell(this.getRowIndex(upmostParent), '__children', upmostParent.__children, 'NestedRows.syncRowWithRawSource', true);
+    this.plugin.enableCoreAPIModifiers();
+  }
+
+  /* eslint-disable jsdoc/require-param */
+  /**
    * Move a single row.
    *
    * @param {number} fromIndex Index of the row to be moved.
    * @param {number} toIndex Index of the destination.
    */
-  moveRow(fromIndex, toIndex) {
+  /* eslint-enable jsdoc/require-param */
+  moveRow(fromIndex, toIndex, silentMode = false) {
     const targetIsParent = this.isParent(toIndex);
 
     const fromParent = this.getRowParent(fromIndex);
@@ -699,6 +724,17 @@ class DataManager {
 
     fromParent.__children.splice(indexInFromParent, 1);
     toParent.__children.splice(indexInToParent, 0, elemToMove[0]);
+
+    // Sync the changes in the cached data with the actual data stored in HOT.
+    this.syncRowWithRawSource(fromParent);
+
+    if (fromParent !== toParent) {
+      this.syncRowWithRawSource(toParent);
+    }
+
+    if (!silentMode) {
+      this.hot.render();
+    }
   }
 
   /**
