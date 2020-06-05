@@ -52,6 +52,8 @@ class Border {
       borderStyle: 'solid',
       borderColor: '#FFF'
     };
+    // Offset to moving the corner to be centered relative to the grid.
+    this.cornerCenterPointOffset = -(parseInt(this.cornerDefaultStyle.width, 10) / 2);
     this.corner = null;
     this.cornerStyle = null;
 
@@ -495,8 +497,8 @@ class Border {
       this.cornerStyle.display = 'none';
 
     } else {
-      this.cornerStyle.top = `${top + height - 4}px`;
-      this.cornerStyle.left = `${left + width - 4}px`;
+      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - 1}px`;
+      this.cornerStyle.left = `${left + width + this.cornerCenterPointOffset - 1}px`;
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
 
@@ -516,7 +518,7 @@ class Border {
         const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
+          this.cornerStyle.left = `${Math.floor(left + width + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
           this.cornerStyle.borderRightWidth = 0;
         }
       }
@@ -527,7 +529,7 @@ class Border {
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`; // eslint-disable-line max-len
+          this.cornerStyle.top = `${Math.floor(top + height + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`; // eslint-disable-line max-len
           this.cornerStyle.borderBottomWidth = 0;
         }
       }

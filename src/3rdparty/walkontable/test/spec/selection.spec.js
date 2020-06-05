@@ -282,7 +282,8 @@ describe('Walkontable.Selection', () => {
       selections: createSelectionController({
         current: new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
+          highlightColumnClassName: 'highlightColumn',
+          border: {},
         }),
       }),
     });

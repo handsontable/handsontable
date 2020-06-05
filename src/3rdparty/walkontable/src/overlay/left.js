@@ -57,7 +57,8 @@ class LeftOverlay extends Overlay {
     let headerPosition = 0;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
-    if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
+    if (this.trimmingContainer === this.wot.rootWindow &&
+        (!preventOverflow || preventOverflow !== 'horizontal')) {
       const box = wtTable.hider.getBoundingClientRect();
       const left = Math.ceil(box.left);
       const right = Math.ceil(box.right);
@@ -188,10 +189,14 @@ class LeftOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
+    const { selections } = this.wot;
+    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(this.wot).cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;
-    holder.style.width = holder.parentNode.style.width;
+    // Add selection corner protruding part to the holder total width to make sure that
+    // borders' corner won't be cut after horizontal scroll (#6937).
+    holder.style.width = `${parseInt(holder.parentNode.style.width, 10) + selectionCornerOffset}px`;
   }
 
   /**
@@ -235,7 +240,8 @@ class LeftOverlay extends Overlay {
    * Scrolls horizontally to a column at the left edge of the viewport.
    *
    * @param {number} sourceCol  Column index which you want to scroll to.
-   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the bottom edge (top edge is by default).
+   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the bottom
+   *                                    edge (top edge is by default).
    * @returns {boolean}
    */
   scrollTo(sourceCol, beyondRendered) {
