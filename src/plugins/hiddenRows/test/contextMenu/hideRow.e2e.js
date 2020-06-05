@@ -1,5 +1,10 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
+  const getHideRowCMelement = () => $('.htContextMenu tbody td').not('.htSeparator').filter(
+    (i, item) => {
+      return $(item).text().toLowerCase().includes('hide row');
+    }
+  );
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -26,12 +31,9 @@ describe('ContextMenu', () => {
       selectCell(0, 0);
       contextMenu();
 
-      const contextMenuPlugin = getPlugin('contextMenu');
-      const hiddenRowsCMEntry = contextMenuPlugin.menu.menuItems.filter((el) => {
-        return el.key === 'hidden_rows_hide';
-      })[0];
+      const compatibleEntries = getHideRowCMelement();
 
-      expect(hiddenRowsCMEntry.hidden.call(hot())).toEqual(true);
+      expect(compatibleEntries.size()).toEqual(0);
     });
 
     it('should NOT hide the entry for "Hide row" in the context menu, when the selection contains an' +
@@ -47,17 +49,16 @@ describe('ContextMenu', () => {
       selectRows(0);
       contextMenu();
 
-      const contextMenuPlugin = getPlugin('contextMenu');
-      const hiddenRowsCMEntry = contextMenuPlugin.menu.menuItems.filter((el) => {
-        return el.key === 'hidden_rows_hide';
-      })[0];
+      let compatibleEntries = getHideRowCMelement();
 
-      expect(hiddenRowsCMEntry.hidden.call(hot())).toEqual(false);
+      expect(compatibleEntries.size()).toEqual(1);
 
       selectAll(true);
       contextMenu(getCell(0, -1));
 
-      expect(hiddenRowsCMEntry.hidden.call(hot())).toEqual(false);
+      compatibleEntries = getHideRowCMelement();
+
+      expect(compatibleEntries.size()).toEqual(1);
     });
   });
 });

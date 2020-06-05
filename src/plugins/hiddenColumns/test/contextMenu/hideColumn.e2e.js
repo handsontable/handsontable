@@ -1,5 +1,10 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
+  const getHideColumnCMelement = () => $('.htContextMenu tbody td').not('.htSeparator').filter(
+    (i, item) => {
+      return $(item).text().toLowerCase().includes('hide column');
+    }
+  );
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -26,12 +31,9 @@ describe('ContextMenu', () => {
       selectCell(0, 0);
       contextMenu();
 
-      const contextMenuPlugin = getPlugin('contextMenu');
-      const hiddenColumnsCMEntry = contextMenuPlugin.menu.menuItems.filter((el) => {
-        return el.key === 'hidden_columns_hide';
-      })[0];
+      const compatibleEntries = getHideColumnCMelement();
 
-      expect(hiddenColumnsCMEntry.hidden.call(hot())).toEqual(true);
+      expect(compatibleEntries.size()).toEqual(0);
     });
 
     it('should NOT hide the entry for "Hide column" in the context menu, when the selection contains an' +
@@ -47,17 +49,16 @@ describe('ContextMenu', () => {
       selectColumns(0);
       contextMenu();
 
-      const contextMenuPlugin = getPlugin('contextMenu');
-      const hiddenColumnsCMEntry = contextMenuPlugin.menu.menuItems.filter((el) => {
-        return el.key === 'hidden_columns_hide';
-      })[0];
+      let compatibleEntries = getHideColumnCMelement();
 
-      expect(hiddenColumnsCMEntry.hidden.call(hot())).toEqual(false);
+      expect(compatibleEntries.size()).toEqual(1);
 
       selectAll(true);
       contextMenu(getCell(-1, 0));
 
-      expect(hiddenColumnsCMEntry.hidden.call(hot())).toEqual(false);
+      compatibleEntries = getHideColumnCMelement();
+
+      expect(compatibleEntries.size()).toEqual(1);
     });
   });
 });

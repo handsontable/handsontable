@@ -1,5 +1,10 @@
 describe('ContextMenu', () => {
   const id = 'testContainer';
+  const getShowColumnCMelement = () => $('.htContextMenu tbody td').not('.htSeparator').filter(
+    (i, item) => {
+      return $(item).text().toLowerCase().includes('show column');
+    }
+  );
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
@@ -28,12 +33,9 @@ describe('ContextMenu', () => {
       selectCell(0, 1);
       contextMenu();
 
-      const contextMenuPlugin = getPlugin('contextMenu');
-      const hiddenColumnsCMEntry = contextMenuPlugin.menu.menuItems.filter((el) => {
-        return el.key === 'hidden_columns_show';
-      })[0];
+      const compatibleEntries = getShowColumnCMelement();
 
-      expect(hiddenColumnsCMEntry.hidden.call(hot())).toEqual(true);
+      expect(compatibleEntries.size()).toEqual(0);
     });
 
     it('should NOT hide the entry for "Show column" in the context menu, when the selection contains an' +
@@ -51,17 +53,16 @@ describe('ContextMenu', () => {
       selectColumns(1);
       contextMenu();
 
-      const contextMenuPlugin = getPlugin('contextMenu');
-      const hiddenColumnsCMEntry = contextMenuPlugin.menu.menuItems.filter((el) => {
-        return el.key === 'hidden_columns_show';
-      })[0];
+      let compatibleEntries = getShowColumnCMelement();
 
-      expect(hiddenColumnsCMEntry.hidden.call(hot())).toEqual(false);
+      expect(compatibleEntries.size()).toEqual(1);
 
       selectAll(true);
       contextMenu(getCell(-1, 1));
 
-      expect(hiddenColumnsCMEntry.hidden.call(hot())).toEqual(false);
+      compatibleEntries = getShowColumnCMelement();
+
+      expect(compatibleEntries.size()).toEqual(1);
     });
   });
 });
