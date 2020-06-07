@@ -1,4 +1,10 @@
-import { expandMetaType, columnFactory, isUnsignedNumber, assert, isNullish } from 'handsontable/dataMap/metaManager/utils';
+import {
+  expandMetaType,
+  columnFactory,
+  isUnsignedNumber,
+  assert,
+  isNullish
+} from 'handsontable/dataMap/metaManager/utils';
 
 describe('MetaManager utils', () => {
   describe('expandMetaType', () => {

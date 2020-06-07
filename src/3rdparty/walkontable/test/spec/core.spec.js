@@ -48,7 +48,8 @@ describe('WalkontableCore', () => {
 
   it('should bootstrap column headers if THEAD is given', () => {
     spec().$table.remove();
-    spec().$table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>').addClass('htCore');
+    spec().$table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>')
+      .addClass('htCore');
     spec().$table.appendTo(spec().$container);
 
     const wt = walkontable({

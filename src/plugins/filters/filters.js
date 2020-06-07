@@ -16,7 +16,13 @@ import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
-import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
+import {
+  CONDITION_NONE,
+  CONDITION_BY_VALUE,
+  OPERATION_AND,
+  OPERATION_OR,
+  OPERATION_OR_THEN_VARIABLE
+} from './constants';
 import { TrimmingMap } from '../../translations';
 
 import './filters.css';
@@ -131,7 +137,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap('filters', new TrimmingMap());
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
@@ -148,31 +154,53 @@ class Filters extends BasePlugin {
     const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
 
     if (!this.components.get('filter_by_condition')) {
-      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false, menuContainer });
+      const conditionComponent = new ConditionComponent(this.hot, {
+        id: 'filter_by_condition',
+        name: filterByConditionLabel,
+        addSeparator: false,
+        menuContainer
+      });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_operators')) {
-      this.components.set('filter_operators', new OperatorsComponent(this.hot, { id: 'filter_operators', name: 'Operators' }));
+      this.components.set('filter_operators', new OperatorsComponent(this.hot, {
+        id: 'filter_operators',
+        name: 'Operators'
+      }));
     }
     if (!this.components.get('filter_by_condition2')) {
-      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition2', name: '', addSeparator: true, menuContainer });
+      const conditionComponent = new ConditionComponent(this.hot, {
+        id: 'filter_by_condition2',
+        name: '',
+        addSeparator: true,
+        menuContainer
+      });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
     if (!this.components.get('filter_by_value')) {
-      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, { id: 'filter_by_value', name: filterValueLabel })));
+      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
+        id: 'filter_by_value',
+        name: filterValueLabel
+      })));
     }
     if (!this.components.get('filter_action_bar')) {
-      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, { id: 'filter_action_bar', name: 'Action bar' })));
+      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {
+        id: 'filter_action_bar',
+        name: 'Action bar'
+      })));
     }
     if (!this.conditionCollection) {
       this.conditionCollection = new ConditionCollection();
     }
     if (!this.conditionUpdateObserver) {
-      this.conditionUpdateObserver = new ConditionUpdateObserver(this.conditionCollection, column => this.getDataMapAtColumn(column));
+      this.conditionUpdateObserver = new ConditionUpdateObserver(
+        this.conditionCollection,
+        column => this.getDataMapAtColumn(column)
+      );
       this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
 
@@ -182,7 +210,8 @@ class Filters extends BasePlugin {
 
     this.registerEvents();
     this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
-    this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuDefaultOptions',
+      defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
     this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.onAfterChange(changes));
@@ -220,7 +249,7 @@ class Filters extends BasePlugin {
 
       this.conditionCollection.clean();
 
-      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
     super.disablePlugin();
@@ -413,7 +442,8 @@ class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
-      const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot.getCellMeta(rowIndex, visualIndex);
+      const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot
+        .getCellMeta(rowIndex, visualIndex);
 
       data.push({
         meta: { row, col, visualCol, visualRow, type, instance, dateFormat },
@@ -567,13 +597,19 @@ class Filters extends BasePlugin {
       const byConditionState2 = this.components.get('filter_by_condition2').getState();
       const byValueState = this.components.get('filter_by_value').getState();
 
-      const operation = this.getOperationBasedOnArguments(this.components.get('filter_operators').getActiveOperationId(),
-        byConditionState1, byConditionState2, byValueState);
+      const operation = this.getOperationBasedOnArguments(
+        this.components.get('filter_operators').getActiveOperationId(),
+        byConditionState1,
+        byConditionState2,
+        byValueState
+      );
 
       this.conditionUpdateObserver.groupChanges();
       this.conditionCollection.clearConditions(physicalIndex);
 
-      if (byConditionState1.command.key === CONDITION_NONE && byConditionState2.command.key === CONDITION_NONE && byValueState.command.key === CONDITION_NONE) {
+      if (byConditionState1.command.key === CONDITION_NONE &&
+          byConditionState2.command.key === CONDITION_NONE &&
+          byValueState.command.key === CONDITION_NONE) {
         this.conditionCollection.removeConditions(physicalIndex);
 
       } else {
@@ -611,11 +647,15 @@ class Filters extends BasePlugin {
    */
   onComponentChange(component, command) {
     if (component === this.components.get('filter_by_condition')) {
-      if (command.showOperators) {
-        this.showComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
+      const componentsToShow = [
+        this.components.get('filter_by_condition2'),
+        this.components.get('filter_operators')
+      ];
 
+      if (command.showOperators) {
+        this.showComponents(...componentsToShow);
       } else {
-        this.hideComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
+        this.hideComponents(...componentsToShow);
       }
     }
 
@@ -815,7 +855,10 @@ class Filters extends BasePlugin {
       const index = this.lastSelectedColumn.physicalIndex;
 
       if (!this.hiddenRowsCache.has(index)) {
-        this.hiddenRowsCache.set(index, this.getIndexesOfComponents(this.components.get('filter_operators'), this.components.get('filter_by_condition2')));
+        this.hiddenRowsCache.set(index, this.getIndexesOfComponents(
+          this.components.get('filter_operators'),
+          this.components.get('filter_by_condition2'))
+        );
       }
 
       this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: { rows: this.hiddenRowsCache.get(index) } });
@@ -823,13 +866,13 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Saves `hiddenRows` cache for particular row.
+   * Saves `hiddenRows` cache for particular column.
    *
    * @private
-   * @param {number} rowIndex Physical row index.
+   * @param {number} columnIndex Physical column index.
    */
-  saveHiddenRowsCache(rowIndex) {
-    this.hiddenRowsCache.set(rowIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').hiddenRows);
+  saveHiddenRowsCache(columnIndex) {
+    this.hiddenRowsCache.set(columnIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').getHiddenRows());
   }
 
   /**
@@ -861,7 +904,7 @@ class Filters extends BasePlugin {
         component.destroy();
       });
 
-      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();

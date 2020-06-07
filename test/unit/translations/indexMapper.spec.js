@@ -1,5 +1,10 @@
 import IndexMapper from 'handsontable/translations/indexMapper';
-import { TrimmingMap, HidingMap, PhysicalIndexToValueMap as IndexToValueMap, IndexesSequence } from 'handsontable/translations';
+import {
+  TrimmingMap,
+  HidingMap,
+  PhysicalIndexToValueMap as IndexToValueMap,
+  IndexesSequence
+} from 'handsontable/translations';
 
 describe('IndexMapper', () => {
   it('should fill mappers with initial values at start', () => {
@@ -558,6 +563,72 @@ describe('IndexMapper', () => {
     expect(indexMapper.getPhysicalFromRenderableIndex(5)).toBe(null);
     expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(null);
     expect(indexMapper.getPhysicalFromRenderableIndex(7)).toBe(null);
+
+    indexMapper.unregisterMap('trimmingMap');
+    indexMapper.unregisterMap('hidingMap');
+  });
+
+  it('should return proper values for the `getFirstNotHiddenIndex` method calls', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = new TrimmingMap();
+    const hidingMap = new HidingMap();
+
+    indexMapper.registerMap('trimmingMap', trimmingMap);
+    indexMapper.registerMap('hidingMap', hidingMap);
+    indexMapper.initToLength(10);
+    trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
+    hidingMap.setValues([false, true, true, false, false, true, true, false, true, false]);
+
+    // is renderable?  |    -  -  +  +  -  -  +  -
+    // visual          |    0  1  2  3  4  5  6  7
+    // physical        | 0  1  2  3  4  5  6  7  8  9
+
+    expect(indexMapper.getFirstNotHiddenIndex(6, 1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(6, -1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(7, -1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(7, 1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(7, 1, true)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(5, 1)).toBe(6);
+    expect(indexMapper.getFirstNotHiddenIndex(5, -1)).toBe(3);
+    expect(indexMapper.getFirstNotHiddenIndex(1, -1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(1, -1, true)).toBe(2);
+    expect(indexMapper.getFirstNotHiddenIndex(0, -1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(0, -1, true)).toBe(2);
+    expect(indexMapper.getFirstNotHiddenIndex(0, 1)).toBe(2);
+    expect(indexMapper.getFirstNotHiddenIndex(1, 1)).toBe(2);
+
+    indexMapper.unregisterMap('trimmingMap');
+    indexMapper.unregisterMap('hidingMap');
+  });
+
+  it('should return proper values for translating indexes beyond the table boundaries', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = new TrimmingMap();
+    const hidingMap = new HidingMap();
+
+    indexMapper.registerMap('trimmingMap', trimmingMap);
+    indexMapper.registerMap('hidingMap', hidingMap);
+    indexMapper.initToLength(10);
+    trimmingMap.setValues([true, false, false, false, false, false, false, false, false, true]);
+    hidingMap.setValues([false, true, false, false, false, false, false, false, true, false]);
+
+    // renderable  |       0  1  2  3  4  5
+    // visual      |    0  1  2  3  4  5  6  7
+    // physical    | 0  1  2  3  4  5  6  7  8  9
+
+    expect(indexMapper.getVisualFromPhysicalIndex(-1)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(-1)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(-1)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(-1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(-1, 1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(-1, -1)).toBe(null);
+
+    expect(indexMapper.getVisualFromPhysicalIndex(10)).toBe(null);
+    expect(indexMapper.getPhysicalFromVisualIndex(8)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex(8)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(8, 1)).toBe(null);
+    expect(indexMapper.getFirstNotHiddenIndex(8, -1)).toBe(null);
+    expect(indexMapper.getPhysicalFromRenderableIndex(6)).toBe(null);
 
     indexMapper.unregisterMap('trimmingMap');
     indexMapper.unregisterMap('hidingMap');
@@ -1294,9 +1365,11 @@ describe('IndexMapper', () => {
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 4, 5, 6, 7, 8, 9, 10]);
         // Next values (indexes) are recounted (re-indexed).
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        // Next values are just preserved, they aren't counted again. Element is inserted at 4th position (before 5th element, because third element is trimmed).
+        // Next values are just preserved, they aren't counted again.
+        // Element is inserted at 4th position (before 5th element, because third element is trimmed).
         expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 6, 7, 8, 9, 10, 11]);
-        expect(trimmingMap.getValues()).toEqual([false, false, false, true, false, false, false, false, false, false, false]);
+        expect(trimmingMap.getValues())
+          .toEqual([false, false, false, true, false, false, false, false, false, false, false]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('indexToValueMap');
@@ -1325,7 +1398,8 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 6, 7, 8, 9, 10, 11]);
-        expect(trimmingMap.getValues()).toEqual([true, true, true, true, false, false, false, false, false, false, false, false, false]);
+        expect(trimmingMap.getValues())
+          .toEqual([true, true, true, true, false, false, false, false, false, false, false, false, false]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('indexToValueMap');
@@ -1354,7 +1428,8 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-        expect(trimmingMap.getValues()).toEqual([false, false, false, false, false, false, false, false, false, true, true, true, true]);
+        expect(trimmingMap.getValues())
+          .toEqual([false, false, false, false, false, false, false, false, false, true, true, true, true]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('indexToValueMap');
@@ -1381,7 +1456,8 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
-        expect(trimmingMap.getValues()).toEqual([true, true, true, true, true, true, true, true, true, true, false, false, false]);
+        expect(trimmingMap.getValues())
+          .toEqual([true, true, true, true, true, true, true, true, true, true, false, false, false]);
       });
     });
 
@@ -1406,7 +1482,8 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 5, 6, 7, 8, 9, 10, 11]);
-        expect(hidingMap.getValues()).toEqual([true, true, false, false, false, false, false, false, false, false, false, false, true]);
+        expect(hidingMap.getValues())
+          .toEqual([true, true, false, false, false, false, false, false, false, false, false, false, true]);
       });
 
       it('should insert indexes properly when all indexes are hidden', () => {
@@ -1429,7 +1506,8 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(indexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 5, 6, 7, 8, 9, 10, 11]);
-        expect(hidingMap.getValues()).toEqual([true, true, true, false, false, false, true, true, true, true, true, true, true]);
+        expect(hidingMap.getValues())
+          .toEqual([true, true, true, false, false, false, true, true, true, true, true, true, true]);
       });
     });
   });

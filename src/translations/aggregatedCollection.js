@@ -9,9 +9,19 @@ import { isDefined } from '../helpers/mixed';
 class AggregatedCollection extends MapCollection {
   constructor(aggregationFunction, fallbackValue) {
     super();
-
+    /**
+     * List of merged values. Value for each index is calculated using values inside registered maps.
+     *
+     * @type {Array}
+     */
     this.mergedValuesCache = [];
+    /**
+     * Function which do aggregation on the values for particular index.
+     */
     this.aggregationFunction = aggregationFunction;
+    /**
+     * Fallback value when there is no calculated value for particular index.
+     */
     this.fallbackValue = fallbackValue;
   }
 
@@ -52,8 +62,8 @@ class AggregatedCollection extends MapCollection {
     // +---------+----------+----------+
     // |    0    | [[ value,  value ], |
     // |    1    | [  value,  value ], |
-    // |    2    | [  value,  value ]] |
-    // |    3    | [  value,  value ]] |
+    // |    2    | [  value,  value ], |
+    // |    3    | [  value,  value ], |
     // |    4    | [  value,  value ]] |
     // +---------+----------+----------+
     const indexesValuesMatrix = [];

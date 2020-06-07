@@ -15,6 +15,7 @@ declare namespace _Handsontable {
     addHookOnce<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K] | Handsontable.Hooks.Events[K][]): void;
     alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
     clear(): void;
+    clearUndo(): void;
     columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
     colOffset(): number;
     colToProp(col: number): string | number;
@@ -81,15 +82,18 @@ declare namespace _Handsontable {
     hasHook(key: keyof Handsontable.Hooks.Events): boolean;
     hasRowHeaders(): boolean;
     init(): () => void;
-    isEmptyCol(col: number): boolean;
-    isEmptyRow(row: number): boolean;
-    isDestroyed: boolean;
-    isListening(): boolean;
     isColumnModificationAllowed(): boolean;
+    isDestroyed: boolean
+    isEmptyCol(col: number): boolean;
+    isEmptyRow(row: number): boolean;;
+    isListening(): boolean;
+    isRedoAvailable(): boolean;
+    isUndoAvailable(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
     populateFromArray(row: number, col: number, input: Handsontable.CellValue[][], endRow?: number, endCol?: number, source?: string, method?: 'shift_down' | 'shift_right' | 'overwrite', direction?: 'left' | 'right' | 'up' | 'down', deltas?: any[]): void;
     propToCol(prop: string | number): number;
+    redo(): void;
     refreshDimensions(): void;
     removeCellMeta(row: number, col: number, key: string): void;
     removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
@@ -129,6 +133,8 @@ declare namespace _Handsontable {
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
     toTableElement(): HTMLTableElement;
+    undo(): void;
+    undoRedo: Handsontable.UndoRedo;
     unlisten(): void;
     updateSettings(settings: Handsontable.GridSettings, init?: boolean): void;
     validateCell(value: any, cellProperties: Handsontable.CellProperties, callback: (valid: boolean) => void, source: string): void;
@@ -904,6 +910,8 @@ declare namespace Handsontable {
     }
 
     interface ContextMenu extends Base {
+      DEFAULT_ITEMS: contextMenu.PredefinedMenuItemKey[];
+      SEPARATOR: SeparatorObject;
       eventManager: EventManager;
       commandExecutor: CommandExecutor;
       itemsFactory: ItemsFactory | void;
@@ -1119,6 +1127,7 @@ declare namespace Handsontable {
       type Change = {
         actionType: 'change';
         changes: CellChange[];
+        selected: [number, number][]
       };
       type InsertRow = {
         actionType: 'insert_row';
@@ -1208,27 +1217,23 @@ declare namespace Handsontable {
     }
 
     interface HiddenColumns extends Base {
-      hiddenColumns: boolean | any[];
-      lastSelectedColumn: number;
-      settings: object | void;
-
-      isHidden(column: number, isLogicIndex?: boolean): boolean;
+      isHidden(column: number): boolean;
       hideColumn(column: number): void;
-      hideColumns(columns: any[]): void;
+      hideColumns(columns: number[]): void;
       showColumn(column: number): void;
-      showColumns(columns: any[]): void;
+      showColumns(columns: number[]): void;
+      getHiddenColumns(): number[];
+      isValidConfig(hiddenColumns: number[]): boolean;
     }
 
     interface HiddenRows extends Base {
-      hiddenRows: boolean | any[];
-      lastSelectedRow: number;
-      settings: object | void;
-
-      isHidden(row: number, isLogicIndex?: boolean): boolean;
+      isHidden(row: number): boolean;
       hideRow(row: number): void;
-      hideRows(rows: any[]): void;
+      hideRows(rows: number[]): void;
       showRow(row: number): void;
-      showRows(rows: any[]): void;
+      showRows(rows: number[]): void;
+      getHiddenRows(): number[];
+      isValidConfig(hiddenRows: number[]): boolean;
     }
 
     interface ManualColumnFreeze extends Base {
@@ -1365,7 +1370,7 @@ declare namespace Handsontable {
       clearManualSize(column: number): void;
       getTHFromTargetElement(element: HTMLElement): HTMLElement;
       hideHandleAndGuide(): void;
-      loadManualColumnWidths(): void;
+      loadManualColumnWidths(): (number | null)[];
       refreshGuidePosition(): void;
       refreshHandlePosition(): void;
       saveManualColumnWidths(): void;
@@ -1407,7 +1412,7 @@ declare namespace Handsontable {
       clearManualSize(column: number): void;
       getTHFromTargetElement(element: HTMLElement): HTMLElement;
       hideHandleAndGuide(): void;
-      loadManualRowHeights(): void;
+      loadManualRowHeights(): (number|null)[];
       refreshGuidePosition(): void;
       refreshHandlePosition(): void;
       saveManualRowHeights(): void;
@@ -1636,9 +1641,23 @@ declare namespace Handsontable {
     (row: RowObject | CellValue[], value: CellValue): void;
   }
 
+  interface UndoRedo {
+    doneAction: plugins.UndoRedoAction[];
+    instance: Handsontable;
+    ignoreNewActions: boolean;
+    undoneActions: plugins.UndoRedoAction[];
+
+    clear(): void;
+    done(action: plugins.UndoRedoAction): void;
+    isRedoAvailable(): boolean;
+    isUndoAvailable(): boolean;
+    redo(): void;
+    undo(): void;
+  }
+
   /**
-   * Base table settings that will cascade to columns and cells.
-   */
+ * Base table settings that will cascade to columns and cells.
+ */
   interface GridSettings extends Hooks.Events {
     activeHeaderClassName?: string;
     allowEmpty?: boolean;
@@ -1972,7 +1991,7 @@ declare namespace Handsontable {
     count: number;
     startColumn: number | null;
     endColumn: number | null;
-    startPosition: number | number;
+    startPosition: number | null;
     startRow?: number;
     endRow?: number;
     stretchAllRatio: number;
@@ -2011,7 +2030,7 @@ declare namespace Handsontable {
       getPhysicalFromRenderableIndex: (renderableIndex: number) => number | null;
       getVisualFromRenderableIndex: (renderableIndex: number) => number | null;
       getRenderableFromVisualIndex: (visualIndex: number) => number | null;
-      getFirstNotHiddenIndex: (fromVisualIndex: number, incrementBy: number) => number | null;
+      getFirstNotHiddenIndex: (fromVisualIndex: number, incrementBy: number, searchAlsoOtherWayAround?: boolean, indexForNextSearch?: number) => number | null;
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
       setIndexesSequence: (indexes: number[]) => void;
@@ -2169,6 +2188,7 @@ declare namespace Handsontable {
     cellMethodLookupFactory(methodName: string, allowUndefined: boolean): void,
     clone(object: object): object,
     columnFactory(GridSettings: GridSettings, conflictList: any[]): object,
+    stringToArray(value: string): string[],
     countFirstRowKeys(data: Handsontable.CellValue[][] | object[]): number,
     createEmptySpreadsheetData(rows: number, columns: number): any[],
     createObjectPropListener(defaultValue?: any, propertyToListen?: string): object,
@@ -2188,9 +2208,12 @@ declare namespace Handsontable {
     extend(target: object, extension: object): void,
     extendArray(arr: any[], extension: any[]): void,
     getComparisonFunction(language: string, options?: object): any | void,
+    getDifferenceOfArrays(...arrays: (string | number)[][]): string[] | number[],
+    getIntersectionOfArrays(...arrays: (string | number)[][]): string[] | number[],
     getNormalizedDate(dateString: string): Date,
     getProperty(object: object, name: string): any | void,
     getPrototypeOf(obj: object): any | void,
+    getUnionOfArrays(...arrays: (string | number)[][]): string[] | number[],
     hasCaptionProblem(): boolean | void,
     htmlToGridSettings(element: HTMLTableElement | string, rootDocument?: Document): GridSettings,
     inherit(Child: object, Parent: object): object,

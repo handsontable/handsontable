@@ -131,7 +131,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.columnMetaCache = this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, new IndexToValueMap((physicalIndex) => {
+    this.columnMetaCache = new IndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
 
       if (visualIndex === null) {
@@ -139,10 +139,12 @@ class ColumnSorting extends BasePlugin {
       }
 
       return this.getMergedPluginSettings(visualIndex);
-    }));
+    });
+    this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
 
     this.addHook('afterGetColHeader', (column, TH) => this.onAfterGetColHeader(column, TH));
-    this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.onBeforeOnCellMouseDown(event, coords, TD, controller));
+    this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) =>
+      this.onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('afterOnCellMouseDown', (event, target) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.loadOrSortBySettings());
     this.addHook('afterLoadData', (sourceData, initialLoad) => this.onAfterLoadData(initialLoad));
@@ -226,7 +228,8 @@ class ColumnSorting extends BasePlugin {
     if (sortPossible) {
       const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
         ({ column: this.hot.columnIndexMapper.getPhysicalFromVisualIndex(visualColumn), ...restOfProperties });
-      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig => translateColumnToPhysical(columnSortConfig));
+      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig =>
+        translateColumnToPhysical(columnSortConfig));
 
       this.columnStatesManager.setSortStates(internalSortStates);
       this.sortByPresetSortStates();
@@ -315,7 +318,8 @@ class ColumnSorting extends BasePlugin {
     if (this.areValidSortConfigs(destinationSortConfigs)) {
       const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
         ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
-      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig => translateColumnToPhysical(columnSortConfig));
+      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig =>
+        translateColumnToPhysical(columnSortConfig));
 
       this.columnStatesManager.setSortStates(internalSortStates);
     }
@@ -453,14 +457,25 @@ class ColumnSorting extends BasePlugin {
 
     if (isColumnSorted) {
       if (isUndefined(nextColumnConfig)) {
-        return [...currentSortConfig.slice(0, indexOfColumnToChange), ...currentSortConfig.slice(indexOfColumnToChange + 1)];
+        return [
+          ...currentSortConfig.slice(0, indexOfColumnToChange),
+          ...currentSortConfig.slice(indexOfColumnToChange + 1)
+        ];
       }
 
       if (strategyId === APPEND_COLUMN_CONFIG_STRATEGY) {
-        return [...currentSortConfig.slice(0, indexOfColumnToChange), ...currentSortConfig.slice(indexOfColumnToChange + 1), nextColumnConfig];
+        return [
+          ...currentSortConfig.slice(0, indexOfColumnToChange),
+          ...currentSortConfig.slice(indexOfColumnToChange + 1),
+          nextColumnConfig
+        ];
 
       } else if (strategyId === REPLACE_COLUMN_CONFIG_STRATEGY) {
-        return [...currentSortConfig.slice(0, indexOfColumnToChange), nextColumnConfig, ...currentSortConfig.slice(indexOfColumnToChange + 1)];
+        return [
+          ...currentSortConfig.slice(0, indexOfColumnToChange),
+          nextColumnConfig,
+          ...currentSortConfig.slice(indexOfColumnToChange + 1)
+        ];
       }
     }
 
@@ -504,10 +519,12 @@ class ColumnSorting extends BasePlugin {
     const columnMeta = Object.getPrototypeOf(cellMeta);
 
     if (Array.isArray(columnMeta.columns)) {
-      return Object.assign(storedColumnProperties, pluginMainSettings, this.getPluginColumnConfig(columnMeta.columns[column]));
+      return Object
+        .assign(storedColumnProperties, pluginMainSettings, this.getPluginColumnConfig(columnMeta.columns[column]));
 
     } else if (isFunction(columnMeta.columns)) {
-      return Object.assign(storedColumnProperties, pluginMainSettings, this.getPluginColumnConfig(columnMeta.columns(column)));
+      return Object
+        .assign(storedColumnProperties, pluginMainSettings, this.getPluginColumnConfig(columnMeta.columns(column)));
     }
 
     return Object.assign(storedColumnProperties, pluginMainSettings);
@@ -566,7 +583,7 @@ class ColumnSorting extends BasePlugin {
     const numberOfRows = this.hot.countRows();
 
     const getDataForSortedColumns = visualRowIndex =>
-      arrayMap(sortedColumnsList, physicalColumn => this.hot.getDataAtCell(visualRowIndex, this.hot.toVisualColumn(physicalColumn)));
+      arrayMap(sortedColumnsList, physicalColumn => this.hot.getDataAtCell(visualRowIndex, this.hot.toVisualColumn(physicalColumn))); // eslint-disable-line max-len
 
     for (let visualRowIndex = 0; visualRowIndex < this.getNumberOfRowsToSort(numberOfRows); visualRowIndex += 1) {
       indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex)].concat(getDataForSortedColumns(visualRowIndex)));
@@ -588,15 +605,19 @@ class ColumnSorting extends BasePlugin {
 
     const indexesAfter = arrayMap(indexesWithData, indexWithData => indexWithData[0]);
 
-    const indexMapping = new Map(arrayMap(indexesBefore, (indexBefore, indexInsideArray) => [indexBefore, indexesAfter[indexInsideArray]]));
+    const indexMapping = new Map(
+      arrayMap(indexesBefore, (indexBefore, indexInsideArray) => [indexBefore, indexesAfter[indexInsideArray]])
+    );
 
-    this.hot.rowIndexMapper.setIndexesSequence(arrayMap(this.hot.rowIndexMapper.getIndexesSequence(), (physicalIndex) => {
+    const newIndexesSequence = arrayMap(this.hot.rowIndexMapper.getIndexesSequence(), (physicalIndex) => {
       if (indexMapping.has(physicalIndex)) {
         return indexMapping.get(physicalIndex);
       }
 
       return physicalIndex;
-    }));
+    });
+
+    this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence);
   }
 
   /**
@@ -659,7 +680,13 @@ class ColumnSorting extends BasePlugin {
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
-    this.updateHeaderClasses(headerSpanElement, this.columnStatesManager, physicalColumn, showSortIndicator, headerActionEnabled);
+    this.updateHeaderClasses(
+      headerSpanElement,
+      this.columnStatesManager,
+      physicalColumn,
+      showSortIndicator,
+      headerActionEnabled
+    );
   }
 
   /**

@@ -167,6 +167,33 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(3, 1)).toEqual('B4');
         });
 
+        it('should undo removal all rows', () => {
+          const HOT = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(4, 2)
+          });
+
+          alter('remove_row', 0, 4);
+
+          expect(countRows()).toBe(0);
+          expect(countCols()).toBe(0);
+          expect(getData()).toEqual([]);
+          expect(getSourceData()).toEqual([]);
+          expect(getDataAtCell(0, 0)).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toBe(4);
+          expect(countCols()).toBe(2);
+          expect(getDataAtCell(0, 0)).toBe('A1');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(1, 0)).toBe('A2');
+          expect(getDataAtCell(1, 1)).toBe('B2');
+          expect(getDataAtCell(2, 0)).toBe('A3');
+          expect(getDataAtCell(2, 1)).toBe('B3');
+          expect(getDataAtCell(3, 0)).toBe('A4');
+          expect(getDataAtCell(3, 1)).toBe('B4');
+        });
+
         it('should undo removal of single row after column sorting', () => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(3, 2),
@@ -565,6 +592,36 @@ describe('UndoRedo', () => {
           expect(getDataAtCell(1, 1)).toEqual('B2');
           expect(getDataAtCell(1, 2)).toEqual('C2');
           expect(getDataAtCell(1, 3)).toEqual('D2');
+          expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
+        });
+
+        it('should undo removal all columns', () => {
+          const HOT = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(2, 4),
+            colHeaders: ['Header1', 'Header2', 'Header3', 'Header4'],
+            contextMenu: true,
+          });
+
+          alter('remove_col', 0, 4);
+
+          expect(countRows()).toBe(0);
+          expect(countCols()).toBe(0);
+          expect(getDataAtCell(0, 0)).toBeNull();
+          expect(getData()).toEqual([]);
+          expect(getSourceData()).toEqual([[], []]);
+
+          HOT.undo();
+
+          expect(countRows()).toBe(2);
+          expect(countCols()).toBe(4);
+          expect(getDataAtCell(0, 0)).toBe('A1');
+          expect(getDataAtCell(0, 1)).toBe('B1');
+          expect(getDataAtCell(0, 2)).toBe('C1');
+          expect(getDataAtCell(0, 3)).toBe('D1');
+          expect(getDataAtCell(1, 0)).toBe('A2');
+          expect(getDataAtCell(1, 1)).toBe('B2');
+          expect(getDataAtCell(1, 2)).toBe('C2');
+          expect(getDataAtCell(1, 3)).toBe('D2');
           expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
         });
 
@@ -2363,7 +2420,9 @@ describe('UndoRedo', () => {
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
-            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
+            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' ||
+              cellMeta.className.trim() === 'htLeft';
+
             expect(finish).toBe(true);
           }
         }
@@ -2432,7 +2491,9 @@ describe('UndoRedo', () => {
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
-            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' || cellMeta.className.trim() === 'htLeft';
+            finish = cellMeta.className === void 0 || cellMeta.className.trim() === '' ||
+              cellMeta.className.trim() === 'htLeft';
+
             expect(finish).toBe(true);
           }
         }

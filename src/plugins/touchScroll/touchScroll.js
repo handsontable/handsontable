@@ -100,7 +100,13 @@ class TouchScroll extends BasePlugin {
       return;
     }
 
-    const { topOverlay, bottomOverlay, leftOverlay, topLeftCornerOverlay, bottomLeftCornerOverlay } = this.hot.view.wt.wtOverlays;
+    const {
+      topOverlay,
+      bottomOverlay,
+      leftOverlay,
+      topLeftCornerOverlay,
+      bottomLeftCornerOverlay
+    } = this.hot.view.wt.wtOverlays;
 
     this.lockedCollection = true;
     this.scrollbars.length = 0;

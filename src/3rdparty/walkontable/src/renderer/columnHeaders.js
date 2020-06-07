@@ -69,7 +69,7 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
       const { columnHeaderFunctions, columnsToRender, rowHeadersCount } = this.table;
       const TR = this.rootNode.childNodes[rowHeaderIndex];
 
-      for (let renderedColumnIndex = (-1) * rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex += 1) {
+      for (let renderedColumnIndex = (-1) * rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex += 1) { // eslint-disable-line max-len
         const sourceColumnIndex = this.table.renderedColumnToSource(renderedColumnIndex);
         const TH = TR.childNodes[renderedColumnIndex + rowHeadersCount];
 

@@ -2,7 +2,8 @@ describe('TextEditor', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -198,34 +199,32 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.getAttribute('tabindex')).toBe('-1');
   });
 
-  it('should render textarea editor in specified size at cell 0, 0 without headers', (done) => {
+  it('should render textarea editor in specified size at cell 0, 0 without headers', async() => {
     const hot = handsontable();
 
     selectCell(0, 0);
 
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
   });
 
-  it('should render textarea editor in specified size at cell 1, 0 without headers', (done) => {
+  it('should render textarea editor in specified size at cell 1, 0 without headers', async() => {
     const hot = handsontable();
 
     selectCell(1, 1);
 
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
   });
 
-  it('should render textarea editor in specified size at cell 0, 0 with headers', (done) => {
+  it('should render textarea editor in specified size at cell 0, 0 with headers', async() => {
     const hot = handsontable({
       rowHeaders: true,
       colHeaders: true
@@ -235,15 +234,14 @@ describe('TextEditor', () => {
 
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
-      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
+    expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
   });
 
-  it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', (done) => {
+  it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       columns: [{
@@ -265,12 +263,11 @@ describe('TextEditor', () => {
 
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(50, 4);
-      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(50, 4);
+    expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
   });
 
   it('should hide whole editor when it is higher then header and TD is not rendered anymore', async() => {
@@ -683,16 +680,14 @@ describe('TextEditor', () => {
     cell
       .simulate('mousedown')
       .simulate('mouseup')
-      .simulate('click')
-    ;
+      .simulate('click');
 
     await sleep(100);
 
     cell
       .simulate('mousedown')
       .simulate('mouseup')
-      .simulate('click')
-    ;
+      .simulate('click');
 
     await sleep(100);
 
@@ -772,6 +767,7 @@ describe('TextEditor', () => {
 
   it('should call editor focus() method after opening an editor', () => {
     const hot = handsontable();
+
     selectCell(2, 2);
 
     const editor = hot.getActiveEditor();
@@ -798,14 +794,17 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toEqual(true);
 
-    document.activeElement.value = 'Very very very very very very very very very very very very very very very very very long text';
+    document.activeElement.value = 'Very very very very very very very very very very very very very ' +
+      'very very very very long text';
     keyDownUp(32); // space - trigger textarea resize
 
     const $textarea = $(document.activeElement);
     const $wtHider = spec().$container.find('.wtHider');
 
-    expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
-    expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
+    expect($textarea.offset().left + $textarea.outerWidth())
+      .not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
+    expect($textarea.offset().top + $textarea.outerHeight())
+      .not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
   });
 
   it('should open editor after selecting cell in another table and hitting enter', function() {
@@ -1282,7 +1281,8 @@ describe('TextEditor', () => {
     selectCell(0, 7);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
-    expect(Handsontable.dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toBeAroundValue(Handsontable.dom.outerWidth(hot.getCell(0, 7)));
+    expect(Handsontable.dom.outerWidth(hot.getActiveEditor().TEXTAREA))
+      .toBeAroundValue(Handsontable.dom.outerWidth(hot.getCell(0, 7)));
   });
 
   it('should display editor with the proper size, when editing a last row after the table is scrolled to the bottom', () => {
@@ -1381,7 +1381,8 @@ describe('TextEditor', () => {
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
     const data = [
       ['', '', '', '', ''],
-      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. It\'s good knowin\' he\'s out there. The ' +
+      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
+            'It\'s good knowin\' he\'s out there. The ' +
            'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
       ['', '', '', '', '']
     ];
@@ -1401,12 +1402,14 @@ describe('TextEditor', () => {
     const $editorInput = $('.handsontableInput');
     const $editedCell = $(hot.getCell(1, 1));
 
-    expect($editorInput.outerWidth()).toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
+    expect($editorInput.outerWidth())
+      .toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
     hot.scrollViewportTo(void 0, 3);
     hot.render();
 
-    expect($editorInput.width() + $editorInput.offset().left).toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
+    expect($editorInput.width() + $editorInput.offset().left)
+      .toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
   });
 
   it('should resize editor to properly size after focus', (done) => {

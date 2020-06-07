@@ -184,15 +184,30 @@ class Autofill extends BasePlugin {
       return false;
     }
 
-    let cornersOfSelectionAndDragAreas = this.hot.selection.highlight.getFill().getVisualCorners();
+    // Fill area may starts or ends with invisible cell. There won't be any information about it as highlighted selection
+    // store just renderable indexes (It's part of Walkontable). I extrapolate where the start or/and the end is.
+    const [fillStartRow, fillStartColumn, fillEndRow, fillEndColumn] =
+      this.hot.selection.highlight.getFill().getVisualCorners();
+    const [selectionStartRow, selectionStartColumn, selectionEndRow, selectionEndColumn] = this.hot.getSelectedLast();
+    let cornersOfSelectionAndDragAreas = [
+      Math.min(selectionStartRow, fillStartRow),
+      Math.min(selectionStartColumn, fillStartColumn),
+      Math.max(selectionEndRow, fillEndRow),
+      Math.max(selectionEndColumn, fillEndColumn)
+    ];
 
     this.resetSelectionOfDraggedArea();
 
-    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const cornersOfSelectedCells = this.hot.getSelectedLast();
 
-    cornersOfSelectionAndDragAreas = this.hot.runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
+    cornersOfSelectionAndDragAreas = this.hot
+      .runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
 
-    const { directionOfDrag, startOfDragCoords, endOfDragCoords } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
+    const {
+      directionOfDrag,
+      startOfDragCoords,
+      endOfDragCoords
+    } = getDragDirectionAndRange(cornersOfSelectedCells, cornersOfSelectionAndDragAreas);
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
@@ -228,8 +243,10 @@ class Autofill extends BasePlugin {
 
           for (let i = 0; i < selectionData.length; i++) {
             fillData.push([]);
+
             for (let j = 0; j < dragLength; j++) {
-              fillData[i].push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
+              fillData[i]
+                .push(selectionData[i][(j + (selectionData[i].length - fillOffset)) % selectionData[i].length]);
             }
           }
         }
@@ -288,8 +305,16 @@ class Autofill extends BasePlugin {
     const bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
     let coords;
 
-    if (this.directions.includes(DIRECTIONS.vertical) &&
-      (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row)) {
+    if (this.directions.includes(DIRECTIONS.vertical) && this.directions.includes(DIRECTIONS.horizontal)) {
+      if (bottomRightCorner.col <= coordsOfSelection.col || topLeftCorner.col >= coordsOfSelection.col) {
+        coords = new CellCoords(bottomRightCorner.row, coordsOfSelection.col);
+      }
+
+      if (bottomRightCorner.row < coordsOfSelection.row || topLeftCorner.row > coordsOfSelection.row) {
+        coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
+      }
+
+    } else if (this.directions.includes(DIRECTIONS.vertical)) {
       coords = new CellCoords(coordsOfSelection.row, bottomRightCorner.col);
 
     } else if (this.directions.includes(DIRECTIONS.horizontal)) {
@@ -347,20 +372,6 @@ class Autofill extends BasePlugin {
         this.addRow();
       }
     }
-  }
-
-  /**
-   * Get corners of selected cells.
-   *
-   * @private
-   * @returns {Array}
-   */
-  getCornersOfSelectedCells() {
-    if (this.hot.selection.isMultiple()) {
-      return this.hot.selection.highlight.createOrGetArea().getVisualCorners();
-    }
-
-    return this.hot.selection.highlight.getCell().getVisualCorners();
   }
 
   /**
@@ -428,7 +439,7 @@ class Autofill extends BasePlugin {
    * @returns {boolean}
    */
   selectAdjacent() {
-    const cornersOfSelectedCells = this.getCornersOfSelectedCells();
+    const cornersOfSelectedCells = this.hot.getSelectedLast();
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === void 0) {

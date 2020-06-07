@@ -178,7 +178,13 @@ class MultipleSelectionHandles extends BasePlugin {
           _this.hot.selection.setRangeEnd(targetCoords);
         }
 
-        newRangeCoords = _this.getCurrentRangeCoords(selectedRange, targetCoords, _this.touchStartRange.direction, rangeDirection, _this.dragged[0]);
+        newRangeCoords = _this.getCurrentRangeCoords(
+          selectedRange,
+          targetCoords,
+          _this.touchStartRange.direction,
+          rangeDirection,
+          _this.dragged[0]
+        );
 
         if (newRangeCoords.start !== null) {
           _this.hot.selection.setRangeStart(newRangeCoords.start);

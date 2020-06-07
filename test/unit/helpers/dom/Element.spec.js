@@ -139,8 +139,10 @@ describe('DomElement helper', () => {
   // Handsontable.helper.closestDown
   //
   describe('closestDown', () => {
-    const test1 = '<div class="wrapper1"><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
-    const test2 = `<div class="wrapper2"><table><tbody><tr><td class="test2">test2${test1}</td></tr></tbody></table></div>`;
+    const test1 = '<div class="wrapper1"><table><tbody><tr>' +
+      '<td class="test1">test1</td></tr></tbody></table></div>';
+    const test2 = `<div class="wrapper2"><table><tbody><tr>' +
+      '<td class="test2">test2${test1}</td></tr></tbody></table></div>`;
 
     it('should return last TD element (starting from last child element)', () => {
       const wrapper = document.createElement('div');
@@ -171,7 +173,8 @@ describe('DomElement helper', () => {
 
     beforeEach(() => {
       element = document.createElement('div');
-      element.innerHTML = '<div id="a1"><ul id="a2"></ul><ul id="b2"><li id="a3"><span id="a4">HELLO</span></li></ul></div>';
+      element.innerHTML = '<div id="a1"><ul id="a2"></ul><ul id="b2"><li id="a3">' +
+        '<span id="a4">HELLO</span></li></ul></div>';
     });
 
     afterEach(() => {

@@ -92,5 +92,35 @@ describe('settings', () => {
       expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.bar').length)).toBeGreaterThan(-1);
       expect(possibleCounts.indexOf(hot.rootElement.querySelectorAll('table.baz').length)).toBeGreaterThan(-1);
     });
+
+    it('should update tableClassName in all tables accordingly', () => {
+      handsontable({
+        data: [[1, true]],
+        tableClassName: ['table_red'],
+      });
+
+      const tables = spec().$container.find('table');
+      const masterTable = tables[0];
+      const cloneTopTable = tables[1];
+      const cloneBottomTable = tables[2];
+      const cloneLeftTable = tables[3];
+
+      expect(masterTable.classList.contains('table_red')).toBe(true);
+      expect(cloneTopTable.classList.contains('table_red')).toBe(true);
+      expect(cloneBottomTable.classList.contains('table_red')).toBe(true);
+      expect(cloneLeftTable.classList.contains('table_red')).toBe(true);
+
+      updateSettings({ tableClassName: ['table_green'] });
+
+      expect(masterTable.classList.contains('table_red')).toBe(false);
+      expect(cloneTopTable.classList.contains('table_red')).toBe(false);
+      expect(cloneBottomTable.classList.contains('table_red')).toBe(false);
+      expect(cloneLeftTable.classList.contains('table_red')).toBe(false);
+
+      expect(masterTable.classList.contains('table_green')).toBe(true);
+      expect(cloneTopTable.classList.contains('table_green')).toBe(true);
+      expect(cloneBottomTable.classList.contains('table_green')).toBe(true);
+      expect(cloneLeftTable.classList.contains('table_green')).toBe(true);
+    });
   });
 });

@@ -821,14 +821,18 @@ describe('MergeCells', () => {
         mergeCells: newMergedCells
       });
 
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: -5, col: 8, rowspan: 3, colspan: 4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: 20, col: -21, rowspan: 3, colspan: 4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: 200, col: 210, rowspan: -3, colspan: 4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: 220, col: 220, rowspan: 3, colspan: -4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: -5, col: 8, rowspan: 3, colspan: 4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: 20, col: -21, rowspan: 3, colspan: 4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: 200, col: 210, rowspan: -3, colspan: 4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: 220, col: 220, rowspan: 3, colspan: -4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
 
       expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
     });

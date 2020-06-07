@@ -48,9 +48,9 @@ class MergedCellCoords {
    * @returns {string}
    */
   static NEGATIVE_VALUES_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col}, rowspan:\x20
-    ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} contains negative values, which is not supported. It\x20
-    will not be added to the collection.`;
+    return toSingleLine`The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col},\x20
+      rowspan: ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} contains negative values, which is\x20
+      not supported. It will not be added to the collection.`;
   }
 
   /**
@@ -60,8 +60,8 @@ class MergedCellCoords {
    * @returns {string}
    */
   static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned (or positioned partially)\x20
-       outside of the table range. It was not added to the table, please fix your setup.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned\x20
+      (or positioned partially) outside of the table range. It was not added to the table, please fix your setup.`;
   }
 
   /**
@@ -72,7 +72,7 @@ class MergedCellCoords {
    */
   static IS_SINGLE_CELL(newMergedCell) {
     return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has both "rowspan"\x20
-     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`;
+      and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`;
   }
 
   /**
@@ -82,8 +82,8 @@ class MergedCellCoords {
    * @returns {string}
    */
   static ZERO_SPAN_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan" or "colspan" declared as\x20
-      "0", which is not supported. It cannot be added to the collection.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan"\x20
+      or "colspan" declared as "0", which is not supported. It cannot be added to the collection.`;
   }
 
   /**
@@ -175,7 +175,8 @@ class MergedCellCoords {
    * @returns {boolean}
    */
   includes(row, column) {
-    return this.row <= row && this.col <= column && this.row + this.rowspan - 1 >= row && this.col + this.colspan - 1 >= column;
+    return this.row <= row && this.col <= column &&
+      this.row + this.rowspan - 1 >= row && this.col + this.colspan - 1 >= column;
   }
 
   /**
@@ -307,7 +308,11 @@ class MergedCellCoords {
    * @returns {CellRange}
    */
   getRange() {
-    return new CellRange(new CellCoords(this.row, this.col), new CellCoords(this.row, this.col), new CellCoords(this.getLastRow(), this.getLastColumn()));
+    return new CellRange(
+      new CellCoords(this.row, this.col),
+      new CellCoords(this.row, this.col),
+      new CellCoords(this.getLastRow(), this.getLastColumn())
+    );
   }
 }
 

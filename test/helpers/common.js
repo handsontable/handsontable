@@ -74,6 +74,7 @@ export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
 export const getCellValidator = handsontableMethodFactory('getCellValidator');
 export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
 export const getData = handsontableMethodFactory('getData');
@@ -224,7 +225,8 @@ export function countCells() {
  * @returns {boolean}
  */
 export function isEditorVisible(editableElement) {
-  if (editableElement && !(editableElement.hasClass('handsontableInput') || editableElement.hasClass('handsontableEditor'))) {
+  if (editableElement && !(editableElement.hasClass('handsontableInput') ||
+      editableElement.hasClass('handsontableEditor'))) {
     throw new Error('Editable element of the editor was not found.');
   }
 
@@ -712,12 +714,12 @@ export function createAccessorForProperty(name) {
 }
 
 /**
- * @param {number} displayedColumnIndex The visual column index.
+ * @param {number} renderableColumnIndex The renderable column index.
  * @param {number} width The target column width.
  */
-export function resizeColumn(displayedColumnIndex, width) {
+export function resizeColumn(renderableColumnIndex, width) {
   const $container = spec().$container;
-  const $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
+  const $th = $container.find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
 
   $th.simulate('mouseover');
 
@@ -738,12 +740,12 @@ export function resizeColumn(displayedColumnIndex, width) {
 }
 
 /**
- * @param {number} displayedRowIndex The visual row index.
+ * @param {number} renderableRowIndex The renderable row index.
  * @param {number} height The target row height.
  */
-export function resizeRow(displayedRowIndex, height) {
+export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
+  const $th = $container.find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
 
   $th.simulate('mouseover');
 
@@ -880,7 +882,8 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
     changedTouches = document.createTouchList(touch);
   }
 
-  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
+  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false,
+    touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
 }
 

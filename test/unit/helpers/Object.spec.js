@@ -80,7 +80,8 @@ describe('Object helper', () => {
     it('should returns valid schema object (deeply)', () => {
       expect(duckSchema({ test: { a: { b: 11 } } })).toEqual({ test: { a: { b: null } } });
       expect(duckSchema({ test: { a: { b: [] } } })).toEqual({ test: { a: { b: [] } } });
-      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
+      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } }))
+        .toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
     });
   });
 

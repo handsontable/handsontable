@@ -159,7 +159,8 @@ class Comments extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
-    this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
+    this.addHook('afterRenderer',
+      (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
     this.addHook('afterBeginEditing', () => this.onAfterBeginEditing());
@@ -202,8 +203,10 @@ class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', () => this.onEditorBlur());
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
+    this.eventManager
+      .addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
+    this.eventManager
+      .addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
   }
 
   /**
@@ -349,7 +352,15 @@ class Comments extends BasePlugin {
   show() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+
     }
+
+    const { from: { row, col } } = this.range;
+
+    if (row < 0 || row > this.hot.countSourceRows() - 1 || col < 0 || col > this.hot.countSourceCols() - 1) {
+      return false;
+    }
+
     const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
     this.refreshEditor(true);
@@ -395,15 +406,44 @@ class Comments extends BasePlugin {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
-    const { rootWindow } = this.hot;
-    const { wtTable, wtOverlays, wtViewport } = this.hot.view.wt;
+
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { row: visualRow, col: visualColumn } = this.range.from;
+
+    let renderableRow = rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+    let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
+    // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
+    const targetingPreviousRow = renderableRow === null;
+
+    if (renderableRow === null) {
+      renderableRow = rowIndexMapper
+        .getRenderableFromVisualIndex(rowIndexMapper.getFirstNotHiddenIndex(visualRow, -1));
+    }
+
+    if (renderableColumn === null) {
+      renderableColumn = columnIndexMapper
+        .getRenderableFromVisualIndex(columnIndexMapper.getFirstNotHiddenIndex(visualColumn, -1));
+    }
+
+    const isBeforeRenderedRows = renderableRow === null;
+    const isBeforeRenderedColumns = renderableColumn === null;
+
+    renderableRow = renderableRow ?? 0;
+    renderableColumn = renderableColumn ?? 0;
+
+    const { rootWindow, view: { wt } } = this.hot;
+    const { wtTable, wtOverlays, wtViewport } = wt;
     const scrollableElement = wtOverlays.scrollableElement;
-    const TD = wtTable.getCell(this.range.from);
-    const row = this.range.from.row;
-    const column = this.range.from.col;
+
+    const TD = wtTable.getCell({
+      row: renderableRow,
+      col: renderableColumn,
+    });
+
     const cellOffset = offset(TD);
-    const lastColWidth = wtTable.getStretchedColumnWidth(column);
-    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+    let cellTopOffset = cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
     if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
@@ -415,13 +455,14 @@ class Comments extends BasePlugin {
     }
 
     const x = cellLeftOffset + lastColWidth;
-    const y = cellTopOffset;
+    const y = cellTopOffset + lastRowHeight;
 
-    const commentStyle = this.getCommentMeta(row, column, META_STYLE);
-    const readOnly = this.getCommentMeta(row, column, META_READONLY);
+    const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
+    const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
+
     } else {
       this.editor.resetSize();
     }
@@ -511,9 +552,14 @@ class Comments extends BasePlugin {
 
       if (eventCell) {
         coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+        coordinates = {
+          row: this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
+          col: this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
+        };
       }
 
-      if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
+      if (!eventCell || ((this.range.from && coordinates) &&
+          (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
         this.hide();
       }
     }
@@ -540,7 +586,10 @@ class Comments extends BasePlugin {
     if (this.targetIsCellWithComment(event)) {
       const coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
       const range = {
-        from: new CellCoords(coordinates.row, coordinates.col)
+        from: new CellCoords(
+          this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
+          this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
+        )
       };
 
       this.displaySwitch.show(range);
@@ -607,7 +656,8 @@ class Comments extends BasePlugin {
     const currentWidth = outerWidth(event.target);
     const currentHeight = outerHeight(event.target);
 
-    if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
+    if (currentWidth !== priv.tempEditorDimensions.width + 1 ||
+        currentHeight !== priv.tempEditorDimensions.height + 2) {
       this.updateCommentMeta(this.range.from.row, this.range.from.col, {
         [META_STYLE]: {
           width: currentWidth,

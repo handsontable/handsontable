@@ -214,6 +214,7 @@ class Overlay {
     const fixedColumn = columnIndex < this.wot.getSetting('fixedColumnsLeft');
     const fixedRowTop = rowIndex < this.wot.getSetting('fixedRowsTop');
     const fixedRowBottom = rowIndex >= this.wot.getSetting('totalRows') - this.wot.getSetting('fixedRowsBottom');
+
     const spreaderOffset = {
       left: this.clone.wtTable.spreader.offsetLeft,
       top: this.clone.wtTable.spreader.offsetTop
@@ -228,7 +229,8 @@ class Overlay {
       offsetObject = this.getRelativeCellPositionWithinWindow(fixedRowTop, fixedColumn, elementOffset, spreaderOffset);
 
     } else {
-      offsetObject = this.getRelativeCellPositionWithinHolder(fixedRowTop, fixedRowBottom, fixedColumn, elementOffset, spreaderOffset);
+      offsetObject = this.getRelativeCellPositionWithinHolder(fixedRowTop, fixedRowBottom, fixedColumn,
+        elementOffset, spreaderOffset);
     }
 
     return offsetObject;
@@ -325,6 +327,7 @@ class Overlay {
     const { wtTable, rootDocument, rootWindow } = this.wot;
     const clone = rootDocument.createElement('DIV');
     const clonedTable = rootDocument.createElement('TABLE');
+    const tableParent = wtTable.wtRootElement.parentNode;
 
     clone.className = `ht_clone_${direction} handsontable`;
     clone.style.position = 'absolute';
@@ -336,7 +339,7 @@ class Overlay {
     clone.appendChild(clonedTable);
 
     this.type = direction;
-    wtTable.wtRootElement.parentNode.appendChild(clone);
+    tableParent.appendChild(clone);
 
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
@@ -345,7 +348,7 @@ class Overlay {
       preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
       this.mainTableScrollableElement = rootWindow;
 
-    } else if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    } else if (rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {
       this.mainTableScrollableElement = wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);

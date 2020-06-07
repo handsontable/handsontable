@@ -41,7 +41,7 @@ export default class ColumnUtils {
   getStretchedColumnWidth(sourceIndex) {
     const columnWidth = this.getWidth(sourceIndex);
     const calculator = this.wot.wtViewport.columnsRenderCalculator;
-    let width = (columnWidth === null || columnWidth === void 0) ? this.wot.wtSettings.settings.defaultColumnWidth : columnWidth;
+    let width = columnWidth ?? this.wot.wtSettings.settings.defaultColumnWidth;
 
     if (calculator) {
       const stretchedWidth = calculator.getStretchedColumnWidth(sourceIndex, width);
@@ -100,7 +100,8 @@ export default class ColumnUtils {
       const defaultColumnWidth = wot.getSetting('defaultColumnWidth');
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
-        let width = Array.isArray(rowHeaderWidthSetting) ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
+        let width = Array.isArray(rowHeaderWidthSetting)
+          ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
 
         width = (width === null || width === void 0) ? defaultColumnWidth : width;
 
