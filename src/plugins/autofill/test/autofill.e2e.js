@@ -1192,4 +1192,123 @@ describe('AutoFill', () => {
     expect(getDataAtCell(0, 0)).toEqual(1);
     expect(getDataAtCell(1, 0)).toEqual(7);
   });
+
+  describe('fill border position', () => {
+    it('display the fill border in the correct position', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        fillHandle: true
+      });
+
+      selectCell(3, 3, 5, 5);
+
+      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+
+      spec().$container.find('.ht_master tbody tr').eq(2).find('td').eq(3).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(2, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(2).find('td').eq(4).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(2, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(2).find('td').eq(5).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(2, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(3).find('td').eq(2).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(3, 2), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 2), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 2), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(4).find('td').eq(2).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(3, 2), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 2), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 2), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(5).find('td').eq(2).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(3, 2), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 2), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 2), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(6).find('td').eq(3).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(6, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(6).find('td').eq(4).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(5, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(6).find('td').eq(5).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(5, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(3).find('td').eq(6).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(3, 6), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 6), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 6), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(4).find('td').eq(6).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(3, 6), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 6), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 6), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(5).find('td').eq(6).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(3, 6), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 6), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 6), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(2).find('td').eq(2).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(2, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(2).find('td').eq(6).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(2, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(6).find('td').eq(2).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(6, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
+
+      spec().$container.find('.ht_master tbody tr').eq(6).find('td').eq(6).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(6, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
+
+      // Inside of the selection
+      spec().$container.find('.ht_master tbody tr').eq(5).find('td').eq(4).simulate('mouseover');
+
+      expect(Handsontable.dom.hasClass(getCell(3, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(3, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(4, 4), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 3), 'fill')).toBe(true);
+      expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
+    });
+  });
 });
