@@ -2051,4 +2051,244 @@ describe('Core_selection', () => {
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop25', 10, void 0]);
     });
   });
+
+  describe('alter the table', () => {
+    it('should transform the selection down by amount of added rows when they added before the last selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
+      alter('insert_row', 1, 3);
+
+      expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [11, 0, 11, 0]]);
+      // By design only last selection is interactive.
+      expect(`
+        |   ║ - : - : - : - : - : - : - :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   : 0 : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   |
+        | - ║   : 0 :   : 0 : 0 : 0 : 0 :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║ A :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform the header selection down by amount of added rows when they added before the selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectRows(3, 5);
+      alter('insert_row', 1, 3);
+
+      expect(getSelected()).toEqual([[6, 0, 8, 9]]);
+      expect(`
+        |   ║ - : - : - : - : - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not transform the selection down by amount of added rows when they added after the last selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
+      alter('insert_row', 9, 3);
+
+      expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [8, 0, 8, 0]]);
+      expect(`
+        |   ║ - : - : - : - : - : - : - :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   : 0 : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   |
+        | - ║   : 0 :   : 0 : 0 : 0 : 0 :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║ A :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not transform the header selection down by amount of added rows when they added after the selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectRows(3, 5);
+      alter('insert_row', 5, 3);
+
+      expect(getSelected()).toEqual([[3, 0, 5, 9]]);
+      expect(`
+        |   ║ - : - : - : - : - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform the selection right by amount of added columns when they added before the last selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
+      alter('insert_col', 1, 3);
+
+      expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [8, 8, 8, 8]]);
+      // By design only last selection is interactive.
+      expect(`
+        |   ║   : - : - : - : - : - : - :   : - :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   : 0 : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   :   :   :   |
+        | - ║   : 0 :   : 0 : 0 : 0 : 0 :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   :   :   :   :   :   : A :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform the header selection right by amount of added columns when they added before the selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectColumns(3, 5);
+      alter('insert_col', 1, 3);
+
+      expect(getSelected()).toEqual([[0, 6, 9, 8]]);
+      expect(`
+        |   ║   :   :   :   :   :   : * : * : * :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===:===|
+        | - ║   :   :   :   :   :   : A : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+        | - ║   :   :   :   :   :   : 0 : 0 : 0 :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not transform the selection right by amount of added columns when they added after the last selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
+      alter('insert_col', 6, 3);
+
+      expect(getSelected()).toEqual([[2, 2, 5, 5], [6, 1, 6, 1], [3, 3, 6, 6], [8, 5, 8, 5]]);
+      expect(`
+        |   ║   : - : - : - : - : - : - :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   : 0 : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   :   :   :   |
+        | - ║   :   : 0 : 1 : 1 : 1 : 0 :   :   :   :   :   :   |
+        | - ║   : 0 :   : 0 : 0 : 0 : 0 :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   :   :   : A :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not transform the header selection right by amount of added columns when they added after the selection', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectColumns(3, 5);
+      alter('insert_col', 5, 3);
+
+      expect(getSelected()).toEqual([[0, 3, 9, 5]]);
+      expect(`
+        |   ║   :   :   : * : * : * :   :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===:===:===:===|
+        | - ║   :   :   : A : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+  });
 });

@@ -407,8 +407,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 currentFromColumn = -1;
               }
 
+              // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
+              selection.getSelectedRange().pop();
+
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn));
+              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn), true);
               selection.setRangeEnd(new CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
@@ -424,6 +428,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [index, 0];
+
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
               Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
@@ -443,8 +448,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 currentFromRow = -1;
               }
 
+              // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
+              selection.getSelectedRange().pop();
+
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(new CellCoords(currentFromRow, currentFromColumn + delta));
+              selection.setRangeStartOnly(new CellCoords(currentFromRow, currentFromColumn + delta), true);
               selection.setRangeEnd(new CellCoords(currentToRow, currentToColumn + delta)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
