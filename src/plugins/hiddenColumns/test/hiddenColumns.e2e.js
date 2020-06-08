@@ -6246,6 +6246,178 @@ describe('HiddenColumns', () => {
       expect($(dragStart).hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
+
+    it('should add highlight to an area of merged cells only when selected every merged cell', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
+      });
+
+      const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
+
+      selectColumns(2, 3);
+
+      expect(`
+      |   ║   : * : * :   |
+      |===:===:===:===:===|
+      | - ║   : A : 0 :   |
+      | - ║   : 0 :   :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 2, 4, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(2);
+      expect(getSelectedRangeLast().to.row).toBe(4);
+      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+
+      selectColumns(1, 3);
+
+      expect(`
+      |   ║   : * : * :   |
+      |===:===:===:===:===|
+      | - ║   : A : 0 :   |
+      | - ║   : 0 :   :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 4, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(4);
+      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeTrue();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
+
+    it('should add proper highlight to an area of merged cells when selected every cell ' +
+      '(few layers, every layer contain merge area)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
+      });
+
+      const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
+
+      // Selected 3 ranges containing merged area.
+      selectCells([[0, 1, 4, 3], [0, 1, 4, 3], [0, 1, 4, 3]]);
+
+      expect(`
+      |   ║   : - : - :   |
+      |===:===:===:===:===|
+      | - ║   : C : 2 :   |
+      | - ║   : 2 :   :   |
+      | - ║   : 2 : 2 :   |
+      | - ║   : 2 : 2 :   |
+      | - ║   : 2 : 2 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 4, 3], [0, 1, 4, 3], [0, 1, 4, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(4);
+      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeTrue();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-1')).toBeTrue();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-2')).toBeTrue();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
+
+    it('should add proper highlight to an area of merged cells when selected every cell ' +
+      '(few layers, every layer contain part of merge area)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        mergeCells: [{ row: 1, col: 1, rowspan: 1, colspan: 3 }]
+      });
+
+      const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
+
+      // Selected 2 ranges containing together merged area.
+      selectColumns(1);
+      keyDown('ctrl');
+      selectColumns(3);
+      keyDown('ctrl');
+      selectColumns(2);
+
+      expect(`
+      |   ║   : * : * :   |
+      |===:===:===:===:===|
+      | - ║   : A : 0 :   |
+      | - ║   : 1 :   :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      | - ║   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 1, 4, 1], [0, 3, 4, 3], [0, 2, 4, 2]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(2);
+      expect(getSelectedRangeLast().to.row).toBe(4);
+      expect(getSelectedRangeLast().to.col).toBe(2);
+      expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-multiple')).toBeTrue();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
   });
 
   describe('alter actions', () => {

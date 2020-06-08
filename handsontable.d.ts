@@ -1332,7 +1332,7 @@ declare namespace Handsontable {
         remove(row: number, column: number): MergeCellsPlugin.MergedCellCoords | boolean;
         clear(): void;
         isOverlapping(mergedCell: MergeCellsPlugin.MergedCellCoords): boolean;
-        isMergedParent(row: number, column: number): boolean;
+        isFirstRenderableMergedCell(row: number, column: number): boolean;
         shiftCollections(direction: string, index: number, count: number): void;
       }
     }

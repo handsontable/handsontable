@@ -14,6 +14,7 @@ import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
+import { isDefined } from './helpers/mixed';
 
 const privatePool = new WeakMap();
 
@@ -685,9 +686,18 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
-      onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
-        const [visualRowIndex, visualColumnIndex] = this
-          .translateFromRenderableToVisualIndex(currentRow, currentColumn);
+      onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
+        let cornersOfSelection;
+        const [visualRowIndex, visualColumnIndex] =
+          this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
+        const selectionOffset = isDefined(layerLevel) && layerLevel > 0 ? -layerLevel : 0;
+        const selectionForLayer = this.instance.selection.getSelectedRange().peekByIndex(selectionOffset);
+
+        if (isDefined(selectionForLayer)) {
+          cornersOfSelection = [
+            selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col
+          ];
+        }
 
         return this.instance
           .runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
