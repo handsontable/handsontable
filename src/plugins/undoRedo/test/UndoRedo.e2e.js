@@ -2787,5 +2787,119 @@ describe('UndoRedo', () => {
       expect(getSelected()[0]).toEqual([0, 0, 1, 1]);
       expect(getSelected()[1]).toEqual([1, 2, 2, 3]);
     });
+
+    it('should transform the header selection down after undoing rows removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectRows(4, 5);
+      alter('remove_row', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[7, 0, 8, 9]]);
+      expect(`
+        |   ║ - : - : - : - : - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform cells selection down after undoing rows removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectCells([[3, 3, 3, 3], [5, 2, 6, 2]]);
+      alter('remove_row', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3], [8, 2, 9, 2]]);
+      // By design only last selection is interactive.
+      expect(`
+        |   ║   :   : - : - :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   : A :   :   :   :   :   :   :   |
+        | - ║   :   : 0 :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform the header selection right after undoing columns removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectColumns(4, 5);
+      alter('remove_col', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[0, 7, 9, 8]]);
+      expect(`
+        |   ║   :   :   :   :   :   :   : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        | - ║   :   :   :   :   :   :   : A : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform cells selection right after undoing columns removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectCells([[3, 3, 3, 3], [2, 5, 2, 6]]);
+      alter('remove_col', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3], [2, 8, 2, 9]]);
+      // By design only last selection is interactive.
+      expect(`
+        |   ║   :   :   : - :   :   :   :   : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   :   :   :   :   :   : A : 0 |
+        | - ║   :   :   : 0 :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
   });
 });

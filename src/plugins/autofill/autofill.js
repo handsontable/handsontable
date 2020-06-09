@@ -18,7 +18,8 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
  * bottom of the cell selection.
  *
- * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small square in the corner.
+ * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small
+ * square in the corner.
  *
  * "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
  *
@@ -184,8 +185,9 @@ class Autofill extends BasePlugin {
       return false;
     }
 
-    // Fill area may starts or ends with invisible cell. There won't be any information about it as highlighted selection
-    // store just renderable indexes (It's part of Walkontable). I extrapolate where the start or/and the end is.
+    // Fill area may starts or ends with invisible cell. There won't be any information about it as highlighted
+    // selection store just renderable indexes (It's part of Walkontable). I extrapolate where the start or/and
+    // the end is.
     const [fillStartRow, fillStartColumn, fillEndRow, fillEndColumn] =
       this.hot.selection.highlight.getFill().getVisualCorners();
     const [selectionStartRow, selectionStartColumn, selectionEndRow, selectionEndColumn] = this.hot.getSelectedLast();
@@ -298,14 +300,16 @@ class Autofill extends BasePlugin {
    *
    * @private
    * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
-   * @returns {Array}
+   * @returns {CellCoords}
    */
   getCoordsOfDragAndDropBorders(coordsOfSelection) {
-    const topLeftCorner = this.hot.getSelectedRangeLast().getTopLeftCorner();
-    const bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
-    let coords;
+    const currentSelection = this.hot.getSelectedRangeLast();
+    const bottomRightCorner = currentSelection.getBottomRightCorner();
+    let coords = coordsOfSelection;
 
     if (this.directions.includes(DIRECTIONS.vertical) && this.directions.includes(DIRECTIONS.horizontal)) {
+      const topLeftCorner = currentSelection.getTopLeftCorner();
+
       if (bottomRightCorner.col <= coordsOfSelection.col || topLeftCorner.col >= coordsOfSelection.col) {
         coords = new CellCoords(bottomRightCorner.row, coordsOfSelection.col);
       }

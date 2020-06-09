@@ -258,26 +258,18 @@ class MergedCellsCollection {
   }
 
   /**
-   * Check whether the provided row/col coordinates direct to a merged parent.
+   * Check whether the provided row/col coordinates direct to a first not hidden cell within merge area.
    *
-   * @param {number} row Row index.
-   * @param {number} column Column index.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
    * @returns {boolean}
    */
-  isMergedParent(row, column) {
-    const mergedCells = this.mergedCells;
-    let result = false;
+  isFirstRenderableMergedCell(row, column) {
+    const mergeParent = this.get(row, column);
 
-    arrayEach(mergedCells, (mergedCell) => {
-      if (mergedCell.row === row && mergedCell.col === column) {
-        result = true;
-        return false;
-      }
-
-      return true;
-    });
-
-    return result;
+    // Return if row and column indexes are within merge area and if they are first rendered indexes within the area.
+    return mergeParent && this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1) === row &&
+        this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1) === column;
   }
 
   /**
