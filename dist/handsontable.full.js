@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev12
- * Release date: 23/10/2019 (built at 05/06/2020 14:35:18)
+ * Version: 8.0.0-beta.2-rev13
+ * Release date: 23/10/2019 (built at 09/06/2020 15:04:19)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3461,7 +3461,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev12";
+  var hotVersion = "8.0.0-beta.2-rev13";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -51511,10 +51511,13 @@ function Core(rootElement, userSettings) {
 
               if (selection.isSelectedByRowHeader()) {
                 currentFromColumn = -1;
-              } // I can't use transforms as they don't work in negative indexes.
+              } // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
 
 
-              selection.setRangeStartOnly(new _src.CellCoords(currentFromRow + delta, currentFromColumn));
+              selection.getSelectedRange().pop(); // I can't use transforms as they don't work in negative indexes.
+
+              selection.setRangeStartOnly(new _src.CellCoords(currentFromRow + delta, currentFromColumn), true);
               selection.setRangeEnd(new _src.CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
@@ -51553,10 +51556,13 @@ function Core(rootElement, userSettings) {
 
               if (selection.isSelectedByColumnHeader()) {
                 _currentFromRow = -1;
-              } // I can't use transforms as they don't work in negative indexes.
+              } // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
 
 
-              selection.setRangeStartOnly(new _src.CellCoords(_currentFromRow, _currentFromColumn + delta));
+              selection.getSelectedRange().pop(); // I can't use transforms as they don't work in negative indexes.
+
+              selection.setRangeStartOnly(new _src.CellCoords(_currentFromRow, _currentFromColumn + delta), true);
               selection.setRangeEnd(new _src.CellCoords(_currentToRow, _currentToColumn + delta)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
@@ -63383,8 +63389,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "05/06/2020 14:35:18";
-Handsontable.version = "8.0.0-beta.2-rev12"; // Export Hooks singleton
+Handsontable.buildDate = "09/06/2020 15:04:19";
+Handsontable.version = "8.0.0-beta.2-rev13"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -68049,7 +68055,7 @@ var Selection = /*#__PURE__*/function () {
             }
           }
 
-          var additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, _sourceCol, corners, this.settings.layerLevel);
+          var additionalSelectionClass = wotInstance.getSetting('onAfterDrawSelection', sourceRow, _sourceCol, this.settings.layerLevel);
 
           if (typeof additionalSelectionClass === 'string') {
             this.addClassAtCoords(wotInstance, sourceRow, _sourceCol, additionalSelectionClass);
@@ -73679,11 +73685,25 @@ var TableView = /*#__PURE__*/function () {
         onBeforeRemoveCellClassNames: function onBeforeRemoveCellClassNames() {
           return _this2.instance.runHooks('beforeRemoveCellClassNames');
         },
-        onAfterDrawSelection: function onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+        onAfterDrawSelection: function onAfterDrawSelection(currentRow, currentColumn, layerLevel) {
+          var cornersOfSelection;
+
           var _this2$translateFromR3 = _this2.translateFromRenderableToVisualIndex(currentRow, currentColumn),
               _this2$translateFromR4 = (0, _slicedToArray2.default)(_this2$translateFromR3, 2),
               visualRowIndex = _this2$translateFromR4[0],
               visualColumnIndex = _this2$translateFromR4[1];
+
+          var selectedRange = _this2.instance.selection.getSelectedRange();
+
+          var selectionRangeSize = selectedRange.size();
+
+          if (selectionRangeSize > 0) {
+            // Selection layers are stored from the "oldest" to the "newest". We should calculate the offset.
+            // Please look at the `SelectedRange` class and it's method for getting selection's layer for more information.
+            var selectionOffset = (layerLevel !== null && layerLevel !== void 0 ? layerLevel : 0) + 1 - selectionRangeSize;
+            var selectionForLayer = selectedRange.peekByIndex(selectionOffset);
+            cornersOfSelection = [selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col];
+          }
 
           return _this2.instance.runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
         },
@@ -76845,6 +76865,18 @@ var SelectionRange = /*#__PURE__*/function () {
     key: "add",
     value: function add(coords) {
       this.ranges.push(new _src.CellRange(coords));
+      return this;
+    }
+    /**
+     * Removes from the stack the last added coordinates.
+     *
+     * @returns {SelectionRange}
+     */
+
+  }, {
+    key: "pop",
+    value: function pop() {
+      this.ranges.pop();
       return this;
     }
     /**
@@ -80635,7 +80667,8 @@ var INTERVAL_FOR_ADDING_ROW = 200;
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
  * bottom of the cell selection.
  *
- * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small square in the corner.
+ * "Drag-down" expands the value of the selected cells to the neighbouring cells when you drag the small
+ * square in the corner.
  *
  * "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
  *
@@ -80835,8 +80868,9 @@ var Autofill = /*#__PURE__*/function (_BasePlugin) {
     value: function fillIn() {
       if (this.hot.selection.highlight.getFill().isEmpty()) {
         return false;
-      } // Fill area may starts or ends with invisible cell. There won't be any information about it as highlighted selection
-      // store just renderable indexes (It's part of Walkontable). I extrapolate where the start or/and the end is.
+      } // Fill area may starts or ends with invisible cell. There won't be any information about it as highlighted
+      // selection store just renderable indexes (It's part of Walkontable). I extrapolate where the start or/and
+      // the end is.
 
 
       var _this$hot$selection$h = this.hot.selection.highlight.getFill().getVisualCorners(),
@@ -80938,17 +80972,19 @@ var Autofill = /*#__PURE__*/function (_BasePlugin) {
      *
      * @private
      * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
-     * @returns {Array}
+     * @returns {CellCoords}
      */
 
   }, {
     key: "getCoordsOfDragAndDropBorders",
     value: function getCoordsOfDragAndDropBorders(coordsOfSelection) {
-      var topLeftCorner = this.hot.getSelectedRangeLast().getTopLeftCorner();
-      var bottomRightCorner = this.hot.getSelectedRangeLast().getBottomRightCorner();
-      var coords;
+      var currentSelection = this.hot.getSelectedRangeLast();
+      var bottomRightCorner = currentSelection.getBottomRightCorner();
+      var coords = coordsOfSelection;
 
       if (this.directions.includes(_utils.DIRECTIONS.vertical) && this.directions.includes(_utils.DIRECTIONS.horizontal)) {
+        var topLeftCorner = currentSelection.getTopLeftCorner();
+
         if (bottomRightCorner.col <= coordsOfSelection.col || topLeftCorner.col >= coordsOfSelection.col) {
           coords = new _src.CellCoords(bottomRightCorner.row, coordsOfSelection.col);
         }
@@ -93382,7 +93418,7 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
         var selectionRange = this.hot.getSelectedRangeLast();
 
         for (var group = 0; group < mergedCells.length; group += 1) {
-          if (selectionRange.highlight.row === mergedCells[group].row && selectionRange.highlight.col === mergedCells[group].col && selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 && selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
+          if (selectionRange.from.row === mergedCells[group].row && selectionRange.from.col === mergedCells[group].col && selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 && selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
             return false;
           }
         }
@@ -94016,7 +94052,7 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
      * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
      *
      * @private
-     * @param {number} currentRow Row index of the currently processed cell.
+     * @param {number} currentRow Visual row index of the currently processed cell.
      * @param {number} currentColumn Visual column index of the currently cell.
      * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
      * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
@@ -94338,27 +94374,19 @@ var MergedCellsCollection = /*#__PURE__*/function () {
       return result;
     }
     /**
-     * Check whether the provided row/col coordinates direct to a merged parent.
+     * Check whether the provided row/col coordinates direct to a first not hidden cell within merge area.
      *
-     * @param {number} row Row index.
-     * @param {number} column Column index.
+     * @param {number} row Visual row index.
+     * @param {number} column Visual column index.
      * @returns {boolean}
      */
 
   }, {
-    key: "isMergedParent",
-    value: function isMergedParent(row, column) {
-      var mergedCells = this.mergedCells;
-      var result = false;
-      (0, _array.arrayEach)(mergedCells, function (mergedCell) {
-        if (mergedCell.row === row && mergedCell.col === column) {
-          result = true;
-          return false;
-        }
+    key: "isFirstRenderableMergedCell",
+    value: function isFirstRenderableMergedCell(row, column) {
+      var mergeParent = this.get(row, column); // Return if row and column indexes are within merge area and if they are first rendered indexes within the area.
 
-        return true;
-      });
-      return result;
+      return mergeParent && this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1) === row && this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1) === column;
     }
     /**
      * Shift the merged cell in the direction and by an offset defined in the arguments.
@@ -94965,8 +94993,6 @@ __webpack_require__(35);
 exports.__esModule = true;
 exports.default = void 0;
 
-var _slicedToArray2 = _interopRequireDefault(__webpack_require__(20));
-
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
@@ -95080,7 +95106,7 @@ var SelectionCalculations = /*#__PURE__*/function () {
     /**
      * Generate an additional class name for the entirely-selected merged cells.
      *
-     * @param {number} currentRow Row index of the currently processed cell.
+     * @param {number} currentRow Visual row index of the currently processed cell.
      * @param {number} currentColumn Visual column index of the currently cell.
      * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
      * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
@@ -95090,35 +95116,36 @@ var SelectionCalculations = /*#__PURE__*/function () {
   }, {
     key: "getSelectedMergedCellClassName",
     value: function getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel) {
-      var _cornersOfSelection = (0, _slicedToArray2.default)(cornersOfSelection, 4),
-          startRow = _cornersOfSelection[0],
-          startColumn = _cornersOfSelection[1],
-          endRow = _cornersOfSelection[2],
-          endColumn = _cornersOfSelection[3];
+      var startRow = Math.min(cornersOfSelection[0], cornersOfSelection[2]);
+      var startColumn = Math.min(cornersOfSelection[1], cornersOfSelection[3]);
+      var endRow = Math.max(cornersOfSelection[0], cornersOfSelection[2]);
+      var endColumn = Math.max(cornersOfSelection[1], cornersOfSelection[3]);
 
       if (layerLevel === void 0) {
         return;
       }
 
-      if (currentRow >= startRow && currentRow <= endRow && currentColumn >= startColumn && currentColumn <= endColumn) {
-        var isMergedCellParent = this.plugin.mergedCellsCollection.isMergedParent(currentRow, currentColumn);
+      var isFirstRenderableMergedCell = this.plugin.mergedCellsCollection.isFirstRenderableMergedCell(currentRow, currentColumn); // We add extra classes just to the first renderable merged cell.
 
-        if (!isMergedCellParent) {
-          return;
-        }
+      if (!isFirstRenderableMergedCell) {
+        return;
+      }
 
-        var mergedCell = this.plugin.mergedCellsCollection.get(currentRow, currentColumn);
+      var mergedCell = this.plugin.mergedCellsCollection.get(currentRow, currentColumn);
 
-        if (!mergedCell) {
-          return;
-        }
+      if (!mergedCell) {
+        return;
+      }
 
-        if (mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
-          return "".concat(this.fullySelectedMergedCellClassName, "-").concat(layerLevel);
-        } else if (this.plugin.selectionCalculations.isMergeCellFullySelected(mergedCell, this.plugin.hot.getSelectedRange())) {
-          // eslint-disable-line max-len
-          return "".concat(this.fullySelectedMergedCellClassName, "-multiple");
-        }
+      var mergeRowEnd = mergedCell.row + mergedCell.rowspan - 1;
+      var mergeColumnEnd = mergedCell.col + mergedCell.colspan - 1;
+      var fullMergeAreaWithinSelection = startRow <= mergedCell.row && startColumn <= mergedCell.col && endRow >= mergeRowEnd && endColumn >= mergeColumnEnd;
+
+      if (fullMergeAreaWithinSelection) {
+        return "".concat(this.fullySelectedMergedCellClassName, "-").concat(layerLevel);
+      } else if (this.plugin.selectionCalculations.isMergeCellFullySelected(mergedCell, this.plugin.hot.getSelectedRange())) {
+        // eslint-disable-line max-len
+        return "".concat(this.fullySelectedMergedCellClassName, "-multiple");
       }
     }
     /**
