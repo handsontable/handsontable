@@ -2795,7 +2795,7 @@ describe('UndoRedo', () => {
         colHeaders: true,
       });
 
-      selectRows(4, 5)
+      selectRows(4, 5);
       alter('remove_row', 1, 3);
       undo();
 
@@ -2823,7 +2823,7 @@ describe('UndoRedo', () => {
         colHeaders: true,
       });
 
-      selectCells([[3, 3, 3, 3], [5, 2, 6, 2]])
+      selectCells([[3, 3, 3, 3], [5, 2, 6, 2]]);
       alter('remove_row', 1, 3);
       undo();
 
@@ -2852,7 +2852,7 @@ describe('UndoRedo', () => {
         colHeaders: true,
       });
 
-      selectColumns(4, 5)
+      selectColumns(4, 5);
       alter('remove_col', 1, 3);
       undo();
 
@@ -2880,7 +2880,7 @@ describe('UndoRedo', () => {
         colHeaders: true,
       });
 
-      selectCells([[3, 3, 3, 3], [2, 5, 2, 6]])
+      selectCells([[3, 3, 3, 3], [2, 5, 2, 6]]);
       alter('remove_col', 1, 3);
       undo();
 
