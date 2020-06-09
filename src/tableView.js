@@ -14,7 +14,6 @@ import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
 import Walkontable, { CellCoords } from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
-import { isDefined } from './helpers/mixed';
 
 const privatePool = new WeakMap();
 
