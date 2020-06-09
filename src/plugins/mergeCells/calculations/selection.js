@@ -126,7 +126,7 @@ class SelectionCalculations {
     const isFirstRenderableMergedCell =
       this.plugin.mergedCellsCollection.isFirstRenderableMergedCell(currentRow, currentColumn);
 
-    // We add extra classes just to the first rnderable merged cell.
+    // We add extra classes just to the first renderable merged cell.
     if (!isFirstRenderableMergedCell) {
       return;
     }

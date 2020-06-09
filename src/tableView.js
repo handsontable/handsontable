@@ -690,10 +690,15 @@ class TableView {
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =
           this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
-        const selectionOffset = isDefined(layerLevel) && layerLevel > 0 ? -layerLevel : 0;
-        const selectionForLayer = this.instance.selection.getSelectedRange().peekByIndex(selectionOffset);
+        const selectedRange = this.instance.selection.getSelectedRange();
+        const selectionRangeSize = selectedRange.size();
 
-        if (isDefined(selectionForLayer)) {
+        if (selectionRangeSize > 0) {
+          // Selection layers are stored from the "oldest" to the "newest". We should calculate the offset.
+          // Please look at the `SelectedRange` class and it's method for getting selection's layer for more information.
+          const selectionOffset = (layerLevel ?? 0) + 1 - selectionRangeSize;
+          const selectionForLayer = selectedRange.peekByIndex(selectionOffset);
+
           cornersOfSelection = [
             selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col
           ];
