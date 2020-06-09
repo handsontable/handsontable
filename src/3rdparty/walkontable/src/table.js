@@ -763,6 +763,7 @@ class Table {
     return Math.abs(row) <= columnHeadersCount;
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given row index is smaller than the index of the first row that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -789,6 +790,7 @@ class Table {
    * @param {number} row The visual row index.
    * @returns {boolean}
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowBeforeRenderedRows(row) {
     const first = this.getFirstRenderedRow();
 
@@ -801,6 +803,7 @@ class Table {
     return row < first;
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is larger than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -830,10 +833,12 @@ class Table {
    * @param {nunber} row The visual row index.
    * @returns {boolean}
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowAfterRenderedRows(row) {
     return row > this.getLastRenderedRow();
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is smaller than the index of the first column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -859,6 +864,7 @@ class Table {
    * @param {number} column The visual column index.
    * @returns {boolean}
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   isColumnBeforeRenderedColumns(column) {
     const first = this.getFirstRenderedColumn();
 
@@ -871,6 +877,7 @@ class Table {
     return column < first;
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is larger than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -899,6 +906,7 @@ class Table {
    * @param {number} column The visual column index.
    * @returns {boolean}
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   isColumnAfterRenderedColumns(column) {
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }
