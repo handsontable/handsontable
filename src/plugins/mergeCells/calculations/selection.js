@@ -107,42 +107,47 @@ class SelectionCalculations {
   /**
    * Generate an additional class name for the entirely-selected merged cells.
    *
-   * @param {number} currentRow Row index of the currently processed cell.
+   * @param {number} currentRow Visual row index of the currently processed cell.
    * @param {number} currentColumn Visual column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
   getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel) {
-    const [startRow, startColumn, endRow, endColumn] = cornersOfSelection;
+    const startRow = Math.min(cornersOfSelection[0], cornersOfSelection[2]);
+    const startColumn = Math.min(cornersOfSelection[1], cornersOfSelection[3]);
+    const endRow = Math.max(cornersOfSelection[0], cornersOfSelection[2]);
+    const endColumn = Math.max(cornersOfSelection[1], cornersOfSelection[3]);
 
     if (layerLevel === void 0) {
       return;
     }
 
-    if (currentRow >= startRow &&
-      currentRow <= endRow &&
-      currentColumn >= startColumn &&
-      currentColumn <= endColumn) {
+    const isFirstRenderableMergedCell =
+      this.plugin.mergedCellsCollection.isFirstRenderableMergedCell(currentRow, currentColumn);
 
-      const isMergedCellParent = this.plugin.mergedCellsCollection.isMergedParent(currentRow, currentColumn);
+    // We add extra classes just to the first renderable merged cell.
+    if (!isFirstRenderableMergedCell) {
+      return;
+    }
 
-      if (!isMergedCellParent) {
-        return;
-      }
+    const mergedCell = this.plugin.mergedCellsCollection.get(currentRow, currentColumn);
 
-      const mergedCell = this.plugin.mergedCellsCollection.get(currentRow, currentColumn);
+    if (!mergedCell) {
+      return;
+    }
 
-      if (!mergedCell) {
-        return;
-      }
+    const mergeRowEnd = mergedCell.row + mergedCell.rowspan - 1;
+    const mergeColumnEnd = mergedCell.col + mergedCell.colspan - 1;
+    const fullMergeAreaWithinSelection =
+      startRow <= mergedCell.row && startColumn <= mergedCell.col &&
+      endRow >= mergeRowEnd && endColumn >= mergeColumnEnd;
 
-      if (mergedCell.row + mergedCell.rowspan - 1 <= endRow && mergedCell.col + mergedCell.colspan - 1 <= endColumn) {
-        return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
+    if (fullMergeAreaWithinSelection) {
+      return `${this.fullySelectedMergedCellClassName}-${layerLevel}`;
 
-      } else if (this.plugin.selectionCalculations.isMergeCellFullySelected(mergedCell, this.plugin.hot.getSelectedRange())) { // eslint-disable-line max-len
-        return `${this.fullySelectedMergedCellClassName}-multiple`;
-      }
+    } else if (this.plugin.selectionCalculations.isMergeCellFullySelected(mergedCell, this.plugin.hot.getSelectedRange())) { // eslint-disable-line max-len
+      return `${this.fullySelectedMergedCellClassName}-multiple`;
     }
   }
 

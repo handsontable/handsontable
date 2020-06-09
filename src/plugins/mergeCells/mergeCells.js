@@ -538,8 +538,8 @@ class MergeCells extends BasePlugin {
       const selectionRange = this.hot.getSelectedRangeLast();
 
       for (let group = 0; group < mergedCells.length; group += 1) {
-        if (selectionRange.highlight.row === mergedCells[group].row &&
-          selectionRange.highlight.col === mergedCells[group].col &&
+        if (selectionRange.from.row === mergedCells[group].row &&
+          selectionRange.from.col === mergedCells[group].col &&
           selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
           selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
           return false;
@@ -1142,7 +1142,7 @@ class MergeCells extends BasePlugin {
    * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
    *
    * @private
-   * @param {number} currentRow Row index of the currently processed cell.
+   * @param {number} currentRow Visual row index of the currently processed cell.
    * @param {number} currentColumn Visual column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.

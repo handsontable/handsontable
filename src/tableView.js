@@ -685,9 +685,23 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
-      onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
-        const [visualRowIndex, visualColumnIndex] = this
-          .translateFromRenderableToVisualIndex(currentRow, currentColumn);
+      onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
+        let cornersOfSelection;
+        const [visualRowIndex, visualColumnIndex] =
+          this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
+        const selectedRange = this.instance.selection.getSelectedRange();
+        const selectionRangeSize = selectedRange.size();
+
+        if (selectionRangeSize > 0) {
+          // Selection layers are stored from the "oldest" to the "newest". We should calculate the offset.
+          // Please look at the `SelectedRange` class and it's method for getting selection's layer for more information.
+          const selectionOffset = (layerLevel ?? 0) + 1 - selectionRangeSize;
+          const selectionForLayer = selectedRange.peekByIndex(selectionOffset);
+
+          cornersOfSelection = [
+            selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col
+          ];
+        }
 
         return this.instance
           .runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
