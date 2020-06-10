@@ -36,13 +36,13 @@ class Settings {
       fixedRowsTop: 0,
       fixedRowsBottom: 0,
       hasFixedColumnsLeft() {
-        return false;
+        return this.fixedColumnsLeft > 0;
       },
       hasFixedRowsTop() {
-        return false;
+        return this.fixedRowsTop > 0;
       },
       hasFixedRowsBottom() {
-        return false;
+        return this.fixedRowsBottom > 0;
       },
       minSpareRows: 0,
 
