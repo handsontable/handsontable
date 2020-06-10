@@ -473,20 +473,35 @@ class TableView {
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
+      // Rendered fixed rows on the left
       fixedColumnsLeft: () => {
         const fixedColumnsLeft = parseInt(this.settings.fixedColumnsLeft, 10);
 
         return this.countNotHiddenColumnIndexes(fixedColumnsLeft - 1, -1);
       },
+      // Rendered fixed rows at the top
       fixedRowsTop: () => {
         const fixedRowsTop = parseInt(this.settings.fixedRowsTop, 10);
 
         return this.countNotHiddenRowIndexes(fixedRowsTop - 1, -1);
       },
+      // Rendered fixed rows at the bottom
       fixedRowsBottom: () => {
         const fixedRowsBottom = parseInt(this.settings.fixedRowsBottom, 10);
 
         return this.countNotHiddenRowIndexes(this.instance.countRows() - fixedRowsBottom, 1);
+      },
+      // Just simple information whether fixed columns on the left are defined within configuration.
+      hasFixedColumnsLeft: () => {
+        return this.settings.fixedColumnsLeft > 0;
+      },
+      // Just simple information whether fixed rows at the top are defined within configuration.
+      hasFixedRowsTop: () => {
+        return this.settings.fixedRowsTop > 0;
+      },
+      // Just simple information whether fixed rows at the bottom are defined within configuration.
+      hasFixedRowsBottom: () => {
+        return this.settings.fixedRowsBottom > 0;
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,

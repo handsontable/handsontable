@@ -38,8 +38,9 @@ class TopLeftCornerOverlay extends Overlay {
    */
   shouldBeRendered() {
     const { wot } = this;
-    return !!((wot.getSetting('fixedRowsTop') || wot.getSetting('columnHeaders').length) &&
-        (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length));
+
+    return (wot.getSetting('hasFixedRowsTop') || wot.getSetting('columnHeaders').length > 0) &&
+        (wot.getSetting('hasFixedColumnsLeft') || wot.getSetting('rowHeaders').length > 0);
   }
 
   /**

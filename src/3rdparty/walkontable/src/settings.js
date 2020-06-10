@@ -35,6 +35,15 @@ class Settings {
       fixedColumnsLeft: 0,
       fixedRowsTop: 0,
       fixedRowsBottom: 0,
+      hasFixedColumnsLeft() {
+        return false;
+      },
+      hasFixedRowsTop() {
+        return false;
+      },
+      hasFixedRowsBottom() {
+        return false;
+      },
       minSpareRows: 0,
 
       // this must be array of functions: [function (row, TH) {}]

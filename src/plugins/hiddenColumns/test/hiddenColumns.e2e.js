@@ -6708,6 +6708,7 @@ describe('HiddenColumns', () => {
       expect(getLeftClone().find('tbody td').length).toBe(0);
       expect(extractDOMStructure(getLeftClone())).toMatchHTML(`
         <tbody>
+          <tr></tr>
         </tbody>
         `);
     });
