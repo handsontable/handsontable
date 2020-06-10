@@ -35,12 +35,18 @@ class Settings {
       fixedColumnsLeft: 0,
       fixedRowsTop: 0,
       fixedRowsBottom: 0,
+      // By default, every function related to the fixed cells get information from the `fixedColumnsLeft` config.
+      // However, Walkontable may get both independent function for purpose of rendering fixed columns.
       hasFixedColumnsLeft() {
         return this.fixedColumnsLeft > 0;
       },
+      // By default, every function related to the fixed cells get information from the `fixedRowsTop` config.
+      // However, Walkontable may get both independent function for purpose of rendering fixed rows.
       hasFixedRowsTop() {
         return this.fixedRowsTop > 0;
       },
+      // By default, every function related to the fixed cells get information from the `fixedRowsBottom` config.
+      // However, Walkontable may get both independent function for purpose of rendering fixed rows.
       hasFixedRowsBottom() {
         return this.fixedRowsBottom > 0;
       },

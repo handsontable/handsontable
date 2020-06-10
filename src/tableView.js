@@ -491,15 +491,21 @@ class TableView {
 
         return this.countNotHiddenRowIndexes(this.instance.countRows() - fixedRowsBottom, 1);
       },
-      // Just simple information whether fixed columns on the left are defined within configuration.
+      // Just simple information whether fixed rows at the top are defined within configuration. It overrides default
+      // behaviour (reading from the `fixedColumnsLeft` method). We have two independent functions for purpose of
+      // rendering fixed cells.
       hasFixedColumnsLeft: () => {
         return this.settings.fixedColumnsLeft > 0;
       },
-      // Just simple information whether fixed rows at the top are defined within configuration.
+      // Just simple information whether fixed rows at the top are defined within configuration. It overrides default
+      // behaviour (reading from the `fixedRowsTop` method). We have two independent functions for purpose of
+      // rendering fixed cells.
       hasFixedRowsTop: () => {
         return this.settings.fixedRowsTop > 0;
       },
-      // Just simple information whether fixed rows at the bottom are defined within configuration.
+      // Just simple information whether fixed rows at the top are defined within configuration. It overrides default
+      // behaviour (reading from the `fixedRowsBottom` method). We have two independent functions for purpose of
+      // rendering fixed cells.
       hasFixedRowsBottom: () => {
         return this.settings.fixedRowsBottom > 0;
       },
