@@ -139,5 +139,39 @@ describe('HiddenRows', () => {
         </tbody>
         `);
     });
+
+    it('should not display cells after API call hiding all rows', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        hiddenRows: true,
+        fixedRowsBottom: 3
+      });
+
+      getPlugin('hiddenRows').hideRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      render();
+
+      expect(getBottomClone().find('tbody tr').length).toBe(0);
+      expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
+        <tbody>
+        </tbody>
+        `);
+    });
+
+    it('should not display cells after API call trimming all rows', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        trimRows: true,
+        fixedRowsBottom: 3
+      });
+
+      getPlugin('trimRows').trimRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      render();
+
+      expect(getBottomClone().find('tbody tr').length).toBe(0);
+      expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
+        <tbody>
+        </tbody>
+        `);
+    });
   });
 });
