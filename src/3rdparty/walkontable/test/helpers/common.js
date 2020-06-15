@@ -411,6 +411,7 @@ export function getScrollbarWidth() {
  */
 export function expectWtTable(wt, callb, name) {
   const callbAsString = callb.toString().replace(/\s\s+/g, ' ');
+
   if (name === 'master') {
     return expect(callb(wt.wtTable)).withContext(`${name}: ${callbAsString}`);
   }

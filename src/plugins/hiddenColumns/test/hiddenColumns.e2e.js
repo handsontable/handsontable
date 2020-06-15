@@ -1,6 +1,18 @@
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 
+  function extractDOMStructure(overlay) {
+    const overlayBody = overlay.find('tbody')[0].cloneNode(true);
+
+    Array.from(overlayBody.querySelectorAll('th')).forEach((TH) => {
+      // Simplify header content
+      TH.innerText = TH.querySelector('.rowHeader').innerText;
+      TH.removeAttribute('style');
+    });
+
+    return `${overlayBody.outerHTML}`;
+  }
+
   const {
     CONTEXTMENU_ITEMS_SHOW_COLUMN,
     CONTEXTMENU_ITEMS_HIDE_COLUMN,
@@ -6681,6 +6693,24 @@ describe('HiddenColumns', () => {
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(0);
       expect(getLeftClone().width()).toBe(0);
+    });
+
+    it('should not display cells after API call hiding all columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        hiddenColumns: true,
+        fixedColumnsLeft: 3
+      });
+
+      getPlugin('hiddenColumns').hideColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      render();
+
+      expect(getLeftClone().find('tbody td').length).toBe(0);
+      expect(extractDOMStructure(getLeftClone())).toMatchHTML(`
+        <tbody>
+          <tr></tr>
+        </tbody>
+        `);
     });
   });
 
