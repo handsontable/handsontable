@@ -765,7 +765,7 @@ class Table {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Check if the given row index is smaller than the index of the first row that
+   * Check if the given row index is lower than the index of the first row that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
    *
    * Negative row index is used to check the columns' headers.
@@ -805,7 +805,7 @@ class Table {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Check if the given column index is larger than the index of the last column that
+   * Check if the given column index is greater than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
    *
    * The negative row index is used to check the columns' headers. However,
@@ -830,7 +830,7 @@ class Table {
    *                                                                │
    *                                                                │ TRUE
    *
-   * @param {nunber} row The visual row index.
+   * @param {number} row The visual row index.
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -840,7 +840,7 @@ class Table {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Check if the given column index is smaller than the index of the first column that
+   * Check if the given column index is lower than the index of the first column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
    *
    * Negative column index is used to check the rows' headers.
@@ -879,7 +879,7 @@ class Table {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Check if the given column index is larger than the index of the last column that
+   * Check if the given column index is greater than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
    *
    * The negative column index is used to check the rows' headers. However,
