@@ -4665,7 +4665,8 @@ describe('HiddenColumns', () => {
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(150);
     });
 
-    it('should select proper cell when calling the `selectCell` within area of merge', () => {
+    it('should select proper cell when calling the `selectCell` within area of merge ' +
+      '(contains few hidden columns)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 5),
         hiddenColumns: {
@@ -4675,6 +4676,9 @@ describe('HiddenColumns', () => {
           { row: 0, col: 1, rowspan: 1, colspan: 4 }
         ]
       });
+
+      // First visible cell (merged area).
+      const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
 
       selectCell(0, 1);
 
@@ -4689,6 +4693,16 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
       deselectCell();
       selectCell(0, 2);
@@ -4704,6 +4718,16 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
       deselectCell();
       selectCell(0, 3);
@@ -4719,8 +4743,81 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
       // TODO: `selectCell(0, 4)` should give the same effect. There is bug at least from Handsontable 7.
+    });
+
+    it('should select proper cell when calling the `selectCell` within area of merge ' +
+      '(contains just one hidden and one not hidden column)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        hiddenColumns: {
+          columns: [0],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 2 }
+        ]
+      });
+
+      // First visible cell (merged area).
+      const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
+
+      selectCell(0, 0);
+
+      expect(`
+      | # :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 0, 0, 1]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().to.row).toBe(0);
+      expect(getSelectedRangeLast().to.col).toBe(1);
+      expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
+
+      deselectCell();
+      selectCell(0, 1);
+
+      expect(`
+      | # :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 0, 0, 1]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().to.row).toBe(0);
+      expect(getSelectedRangeLast().to.col).toBe(1);
+      expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
     it('should open properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
