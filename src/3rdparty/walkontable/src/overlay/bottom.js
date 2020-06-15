@@ -56,8 +56,7 @@ class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    /* eslint-disable no-unneeded-ternary */
-    return this.wot.getSetting('fixedRowsBottom') ? true : false;
+    return this.wot.getSetting('shouldRenderBottomOverlay');
   }
 
   /**

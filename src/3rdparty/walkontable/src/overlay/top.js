@@ -42,7 +42,7 @@ class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return !!(this.wot.getSetting('fixedRowsTop') || this.wot.getSetting('columnHeaders').length);
+    return this.wot.getSetting('shouldRenderTopOverlay');
   }
 
   /**

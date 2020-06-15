@@ -32,9 +32,24 @@ class Settings {
       // data source
       data: void 0,
       freezeOverlays: false,
+      // Number of renderable columns for the left overlay.
       fixedColumnsLeft: 0,
+      // Number of renderable rows for the top overlay.
       fixedRowsTop: 0,
+      // Number of renderable rows for the bottom overlay.
       fixedRowsBottom: 0,
+      // Enable the left overlay when conditions are met.
+      shouldRenderLeftOverlay: () => {
+        return this.getSetting('fixedColumnsLeft') > 0 || this.getSetting('rowHeaders').length > 0;
+      },
+      // Enable the top overlay when conditions are met.
+      shouldRenderTopOverlay: () => {
+        return this.getSetting('fixedRowsTop') > 0 || this.getSetting('columnHeaders').length > 0;
+      },
+      // Enable the bottom overlay when conditions are met.
+      shouldRenderBottomOverlay: () => {
+        return this.getSetting('fixedRowsBottom') > 0;
+      },
       minSpareRows: 0,
 
       // this must be array of functions: [function (row, TH) {}]
