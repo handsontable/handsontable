@@ -32,23 +32,23 @@ class Settings {
       // data source
       data: void 0,
       freezeOverlays: false,
+      // Number of renderable columns for the left overlay.
       fixedColumnsLeft: 0,
+      // Number of renderable rows for the top overlay.
       fixedRowsTop: 0,
+      // Number of renderable rows for the bottom overlay.
       fixedRowsBottom: 0,
-      // By default, every function related to the fixed cells get information from the `fixedColumnsLeft` config.
-      // However, Walkontable may get both independent function for purpose of rendering fixed columns.
-      hasFixedColumnsLeft() {
-        return this.fixedColumnsLeft > 0;
+      // Enable the left overlay when conditions are met.
+      shouldRenderLeftOverlay: () => {
+        return this.getSetting('fixedColumnsLeft') > 0 || this.getSetting('rowHeaders').length > 0;
       },
-      // By default, every function related to the fixed cells get information from the `fixedRowsTop` config.
-      // However, Walkontable may get both independent function for purpose of rendering fixed rows.
-      hasFixedRowsTop() {
-        return this.fixedRowsTop > 0;
+      // Enable the top overlay when conditions are met.
+      shouldRenderTopOverlay: () => {
+        return this.getSetting('fixedRowsTop') > 0 || this.getSetting('columnHeaders').length > 0;
       },
-      // By default, every function related to the fixed cells get information from the `fixedRowsBottom` config.
-      // However, Walkontable may get both independent function for purpose of rendering fixed rows.
-      hasFixedRowsBottom() {
-        return this.fixedRowsBottom > 0;
+      // Enable the bottom overlay when conditions are met.
+      shouldRenderBottomOverlay: () => {
+        return this.getSetting('fixedRowsBottom') > 0;
       },
       minSpareRows: 0,
 

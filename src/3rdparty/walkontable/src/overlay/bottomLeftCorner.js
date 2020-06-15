@@ -38,8 +38,7 @@ class BottomLeftCornerOverlay extends Overlay {
   shouldBeRendered() {
     const { wot } = this;
 
-    return wot.getSetting('hasFixedRowsBottom') &&
-      (wot.getSetting('hasFixedColumnsLeft') || wot.getSetting('rowHeaders').length > 0);
+    return wot.getSetting('shouldRenderBottomOverlay') && wot.getSetting('shouldRenderLeftOverlay');
   }
 
   /**

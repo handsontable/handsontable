@@ -491,22 +491,16 @@ class TableView {
 
         return this.countNotHiddenRowIndexes(this.instance.countRows() - fixedRowsBottom, 1);
       },
-      // Just simple information whether fixed rows at the top are defined within configuration. It overrides default
-      // behaviour (reading from the `fixedColumnsLeft` method). We have two independent functions for purpose of
-      // rendering fixed cells.
-      hasFixedColumnsLeft: () => {
-        return this.settings.fixedColumnsLeft > 0;
+      // Enable the left overlay when conditions are met.
+      shouldRenderLeftOverlay: () => {
+        return this.settings.fixedColumnsLeft > 0 || walkontableConfig.rowHeaders().length > 0;
       },
-      // Just simple information whether fixed rows at the top are defined within configuration. It overrides default
-      // behaviour (reading from the `fixedRowsTop` method). We have two independent functions for purpose of
-      // rendering fixed cells.
-      hasFixedRowsTop: () => {
-        return this.settings.fixedRowsTop > 0;
+      // Enable the top overlay when conditions are met.
+      shouldRenderTopOverlay: () => {
+        return this.settings.fixedRowsTop > 0 || walkontableConfig.columnHeaders().length > 0;
       },
-      // Just simple information whether fixed rows at the top are defined within configuration. It overrides default
-      // behaviour (reading from the `fixedRowsBottom` method). We have two independent functions for purpose of
-      // rendering fixed cells.
-      hasFixedRowsBottom: () => {
+      // Enable the bottom overlay when conditions are met.
+      shouldRenderBottomOverlay: () => {
         return this.settings.fixedRowsBottom > 0;
       },
       minSpareRows: () => this.settings.minSpareRows,

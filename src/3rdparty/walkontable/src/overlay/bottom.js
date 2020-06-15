@@ -56,7 +56,7 @@ class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return this.wot.getSetting('hasFixedRowsBottom');
+    return this.wot.getSetting('shouldRenderBottomOverlay');
   }
 
   /**
