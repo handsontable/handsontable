@@ -795,7 +795,7 @@ class Table {
     const first = this.getFirstRenderedRow();
 
     // Check the headers only in case when the first rendered row is -1 or 0.
-    // This is an indication that the overlay is placed on the most top-left position.
+    // This is an indication that the overlay is placed on the most top position.
     if (row < 0 && first <= 0) {
       return !this.isRowHeaderRendered(row);
     }
@@ -869,7 +869,7 @@ class Table {
     const first = this.getFirstRenderedColumn();
 
     // Check the headers only in case when the first rendered column is -1 or 0.
-    // This is an indication that the overlay is placed on the most top-left position.
+    // This is an indication that the overlay is placed on the most left position.
     if (column < 0 && first <= 0) {
       return !this.isColumnHeaderRendered(column);
     }
