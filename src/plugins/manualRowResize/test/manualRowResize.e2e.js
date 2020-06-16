@@ -320,6 +320,77 @@ describe('manualRowResize', () => {
     expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(defaultRowHeight + 1);
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight + 1);
   });
+
+  it('should resize appropriate rows to calculated autoRowSize height after double click on row handler after ' +
+     'updateSettings usage with new `rowHeights` values', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+    });
+
+    setDataAtCell(1, 0, 'Longer\ntext');
+
+    await sleep(50);
+
+    updateSettings({
+      rowHeights: [45, 120, 160, 60, 80],
+    });
+
+    const $rowHeaders = spec().$container.find('tbody tr th');
+
+    {
+      const $th = $rowHeaders.eq(0); // resize the first row.
+
+      $th.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+
+      $resizer
+        .simulate('mousedown', { clientY: resizerPosition.top })
+        .simulate('mouseup')
+        .simulate('click')
+        .simulate('mousedown', { clientY: resizerPosition.top })
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      await sleep(1000);
+
+      expect($rowHeaders.eq(0).height()).toBe(22);
+      expect($rowHeaders.eq(1).height()).toBe(119);
+      expect($rowHeaders.eq(2).height()).toBe(159);
+      expect($rowHeaders.eq(3).height()).toBe(59);
+      expect($rowHeaders.eq(4).height()).toBe(79);
+    }
+    {
+      const $th = $rowHeaders.eq(1); // resize the second column.
+
+      $th.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+
+      $resizer
+        .simulate('mousedown', { clientY: resizerPosition.top })
+        .simulate('mouseup')
+        .simulate('click')
+        .simulate('mousedown', { clientY: resizerPosition.top })
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      await sleep(1000);
+
+      expect($rowHeaders.eq(0).height()).toBe(22);
+      expect($rowHeaders.eq(1).height()).toBe(42);
+      expect($rowHeaders.eq(2).height()).toBe(159);
+      expect($rowHeaders.eq(3).height()).toBe(59);
+      expect($rowHeaders.eq(4).height()).toBe(79);
+    }
+  });
+
   it('should not trigger afterRowResize event after if row height does not change (no dblclick event)', () => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 

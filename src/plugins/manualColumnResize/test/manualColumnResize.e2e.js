@@ -353,6 +353,76 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBeAroundValue(738);
   });
 
+  it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler after ' +
+     'updateSettings usage with new `colWidths` values', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      manualColumnResize: true,
+    });
+
+    setDataAtCell(0, 1, 'Longer text');
+
+    await sleep(50);
+
+    updateSettings({
+      colWidths: [45, 120, 160, 60, 80],
+    });
+
+    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
+
+    {
+      const $th = $columnHeaders.eq(0); // resize the first column.
+
+      $th.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $resizer.position();
+
+      $resizer
+        .simulate('mousedown', { clientX: resizerPosition.left })
+        .simulate('mouseup')
+        .simulate('click')
+        .simulate('mousedown', { clientX: resizerPosition.left })
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      await sleep(1000);
+
+      expect($columnHeaders.eq(0).width()).toBe(28);
+      expect($columnHeaders.eq(1).width()).toBe(118);
+      expect($columnHeaders.eq(2).width()).toBe(159);
+      expect($columnHeaders.eq(3).width()).toBe(59);
+      expect($columnHeaders.eq(4).width()).toBe(79);
+    }
+    {
+      const $th = $columnHeaders.eq(1); // resize the second column.
+
+      $th.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $resizer.position();
+
+      $resizer
+        .simulate('mousedown', { clientX: resizerPosition.left })
+        .simulate('mouseup')
+        .simulate('click')
+        .simulate('mousedown', { clientX: resizerPosition.left })
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      await sleep(1000);
+
+      expect($columnHeaders.eq(0).width()).toBe(28);
+      expect($columnHeaders.eq(1).width()).toBe(89);
+      expect($columnHeaders.eq(2).width()).toBe(159);
+      expect($columnHeaders.eq(3).width()).toBe(59);
+      expect($columnHeaders.eq(4).width()).toBe(79);
+    }
+  });
+
   it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', function() {
     handsontable({
       colHeaders: ['First', 'Second', 'Third'],
