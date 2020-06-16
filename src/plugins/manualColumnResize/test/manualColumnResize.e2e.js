@@ -298,11 +298,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -338,11 +334,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -379,14 +371,7 @@ describe('manualColumnResize', () => {
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
 
-      $resizer
-        .simulate('mousedown', { clientX: resizerPosition.left })
-        .simulate('mouseup')
-        .simulate('click')
-        .simulate('mousedown', { clientX: resizerPosition.left })
-        .simulate('mouseup')
-        .simulate('click')
-      ;
+      mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
       await sleep(1000);
 
@@ -404,14 +389,7 @@ describe('manualColumnResize', () => {
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
 
-      $resizer
-        .simulate('mousedown', { clientX: resizerPosition.left })
-        .simulate('mouseup')
-        .simulate('click')
-        .simulate('mousedown', { clientX: resizerPosition.left })
-        .simulate('mouseup')
-        .simulate('click')
-      ;
+      mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
       await sleep(1000);
 
@@ -489,11 +467,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(700);
 
@@ -554,8 +528,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    simulateClick($resizer, { clientX: resizerPosition.left });
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(spec().$container, 0)).toEqual(50);
@@ -580,11 +553,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -612,11 +581,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -640,11 +605,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -671,10 +632,7 @@ describe('manualColumnResize', () => {
 
     await sleep(600);
 
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(600);
 

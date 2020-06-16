@@ -196,9 +196,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(24);
 
     hot.addHook('beforeRowResize', () => 100);
-
     hot.addHook('beforeRowResize', () => 200);
-
     hot.addHook('beforeRowResize', () => void 0);
 
     const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
@@ -207,15 +205,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {
-      clientY: resizerPosition.top
-    });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', {
-      clientY: resizerPosition.top
-    });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
     await sleep(700);
 
@@ -274,11 +264,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {
-      clientY: resizerPosition.top
-    });
-
-    $resizer.simulate('mouseup');
+    simulateClick($resizer, { clientY: resizerPosition.top });
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
@@ -303,15 +289,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {
-      clientY: resizerPosition.top
-    });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', {
-      clientY: resizerPosition.top
-    });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
     await sleep(1000);
 
@@ -347,14 +325,7 @@ describe('manualRowResize', () => {
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
 
-      $resizer
-        .simulate('mousedown', { clientY: resizerPosition.top })
-        .simulate('mouseup')
-        .simulate('click')
-        .simulate('mousedown', { clientY: resizerPosition.top })
-        .simulate('mouseup')
-        .simulate('click')
-      ;
+      mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
       await sleep(1000);
 
@@ -372,14 +343,7 @@ describe('manualRowResize', () => {
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
 
-      $resizer
-        .simulate('mousedown', { clientY: resizerPosition.top })
-        .simulate('mouseup')
-        .simulate('click')
-        .simulate('mousedown', { clientY: resizerPosition.top })
-        .simulate('mouseup')
-        .simulate('click')
-      ;
+      mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
       await sleep(1000);
 
@@ -409,10 +373,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', {
-      clientY: resizerPosition.top
-    });
-    $resizer.simulate('mouseup');
+    simulateClick($resizer, { clientY: resizerPosition.top });
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
@@ -461,11 +422,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
     await sleep(1000);
 
@@ -489,11 +446,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-    $resizer.simulate('mouseup');
-
-    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
     await sleep(1000);
 
@@ -520,10 +473,7 @@ describe('manualRowResize', () => {
 
     await sleep(600);
 
-    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-    $resizer.simulate('mouseup');
-    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-    $resizer.simulate('mouseup');
+    mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
     await sleep(1000);
 
@@ -602,6 +552,7 @@ describe('manualRowResize', () => {
 
       $rowHeader = spec().$container.find('.ht_clone_left tr:eq(13) th:eq(0)');
       $rowHeader.simulate('mouseover');
+
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
     });
@@ -631,6 +582,7 @@ describe('manualRowResize', () => {
 
       $rowHeader = spec().$container.find('.ht_clone_left tr:eq(13) th:eq(0)');
       $rowHeader.simulate('mouseover');
+
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
 
