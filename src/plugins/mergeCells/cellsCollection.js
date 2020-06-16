@@ -273,6 +273,27 @@ class MergedCellsCollection {
   }
 
   /**
+   * Get the first renderable coords of the merged cell at the provided coordinates.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {CellCoords} A `CellCoords` object with the coordinates to the first renderable cell within the
+   *                        merged cell.
+   */
+  getFirstRenderableCoords(row, column) {
+    const mergeParent = this.get(row, column);
+
+    if (!mergeParent || this.isFirstRenderableMergedCell(row, column)) {
+      return new CellCoords(row, column);
+    }
+
+    const firstRenderableRow = this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1);
+    const firstRenderableColumn = this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1);
+
+    return new CellCoords(firstRenderableRow, firstRenderableColumn);
+  }
+
+  /**
    * Shift the merged cell in the direction and by an offset defined in the arguments.
    *
    * @param {string} direction `right`, `left`, `up` or `down`.

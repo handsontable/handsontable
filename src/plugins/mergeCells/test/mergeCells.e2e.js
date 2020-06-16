@@ -434,7 +434,180 @@ describe('MergeCells', () => {
       keyDownUp('shift+enter');
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I1');
-      keyDownUp('shift+enter');
+    });
+
+    describe('compatibility with other plugins', () => {
+      it('should be possible to traverse through columns using the DOWN ARROW or ENTER, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenColumns: {
+            columns: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(0, 2);
+
+        keyDownUp('enter');
+        keyDownUp('enter');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('enter');
+        keyDownUp('enter');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(3, 2));
+
+        selectCell(0, 2);
+
+        keyDownUp('arrow_down');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_down');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(3, 2));
+      });
+
+      it('should be possible to traverse through columns using the UP ARROW or SHIFT+ENTER, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenColumns: {
+            columns: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(3, 2);
+
+        keyDownUp('shift+enter');
+        keyDownUp('shift+enter');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('shift+enter');
+        keyDownUp('shift+enter');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(0, 2));
+
+        selectCell(3, 2);
+
+        keyDownUp('arrow_up');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_up');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(0, 2));
+      });
+
+      it('should be possible to traverse through columns using the RIGHT ARROW or TAB, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenRows: {
+            rows: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(2, 0);
+
+        keyDownUp('tab');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('tab');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 3));
+
+        selectCell(2, 0);
+
+        keyDownUp('arrow_right');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_right');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 3));
+      });
+
+      it('should be possible to traverse through columns using the LEFT ARROW or SHIFT+TAB, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenRows: {
+            rows: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(2, 3);
+
+        keyDownUp('shift+tab');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('shift+tab');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 0));
+
+        selectCell(2, 3);
+
+        keyDownUp('arrow_left');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_left');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 0));
+      });
     });
   });
 
