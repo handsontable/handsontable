@@ -4693,6 +4693,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -4718,6 +4719,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -4743,6 +4745,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -4784,6 +4787,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(0);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(1);
+      expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -4808,6 +4812,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(0);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(1);
+      expect($mergeArea.hasClass('area')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -5575,6 +5580,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(3);
       expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(mergedCell).hasClass('area')).toBeFalse();
       expect($(mergedCell).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(mergedCell).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(mergedCell).hasClass('fullySelectedMergedCell-0')).toBeFalse();
@@ -5625,6 +5631,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(0);
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -5675,6 +5682,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -5726,6 +5734,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(4);
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(1);
+      expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -5777,6 +5786,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(3); // TODO: There should be 1 probably.
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(1); // TODO: There should be 3 probably.
+      expect($(dragEnd).hasClass('area')).toBeTrue();
       expect($(dragEnd).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragEnd).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -5828,6 +5838,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(4);
+      expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -5879,6 +5890,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(2);
       expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -5929,6 +5941,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(3);
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(0);
+      expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
@@ -5979,6 +5992,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().from.col).toBe(1);
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(3);
+      expect($(dragStart).hasClass('area')).toBeTrue();
       expect($(dragStart).hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
       expect($(dragStart).hasClass('fullySelectedMergedCell-0')).toBeTrue();
