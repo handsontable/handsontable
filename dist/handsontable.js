@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev14
- * Release date: 23/10/2019 (built at 15/06/2020 14:50:56)
+ * Version: 8.0.0-beta.2-rev15
+ * Release date: 23/10/2019 (built at 17/06/2020 10:23:57)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3461,7 +3461,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev14";
+  var hotVersion = "8.0.0-beta.2-rev15";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -42639,8 +42639,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "15/06/2020 14:50:56";
-Handsontable.version = "8.0.0-beta.2-rev14"; // Export Hooks singleton
+Handsontable.buildDate = "17/06/2020 10:23:57";
+Handsontable.version = "8.0.0-beta.2-rev15"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -51154,20 +51154,26 @@ var TableView = /*#__PURE__*/function () {
         totalColumns: function totalColumns() {
           return _this2.countRenderableColumns();
         },
-        // Rendered fixed rows on the left
+        // Number of renderable columns for the left overlay.
         fixedColumnsLeft: function fixedColumnsLeft() {
-          var fixedColumnsLeft = parseInt(_this2.settings.fixedColumnsLeft, 10);
-          return _this2.countNotHiddenColumnIndexes(fixedColumnsLeft - 1, -1);
+          var countCols = _this2.instance.countCols();
+
+          var visualFixedColumnsLeft = Math.min(parseInt(_this2.settings.fixedColumnsLeft, 10), countCols) - 1;
+          return _this2.countNotHiddenColumnIndexes(visualFixedColumnsLeft, -1);
         },
-        // Rendered fixed rows at the top
+        // Number of renderable rows for the top overlay.
         fixedRowsTop: function fixedRowsTop() {
-          var fixedRowsTop = parseInt(_this2.settings.fixedRowsTop, 10);
-          return _this2.countNotHiddenRowIndexes(fixedRowsTop - 1, -1);
+          var countRows = _this2.instance.countRows();
+
+          var visualFixedRowsTop = Math.min(parseInt(_this2.settings.fixedRowsTop, 10), countRows) - 1;
+          return _this2.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
         },
-        // Rendered fixed rows at the bottom
+        // Number of renderable rows for the bottom overlay.
         fixedRowsBottom: function fixedRowsBottom() {
-          var fixedRowsBottom = parseInt(_this2.settings.fixedRowsBottom, 10);
-          return _this2.countNotHiddenRowIndexes(_this2.instance.countRows() - fixedRowsBottom, 1);
+          var countRows = _this2.instance.countRows();
+
+          var visualFixedRowsBottom = Math.max(countRows - parseInt(_this2.settings.fixedRowsBottom, 10), 0);
+          return _this2.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
         },
         // Enable the left overlay when conditions are met.
         shouldRenderLeftOverlay: function shouldRenderLeftOverlay() {
@@ -57751,13 +57757,15 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
      * @type {PhysicalIndexToValueMap}
      */
 
-    _this.columnWidthsMap = new _translations.PhysicalIndexToValueMap(); // moved to constructor to allow auto-sizing the columns when the plugin is disabled
+    _this.columnWidthsMap = new _translations.PhysicalIndexToValueMap();
+
+    _this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, _this.columnWidthsMap); // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+
 
     _this.addHook('beforeColumnResize', function (size, column, isDblClick) {
       return _this.onBeforeColumnResize(size, column, isDblClick);
     });
-
-    _this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, _this.columnWidthsMap);
 
     return _this;
   }
@@ -57827,6 +57835,22 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(AutoColumnSize.prototype), "updatePlugin", this).call(this);
     }
     /**
+     * Disables the plugin functionality for this Handsontable instance.
+     */
+
+  }, {
+    key: "disablePlugin",
+    value: function disablePlugin() {
+      var _this3 = this;
+
+      (0, _get2.default)((0, _getPrototypeOf2.default)(AutoColumnSize.prototype), "disablePlugin", this).call(this); // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+      // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+
+      this.addHook('beforeColumnResize', function (size, column, isDblClick) {
+        return _this3.onBeforeColumnResize(size, column, isDblClick);
+      });
+    }
+    /**
      * Calculates a columns width.
      *
      * @param {number|object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
@@ -57837,7 +57861,7 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "calculateColumnsWidth",
     value: function calculateColumnsWidth() {
-      var _this3 = this;
+      var _this4 = this;
 
       var colRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
         from: 0,
@@ -57858,31 +57882,31 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
         to: rowRange
       } : rowRange;
       (0, _number.rangeEach)(columnsRange.from, columnsRange.to, function (visualColumn) {
-        var physicalColumn = _this3.hot.toPhysicalColumn(visualColumn);
+        var physicalColumn = _this4.hot.toPhysicalColumn(visualColumn);
 
         if (physicalColumn === null) {
           physicalColumn = visualColumn;
         }
 
-        if (force || _this3.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !_this3.hot._getColWidthFromSettings(physicalColumn)) {
-          var samples = _this3.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
+        if (force || _this4.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !_this4.hot._getColWidthFromSettings(physicalColumn)) {
+          var samples = _this4.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
           (0, _array.arrayEach)(samples, function (_ref) {
             var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
                 column = _ref2[0],
                 sample = _ref2[1];
 
-            return _this3.ghostTable.addColumn(column, sample);
+            return _this4.ghostTable.addColumn(column, sample);
           });
         }
       });
 
       if (this.ghostTable.columns.length) {
         this.hot.executeBatchOperations(function () {
-          _this3.ghostTable.getWidths(function (visualColumn, width) {
-            var physicalColumn = _this3.hot.toPhysicalColumn(visualColumn);
+          _this4.ghostTable.getWidths(function (visualColumn, width) {
+            var physicalColumn = _this4.hot.toPhysicalColumn(visualColumn);
 
-            _this3.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+            _this4.columnWidthsMap.setValueAtIndex(physicalColumn, width);
           });
         });
         this.measuredColumns = columnsRange.to + 1;
@@ -57899,7 +57923,7 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "calculateAllColumnsWidth",
     value: function calculateAllColumnsWidth() {
-      var _this4 = this;
+      var _this5 = this;
 
       var rowRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
         from: 0,
@@ -57912,13 +57936,13 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
 
       var loop = function loop() {
         // When hot was destroyed after calculating finished cancel frame
-        if (!_this4.hot) {
+        if (!_this5.hot) {
           (0, _feature.cancelAnimationFrame)(timer);
-          _this4.inProgress = false;
+          _this5.inProgress = false;
           return;
         }
 
-        _this4.calculateColumnsWidth({
+        _this5.calculateColumnsWidth({
           from: current,
           to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)
         }, rowRange);
@@ -57929,9 +57953,9 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
           timer = (0, _feature.requestAnimationFrame)(loop);
         } else {
           (0, _feature.cancelAnimationFrame)(timer);
-          _this4.inProgress = false; // @TODO Should call once per render cycle, currently fired separately in different plugins
+          _this5.inProgress = false; // @TODO Should call once per render cycle, currently fired separately in different plugins
 
-          _this4.hot.view.wt.wtOverlays.adjustElementsSize();
+          _this5.hot.view.wt.wtOverlays.adjustElementsSize();
         }
       };
 
@@ -58142,14 +58166,14 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "clearCache",
     value: function clearCache() {
-      var _this5 = this;
+      var _this6 = this;
 
       var columns = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
       if (columns.length) {
         this.hot.executeBatchOperations(function () {
           (0, _array.arrayEach)(columns, function (physicalIndex) {
-            _this5.columnWidthsMap.setValueAtIndex(physicalIndex, null);
+            _this6.columnWidthsMap.setValueAtIndex(physicalIndex, null);
           });
         });
       } else {
@@ -58210,15 +58234,15 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "onAfterLoadData",
     value: function onAfterLoadData() {
-      var _this6 = this;
+      var _this7 = this;
 
       if (this.hot.view) {
         this.recalculateAllColumnsWidth();
       } else {
         // first load - initialization
         setTimeout(function () {
-          if (_this6.hot) {
-            _this6.recalculateAllColumnsWidth();
+          if (_this7.hot) {
+            _this7.recalculateAllColumnsWidth();
           }
         }, 0);
       }
@@ -58233,13 +58257,13 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "onBeforeChange",
     value: function onBeforeChange(changes) {
-      var _this7 = this;
+      var _this8 = this;
 
       var changedColumns = (0, _array.arrayMap)(changes, function (_ref3) {
         var _ref4 = (0, _slicedToArray2.default)(_ref3, 2),
             columnProperty = _ref4[1];
 
-        return _this7.hot.toPhysicalColumn(_this7.hot.propToCol(columnProperty));
+        return _this8.hot.toPhysicalColumn(_this8.hot.propToCol(columnProperty));
       });
       this.clearCache(Array.from(new Set(changedColumns)));
     }
@@ -58275,15 +58299,6 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
     key: "onAfterInit",
     value: function onAfterInit() {
       privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
-    }
-    /**
-     * Disables the plugin functionality for this Handsontable instance.
-     */
-
-  }, {
-    key: "disablePlugin",
-    value: function disablePlugin() {
-      (0, _get2.default)((0, _getPrototypeOf2.default)(AutoColumnSize.prototype), "disablePlugin", this).call(this);
     }
     /**
      * Destroys the plugin instance.
@@ -59687,7 +59702,7 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
 
       if ((0, _element.hasClass)(event.target, 'manualRowResizer')) {
         this.setupGuidePosition();
-        this.pressed = this.hot;
+        this.pressed = true;
 
         if (this.autoresizeTimeout === null) {
           this.autoresizeTimeout = setTimeout(function () {
@@ -60081,15 +60096,23 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
      * @type {number}
      */
 
-    _this.measuredRows = 0; // moved to constructor to allow auto-sizing the rows when the plugin is disabled
+    _this.measuredRows = 0;
+    /**
+     * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
+     *
+     * @private
+     * @type {PhysicalIndexToValueMap}
+     */
+
+    _this.rowHeightsMap = new _translations.PhysicalIndexToValueMap();
+
+    _this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, _this.rowHeightsMap); // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
+    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+
 
     _this.addHook('beforeRowResize', function (size, row, isDblClick) {
       return _this.onBeforeRowResize(size, row, isDblClick);
     });
-
-    _this.rowHeightsMap = new _translations.PhysicalIndexToValueMap();
-
-    _this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, _this.rowHeightsMap);
 
     return _this;
   }
@@ -60147,8 +60170,15 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "disablePlugin",
     value: function disablePlugin() {
+      var _this3 = this;
+
       this.headerHeight = null;
-      (0, _get2.default)((0, _getPrototypeOf2.default)(AutoRowSize.prototype), "disablePlugin", this).call(this);
+      (0, _get2.default)((0, _getPrototypeOf2.default)(AutoRowSize.prototype), "disablePlugin", this).call(this); // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
+      // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+
+      this.addHook('beforeRowResize', function (size, row, isDblClick) {
+        return _this3.onBeforeRowResize(size, row, isDblClick);
+      });
     }
     /**
      * Calculate a given rows height.
@@ -60161,7 +60191,7 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "calculateRowsHeight",
     value: function calculateRowsHeight() {
-      var _this3 = this;
+      var _this4 = this;
 
       var rowRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
         from: 0,
@@ -60190,26 +60220,26 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
       (0, _number.rangeEach)(rowsRange.from, rowsRange.to, function (row) {
         // For rows we must calculate row height even when user had set height value manually.
         // We can shrink column but cannot shrink rows!
-        if (force || _this3.rowHeightsMap.getValueAtIndex(row) === null) {
-          var _samples = _this3.samplesGenerator.generateRowSamples(row, columnsRange);
+        if (force || _this4.rowHeightsMap.getValueAtIndex(row) === null) {
+          var _samples = _this4.samplesGenerator.generateRowSamples(row, columnsRange);
 
           (0, _array.arrayEach)(_samples, function (_ref) {
             var _ref2 = (0, _slicedToArray2.default)(_ref, 2),
                 rowIndex = _ref2[0],
                 sample = _ref2[1];
 
-            return _this3.ghostTable.addRow(rowIndex, sample);
+            return _this4.ghostTable.addRow(rowIndex, sample);
           });
         }
       });
 
       if (this.ghostTable.rows.length) {
         this.hot.executeBatchOperations(function () {
-          _this3.ghostTable.getHeights(function (row, height) {
+          _this4.ghostTable.getHeights(function (row, height) {
             if (row < 0) {
-              _this3.headerHeight = height;
+              _this4.headerHeight = height;
             } else {
-              _this3.rowHeightsMap.setValueAtIndex(_this3.hot.toPhysicalRow(row), height);
+              _this4.rowHeightsMap.setValueAtIndex(_this4.hot.toPhysicalRow(row), height);
             }
           });
         });
@@ -60227,7 +60257,7 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "calculateAllRowsHeight",
     value: function calculateAllRowsHeight() {
-      var _this4 = this;
+      var _this5 = this;
 
       var colRange = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {
         from: 0,
@@ -60240,13 +60270,13 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
 
       var loop = function loop() {
         // When hot was destroyed after calculating finished cancel frame
-        if (!_this4.hot) {
+        if (!_this5.hot) {
           (0, _feature.cancelAnimationFrame)(timer);
-          _this4.inProgress = false;
+          _this5.inProgress = false;
           return;
         }
 
-        _this4.calculateRowsHeight({
+        _this5.calculateRowsHeight({
           from: current,
           to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
         }, colRange);
@@ -60257,13 +60287,13 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
           timer = (0, _feature.requestAnimationFrame)(loop);
         } else {
           (0, _feature.cancelAnimationFrame)(timer);
-          _this4.inProgress = false; // @TODO Should call once per render cycle, currently fired separately in different plugins
+          _this5.inProgress = false; // @TODO Should call once per render cycle, currently fired separately in different plugins
 
-          _this4.hot.view.wt.wtOverlays.adjustElementsSize(true); // tmp
+          _this5.hot.view.wt.wtOverlays.adjustElementsSize(true); // tmp
 
 
-          if (_this4.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
-            _this4.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
+          if (_this5.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
+            _this5.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
           }
         }
       };
@@ -60440,7 +60470,7 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "clearCacheByRange",
     value: function clearCacheByRange(range) {
-      var _this5 = this;
+      var _this6 = this;
 
       var _ref3 = typeof range === 'number' ? {
         from: range,
@@ -60451,7 +60481,7 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
 
       this.hot.executeBatchOperations(function () {
         (0, _number.rangeEach)(Math.min(from, to), Math.max(from, to), function (row) {
-          _this5.rowHeightsMap.setValueAtIndex(row, null);
+          _this6.rowHeightsMap.setValueAtIndex(row, null);
         });
       });
     }
@@ -60551,15 +60581,15 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "onAfterLoadData",
     value: function onAfterLoadData() {
-      var _this6 = this;
+      var _this7 = this;
 
       if (this.hot.view) {
         this.recalculateAllRowsHeight();
       } else {
         // first load - initialization
         setTimeout(function () {
-          if (_this6.hot) {
-            _this6.recalculateAllRowsHeight();
+          if (_this7.hot) {
+            _this7.recalculateAllRowsHeight();
           }
         }, 0);
       }
@@ -69260,7 +69290,7 @@ var ManualColumnResize = /*#__PURE__*/function (_BasePlugin) {
 
       if ((0, _element.hasClass)(event.target, 'manualColumnResizer')) {
         this.setupGuidePosition();
-        this.pressed = this.hot;
+        this.pressed = true;
 
         if (this.autoresizeTimeout === null) {
           this.autoresizeTimeout = setTimeout(function () {
@@ -71194,14 +71224,15 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
       }
 
       nextPosition = new _src.CellCoords(currentlySelectedRange.highlight.row + newDelta.row, currentlySelectedRange.highlight.col + newDelta.col);
-      var nextParentIsMerged = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
+      var nextPositionMergedCell = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
 
-      if (nextParentIsMerged) {
+      if (nextPositionMergedCell) {
         // skipping the invisible cells in the merge range
+        var firstRenderableCoords = this.mergedCellsCollection.getFirstRenderableCoords(nextPositionMergedCell.row, nextPositionMergedCell.col);
         priv.lastDesiredCoords = nextPosition;
         newDelta = {
-          row: nextParentIsMerged.row - currentPosition.row,
-          col: nextParentIsMerged.col - currentPosition.col
+          row: firstRenderableCoords.row - currentPosition.row,
+          col: firstRenderableCoords.col - currentPosition.col
         };
       }
 
@@ -72100,6 +72131,28 @@ var MergedCellsCollection = /*#__PURE__*/function () {
       var mergeParent = this.get(row, column); // Return if row and column indexes are within merge area and if they are first rendered indexes within the area.
 
       return mergeParent && this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1) === row && this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1) === column;
+    }
+    /**
+     * Get the first renderable coords of the merged cell at the provided coordinates.
+     *
+     * @param {number} row Visual row index.
+     * @param {number} column Visual column index.
+     * @returns {CellCoords} A `CellCoords` object with the coordinates to the first renderable cell within the
+     *                        merged cell.
+     */
+
+  }, {
+    key: "getFirstRenderableCoords",
+    value: function getFirstRenderableCoords(row, column) {
+      var mergeParent = this.get(row, column);
+
+      if (!mergeParent || this.isFirstRenderableMergedCell(row, column)) {
+        return new _index.CellCoords(row, column);
+      }
+
+      var firstRenderableRow = this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1);
+      var firstRenderableColumn = this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1);
+      return new _index.CellCoords(firstRenderableRow, firstRenderableColumn);
     }
     /**
      * Shift the merged cell in the direction and by an offset defined in the arguments.
