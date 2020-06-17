@@ -240,23 +240,23 @@ describe('MergeCells', () => {
 
       hot.selectCell(5, 5, 5, 2);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('SE-NW');
-      // Rectangular area from the utmost cell to the cell on the opposite.
-      expect(hot.getSelected()).toEqual([5, 5, 4, 2]);
+      // Rectangular area from the marginal cell to the cell on the opposite.
+      expect(hot.getSelected()).toEqual([[5, 5, 4, 2]]);
 
       // What about, for example: hot.selectCell(5, 4, 5, 2);
       // Is it specified properly?
 
       hot.selectCell(4, 4, 2, 5);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('SW-NE');
-      expect(hot.getSelected()).toEqual([5, 4, 2, 5]);
+      expect(hot.getSelected()).toEqual([[5, 4, 2, 5]]);
 
       hot.selectCell(4, 4, 5, 7);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('NW-SE');
-      expect(hot.getSelected()).toEqual([4, 4, 5, 7]);
+      expect(hot.getSelected()).toEqual([[4, 4, 5, 7]]);
 
       hot.selectCell(4, 5, 7, 5);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('NE-SW');
-      expect(hot.getSelected()).toEqual([4, 5, 7, 4]);
+      expect(hot.getSelected()).toEqual([[4, 5, 7, 4]]);
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
