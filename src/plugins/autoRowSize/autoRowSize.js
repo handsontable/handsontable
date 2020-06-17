@@ -130,12 +130,18 @@ class AutoRowSize extends BasePlugin {
      * @type {number}
      */
     this.measuredRows = 0;
-
-    // moved to constructor to allow auto-sizing the rows when the plugin is disabled
-    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
-
+    /**
+     * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
+     *
+     * @private
+     * @type {PhysicalIndexToValueMap}
+     */
     this.rowHeightsMap = new IndexToValueMap();
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+
+    // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
+    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
   }
 
   /**
@@ -175,6 +181,10 @@ class AutoRowSize extends BasePlugin {
     this.headerHeight = null;
 
     super.disablePlugin();
+
+    // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
+    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
   }
 
   /**
