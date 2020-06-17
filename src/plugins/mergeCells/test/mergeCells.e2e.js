@@ -230,6 +230,7 @@ describe('MergeCells', () => {
 
     });
 
+    // TODO: After some changes please take a look at #7010.
     it('should select cells in the correct direction when changing selections around a merged range', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
@@ -248,6 +249,7 @@ describe('MergeCells', () => {
 
       hot.selectCell(4, 4, 2, 5);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('SW-NE');
+      // It flips the selection direction vertically.
       expect(hot.getSelected()).toEqual([[5, 4, 2, 5]]);
 
       hot.selectCell(4, 4, 5, 7);
@@ -256,6 +258,7 @@ describe('MergeCells', () => {
 
       hot.selectCell(4, 5, 7, 5);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('NE-SW');
+      // It flips the selection direction horizontally.
       expect(hot.getSelected()).toEqual([[4, 5, 7, 4]]);
     });
 
