@@ -9,7 +9,7 @@ MOUSE_BUTTONS.set('RMB', 3);
  * Get number describing specific mouse click.
  *
  * @param {number} buttonKey Number representing mouse button key.
- * @returns {V}
+ * @returns {number}
  */
 function getMouseButton(buttonKey) {
   return MOUSE_BUTTONS.get(buttonKey);
@@ -19,10 +19,11 @@ function getMouseButton(buttonKey) {
  * Returns a function that triggers a mouse event.
  *
  * @param {string} type Event type.
- * @param {number} buttonKey Number representing mouse button key.
+ * @param {number} [buttonKey] Number representing mouse button key.
+ * @param {object} [eventProps] Addional object with props to merge with the event.
  * @returns {Function}
  */
-export function handsontableMouseTriggerFactory(type, buttonKey) {
+export function handsontableMouseTriggerFactory(type, buttonKey = getMouseButton('LMB'), eventProps = {}) {
   return function(element) {
     let handsontableElement = element;
 
@@ -30,7 +31,12 @@ export function handsontableMouseTriggerFactory(type, buttonKey) {
       handsontableElement = $(handsontableElement);
     }
     const ev = $.Event(type);
-    ev.which = buttonKey || getMouseButton('LMB'); // left click by default
+
+    ev.which = buttonKey;
+
+    Object.keys(eventProps).forEach((key) => {
+      ev[key] = eventProps[key];
+    });
 
     handsontableElement.simulate(type, ev);
   };
@@ -46,26 +52,28 @@ export const mouseClick = handsontableMouseTriggerFactory('click');
  * Simulate click (all mouse events).
  *
  * @param {Element} element An element on which there will be performed mouse events.
- * @param {number} buttonKey Number representing mouse button key.
+ * @param {number} [buttonKey] Number representing mouse button key.
+ * @param {object} [eventProps] Addional object with props to merge with the event.
  */
-export function simulateClick(element, buttonKey) {
+export function simulateClick(element, buttonKey, eventProps) {
   const mouseButton = getMouseButton(buttonKey);
 
-  mouseDown(element, mouseButton);
-  mouseUp(element, mouseButton);
-  mouseClick(element, mouseButton);
+  mouseDown(element, mouseButton, eventProps);
+  mouseUp(element, mouseButton, eventProps);
+  mouseClick(element, mouseButton, eventProps);
 }
 
 /**
  * Simulate double click (all mouse events).
  *
  * @param {Element} element An element on which there will be performed mouse events.
+ * @param {object} [eventProps] Addional object with props to merge with the event.
  */
-export function mouseDoubleClick(element) {
-  mouseDown(element);
-  mouseUp(element);
-  mouseDown(element);
-  mouseUp(element);
+export function mouseDoubleClick(element, eventProps) {
+  mouseDown(element, eventProps);
+  mouseUp(element, eventProps);
+  mouseDown(element, eventProps);
+  mouseUp(element, eventProps);
 }
 
 export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', getMouseButton('RMB'));

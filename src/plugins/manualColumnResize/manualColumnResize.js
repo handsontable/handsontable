@@ -459,7 +459,7 @@ class ManualColumnResize extends BasePlugin {
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
       this.setupGuidePosition();
-      this.pressed = this.hot;
+      this.pressed = true;
 
       if (this.autoresizeTimeout === null) {
         this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);

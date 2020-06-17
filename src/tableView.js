@@ -473,23 +473,26 @@ class TableView {
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
-      // Rendered fixed rows on the left
+      // Number of renderable columns for the left overlay.
       fixedColumnsLeft: () => {
-        const fixedColumnsLeft = parseInt(this.settings.fixedColumnsLeft, 10);
+        const countCols = this.instance.countCols();
+        const visualFixedColumnsLeft = Math.min(parseInt(this.settings.fixedColumnsLeft, 10), countCols) - 1;
 
-        return this.countNotHiddenColumnIndexes(fixedColumnsLeft - 1, -1);
+        return this.countNotHiddenColumnIndexes(visualFixedColumnsLeft, -1);
       },
-      // Rendered fixed rows at the top
+      // Number of renderable rows for the top overlay.
       fixedRowsTop: () => {
-        const fixedRowsTop = parseInt(this.settings.fixedRowsTop, 10);
+        const countRows = this.instance.countRows();
+        const visualFixedRowsTop = Math.min(parseInt(this.settings.fixedRowsTop, 10), countRows) - 1;
 
-        return this.countNotHiddenRowIndexes(fixedRowsTop - 1, -1);
+        return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
       },
-      // Rendered fixed rows at the bottom
+      // Number of renderable rows for the bottom overlay.
       fixedRowsBottom: () => {
-        const fixedRowsBottom = parseInt(this.settings.fixedRowsBottom, 10);
+        const countRows = this.instance.countRows();
+        const visualFixedRowsBottom = Math.max(countRows - parseInt(this.settings.fixedRowsBottom, 10), 0);
 
-        return this.countNotHiddenRowIndexes(this.instance.countRows() - fixedRowsBottom, 1);
+        return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
       },
       // Enable the left overlay when conditions are met.
       shouldRenderLeftOverlay: () => {
