@@ -37,9 +37,8 @@ class BottomLeftCornerOverlay extends Overlay {
    */
   shouldBeRendered() {
     const { wot } = this;
-    /* eslint-disable no-unneeded-ternary */
-    return wot.getSetting('fixedRowsBottom') &&
-      (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length) ? true : false;
+
+    return wot.getSetting('shouldRenderBottomOverlay') && wot.getSetting('shouldRenderLeftOverlay');
   }
 
   /**

@@ -606,13 +606,19 @@ class MergeCells extends BasePlugin {
       currentlySelectedRange.highlight.col + newDelta.col
     );
 
-    const nextParentIsMerged = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
+    const nextPositionMergedCell = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
 
-    if (nextParentIsMerged) { // skipping the invisible cells in the merge range
+    if (nextPositionMergedCell) { // skipping the invisible cells in the merge range
+      const firstRenderableCoords = this.mergedCellsCollection.getFirstRenderableCoords(
+        nextPositionMergedCell.row,
+        nextPositionMergedCell.col
+      );
+
       priv.lastDesiredCoords = nextPosition;
+
       newDelta = {
-        row: nextParentIsMerged.row - currentPosition.row,
-        col: nextParentIsMerged.col - currentPosition.col
+        row: firstRenderableCoords.row - currentPosition.row,
+        col: firstRenderableCoords.col - currentPosition.col
       };
     }
 

@@ -41,7 +41,7 @@ class LeftOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return !!(this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length);
+    return this.wot.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
