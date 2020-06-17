@@ -738,6 +738,8 @@ class MergeCells extends BasePlugin {
    * `beforeSetRangeEnd` hook callback.
    * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell.
    *
+   * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
+   *
    * @private
    * @param {object} coords Cell coords.
    */
