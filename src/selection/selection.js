@@ -268,11 +268,15 @@ class Selection {
         // For single cell selection in the same layer, we do not create area selection to prevent blue background.
         // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
         // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
+        const previousRange = this.selectedRange.previous();
+
         this.highlight
           .useLayerLevel(layerLevel - 1)
           .createOrGetArea()
-          .add(this.selectedRange.previous().from)
-          .commit();
+          .add(previousRange.from)
+          .commit()
+          // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
+          .adjustCoordinates(previousRange);
 
         this.highlight.useLayerLevel(layerLevel);
       }
