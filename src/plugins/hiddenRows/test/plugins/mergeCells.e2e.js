@@ -280,7 +280,7 @@ describe('HiddenRows', () => {
       expect(getHtCore().find('td:eq(1)').outerHeight()).toBe(69);
     });
 
-    it('should select proper cell when calling the `selectCell` within area of merge ' +
+    it('should select proper cells when calling the `selectCell` within area of merge ' +
       '(contains few hidden rows)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 1),
@@ -379,7 +379,7 @@ describe('HiddenRows', () => {
       // TODO: `selectCell(4, 0)` should give the same effect. There is bug at least from Handsontable 7.
     });
 
-    it('should select proper cell when calling the `selectCell` within area of merge ' +
+    it('should select proper cells when calling the `selectCell` within area of merge ' +
       '(contains just one hidden and one not hidden row)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 1),
@@ -439,6 +439,49 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-3')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-4')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-5')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
+    });
+
+    it('should select proper cells when calling the `selectCells` within area of merge ' +
+      '(contains just one hidden and one not hidden rows) + singe cell', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 1),
+        hiddenRows: {
+          rows: [0],
+        },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 1 }
+        ]
+      });
+
+      // First visible cell (merged area).
+      const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
+
+      selectCells([[1, 0], [4, 0]]);
+
+      expect(`
+      | 0 |
+      |   |
+      |   |
+      | A |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelected()).toEqual([[0, 0, 1, 0], [4, 0, 4, 0]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(4);
+      expect(getSelectedRangeLast().highlight.col).toBe(0);
+      expect(getSelectedRangeLast().from.row).toBe(4);
+      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().to.row).toBe(4);
+      expect(getSelectedRangeLast().to.col).toBe(0);
+      expect($mergeArea.hasClass('area')).toBeTrue();
+      expect($mergeArea.hasClass('fullySelectedMergedCell')).toBeFalse();
+      expect($mergeArea.hasClass('fullySelectedMergedCell-multiple')).toBeTrue();
       expect($mergeArea.hasClass('fullySelectedMergedCell-0')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-1')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-2')).toBeFalse();
