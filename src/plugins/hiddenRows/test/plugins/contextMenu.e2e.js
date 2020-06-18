@@ -523,11 +523,11 @@ describe('HiddenRows', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelected()).toEqual([[3, 0, 3, 1]]);
+            expect(getSelected()).toEqual([[3, -1, 3, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(3);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
             expect(getSelectedRangeLast().from.row).toBe(3);
-            expect(getSelectedRangeLast().from.col).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(-1);
             expect(getSelectedRangeLast().to.row).toBe(3);
             expect(getSelectedRangeLast().to.col).toBe(1);
             expect(`
@@ -554,11 +554,11 @@ describe('HiddenRows', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelected()).toEqual([[8, 0, 8, 1]]);
+            expect(getSelected()).toEqual([[8, -1, 8, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(8);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
             expect(getSelectedRangeLast().from.row).toBe(8);
-            expect(getSelectedRangeLast().from.col).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(-1);
             expect(getSelectedRangeLast().to.row).toBe(8);
             expect(getSelectedRangeLast().to.col).toBe(1);
             expect(`
@@ -585,11 +585,11 @@ describe('HiddenRows', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelected()).toEqual([[2, 0, 2, 1]]);
+            expect(getSelected()).toEqual([[2, -1, 2, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(2);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
             expect(getSelectedRangeLast().from.row).toBe(2);
-            expect(getSelectedRangeLast().from.col).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(-1);
             expect(getSelectedRangeLast().to.row).toBe(2);
             expect(getSelectedRangeLast().to.col).toBe(1);
             expect(`
@@ -616,11 +616,11 @@ describe('HiddenRows', () => {
 
             getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
-            expect(getSelected()).toEqual([[4, 0, 4, 1]]);
+            expect(getSelected()).toEqual([[4, -1, 4, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(4);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
             expect(getSelectedRangeLast().from.row).toBe(4);
-            expect(getSelectedRangeLast().from.col).toBe(0);
+            expect(getSelectedRangeLast().from.col).toBe(-1);
             expect(getSelectedRangeLast().to.row).toBe(4);
             expect(getSelectedRangeLast().to.col).toBe(1);
             expect(`
@@ -686,11 +686,11 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A3');
           expect(getCell(3, 0).innerText).toBe('A4');
           expect(getCell(4, 0).innerText).toBe('A5');
-          expect(getSelected()).toEqual([[0, 0, 4, 1]]);
+          expect(getSelected()).toEqual([[0, -1, 4, 1]]);
           expect(getSelectedRangeLast().highlight.row).toBe(0);
           expect(getSelectedRangeLast().highlight.col).toBe(0);
           expect(getSelectedRangeLast().from.row).toBe(0);
-          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(-1);
           expect(getSelectedRangeLast().to.row).toBe(4);
           expect(getSelectedRangeLast().to.col).toBe(1);
           expect(`
@@ -733,11 +733,11 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A3');
           expect(getCell(3, 0).innerText).toBe('A4');
           expect(getCell(4, 0).innerText).toBe('A5');
-          expect(getSelected()).toEqual([[0, 0, 2, 1]]);
+          expect(getSelected()).toEqual([[0, -1, 2, 1]]);
           expect(getSelectedRangeLast().highlight.row).toBe(0);
           expect(getSelectedRangeLast().highlight.col).toBe(0);
           expect(getSelectedRangeLast().from.row).toBe(0);
-          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(-1);
           expect(getSelectedRangeLast().to.row).toBe(2);
           expect(getSelectedRangeLast().to.col).toBe(1);
           expect(`
@@ -780,11 +780,11 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A3');
           expect(getCell(3, 0).innerText).toBe('A4');
           expect(getCell(4, 0).innerText).toBe('A5');
-          expect(getSelected()).toEqual([[2, 0, 4, 1]]);
+          expect(getSelected()).toEqual([[2, -1, 4, 1]]);
           expect(getSelectedRangeLast().highlight.row).toBe(2);
           expect(getSelectedRangeLast().highlight.col).toBe(0);
           expect(getSelectedRangeLast().from.row).toBe(2);
-          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(-1);
           expect(getSelectedRangeLast().to.row).toBe(4);
           expect(getSelectedRangeLast().to.col).toBe(1);
           expect(`
@@ -827,11 +827,11 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A3');
           expect(getCell(3, 0).innerText).toBe('A4');
           expect(getCell(4, 0).innerText).toBe('A5');
-          expect(getSelected()).toEqual([[0, 0, 4, 1]]);
+          expect(getSelected()).toEqual([[-1, -1, 4, 1]]);
           expect(getSelectedRangeLast().highlight.row).toBe(0);
           expect(getSelectedRangeLast().highlight.col).toBe(0);
-          expect(getSelectedRangeLast().from.row).toBe(0);
-          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().from.row).toBe(-1);
+          expect(getSelectedRangeLast().from.col).toBe(-1);
           expect(getSelectedRangeLast().to.row).toBe(4);
           expect(getSelectedRangeLast().to.col).toBe(1);
           expect(`
@@ -879,11 +879,11 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A4');
           expect(getCell(3, 0).innerText).toBe('A5');
           expect(getCell(4, 0)).toBe(null);
-          expect(getSelected()).toEqual([[0, 0, 2, 4]]);
+          expect(getSelected()).toEqual([[0, -1, 2, 4]]);
           expect(getSelectedRangeLast().highlight.row).toBe(0);
           expect(getSelectedRangeLast().highlight.col).toBe(0);
           expect(getSelectedRangeLast().from.row).toBe(0);
-          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(-1);
           expect(getSelectedRangeLast().to.row).toBe(2);
           expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
@@ -928,11 +928,11 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A4');
           expect(getCell(3, 0).innerText).toBe('A5');
           expect(getCell(4, 0)).toBe(null);
-          expect(getSelected()).toEqual([[0, 0, 2, 4]]);
+          expect(getSelected()).toEqual([[0, -1, 2, 4]]);
           expect(getSelectedRangeLast().highlight.row).toBe(0);
           expect(getSelectedRangeLast().highlight.col).toBe(0);
           expect(getSelectedRangeLast().from.row).toBe(0);
-          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(-1);
           expect(getSelectedRangeLast().to.row).toBe(2);
           expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
@@ -977,11 +977,11 @@ describe('HiddenRows', () => {
           expect(getCell(2, 0).innerText).toBe('A4');
           expect(getCell(3, 0).innerText).toBe('A5');
           expect(getCell(4, 0)).toBe(null);
-          expect(getSelected()).toEqual([[0, 0, 2, 4]]);
+          expect(getSelected()).toEqual([[0, -1, 2, 4]]);
           expect(getSelectedRangeLast().highlight.row).toBe(0);
           expect(getSelectedRangeLast().highlight.col).toBe(0);
           expect(getSelectedRangeLast().from.row).toBe(0);
-          expect(getSelectedRangeLast().from.col).toBe(0);
+          expect(getSelectedRangeLast().from.col).toBe(-1);
           expect(getSelectedRangeLast().to.row).toBe(2);
           expect(getSelectedRangeLast().to.col).toBe(4);
           expect(`
@@ -1020,10 +1020,10 @@ describe('HiddenRows', () => {
               .simulate('mousedown')
               .simulate('mouseup'); // Insert column left
 
-            expect(getSelected()).toEqual([[0, 1, 3, 1]]);
+            expect(getSelected()).toEqual([[-1, 1, 3, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(1);
             expect(getSelectedRangeLast().highlight.col).toBe(1);
-            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.row).toBe(-1);
             expect(getSelectedRangeLast().from.col).toBe(1);
             expect(getSelectedRangeLast().to.row).toBe(3);
             expect(getSelectedRangeLast().to.col).toBe(1);
@@ -1059,10 +1059,10 @@ describe('HiddenRows', () => {
               .simulate('mousedown')
               .simulate('mouseup'); // Insert column left
 
-            expect(getSelected()).toEqual([[0, 1, 3, 1]]);
+            expect(getSelected()).toEqual([[-1, 1, 3, 1]]);
             expect(getSelectedRangeLast().highlight.row).toBe(0);
             expect(getSelectedRangeLast().highlight.col).toBe(1);
-            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.row).toBe(-1);
             expect(getSelectedRangeLast().from.col).toBe(1);
             expect(getSelectedRangeLast().to.row).toBe(3);
             expect(getSelectedRangeLast().to.col).toBe(1);
@@ -1097,10 +1097,10 @@ describe('HiddenRows', () => {
               .simulate('mousedown')
               .simulate('mouseup'); // Insert column right
 
-            expect(getSelected()).toEqual([[0, 0, 3, 0]]);
+            expect(getSelected()).toEqual([[-1, 0, 3, 0]]);
             expect(getSelectedRangeLast().highlight.row).toBe(1);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
-            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.row).toBe(-1);
             expect(getSelectedRangeLast().from.col).toBe(0);
             expect(getSelectedRangeLast().to.row).toBe(3);
             expect(getSelectedRangeLast().to.col).toBe(0);
@@ -1136,10 +1136,10 @@ describe('HiddenRows', () => {
               .simulate('mousedown')
               .simulate('mouseup'); // Insert column right
 
-            expect(getSelected()).toEqual([[0, 0, 3, 0]]);
+            expect(getSelected()).toEqual([[-1, 0, 3, 0]]);
             expect(getSelectedRangeLast().highlight.row).toBe(0);
             expect(getSelectedRangeLast().highlight.col).toBe(0);
-            expect(getSelectedRangeLast().from.row).toBe(0);
+            expect(getSelectedRangeLast().from.row).toBe(-1);
             expect(getSelectedRangeLast().from.col).toBe(0);
             expect(getSelectedRangeLast().to.row).toBe(3);
             expect(getSelectedRangeLast().to.col).toBe(0);

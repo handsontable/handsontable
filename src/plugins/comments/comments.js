@@ -749,6 +749,10 @@ class Comments extends BasePlugin {
         },
         callback: () => this.onContextMenuAddComment(),
         disabled() {
+          if (this.countRows() === 0 || this.countCols() === 0) {
+            return true;
+          }
+
           return !(this.getSelectedLast() && !this.selection.isSelectedByCorner());
         }
       },
@@ -782,7 +786,13 @@ class Comments extends BasePlugin {
           return label;
         },
         callback: () => this.onContextMenuMakeReadOnly(),
-        disabled: () => this.hot.selection.isSelectedByCorner() || !this.checkSelectionCommentsConsistency()
+        disabled: () => {
+          if (this.hot.countRows() === 0 || this.hot.countCols() === 0) {
+            return true;
+          }
+
+          return this.hot.selection.isSelectedByCorner() || !this.checkSelectionCommentsConsistency();
+        }
       }
     );
   }

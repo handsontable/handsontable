@@ -2799,7 +2799,7 @@ describe('UndoRedo', () => {
       alter('remove_row', 1, 3);
       undo();
 
-      expect(getSelected()).toEqual([[7, 0, 8, 9]]);
+      expect(getSelected()).toEqual([[7, -1, 8, 9]]);
       expect(`
         |   ║ - : - : - : - : - : - : - : - : - : - |
         |===:===:===:===:===:===:===:===:===:===:===|
@@ -2856,7 +2856,7 @@ describe('UndoRedo', () => {
       alter('remove_col', 1, 3);
       undo();
 
-      expect(getSelected()).toEqual([[0, 7, 9, 8]]);
+      expect(getSelected()).toEqual([[-1, 7, 9, 8]]);
       expect(`
         |   ║   :   :   :   :   :   :   : * : * :   |
         |===:===:===:===:===:===:===:===:===:===:===|

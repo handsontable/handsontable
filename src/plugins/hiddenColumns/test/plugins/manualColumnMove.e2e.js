@@ -225,10 +225,10 @@ describe('HiddenColumns', () => {
         expect(getCell(0, 2).innerText).toBe('A1');
         expect(getCell(0, 3).innerText).toBe('D1');
         expect(getCell(0, 4).innerText).toBe('E1');
-        expect(getSelected()).toEqual([[0, 0, 1, 1]]);
+        expect(getSelected()).toEqual([[-1, 0, 1, 1]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
         expect(getSelectedRangeLast().highlight.col).toBe(0);
-        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
         expect(getSelectedRangeLast().from.col).toBe(0);
         expect(getSelectedRangeLast().to.row).toBe(1);
         expect(getSelectedRangeLast().to.col).toBe(1);

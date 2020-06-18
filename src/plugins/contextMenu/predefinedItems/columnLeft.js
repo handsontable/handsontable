@@ -18,12 +18,13 @@ export default function columnLeftItem() {
       this.alter('insert_col', latestSelection.start.col, 1, 'ContextMenu.columnLeft');
     },
     disabled() {
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+
       const selected = getValidSelection(this);
 
       if (!selected) {
-        return true;
-      }
-      if (!this.isColumnModificationAllowed()) {
         return true;
       }
 

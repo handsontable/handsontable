@@ -1943,7 +1943,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 2]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 2]]);
 
       $(getCell(-3, 1)) // Header "E"
         .simulate('mousedown')
@@ -2002,7 +2002,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 4]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 4]]);
 
       $(getCell(-4, 1)) // Header "B"
         .simulate('mousedown')
@@ -2061,7 +2061,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 8]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 8]]);
     });
 
     it('should active highlight column header for non-contiguous header selection', () => {
@@ -2133,7 +2133,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 1]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
 
       keyDown('ctrl');
 
@@ -2195,8 +2195,8 @@ describe('NestedHeaders', () => {
         `);
 
       expect(getSelected()).toEqual([
-        [0, 1, 9, 1],
-        [0, 5, 9, 5],
+        [-1, 1, 9, 1],
+        [-1, 5, 9, 5],
       ]);
 
       $(getCell(-3, 1)) // Header "B2"
@@ -2257,10 +2257,10 @@ describe('NestedHeaders', () => {
         `);
 
       expect(getSelected()).toEqual([
-        [0, 1, 9, 1],
-        [0, 5, 9, 5],
-        [0, 1, 9, 1], // <- This coords shouldn't be here (known issue)
-        [0, 1, 9, 3],
+        [-1, 1, 9, 1],
+        [-1, 5, 9, 5],
+        [-1, 1, 9, 1], // <- This coords shouldn't be here (known issue)
+        [-1, 1, 9, 3],
       ]);
     });
 
@@ -2283,7 +2283,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[0, 3, hot.countRows() - 1, 6]]);
+      expect(hot.getSelected()).toEqual([[-1, 3, hot.countRows() - 1, 6]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)')
         .simulate('mousedown');
@@ -2291,7 +2291,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[0, 4, hot.countRows() - 1, 1]]);
+      expect(hot.getSelected()).toEqual([[-1, 4, hot.countRows() - 1, 1]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseover');
@@ -2299,7 +2299,7 @@ describe('NestedHeaders', () => {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseover');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[0, 3, hot.countRows() - 1, 6]]);
+      expect(hot.getSelected()).toEqual([[-1, 3, hot.countRows() - 1, 6]]);
     });
 
     it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {

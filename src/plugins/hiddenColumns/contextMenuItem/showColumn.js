@@ -52,14 +52,14 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       });
 
       if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner()) ||
-        hiddenPhysicalColumns.length < 1) {
+          hiddenPhysicalColumns.length < 1) {
         return true;
       }
 
       columns.length = 0;
 
       const [, startColumn, , endColumn] = this.getSelectedLast();
-      const visualStartColumn = Math.min(startColumn, endColumn);
+      const visualStartColumn = Math.max(Math.min(startColumn, endColumn), 0);
       const visualEndColumn = Math.max(startColumn, endColumn);
       const columnIndexMapper = this.columnIndexMapper;
       const renderableStartColumn = columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);

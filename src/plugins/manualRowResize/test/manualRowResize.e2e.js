@@ -560,6 +560,7 @@ describe('manualRowResize', () => {
 
       $rowHeader = spec().$container.find('.ht_clone_left tr:eq(13) th:eq(0)');
       $rowHeader.simulate('mouseover');
+
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
 

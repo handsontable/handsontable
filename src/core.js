@@ -522,7 +522,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             // Normalize the {index, amount} groups into bigger groups.
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
               const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
-
               let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -1590,7 +1589,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       rangeEach(topLeft.row, bottomRight.row, (row) => {
         rangeEach(topLeft.col, bottomRight.col, (column) => {
-          if (!this.getCellMeta(row, column).readOnly) {
+          if (row >= 0 && column >= 0 && !this.getCellMeta(row, column).readOnly) {
             changes.push([row, column, null]);
           }
         });
@@ -2973,6 +2972,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (physicalRow !== void 0) {
       physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
+
     if (physicalRow === void 0) {
       rowHeader = [];
       rangeEach(instance.countRows() - 1, (i) => {

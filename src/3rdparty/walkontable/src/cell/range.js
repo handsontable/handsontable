@@ -9,23 +9,26 @@ import CellCoords from './../cell/coords';
 class CellRange {
   constructor(highlight, from = highlight, to = highlight) {
     /**
-     * Used to draw bold border around a cell where selection was started and to edit the cell when you press Enter.
+     * Used to draw bold border around a cell where selection was started and to edit the cell
+     * when you press Enter. The highlight cannot point to headers (negative values) so its
+     * coordinates object is normalized while assigning.
      *
      * @type {CellCoords}
      */
-    this.highlight = highlight;
+    this.highlight = highlight.clone().normalize();
     /**
-     * Usually the same as highlight, but in Excel there is distinction - one can change highlight within a selection.
+     * Usually the same as highlight, but in Excel there is distinction - one can change
+     * highlight within a selection.
      *
      * @type {CellCoords}
      */
-    this.from = from;
+    this.from = from.clone();
     /**
      * End selection.
      *
      * @type {CellCoords}
      */
-    this.to = to;
+    this.to = to.clone();
   }
 
   /**
@@ -35,7 +38,7 @@ class CellRange {
    * @returns {CellRange}
    */
   setHighlight(coords) {
-    this.highlight = coords;
+    this.highlight = coords.clone().normalize();
 
     return this;
   }
@@ -47,7 +50,7 @@ class CellRange {
    * @returns {CellRange}
    */
   setFrom(coords) {
-    this.from = coords;
+    this.from = coords.clone();
 
     return this;
   }
@@ -59,7 +62,7 @@ class CellRange {
    * @returns {CellRange}
    */
   setTo(coords) {
-    this.to = coords;
+    this.to = coords.clone();
 
     return this;
   }
@@ -84,7 +87,7 @@ class CellRange {
   }
 
   /**
-   * Returns selected range height (in number of rows).
+   * Returns selected range height (in number of rows including rows' headers).
    *
    * @returns {number}
    */
@@ -93,12 +96,36 @@ class CellRange {
   }
 
   /**
-   * Returns selected range width (in number of columns).
+   * Returns selected range width (in number of columns including columns' headers).
    *
    * @returns {number}
    */
   getWidth() {
     return Math.max(this.from.col, this.to.col) - Math.min(this.from.col, this.to.col) + 1;
+  }
+
+  /**
+   * Returns selected range height (in number of rows excluding rows' headers).
+   *
+   * @returns {number}
+   */
+  getInnerHeight() {
+    const fromRow = Math.max(this.from.row, 0);
+    const toRow = Math.max(this.to.row, 0);
+
+    return Math.max(fromRow, toRow) - Math.min(fromRow, toRow) + 1;
+  }
+
+  /**
+   * Returns selected range width (in number of columns excluding columns' headers).
+   *
+   * @returns {number}
+   */
+  getInnerWidth() {
+    const fromCol = Math.max(this.from.col, 0);
+    const toCol = Math.max(this.to.col, 0);
+
+    return Math.max(fromCol, toCol) - Math.min(fromCol, toCol) + 1;
   }
 
   /**

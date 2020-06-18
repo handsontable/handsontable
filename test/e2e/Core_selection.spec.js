@@ -315,6 +315,44 @@ describe('Core_selection', () => {
     expect(tickEnd).toEqual(2);
   });
 
+  it('should select columns by click on header when all rows are trimmed', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'));
+
+    expect(getSelected()).toEqual([[-1, 1, -1, 1]]);
+    expect(`
+      |   |   : - :   :   :   |
+      |===:===:===:===:===:===|
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should select rows by click on header when all columns are trimmed (using `columns` option)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      columns: [], // The TrimmingMap should be used instead of the plugin.
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_left tr:eq(2) th:eq(0)'));
+
+    expect(getSelected()).toEqual([[1, -1, 1, -1]]);
+    expect(`
+      |   |
+      |   |
+      | - |
+      |   |
+      |   |
+      |   |
+    `).toBeMatchToSelectionPattern();
+  });
+
   it('should call onSelectionEnd when user finishes selection by releasing SHIFT key (3 times)', () => {
     let tick = 0;
 
@@ -389,7 +427,7 @@ describe('Core_selection', () => {
     spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mousedown', { shiftKey: true });
     spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[0, 1, 4, 4]]);
+    expect(getSelected()).toEqual([[-1, 1, 4, 4]]);
     expect(`
     |   ║   : * : * : * : * |
     |===:===:===:===:===:===|
@@ -415,7 +453,7 @@ describe('Core_selection', () => {
     spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
     spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[1, 0, 4, 4]]);
+    expect(getSelected()).toEqual([[1, -1, 4, 4]]);
     expect(`
     |   ║ - : - : - : - : - |
     |===:===:===:===:===:===|
@@ -440,7 +478,7 @@ describe('Core_selection', () => {
     spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mousedown', { shiftKey: true });
     spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[0, 1, 4, 4]]);
+    expect(getSelected()).toEqual([[-1, 1, 4, 4]]);
     expect(`
     |   ║   : * : * : * : * |
     |===:===:===:===:===:===|
@@ -465,7 +503,7 @@ describe('Core_selection', () => {
     spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
     spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[1, 0, 4, 4]]);
+    expect(getSelected()).toEqual([[1, -1, 4, 4]]);
     expect(`
     |   ║ - : - : - : - : - |
     |===:===:===:===:===:===|
@@ -529,7 +567,7 @@ describe('Core_selection', () => {
     spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseover');
     spec().$container.find('.ht_clone_left tr:eq(0) th:eq(2)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[0, 1, 4, 1]]);
+    expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
     expect(`
     |   ║   : * |   :   :   |
     |===:===:===:===:===:===|
@@ -586,7 +624,7 @@ describe('Core_selection', () => {
 
     spec().$container.find('thead th:eq(0)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([[0, 0, 9, 0]]);
+    expect(getSelected()).toEqual([[-1, 0, 9, 0]]);
     expect(`
       | * :   :   :   :   |
       |===:===:===:===:===|
@@ -693,7 +731,7 @@ describe('Core_selection', () => {
 
     spec().$container.find('.ht_clone_top_left_corner thead th:eq(1)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([[0, 0, 9, 0]]);
+    expect(getSelected()).toEqual([[-1, 0, 9, 0]]);
     expect(`
       |   ║ * :   |   :   :   |
       |===:===:===:===:===:===|
@@ -728,7 +766,7 @@ describe('Core_selection', () => {
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
     spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
 
-    expect(getSelected()).toEqual([[0, 1, 9, 1]]);
+    expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
     expect(`
       |   ║   : * |   :   :   :   :   :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|
@@ -1026,7 +1064,7 @@ describe('Core_selection', () => {
 
     spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
 
-    expect(getSelected()).toEqual([[1, 0, 1, 4]]);
+    expect(getSelected()).toEqual([[1, -1, 1, 4]]);
     expect(`
       |   ║ - : - : - : - : - |
       |===:===:===:===:===:===|
@@ -1073,7 +1111,7 @@ describe('Core_selection', () => {
     });
 
     spec().$container.find('tr:eq(2) th:eq(0)').simulate('mousedown');
-    expect(getSelected()).toEqual([[1, 0, 1, 4]]);
+    expect(getSelected()).toEqual([[1, -1, 1, 4]]);
     expect(`
     |   ║ - : - | - : - : - |
     |===:===:===:===:===:===|
@@ -1086,7 +1124,7 @@ describe('Core_selection', () => {
     `).toBeMatchToSelectionPattern();
 
     spec().$container.find('tr:eq(3) th:eq(0)').simulate('mousedown');
-    expect(getSelected()).toEqual([[2, 0, 2, 4]]);
+    expect(getSelected()).toEqual([[2, -1, 2, 4]]);
     expect(`
     |   ║ - : - | - : - : - |
     |===:===:===:===:===:===|
@@ -1333,7 +1371,7 @@ describe('Core_selection', () => {
 
     spec().$container.find('thead').find('th').eq(0).simulate('mousedown');
 
-    expect(getSelected()).toEqual([[0, 0, 4, 4]]);
+    expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     expect(`
     |   ║ * : * : * : * : * |
     |===:===:===:===:===:===|
@@ -2096,7 +2134,7 @@ describe('Core_selection', () => {
       selectRows(3, 5);
       alter('insert_row', 1, 3);
 
-      expect(getSelected()).toEqual([[6, 0, 8, 9]]);
+      expect(getSelected()).toEqual([[6, -1, 8, 9]]);
       expect(`
         |   ║ - : - : - : - : - : - : - : - : - : - |
         |===:===:===:===:===:===:===:===:===:===:===|
@@ -2158,7 +2196,7 @@ describe('Core_selection', () => {
       selectRows(3, 5);
       alter('insert_row', 5, 3);
 
-      expect(getSelected()).toEqual([[3, 0, 5, 9]]);
+      expect(getSelected()).toEqual([[3, -1, 5, 9]]);
       expect(`
         |   ║ - : - : - : - : - : - : - : - : - : - |
         |===:===:===:===:===:===:===:===:===:===:===|
@@ -2218,7 +2256,7 @@ describe('Core_selection', () => {
       selectColumns(3, 5);
       alter('insert_col', 1, 3);
 
-      expect(getSelected()).toEqual([[0, 6, 9, 8]]);
+      expect(getSelected()).toEqual([[-1, 6, 9, 8]]);
       expect(`
         |   ║   :   :   :   :   :   : * : * : * :   :   :   :   |
         |===:===:===:===:===:===:===:===:===:===:===:===:===:===|
@@ -2274,7 +2312,7 @@ describe('Core_selection', () => {
       selectColumns(3, 5);
       alter('insert_col', 5, 3);
 
-      expect(getSelected()).toEqual([[0, 3, 9, 5]]);
+      expect(getSelected()).toEqual([[-1, 3, 9, 5]]);
       expect(`
         |   ║   :   :   : * : * : * :   :   :   :   :   :   :   |
         |===:===:===:===:===:===:===:===:===:===:===:===:===:===|
