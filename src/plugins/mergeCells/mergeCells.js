@@ -99,6 +99,8 @@ class MergeCells extends BasePlugin {
     this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.onModifyGetCellCoords(...args));
+    this.addHook('beforeSetRangeStart', (...args) => this.onBeforeSetRangeStart(...args));
+    this.addHook('beforeSetRangeStartOnly', (...args) => this.onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.onAfterRenderer(...args));
@@ -741,8 +743,30 @@ class MergeCells extends BasePlugin {
   }
 
   /**
+   * `beforeSetRangeStart` and `beforeSetRangeStartOnly` hook callback.
+   * A selection within merge area should be rewritten to the start of merge area.
+   *
+   * @private
+   * @param {object} coords Cell coords.
+   */
+  onBeforeSetRangeStart(coords) {
+    // TODO: It is a workaround, but probably this hook may be needed. Every selection on the merge area
+    // could set start point of the selection to the start of the merge area. However, logic inside `expandByRange` need
+    // an initial start point. Click on the merge cell when there are some hidden indexes break the logic in some cases.
+    // Please take a look at #7010 for more information. I'm not sure if selection directions are calculated properly
+    // and what was idea for flipping direction inside `expandByRange` method.
+    if (this.mergedCellsCollection.isFirstRenderableMergedCell(coords.row, coords.col)) {
+      const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
+
+      [coords.row, coords.col] = [mergeParent.row, mergeParent.col];
+    }
+  }
+
+  /**
    * `beforeSetRangeEnd` hook callback.
    * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell.
+   *
+   * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
    *
    * @private
    * @param {object} coords Cell coords.
