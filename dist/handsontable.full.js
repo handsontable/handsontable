@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev15
- * Release date: 23/10/2019 (built at 17/06/2020 10:23:57)
+ * Version: 8.0.0-beta.2-rev16
+ * Release date: 23/10/2019 (built at 18/06/2020 14:32:10)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3461,7 +3461,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev15";
+  var hotVersion = "8.0.0-beta.2-rev16";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -63476,8 +63476,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "17/06/2020 10:23:57";
-Handsontable.version = "8.0.0-beta.2-rev15"; // Export Hooks singleton
+Handsontable.buildDate = "18/06/2020 14:32:10";
+Handsontable.version = "8.0.0-beta.2-rev16"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -76450,7 +76450,9 @@ var Selection = /*#__PURE__*/function () {
           // For single cell selection in the same layer, we do not create area selection to prevent blue background.
           // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
           // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
-          this.highlight.useLayerLevel(layerLevel - 1).createOrGetArea().add(this.selectedRange.previous().from).commit();
+          var previousRange = this.selectedRange.previous();
+          this.highlight.useLayerLevel(layerLevel - 1).createOrGetArea().add(previousRange.from).commit() // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
+          .adjustCoordinates(previousRange);
           this.highlight.useLayerLevel(layerLevel);
         }
       }
@@ -93051,6 +93053,12 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
       this.addHook('modifyGetCellCoords', function () {
         return _this2.onModifyGetCellCoords.apply(_this2, arguments);
       });
+      this.addHook('beforeSetRangeStart', function () {
+        return _this2.onBeforeSetRangeStart.apply(_this2, arguments);
+      });
+      this.addHook('beforeSetRangeStartOnly', function () {
+        return _this2.onBeforeSetRangeStart.apply(_this2, arguments);
+      });
       this.addHook('beforeSetRangeEnd', function () {
         return _this2.onBeforeSetRangeEnd.apply(_this2, arguments);
       });
@@ -93752,8 +93760,33 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
       (0, _utils.applySpanProperties)(TD, mergedCellCopy, row, col);
     }
     /**
+     * `beforeSetRangeStart` and `beforeSetRangeStartOnly` hook callback.
+     * A selection within merge area should be rewritten to the start of merge area.
+     *
+     * @private
+     * @param {object} coords Cell coords.
+     */
+
+  }, {
+    key: "onBeforeSetRangeStart",
+    value: function onBeforeSetRangeStart(coords) {
+      // TODO: It is a workaround, but probably this hook may be needed. Every selection on the merge area
+      // could set start point of the selection to the start of the merge area. However, logic inside `expandByRange` need
+      // an initial start point. Click on the merge cell when there are some hidden indexes break the logic in some cases.
+      // Please take a look at #7010 for more information. I'm not sure if selection directions are calculated properly
+      // and what was idea for flipping direction inside `expandByRange` method.
+      if (this.mergedCellsCollection.isFirstRenderableMergedCell(coords.row, coords.col)) {
+        var mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
+        var _ref = [mergeParent.row, mergeParent.col];
+        coords.row = _ref[0];
+        coords.col = _ref[1];
+      }
+    }
+    /**
      * `beforeSetRangeEnd` hook callback.
      * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell.
+     *
+     * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
      *
      * @private
      * @param {object} coords Cell coords.
