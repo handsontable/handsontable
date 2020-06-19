@@ -60,82 +60,6 @@ describe('CellRange', () => {
     });
   });
 
-  describe('getInnerHeight()', () => {
-    it('should return range hight ignoring the negative values (headers) - from top-left to bottom-right', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(-2, 1);
-      const to = new CellCoords(5, 5);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerHeight()).toBe(6);
-    });
-
-    it('should return range hight ignoring the negative values (headers) - from top-right to bottom-left', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(-2, 5);
-      const to = new CellCoords(5, 1);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerHeight()).toBe(6);
-    });
-
-    it('should return range hight ignoring the negative values (headers) - from bottom-left to top-right', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(5, 1);
-      const to = new CellCoords(-2, 5);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerHeight()).toBe(6);
-    });
-
-    it('should return range hight ignoring the negative values (headers) - from bottom-right to top-left', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(5, 5);
-      const to = new CellCoords(-2, 1);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerHeight()).toBe(6);
-    });
-  });
-
-  describe('getInnerWidth()', () => {
-    it('should return range width ignoring the negative values (headers) - from top-left to bottom-right', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(1, -2);
-      const to = new CellCoords(5, 5);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
-    });
-
-    it('should return range width ignoring the negative values (headers) - from top-right to bottom-left', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(1, 5);
-      const to = new CellCoords(5, -2);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
-    });
-
-    it('should return range width ignoring the negative values (headers) - from bottom-left to top-right', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(5, -2);
-      const to = new CellCoords(1, 5);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
-    });
-
-    it('should return range width ignoring the negative values (headers) - from bottom-right to top-left', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(5, 5);
-      const to = new CellCoords(1, -2);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
-    });
-  });
-
   describe('getHeight()', () => {
     it('should return range hight ignoring the negative values (headers) - from top-left to bottom-right', () => {
       const highlight = new CellCoords(-1, -2);
@@ -143,7 +67,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getHeight()).toBe(8);
+      expect(range.getHeight()).toBe(6);
     });
 
     it('should return range hight ignoring the negative values (headers) - from top-right to bottom-left', () => {
@@ -152,7 +76,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, 1);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getHeight()).toBe(8);
+      expect(range.getHeight()).toBe(6);
     });
 
     it('should return range hight ignoring the negative values (headers) - from bottom-left to top-right', () => {
@@ -161,7 +85,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-2, 5);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getHeight()).toBe(8);
+      expect(range.getHeight()).toBe(6);
     });
 
     it('should return range hight ignoring the negative values (headers) - from bottom-right to top-left', () => {
@@ -170,45 +94,7 @@ describe('CellRange', () => {
       const to = new CellCoords(-2, 1);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getHeight()).toBe(8);
-    });
-  });
-
-  describe('getInnerWidth()', () => {
-    it('should return range width ignoring the negative values (headers) - from top-left to bottom-right', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(1, -2);
-      const to = new CellCoords(5, 5);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
-    });
-
-    it('should return range width ignoring the negative values (headers) - from top-right to bottom-left', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(1, 5);
-      const to = new CellCoords(5, -2);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
-    });
-
-    it('should return range width ignoring the negative values (headers) - from bottom-left to top-right', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(5, -2);
-      const to = new CellCoords(1, 5);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
-    });
-
-    it('should return range width ignoring the negative values (headers) - from bottom-right to top-left', () => {
-      const highlight = new CellCoords(-1, -2);
-      const from = new CellCoords(5, 5);
-      const to = new CellCoords(1, -2);
-      const range = new CellRange(highlight, from, to);
-
-      expect(range.getInnerWidth()).toBe(6);
+      expect(range.getHeight()).toBe(6);
     });
   });
 
@@ -219,7 +105,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, 5);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getWidth()).toBe(8);
+      expect(range.getWidth()).toBe(6);
     });
 
     it('should return range width ignoring the negative values (headers) - from top-right to bottom-left', () => {
@@ -228,7 +114,7 @@ describe('CellRange', () => {
       const to = new CellCoords(5, -2);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getWidth()).toBe(8);
+      expect(range.getWidth()).toBe(6);
     });
 
     it('should return range width ignoring the negative values (headers) - from bottom-left to top-right', () => {
@@ -237,7 +123,7 @@ describe('CellRange', () => {
       const to = new CellCoords(1, 5);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getWidth()).toBe(8);
+      expect(range.getWidth()).toBe(6);
     });
 
     it('should return range width ignoring the negative values (headers) - from bottom-right to top-left', () => {
@@ -246,7 +132,83 @@ describe('CellRange', () => {
       const to = new CellCoords(1, -2);
       const range = new CellRange(highlight, from, to);
 
-      expect(range.getWidth()).toBe(8);
+      expect(range.getWidth()).toBe(6);
+    });
+  });
+
+  describe('getOuterHeight()', () => {
+    it('should return range hight including headers - from top-left to bottom-right', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(-2, 1);
+      const to = new CellCoords(5, 5);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterHeight()).toBe(8);
+    });
+
+    it('should return range hight including headers - from top-right to bottom-left', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(-2, 5);
+      const to = new CellCoords(5, 1);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterHeight()).toBe(8);
+    });
+
+    it('should return range hight including headers - from bottom-left to top-right', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(5, 1);
+      const to = new CellCoords(-2, 5);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterHeight()).toBe(8);
+    });
+
+    it('should return range hight including headers - from bottom-right to top-left', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(5, 5);
+      const to = new CellCoords(-2, 1);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterHeight()).toBe(8);
+    });
+  });
+
+  describe('getOuterWidth()', () => {
+    it('should return range width including headers - from top-left to bottom-right', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(1, -2);
+      const to = new CellCoords(5, 5);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterWidth()).toBe(8);
+    });
+
+    it('should return range width including headers - from top-right to bottom-left', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(1, 5);
+      const to = new CellCoords(5, -2);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterWidth()).toBe(8);
+    });
+
+    it('should return range width including headers - from bottom-left to top-right', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(5, -2);
+      const to = new CellCoords(1, 5);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterWidth()).toBe(8);
+    });
+
+    it('should return range width including headers - from bottom-right to top-left', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(5, 5);
+      const to = new CellCoords(1, -2);
+      const range = new CellRange(highlight, from, to);
+
+      expect(range.getOuterWidth()).toBe(8);
     });
   });
 

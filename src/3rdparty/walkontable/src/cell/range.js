@@ -91,7 +91,7 @@ class CellRange {
    *
    * @returns {number}
    */
-  getHeight() {
+  getOuterHeight() {
     return Math.max(this.from.row, this.to.row) - Math.min(this.from.row, this.to.row) + 1;
   }
 
@@ -100,7 +100,7 @@ class CellRange {
    *
    * @returns {number}
    */
-  getWidth() {
+  getOuterWidth() {
     return Math.max(this.from.col, this.to.col) - Math.min(this.from.col, this.to.col) + 1;
   }
 
@@ -109,7 +109,7 @@ class CellRange {
    *
    * @returns {number}
    */
-  getInnerHeight() {
+  getHeight() {
     const fromRow = Math.max(this.from.row, 0);
     const toRow = Math.max(this.to.row, 0);
 
@@ -121,7 +121,7 @@ class CellRange {
    *
    * @returns {number}
    */
-  getInnerWidth() {
+  getWidth() {
     const fromCol = Math.max(this.from.col, 0);
     const toCol = Math.max(this.to.col, 0);
 
