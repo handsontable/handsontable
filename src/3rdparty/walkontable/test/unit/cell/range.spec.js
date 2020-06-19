@@ -611,4 +611,80 @@ describe('CellRange', () => {
       expect(topLeft.col).toBe(0);
     });
   });
+
+  describe('isSingle()', () => {
+    it('should return `true` when `from` and `to` are equals and there is no header selected', () => {
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(4, 5), new CellCoords(4, 5));
+
+        expect(range.isSingle()).toBe(true);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, 0), new CellCoords(0, 0));
+
+        expect(range.isSingle()).toBe(true);
+      }
+    });
+
+    it('should return `false` when `from` and `to` are equals and there is header selected', () => {
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(-1, 0), new CellCoords(-1, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, -1), new CellCoords(0, -1));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, -1), new CellCoords(-1, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+    });
+
+    it('should return `false` when `from` and `to` are not equal', () => {
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, 0), new CellCoords(-1, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, 0), new CellCoords(0, 1));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, 0), new CellCoords(1, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, 0), new CellCoords(1, 1));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(-1, 0), new CellCoords(0, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(0, 1), new CellCoords(0, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(1, 0), new CellCoords(0, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+      {
+        const range = new CellRange(new CellCoords(0, 0), new CellCoords(1, 1), new CellCoords(0, 0));
+
+        expect(range.isSingle()).toBe(false);
+      }
+    });
+  });
 });

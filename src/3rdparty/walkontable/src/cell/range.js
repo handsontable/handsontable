@@ -83,7 +83,8 @@ class CellRange {
    * @returns {boolean}
    */
   isSingle() {
-    return this.from.row === this.to.row && this.from.col === this.to.col;
+    return this.from.row >= 0 && this.from.row === this.to.row &&
+           this.from.col >= 0 && this.from.col === this.to.col;
   }
 
   /**
