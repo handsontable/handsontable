@@ -299,11 +299,16 @@ export function contextMenu(cell, instance) {
  */
 export async function selectContextSubmenuOption(submenuName, optionName) {
   contextMenu();
+
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
   item.simulate('mouseover');
+
   await sleep(300);
+
   const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+
   button.simulate('mousedown').simulate('mouseup');
   closeContextMenu();
 }
