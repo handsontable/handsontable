@@ -283,7 +283,7 @@ class Selection {
     }
 
     if (this.isEntireRowSelected()) {
-      const isRowSelected = this.tableProps.countCols() === cellRange.getInnerWidth();
+      const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
       // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
       if (isRowSelected) {
@@ -295,7 +295,7 @@ class Selection {
     }
 
     if (this.isEntireColumnSelected()) {
-      const isColumnSelected = this.tableProps.countRows() === cellRange.getInnerHeight();
+      const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
       // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
       if (isColumnSelected) {
