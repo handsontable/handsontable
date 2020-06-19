@@ -318,8 +318,8 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    const topLeft = selRange.getTopLeftCorner().normalize();
-    const bottomRight = selRange.getBottomRightCorner().normalize();
+    const topLeft = selRange.getTopLeftCorner();
+    const bottomRight = selRange.getBottomRightCorner();
     const startRow = topLeft.row;
     const startCol = topLeft.col;
     const endRow = bottomRight.row;

@@ -1589,7 +1589,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       rangeEach(topLeft.row, bottomRight.row, (row) => {
         rangeEach(topLeft.col, bottomRight.col, (column) => {
-          if (row >= 0 && column >= 0 && !this.getCellMeta(row, column).readOnly) {
+          if (!this.getCellMeta(row, column).readOnly) {
             changes.push([row, column, null]);
           }
         });
