@@ -976,13 +976,13 @@ class MergeCells extends BasePlugin {
    * Translates merged cell coordinates to renderable indexes.
    *
    * @private
-   * @param {[type]} parentRow Visual row index.
-   * @param {[type]} rowspan Rowspan which describes shift which will be applied to parent row
+   * @param {number} parentRow Visual row index.
+   * @param {number} rowspan Rowspan which describes shift which will be applied to parent row
    *                         to calculate renderable index which points to the most bottom
    *                         index position. Pass rowspan as `0` to calculate the most top
    *                         index position.
-   * @param {[type]} parentColumn Visual column index.
-   * @param {[type]} colspan Colspan which describes shift which will be applied to parent column
+   * @param {number} parentColumn Visual column index.
+   * @param {number} colspan Colspan which describes shift which will be applied to parent column
    *                         to calculate renderable index which points to the most right
    *                         index position. Pass colspan as `0` to calculate the most left
    *                         index position.
