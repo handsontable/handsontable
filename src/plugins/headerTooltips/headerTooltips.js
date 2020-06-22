@@ -1,9 +1,12 @@
 import {
   outerWidth
 } from '../../helpers/dom/element';
+import { warn } from '../../helpers/console';
 import { registerPlugin } from '../../plugins';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
+
+let isDeprecationMessageShowed = false;
 
 /**
  * @plugin HeaderTooltips
@@ -59,6 +62,11 @@ class HeaderTooltips extends BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
+    }
+
+    if (!isDeprecationMessageShowed) {
+      isDeprecationMessageShowed = true;
+      warn('The Header Tooltips plugin is deprecated and will be removed in the next major release');
     }
 
     this.settings = this.hot.getSettings().headerTooltips;
