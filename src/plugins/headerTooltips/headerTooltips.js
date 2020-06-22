@@ -11,6 +11,7 @@ let isDeprecationMessageShowed = false;
 /**
  * @plugin HeaderTooltips
  *
+ * @deprecated
  * @description
  * Allows to add a tooltip to the table headers.
  *
