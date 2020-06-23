@@ -38,7 +38,7 @@ describe('manualRowResize', () => {
 
     updateSettings({ manualRowResize: true });
 
-    spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseover');
+    getLeftClone().find('tbody tr:eq(0) th:eq(0)').simulate('mouseover');
 
     expect($('.manualRowResizer').size()).toBeGreaterThan(0);
   });
@@ -199,7 +199,7 @@ describe('manualRowResize', () => {
     hot.addHook('beforeRowResize', () => 200);
     hot.addHook('beforeRowResize', () => void 0);
 
-    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+    const $th = getLeftClone().find('tbody tr:eq(0) th:eq(0)');
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -258,7 +258,7 @@ describe('manualRowResize', () => {
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
-    const $th = spec().$container.find('tbody tr:eq(0) th:eq(0)');
+    const $th = getLeftClone().find('tbody tr:eq(0) th:eq(0)');
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -283,7 +283,7 @@ describe('manualRowResize', () => {
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
-    const $th = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+    const $th = getLeftClone().find('tbody tr:eq(2) th:eq(0)');
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -315,7 +315,7 @@ describe('manualRowResize', () => {
       rowHeights: [45, 120, 160, 60, 80],
     });
 
-    const $rowHeaders = spec().$container.find('tbody tr th');
+    const $rowHeaders = getLeftClone().find('tbody tr th');
 
     {
       const $th = $rowHeaders.eq(0); // resize the first row.
@@ -367,7 +367,7 @@ describe('manualRowResize', () => {
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
-    const $th = spec().$container.find('tbody tr:eq(2) th:eq(0)');
+    const $th = getLeftClone().find('tbody tr:eq(2) th:eq(0)');
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -607,10 +607,10 @@ describe('manualRowResize', () => {
 
       await sleep(400);
 
-      spec().$container.find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseup');
+      getLeftClone().find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
+      getLeftClone().find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
+      getLeftClone().find('tbody tr:eq(14) th:eq(0)').simulate('mouseover');
+      getLeftClone().find('tbody tr:eq(14) th:eq(0)').simulate('mouseup');
 
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
@@ -618,9 +618,9 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(spec().$container.find('tbody tr:eq(12) th:eq(0)').height()).toBe(52);
-      expect(spec().$container.find('tbody tr:eq(13) th:eq(0)').height()).toBe(52);
-      expect(spec().$container.find('tbody tr:eq(14) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(12) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(13) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(14) th:eq(0)').height()).toBe(52);
     });
 
     it('should resize (expanding) selected columns, with window as a scroll parent', () => {
@@ -634,10 +634,10 @@ describe('manualRowResize', () => {
 
       $(window).scrollTop(200);
 
-      spec().$container.find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseover');
-      spec().$container.find('tbody tr:eq(14) th:eq(0)').simulate('mouseup');
+      getLeftClone().find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
+      getLeftClone().find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
+      getLeftClone().find('tbody tr:eq(14) th:eq(0)').simulate('mouseover');
+      getLeftClone().find('tbody tr:eq(14) th:eq(0)').simulate('mouseup');
 
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
@@ -645,9 +645,9 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(spec().$container.find('tbody tr:eq(12) th:eq(0)').height()).toBe(52);
-      expect(spec().$container.find('tbody tr:eq(13) th:eq(0)').height()).toBe(52);
-      expect(spec().$container.find('tbody tr:eq(14) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(12) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(13) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(14) th:eq(0)').height()).toBe(52);
 
       $(window).scrollTop(0);
     });
@@ -667,7 +667,7 @@ describe('manualRowResize', () => {
         manualRowResize: true
       });
 
-      const $headerTH = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+      const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
       $headerTH.simulate('mouseover');
 
       const $handle = $('.manualRowResizer');
@@ -690,7 +690,7 @@ describe('manualRowResize', () => {
         manualRowResize: true
       });
 
-      const $headerTH = spec().$container.find('tbody tr:eq(1) th:eq(0)');
+      const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
       $headerTH.simulate('mouseover');
 
       const $handle = $('.manualRowResizer');
