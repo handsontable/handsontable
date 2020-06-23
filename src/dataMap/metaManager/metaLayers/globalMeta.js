@@ -32,8 +32,6 @@ function createTableMetaEmptyClass() {
  *                    │  CellMeta   │
  *                    │ (instance)  │
  *                    +-------------+.
- *
- * @class {GlobalMeta}
  */
 export default class GlobalMeta {
   constructor() {

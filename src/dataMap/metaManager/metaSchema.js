@@ -4,7 +4,7 @@ import { isObjectEqual } from '../../helpers/object';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
- * @class
+ * @class Options
  * @description
  *
  * ## Constructor options.
@@ -2625,6 +2625,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js
