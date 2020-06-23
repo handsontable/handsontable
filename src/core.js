@@ -1894,7 +1894,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let j;
 
     if (isDefined(settings.rows)) {
-      throw new Error('The "rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
+      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
     }
     if (isDefined(settings.cols)) {
       throw new Error('The "cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
