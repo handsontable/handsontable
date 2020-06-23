@@ -688,7 +688,7 @@ describe('manualColumnResize', () => {
     });
 
     const mainHolder = hot.view.wt.wtTable.holder;
-    let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)'); // Header "C"
+    const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)'); // Header "C"
 
     $colHeader.simulate('mouseover');
 
@@ -702,7 +702,6 @@ describe('manualColumnResize', () => {
 
     await sleep(400);
 
-    $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
     $colHeader.simulate('mouseover');
 
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
@@ -723,7 +722,7 @@ describe('manualColumnResize', () => {
       });
 
       const mainHolder = hot.view.wt.wtTable.holder;
-      let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
+      let $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
 
       $colHeader.simulate('mouseover');
 
@@ -736,7 +735,7 @@ describe('manualColumnResize', () => {
 
       await sleep(400);
 
-      $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(7)');
+      $colHeader = getTopClone().find('thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
 
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
@@ -753,7 +752,7 @@ describe('manualColumnResize', () => {
         manualColumnResize: true
       });
 
-      let $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(2)');
+      let $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
 
       $colHeader.simulate('mouseover');
 
@@ -766,7 +765,7 @@ describe('manualColumnResize', () => {
 
       await sleep(400);
 
-      $colHeader = spec().$container.find('.ht_clone_top thead tr:eq(0) th:eq(7)');
+      $colHeader = getTopClone().find('thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
 
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
