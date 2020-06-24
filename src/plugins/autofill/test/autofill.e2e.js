@@ -161,6 +161,7 @@ describe('AutoFill', () => {
       [7, 8, 9, 1, 2, 3],
       [7, 8, 9, 1, 2, 3],
     ]);
+    expect(getSelected()).toEqual([[1, 0, 3, 5]]);
   });
 
   it('should fill the cells when dragging the handle triggered by column header selection', () => {
@@ -184,6 +185,7 @@ describe('AutoFill', () => {
       [4, 5, 5, 5, 5, 5],
       [1, 2, 2, 2, 2, 2]
     ]);
+    expect(getSelected()).toEqual([[0, 1, 3, 5]]);
   });
 
   it('should not change cell value (drag when fillHandle is set to `false`)', () => {

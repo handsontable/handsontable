@@ -1,7 +1,7 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
 import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
-import { arrayEach } from './../../helpers/array';
+import { arrayEach, arrayMap } from './../../helpers/array';
 import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import { CellCoords } from './../../3rdparty/walkontable/src';
@@ -435,7 +435,7 @@ class Autofill extends BasePlugin {
    * @param {Array} cornersOfArea An array witch defines selection.
    */
   setSelection(cornersOfArea) {
-    this.hot.selectCell(...cornersOfArea, false, false);
+    this.hot.selectCell(...arrayMap(cornersOfArea, (index) => Math.max(index, 0)), false, false);
   }
 
   /**
