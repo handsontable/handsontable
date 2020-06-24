@@ -579,7 +579,12 @@ class MergeCellsAction extends UndoRedo.Action {
     const topLeftCorner = this.cellRange.getTopLeftCorner();
     const bottomRightCorner = this.cellRange.getBottomRightCorner();
 
-    this.rangeData = instance.getData(topLeftCorner.row, topLeftCorner.col, bottomRightCorner.row, bottomRightCorner.col);
+    this.rangeData = instance.getData(
+      topLeftCorner.row,
+      topLeftCorner.col,
+      bottomRightCorner.row,
+      bottomRightCorner.col
+    );
   }
 
   undo(instance, undoneCallback) {
