@@ -595,7 +595,14 @@ class MergeCellsAction extends UndoRedo.Action {
 
     const topLeftCorner = this.cellRange.getTopLeftCorner();
 
-    instance.populateFromArray(topLeftCorner.row, topLeftCorner.col, this.rangeData, void 0, void 0, 'MergeCells');
+    instance.populateFromArray(
+      topLeftCorner.row,
+      topLeftCorner.col,
+      this.rangeData,
+      void 0,
+      void 0,
+      'MergeCells'
+    );
   }
 
   redo(instance, redoneCallback) {

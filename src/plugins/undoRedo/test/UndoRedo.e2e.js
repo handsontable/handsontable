@@ -2428,6 +2428,34 @@ describe('UndoRedo', () => {
         }
       });
 
+      it('should not throw an error after undoing the row header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('alignment:center');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after undoing the column header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('alignment:right');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
       it('should redo a sequence of aligning cells', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(9, 9),
@@ -2533,6 +2561,100 @@ describe('UndoRedo', () => {
         cellMeta = hot.getCellMeta(8, 8);
         expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
         expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+      });
+
+      it('should not throw an error after redoing the row header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('alignment:center');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after redoing the column header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('alignment:right');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
+      });
+    });
+
+    describe('merge cells', () => {
+      it('should not throw an error after undoing cell merging triggered when the row header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after undoing cell merging triggered when the column header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after redoing cell merging triggered when the row header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after redoing cell merging triggered when the column header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
       });
     });
 
