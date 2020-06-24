@@ -131,7 +131,9 @@ class Autofill extends BasePlugin {
    * @returns {object[]} Ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    */
   getSelectionData() {
-    const [startRow, startCol, endRow, endCol] = this.hot.getSelectedLast();
+    const selection = this.hot.getSelectedRangeLast();
+    const { row: startRow, col: startCol } = selection.getTopLeftCorner();
+    const { row: endRow, col: endCol } = selection.getBottomRightCorner();
 
     const copyableRanges = this.hot.runHooks('modifyCopyableRange', [{
       startRow,

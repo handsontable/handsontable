@@ -91,10 +91,18 @@ export function getDragDirectionAndRange(startSelection, endSelection) {
     endOfDragCoords = new CellCoords(endSelection[2], endSelection[3]);
   }
 
+  if (startOfDragCoords) {
+    startOfDragCoords.normalize();
+  }
+
+  if (endOfDragCoords) {
+    endOfDragCoords.normalize();
+  }
+
   return {
     directionOfDrag,
     startOfDragCoords,
-    endOfDragCoords
+    endOfDragCoords,
   };
 }
 
