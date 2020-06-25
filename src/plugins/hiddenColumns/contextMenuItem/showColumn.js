@@ -58,9 +58,9 @@ export default function showColumnItem(hiddenColumnsPlugin) {
 
       columns.length = 0;
 
-      const [, startColumn, , endColumn] = this.getSelectedLast();
-      const visualStartColumn = Math.max(Math.min(startColumn, endColumn), 0);
-      const visualEndColumn = Math.max(startColumn, endColumn);
+      const selectedRangeLast = this.getSelectedRangeLast();
+      const visualStartColumn = selectedRangeLast.getTopLeftCorner().col;
+      const visualEndColumn = selectedRangeLast.getBottomRightCorner().col;
       const columnIndexMapper = this.columnIndexMapper;
       const renderableStartColumn = columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
       const renderableEndColumn = columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
