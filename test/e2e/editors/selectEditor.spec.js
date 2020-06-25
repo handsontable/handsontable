@@ -13,16 +13,34 @@ describe('SelectEditor', () => {
     }
   });
 
-  it('should display select', () => {
+  it('should render select editor in specified position at cell 0, 0', () => {
     handsontable({
-      columns: [
-        {
-          editor: 'select'
-        }
-      ]
+      columns: [{ editor: 'select' }],
     });
 
     selectCell(0, 0);
+
+    const editor = $('.htSelectEditor');
+
+    expect(editor.length).toEqual(1);
+    expect(editor.is('select')).toBe(true);
+    expect(editor.is(':visible')).toBe(false);
+
+    keyDown('enter');
+
+    expect(editor.is(':visible')).toBe(true);
+    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+  });
+
+  it('should render select editor in specified position at cell 0, 0 when all headers are selected', () => {
+    const hot = handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      columns: [{ editor: 'select' }, {}],
+    });
+
+    selectAll();
+    hot.listen();
 
     const editor = $('.htSelectEditor');
 
@@ -50,8 +68,7 @@ describe('SelectEditor', () => {
     const mainHolder = hot.view.wt.wtTable.holder;
 
     selectCell(0, 0);
-    keyDown('enter');
-    keyUp('enter');
+    keyDownUp('enter');
 
     mainHolder.scrollTop = 10;
     mainHolder.scrollLeft = 20;
