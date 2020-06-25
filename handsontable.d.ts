@@ -1176,40 +1176,6 @@ declare namespace Handsontable {
       setVariable(name: string, value: any): void;
     }
 
-    interface GanttChart extends Base {
-      colorData: object;
-      currentYear: number | void;
-      dateCalculator: object | void;
-      dataFeed: object | void;
-      hotSource: _Handsontable.Core | void;
-      initialSettings: object | void;
-      monthHeadersArray: any[];
-      monthList: any[];
-      nestedHeadersPlugin: NestedHeaders | void;
-      overallWeekSectionCount: number | void;
-      rangeBarMeta: object | void;
-      rangeBars: object;
-      rangeList: object;
-      settings: object;
-      weekHeadersArray: any[];
-
-      addRangeBar(row: number, startDate: Date | string, endDate: Date | string, additionalData: object): boolean | any[];
-      applyRangeBarMetaCache(): void;
-      cacheRangeBarMeta(row: number, col: number, key: string, value: any | any[]): void;
-      checkDependencies(): void;
-      getRangeBarCoordinates(row: number): object;
-      getRangeBarData(row: number, column: number): object | boolean;
-      renderRangeBar(row: number, startDateColumn: number, endDateColumn: number, additionalData: object): void;
-      removeRangeBarByDate(row: number, startDate: Date | string): void;
-      removeRangeBarByColumn(row: number, startDateColumn: number): void;
-      removeAllRangeBars(): void;
-      setRangeBarColors(rows: object): void;
-      setYear(year: number): void;
-      uniformBackgroundRenderer(instance: _Handsontable.Core, TD: HTMLElement, row: number, col: number, prop: string | number, value: string | number, cellProperties: CellProperties): void;
-      unrenderRangeBar(row: number, startDateColumn: number, endDateColumn: number): void;
-      updateRangeBarData(row: number, column: number, data: object): void;
-    }
-
     interface HeaderTooltips extends Base {
       settings: boolean | object;
 
@@ -1713,7 +1679,6 @@ declare namespace Handsontable {
     fixedRowsTop?: number;
     formulas?: boolean | formulas.Settings;
     fragmentSelection?: boolean | 'cell';
-    ganttChart?: ganttChart.Settings;
     headerTooltips?: boolean | headerTooltips.Settings;
     height?: number | string | (() => number | string);
     hiddenColumns?: boolean | hiddenColumns.Settings;
@@ -2339,7 +2304,6 @@ declare namespace Handsontable {
     ExportFile: plugins.ExportFile;
     Filters: plugins.Filters;
     Formulas: plugins.Formulas;
-    GanttChart: plugins.GanttChart;
     HeaderTooltips: plugins.HeaderTooltips;
     HiddenColumns: plugins.HiddenColumns;
     HiddenRows: plugins.HiddenRows;
@@ -2379,7 +2343,6 @@ declare namespace Handsontable {
     exportFile: plugins.ExportFile;
     filters: plugins.Filters;
     formulas: plugins.Formulas;
-    ganttChart: plugins.GanttChart;
     headerTooltips: plugins.HeaderTooltips;
     hiddenColumns: plugins.HiddenColumns;
     hiddenRows: plugins.HiddenRows;
@@ -2576,38 +2539,6 @@ declare namespace Handsontable {
       variables?: {
         [key: string]: any;
       }
-    }
-  }
-
-  namespace ganttChart {
-    interface Settings {
-      dataSource: HandsontableBindingInformation | DataObject[];
-      firstWeekDay: 'monday' | 'sunday';
-      startYear: number;
-      weekHeaderGenerator?: (start: number, end: number) => string;
-      allowSplitWeeks?: boolean;
-      hideDaysBeforeFullWeeks?: boolean;
-      hideDaysAfterFullWeeks?: boolean;
-    }
-
-    interface HandsontableBindingInformation {
-      instance: Handsontable;
-      startDateColumn: number;
-      endDateColumn: number;
-      additionalData: {
-        label: number;
-        quantity: number;
-      }
-      asyncUpdates?: boolean;
-    }
-
-    interface DataObject {
-      additionalData: {
-        label: string;
-        quantity: string;
-      }
-      startDate: string | number | Date;
-      endDate: string | number | Date;
     }
   }
 

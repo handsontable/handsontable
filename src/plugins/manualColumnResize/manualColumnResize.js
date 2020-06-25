@@ -234,22 +234,15 @@ class ManualColumnResize extends BasePlugin {
         .wtOverlays
         .topLeftCornerOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    }
 
-    } else {
+    // If the TH is not a child of the top-left overlay, recalculate using
+    // the top overlay - as this overlay contains the rest of the headers.
+    if (!relativeHeaderPosition) {
       relativeHeaderPosition = wt
         .wtOverlays
         .topOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
-    }
-
-    // If the TH is not a child of the top-left or top overlay, recalculate using
-    // the master overlay - as this overlay contains the rest of the headers.
-    if (!relativeHeaderPosition) {
-      const fallbackOverlay = wt.wtOverlays.topOverlay;
-      const rowHeadersCount = this.hot.getSettings().rowHeaders ? 1 : 0;
-      const currentTH = fallbackOverlay.clone.wtTable.THEAD.lastChild.children[col + rowHeadersCount];
-
-      relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
     }
 
     this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);

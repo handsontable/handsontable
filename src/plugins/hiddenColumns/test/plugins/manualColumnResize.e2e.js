@@ -29,7 +29,7 @@ describe('HiddenColumns', () => {
       // Resize renderable column index `1` (within visual index term the index at 1 is hidden).
       resizeColumn(1, 100);
 
-      expect(colWidth(spec().$container, 1)).toBe(115); // 100 + 15 (indicator)
+      expect(colWidth(spec().$container, 1)).toBe(114); // 100 + 15 (indicator) - 1 (margin from overlay)
     });
 
     it('should resize a proper column when the table contains hidden column using public API', () => {
@@ -67,7 +67,7 @@ describe('HiddenColumns', () => {
         manualColumnResize: true
       });
 
-      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)'); // Header "C"
+      const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)'); // Header "C"
 
       $headerTH.simulate('mouseover');
 
@@ -97,7 +97,7 @@ describe('HiddenColumns', () => {
 
       // Show resize handler using the third renderable column. This column belongs to master as
       // the "fixedColumnsLeft" is decreased to 2.
-      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(2)'); // Header "D"
+      const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(2)'); // Header "D"
 
       $headerTH.simulate('mouseover');
 
@@ -124,7 +124,7 @@ describe('HiddenColumns', () => {
         manualColumnResize: true
       });
 
-      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)'); // Header "C"
+      const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)'); // Header "C"
 
       $headerTH.simulate('mouseover');
 

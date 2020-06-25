@@ -194,12 +194,12 @@ class ManualRowResize extends BasePlugin {
     }
 
     // If the TH is not a child of the top-left/bottom-left overlay, recalculate using
-    // the master overlay - as this overlay contains the rest of the headers.
+    // the left overlay - as this overlay contains the rest of the headers.
     if (!relativeHeaderPosition) {
-      const fallbackOverlay = wt.wtOverlays.leftOverlay;
-      const currentTH = fallbackOverlay.clone.wtTable.TBODY.children[row].firstChild;
-
-      relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .leftOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 
     const rowIndexMapper = this.hot.rowIndexMapper;
