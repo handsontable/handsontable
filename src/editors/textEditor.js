@@ -382,7 +382,7 @@ class TextEditor extends BaseEditor {
     }
 
     if (colHeadersCount && this.hot.getSelectedLast()[0] <= 0 ||
-        (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+        (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] <= totalRowsCount - settings.fixedRowsBottom)) {
       editTop += 1;
     }
 
