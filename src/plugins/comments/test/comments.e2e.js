@@ -455,7 +455,7 @@ describe('Comments', () => {
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
     });
 
-    it('Should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from top-left to bottom-right)', () => {
+    it('should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from top-left to bottom-right)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
