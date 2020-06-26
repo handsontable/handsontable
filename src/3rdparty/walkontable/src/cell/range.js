@@ -651,6 +651,15 @@ class CellRange {
   }
 
   /**
+   * Clones the range coordinates.
+   *
+   * @returns {CellRange}
+   */
+  clone() {
+    return new CellRange(this.highlight, this.from, this.to);
+  }
+
+  /**
    * Convert CellRange to literal object.
    *
    * @returns {object} Returns a literal object with `from` and `to` properties which each of that object

@@ -687,4 +687,25 @@ describe('CellRange', () => {
       }
     });
   });
+
+  describe('clone()', () => {
+    it('should clone the object', () => {
+      const highlight = new CellCoords(-1, -2);
+      const from = new CellCoords(-1, 5);
+      const to = new CellCoords(5, -2);
+      const range = new CellRange(highlight, from, to);
+      const clone = range.clone();
+
+      expect(clone).not.toBe(range);
+      expect(clone.highlight).not.toBe(range.highlight);
+      expect(clone.highlight.row).toBe(range.highlight.row);
+      expect(clone.highlight.col).toBe(range.highlight.col);
+      expect(clone.from).not.toBe(range.from);
+      expect(clone.from.row).toBe(range.from.row);
+      expect(clone.from.col).toBe(range.from.col);
+      expect(clone.to).not.toBe(range.to);
+      expect(clone.to.row).toBe(range.to.row);
+      expect(clone.to.col).toBe(range.to.col);
+    });
+  });
 });
