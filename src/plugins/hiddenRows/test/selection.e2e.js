@@ -335,6 +335,143 @@ describe('HiddenRows', () => {
       }).not.toThrow();
     });
 
+    it('should highlight a proper headers when selection contains hidden rows', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenRows: {
+          rows: [1, 2],
+        },
+      });
+
+      selectCells([[0, 1, 3, 2]]);
+
+      expect(getSelected()).toEqual([[0, 1, 3, 2]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(3);
+      expect(getSelectedRangeLast().to.col).toBe(2);
+      expect(`
+        |   ║   : - : - :   :   |
+        |===:===:===:===:===:===|
+        | - ║   : A : 0 :   :   |
+        | - ║   : 0 : 0 :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should highlight a proper headers when selection contains hidden columns', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 2],
+        },
+      });
+
+      selectCells([[1, 0, 2, 3]]);
+
+      expect(getSelected()).toEqual([[1, 0, 2, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(0);
+      expect(getSelectedRangeLast().from.row).toBe(1);
+      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().to.row).toBe(2);
+      expect(getSelectedRangeLast().to.col).toBe(3);
+      expect(`
+        |   ║ - : - :   |
+        |===:===:===:===|
+        |   ║   :   :   |
+        | - ║ A : 0 :   |
+        | - ║ 0 : 0 :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should highlight a column header when all rows are hidden and selected cell is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenRows: {
+          rows: [0, 1, 2, 3, 4],
+        },
+      });
+
+      selectCell(0, 0);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(0);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().to.row).toBe(0);
+      expect(getSelectedRangeLast().to.col).toBe(0);
+      expect(`
+        |   | - :   :   :   :   |
+        |===:===:===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+
+      selectCell(1, 2);
+
+      expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(1);
+      expect(getSelectedRangeLast().from.col).toBe(2);
+      expect(getSelectedRangeLast().to.row).toBe(1);
+      expect(getSelectedRangeLast().to.col).toBe(2);
+      expect(`
+        |   |   :   : - :   :   |
+        |===:===:===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should highlight a column header when all rows are hidden and selected cell is hidden (`single` selection mode)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        selectionMode: 'single',
+        hiddenRows: {
+          rows: [0, 1, 2, 3, 4],
+        },
+      });
+
+      selectCell(0, 0);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(0);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().to.row).toBe(0);
+      expect(getSelectedRangeLast().to.col).toBe(0);
+      expect(`
+        |   | - :   :   :   :   |
+        |===:===:===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+
+      selectCell(1, 2);
+
+      expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(2);
+      expect(getSelectedRangeLast().from.row).toBe(1);
+      expect(getSelectedRangeLast().from.col).toBe(2);
+      expect(getSelectedRangeLast().to.row).toBe(1);
+      expect(getSelectedRangeLast().to.col).toBe(2);
+      expect(`
+        |   |   :   : - :   :   |
+        |===:===:===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+    });
+
     it('should select entire table after call selectAll if some rows are hidden', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
