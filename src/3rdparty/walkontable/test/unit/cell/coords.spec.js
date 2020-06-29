@@ -11,13 +11,13 @@ describe('CellCoords', () => {
       expect(coords.col).toBe(0);
     });
 
-    it('should normalize `null` coordinates', () => {
+    it('should not normalize `null` coordinates (leave as it is)', () => {
       const coords = new CellCoords();
 
       coords.normalize();
 
-      expect(coords.row).toBe(0);
-      expect(coords.col).toBe(0);
+      expect(coords.row).toBe(null);
+      expect(coords.col).toBe(null);
     });
   });
 

@@ -1904,7 +1904,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select hidden column internally after the `selectColumns` call (no visual effect)', () => {
+    it('should select hidden column internally after the `selectColumns` call', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1926,11 +1926,11 @@ describe('HiddenColumns', () => {
       expect(`
       |   ║   :   :   :   |
       |===:===:===:===:===|
-      |   ║   :   :   :   |
-      |   ║   :   :   :   |
-      |   ║   :   :   :   |
-      |   ║   :   :   :   |
-      |   ║   :   :   :   |
+      | - ║   :   :   :   |
+      | - ║   :   :   :   |
+      | - ║   :   :   :   |
+      | - ║   :   :   :   |
+      | - ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
 
@@ -2674,7 +2674,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    describe('by hiding ', () => {
+    describe('by hiding', () => {
       it('selected columns', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -2718,11 +2718,11 @@ describe('HiddenColumns', () => {
         expect(`
         |   ║   :   :   |
         |===:===:===:===|
-        |   ║   :   :   |
-        |   ║   :   :   |
-        |   ║   :   :   |
-        |   ║   :   :   |
-        |   ║   :   :   |
+        | - ║   :   :   |
+        | - ║   :   :   |
+        | - ║   :   :   |
+        | - ║   :   :   |
+        | - ║   :   :   |
         `).toBeMatchToSelectionPattern();
       });
 
@@ -2752,7 +2752,7 @@ describe('HiddenColumns', () => {
         |   ║   :   :   :   |
         |   ║   :   :   :   |
         |   ║   :   :   :   |
-        |   ║   :   :   :   |
+        | - ║   :   :   :   |
         |   ║   :   :   :   |
         `).toBeMatchToSelectionPattern();
       });
@@ -2780,10 +2780,10 @@ describe('HiddenColumns', () => {
         expect(`
         |   ║   :   :   :   |
         |===:===:===:===:===|
+        | - ║   :   :   :   |
         |   ║   :   :   :   |
         |   ║   :   :   :   |
-        |   ║   :   :   :   |
-        |   ║   :   :   :   |
+        | - ║   :   :   :   |
         |   ║   :   :   :   |
         `).toBeMatchToSelectionPattern();
       });

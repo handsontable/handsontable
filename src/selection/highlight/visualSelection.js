@@ -55,40 +55,85 @@ class VisualSelection extends Selection {
    * @returns {null|CellCoords} Visual cell coordinates.
    */
   findVisibleCoordsInRange(startCoords, endCoords, incrementByRow, incrementByColumn = incrementByRow) {
-    const { row: startRow, col: startCol } = startCoords;
-    const { row: endRow, col: endCol } = endCoords;
-    const { row: startRowRenderable, col: startColumnRenderable } = this.settings.visualToRenderableCoords(startCoords);
+    const nextVisibleRow = this.findVisibleCoordsInRowsRange(startCoords.row, endCoords.row, incrementByRow);
 
     // There are no more visual rows in the range.
-    if (endRow === startRow && startRowRenderable === null) {
+    if (nextVisibleRow === null) {
       return null;
     }
+
+    const nextVisibleColumn = this.findVisibleCoordsInColumnsRange(startCoords.col, endCoords.col, incrementByColumn);
 
     // There are no more visual columns in the range.
-    if (endCol === startCol && startColumnRenderable === null) {
+    if (nextVisibleColumn === null) {
       return null;
     }
 
-    // We are looking for next visible row and column in the range.
-    if (startRowRenderable === null && startColumnRenderable === null) {
-      return this.findVisibleCoordsInRange(new CellCoords(
-        startRow + incrementByRow, startCol + incrementByColumn), endCoords, incrementByRow, incrementByColumn);
+    return new CellCoords(nextVisibleRow, nextVisibleColumn);
+  }
+
+  /**
+   * Searches the nearest visible row index, which is not hidden (is renderable).
+   *
+   * @private
+   * @param {CellCoords} startVisibleRow Visual row index which starts the range. Starting point for finding
+   * destination coordinates with visible coordinates (we are going from the starting coordinates to the end
+   * coordinates until the criteria are met).
+   * @param {CellCoords} endVisibleRow Visual row index which ends the range.
+   * @param {number} incrementBy We are searching for a next visible rows by increasing (to be precise, or decreasing)
+   * indexes. This variable represent indexes shift. From the left to the right (increasing indexes, then variable
+   * should have value 1) or other way around (decreasing indexes, then variable should have the value -1).
+   * @returns {number|null} The visual row index.
+   */
+  findVisibleCoordsInRowsRange(startVisibleRow, endVisibleRow, incrementBy) {
+    const {
+      row: startRowRenderable,
+    } = this.settings.visualToRenderableCoords({ row: startVisibleRow, col: -1 });
+
+    // There are no more visual rows in the range.
+    if (endVisibleRow === startVisibleRow && startRowRenderable === null) {
+      return null;
     }
 
     // We are looking for a next visible row in the range.
     if (startRowRenderable === null) {
-      return this.findVisibleCoordsInRange(new CellCoords(
-        startRow + incrementByRow, startCol), endCoords, incrementByRow, incrementByColumn);
+      return this.findVisibleCoordsInRowsRange(startVisibleRow + incrementBy, endVisibleRow, incrementBy);
+    }
+
+    // We found visible row index in the range.
+    return startVisibleRow;
+  }
+
+  /**
+   * Searches the nearest visible column index, which is not hidden (is renderable).
+   *
+   * @private
+   * @param {CellCoords} startVisibleColumn Visual column index which starts the range. Starting point for finding
+   * destination coordinates with visible coordinates (we are going from the starting coordinates to the end
+   * coordinates until the criteria are met).
+   * @param {CellCoords} endVisibleColumn Visual column index which ends the range.
+   * @param {number} incrementBy We are searching for a next visible columns by increasing (to be precise, or decreasing)
+   * indexes. This variable represent indexes shift. From the top to the bottom (increasing indexes, then variable
+   * should have value 1) or other way around (decreasing indexes, then variable should have the value -1).
+   * @returns {number|null} The visual column index.
+   */
+  findVisibleCoordsInColumnsRange(startVisibleColumn, endVisibleColumn, incrementBy) {
+    const {
+      col: startColumnRenderable,
+    } = this.settings.visualToRenderableCoords({ row: -1, col: startVisibleColumn });
+
+    // There are no more visual columns in the range.
+    if (endVisibleColumn === startVisibleColumn && startColumnRenderable === null) {
+      return null;
     }
 
     // We are looking for a next visible column in the range.
     if (startColumnRenderable === null) {
-      return this.findVisibleCoordsInRange(new CellCoords(
-        startRow, startCol + incrementByColumn), endCoords, incrementByRow, incrementByColumn);
+      return this.findVisibleCoordsInColumnsRange(startVisibleColumn + incrementBy, endVisibleColumn, incrementBy);
     }
 
-    // We found visible coords in the range.
-    return startCoords;
+    // We found visible column index in the range.
+    return startVisibleColumn;
   }
 
   /**
@@ -103,17 +148,70 @@ class VisualSelection extends Selection {
       return this;
     }
 
+    const {
+      from: visualFromCoords,
+      to: visualToCoords,
+    } = this.visualCellRange;
+
     // We may move in two different directions while searching for visible rows and visible columns.
     const incrementByRow = this.getRowSearchDirection(this.visualCellRange);
     const incrementByColumn = this.getColumnSearchDirection(this.visualCellRange);
     const fromRangeVisual = this.findVisibleCoordsInRange(
-      this.visualCellRange.from, this.visualCellRange.to, incrementByRow, incrementByColumn);
+      visualFromCoords,
+      visualToCoords,
+      incrementByRow,
+      incrementByColumn
+    );
     const toRangeVisual = this.findVisibleCoordsInRange(
-      this.visualCellRange.to, this.visualCellRange.from, -incrementByRow, -incrementByColumn);
+      visualToCoords,
+      visualFromCoords,
+      -incrementByRow,
+      -incrementByColumn
+    );
 
-    // There is no visual start point (and also visual end point) in the range. We are looking for the first visible cell in a broader range.
+    // There is no visual start point (and also visual end point) in the range.
+    // We are looking for the first visible cell in a broader range.
     if (fromRangeVisual === null) {
-      this.cellRange = null;
+      // For the "header" selection type, find rows and column indexes, which should be
+      // highlighted, although one of the axes is completely hidden.
+      if (this.settings.type === 'header') {
+        const fromRangeVisualRow = this.findVisibleCoordsInRowsRange(
+          visualFromCoords.row,
+          visualToCoords.row,
+          incrementByRow
+        );
+        const toRangeVisualRow = this.findVisibleCoordsInRowsRange(
+          visualToCoords.row,
+          visualFromCoords.row,
+          -incrementByRow
+        );
+        const fromRangeVisualColumn = this.findVisibleCoordsInColumnsRange(
+          visualFromCoords.col,
+          visualToCoords.col,
+          incrementByRow
+        );
+        const toRangeVisualColumn = this.findVisibleCoordsInColumnsRange(
+          visualToCoords.col,
+          visualFromCoords.col,
+          -incrementByRow
+        );
+
+        // If all rows and columns ranges are hidden then remove the cell range.
+        if (fromRangeVisualRow === null && toRangeVisualRow === null &&
+            fromRangeVisualColumn === null && toRangeVisualColumn === null) {
+          this.cellRange = null;
+        } else {
+
+          this.cellRange = new CellRange(
+            new CellCoords(0, 0), // The highlight coordinates are not taken into consideration while highlighting headers.
+            new CellCoords(fromRangeVisualRow, fromRangeVisualColumn),
+            new CellCoords(toRangeVisualRow, toRangeVisualColumn),
+          );
+        }
+
+      } else {
+        this.cellRange = null;
+      }
 
       return this;
     }
@@ -165,6 +263,36 @@ class VisualSelection extends Selection {
     broaderCellRange.setHighlight(broaderCellRange.from);
 
     return this;
+  }
+
+  /**
+   * Returns the top left (TL) and bottom right (BR) selection coordinates (renderable indexes).
+   * The method overwrites the original method to support header selection for hidden cells.
+   * To make the header selection working, the CellCoords and CellRange have to support not
+   * complete coordinates (`null` values for example, `row: null`, `col: 2`).
+   *
+   * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
+   */
+  getCorners() {
+    const { from, to } = this.cellRange;
+
+    const isRowUndefined = from.row === null || to.row === null;
+    const isColumnUndefined = from.col === null || to.col === null;
+    const topLeftCorner = new CellCoords(
+      isRowUndefined ? null : Math.min(from.row, to.row),
+      isColumnUndefined ? null : Math.min(from.col, to.col),
+    );
+    const bottomRightCorner = new CellCoords(
+      isRowUndefined ? null : Math.max(from.row, to.row),
+      isColumnUndefined ? null : Math.max(from.col, to.col),
+    );
+
+    return [
+      topLeftCorner.row,
+      topLeftCorner.col,
+      bottomRightCorner.row,
+      bottomRightCorner.col,
+    ];
   }
 
   /**

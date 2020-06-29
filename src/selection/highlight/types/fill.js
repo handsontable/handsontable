@@ -6,15 +6,14 @@ import VisualSelection from '../visualSelection';
  *
  * @returns {Selection}
  */
-function createHighlight({ visualToRenderableCoords, renderableToVisualCoords }) {
+function createHighlight({ ...restOptions }) {
   const s = new VisualSelection({
-    visualToRenderableCoords,
-    renderableToVisualCoords,
     className: 'fill',
     border: {
       width: 1,
       color: '#ff0000',
     },
+    ...restOptions,
   });
 
   return s;

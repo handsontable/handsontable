@@ -610,7 +610,7 @@ describe('HiddenRows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select hidden row internally after the `selectRows` call (no visual effect)', () => {
+    it('should select hidden row internally after the `selectRows` call', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -630,7 +630,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-        |   ║   :   :   :   :   |
+        |   ║ - : - : - : - : - |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
@@ -1359,7 +1359,7 @@ describe('HiddenRows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    describe('by hiding ', () => {
+    describe('by hiding', () => {
       it('selected rows', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -1400,7 +1400,7 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.row).toBe(2);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-          |   ║   :   :   :   :   |
+          |   ║ - : - : - : - : - |
           |===:===:===:===:===:===|
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
@@ -1429,7 +1429,7 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.row).toBe(1);
         expect(getSelectedRangeLast().to.col).toBe(3);
         expect(`
-          |   ║   :   :   :   :   |
+          |   ║   :   :   : - :   |
           |===:===:===:===:===:===|
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
@@ -1459,7 +1459,7 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.row).toBe(1);
         expect(getSelectedRangeLast().to.col).toBe(0);
         expect(`
-          |   ║   :   :   :   :   |
+          |   ║ - :   :   : - :   |
           |===:===:===:===:===:===|
           |   ║   :   :   :   :   |
           |   ║   :   :   :   :   |
