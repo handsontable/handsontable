@@ -738,7 +738,8 @@ class Comments extends BasePlugin {
    */
   addToContextMenu(defaultOptions) {
     const isThereAnyCellRendered = () => {
-      return this.hot.view.countRenderableRows() > 0 && this.hot.view.countRenderableColumns() > 0;
+      return this.hot.rowIndexMapper.getRenderableIndexesLength() > 0 &&
+             this.hot.columnIndexMapper.getRenderableIndexesLength() > 0;
     };
 
     defaultOptions.items.push(
