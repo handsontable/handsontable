@@ -97,7 +97,7 @@ const TRAVERSAL_STRATEGIES = new Map([
 ]);
 
 /**
- * @class {TreeNode}
+ *
  */
 export default class TreeNode {
   /**

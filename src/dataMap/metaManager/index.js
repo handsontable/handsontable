@@ -29,8 +29,6 @@ import CellMeta from './metaLayers/cellMeta';
  *                    +-------------+.
  *
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
- *
- * @type {MetaManager}
  */
 export default class MetaManager {
   constructor(customSettings = {}) {

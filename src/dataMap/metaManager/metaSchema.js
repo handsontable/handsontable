@@ -4,7 +4,7 @@ import { isObjectEqual } from '../../helpers/object';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
- * @class
+ * @class Options
  * @description
  *
  * ## Constructor options.
@@ -2615,17 +2615,6 @@ export default () => {
 
     /**
      * @description
-     * The {@link GanttChart} plugin enables a possibility to create a Gantt chart using a Handsontable instance. In this
-     * case, the whole table becomes read-only.
-     *
-     * @memberof Options#
-     * @type {object}
-     * @default undefined
-     */
-    ganttChart: void 0,
-
-    /**
-     * @description
      * Allows adding a tooltip to the table headers.
      *
      * Available options:
@@ -2636,6 +2625,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js

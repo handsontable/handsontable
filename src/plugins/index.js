@@ -36,8 +36,6 @@ import NestedRows from './nestedRows/nestedRows';
 import HiddenColumns from './hiddenColumns/hiddenColumns';
 import HiddenRows from './hiddenRows/hiddenRows';
 import TrimRows from './trimRows/trimRows';
-// The GanttChart plugin has to be imported as the last due to some bugs in the initialization process.
-import GanttChart from './ganttChart/ganttChart';
 
 export {
   AutoColumnSize,
@@ -57,7 +55,6 @@ export {
   ExportFile,
   Filters,
   Formulas,
-  GanttChart,
   HeaderTooltips,
   HiddenColumns,
   HiddenRows,

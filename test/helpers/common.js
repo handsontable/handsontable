@@ -725,7 +725,7 @@ export function createAccessorForProperty(name) {
  */
 export function resizeColumn(renderableColumnIndex, width) {
   const $container = spec().$container;
-  const $th = $container.find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
+  const $th = getTopClone().find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
 
   $th.simulate('mouseover');
 
@@ -751,7 +751,7 @@ export function resizeColumn(renderableColumnIndex, width) {
  */
 export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = $container.find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const $th = getLeftClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
 
   $th.simulate('mouseover');
 
