@@ -149,6 +149,10 @@ export function checkSelectionBorders(hot, direction) {
 
   arrayEach(hot.getSelectedRange(), (range) => {
     range.forAll((r, c) => {
+      if (r < 0 || c < 0) {
+        return;
+      }
+
       const metaBorders = hot.getCellMeta(r, c).borders;
 
       if (metaBorders) {

@@ -1420,11 +1420,13 @@ describe('MergeCells', () => {
       });
 
       hot.selectColumns(5);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[0,5,9,5]');
+
+      expect(hot.getSelectedLast()).toEqual([-1, 5, 9, 5]);
 
       // it should work only for selecting the entire column
       hot.selectCell(4, 5, 7, 5);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[4,4,7,8]');
+
+      expect(hot.getSelectedLast()).toEqual([4, 4, 7, 8]);
     });
 
     it('should be possible to select a single entire row, when there\'s a merged cell in it', () => {
@@ -1436,11 +1438,13 @@ describe('MergeCells', () => {
       });
 
       hot.selectRows(5);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[5,0,5,9]');
+
+      expect(hot.getSelectedLast()).toEqual([5, -1, 5, 9]);
 
       // it should work only for selecting the entire row
       hot.selectCell(6, 3, 6, 7);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[5,3,9,7]');
+
+      expect(hot.getSelectedLast()).toEqual([5, 3, 9, 7]);
     });
   });
 

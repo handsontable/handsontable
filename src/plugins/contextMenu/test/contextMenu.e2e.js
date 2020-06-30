@@ -1233,7 +1233,11 @@ describe('ContextMenu', () => {
         'Insert column right',
         'Remove column',
         'Undo',
-        'Redo'
+        'Redo',
+        'Read only',
+        'Alignment',
+        'Copy',
+        'Cut',
       ].join(''));
     });
 
@@ -1871,108 +1875,6 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
     });
 
-    it('should make a single selected cell read-only', () => {
-      handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      selectCell(0, 0);
-
-      expect(getDataAtCell(0, 0)).toEqual('A1');
-      expect(getCellMeta(0, 0).readOnly).toBe(false);
-
-      selectCell(0, 0);
-      contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore tbody');
-
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup'); // Make read-only
-
-      expect(getCellMeta(0, 0).readOnly).toBe(true);
-    });
-
-    it('should make a single selected cell writable, when it\'s set to read-only', () => {
-      handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      selectCell(0, 0);
-
-      expect(getDataAtCell(0, 0)).toEqual('A1');
-
-      getCellMeta(0, 0).readOnly = true;
-
-      selectCell(0, 0);
-      contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore tbody');
-
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup');
-
-      expect(getCellMeta(0, 0).readOnly).toBe(false);
-    });
-
-    it('should make a range of selected cells read-only, if all of them are writable', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toEqual(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toEqual(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toEqual(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toEqual(false);
-
-      selectCell(0, 0, 2, 2);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup');
-
-      expect(hot.getCellMeta(0, 0).readOnly).toEqual(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toEqual(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toEqual(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toEqual(true);
-      expect(getSelected()).toEqual([[0, 0, 2, 2]]);
-    });
-
-    it('should make a multiple of selected cells read-only, if all of them are writable', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      selectCell(0, 0, 2, 2);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup');
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
-    });
-
     it('should not close menu after clicking on submenu root item', () => {
       handsontable({
         data: createSpreadsheetData(4, 4),
@@ -2024,92 +1926,6 @@ describe('ContextMenu', () => {
 
       // The selection of the ContextMenu should be active and pointed to "alignment" item
       expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('alignment');
-    });
-
-    it('should make a group of selected cells read-only, if all of them are writable (reverse selection)', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      selectCell(2, 2, 0, 0);
-
-      contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore tbody');
-
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup'); // Make read-only
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
-    });
-
-    it('should make a group of selected cells writable if at least one of them is read-only', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      hot.getCellMeta(1, 1).readOnly = true;
-
-      selectCell(0, 0, 2, 2);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Make writable
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-    });
-
-    it('should make a group of selected cells writable if at least one of them is read-only (reverse selection)', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      hot.getCellMeta(1, 1).readOnly = true;
-
-      selectCell(2, 2, 0, 0);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Make writable
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
     });
   });
 
@@ -4076,12 +3892,12 @@ describe('ContextMenu', () => {
           .simulate('mouseup'); // Insert row above
 
         expect(getSelected()).toEqual([
-          [1, 0, 1, 3]
+          [1, -1, 1, 3]
         ]);
         expect(getSelectedRangeLast().highlight.row).toBe(1);
         expect(getSelectedRangeLast().highlight.col).toBe(0);
         expect(getSelectedRangeLast().from.row).toBe(1);
-        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
         expect(getSelectedRangeLast().to.row).toBe(1);
         expect(getSelectedRangeLast().to.col).toBe(3);
         expect(`
@@ -4117,13 +3933,11 @@ describe('ContextMenu', () => {
           .simulate('mousedown')
           .simulate('mouseup'); // Insert row below
 
-        expect(getSelected()).toEqual([
-          [0, 0, 0, 3]
-        ]);
+        expect(getSelected()).toEqual([[0, -1, 0, 3]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
         expect(getSelectedRangeLast().highlight.col).toBe(0);
         expect(getSelectedRangeLast().from.row).toBe(0);
-        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
         expect(getSelectedRangeLast().to.row).toBe(0);
         expect(getSelectedRangeLast().to.col).toBe(3);
         expect(`

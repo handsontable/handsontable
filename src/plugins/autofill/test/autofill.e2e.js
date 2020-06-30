@@ -140,6 +140,54 @@ describe('AutoFill', () => {
     expect(getDataAtCell(1, 0)).toEqual(7);
   });
 
+  it('should fill the cells when dragging the handle triggered by row header selection', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: true,
+    });
+
+    selectRows(1);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(3) td:eq(5)').simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [1, 2, 3, 4, 5, 6],
+      [7, 8, 9, 1, 2, 3],
+      [7, 8, 9, 1, 2, 3],
+      [7, 8, 9, 1, 2, 3],
+    ]);
+    expect(getSelected()).toEqual([[1, 0, 3, 5]]);
+  });
+
+  it('should fill the cells when dragging the handle triggered by column header selection', () => {
+    handsontable({
+      data: [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 5, 6]
+      ],
+      fillHandle: true,
+    });
+
+    selectColumns(1);
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    spec().$container.find('tbody tr:eq(3) td:eq(5)').simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [1, 2, 2, 2, 2, 2],
+      [7, 8, 8, 8, 8, 8],
+      [4, 5, 5, 5, 5, 5],
+      [1, 2, 2, 2, 2, 2]
+    ]);
+    expect(getSelected()).toEqual([[0, 1, 3, 5]]);
+  });
+
   it('should not change cell value (drag when fillHandle is set to `false`)', () => {
     handsontable({
       data: [

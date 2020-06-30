@@ -52,15 +52,15 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       });
 
       if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner()) ||
-        hiddenPhysicalColumns.length < 1) {
+          hiddenPhysicalColumns.length < 1) {
         return true;
       }
 
       columns.length = 0;
 
-      const [, startColumn, , endColumn] = this.getSelectedLast();
-      const visualStartColumn = Math.min(startColumn, endColumn);
-      const visualEndColumn = Math.max(startColumn, endColumn);
+      const selectedRangeLast = this.getSelectedRangeLast();
+      const visualStartColumn = selectedRangeLast.getTopLeftCorner().col;
+      const visualEndColumn = selectedRangeLast.getBottomRightCorner().col;
       const columnIndexMapper = this.columnIndexMapper;
       const renderableStartColumn = columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
       const renderableEndColumn = columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);

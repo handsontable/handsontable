@@ -380,19 +380,20 @@ class CopyPaste extends BasePlugin {
    * @param {Array} [selection] The selection which indicates from what position the data will be populated.
    * @returns {Array} Range coordinates after populate data.
    */
-  populateValues(inputArray, selection = this.hot.getSelectedLast()) {
+  populateValues(inputArray, selection = this.hot.getSelectedRangeLast()) {
     if (!inputArray.length) {
       return;
     }
 
     const newValuesMaxRow = inputArray.length - 1;
     const newValuesMaxColumn = inputArray[0].length - 1;
-
-    const startRow = Math.min(selection[0], selection[2]);
-    const endRow = Math.max(selection[0], selection[2], newValuesMaxRow + startRow);
-    const startColumn = Math.min(selection[1], selection[3]);
-    const endColumn = Math.max(selection[1], selection[3], newValuesMaxColumn + startColumn);
     const newValues = [];
+
+    const { row: startRow, col: startColumn } = selection.getTopLeftCorner();
+    let { row: endRow, col: endColumn } = selection.getBottomRightCorner();
+
+    endRow = Math.max(endRow, newValuesMaxRow + startRow);
+    endColumn = Math.max(endColumn, newValuesMaxColumn + startColumn);
 
     for (let row = startRow, valuesRow = 0; row <= endRow; row += 1) {
       const newRow = [];

@@ -141,8 +141,10 @@ class VisualSelection extends Selection {
     // We may move in two different directions while searching for visible rows and visible columns.
     const incrementByRow = this.getRowSearchDirection(broaderCellRange);
     const incrementByColumn = this.getColumnSearchDirection(broaderCellRange);
+    const normFromCoords = broaderCellRange.from.clone().normalize();
+    const normToCoords = broaderCellRange.to.clone().normalize();
     const singleCellRangeVisual =
-      this.findVisibleCoordsInRange(broaderCellRange.from, broaderCellRange.to, incrementByRow, incrementByColumn);
+      this.findVisibleCoordsInRange(normFromCoords, normToCoords, incrementByRow, incrementByColumn);
 
     if (singleCellRangeVisual !== null) {
       // We can't show selection visually now, but we found fist visible range in the broader cell range.

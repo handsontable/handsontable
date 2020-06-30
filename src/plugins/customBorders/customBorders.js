@@ -8,7 +8,7 @@ import {
   arrayEach,
   arrayReduce,
   arrayMap } from './../../helpers/array';
-import { CellRange } from './../../3rdparty/walkontable/src';
+import { CellRange, CellCoords } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
 import {
   bottom,
@@ -276,11 +276,7 @@ class CustomBorders extends BasePlugin {
       this.savedBorders.push(border);
     }
 
-    const coordinates = {
-      row: border.row,
-      col: border.col
-    };
-    const cellRange = new CellRange(coordinates, coordinates, coordinates);
+    const cellRange = new CellRange(new CellCoords(border.row, border.col));
     const hasCustomSelections = this.checkCustomSelections(border, cellRange, place);
 
     if (!hasCustomSelections) {

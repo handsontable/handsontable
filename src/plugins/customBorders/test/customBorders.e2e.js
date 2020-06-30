@@ -806,6 +806,52 @@ describe('CustomBorders', () => {
     expect(countCustomBorders()).toBe(0);
   });
 
+  it('should not throw an error when borders menu is opened through row header', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      rowHeaders: true,
+      contextMenu: true,
+      customBorders: true,
+    });
+
+    await selectContextSubmenuOption('Borders', 'Top', getCell(0, -1));
+
+    deselectCell();
+
+    expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 1).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 2).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 3).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.right).toEqual(EMPTY);
+    expect(countVisibleCustomBorders()).toBe(4);
+    expect(countCustomBorders()).toBe(40);
+  });
+
+  it('should not throw an error when borders menu is opened through column header', async() => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      colHeaders: true,
+      contextMenu: true,
+      customBorders: true,
+    });
+
+    await selectContextSubmenuOption('Borders', 'Right', getCell(-1, 0));
+
+    deselectCell();
+
+    expect(getCellMeta(0, 0).borders.right).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(1, 0).borders.right).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(2, 0).borders.right).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(3, 0).borders.right).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
+    expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
+    expect(countVisibleCustomBorders()).toBe(4);
+    expect(countCustomBorders()).toBe(40);
+  });
+
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(4, 4),

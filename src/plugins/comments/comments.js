@@ -484,8 +484,9 @@ class Comments extends BasePlugin {
     if (!selected) {
       return false;
     }
+
     let hasComment = false;
-    const cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    const cell = selected.getTopLeftCorner(); // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
@@ -674,13 +675,15 @@ class Comments extends BasePlugin {
    */
   onContextMenuAddComment() {
     this.displaySwitch.cancelHiding();
+
     const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
     this.setRange({
-      from: coords.from
+      from: coords.highlight,
     });
     this.show();
+
     setTimeout(() => {
       if (this.hot) {
         this.hot.deselectCell();
@@ -695,15 +698,15 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuRemoveComment() {
-    const { from, to } = this.hot.getSelectedRangeLast();
+    const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
 
-    for (let i = from.row; i <= to.row; i++) {
-      for (let j = from.col; j <= to.col; j++) {
-        this.removeCommentAtCell(i, j, false);
+    coords.forAll((row, column) => {
+      if (row >= 0 && column >= 0) {
+        this.removeCommentAtCell(row, column, false);
       }
-    }
+    });
 
     this.hot.render();
   }
@@ -714,17 +717,17 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuMakeReadOnly() {
-    const { from, to } = this.hot.getSelectedRangeLast();
+    const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
 
-    for (let i = from.row; i <= to.row; i++) {
-      for (let j = from.col; j <= to.col; j++) {
-        const currentState = !!this.getCommentMeta(i, j, META_READONLY);
+    coords.forAll((row, column) => {
+      if (row >= 0 && column >= 0) {
+        const currentState = !!this.getCommentMeta(row, column, META_READONLY);
 
-        this.updateCommentMeta(i, j, { [META_READONLY]: !currentState });
+        this.updateCommentMeta(row, column, { [META_READONLY]: !currentState });
       }
-    }
+    });
   }
 
   /**
@@ -734,6 +737,11 @@ class Comments extends BasePlugin {
    * @param {object} defaultOptions The menu options.
    */
   addToContextMenu(defaultOptions) {
+    const isThereAnyCellRendered = () => {
+      return this.hot.rowIndexMapper.getRenderableIndexesLength() > 0 &&
+             this.hot.columnIndexMapper.getRenderableIndexesLength() > 0;
+    };
+
     defaultOptions.items.push(
       {
         name: '---------',
@@ -748,8 +756,12 @@ class Comments extends BasePlugin {
           return this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT);
         },
         callback: () => this.onContextMenuAddComment(),
-        disabled() {
-          return !(this.getSelectedLast() && !this.selection.isSelectedByCorner());
+        disabled: () => {
+          if (!isThereAnyCellRendered()) {
+            return true;
+          }
+
+          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner());
         }
       },
       {
@@ -758,7 +770,13 @@ class Comments extends BasePlugin {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
         },
         callback: () => this.onContextMenuRemoveComment(),
-        disabled: () => this.hot.selection.isSelectedByCorner()
+        disabled: () => {
+          if (!isThereAnyCellRendered()) {
+            return true;
+          }
+
+          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner());
+        }
       },
       {
         key: 'commentsReadOnly',
@@ -766,6 +784,7 @@ class Comments extends BasePlugin {
           let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
           const hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
+
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];
             }
@@ -782,7 +801,14 @@ class Comments extends BasePlugin {
           return label;
         },
         callback: () => this.onContextMenuMakeReadOnly(),
-        disabled: () => this.hot.selection.isSelectedByCorner() || !this.checkSelectionCommentsConsistency()
+        disabled: () => {
+          if (!isThereAnyCellRendered()) {
+            return true;
+          }
+
+          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner()) ||
+                 !this.checkSelectionCommentsConsistency();
+        }
       }
     );
   }

@@ -14,8 +14,13 @@ export default function cutItem(copyPastePlugin) {
       copyPastePlugin.cut();
     },
     disabled() {
+      if (this.countRows() === 0 || this.countCols() === 0) {
+        return true;
+      }
+
       const selected = this.getSelected();
 
+      // Disable for no selection or for non-contiquous selection.
       if (!selected || selected.length > 1) {
         return true;
       }

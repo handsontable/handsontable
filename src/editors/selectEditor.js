@@ -212,10 +212,10 @@ class SelectEditor extends BaseEditor {
         break;
     }
 
-    if (this.hot.getSelectedLast()[0] === 0) {
+    if (this.hot.getSelectedLast()[0] <= 0) {
       editTop += 1;
     }
-    if (this.hot.getSelectedLast()[1] === 0) {
+    if (this.hot.getSelectedLast()[1] <= 0) {
       editLeft += 1;
     }
 

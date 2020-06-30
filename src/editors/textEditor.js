@@ -381,12 +381,12 @@ class TextEditor extends BaseEditor {
         break;
     }
 
-    if (colHeadersCount && this.hot.getSelectedLast()[0] === 0 ||
-        (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+    if (colHeadersCount && this.hot.getSelectedLast()[0] <= 0 ||
+        (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] <= totalRowsCount - settings.fixedRowsBottom)) {
       editTop += 1;
     }
 
-    if (this.hot.getSelectedLast()[1] === 0) {
+    if (this.hot.getSelectedLast()[1] <= 0) {
       editLeft += 1;
     }
 

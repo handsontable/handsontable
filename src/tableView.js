@@ -904,9 +904,7 @@ class TableView {
    * @returns {boolean}
    */
   isSelectedOnlyCell() {
-    const [row, col, rowEnd, colEnd] = this.instance.getSelectedLast() || [];
-
-    return row !== void 0 && row === rowEnd && col === colEnd;
+    return this.instance.getSelectedRangeLast()?.isSingle() ?? false;
   }
 
   /**

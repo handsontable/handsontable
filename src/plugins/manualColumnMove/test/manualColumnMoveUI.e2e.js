@@ -269,7 +269,7 @@ describe('manualColumnMove', () => {
         });
         $columnHeader.simulate('mouseup');
 
-        expect(getSelected()).toEqual([[0, 1, 9, 3]]);
+        expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });
 
       it('should be shown properly when moving multiple columns from the right to the left', () => {
@@ -293,7 +293,7 @@ describe('manualColumnMove', () => {
         });
         $columnHeader.simulate('mouseup');
 
-        expect(getSelected()).toEqual([[0, 1, 9, 3]]);
+        expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });
 
       // The `ManualColumnMove` plugin doesn't cooperate with the `UndoRedo` plugin.

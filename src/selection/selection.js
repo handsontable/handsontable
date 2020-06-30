@@ -163,14 +163,6 @@ class Selection {
     const isColumnNegative = coords.col < 0;
     const selectedByCorner = isRowNegative && isColumnNegative;
 
-    // We change coordinates of selection to start from 0 (we don't include headers in a selection).
-    if (isRowNegative) {
-      coords.row = 0;
-    }
-    if (isColumnNegative) {
-      coords.col = 0;
-    }
-
     this.selectedByCorner = selectedByCorner;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coords);
 
@@ -344,16 +336,7 @@ class Selection {
    *                        be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, force) {
-    const rangeStartAfterTranslation = this.transformation.transformStart(rowDelta, colDelta, force);
-    const rangeStartChanged = this.getSelectedRange().current().highlight !== rangeStartAfterTranslation;
-
-    // This conditional handle situation when we select cells by headers and there are no visible cells
-    // (all rows / columns are hidden or there is specific cases described in the #6733). Cells in such case are
-    // selected with row headers, but selection is adjusted to start from index 0, not index -1. We loose some
-    // information, so performing "the same selection" basing on internally stored data would give other effect.
-    if (rangeStartChanged) {
-      this.setRangeStart(rangeStartAfterTranslation);
-    }
+    this.setRangeStart(this.transformation.transformStart(rowDelta, colDelta, force));
   }
 
   /**
@@ -602,7 +585,7 @@ class Selection {
 
     const nrOfColumns = this.tableProps.countCols();
     const nrOfRows = this.tableProps.countRows();
-    const isValid = nrOfRows > 0 && isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
+    const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(-1, start));
@@ -627,8 +610,7 @@ class Selection {
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(startRow, -1));
-      // Ternary operator placed below handle situation when there are rows, but there are no columns (#6733).
-      this.setRangeEnd(new CellCoords(endRow, nrOfColumns > 0 ? nrOfColumns - 1 : 0));
+      this.setRangeEnd(new CellCoords(endRow, nrOfColumns - 1));
       this.finish();
     }
 
