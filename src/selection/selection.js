@@ -275,13 +275,37 @@ class Selection {
     }
 
     if (this.highlight.isEnabledFor(HEADER_TYPE)) {
+      // The header selection generally contains cell selection. In a case when all rows (or columns)
+      // are hidden that visual coordinates are translated to renderable coordinates that do not exist.
+      // Hence no header highlight is generated. In that case, to make a column (or a row) header
+      // highlight, the row and column index has to point to the header (the negative value). See #7052.
+      const areAnyRowsRendered = this.tableProps.countRowsTranslated() === 0;
+      const areAnyColumnsRendered = this.tableProps.countColsTranslated() === 0;
+      let headerCellRange = cellRange;
+
+      if (areAnyRowsRendered || areAnyColumnsRendered) {
+        headerCellRange = cellRange.clone();
+      }
+
+      if (areAnyRowsRendered) {
+        headerCellRange.from.row = -1;
+      }
+
+      if (areAnyColumnsRendered) {
+        headerCellRange.from.col = -1;
+      }
+
       if (this.settings.selectionMode === 'single') {
-        headerHighlight.add(cellRange.highlight).commit();
+        if (this.isSelectedByAnyHeader()) {
+          headerCellRange.from.normalize();
+        }
+
+        headerHighlight.add(headerCellRange.from).commit();
 
       } else {
         headerHighlight
-          .add(cellRange.from)
-          .add(cellRange.to)
+          .add(headerCellRange.from)
+          .add(headerCellRange.to)
           .commit();
       }
     }

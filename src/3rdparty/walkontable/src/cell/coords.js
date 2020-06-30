@@ -104,8 +104,8 @@ class CellCoords {
    * @returns {CellCoords}
    */
   normalize() {
-    this.row = Math.max(this.row, 0);
-    this.col = Math.max(this.col, 0);
+    this.row = this.row === null ? this.row : Math.max(this.row, 0);
+    this.col = this.col === null ? this.col : Math.max(this.col, 0);
 
     return this;
   }

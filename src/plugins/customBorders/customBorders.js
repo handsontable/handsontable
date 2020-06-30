@@ -303,7 +303,11 @@ class CustomBorders extends BasePlugin {
         if (border.id === customSelection.settings.id) {
           Object.assign(customSelection.settings, borderDescriptor);
 
-          border = customSelection.settings;
+          border.id = customSelection.settings.id;
+          border.left = customSelection.settings.left;
+          border.right = customSelection.settings.right;
+          border.top = customSelection.settings.top;
+          border.bottom = customSelection.settings.bottom;
 
           return false; // breaks forAll
         }
