@@ -292,16 +292,14 @@ if (isClassListSupported()) {
   };
 
   _addClass = function(element, classes) {
-    if (!classes) {
-      return;
-    }
-
     let _className = element.className;
     let className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
 
     if (_className === '') {
       _className = className.join(' ');
@@ -318,10 +316,6 @@ if (isClassListSupported()) {
   };
 
   _removeClass = function(element, classes) {
-    if (!classes) {
-      return;
-    }
-
     let len = 0;
     let _className = element.className;
     let className = classes;
@@ -329,6 +323,9 @@ if (isClassListSupported()) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
+
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
