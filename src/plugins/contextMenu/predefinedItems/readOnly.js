@@ -32,14 +32,28 @@ export default function readOnlyItem() {
 
       arrayEach(ranges, (range) => {
         range.forAll((row, col) => {
-          this.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
+          if (row >= 0 && col >= 0) {
+            this.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
+          }
         });
       });
 
       this.render();
     },
     disabled() {
-      return !(this.getSelectedRange() && !this.selection.isSelectedByCorner());
+      if (this.selection.isSelectedByCorner()) {
+        return true;
+      }
+
+      if (this.countRows() === 0 || this.countCols() === 0) {
+        return true;
+      }
+
+      if (!this.getSelectedRange() || this.getSelectedRange().length === 0) {
+        return true;
+      }
+
+      return false;
     }
   };
 }

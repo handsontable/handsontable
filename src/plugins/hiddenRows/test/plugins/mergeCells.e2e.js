@@ -1678,11 +1678,11 @@ describe('HiddenRows', () => {
       | * ║ 0 :   : 0 : 0 : 0 |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[2, 0, 3, 4]]);
+      expect(getSelected()).toEqual([[2, -1, 3, 4]]);
       expect(getSelectedRangeLast().highlight.row).toBe(2);
       expect(getSelectedRangeLast().highlight.col).toBe(0);
       expect(getSelectedRangeLast().from.row).toBe(2);
-      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(-1);
       expect(getSelectedRangeLast().to.row).toBe(3);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
@@ -1706,11 +1706,11 @@ describe('HiddenRows', () => {
       | * ║ 0 :   : 0 : 0 : 0 |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 0, 3, 4]]);
+      expect(getSelected()).toEqual([[1, -1, 3, 4]]);
       expect(getSelectedRangeLast().highlight.row).toBe(2);
       expect(getSelectedRangeLast().highlight.col).toBe(0);
       expect(getSelectedRangeLast().from.row).toBe(1);
-      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(-1);
       expect(getSelectedRangeLast().to.row).toBe(3);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();
@@ -1802,11 +1802,11 @@ describe('HiddenRows', () => {
       | * ║ 0 :   : 0 : 0 : 0 |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
-      expect(getSelected()).toEqual([[1, 0, 1, 4], [3, 0, 3, 4], [2, 0, 2, 4]]);
+      expect(getSelected()).toEqual([[1, -1, 1, 4], [3, -1, 3, 4], [2, -1, 2, 4]]);
       expect(getSelectedRangeLast().highlight.row).toBe(2);
       expect(getSelectedRangeLast().highlight.col).toBe(0);
       expect(getSelectedRangeLast().from.row).toBe(2);
-      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(-1);
       expect(getSelectedRangeLast().to.row).toBe(2);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect($(mergeArea).hasClass('fullySelectedMergedCell')).toBeFalse();

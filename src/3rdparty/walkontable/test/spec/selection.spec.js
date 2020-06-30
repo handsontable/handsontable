@@ -135,7 +135,8 @@ describe('Walkontable.Selection', () => {
     });
     wt.draw();
 
-    wt.selections.getCell().add([20, 0]);
+    wt.selections.getCell().add(new Walkontable.CellCoords(20, 0));
+
     expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:first')[0]))
       .toEqual(new Walkontable.CellCoords(0, 0));
   });

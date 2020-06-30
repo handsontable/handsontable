@@ -235,13 +235,15 @@ class MergedCellsCollection {
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
   isOverlapping(mergedCell) {
-    const mergedCellRange = new CellRange(null, new CellCoords(mergedCell.row, mergedCell.col),
+    const mergedCellRange = new CellRange(
+      new CellCoords(0, 0),
+      new CellCoords(mergedCell.row, mergedCell.col),
       new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1));
     let result = false;
 
     arrayEach(this.mergedCells, (col) => {
       const currentRange = new CellRange(
-        null,
+        new CellCoords(0, 0),
         new CellCoords(col.row, col.col),
         new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1)
       );

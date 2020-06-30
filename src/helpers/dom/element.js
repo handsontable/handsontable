@@ -298,6 +298,9 @@ if (isClassListSupported()) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
+
     if (_className === '') {
       _className = className.join(' ');
 
@@ -308,6 +311,7 @@ if (isClassListSupported()) {
         }
       }
     }
+
     element.className = _className;
   };
 
@@ -319,6 +323,9 @@ if (isClassListSupported()) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
+
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();

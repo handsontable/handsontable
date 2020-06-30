@@ -52,4 +52,18 @@ describe('Core.emptySelectedCells', () => {
 
     expect(getData()).toEqual(snapshot);
   });
+
+  it('should not throw an error when method is called when all headers are selected', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    selectAll();
+
+    expect(() => {
+      emptySelectedCells();
+    }).not.toThrowError();
+  });
 });

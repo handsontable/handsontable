@@ -6,16 +6,15 @@ import VisualSelection from '../visualSelection';
  *
  * @returns {Selection}
  */
-function createHighlight({ visualToRenderableCoords, renderableToVisualCoords, cellCornerVisible }) {
+function createHighlight({ cellCornerVisible, ...restOptions }) {
   const s = new VisualSelection({
-    visualToRenderableCoords,
-    renderableToVisualCoords,
     className: 'current',
     border: {
       width: 2,
       color: '#4b89ff',
       cornerVisible: cellCornerVisible,
     },
+    ...restOptions,
   });
 
   return s;

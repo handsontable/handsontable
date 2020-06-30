@@ -424,10 +424,10 @@ class Filters extends BasePlugin {
    * @private
    */
   clearColumnSelection() {
-    const [row, col] = this.hot.getSelectedLast() || [];
+    const coords = this.hot.getSelectedRangeLast()?.getTopLeftCorner();
 
-    if (row !== void 0 && col !== void 0) {
-      this.hot.selectCell(row, col);
+    if (coords !== void 0) {
+      this.hot.selectCell(coords.row, coords.col);
     }
   }
 

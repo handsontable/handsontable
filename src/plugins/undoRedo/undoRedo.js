@@ -517,12 +517,13 @@ UndoRedo.CellAlignmentAction = function(stateBefore, range, type, alignment) {
   this.alignment = alignment;
 };
 UndoRedo.CellAlignmentAction.prototype.undo = function(instance, undoneCallback) {
-  arrayEach(this.range, ({ from, to }) => {
-    for (let row = from.row; row <= to.row; row += 1) {
-      for (let col = from.col; col <= to.col; col += 1) {
+  arrayEach(this.range, (range) => {
+    range.forAll((row, col) => {
+      // Alignment classes should only collected within cell ranges. We skip header coordinates.
+      if (row >= 0 && col >= 0) {
         instance.setCellMeta(row, col, 'className', this.stateBefore[row][col] || ' htLeft');
       }
-    }
+    });
   });
 
   instance.addHookOnce('afterRender', undoneCallback);
@@ -574,7 +575,16 @@ class MergeCellsAction extends UndoRedo.Action {
   constructor(instance, cellRange) {
     super();
     this.cellRange = cellRange;
-    this.rangeData = instance.getData(cellRange.from.row, cellRange.from.col, cellRange.to.row, cellRange.to.col);
+
+    const topLeftCorner = this.cellRange.getTopLeftCorner();
+    const bottomRightCorner = this.cellRange.getBottomRightCorner();
+
+    this.rangeData = instance.getData(
+      topLeftCorner.row,
+      topLeftCorner.col,
+      bottomRightCorner.row,
+      bottomRightCorner.col
+    );
   }
 
   undo(instance, undoneCallback) {
@@ -582,8 +592,17 @@ class MergeCellsAction extends UndoRedo.Action {
     instance.addHookOnce('afterRender', undoneCallback);
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
+
+    const topLeftCorner = this.cellRange.getTopLeftCorner();
+
     instance.populateFromArray(
-      this.cellRange.from.row, this.cellRange.from.col, this.rangeData, void 0, void 0, 'MergeCells');
+      topLeftCorner.row,
+      topLeftCorner.col,
+      this.rangeData,
+      void 0,
+      void 0,
+      'MergeCells'
+    );
   }
 
   redo(instance, redoneCallback) {

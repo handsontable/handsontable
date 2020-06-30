@@ -455,21 +455,19 @@ describe('Comments', () => {
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
     });
 
-    it('should remove comments from a selected group of cells after clicking the "Delete comment" entry', () => {
+    it('should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from top-left to bottom-right)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
         cell: [
-          { row: 1, col: 1, comment: { value: 'Test comment' } },
-          { row: 2, col: 2, comment: { value: 'Test comment 2' } }
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
         ]
       });
 
-      expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
-      expect(getCellMeta(2, 2).comment.value).toEqual('Test comment 2');
-
-      selectCell(1, 1, 2, 2);
+      selectCell(1, 1, 3, 3);
       contextMenu();
 
       const deleteCommentButton = $('.htItemWrapper').filter(function() {
@@ -480,6 +478,33 @@ describe('Comments', () => {
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
       expect(getCellMeta(2, 2).comment).toEqual(void 0);
+      expect(getCellMeta(3, 3).comment).toEqual(void 0);
+    });
+
+    it('Should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from bottom-right to top-left)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
+        ]
+      });
+
+      selectCell(3, 3, 1, 1);
+      contextMenu();
+
+      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Delete comment';
+      })[0];
+
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+
+      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+      expect(getCellMeta(2, 2).comment).toEqual(void 0);
+      expect(getCellMeta(3, 3).comment).toEqual(void 0);
     });
 
     it('should make the comment editor\'s textarea read-only after clicking the "Read-only comment" entry', (done) => {
@@ -515,6 +540,68 @@ describe('Comments', () => {
         expect($(editor)[0].readOnly).toBe(true);
         done();
       }, 550);
+    });
+
+    it('should make multiple comment editor\'s textarea read-only after clicking the "Read-only comment" ' +
+       'entry  (selection from top-left to bottom-right)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
+        ]
+      });
+
+      selectCell(1, 1, 3, 3);
+      contextMenu();
+
+      const editor = hot.getPlugin('comments').editor.getInputElement();
+
+      expect($(editor)[0].readOnly).toBe(false);
+
+      const readOnlyComment = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Read-only comment';
+      })[0];
+
+      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
+
+      expect(getCellMeta(1, 1).comment.readOnly).toBe(true);
+      expect(getCellMeta(2, 2).comment.readOnly).toBe(true);
+      expect(getCellMeta(3, 3).comment.readOnly).toBe(true);
+    });
+
+    it('should make multiple comment editor\'s textarea read-only after clicking the "Read-only comment" ' +
+       'entry  (selection from bottom-right to top-left)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
+        ]
+      });
+
+      selectCell(3, 3, 1, 1);
+      contextMenu();
+
+      const editor = hot.getPlugin('comments').editor.getInputElement();
+
+      expect($(editor)[0].readOnly).toBe(false);
+
+      const readOnlyComment = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Read-only comment';
+      })[0];
+
+      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
+
+      expect(getCellMeta(1, 1).comment.readOnly).toBe(true);
+      expect(getCellMeta(2, 2).comment.readOnly).toBe(true);
+      expect(getCellMeta(3, 3).comment.readOnly).toBe(true);
     });
   });
 

@@ -102,8 +102,8 @@ class Selection {
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
-    const topLeft = this.cellRange.getTopLeftCorner();
-    const bottomRight = this.cellRange.getBottomRightCorner();
+    const topLeft = this.cellRange.getOuterTopLeftCorner();
+    const bottomRight = this.cellRange.getOuterBottomRightCorner();
 
     return [
       topLeft.row,
@@ -198,76 +198,82 @@ class Selection {
     const corners = this.getCorners();
     const [topRow, topColumn, bottomRow, bottomColumn] = corners;
 
-    for (let column = 0; column < renderedColumns; column += 1) {
-      const sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
+    if (topColumn !== null && bottomColumn !== null) {
+      for (let column = 0; column < renderedColumns; column += 1) {
+        const sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
 
-      if (sourceCol >= topColumn && sourceCol <= bottomColumn) {
-        const TH = wotInstance.wtTable.getColumnHeader(sourceCol);
+        if (sourceCol >= topColumn && sourceCol <= bottomColumn) {
+          const TH = wotInstance.wtTable.getColumnHeader(sourceCol);
 
-        if (TH) {
-          const newClasses = [];
+          if (TH) {
+            const newClasses = [];
 
-          if (this.settings.highlightHeaderClassName) {
-            newClasses.push(this.settings.highlightHeaderClassName);
+            if (this.settings.highlightHeaderClassName) {
+              newClasses.push(this.settings.highlightHeaderClassName);
+            }
+
+            if (this.settings.highlightColumnClassName) {
+              newClasses.push(this.settings.highlightColumnClassName);
+            }
+
+            addClass(TH, newClasses);
           }
-
-          if (this.settings.highlightColumnClassName) {
-            newClasses.push(this.settings.highlightColumnClassName);
-          }
-
-          addClass(TH, newClasses);
         }
       }
     }
 
-    for (let row = 0; row < renderedRows; row += 1) {
-      const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
+    if (topRow !== null && bottomRow !== null) {
+      for (let row = 0; row < renderedRows; row += 1) {
+        const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
 
-      if (sourceRow >= topRow && sourceRow <= bottomRow) {
-        const TH = wotInstance.wtTable.getRowHeader(sourceRow);
+        if (sourceRow >= topRow && sourceRow <= bottomRow) {
+          const TH = wotInstance.wtTable.getRowHeader(sourceRow);
 
-        if (TH) {
-          const newClasses = [];
+          if (TH) {
+            const newClasses = [];
 
-          if (this.settings.highlightHeaderClassName) {
-            newClasses.push(this.settings.highlightHeaderClassName);
-          }
+            if (this.settings.highlightHeaderClassName) {
+              newClasses.push(this.settings.highlightHeaderClassName);
+            }
 
-          if (this.settings.highlightRowClassName) {
-            newClasses.push(this.settings.highlightRowClassName);
-          }
+            if (this.settings.highlightRowClassName) {
+              newClasses.push(this.settings.highlightRowClassName);
+            }
 
-          addClass(TH, newClasses);
-        }
-      }
-
-      for (let column = 0; column < renderedColumns; column += 1) {
-        const sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
-
-        if (sourceRow >= topRow && sourceRow <= bottomRow && sourceCol >= topColumn && sourceCol <= bottomColumn) {
-          // selected cell
-          if (this.settings.className) {
-            this.addClassAtCoords(wotInstance, sourceRow, sourceCol,
-              this.settings.className, this.settings.markIntersections);
-          }
-
-        } else if (sourceRow >= topRow && sourceRow <= bottomRow) {
-          // selection is in this row
-          if (this.settings.highlightRowClassName) {
-            this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightRowClassName);
-          }
-        } else if (sourceCol >= topColumn && sourceCol <= bottomColumn) {
-          // selection is in this column
-          if (this.settings.highlightColumnClassName) {
-            this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightColumnClassName);
+            addClass(TH, newClasses);
           }
         }
 
-        const additionalSelectionClass = wotInstance
-          .getSetting('onAfterDrawSelection', sourceRow, sourceCol, this.settings.layerLevel);
+        if (topColumn !== null && bottomColumn !== null) {
+          for (let column = 0; column < renderedColumns; column += 1) {
+            const sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
 
-        if (typeof additionalSelectionClass === 'string') {
-          this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);
+            if (sourceRow >= topRow && sourceRow <= bottomRow && sourceCol >= topColumn && sourceCol <= bottomColumn) {
+              // selected cell
+              if (this.settings.className) {
+                this.addClassAtCoords(wotInstance, sourceRow, sourceCol,
+                  this.settings.className, this.settings.markIntersections);
+              }
+
+            } else if (sourceRow >= topRow && sourceRow <= bottomRow) {
+              // selection is in this row
+              if (this.settings.highlightRowClassName) {
+                this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightRowClassName);
+              }
+            } else if (sourceCol >= topColumn && sourceCol <= bottomColumn) {
+              // selection is in this column
+              if (this.settings.highlightColumnClassName) {
+                this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightColumnClassName);
+              }
+            }
+
+            const additionalSelectionClass = wotInstance
+              .getSetting('onAfterDrawSelection', sourceRow, sourceCol, this.settings.layerLevel);
+
+            if (typeof additionalSelectionClass === 'string') {
+              this.addClassAtCoords(wotInstance, sourceRow, sourceCol, additionalSelectionClass);
+            }
+          }
         }
       }
     }

@@ -23,7 +23,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
     },
     callback() {
       const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.row, to.row);
+      const start = Math.max(Math.min(from.row, to.row), 0);
       const end = Math.max(from.row, to.row);
       const rowsToHide = [];
 

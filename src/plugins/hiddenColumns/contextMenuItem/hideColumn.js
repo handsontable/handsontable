@@ -23,7 +23,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
     },
     callback() {
       const { from, to } = this.getSelectedRangeLast();
-      const start = Math.min(from.col, to.col);
+      const start = Math.max(Math.min(from.col, to.col), 0);
       const end = Math.max(from.col, to.col);
       const columnsToHide = [];
 

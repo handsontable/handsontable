@@ -17,23 +17,24 @@ export default function columnRightItem() {
       const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
       const selectedColumn = latestSelection?.end?.col;
       // If there is no selection we have clicked on the corner and there is no data.
-      const columnsRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
+      const columnRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
 
-      this.alter('insert_col', columnsRight, 1, 'ContextMenu.columnRight');
+      this.alter('insert_col', columnRight, 1, 'ContextMenu.columnRight');
     },
     disabled() {
-      const selected = getValidSelection(this);
-      const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
-
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
 
-      // There is no selection, because we have clicked on the corner and there is no data (click on the corner by default
-      // selects all cells, but there are no cells).
+      const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
+
+      // There is no selection, because we have clicked on the corner and there is no data
+      // (click on the corner by default selects all cells, but there are no cells).
       if (!anyCellVisible) {
         return false;
       }
+
+      const selected = getValidSelection(this);
 
       if (!selected) {
         return true;

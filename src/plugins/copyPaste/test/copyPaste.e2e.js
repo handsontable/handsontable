@@ -522,6 +522,21 @@ describe('CopyPaste', () => {
       expect(errors).toEqual(0);
     });
 
+    it('should not throw an error while pasting when headers are selected by corner click', () => {
+      const hot = handsontable({
+        data: arrayOfArrays(),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectAll();
+      hot.listen();
+
+      expect(() => {
+        triggerPaste('Kia\tNissan\tToyota');
+      }).not.toThrowError();
+    });
+
     it('should not paste any data, if no cell is selected', async() => {
       const copiedData1 = 'foo';
       const copiedData2 = 'bar';

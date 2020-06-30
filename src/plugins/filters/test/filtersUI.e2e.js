@@ -1608,6 +1608,39 @@ describe('Filters UI', () => {
   });
 
   describe('Simple filtering (one column)', () => {
+    it('should select the first visible row after filtering', () => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        dropdownMenu: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // is empty
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(3) td'))
+        .simulate('mousedown')
+        .simulate('mouseup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+        .simulate('click');
+
+      expect(getSelected()).toBeUndefined();
+
+      dropdownMenu(2);
+      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      // none
+      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(1) td'))
+        .simulate('mousedown')
+        .simulate('mouseup');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'))
+        .simulate('click');
+
+      expect(getSelected()).toEqual([[0, 2, 0, 2]]);
+    });
+
     it('should filter empty values and revert back after removing filter', () => {
       handsontable({
         data: getDataForFilters(),
