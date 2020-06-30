@@ -143,11 +143,12 @@ class AutoColumnSize extends BasePlugin {
      * @type {PhysicalIndexToValueMap}
      */
     this.columnWidthsMap = new IndexToValueMap();
-
-    // moved to constructor to allow auto-sizing the columns when the plugin is disabled
-    this
-      .addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
+
+    // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    this.addHook('beforeColumnResize',
+      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
   }
 
   /**
@@ -194,6 +195,18 @@ class AutoColumnSize extends BasePlugin {
       this.clearCache(changedColumns);
     }
     super.updatePlugin();
+  }
+
+  /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+
+    // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    this.addHook('beforeColumnResize',
+      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
   }
 
   /**
@@ -574,13 +587,6 @@ class AutoColumnSize extends BasePlugin {
    */
   onAfterInit() {
     privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
-  }
-
-  /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    super.disablePlugin();
   }
 
   /**

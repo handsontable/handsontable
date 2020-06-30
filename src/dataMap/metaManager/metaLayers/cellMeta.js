@@ -28,8 +28,6 @@ import LazyFactoryMap from '../lazyFactoryMap';
  *                    │  CellMeta   │
  *                    │ (instance)  │
  *                    +-------------+
- *
- * @class {CellMeta}
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default class CellMeta {

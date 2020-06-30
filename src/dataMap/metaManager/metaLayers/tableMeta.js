@@ -25,8 +25,6 @@ import { expandMetaType } from '../utils';
  *                    │  CellMeta   │
  *                    │ (instance)  │
  *                    +-------------+.
- *
- * @class {TableMeta}
  */
 export default class TableMeta {
   constructor(globalMeta) {
