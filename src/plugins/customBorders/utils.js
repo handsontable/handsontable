@@ -51,17 +51,24 @@ export function createDefaultHtBorder() {
 /**
  * Prepare empty border for each cell with all custom borders hidden.
  *
- * @param {number} row Renderable row index.
- * @param {number} col Renderable column index.
- * @returns {object} Returns border configuration created using renderable indexes. Example of an object defining it:
+ * @param {number} row Visual row index.
+ * @param {number} col Visual column index.
+ * @returns {object} Returns border configuration containing renderable indexes. Example of an object defining it:
  * `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
 export function createEmptyBorders(row, col) {
+  const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(
+    this.hot.rowIndexMapper.getFirstNotHiddenIndex(row, 1)
+  );
+  const renderableColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(
+    this.hot.columnIndexMapper.getFirstNotHiddenIndex(col, 1)
+  );
+
   return {
     id: createId(row, col),
     border: createDefaultHtBorder(),
-    row,
-    col,
+    row: renderableRowIndex,
+    col: renderableColumnIndex,
     top: createSingleEmptyBorder(),
     right: createSingleEmptyBorder(),
     bottom: createSingleEmptyBorder(),

@@ -270,8 +270,6 @@ class CustomBorders extends BasePlugin {
    * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   insertBorderIntoSettings(border, place) {
-    console.log(border);
-    
     const hasSavedBorders = this.checkSavedBorders(border);
 
     if (!hasSavedBorders) {
@@ -296,9 +294,7 @@ class CustomBorders extends BasePlugin {
    * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
-    const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(row);
-    const renderableColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(column);
-    let border = createEmptyBorders(renderableRowIndex, renderableColumnIndex);
+    let border = createEmptyBorders.call(this, row, column);
 
     if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
@@ -334,9 +330,7 @@ class CustomBorders extends BasePlugin {
 
     rangeEach(range.from.row, range.to.row, (rowIndex) => {
       rangeEach(range.from.col, range.to.col, (colIndex) => {
-        const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(rowIndex);
-        const renderableColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(colIndex);
-        const border = createEmptyBorders(renderableRowIndex, renderableColumnIndex);
+        const border = createEmptyBorders.call(this, rowIndex, colIndex);
         let add = 0;
 
         if (rowIndex === range.from.row) {
@@ -408,10 +402,7 @@ class CustomBorders extends BasePlugin {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
     if (!bordersMeta || bordersMeta.border === void 0) {
-      const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(row);
-      const renderableColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(column);
-
-      bordersMeta = createEmptyBorders(renderableRowIndex, renderableColumnIndex);
+      bordersMeta = createEmptyBorders.call(this, row, column);
     }
 
     if (remove) {
