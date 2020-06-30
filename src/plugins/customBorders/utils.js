@@ -51,9 +51,10 @@ export function createDefaultHtBorder() {
 /**
  * Prepare empty border for each cell with all custom borders hidden.
  *
- * @param {number} row Visual row index.
- * @param {number} col Visual column index.
- * @returns {object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
+ * @param {number} row Renderable row index.
+ * @param {number} col Renderable column index.
+ * @returns {object} Returns border configuration created using renderable indexes. Example of an object defining it:
+ * `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
 export function createEmptyBorders(row, col) {
   return {
