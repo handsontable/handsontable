@@ -156,7 +156,7 @@ class VisualSelection extends Selection {
    * @param {number} incrementByColumn As above, just indexes shift for columns.
    * @returns {CellCoords[]|null} Visual cell coordinates.
    */
-  findVisibleCoordsInRangeSeparately(visualFromCoords, visualToCoords, incrementByRow, incrementByColumn) {
+  findVisibleHeaderRange(visualFromCoords, visualToCoords, incrementByRow, incrementByColumn) {
     const fromRangeVisualRow = this.findVisibleCoordsInRowsRange(
       visualFromCoords.row,
       visualToCoords.row,
@@ -232,14 +232,14 @@ class VisualSelection extends Selection {
       // For the "header" selection type, find rows and column indexes, which should be
       // highlighted, although one of the axes is completely hidden.
       if (isHeaderSelectionType) {
-        const [fromRangeVisualSeparately, toRangeVisualSeparately] = this.findVisibleCoordsInRangeSeparately(
+        const [fromRangeVisualHeader, toRangeVisualHeader] = this.findVisibleHeaderRange(
           visualFromCoords,
           visualToCoords,
           incrementByRow,
           incrementByColumn
         );
 
-        cellRange = this.createRenderableCellRange(fromRangeVisualSeparately, toRangeVisualSeparately);
+        cellRange = this.createRenderableCellRange(fromRangeVisualHeader, toRangeVisualHeader);
       }
 
       this.cellRange = cellRange;
