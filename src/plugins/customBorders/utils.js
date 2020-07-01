@@ -53,15 +53,17 @@ export function createDefaultHtBorder() {
  *
  * @param {number} row Visual row index.
  * @param {number} col Visual column index.
+ * @param {number} [rowIncrementBy] Row indexes shift.
+ * @param {number} [columnIncrementBy] Column indexes shift.
  * @returns {object} Returns border configuration containing renderable indexes. Example of an object defining it:
  * `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
-export function createEmptyBorders(row, col) {
+export function createEmptyBorders(row, col, rowIncrementBy = 1, columnIncrementBy = 1) {
   const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(
-    this.hot.rowIndexMapper.getFirstNotHiddenIndex(row, 1)
+    this.hot.rowIndexMapper.getFirstNotHiddenIndex(row, rowIncrementBy)
   );
   const renderableColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(
-    this.hot.columnIndexMapper.getFirstNotHiddenIndex(col, 1)
+    this.hot.columnIndexMapper.getFirstNotHiddenIndex(col, columnIncrementBy)
   );
 
   return {

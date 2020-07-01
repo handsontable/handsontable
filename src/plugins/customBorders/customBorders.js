@@ -326,35 +326,54 @@ class CustomBorders extends BasePlugin {
    * @param {object} rowDecriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
    */
   prepareBorderFromCustomAddedRange(rowDecriptor) {
+    const rowMaper = this.hot.rowIndexMapper;
+    const columnMaper = this.hot.columnIndexMapper;
     const range = rowDecriptor.range;
+    const lastRowIndex = this.hot.countRows() - 1;
+    const lastColumnIndex = this.hot.countCols() - 1;
 
-    rangeEach(range.from.row, range.to.row, (rowIndex) => {
-      rangeEach(range.from.col, range.to.col, (colIndex) => {
-        const border = createEmptyBorders.call(this, rowIndex, colIndex);
+    rangeEach(range.from.row, Math.min(range.to.row, lastRowIndex), (rowIndex) => {
+      if (rowMaper.isHidden(rowIndex)) {
+        return;
+      }
+
+      rangeEach(range.from.col, Math.min(range.to.col, lastColumnIndex), (colIndex) => {
+        if (columnMaper.isHidden(colIndex)) {
+          return;
+        }
+
+        const isFirstRow = rowIndex === rowMaper.getFirstNotHiddenIndex(range.from.row, 1);
+        const isLastRow = rowIndex === rowMaper.getFirstNotHiddenIndex(range.to.row, -1);
+        const isFirstColumn = colIndex === columnMaper.getFirstNotHiddenIndex(range.from.col, 1);
+        const isLastColumn = colIndex === columnMaper.getFirstNotHiddenIndex(range.to.col, -1);
+        const rowIncrementBy = isLastRow ? -1 : 1;
+        const columnIncrementBy = isLastColumn ? -1 : 1;
+
+        const border = createEmptyBorders.call(this, rowIndex, colIndex, rowIncrementBy, columnIncrementBy);
         let add = 0;
 
-        if (rowIndex === range.from.row) {
+        if (isFirstRow) {
           if (hasOwnProperty(rowDecriptor, 'top')) {
             add += 1;
             border.top = rowDecriptor.top;
           }
         }
 
-        if (rowIndex === range.to.row) {
+        if (isLastRow) {
           if (hasOwnProperty(rowDecriptor, 'bottom')) {
             add += 1;
             border.bottom = rowDecriptor.bottom;
           }
         }
 
-        if (colIndex === range.from.col) {
+        if (isFirstColumn) {
           if (hasOwnProperty(rowDecriptor, 'left')) {
             add += 1;
             border.left = rowDecriptor.left;
           }
         }
 
-        if (colIndex === range.to.col) {
+        if (isLastColumn) {
           if (hasOwnProperty(rowDecriptor, 'right')) {
             add += 1;
             border.right = rowDecriptor.right;
