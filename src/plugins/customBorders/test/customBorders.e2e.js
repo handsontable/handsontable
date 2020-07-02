@@ -1549,6 +1549,47 @@ describe('CustomBorders', () => {
       expect(getCellMeta(1, 1).borders).toBeUndefined();
     });
 
+    it('should display custom borders for single cell properly when one of them is placed on the hidden column', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [1, 3],
+          indicators: true
+        },
+        customBorders: true
+      });
+
+      getPlugin('customBorders').setBorders([[1, 1, 3, 3]], {
+        top: BLUE_BORDER,
+        left: ORANGE_BORDER,
+        bottom: RED_BORDER,
+        right: MAGENTA_BORDER
+      });
+
+      expect(countVisibleCustomBorders()).toEqual(3 * 4); // 3 cells, all of them with 4 borders
+      expect(getCellMeta(1, 1).borders).toBeUndefined();
+      expect(getCellMeta(1, 1).borders).toBeUndefined();
+      expect(getCellMeta(1, 1).borders).toBeUndefined();
+      expect(getCellMeta(1, 1).borders).toBeUndefined();
+
+      expect(getCellMeta(1, 2).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(1, 2).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 2).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(1, 2).borders.right).toEqual(MAGENTA_BORDER);
+
+      expect(getCellMeta(2, 2).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(2, 2).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(2, 2).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(2, 2).borders.right).toEqual(MAGENTA_BORDER);
+
+      expect(getCellMeta(3, 2).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(3, 2).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(3, 2).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(3, 2).borders.right).toEqual(MAGENTA_BORDER);
+    });
+
     it('should not display custom border for single cell when column containing border is hidden by API call', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
