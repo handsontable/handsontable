@@ -2,21 +2,13 @@ import BasePlugin from './../_base';
 import { registerPlugin } from './../../plugins';
 import {
   hasOwnProperty,
-  objectEach } from './../../helpers/object';
+  objectEach, isObject } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
-import {
-  arrayEach,
-  arrayReduce,
-  arrayMap } from './../../helpers/array';
+import { arrayEach, arrayReduce, arrayMap } from './../../helpers/array';
+import { isDefined } from '../../helpers/mixed';
 import { CellRange, CellCoords } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
-import {
-  bottom,
-  left,
-  noBorders,
-  right,
-  top
-} from './contextMenuItem';
+import { bottom, left, noBorders, right, top } from './contextMenuItem';
 import {
   createId,
   createDefaultCustomBorder,
@@ -24,10 +16,7 @@ import {
   createEmptyBorders,
   extendDefaultBorder
 } from './utils';
-import {
-  detectSelectionType,
-  normalizeSelectionFactory,
-} from './../../selection';
+import { detectSelectionType, normalizeSelectionFactory } from './../../selection';
 
 /**
  * @class CustomBorders
@@ -267,20 +256,26 @@ class CustomBorders extends BasePlugin {
    *
    * @private
    * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {object} [extraSettings] Extra settings for added border.
+   * @param {string} [extraSettings.place] Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
+   * @param {CellRange} [extraSettings.broaderCellRange] Broader cell range for added custom selection.
    */
-  insertBorderIntoSettings(border, place) {
+  insertBorderIntoSettings(border, extraSettings) {
     const hasSavedBorders = this.checkSavedBorders(border);
 
     if (!hasSavedBorders) {
       this.savedBorders.push(border);
     }
 
-    const cellRange = new CellRange(new CellCoords(border.row, border.col));
-    const hasCustomSelections = this.checkCustomSelections(border, cellRange, place);
+    const visualCellRange = new CellRange(new CellCoords(border.row, border.col));
+    const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, extraSettings?.place);
 
     if (!hasCustomSelections) {
-      this.hot.selection.highlight.addCustomSelection({ border, cellRange });
+      const addedSelection = this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
+
+      if (isObject(extraSettings) && isDefined(extraSettings.broaderCellRange)) {
+        addedSelection.adjustCoordinates(extraSettings.broaderCellRange);
+      }
     }
   }
 
@@ -305,7 +300,7 @@ class CustomBorders extends BasePlugin {
       return;
     }
 
-    let border = createEmptyBorders.call(this, row, column);
+    let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
@@ -327,7 +322,7 @@ class CustomBorders extends BasePlugin {
 
     this.hot.setCellMeta(row, column, 'borders', border);
 
-    this.insertBorderIntoSettings(border, place);
+    this.insertBorderIntoSettings(border, { place });
   }
 
   /**
@@ -337,54 +332,42 @@ class CustomBorders extends BasePlugin {
    * @param {object} rowDecriptor Object with `range`, `left`, `right`, `top` and `bottom` properties.
    */
   prepareBorderFromCustomAddedRange(rowDecriptor) {
-    const rowMaper = this.hot.rowIndexMapper;
-    const columnMaper = this.hot.columnIndexMapper;
     const range = rowDecriptor.range;
-    const lastRowIndex = this.hot.countRows() - 1;
-    const lastColumnIndex = this.hot.countCols() - 1;
+    const lastRowIndex = Math.min(range.to.row, this.hot.countRows() - 1);
+    const lastColumnIndex = Math.min(range.to.col, this.hot.countCols() - 1);
 
-    rangeEach(range.from.row, Math.min(range.to.row, lastRowIndex), (rowIndex) => {
-      if (rowMaper.isHidden(rowIndex)) {
-        return;
-      }
+    rangeEach(range.from.row, lastRowIndex, (rowIndex) => {
+      const isLastRow = rowIndex === lastRowIndex;
 
-      rangeEach(range.from.col, Math.min(range.to.col, lastColumnIndex), (colIndex) => {
-        if (columnMaper.isHidden(colIndex)) {
-          return;
-        }
-
-        const isFirstRow = rowIndex === rowMaper.getFirstNotHiddenIndex(range.from.row, 1);
-        const isLastRow = rowIndex === rowMaper.getFirstNotHiddenIndex(range.to.row, -1);
-        const isFirstColumn = colIndex === columnMaper.getFirstNotHiddenIndex(range.from.col, 1);
-        const isLastColumn = colIndex === columnMaper.getFirstNotHiddenIndex(range.to.col, -1);
-        const rowIncrementBy = isLastRow ? -1 : 1;
-        const columnIncrementBy = isLastColumn ? -1 : 1;
-
-        const border = createEmptyBorders.call(this, rowIndex, colIndex, rowIncrementBy, columnIncrementBy);
+      rangeEach(range.from.col, lastColumnIndex, (colIndex) => {
+        const isLastColumn = colIndex === lastColumnIndex;
+        const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
-        if (isFirstRow) {
+        if (rowIndex === range.from.row) {
           if (hasOwnProperty(rowDecriptor, 'top')) {
             add += 1;
             border.top = rowDecriptor.top;
           }
         }
 
-        if (isLastRow) {
+        // Please keep in mind that `range.to.row` may be beyond the table boundaries. The border won't be rendered.
+        if (rowIndex === range.to.row) {
           if (hasOwnProperty(rowDecriptor, 'bottom')) {
             add += 1;
             border.bottom = rowDecriptor.bottom;
           }
         }
 
-        if (isFirstColumn) {
+        if (colIndex === range.from.col) {
           if (hasOwnProperty(rowDecriptor, 'left')) {
             add += 1;
             border.left = rowDecriptor.left;
           }
         }
 
-        if (isLastColumn) {
+        // Please keep in mind that `range.to.col` may be beyond the table boundaries. The border won't be rendered.
+        if (colIndex === range.to.col) {
           if (hasOwnProperty(rowDecriptor, 'right')) {
             add += 1;
             border.right = rowDecriptor.right;
@@ -393,7 +376,18 @@ class CustomBorders extends BasePlugin {
 
         if (add > 0) {
           this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
-          this.insertBorderIntoSettings(border);
+
+          // Broader cell range for a case that border starts/ends with hidden index. We will search for first not
+          // hidden index for purpose of displaying the border. For a hidden border on the end, broader cell range,
+          // where we are looking for first not hidden index starts from the end and ends heading towards the start
+          // of border area.
+          const broaderCellRange = new CellRange(
+            new CellCoords(isLastRow ? lastRowIndex : rowIndex, isLastColumn ? lastColumnIndex : colIndex),
+            new CellCoords(isLastRow ? lastRowIndex : rowIndex, isLastColumn ? lastColumnIndex : colIndex),
+            new CellCoords(isLastRow ? range.from.row : lastRowIndex, isLastColumn ? range.from.col : lastColumnIndex),
+          );
+
+          this.insertBorderIntoSettings(border, { broaderCellRange });
         } else {
           // TODO sometimes it enters here. Why?
         }
@@ -432,7 +426,7 @@ class CustomBorders extends BasePlugin {
     let bordersMeta = this.hot.getCellMeta(row, column).borders;
 
     if (!bordersMeta || bordersMeta.border === void 0) {
-      bordersMeta = createEmptyBorders.call(this, row, column);
+      bordersMeta = createEmptyBorders(row, column);
     }
 
     if (remove) {

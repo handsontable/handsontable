@@ -1549,7 +1549,7 @@ describe('CustomBorders', () => {
       expect(getCellMeta(1, 1).borders).toBeUndefined();
     });
 
-    it('should display custom borders for single cell properly when one of them is placed on the hidden column', () => {
+    it('should display custom borders for single cells properly when one of them is placed on the hidden column', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,

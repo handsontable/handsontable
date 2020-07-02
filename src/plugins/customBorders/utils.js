@@ -53,24 +53,15 @@ export function createDefaultHtBorder() {
  *
  * @param {number} row Visual row index.
  * @param {number} col Visual column index.
- * @param {number} [rowIncrementBy] Row indexes shift.
- * @param {number} [columnIncrementBy] Column indexes shift.
- * @returns {object} Returns border configuration containing renderable indexes. Example of an object defining it:
+ * @returns {object} Returns border configuration containing visual indexes. Example of an object defining it:
  * `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
-export function createEmptyBorders(row, col, rowIncrementBy = 1, columnIncrementBy = 1) {
-  const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(
-    this.hot.rowIndexMapper.getFirstNotHiddenIndex(row, rowIncrementBy)
-  );
-  const renderableColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(
-    this.hot.columnIndexMapper.getFirstNotHiddenIndex(col, columnIncrementBy)
-  );
-
+export function createEmptyBorders(row, col) {
   return {
     id: createId(row, col),
     border: createDefaultHtBorder(),
-    row: renderableRowIndex,
-    col: renderableColumnIndex,
+    row,
+    col,
     top: createSingleEmptyBorder(),
     right: createSingleEmptyBorder(),
     bottom: createSingleEmptyBorder(),
