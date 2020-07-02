@@ -294,6 +294,13 @@ class CustomBorders extends BasePlugin {
    * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
+    const nrOfRows = this.hot.countRows();
+    const nrOfColumns = this.hot.countCols();
+
+    if (row > nrOfRows || column > nrOfColumns) {
+      return;
+    }
+
     if (this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(column)) {
       return;
     }
