@@ -294,6 +294,10 @@ class CustomBorders extends BasePlugin {
    * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
+    if (this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(column)) {
+      return;
+    }
+
     let border = createEmptyBorders.call(this, row, column);
 
     if (borderDescriptor) {

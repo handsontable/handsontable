@@ -1549,7 +1549,7 @@ describe('CustomBorders', () => {
       expect(getCellMeta(1, 1).borders).toBeUndefined();
     });
 
-    it('should not display custom border for single cell when column containing border is hidden', () => {
+    it('should not display custom border for single cell when column containing border is hidden by API call', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1575,7 +1575,7 @@ describe('CustomBorders', () => {
       expect(getCellMeta(1, 1).borders).toBeUndefined();
     });
 
-    it('should display custom border for single cell when hidden column containing border has been shown', () => {
+    it('should display custom border for single cell when hidden column containing border has been shown by API call', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1597,11 +1597,12 @@ describe('CustomBorders', () => {
       getPlugin('hiddenColumns').showColumn(1);
       render();
 
-      expect(countVisibleCustomBorders()).toEqual(0);
-      expect(getCellMeta(1, 1).borders).toBeUndefined();
-      expect(getCellMeta(1, 1).borders).toBeUndefined();
-      expect(getCellMeta(1, 1).borders).toBeUndefined();
-      expect(getCellMeta(1, 1).borders).toBeUndefined();
+      expect(countVisibleCustomBorders()).toEqual(4);
+      expect(getCellMeta(1, 1).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(1, 1).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 1).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(1, 1).borders.right).toEqual(MAGENTA_BORDER);
+      expect(getCellMeta(2, 2).borders).toBeUndefined();
     });
 
     it('should draw border from context menu options in proper place when there are some hidden columns before ' +
