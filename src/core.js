@@ -967,7 +967,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
-  this.executeBatchOperations = function(wrappedOperations) {
+  this.batch = function(wrappedOperations) {
     this.columnIndexMapper.executeBatchOperations(() => {
       this.rowIndexMapper.executeBatchOperations(() => {
         wrappedOperations();
@@ -3646,7 +3646,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.destroy();
     }
 
-    instance.executeBatchOperations(() => {
+    instance.batch(() => {
       // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
       instance.runHooks('afterDestroy');
     });

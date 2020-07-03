@@ -477,7 +477,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     });
   }
 
-  instance.executeBatchOperations(() => {
+  instance.batch(() => {
     // Restore row sequence in a case when all columns are removed. the original
     // row sequence is lost in that case.
     instance.rowIndexMapper.setIndexesSequence(this.rowPositions);
