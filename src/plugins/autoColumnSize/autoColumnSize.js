@@ -236,7 +236,7 @@ class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         this.ghostTable.getWidths((visualColumn, width) => {
           const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -480,7 +480,7 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(columns, (physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });

@@ -177,7 +177,7 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.hot.executeBatchOperations(() => {
+    this.hot.batch(() => {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);

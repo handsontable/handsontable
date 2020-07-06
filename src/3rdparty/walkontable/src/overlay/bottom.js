@@ -16,6 +16,14 @@ import Overlay from './_base';
  */
 class BottomOverlay extends Overlay {
   /**
+   * Cached value which holds the previous value of the `fixedRowsBottom` option.
+   * It is used as a comparison value that can be used to detect changes in that value.
+   *
+   * @type {number}
+   */
+  cachedFixedRowsBottom = -1;
+
+  /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
@@ -61,6 +69,8 @@ class BottomOverlay extends Overlay {
 
   /**
    * Updates the top overlay position.
+   *
+   * @returns {boolean}
    */
   resetFixedPosition() {
     if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
@@ -70,16 +80,17 @@ class BottomOverlay extends Overlay {
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
+
     overlayRoot.style.top = '';
+
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { rootDocument, wtTable } = this.wot;
-      const box = wtTable.hider.getBoundingClientRect();
-      const bottom = Math.ceil(box.bottom);
+      const bottom = wtTable.hider.offsetTop + wtTable.hider.offsetHeight;
+      const bodyHeight = rootDocument.body.offsetHeight;
       let finalLeft;
       let finalBottom;
-      const bodyHeight = rootDocument.body.offsetHeight;
 
       finalLeft = wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : finalLeft;
@@ -89,6 +100,7 @@ class BottomOverlay extends Overlay {
       } else {
         finalBottom = 0;
       }
+
       headerPosition = finalBottom;
       finalBottom += 'px';
 
@@ -101,8 +113,12 @@ class BottomOverlay extends Overlay {
       resetCssTransform(overlayRoot);
       this.repositionOverlay();
     }
-    this.adjustHeaderBordersPosition(headerPosition);
+
+    const positionChanged = this.adjustHeaderBordersPosition(headerPosition);
+
     this.adjustElementsSize();
+
+    return positionChanged;
   }
 
   /**
@@ -240,6 +256,7 @@ class BottomOverlay extends Overlay {
     } else {
       throw new Error('Incorrect value of the rowsRenderCalculator');
     }
+
     this.spreader.style.bottom = '';
 
     if (this.needFullRender) {
@@ -315,21 +332,33 @@ class BottomOverlay extends Overlay {
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
    * @param {number} position Header Y position if trimming container is window or scroll top if not.
+   * @returns {boolean}
    */
   adjustHeaderBordersPosition(position) {
-    if (this.wot.getSetting('fixedRowsBottom') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+    const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
+    const columnHeaders = this.wot.getSetting('columnHeaders');
+    let positionChanged = false;
+
+    if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
       const masterParent = this.wot.wtTable.holder.parentNode;
       const previousState = hasClass(masterParent, 'innerBorderTop');
 
-      if (position) {
+      this.cachedFixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
+
+      if (position || this.wot.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderTop');
+        positionChanged = !previousState;
       } else {
         removeClass(masterParent, 'innerBorderTop');
+        positionChanged = previousState;
       }
+
       if (!previousState && position || previousState && !position) {
         this.wot.wtOverlays.adjustElementsSize();
       }
     }
+
     // nasty workaround for double border in the header, TODO: find a pure-css solution
     if (this.wot.getSetting('rowHeaders').length === 0) {
       const secondHeaderCell = this.clone.wtTable.THEAD.querySelector('th:nth-of-type(2)');
@@ -338,6 +367,8 @@ class BottomOverlay extends Overlay {
         secondHeaderCell.style['border-left-width'] = 0;
       }
     }
+
+    return positionChanged;
   }
 }
 

@@ -375,7 +375,7 @@ class Filters extends BasePlugin {
       if (needToFilter) {
         const trimmedRows = [];
 
-        this.hot.executeBatchOperations(() => {
+        this.hot.batch(() => {
           this.filtersRowsMap.clear();
 
           visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);

@@ -650,7 +650,7 @@ describe('HiddenRows', () => {
 
           expect(getSelectedLast()).toBeUndefined();
           expect(`
-            |   |   :   |
+            |   ║   :   |
             |===:===:===|
           `).toBeMatchToSelectionPattern();
         });
@@ -1067,7 +1067,7 @@ describe('HiddenRows', () => {
             expect(getSelectedRangeLast().to.row).toBe(3);
             expect(getSelectedRangeLast().to.col).toBe(1);
             expect(`
-              |   |   : * :   :   :   |
+              |   ║   : * :   :   :   |
               |===:===:===:===:===:===|
             `).toBeMatchToSelectionPattern();
           });
@@ -1144,7 +1144,7 @@ describe('HiddenRows', () => {
             expect(getSelectedRangeLast().to.row).toBe(3);
             expect(getSelectedRangeLast().to.col).toBe(0);
             expect(`
-              |   | * :   :   :   :   |
+              |   ║ * :   :   :   :   |
               |===:===:===:===:===:===|
             `).toBeMatchToSelectionPattern();
           });

@@ -337,16 +337,15 @@ class Table {
         }
       }
     }
-    this.refreshSelections(runFastDraw);
 
     if (this.isMaster) {
-      wtOverlays.topOverlay.resetFixedPosition();
+      let positionChanged = wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
-        wtOverlays.bottomOverlay.resetFixedPosition();
+        positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
       }
 
-      wtOverlays.leftOverlay.resetFixedPosition();
+      positionChanged = wtOverlays.leftOverlay.resetFixedPosition() || positionChanged;
 
       if (wtOverlays.topLeftCornerOverlay) {
         wtOverlays.topLeftCornerOverlay.resetFixedPosition();
@@ -355,7 +354,17 @@ class Table {
       if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
         wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
+
+      if (positionChanged) {
+        // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
+        // remove `innerBorderTop` and `innerBorderLeft` CSS classes to the DOM element. This happens
+        // when there is a switch between rendering from 0 to N rows/columns and vice versa).
+        wtOverlays.refreshAll();
+      }
     }
+
+    this.refreshSelections(runFastDraw);
+
     if (syncScroll) {
       wtOverlays.syncScrollWithMaster();
     }
