@@ -771,6 +771,7 @@ describe('HiddenColumns', () => {
           expect(getSelectedLast()).toBeUndefined();
           expect(`
           |   |
+          |===|
           |   |
           |   |
           `).toBeMatchToSelectionPattern();
@@ -1120,6 +1121,7 @@ describe('HiddenColumns', () => {
             expect(getSelectedRangeLast().to.col).toBe(3);
             expect(`
             |   |
+            |===|
             |   |
             | * |
             |   |
@@ -1207,6 +1209,7 @@ describe('HiddenColumns', () => {
             expect(getSelectedRangeLast().to.col).toBe(3);
             expect(`
             |   |
+            |===|
             | * |
             |   |
             |   |
@@ -1341,6 +1344,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
       |   |
+      |===|
       | * |
       |   |
       |   |
@@ -1550,6 +1554,7 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
         |   |
+        |===|
         | * |
         | * |
         | * |
@@ -1634,6 +1639,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect(`
         |   |
+        |===|
         | - |
         |   |
         |   |
@@ -1652,6 +1658,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(1);
       expect(`
         |   |
+        |===|
         |   |
         |   |
         | - |
@@ -1681,6 +1688,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect(`
         |   |
+        |===|
         | - |
         |   |
         |   |
@@ -1699,6 +1707,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(1);
       expect(`
         |   |
+        |===|
         |   |
         |   |
         | - |
@@ -1729,6 +1738,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect(`
         |   |
+        |===|
         | - |
         |   |
         |   |
@@ -1747,6 +1757,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(1);
       expect(`
         |   |
+        |===|
         |   |
         |   |
         | - |
@@ -1806,6 +1817,7 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
       |   |
+      |===|
       | * |
       | * |
       | * |
@@ -2810,6 +2822,7 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
         |   |
+        |===|
         | * |
         | * |
         | * |

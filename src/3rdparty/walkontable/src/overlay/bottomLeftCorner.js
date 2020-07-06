@@ -59,26 +59,30 @@ class BottomLeftCornerOverlay extends Overlay {
 
   /**
    * Updates the corner overlay position.
+   *
+   * @returns {boolean}
    */
   resetFixedPosition() {
     const { wot } = this;
+
     this.updateTrimmingContainer();
 
     if (!wot.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
+
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
     overlayRoot.style.top = '';
 
     if (this.trimmingContainer === wot.rootWindow) {
-      const box = wot.wtTable.hider.getBoundingClientRect();
-      const bottom = Math.ceil(box.bottom);
-      const left = Math.ceil(box.left);
+      const { rootDocument, wtTable } = this.wot;
+      const bottom = wtTable.hider.offsetTop + wtTable.hider.offsetHeight;
+      const left = wtTable.hider.offsetLeft;
+      const bodyHeight = rootDocument.body.offsetHeight;
       let finalLeft;
       let finalBottom;
-      const bodyHeight = wot.rootDocument.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;
@@ -91,6 +95,7 @@ class BottomLeftCornerOverlay extends Overlay {
       } else {
         finalBottom = 0;
       }
+
       finalBottom += 'px';
       finalLeft += 'px';
 
@@ -112,6 +117,8 @@ class BottomLeftCornerOverlay extends Overlay {
 
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;
+
+    return false;
   }
 }
 

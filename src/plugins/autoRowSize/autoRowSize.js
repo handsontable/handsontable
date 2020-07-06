@@ -215,7 +215,7 @@ class AutoRowSize extends BasePlugin {
     });
 
     if (this.ghostTable.rows.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         this.ghostTable.getHeights((row, height) => {
           if (row < 0) {
             this.headerHeight = height;
@@ -425,7 +425,7 @@ class AutoRowSize extends BasePlugin {
   clearCacheByRange(range) {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
 
-    this.hot.executeBatchOperations(() => {
+    this.hot.batch(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
       });
