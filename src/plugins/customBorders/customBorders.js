@@ -290,10 +290,6 @@ class CustomBorders extends BasePlugin {
       return;
     }
 
-    if (this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(column)) {
-      return;
-    }
-
     let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
