@@ -27,7 +27,7 @@ hot.deselectCell();
 hot.destroy();
 hot.destroyEditor(true, true);
 hot.emptySelectedCells();
-hot.executeBatchOperations(() => {});
+hot.batch(() => {});
 hot.getActiveEditor();
 hot.getCell(123, 123, true)!.focus();
 hot.getCellEditor(123, 123);
