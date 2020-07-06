@@ -42,12 +42,8 @@ describe('Core.selectAll', () => {
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
-      | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
+
     // "Select all" shouldn't scroll te table.
     expect(hot.view.wt.wtTable.holder.scrollTop).toBe(150);
     expect(hot.view.wt.wtTable.holder.scrollLeft).toBe(150);

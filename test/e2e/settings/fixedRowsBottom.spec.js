@@ -143,5 +143,83 @@ describe('settings', () => {
 
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('test');
     });
+
+    it('should limit fixed rows to dataset rows length', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        fixedRowsBottom: 3
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(3);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(2, 3),
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(2);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(1);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(0, 3),
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(0);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(1);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(2, 3),
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(2);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(3);
+
+      updateSettings({
+        data: Handsontable.helper.createSpreadsheetData(4, 3),
+      });
+
+      expect(getBottomClone().find('tbody tr').length).toBe(3);
+    });
+
+    it('should not render column header with doubled border after inserting a new row (#7065)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(0, 0),
+        colHeaders: true,
+        rowHeaders: true,
+        fixedRowsBottom: 3,
+      });
+
+      alter('insert_row', 0);
+
+      expect(getMaster().height()).toBe(50); // 25px corner + 25px added row
+      expect(getTopClone().height()).toBe(26); // 26px as rowHeaders is enabled
+      expect(getTopLeftClone().height()).toBe(26); // 26px as rowHeaders is enabled
+      expect(getLeftClone().height()).toBe(50);
+      expect(getBottomClone().height()).toBe(24);
+      expect(getBottomLeftClone().height()).toBe(24);
+
+      alter('insert_row', 0);
+
+      expect(getMaster().height()).toBe(73);
+      expect(getTopClone().height()).toBe(26);
+      expect(getTopLeftClone().height()).toBe(26);
+      expect(getLeftClone().height()).toBe(73);
+      expect(getBottomClone().height()).toBe(47);
+      expect(getBottomLeftClone().height()).toBe(47);
+    });
   });
 });

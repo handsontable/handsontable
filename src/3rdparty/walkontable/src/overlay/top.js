@@ -9,7 +9,6 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from './../../../../helpers/dom/element';
-import { arrayEach } from './../../../../helpers/array';
 import TopOverlayTable from './../table/top';
 import Overlay from './_base';
 
@@ -17,6 +16,14 @@ import Overlay from './_base';
  * @class TopOverlay
  */
 class TopOverlay extends Overlay {
+  /**
+   * Cached value which holds the previous value of the `fixedRowsTop` option.
+   * It is used as a comparison value that can be used to detect changes in this value.
+   *
+   * @type {number}
+   */
+  cachedFixedRowsTop = -1;
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
@@ -47,21 +54,23 @@ class TopOverlay extends Overlay {
 
   /**
    * Updates the top overlay position.
+   *
+   * @returns {boolean}
    */
   resetFixedPosition() {
     if (!this.needFullRender || !this.wot.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
+
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
-      const box = wtTable.hider.getBoundingClientRect();
-      const top = Math.ceil(box.top);
-      const bottom = Math.ceil(box.bottom);
+      const top = wtTable.hider.offsetTop;
+      const bottom = top + wtTable.hider.offsetHeight;
       let finalLeft;
       let finalTop;
 
@@ -73,6 +82,7 @@ class TopOverlay extends Overlay {
       } else {
         finalTop = 0;
       }
+
       headerPosition = finalTop;
       finalTop += 'px';
 
@@ -83,8 +93,11 @@ class TopOverlay extends Overlay {
       resetCssTransform(overlayRoot);
     }
 
-    this.adjustHeaderBordersPosition(headerPosition);
+    const positionChanged = this.adjustHeaderBordersPosition(headerPosition);
+
     this.adjustElementsSize();
+
+    return positionChanged;
   }
 
   /**
@@ -303,40 +316,10 @@ class TopOverlay extends Overlay {
   }
 
   /**
-   * Redraw borders of selection.
-   *
-   * @param {WalkontableSelection} selection Selection for redraw.
-   */
-  redrawSelectionBorders(selection) {
-    if (selection && selection.cellRange) {
-      const border = selection.getBorder(this.wot);
-      const corners = selection.getCorners();
-
-      border.disappear();
-      border.appear(corners);
-    }
-  }
-
-  /**
-   * Redrawing borders of all selections.
-   */
-  redrawAllSelectionsBorders() {
-    const selections = this.wot.selections;
-
-    this.redrawSelectionBorders(selections.getCell());
-
-    arrayEach(selections.getAreas(), (area) => {
-      this.redrawSelectionBorders(area);
-    });
-    this.redrawSelectionBorders(selections.getFill());
-
-    this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
-  }
-
-  /**
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
    * @param {number} position Header Y position if trimming container is window or scroll top if not.
+   * @returns {boolean}
    */
   adjustHeaderBordersPosition(position) {
     const masterParent = this.wot.wtTable.holder.parentNode;
@@ -348,21 +331,26 @@ class TopOverlay extends Overlay {
       addClass(masterParent, 'emptyColumns');
     }
 
-    if (this.wot.getSetting('fixedRowsTop') === 0 && this.wot.getSetting('columnHeaders').length > 0) {
+    const fixedRowsTop = this.wot.getSetting('fixedRowsTop');
+    const areFixedRowsTopChanged = this.cachedFixedRowsTop !== fixedRowsTop;
+    const columnHeaders = this.wot.getSetting('columnHeaders');
+    let positionChanged = false;
+
+    if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
       const previousState = hasClass(masterParent, 'innerBorderTop');
+
+      this.cachedFixedRowsTop = this.wot.getSetting('fixedRowsTop');
 
       if (position || this.wot.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderTop');
+        positionChanged = !previousState;
       } else {
         removeClass(masterParent, 'innerBorderTop');
+        positionChanged = previousState;
       }
 
       if (!previousState && position || previousState && !position) {
         this.wot.wtOverlays.adjustElementsSize();
-
-        // cell borders should be positioned once again,
-        // because we added / removed 1px border from table header
-        this.redrawAllSelectionsBorders();
       }
     }
 
@@ -376,6 +364,8 @@ class TopOverlay extends Overlay {
         }
       }
     }
+
+    return positionChanged;
   }
 }
 
