@@ -327,7 +327,24 @@ describe('Core_selection', () => {
 
     expect(getSelected()).toEqual([[-1, 1, -1, 1]]);
     expect(`
-      |   |   : - :   :   :   |
+      |   ║   : - :   :   :   |
+      |===:===:===:===:===:===|
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should select the row and column headers after clicking the corner header, when all rows are trimmed', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
+
+    expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
+    expect(`
+      |   ║ - : - : - : - : - |
       |===:===:===:===:===:===|
     `).toBeMatchToSelectionPattern();
   });
@@ -345,6 +362,7 @@ describe('Core_selection', () => {
     expect(getSelected()).toEqual([[1, -1, 1, -1]]);
     expect(`
       |   |
+      |===|
       |   |
       | - |
       |   |

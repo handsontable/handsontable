@@ -517,20 +517,21 @@ class Selection {
   /**
    * Select all cells.
    *
-   * @param {boolean} [includeCorner=false] `true` If the selection should include the corner header, `false` otherwise.
+   * @param {boolean} [includeRowHeaders=false] `true` If the selection should include the row headers, `false`
+   * otherwise.
+   * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column headers, `false`
+   * otherwise.
    */
-  selectAll(includeCorner = false) {
+  selectAll(includeRowHeaders = false, includeColumnHeaders = false) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
 
     // We can't select cells when there is no data.
-    if (nrOfRows === 0 || nrOfColumns === 0) {
+    if (!includeRowHeaders && !includeColumnHeaders && (nrOfRows === 0 || nrOfColumns === 0)) {
       return;
     }
 
-    const startCoords = includeCorner ?
-      new CellCoords(-1, -1) :
-      new CellCoords(0, 0);
+    const startCoords = new CellCoords(includeColumnHeaders ? -1 : 0, includeRowHeaders ? -1 : 0);
 
     this.clear();
     this.setRangeStartOnly(startCoords);
@@ -538,7 +539,6 @@ class Selection {
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(nrOfRows - 1, nrOfColumns - 1));
     this.finish();
-
   }
 
   /**

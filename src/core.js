@@ -3533,11 +3533,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean} [includeCorner=true] `true` If the selection should include the corner header, `false` otherwise.
+   * @param {boolean} [includeHeaders=true] `true` If the selection should include the row, column and corner headers,
+   * `false` otherwise.
    */
-  this.selectAll = function(includeCorner = true) {
+  this.selectAll = function(includeHeaders = true) {
+    const includeRowHeaders = includeHeaders && this.hasRowHeaders();
+    const includeColumnHeaders = includeHeaders && this.hasColHeaders();
+
     preventScrollingToCell = true;
-    selection.selectAll(includeCorner);
+    selection.selectAll(includeRowHeaders, includeColumnHeaders);
     preventScrollingToCell = false;
   };
 

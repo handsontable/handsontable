@@ -126,7 +126,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(4);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-        |   | * : * : * : * : * |
+        |   ║ * : * : * : * : * |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -312,7 +312,7 @@ describe('HiddenRows', () => {
 
         expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
         expect(`
-          |   | * : * : * : * : * |
+          |   ║ * : * : * : * : * |
           |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
       });
@@ -413,7 +413,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect(`
-        |   | - :   :   :   :   |
+        |   ║ - :   :   :   :   |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
 
@@ -427,7 +427,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(2);
       expect(`
-        |   |   :   : - :   :   |
+        |   ║   :   : - :   :   |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -453,7 +453,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(0);
       expect(`
-        |   | - :   :   :   :   |
+        |   ║ - :   :   :   :   |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
 
@@ -467,7 +467,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(1);
       expect(getSelectedRangeLast().to.col).toBe(2);
       expect(`
-        |   |   :   : - :   :   |
+        |   ║   :   : - :   :   |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -520,7 +520,7 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.row).toBe(4);
       expect(getSelectedRangeLast().to.col).toBe(4);
       expect(`
-        |   | * : * : * : * : * |
+        |   ║ * : * : * : * : * |
         |===:===:===:===:===:===|
       `).toBeMatchToSelectionPattern();
     });
@@ -1489,7 +1489,7 @@ describe('HiddenRows', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(4);
         expect(`
-          |   | * : * : * : * : * |
+          |   ║ * : * : * : * : * |
           |===:===:===:===:===:===|
         `).toBeMatchToSelectionPattern();
       });

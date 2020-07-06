@@ -52,4 +52,38 @@ describe('Core.selectAll', () => {
     expect(hot.view.wt.wtTable.holder.scrollTop).toBe(150);
     expect(hot.view.wt.wtTable.holder.scrollLeft).toBe(150);
   });
+
+  it('should select the row and column headers after calling the `selectAll` method, when all rows are trimmed', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      trimRows: [0, 1, 2, 3, 4], // TODO: The TrimmingMap should be used instead of the plugin.
+    });
+
+    selectAll();
+
+    expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
+    expect(`
+      |   ║ - : - : - : - : - |
+      |===:===:===:===:===:===|
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should NOT select the row and column headers after calling the `selectAll` method with the `inclueHeaders`' +
+    ' arguments set to `false`, when all rows are trimmed', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      trimRows: [0, 1, 2, 3, 4], // TODO: The TrimmingMap should be used instead of the plugin.
+    });
+
+    selectAll(false);
+
+    expect(`
+      |   ║   :   :   :   :   |
+      |===:===:===:===:===:===|
+    `).toBeMatchToSelectionPattern();
+  });
 });

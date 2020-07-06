@@ -66,7 +66,8 @@ describe('ContextMenu', () => {
 
       simulateClick(item);
 
-      expect(getColHeader()).toEqual(['A', 1, 2, 3, 4, 5]);
+      // The new column will be placed at the very end, because clicking the corner header selects all cells.
+      expect(getColHeader()).toEqual([1, 2, 3, 4, 5, 'F']);
     });
 
     describe('UI', () => {
