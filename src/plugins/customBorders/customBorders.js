@@ -256,11 +256,9 @@ class CustomBorders extends BasePlugin {
    *
    * @private
    * @param {object} border Object with `row` and `col`, `left`, `right`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
-   * @param {object} [extraSettings] Extra settings for added border.
-   * @param {string} [extraSettings.place] Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
-   * @param {CellRange} [extraSettings.broaderCellRange] Broader cell range for added custom selection.
+   * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
-  insertBorderIntoSettings(border, extraSettings) {
+  insertBorderIntoSettings(border, place) {
     const hasSavedBorders = this.checkSavedBorders(border);
 
     if (!hasSavedBorders) {
@@ -268,14 +266,10 @@ class CustomBorders extends BasePlugin {
     }
 
     const visualCellRange = new CellRange(new CellCoords(border.row, border.col));
-    const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, extraSettings?.place);
+    const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {
-      const addedSelection = this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
-
-      if (isObject(extraSettings) && isDefined(extraSettings.broaderCellRange)) {
-        addedSelection.adjustCoordinates(extraSettings.broaderCellRange);
-      }
+      this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
     }
   }
 
@@ -322,7 +316,7 @@ class CustomBorders extends BasePlugin {
 
     this.hot.setCellMeta(row, column, 'borders', border);
 
-    this.insertBorderIntoSettings(border, { place });
+    this.insertBorderIntoSettings(border, place);
   }
 
   /**
@@ -337,10 +331,7 @@ class CustomBorders extends BasePlugin {
     const lastColumnIndex = Math.min(range.to.col, this.hot.countCols() - 1);
 
     rangeEach(range.from.row, lastRowIndex, (rowIndex) => {
-      const isLastRow = rowIndex === lastRowIndex;
-
       rangeEach(range.from.col, lastColumnIndex, (colIndex) => {
-        const isLastColumn = colIndex === lastColumnIndex;
         const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
@@ -376,18 +367,7 @@ class CustomBorders extends BasePlugin {
 
         if (add > 0) {
           this.hot.setCellMeta(rowIndex, colIndex, 'borders', border);
-
-          // Broader cell range for a case that border starts/ends with hidden index. We will search for first not
-          // hidden index for purpose of displaying the border. For a hidden border on the end, broader cell range,
-          // where we are looking for first not hidden index starts from the end and ends heading towards the start
-          // of border area.
-          const broaderCellRange = new CellRange(
-            new CellCoords(isLastRow ? lastRowIndex : rowIndex, isLastColumn ? lastColumnIndex : colIndex),
-            new CellCoords(isLastRow ? lastRowIndex : rowIndex, isLastColumn ? lastColumnIndex : colIndex),
-            new CellCoords(isLastRow ? range.from.row : lastRowIndex, isLastColumn ? range.from.col : lastColumnIndex),
-          );
-
-          this.insertBorderIntoSettings(border, { broaderCellRange });
+          this.insertBorderIntoSettings(border);
         } else {
           // TODO sometimes it enters here. Why?
         }
