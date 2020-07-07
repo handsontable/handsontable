@@ -381,12 +381,15 @@ class TextEditor extends BaseEditor {
         break;
     }
 
-    if (colHeadersCount && this.hot.getSelectedLast()[0] <= 0 ||
-        (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] <= totalRowsCount - settings.fixedRowsBottom)) {
+    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+
+    if (colHeadersCount && renderableRow <= 0 ||
+        (settings.fixedRowsBottom && renderableRow < totalRowsCount - settings.fixedRowsBottom)) {
       editTop += 1;
     }
 
-    if (this.hot.getSelectedLast()[1] <= 0) {
+    if (renderableColumn <= 0) {
       editLeft += 1;
     }
 
