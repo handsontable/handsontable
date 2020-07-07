@@ -339,7 +339,6 @@ class TextEditor extends BaseEditor {
     const containerOffset = offset(this.hot.rootElement);
     const scrollableContainerTop = wtOverlays.topOverlay.holder;
     const scrollableContainerLeft = wtOverlays.leftOverlay.holder;
-    const totalRowsCount = this.hot.countRows();
     const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ?
       scrollableContainerTop.scrollTop : 0;
     const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ?
@@ -351,9 +350,6 @@ class TextEditor extends BaseEditor {
 
     // If colHeaders is disabled, cells in the first row have border-top
     const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-
-    const settings = this.hot.getSettings();
-    const colHeadersCount = this.hot.hasColHeaders();
     const backgroundColor = this.TD.style.backgroundColor;
 
     let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
@@ -381,11 +377,13 @@ class TextEditor extends BaseEditor {
         break;
     }
 
+    const colHeadersCount = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
 
-    if (colHeadersCount && renderableRow <= 0 ||
-        (settings.fixedRowsBottom && renderableRow < totalRowsCount - settings.fixedRowsBottom)) {
+    if (colHeadersCount && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;
     }
 
