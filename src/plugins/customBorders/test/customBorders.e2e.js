@@ -7,6 +7,7 @@ describe('CustomBorders', () => {
   const MAGENTA_BORDER = { color: 'magenta', width: 2 };
   const BLUE_BORDER = { color: 'blue', width: 2 };
   const ORANGE_BORDER = { color: 'orange', width: 2 };
+  const YELLOW_BORDER = { color: 'yellow', width: 2 };
   const EMPTY = { hide: true };
 
   const CUSTOM_BORDER_SELECTOR = '.wtBorder:not(.fill, .current, .area)';
@@ -1189,7 +1190,7 @@ describe('CustomBorders', () => {
 
   describe('should cooperate with the `HiddenColumns` plugin properly', () => {
     it('should display custom borders (drawing range) properly when some columns are hidden ' +
-      '(starting range from hidden column)', () => {
+      '(range starts from hidden column)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1295,7 +1296,7 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when showing columns that have been hidden ' +
-      '(starting range from hidden column)', () => {
+      '(range starts from hidden column)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1351,7 +1352,7 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when some columns are hidden ' +
-      '(end range at hidden column)', () => {
+      '(range ends at hidden column)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1457,7 +1458,7 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when showing columns that have been hidden ' +
-      '(end range at hidden column)', () => {
+      '(range ends at hidden column)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1510,6 +1511,271 @@ describe('CustomBorders', () => {
       expect(getCellMeta(4, 4).borders.right).toEqual(MAGENTA_BORDER);
       // Cell in the middle of area without borders
       expect(getCellMeta(2, 2).borders).toBeUndefined();
+    });
+
+    it('should display custom borders (drawing range) properly when some columns are hidden ' +
+      '(hidden column in the middle of the range)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2],
+          indicators: true
+        },
+        customBorders: [{
+          range: {
+            from: {
+              row: 1,
+              col: 1
+            },
+            to: {
+              row: 4,
+              col: 4
+            }
+          },
+          top: BLUE_BORDER,
+          left: ORANGE_BORDER,
+          bottom: RED_BORDER,
+          right: MAGENTA_BORDER
+        }]
+      });
+
+      expect(countVisibleCustomBorders()).toEqual((3 * 2) + (4 * 2)); // 4 rows x 3 columns
+      // First cell from the top-left position
+      expect(getCellMeta(1, 1).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(1, 1).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 1).borders.bottom).toEqual(EMPTY);
+      expect(getCellMeta(1, 1).borders.right).toEqual(EMPTY);
+      // First cell from the top-right position
+      expect(getCellMeta(1, 4).borders.left).toEqual(EMPTY);
+      expect(getCellMeta(1, 4).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 4).borders.bottom).toEqual(EMPTY);
+      expect(getCellMeta(1, 4).borders.right).toEqual(MAGENTA_BORDER);
+      // // First cell from the bottom-left position
+      expect(getCellMeta(4, 1).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(4, 1).borders.top).toEqual(EMPTY);
+      expect(getCellMeta(4, 1).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(4, 1).borders.right).toEqual(EMPTY);
+      // // First cell from the bottom-right position
+      expect(getCellMeta(4, 4).borders.left).toEqual(EMPTY);
+      expect(getCellMeta(4, 4).borders.top).toEqual(EMPTY);
+      expect(getCellMeta(4, 4).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(4, 4).borders.right).toEqual(MAGENTA_BORDER);
+      // Cell in the middle of area without borders
+      expect(getCellMeta(2, 2).borders).toBeUndefined();
+    });
+
+    it('should display custom borders (drawing range) properly when hiding columns that have been visible ' +
+      '(hiding column in the middle of the range)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: true,
+        customBorders: [{
+          range: {
+            from: {
+              row: 1,
+              col: 1
+            },
+            to: {
+              row: 4,
+              col: 4
+            }
+          },
+          top: BLUE_BORDER,
+          left: ORANGE_BORDER,
+          bottom: RED_BORDER,
+          right: MAGENTA_BORDER
+        }]
+      });
+
+      getPlugin('hiddenColumns').hideColumn(2);
+      render();
+
+      expect(countVisibleCustomBorders()).toEqual((3 * 2) + (4 * 2)); // 4 rows x 3 columns
+      // First cell from the top-left position
+      expect(getCellMeta(1, 1).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(1, 1).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 1).borders.bottom).toEqual(EMPTY);
+      expect(getCellMeta(1, 1).borders.right).toEqual(EMPTY);
+      // First cell from the top-right position
+      expect(getCellMeta(1, 4).borders.left).toEqual(EMPTY);
+      expect(getCellMeta(1, 4).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 4).borders.bottom).toEqual(EMPTY);
+      expect(getCellMeta(1, 4).borders.right).toEqual(MAGENTA_BORDER);
+      // // First cell from the bottom-left position
+      expect(getCellMeta(4, 1).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(4, 1).borders.top).toEqual(EMPTY);
+      expect(getCellMeta(4, 1).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(4, 1).borders.right).toEqual(EMPTY);
+      // // First cell from the bottom-right position
+      expect(getCellMeta(4, 4).borders.left).toEqual(EMPTY);
+      expect(getCellMeta(4, 4).borders.top).toEqual(EMPTY);
+      expect(getCellMeta(4, 4).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(4, 4).borders.right).toEqual(MAGENTA_BORDER);
+      // Cell in the middle of area without borders
+      expect(getCellMeta(2, 2).borders).toBeUndefined();
+    });
+
+
+    it('should display custom borders (drawing range) properly when showing columns that have been hidden ' +
+      '(hidden column in the middle of the range)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [4],
+          indicators: true
+        },
+        customBorders: [{
+          range: {
+            from: {
+              row: 1,
+              col: 1
+            },
+            to: {
+              row: 4,
+              col: 4
+            }
+          },
+          top: BLUE_BORDER,
+          left: ORANGE_BORDER,
+          bottom: RED_BORDER,
+          right: MAGENTA_BORDER
+        }]
+      });
+
+      getPlugin('hiddenColumns').showColumn(4);
+      render();
+
+      expect(countVisibleCustomBorders()).toEqual(4 * 4); // 4 rows x 4 columns
+      // First cell from the top-left position
+      expect(getCellMeta(1, 1).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(1, 1).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 1).borders.bottom).toEqual(EMPTY);
+      expect(getCellMeta(1, 1).borders.right).toEqual(EMPTY);
+      // First cell from the top-right position
+      expect(getCellMeta(1, 4).borders.left).toEqual(EMPTY);
+      expect(getCellMeta(1, 4).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 4).borders.bottom).toEqual(EMPTY);
+      expect(getCellMeta(1, 4).borders.right).toEqual(MAGENTA_BORDER);
+      // // First cell from the bottom-left position
+      expect(getCellMeta(4, 1).borders.left).toEqual(ORANGE_BORDER);
+      expect(getCellMeta(4, 1).borders.top).toEqual(EMPTY);
+      expect(getCellMeta(4, 1).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(4, 1).borders.right).toEqual(EMPTY);
+      // // First cell from the bottom-right position
+      expect(getCellMeta(4, 4).borders.left).toEqual(EMPTY);
+      expect(getCellMeta(4, 4).borders.top).toEqual(EMPTY);
+      expect(getCellMeta(4, 4).borders.bottom).toEqual(RED_BORDER);
+      expect(getCellMeta(4, 4).borders.right).toEqual(MAGENTA_BORDER);
+      // Cell in the middle of area without borders
+      expect(getCellMeta(2, 2).borders).toBeUndefined();
+    });
+
+    it('should display borders properly when hiding cells separating another cells with borders (they will stick together) #1', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: true,
+        customBorders: [{
+          row: 1,
+          col: 0,
+          top: GREEN_BORDER,
+          left: GREEN_BORDER,
+          bottom: GREEN_BORDER,
+          right: GREEN_BORDER
+        }, {
+          row: 1,
+          col: 2,
+          top: BLUE_BORDER,
+          left: BLUE_BORDER,
+          bottom: BLUE_BORDER,
+          right: BLUE_BORDER
+        }, {
+          row: 1,
+          col: 4,
+          top: YELLOW_BORDER,
+          left: YELLOW_BORDER,
+          bottom: YELLOW_BORDER,
+          right: YELLOW_BORDER
+        }]
+      });
+
+      getPlugin('hiddenColumns').hideColumns([1, 3]);
+      render();
+
+      expect(countVisibleCustomBorders()).toEqual(3 * 4); // It isn't ok probably. There is no specification.
+      // expect(countVisibleCustomBorders()).toEqual((4 * 2) + 2); // TODO: It should work.
+      expect(getCellMeta(1, 0).borders.left).toEqual(GREEN_BORDER);
+      expect(getCellMeta(1, 0).borders.top).toEqual(GREEN_BORDER);
+      expect(getCellMeta(1, 0).borders.bottom).toEqual(GREEN_BORDER);
+      expect(getCellMeta(1, 0).borders.right).toEqual(GREEN_BORDER); // Is it ok?
+
+      expect(getCellMeta(1, 2).borders.left).toEqual(BLUE_BORDER); // Is it ok?
+      expect(getCellMeta(1, 2).borders.top).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 2).borders.bottom).toEqual(BLUE_BORDER);
+      expect(getCellMeta(1, 2).borders.right).toEqual(BLUE_BORDER); // Is it ok?
+
+      expect(getCellMeta(1, 4).borders.left).toEqual(YELLOW_BORDER); // Is it ok?
+      expect(getCellMeta(1, 4).borders.top).toEqual(YELLOW_BORDER);
+      expect(getCellMeta(1, 4).borders.bottom).toEqual(YELLOW_BORDER);
+      expect(getCellMeta(1, 4).borders.right).toEqual(YELLOW_BORDER);
+    });
+
+    it('should display borders properly when hiding cells separating another cells with borders (they will stick together) #2', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: true,
+        customBorders: [{
+          row: 1,
+          col: 0,
+          top: GREEN_BORDER,
+          left: GREEN_BORDER,
+          bottom: GREEN_BORDER,
+          right: GREEN_BORDER
+        }, {
+          row: 1,
+          col: 2,
+          top: BLUE_BORDER,
+          left: BLUE_BORDER,
+          bottom: BLUE_BORDER,
+          right: BLUE_BORDER
+        }, {
+          row: 1,
+          col: 4,
+          top: YELLOW_BORDER,
+          left: YELLOW_BORDER,
+          bottom: YELLOW_BORDER,
+          right: YELLOW_BORDER
+        }]
+      });
+
+      getPlugin('hiddenColumns').hideColumns([1, 2, 3]);
+      render();
+
+      expect(countVisibleCustomBorders()).toEqual(2 * 4); // It isn't ok probably. There is no specification.
+      // expect(countVisibleCustomBorders()).toEqual((4 + 3)); // TODO: It should work.
+      expect(getCellMeta(1, 0).borders.left).toEqual(GREEN_BORDER);
+      expect(getCellMeta(1, 0).borders.top).toEqual(GREEN_BORDER);
+      expect(getCellMeta(1, 0).borders.bottom).toEqual(GREEN_BORDER);
+      expect(getCellMeta(1, 0).borders.right).toEqual(GREEN_BORDER); // Is it ok?
+
+      expect(getCellMeta(1, 2).borders.left).toEqual(BLUE_BORDER); // There should be `EMPTY`
+      expect(getCellMeta(1, 2).borders.top).toEqual(BLUE_BORDER); // There should be `EMPTY`
+      expect(getCellMeta(1, 2).borders.bottom).toEqual(BLUE_BORDER); // There should be `EMPTY`
+      expect(getCellMeta(1, 2).borders.right).toEqual(BLUE_BORDER); // There should be `EMPTY`
+
+      expect(getCellMeta(1, 4).borders.left).toEqual(YELLOW_BORDER); // Is it ok?
+      expect(getCellMeta(1, 4).borders.top).toEqual(YELLOW_BORDER);
+      expect(getCellMeta(1, 4).borders.bottom).toEqual(YELLOW_BORDER);
+      expect(getCellMeta(1, 4).borders.right).toEqual(YELLOW_BORDER);
     });
 
     it('should not display custom border for single cell when it is placed on the hidden column', () => {
