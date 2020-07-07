@@ -1,11 +1,8 @@
 import BasePlugin from './../_base';
 import { registerPlugin } from './../../plugins';
-import {
-  hasOwnProperty,
-  objectEach, isObject } from './../../helpers/object';
+import { hasOwnProperty, objectEach } from './../../helpers/object';
 import { rangeEach } from './../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from './../../helpers/array';
-import { isDefined } from '../../helpers/mixed';
 import { CellRange, CellCoords } from './../../3rdparty/walkontable/src';
 import * as C from './../../i18n/constants';
 import { bottom, left, noBorders, right, top } from './contextMenuItem';
