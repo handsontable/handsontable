@@ -763,7 +763,7 @@ export function resizeRow(renderableRowIndex, height) {
     clientY: resizerPosition.top
   });
 
-  let delta = newHeight - $th.height() - 2;
+  const delta = newHeight - $th.height() - 2;
 
   $resizer.simulate('mousemove', {
     clientY: resizerPosition.top + delta

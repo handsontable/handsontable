@@ -113,7 +113,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
+   * enabled).
    *
    * @fires Hooks#persistentStateSave
    */
@@ -122,7 +123,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
+   * has be enabled).
    *
    * @returns {Array}
    * @fires Hooks#persistentStateLoad
@@ -334,10 +336,9 @@ class ManualRowResize extends BasePlugin {
 
     if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
       return walkontableHeight;
-
-    } else {
-      return this.newSize;
     }
+
+    return this.newSize;
   }
 
   /**
