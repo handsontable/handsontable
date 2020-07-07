@@ -286,7 +286,7 @@ class CustomBorders extends BasePlugin {
     const nrOfRows = this.hot.countRows();
     const nrOfColumns = this.hot.countCols();
 
-    if (row > nrOfRows || column > nrOfColumns) {
+    if (row >= nrOfRows || column >= nrOfColumns) {
       return;
     }
 
@@ -669,7 +669,8 @@ class CustomBorders extends BasePlugin {
     } else {
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
-          customSelection.cellRange = cellRange;
+          customSelection.visualCellRange = cellRange;
+          customSelection.commit();
 
           if (place) {
             objectEach(customSelection.instanceBorders, (borderObject) => {
