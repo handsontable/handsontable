@@ -52,6 +52,44 @@ describe('ContextMenu', () => {
       expect(getRowHeader()).toEqual(['A', 'B', 'C', 'D', 'E', 6, 7]);
     });
 
+    it('should insert row above the clicked row header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(1, -1));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(0); // "Insert row above"
+
+      simulateClick(item);
+
+      expect(getDataAtCol(0)).toEqual(['A1', null, 'A2', 'A3', 'A4', 'A5']);
+    });
+
+    it('should insert row above the clicked cell', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(1, 1));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(0); // "Insert row above"
+
+      simulateClick(item);
+
+      expect(getDataAtCol(0)).toEqual(['A1', null, 'A2', 'A3', 'A4', 'A5']);
+    });
+
     describe('UI', () => {
       it('should display a disabled entry, when there\'s nothing selected', () => {
         handsontable({
@@ -69,8 +107,6 @@ describe('ContextMenu', () => {
           .find('td')
           .not('.htSeparator')
           .eq(0); // "Insert row above"
-
-        simulateClick(item);
 
         expect(item.hasClass('htDisabled')).toBe(true);
       });
@@ -91,8 +127,6 @@ describe('ContextMenu', () => {
           .not('.htSeparator')
           .eq(0); // "Insert row above"
 
-        simulateClick(item);
-
         expect(item.hasClass('htDisabled')).toBe(true);
       });
 
@@ -112,7 +146,24 @@ describe('ContextMenu', () => {
           .not('.htSeparator')
           .eq(0); // "Insert row above"
 
-        simulateClick(item);
+        expect(item.hasClass('htDisabled')).toBe(true);
+      });
+
+      it('should display a disabled entry, when clicking on a corner header when there are no cells visible', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(0, 0),
+          contextMenu: true,
+          height: 100,
+          colHeaders: true,
+          rowHeaders: true,
+        });
+
+        contextMenu(spec().$container.find('.ht_clone_top_left_corner thead th').eq(0));
+
+        const item = $('.htContextMenu .ht_master .htCore tbody')
+          .find('td')
+          .not('.htSeparator')
+          .eq(0); // "Insert row above"
 
         expect(item.hasClass('htDisabled')).toBe(true);
       });

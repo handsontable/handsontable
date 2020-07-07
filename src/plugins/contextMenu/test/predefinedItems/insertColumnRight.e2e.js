@@ -66,8 +66,74 @@ describe('ContextMenu', () => {
 
       simulateClick(item);
 
-      // The new column will be placed at the very end, because clicking the corner header selects all cells.
-      expect(getColHeader()).toEqual([1, 2, 3, 4, 5, 'F']);
+      expect(getColHeader()).toEqual(['A', 1, 2, 3, 4, 5]);
+    });
+
+    it('should insert column on the right of the clicked column header', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, 1));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(3); // "Insert column right"
+
+      simulateClick(item);
+
+      expect(getDataAtRow(0)).toEqual(['A1', 'B1', null, 'C1', 'D1', 'E1']);
+    });
+
+    it('should insert column on the right of the clicked cell', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(1, 1));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(3); // "Insert column right"
+
+      simulateClick(item);
+
+      expect(getDataAtRow(0)).toEqual(['A1', 'B1', null, 'C1', 'D1', 'E1']);
+    });
+
+    it('should insert column on the right of the clicked corner', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(3); // "Insert column right"
+
+      simulateClick(item);
+
+      expect(getDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', 'E1']);
+      expect(`
+        |   ║ * : * : * : * : * : * |
+        |===:===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
     });
 
     describe('UI', () => {
@@ -88,8 +154,6 @@ describe('ContextMenu', () => {
           .not('.htSeparator')
           .eq(3); // "Insert column right"
 
-        simulateClick(item);
-
         expect(item.hasClass('htDisabled')).toBe(true);
       });
 
@@ -109,12 +173,10 @@ describe('ContextMenu', () => {
           .not('.htSeparator')
           .eq(3); // "Insert column right"
 
-        simulateClick(item);
-
         expect(item.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should display a disabled entry, when clicking on a corner header', () => {
+      it('should display an enabled entry, when clicking on a corner header', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           contextMenu: true,
@@ -130,19 +192,17 @@ describe('ContextMenu', () => {
           .not('.htSeparator')
           .eq(3); // "Insert column right"
 
-        simulateClick(item);
-
-        expect(item.hasClass('htDisabled')).toBe(true);
+        expect(item.hasClass('htDisabled')).toBe(false);
       });
 
-      it('should display an entry, when clicking on a corner header when all rows are trimmed', () => {
+      it('should display an enabled entry, when clicking on a corner header when there are no cells visible', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          data: Handsontable.helper.createSpreadsheetData(0, 0),
           contextMenu: true,
           height: 100,
           colHeaders: true,
           rowHeaders: true,
-          trimRows: [0, 1, 2, 3], // The TrimmingMap should be used instead of the plugin.
+          dataSchema: [],
         });
 
         contextMenu(spec().$container.find('.ht_clone_top_left_corner thead th').eq(0));
@@ -151,8 +211,6 @@ describe('ContextMenu', () => {
           .find('td')
           .not('.htSeparator')
           .eq(3); // "Insert column right"
-
-        simulateClick(item);
 
         expect(item.hasClass('htDisabled')).toBe(false);
       });

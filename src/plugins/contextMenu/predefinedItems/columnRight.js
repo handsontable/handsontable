@@ -14,24 +14,26 @@ export default function columnRightItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
     callback(key, normalizedSelection) {
-      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-      const selectedColumn = latestSelection?.end?.col;
-      // If there is no selection we have clicked on the corner and there is no data.
-      const columnRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
+      const isSelectedByCorner = this.selection.isSelectedByCorner();
+      let columnRight = 0;
+
+      if (!isSelectedByCorner) {
+        const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+        const selectedColumn = latestSelection?.end?.col;
+
+        // If there is no selection we have clicked on the corner and there is no data.
+        columnRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
+      }
 
       this.alter('insert_col', columnRight, 1, 'ContextMenu.columnRight');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {
         return true;
-      }
-
-      const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
-
-      // There is no selection, because we have clicked on the corner and there is no data
-      // (click on the corner by default selects all cells, but there are no cells).
-      if (!anyCellVisible) {
-        return false;
       }
 
       const selected = getValidSelection(this);
@@ -40,8 +42,11 @@ export default function columnRightItem() {
         return true;
       }
 
+      if (this.selection.isSelectedByCorner()) {
+        return false;
+      }
+
       return this.selection.isSelectedByRowHeader() ||
-        this.selection.isSelectedByCorner() ||
         this.countCols() >= this.getSettings().maxCols;
     },
     hidden() {
