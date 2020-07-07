@@ -1619,7 +1619,6 @@ describe('CustomBorders', () => {
       expect(getCellMeta(2, 2).borders).toBeUndefined();
     });
 
-
     it('should display custom borders (drawing range) properly when showing columns that have been hidden ' +
       '(hidden column in the middle of the range)', () => {
       handsontable({
@@ -2358,7 +2357,6 @@ describe('CustomBorders', () => {
       // Cell in the middle of area without borders
       expect(getCellMeta(2, 2).borders).toBeUndefined();
     });
-
 
     it('should display custom borders (drawing range) properly when showing rows that have been hidden ' +
       '(hidden row in the middle of the range)', () => {
