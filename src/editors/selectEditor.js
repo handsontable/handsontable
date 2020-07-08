@@ -213,13 +213,12 @@ class SelectEditor extends BaseEditor {
         break;
     }
 
-    const colHeadersCount = this.hot.hasColHeaders();
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
     const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
 
-    if (colHeadersCount && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
+    if (renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;
     }
 
