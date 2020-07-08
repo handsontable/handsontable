@@ -53,7 +53,8 @@ export function createDefaultHtBorder() {
  *
  * @param {number} row Visual row index.
  * @param {number} col Visual column index.
- * @returns {object} `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
+ * @returns {object} Returns border configuration containing visual indexes. Example of an object defining it:
+ * `{{id: *, border: *, row: *, col: *, top: {hide: boolean}, right: {hide: boolean}, bottom: {hide: boolean}, left: {hide: boolean}}}`.
  */
 export function createEmptyBorders(row, col) {
   return {

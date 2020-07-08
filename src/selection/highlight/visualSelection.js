@@ -1,14 +1,16 @@
 import { Selection, CellCoords, CellRange } from './../../3rdparty/walkontable/src';
 
 class VisualSelection extends Selection {
-  constructor(...args) {
-    super(...args);
+  constructor(settings, visualCellRange) {
+    super(settings, null);
     /**
      * Range of selection visually. Visual representation may have representation in a rendered selection.
      *
      * @type {null|CellRange}
      */
-    this.visualCellRange = null;
+    this.visualCellRange = visualCellRange || null;
+
+    this.commit();
   }
   /**
    * Adds a cell coords to the selection.
