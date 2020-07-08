@@ -202,9 +202,9 @@ class DataMap {
 
     const physicalColumn = this.instance.toPhysicalColumn(column);
 
-    // Out of range, not visible column index.
+    // Beyond the table boundaries. // TODO: This conditional may be temporary.
     if (physicalColumn === null) {
-      return column;
+      return null;
     }
 
     // Cached property.

@@ -221,7 +221,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelection',
       from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
     this.runHooks('afterSelectionByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel); // eslint-disable-line max-len
+      from.row,
+      from.col >= 0 ? instance.colToProp(from.col) : from.col, // We may start from the header
+      to.row,
+      instance.colToProp(to.col),
+      preventScrolling,
+      selectionLayerLevel
+    );
 
     const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
     const currentSelectedRange = this.selection.selectedRange.current();
@@ -283,7 +289,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelectionEnd',
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+      from.row,
+      from.col >= 0 ? instance.colToProp(from.col) : from.col, // We may start from the header
+      to.row,
+      instance.colToProp(to.col),
+      selectionLayerLevel
+    );
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
@@ -1332,6 +1343,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         input[i][2],
       ]);
     }
+
+    console.log(JSON.parse(JSON.stringify(changes)));
 
     if (!changeSource && typeof row === 'object') {
       changeSource = column;
@@ -2707,7 +2720,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = column;
     }
 
-    const prop = datamap.colToProp(column);
+    const colToPropResult = datamap.colToProp(column);
+    const prop = colToPropResult !== null ? colToPropResult : column; // We can also get meta for columns beyond the table boundaries
     const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
 
     // TODO(perf): Add assigning this props and executing below code only once per table render cycle.
