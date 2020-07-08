@@ -327,6 +327,7 @@ class ManualRowResize extends BasePlugin {
   /**
    * Returns the actual height for the provided row index.
    *
+   * @private
    * @param {number} row Visual row index.
    * @returns {number} Actual row height.
    */
