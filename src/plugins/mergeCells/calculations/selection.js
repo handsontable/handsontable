@@ -137,8 +137,8 @@ class SelectionCalculations {
       return;
     }
 
-    const mergeRowEnd = mergedCell.row + mergedCell.rowspan - 1;
-    const mergeColumnEnd = mergedCell.col + mergedCell.colspan - 1;
+    const mergeRowEnd = mergedCell.getLastRow();
+    const mergeColumnEnd = mergedCell.getLastColumn();
     const fullMergeAreaWithinSelection =
       startRow <= mergedCell.row && startColumn <= mergedCell.col &&
       endRow >= mergeRowEnd && endColumn >= mergeColumnEnd;

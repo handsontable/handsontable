@@ -6,11 +6,11 @@ import VisualSelection from '../visualSelection';
  *
  * @returns {Selection}
  */
-function createHighlight({ border, cellRange, ...restOptions }) {
+function createHighlight({ border, visualCellRange, ...restOptions }) {
   const s = new VisualSelection({
     ...border,
     ...restOptions,
-  }, cellRange);
+  }, visualCellRange);
 
   return s;
 }
