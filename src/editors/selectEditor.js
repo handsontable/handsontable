@@ -181,6 +181,7 @@ class SelectEditor extends BaseEditor {
 
       return;
     }
+
     const { wtOverlays } = this.hot.view.wt;
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
@@ -212,10 +213,16 @@ class SelectEditor extends BaseEditor {
         break;
     }
 
-    if (this.hot.getSelectedLast()[0] <= 0) {
+    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+
+    if (renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;
     }
-    if (this.hot.getSelectedLast()[1] <= 0) {
+
+    if (renderableColumn <= 0) {
       editLeft += 1;
     }
 
