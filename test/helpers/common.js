@@ -753,6 +753,7 @@ export function resizeColumn(renderableColumnIndex, width) {
 export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
   const $th = getLeftClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const newHeight = renderableRowIndex !== 0 ? height + 1 : height; // compensate border
 
   $th.simulate('mouseover');
 
@@ -763,11 +764,7 @@ export function resizeRow(renderableRowIndex, height) {
     clientY: resizerPosition.top
   });
 
-  let delta = height - $th.height() - 2;
-
-  if (delta < 0) {
-    delta = 0;
-  }
+  const delta = newHeight - $th.height() - 2;
 
   $resizer.simulate('mousemove', {
     clientY: resizerPosition.top + delta
