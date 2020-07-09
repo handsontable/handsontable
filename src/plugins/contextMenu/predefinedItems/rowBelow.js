@@ -17,7 +17,10 @@ export default function rowBelowItem() {
       const isSelectedByCorner = this.selection.isSelectedByCorner();
       let rowBelow = 0;
 
-      if (!this.selection.isSelectedByCorner()) {
+      if (isSelectedByCorner) {
+        rowBelow = this.countRows();
+
+      } else {
         const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
         const selectedRow = latestSelection?.end?.row;
 
@@ -39,6 +42,7 @@ export default function rowBelowItem() {
       }
 
       if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert row below" always when the menu is triggered by corner click.
         return false;
       }
 

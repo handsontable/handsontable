@@ -1030,11 +1030,8 @@ describe('CustomBorders', () => {
     contextMenu();
 
     expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
-      'Insert row above',
       'Insert column left',
       'Insert column right',
-      'Remove rows',
-      'Remove columns',
       'Undo',
       'Redo',
       'Read only',

@@ -17,7 +17,10 @@ export default function columnRightItem() {
       const isSelectedByCorner = this.selection.isSelectedByCorner();
       let columnRight = 0;
 
-      if (!isSelectedByCorner) {
+      if (isSelectedByCorner) {
+        columnRight = this.countCols();
+
+      } else {
         const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
         const selectedColumn = latestSelection?.end?.col;
 
@@ -43,6 +46,7 @@ export default function columnRightItem() {
       }
 
       if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert column right" always when the menu is triggered by corner click.
         return false;
       }
 

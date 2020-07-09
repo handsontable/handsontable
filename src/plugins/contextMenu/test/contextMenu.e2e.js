@@ -1199,10 +1199,6 @@ describe('ContextMenu', () => {
       contextMenu(corner);
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
-        'Insert row above',
-        'Insert column left',
-        'Remove rows',
-        'Remove columns',
         'Undo',
         'Redo',
         'Read only',
