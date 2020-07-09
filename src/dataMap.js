@@ -202,23 +202,18 @@ class DataMap {
 
     const physicalColumn = this.instance.toPhysicalColumn(column);
 
-    // Beyond the table boundaries. // TODO: This conditional may be temporary.
-    if (physicalColumn === null) {
-      return null;
-    }
-
     // Cached property.
     if (this.colToPropCache && isDefined(this.colToPropCache[physicalColumn])) {
       return this.colToPropCache[physicalColumn];
     }
 
-    return physicalColumn;
+    return column;
   }
 
   /**
    * Translates property into visual column index.
    *
-   * @param {string|number} prop Column property which may be also a physical column index.
+   * @param {string|number} prop Column property which may be also a visual column index.
    * @returns {string|number|null} Visual column index or passed argument.
    */
   propToCol(prop) {
@@ -228,8 +223,8 @@ class DataMap {
       return this.instance.toVisualColumn(cachedPhysicalIndex);
     }
 
-    // Property may be a physical column index.
-    return this.instance.toVisualColumn(prop);
+    // Property may be a visual column index.
+    return prop;
   }
 
   /**
@@ -620,7 +615,13 @@ class DataMap {
 
     // try to get value under property `prop` (includes dot)
     if (dataRow && dataRow.hasOwnProperty && hasOwnProperty(dataRow, prop)) {
-      value = dataRow[prop];
+      let property = prop;
+
+      if (Number.isInteger(prop)) {
+        property = this.instance.toPhysicalColumn(prop); // Property being a string is equivalent to a physical column index.
+      }
+
+      value = dataRow[property];
 
     } else if (typeof prop === 'string' && prop.indexOf('.') > -1) {
       const sliced = prop.split('.');
