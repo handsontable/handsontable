@@ -16,10 +16,7 @@ export default function rowAboveItem() {
       const isSelectedByCorner = this.selection.isSelectedByCorner();
       let rowAbove = 0;
 
-      if (isSelectedByCorner) {
-        rowAbove = 0;
-
-      } else {
+      if (!isSelectedByCorner) {
         const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
 
         rowAbove = latestSelection.start.row;

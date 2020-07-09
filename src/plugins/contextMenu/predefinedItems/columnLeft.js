@@ -16,10 +16,7 @@ export default function columnLeftItem() {
       const isSelectedByCorner = this.selection.isSelectedByCorner();
       let columnLeft = 0;
 
-      if (isSelectedByCorner) {
-        columnLeft = 0;
-
-      } else {
+      if (!isSelectedByCorner) {
         const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
 
         columnLeft = latestSelection.start.col;
