@@ -13,7 +13,7 @@ describe('SelectEditor', () => {
     }
   });
 
-  it('should render select editor in specified position at cell 0, 0', () => {
+  it('should render an editor in specified position at cell 0, 0', () => {
     handsontable({
       columns: [{ editor: 'select' }],
     });
@@ -32,15 +32,15 @@ describe('SelectEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render select editor in specified position at cell 0, 0 when all headers are selected', () => {
-    const hot = handsontable({
+  it('should render an editor in specified position at cell 0, 0 when all headers are selected', () => {
+    handsontable({
       rowHeaders: true,
       colHeaders: true,
       columns: [{ editor: 'select' }, {}],
     });
 
     selectAll();
-    hot.listen();
+    listen();
 
     const editor = $('.htSelectEditor');
 
@@ -52,6 +52,215 @@ describe('SelectEditor', () => {
 
     expect(editor.is(':visible')).toBe(true);
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from top to bottom when ' +
+     'top and bottom overlays are enabled', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [{ editor: 'select' }, {}],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from left to right when ' +
+     'left overlay is enabled', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedColumnsLeft: 3,
+      editor: 'select',
+    });
+
+    selectCell(0, 0);
+
+    const editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional left border.
+    const editorOffset = () => ({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
+
+    selectCell(0, 2);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
+
+    selectCell(0, 3);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
+
+    selectCell(0, 4);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from top to bottom when ' +
+     'top and bottom overlays are enabled and the first row of the both overlays are hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      hiddenRows: {
+        indicators: true,
+        rows: [0, 5],
+      },
+      columns: [{ editor: 'select' }, {}],
+    });
+
+    selectCell(1, 0);
+
+    const editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    // First renderable row index.
+    expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from left to right when ' +
+     'left overlay is enabled and the first column of the overlay is hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedColumnsLeft: 3,
+      hiddenColumns: {
+        indicators: true,
+        columns: [0],
+      },
+      editor: 'select',
+    });
+
+    selectCell(0, 1);
+
+    const editor = $('.htSelectEditor');
+
+    keyDown('enter');
+
+    // First renderable column index.
+    expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
+
+    selectCell(0, 2);
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional left border.
+    const editorOffset = () => ({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
+
+    selectCell(0, 3);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
+
+    selectCell(0, 4);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
   it('should display and correctly reposition select editor while scrolling', (done) => {

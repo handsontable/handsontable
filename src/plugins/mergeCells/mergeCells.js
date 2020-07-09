@@ -1179,6 +1179,11 @@ class MergeCells extends BasePlugin {
    * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
   onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+    // Nothing's selected (hook might be triggered by the custom borders)
+    if (!cornersOfSelection) {
+      return;
+    }
+
     return this.selectionCalculations
       .getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
   }
