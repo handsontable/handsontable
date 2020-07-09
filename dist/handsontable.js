@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev20
- * Release date: 23/10/2019 (built at 08/07/2020 10:50:26)
+ * Version: 8.0.0-beta.2-rev21
+ * Release date: 23/10/2019 (built at 09/07/2020 18:02:08)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3342,7 +3342,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev20";
+  var hotVersion = "8.0.0-beta.2-rev21";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -15045,7 +15045,6 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
       var containerOffset = (0, _element.offset)(this.hot.rootElement);
       var scrollableContainerTop = wtOverlays.topOverlay.holder;
       var scrollableContainerLeft = wtOverlays.leftOverlay.holder;
-      var totalRowsCount = this.hot.countRows();
       var containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ? scrollableContainerTop.scrollTop : 0;
       var containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ? scrollableContainerLeft.scrollLeft : 0;
       var editorSection = this.checkEditorSection();
@@ -15053,8 +15052,6 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
       var scrollLeft = ['', 'top', 'bottom'].includes(editorSection) ? containerScrollLeft : 0; // If colHeaders is disabled, cells in the first row have border-top
 
       var editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-      var settings = this.hot.getSettings();
-      var colHeadersCount = this.hot.hasColHeaders();
       var backgroundColor = this.TD.style.backgroundColor;
       var editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
       var editLeft = currentOffset.left - containerOffset.left - 1 - scrollLeft;
@@ -15085,11 +15082,17 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
           break;
       }
 
-      if (colHeadersCount && this.hot.getSelectedLast()[0] <= 0 || settings.fixedRowsBottom && this.hot.getSelectedLast()[0] <= totalRowsCount - settings.fixedRowsBottom) {
+      var hasColumnHeaders = this.hot.hasColHeaders();
+      var renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+      var renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+      var nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
+      var firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+
+      if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
         editTop += 1;
       }
 
-      if (this.hot.getSelectedLast()[1] <= 0) {
+      if (renderableColumn <= 0) {
         editLeft += 1;
       }
 
@@ -42694,8 +42697,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "08/07/2020 10:50:26";
-Handsontable.version = "8.0.0-beta.2-rev20"; // Export Hooks singleton
+Handsontable.buildDate = "09/07/2020 18:02:08";
+Handsontable.version = "8.0.0-beta.2-rev21"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -49157,11 +49160,16 @@ var SelectEditor = /*#__PURE__*/function (_BaseEditor) {
           break;
       }
 
-      if (this.hot.getSelectedLast()[0] <= 0) {
+      var renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+      var renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+      var nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
+      var firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+
+      if (renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
         editTop += 1;
       }
 
-      if (this.hot.getSelectedLast()[1] <= 0) {
+      if (renderableColumn <= 0) {
         editLeft += 1;
       }
 
@@ -59566,11 +59574,13 @@ var _plugins = __webpack_require__(24);
 
 var _translations = __webpack_require__(69);
 
+var _src = __webpack_require__(40);
+
 function _createSuper(Derived) { return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (_isNativeReflectConstruct()) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-// Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
+// Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 var PERSISTENT_STATE_KEY = 'manualRowHeights';
 var privatePool = new WeakMap();
 /**
@@ -59690,7 +59700,8 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualRowResize.prototype), "disablePlugin", this).call(this);
     }
     /**
-     * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+     * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
+     * enabled).
      *
      * @fires Hooks#persistentStateSave
      */
@@ -59701,7 +59712,8 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
       this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.rowHeightsMap.getValues());
     }
     /**
-     * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+     * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
+     * has be enabled).
      *
      * @returns {Array}
      * @fires Hooks#persistentStateLoad
@@ -59726,13 +59738,9 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
     key: "setManualSize",
     value: function setManualSize(row, height) {
       var physicalRow = this.hot.toPhysicalRow(row);
-
-      if (height < 0) {
-        height = null; // Do not change default size.
-      }
-
-      this.rowHeightsMap.setValueAtIndex(physicalRow, height);
-      return height;
+      var newHeight = Math.max(height, _src.ViewportRowsCalculator.DEFAULT_HEIGHT);
+      this.rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
+      return newHeight;
     }
     /**
      * Sets the resize handle position.
@@ -59909,6 +59917,26 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
       return null;
     }
     /**
+     * Returns the actual height for the provided row index.
+     *
+     * @private
+     * @param {number} row Visual row index.
+     * @returns {number} Actual row height.
+     */
+
+  }, {
+    key: "getActualRowHeight",
+    value: function getActualRowHeight(row) {
+      // TODO: this should utilize `this.hot.getRowHeight` after it's fixed and working properly.
+      var walkontableHeight = this.hot.view.wt.wtTable.getRowHeight(row);
+
+      if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
+        return walkontableHeight;
+      }
+
+      return this.newSize;
+    }
+    /**
      * 'mouseover' event callback - set the handle position.
      *
      * @private
@@ -59951,7 +59979,7 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
       };
 
       var resize = function resize(row, forceRender) {
-        var hookNewSize = _this4.hot.runHooks('beforeRowResize', _this4.newSize, row, true);
+        var hookNewSize = _this4.hot.runHooks('beforeRowResize', _this4.getActualRowHeight(row), row, true);
 
         if (hookNewSize !== void 0) {
           _this4.newSize = hookNewSize;
@@ -59960,7 +59988,7 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
         _this4.setManualSize(row, _this4.newSize); // double click sets auto row size
 
 
-        _this4.hot.runHooks('afterRowResize', _this4.newSize, row, true);
+        _this4.hot.runHooks('afterRowResize', _this4.getActualRowHeight(row), row, true);
 
         if (forceRender) {
           render();
@@ -60059,7 +60087,7 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
       };
 
       var runHooks = function runHooks(row, forceRender) {
-        _this7.hot.runHooks('beforeRowResize', _this7.newSize, row, false);
+        _this7.hot.runHooks('beforeRowResize', _this7.getActualRowHeight(row), row, false);
 
         if (forceRender) {
           render();
@@ -60067,7 +60095,7 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
 
         _this7.saveManualRowHeights();
 
-        _this7.hot.runHooks('afterRowResize', _this7.newSize, row, false);
+        _this7.hot.runHooks('afterRowResize', _this7.getActualRowHeight(row), row, false);
       };
 
       if (this.pressed) {
@@ -72106,6 +72134,11 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
   }, {
     key: "onAfterDrawSelection",
     value: function onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+      // Nothing's selected (hook might be triggered by the custom borders)
+      if (!cornersOfSelection) {
+        return;
+      }
+
       return this.selectionCalculations.getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
     }
     /**
