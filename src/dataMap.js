@@ -191,7 +191,7 @@ class DataMap {
    * Returns property name that corresponds with the given column index.
    *
    * @param {string|number} column Visual column index or another passed argument.
-   * @returns {string|number} Column property, physical column index or passed argument.
+   * @returns {string|number|null} Column property, physical column index or passed argument.
    */
   colToProp(column) {
     // TODO: Should it work? Please, look at the test:
@@ -219,7 +219,7 @@ class DataMap {
    * Translates property into visual column index.
    *
    * @param {string|number} prop Column property which may be also a physical column index.
-   * @returns {string|number} Visual column index or passed argument.
+   * @returns {string|number|null} Visual column index or passed argument.
    */
   propToCol(prop) {
     const cachedPhysicalIndex = this.propToColCache.get(prop);
@@ -229,13 +229,7 @@ class DataMap {
     }
 
     // Property may be a physical column index.
-    const visualColumn = this.instance.toVisualColumn(prop);
-
-    if (visualColumn === null) {
-      return prop;
-    }
-
-    return visualColumn;
+    return this.instance.toVisualColumn(prop);
   }
 
   /**

@@ -1098,7 +1098,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         changes.splice(i, 1);
       } else {
         const [row, prop, , newValue] = changes[i];
-        const col = datamap.propToCol(prop);
+        const propToColResult = datamap.propToCol(prop);
+        const col = propToColResult !== null ? propToColResult : prop;
         const cellProperties = instance.getCellMeta(row, col);
 
         if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
@@ -1181,8 +1182,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+        const prop = changes[i][1];
+        let propToColResult = datamap.propToCol(changes[i][1]);
+        let column = propToColResult !== null ? propToColResult : prop;
+
+        while (column > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
+          propToColResult = datamap.propToCol(changes[i][1]);
+          column = propToColResult !== null ? propToColResult : prop;
 
           if (numberOfCreatedColumns >= 1) {
             metaManager.createColumn(null, numberOfCreatedColumns);
@@ -1343,8 +1350,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         input[i][2],
       ]);
     }
-
-    console.log(JSON.parse(JSON.stringify(changes)));
 
     if (!changeSource && typeof row === 'object') {
       changeSource = column;

@@ -22,7 +22,9 @@ class DropdownEditor extends AutocompleteEditor {
 }
 
 Hooks.getSingleton().add('beforeValidate', function(value, row, col) {
-  const cellMeta = this.getCellMeta(row, this.propToCol(col));
+  const propToColResult = this.propToCol(col);
+  const column = propToColResult !== null ? propToColResult : col;
+  const cellMeta = this.getCellMeta(row, column);
 
   if (cellMeta.editor === DropdownEditor) {
     if (cellMeta.strict === void 0) {

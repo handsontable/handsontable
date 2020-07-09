@@ -33,7 +33,7 @@ describe('Core.propToCol', () => {
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(propToCol(0)).toBe(4);
-    expect(propToCol(10)).toBe(10); // I'm not sure if this should return result like that by design.
+    expect(propToCol(10)).toBe(null);
   });
 
   it('should return proper value after calling the function when columns was reorganized (data is array of objects)', () => {
@@ -51,6 +51,6 @@ describe('Core.propToCol', () => {
 
     expect(propToCol('id')).toBe(3);
     expect(propToCol(0)).toBe(3);
-    expect(propToCol(10)).toBe(10); // I'm not sure if this should return result like that by design.
+    expect(propToCol(10)).toBe(null);
   });
 });
