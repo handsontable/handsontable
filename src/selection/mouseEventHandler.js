@@ -39,17 +39,9 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
                (selectedRow && coords.row < 0)) && !controller.column) {
       selection.selectColumns(currentSelection.from.col, coords.col);
     }
+
   } else {
-    const newCoord = new CellCoords(coords.row, coords.col);
-
-    if (newCoord.row < 0) {
-      newCoord.row = 0;
-    }
-    if (newCoord.col < 0) {
-      newCoord.col = 0;
-    }
-
-    const allowRightClickSelection = !selection.inInSelection(newCoord);
+    const allowRightClickSelection = !selection.inInSelection(coords);
     const performSelection = isLeftClick || (isRightClick && allowRightClickSelection);
 
     // clicked row header and when some column was selected

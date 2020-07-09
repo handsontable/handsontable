@@ -315,6 +315,92 @@ describe('Core_selection', () => {
     expect(tickEnd).toEqual(2);
   });
 
+  it('should select entire column by right click on column header', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'RMB'); // Header "A"
+
+    expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
+    expect(`
+      |   ║ * :   :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║ A :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should select entire row by right click on row header', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    simulateClick(spec().$container.find('.ht_clone_left tbody tr:eq(0) th'), 'RMB'); // Header "1"
+
+    expect(getSelected()).toEqual([[0, -1, 0, 4]]);
+    expect(`
+      |   ║ - : - : - : - : - |
+      |===:===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should select entire column by right click on column header and overwrite the previous cell selection (#7051)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    selectCell(0, 0);
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'RMB'); // Header "A"
+
+    expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
+    expect(`
+      |   ║ * :   :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║ A :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+      | - ║ 0 :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should select entire row by right click on row header and overwrite the previous cell selection (#7051)', () => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    selectCell(0, 0);
+    simulateClick(spec().$container.find('.ht_clone_left tbody tr:eq(0) th'), 'RMB'); // Header "1"
+
+    expect(getSelected()).toEqual([[0, -1, 0, 4]]);
+    expect(`
+      |   ║ - : - : - : - : - |
+      |===:===:===:===:===:===|
+      | * ║ A : 0 : 0 : 0 : 0 |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
   it('should select columns by click on header when all rows are trimmed', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
