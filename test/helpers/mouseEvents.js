@@ -20,8 +20,7 @@ function getMouseButton(buttonKey) {
  * Returns a function that triggers a mouse event.
  *
  * @param {string} type Event type.
- * @param {number} [buttonKey] Number representing mouse button key.
- * @param {object} [eventProps] Addional object with props to merge with the event.
+ * @param {number} [defaultButtonKey] Number representing default mouse button key for this factory product.
  * @returns {Function}
  */
 export function handsontableMouseTriggerFactory(type, defaultButtonKey = getMouseButton('LMB')) {
