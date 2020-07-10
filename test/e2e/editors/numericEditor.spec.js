@@ -91,7 +91,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
@@ -103,38 +103,38 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
@@ -159,7 +159,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     selectCell(0, 1);
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
@@ -171,19 +171,19 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
@@ -219,7 +219,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
@@ -231,26 +231,26 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
     keyDown('enter');
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
@@ -280,7 +280,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     selectCell(0, 2);
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
@@ -292,13 +292,13 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     selectCell(0, 3);
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     selectCell(0, 4);
-    await sleep(10); // Caused by async NumericEditor validation.
+    await sleep(100); // Caused by async DateEditor close.
     keyDown('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
