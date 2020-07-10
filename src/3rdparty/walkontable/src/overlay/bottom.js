@@ -6,7 +6,6 @@ import {
   hasClass,
   outerHeight,
   removeClass,
-  resetCssTransform
 } from './../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
@@ -43,22 +42,6 @@ class BottomOverlay extends Overlay {
   }
 
   /**
-   *
-   */
-  repositionOverlay() {
-    const { wtTable, rootDocument } = this.wot;
-    const cloneRoot = this.clone.wtTable.holder.parentNode;
-    let scrollbarWidth = getScrollbarWidth(rootDocument);
-
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
-      scrollbarWidth = 0;
-    }
-
-    cloneRoot.style.top = '';
-    cloneRoot.style.bottom = `${scrollbarWidth}px`;
-  }
-
-  /**
    * Checks if overlay should be fully rendered.
    *
    * @returns {boolean}
@@ -79,16 +62,17 @@ class BottomOverlay extends Overlay {
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode;
-    let headerPosition = 0;
 
     overlayRoot.style.top = '';
 
+    let headerPosition = 0;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { rootDocument, wtTable } = this.wot;
-      const bottom = wtTable.hider.offsetTop + wtTable.hider.offsetHeight;
-      const bodyHeight = rootDocument.body.offsetHeight;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const bottom = Math.ceil(hiderRect.bottom);
+      const bodyHeight = rootDocument.documentElement.clientHeight;
       let finalLeft;
       let finalBottom;
 
@@ -104,13 +88,11 @@ class BottomOverlay extends Overlay {
       headerPosition = finalBottom;
       finalBottom += 'px';
 
-      overlayRoot.style.top = '';
       overlayRoot.style.left = finalLeft;
       overlayRoot.style.bottom = finalBottom;
 
     } else {
       headerPosition = this.getScrollPosition();
-      resetCssTransform(overlayRoot);
       this.repositionOverlay();
     }
 
@@ -119,6 +101,21 @@ class BottomOverlay extends Overlay {
     this.adjustElementsSize();
 
     return positionChanged;
+  }
+
+  /**
+   * Updates the bottom overlay position.
+   */
+  repositionOverlay() {
+    const { wtTable, rootDocument } = this.wot;
+    const cloneRoot = this.clone.wtTable.holder.parentNode;
+    let scrollbarWidth = getScrollbarWidth(rootDocument);
+
+    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+      scrollbarWidth = 0;
+    }
+
+    cloneRoot.style.bottom = `${scrollbarWidth}px`;
   }
 
   /**
@@ -342,15 +339,15 @@ class BottomOverlay extends Overlay {
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
       const masterParent = this.wot.wtTable.holder.parentNode;
-      const previousState = hasClass(masterParent, 'innerBorderTop');
+      const previousState = hasClass(masterParent, 'innerBorderBottom');
 
       this.cachedFixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
 
       if (position || this.wot.getSetting('totalRows') === 0) {
-        addClass(masterParent, 'innerBorderTop');
+        addClass(masterParent, 'innerBorderBottom');
         positionChanged = !previousState;
       } else {
-        removeClass(masterParent, 'innerBorderTop');
+        removeClass(masterParent, 'innerBorderBottom');
         positionChanged = previousState;
       }
 

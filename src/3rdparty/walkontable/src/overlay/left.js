@@ -62,8 +62,9 @@ class LeftOverlay extends Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      const left = wtTable.hider.offsetLeft;
-      const right = left + wtTable.hider.offsetWidth;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const left = Math.ceil(hiderRect.left);
+      const right = Math.ceil(hiderRect.right);
       let finalLeft;
       let finalTop;
 
