@@ -34,14 +34,21 @@ export default function removeColumnItem() {
     },
     disabled() {
       const selected = getValidSelection(this);
-      const totalColumns = this.countCols();
 
       if (!selected) {
         return true;
       }
 
-      return this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner() ||
-             !this.isColumnModificationAllowed() || !totalColumns;
+      const totalColumns = this.countCols();
+
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Remove column" only when there is at least one column.
+        return totalColumns === 0;
+      }
+
+      return this.selection.isSelectedByRowHeader() ||
+        !this.isColumnModificationAllowed() ||
+        totalColumns === 0;
     },
     hidden() {
       return !this.getSettings().allowRemoveColumn;

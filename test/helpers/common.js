@@ -892,13 +892,25 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 }
 
 /**
- * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...).
+ * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
  *
  * @param {*} args The arguments passed directly to the Handsontable helper.
  * @returns {Array}
  */
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+/**
+ * Creates spreadsheet data as an array of objects filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
+export function createSpreadsheetObjectData(...args) {
+  return Handsontable.helper.createSpreadsheetObjectData(...args);
 }
 
 /**
