@@ -33,23 +33,15 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
 
     } else if (((!selectedCorner && !selectedRow && coords.col < 0) ||
                (selectedCorner && coords.col < 0)) && !controller.row) {
-      selection.selectRows(currentSelection.from.row, coords.row);
+      selection.selectRows(Math.max(currentSelection.from.row, 0), coords.row);
 
     } else if (((!selectedCorner && !selectedRow && coords.row < 0) ||
                (selectedRow && coords.row < 0)) && !controller.column) {
-      selection.selectColumns(currentSelection.from.col, coords.col);
+      selection.selectColumns(Math.max(currentSelection.from.col, 0), coords.col);
     }
+
   } else {
-    const newCoord = new CellCoords(coords.row, coords.col);
-
-    if (newCoord.row < 0) {
-      newCoord.row = 0;
-    }
-    if (newCoord.col < 0) {
-      newCoord.col = 0;
-    }
-
-    const allowRightClickSelection = !selection.inInSelection(newCoord);
+    const allowRightClickSelection = !selection.inInSelection(coords);
     const performSelection = isLeftClick || (isRightClick && allowRightClickSelection);
 
     // clicked row header and when some column was selected
