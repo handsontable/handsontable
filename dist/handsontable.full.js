@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev21
- * Release date: 23/10/2019 (built at 09/07/2020 18:02:08)
+ * Version: 8.0.0-beta.2-rev22
+ * Release date: 23/10/2019 (built at 10/07/2020 14:45:23)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3342,7 +3342,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2-rev21";
+  var hotVersion = "8.0.0-beta.2-rev22";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -55444,22 +55444,12 @@ function mouseDown(_ref) {
     } else if (selectedRow && coords.col < 0 && !controller.row) {
       selection.setRangeEnd(new _src.CellCoords(coords.row, currentSelection.to.col));
     } else if ((!selectedCorner && !selectedRow && coords.col < 0 || selectedCorner && coords.col < 0) && !controller.row) {
-      selection.selectRows(currentSelection.from.row, coords.row);
+      selection.selectRows(Math.max(currentSelection.from.row, 0), coords.row);
     } else if ((!selectedCorner && !selectedRow && coords.row < 0 || selectedRow && coords.row < 0) && !controller.column) {
-      selection.selectColumns(currentSelection.from.col, coords.col);
+      selection.selectColumns(Math.max(currentSelection.from.col, 0), coords.col);
     }
   } else {
-    var newCoord = new _src.CellCoords(coords.row, coords.col);
-
-    if (newCoord.row < 0) {
-      newCoord.row = 0;
-    }
-
-    if (newCoord.col < 0) {
-      newCoord.col = 0;
-    }
-
-    var allowRightClickSelection = !selection.inInSelection(newCoord);
+    var allowRightClickSelection = !selection.inInSelection(coords);
     var performSelection = isLeftClick || isRightClick && allowRightClickSelection; // clicked row header and when some column was selected
 
     if (coords.row < 0 && coords.col >= 0 && !controller.column) {
@@ -63534,8 +63524,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "09/07/2020 18:02:08";
-Handsontable.version = "8.0.0-beta.2-rev21"; // Export Hooks singleton
+Handsontable.buildDate = "10/07/2020 14:45:23";
+Handsontable.version = "8.0.0-beta.2-rev22"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -66068,8 +66058,9 @@ var LeftOverlay = /*#__PURE__*/function (_Overlay) {
       var preventOverflow = this.wot.getSetting('preventOverflow');
 
       if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-        var left = wtTable.hider.offsetLeft;
-        var right = left + wtTable.hider.offsetWidth;
+        var hiderRect = wtTable.hider.getBoundingClientRect();
+        var left = Math.ceil(hiderRect.left);
+        var right = Math.ceil(hiderRect.right);
         var finalLeft;
         var finalTop;
         finalTop = wtTable.hider.style.top;
@@ -66569,8 +66560,9 @@ var TopOverlay = /*#__PURE__*/function (_Overlay) {
 
       if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
         var wtTable = this.wot.wtTable;
-        var top = wtTable.hider.offsetTop;
-        var bottom = top + wtTable.hider.offsetHeight;
+        var hiderRect = wtTable.hider.getBoundingClientRect();
+        var top = Math.ceil(hiderRect.top);
+        var bottom = Math.ceil(hiderRect.bottom);
         var finalLeft;
         var finalTop;
         finalLeft = wtTable.hider.style.left;
@@ -67060,10 +67052,11 @@ var TopLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
 
       if (this.trimmingContainer === this.wot.rootWindow) {
         var wtTable = this.wot.wtTable;
-        var top = wtTable.hider.offsetTop;
-        var left = wtTable.hider.offsetLeft;
-        var bottom = top + wtTable.hider.offsetHeight;
-        var right = left + wtTable.hider.offsetWidth;
+        var hiderRect = wtTable.hider.getBoundingClientRect();
+        var top = Math.ceil(hiderRect.top);
+        var left = Math.ceil(hiderRect.left);
+        var bottom = Math.ceil(hiderRect.bottom);
+        var right = Math.ceil(hiderRect.right);
         var finalLeft = '0';
         var finalTop = '0';
 
@@ -67253,26 +67246,6 @@ var BottomOverlay = /*#__PURE__*/function (_Overlay) {
       return (0, _construct2.default)(_bottom.default, args);
     }
     /**
-     *
-     */
-
-  }, {
-    key: "repositionOverlay",
-    value: function repositionOverlay() {
-      var _this$wot = this.wot,
-          wtTable = _this$wot.wtTable,
-          rootDocument = _this$wot.rootDocument;
-      var cloneRoot = this.clone.wtTable.holder.parentNode;
-      var scrollbarWidth = (0, _element.getScrollbarWidth)(rootDocument);
-
-      if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
-        scrollbarWidth = 0;
-      }
-
-      cloneRoot.style.top = '';
-      cloneRoot.style.bottom = "".concat(scrollbarWidth, "px");
-    }
-    /**
      * Checks if overlay should be fully rendered.
      *
      * @returns {boolean}
@@ -67298,16 +67271,17 @@ var BottomOverlay = /*#__PURE__*/function (_Overlay) {
       }
 
       var overlayRoot = this.clone.wtTable.holder.parentNode;
-      var headerPosition = 0;
       overlayRoot.style.top = '';
+      var headerPosition = 0;
       var preventOverflow = this.wot.getSetting('preventOverflow');
 
       if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-        var _this$wot2 = this.wot,
-            rootDocument = _this$wot2.rootDocument,
-            wtTable = _this$wot2.wtTable;
-        var bottom = wtTable.hider.offsetTop + wtTable.hider.offsetHeight;
-        var bodyHeight = rootDocument.body.offsetHeight;
+        var _this$wot = this.wot,
+            rootDocument = _this$wot.rootDocument,
+            wtTable = _this$wot.wtTable;
+        var hiderRect = wtTable.hider.getBoundingClientRect();
+        var bottom = Math.ceil(hiderRect.bottom);
+        var bodyHeight = rootDocument.documentElement.clientHeight;
         var finalLeft;
         var finalBottom;
         finalLeft = wtTable.hider.style.left;
@@ -67321,18 +67295,35 @@ var BottomOverlay = /*#__PURE__*/function (_Overlay) {
 
         headerPosition = finalBottom;
         finalBottom += 'px';
-        overlayRoot.style.top = '';
         overlayRoot.style.left = finalLeft;
         overlayRoot.style.bottom = finalBottom;
       } else {
         headerPosition = this.getScrollPosition();
-        (0, _element.resetCssTransform)(overlayRoot);
         this.repositionOverlay();
       }
 
       var positionChanged = this.adjustHeaderBordersPosition(headerPosition);
       this.adjustElementsSize();
       return positionChanged;
+    }
+    /**
+     * Updates the bottom overlay position.
+     */
+
+  }, {
+    key: "repositionOverlay",
+    value: function repositionOverlay() {
+      var _this$wot2 = this.wot,
+          wtTable = _this$wot2.wtTable,
+          rootDocument = _this$wot2.rootDocument;
+      var cloneRoot = this.clone.wtTable.holder.parentNode;
+      var scrollbarWidth = (0, _element.getScrollbarWidth)(rootDocument);
+
+      if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+        scrollbarWidth = 0;
+      }
+
+      cloneRoot.style.bottom = "".concat(scrollbarWidth, "px");
     }
     /**
      * Sets the main overlay's vertical scroll position.
@@ -67578,14 +67569,14 @@ var BottomOverlay = /*#__PURE__*/function (_Overlay) {
 
       if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
         var masterParent = this.wot.wtTable.holder.parentNode;
-        var previousState = (0, _element.hasClass)(masterParent, 'innerBorderTop');
+        var previousState = (0, _element.hasClass)(masterParent, 'innerBorderBottom');
         this.cachedFixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
 
         if (position || this.wot.getSetting('totalRows') === 0) {
-          (0, _element.addClass)(masterParent, 'innerBorderTop');
+          (0, _element.addClass)(masterParent, 'innerBorderBottom');
           positionChanged = !previousState;
         } else {
-          (0, _element.removeClass)(masterParent, 'innerBorderTop');
+          (0, _element.removeClass)(masterParent, 'innerBorderBottom');
           positionChanged = previousState;
         }
 
@@ -67763,26 +67754,6 @@ var BottomLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
       return wot.getSetting('shouldRenderBottomOverlay') && wot.getSetting('shouldRenderLeftOverlay');
     }
     /**
-     * Reposition the overlay.
-     */
-
-  }, {
-    key: "repositionOverlay",
-    value: function repositionOverlay() {
-      var _this$wot = this.wot,
-          wtTable = _this$wot.wtTable,
-          rootDocument = _this$wot.rootDocument;
-      var cloneRoot = this.clone.wtTable.holder.parentNode;
-      var scrollbarWidth = (0, _element.getScrollbarWidth)(rootDocument);
-
-      if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
-        scrollbarWidth = 0;
-      }
-
-      cloneRoot.style.top = '';
-      cloneRoot.style.bottom = "".concat(scrollbarWidth, "px");
-    }
-    /**
      * Updates the corner overlay position.
      *
      * @returns {boolean}
@@ -67803,12 +67774,13 @@ var BottomLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
       overlayRoot.style.top = '';
 
       if (this.trimmingContainer === wot.rootWindow) {
-        var _this$wot2 = this.wot,
-            rootDocument = _this$wot2.rootDocument,
-            wtTable = _this$wot2.wtTable;
-        var bottom = wtTable.hider.offsetTop + wtTable.hider.offsetHeight;
-        var left = wtTable.hider.offsetLeft;
-        var bodyHeight = rootDocument.body.offsetHeight;
+        var _this$wot = this.wot,
+            rootDocument = _this$wot.rootDocument,
+            wtTable = _this$wot.wtTable;
+        var hiderRect = wtTable.hider.getBoundingClientRect();
+        var bottom = Math.ceil(hiderRect.bottom);
+        var left = Math.ceil(hiderRect.left);
+        var bodyHeight = rootDocument.documentElement.clientHeight;
         var finalLeft;
         var finalBottom;
 
@@ -67826,7 +67798,6 @@ var BottomLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
 
         finalBottom += 'px';
         finalLeft += 'px';
-        overlayRoot.style.top = '';
         overlayRoot.style.left = finalLeft;
         overlayRoot.style.bottom = finalBottom;
       } else {
@@ -67844,6 +67815,25 @@ var BottomLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
       overlayRoot.style.height = "".concat(tableHeight, "px");
       overlayRoot.style.width = "".concat(tableWidth, "px");
       return false;
+    }
+    /**
+     * Reposition the overlay.
+     */
+
+  }, {
+    key: "repositionOverlay",
+    value: function repositionOverlay() {
+      var _this$wot2 = this.wot,
+          wtTable = _this$wot2.wtTable,
+          rootDocument = _this$wot2.rootDocument;
+      var cloneRoot = this.clone.wtTable.holder.parentNode;
+      var scrollbarWidth = (0, _element.getScrollbarWidth)(rootDocument);
+
+      if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+        scrollbarWidth = 0;
+      }
+
+      cloneRoot.style.bottom = "".concat(scrollbarWidth, "px");
     }
   }]);
   return BottomLeftCornerOverlay;
@@ -86749,8 +86739,19 @@ function columnLeftItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback: function callback(key, normalizedSelection) {
-      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-      this.alter('insert_col', latestSelection.start.col, 1, 'ContextMenu.columnLeft');
+      var isSelectedByCorner = this.selection.isSelectedByCorner();
+      var columnLeft = 0;
+
+      if (!isSelectedByCorner) {
+        var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+        columnLeft = latestSelection.start.col;
+      }
+
+      this.alter('insert_col', columnLeft, 1, 'ContextMenu.columnLeft');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled: function disabled() {
       if (!this.isColumnModificationAllowed()) {
@@ -86763,7 +86764,13 @@ function columnLeftItem() {
         return true;
       }
 
-      return this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner() || this.countCols() >= this.getSettings().maxCols;
+      if (this.selection.isSelectedByCorner()) {
+        var totalColumns = this.countCols(); // Enable "Insert column left" only when there is at least one column.
+
+        return totalColumns === 0;
+      }
+
+      return this.selection.isSelectedByRowHeader() || this.countCols() >= this.getSettings().maxCols;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertColumn;
@@ -86804,24 +86811,29 @@ function columnRightItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
     callback: function callback(key, normalizedSelection) {
-      var _latestSelection$end;
+      var isSelectedByCorner = this.selection.isSelectedByCorner();
+      var columnRight = 0;
 
-      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-      var selectedColumn = latestSelection === null || latestSelection === void 0 ? void 0 : (_latestSelection$end = latestSelection.end) === null || _latestSelection$end === void 0 ? void 0 : _latestSelection$end.col; // If there is no selection we have clicked on the corner and there is no data.
+      if (isSelectedByCorner) {
+        columnRight = this.countCols();
+      } else {
+        var _latestSelection$end;
 
-      var columnRight = (0, _mixed.isDefined)(selectedColumn) ? selectedColumn + 1 : 0;
+        var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+        var selectedColumn = latestSelection === null || latestSelection === void 0 ? void 0 : (_latestSelection$end = latestSelection.end) === null || _latestSelection$end === void 0 ? void 0 : _latestSelection$end.col; // If there is no selection we have clicked on the corner and there is no data.
+
+        columnRight = (0, _mixed.isDefined)(selectedColumn) ? selectedColumn + 1 : 0;
+      }
+
       this.alter('insert_col', columnRight, 1, 'ContextMenu.columnRight');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled: function disabled() {
       if (!this.isColumnModificationAllowed()) {
         return true;
-      }
-
-      var anyCellVisible = this.countRows() > 0 && this.countCols() > 0; // There is no selection, because we have clicked on the corner and there is no data
-      // (click on the corner by default selects all cells, but there are no cells).
-
-      if (!anyCellVisible) {
-        return false;
       }
 
       var selected = (0, _utils.getValidSelection)(this);
@@ -86830,7 +86842,12 @@ function columnRightItem() {
         return true;
       }
 
-      return this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner() || this.countCols() >= this.getSettings().maxCols;
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert column right" always when the menu is triggered by corner click.
+        return false;
+      }
+
+      return this.selection.isSelectedByRowHeader() || this.countCols() >= this.getSettings().maxCols;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertColumn;
@@ -87010,13 +87027,19 @@ function removeColumnItem() {
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
-      var totalColumns = this.countCols();
 
       if (!selected) {
         return true;
       }
 
-      return this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner() || !this.isColumnModificationAllowed() || !totalColumns;
+      var totalColumns = this.countCols();
+
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Remove column" only when there is at least one column.
+        return totalColumns === 0;
+      }
+
+      return this.selection.isSelectedByRowHeader() || !this.isColumnModificationAllowed() || totalColumns === 0;
     },
     hidden: function hidden() {
       return !this.getSettings().allowRemoveColumn;
@@ -87084,13 +87107,19 @@ function removeRowItem() {
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
-      var totalRows = this.countRows();
 
       if (!selected) {
         return true;
       }
 
-      return this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner() || !totalRows;
+      var totalRows = this.countRows();
+
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Remove row" only when there is at least one row.
+        return totalRows === 0;
+      }
+
+      return this.selection.isSelectedByColumnHeader() || totalRows === 0;
     },
     hidden: function hidden() {
       return !this.getSettings().allowRemoveRow;
@@ -87129,8 +87158,19 @@ function rowAboveItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
     callback: function callback(key, normalizedSelection) {
-      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-      this.alter('insert_row', latestSelection.start.row, 1, 'ContextMenu.rowAbove');
+      var isSelectedByCorner = this.selection.isSelectedByCorner();
+      var rowAbove = 0;
+
+      if (!isSelectedByCorner) {
+        var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+        rowAbove = latestSelection.start.row;
+      }
+
+      this.alter('insert_row', rowAbove, 1, 'ContextMenu.rowAbove');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
@@ -87139,7 +87179,13 @@ function rowAboveItem() {
         return true;
       }
 
-      return this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner() || this.countRows() >= this.getSettings().maxRows;
+      if (this.selection.isSelectedByCorner()) {
+        var totalRows = this.countRows(); // Enable "Insert row above" only when there is at least one row.
+
+        return totalRows === 0;
+      }
+
+      return this.selection.isSelectedByColumnHeader() || this.countRows() >= this.getSettings().maxRows;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertRow;
@@ -87180,28 +87226,39 @@ function rowBelowItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
     callback: function callback(key, normalizedSelection) {
-      var _latestSelection$end;
+      var isSelectedByCorner = this.selection.isSelectedByCorner();
+      var rowBelow = 0;
 
-      var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-      var selectedRow = latestSelection === null || latestSelection === void 0 ? void 0 : (_latestSelection$end = latestSelection.end) === null || _latestSelection$end === void 0 ? void 0 : _latestSelection$end.row; // If there is no selection we have clicked on the corner and there is no data.
+      if (isSelectedByCorner) {
+        rowBelow = this.countRows();
+      } else {
+        var _latestSelection$end;
 
-      var rowBelow = (0, _mixed.isDefined)(selectedRow) ? selectedRow + 1 : 0;
+        var latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+        var selectedRow = latestSelection === null || latestSelection === void 0 ? void 0 : (_latestSelection$end = latestSelection.end) === null || _latestSelection$end === void 0 ? void 0 : _latestSelection$end.row; // If there is no selection we have clicked on the corner and there is no data.
+
+        rowBelow = (0, _mixed.isDefined)(selectedRow) ? selectedRow + 1 : 0;
+      }
+
       this.alter('insert_row', rowBelow, 1, 'ContextMenu.rowBelow');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled: function disabled() {
       var selected = (0, _utils.getValidSelection)(this);
-      var anyCellVisible = this.countRows() > 0 && this.countCols() > 0; // There is no selection, because we have clicked on the corner and there is no data (click on the corner by
-      // default select all cells, but there are no cells).
-
-      if (!anyCellVisible) {
-        return false;
-      }
 
       if (!selected) {
         return true;
       }
 
-      return this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner() || this.countRows() >= this.getSettings().maxRows;
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert row below" always when the menu is triggered by corner click.
+        return false;
+      }
+
+      return this.selection.isSelectedByColumnHeader() || this.countRows() >= this.getSettings().maxRows;
     },
     hidden: function hidden() {
       return !this.getSettings().allowInsertRow;
@@ -110540,7 +110597,7 @@ var NestedHeaders = /*#__PURE__*/function (_BasePlugin) {
 
       var highlightHeader = classNameModifier(hotSettings.currentHeaderClassName);
       var activeHeader = classNameModifier(hotSettings.activeHeaderClassName);
-      var selectionByHeader = hot.selection.isSelectedByColumnHeader();
+      var selectionByHeader = hot.selection.isSelectedByColumnHeader() || hot.selection.isSelectedByCorner();
       var layersCount = (0, _classPrivateFieldGet6.default)(this, _stateManager).getLayersCount();
       var activeHeaderChanges = new Map();
       var highlightHeaderChanges = new Map();

@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2-rev21
- * Release date: 23/10/2019 (built at 09/07/2020 18:02:08)
+ * Version: 8.0.0-beta.2-rev22
+ * Release date: 23/10/2019 (built at 10/07/2020 14:45:23)
  */
 /**
  * Fix for bootstrap styles
@@ -212,10 +212,19 @@
   border-right-width: 0;
 }
 
+/* Property controlled by top overlay */
 .ht_master:not(.innerBorderTop) thead tr:last-child th,
 .ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
 .ht_master:not(.innerBorderTop) thead tr.lastChild th,
 .ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
+  border-bottom-width: 0;
+}
+
+/* Property controlled by bottom overlay */
+.ht_master:not(.innerBorderBottom) thead tr:last-child th,
+.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderBottom) thead tr.lastChild th,
+.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
