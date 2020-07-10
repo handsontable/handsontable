@@ -60,10 +60,11 @@ class TopLeftCornerOverlay extends Overlay {
 
     if (this.trimmingContainer === this.wot.rootWindow) {
       const { wtTable } = this.wot;
-      const top = wtTable.hider.offsetTop;
-      const left = wtTable.hider.offsetLeft;
-      const bottom = top + wtTable.hider.offsetHeight;
-      const right = left + wtTable.hider.offsetWidth;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const top = Math.ceil(hiderRect.top);
+      const left = Math.ceil(hiderRect.left);
+      const bottom = Math.ceil(hiderRect.bottom);
+      const right = Math.ceil(hiderRect.right);
       let finalLeft = '0';
       let finalTop = '0';
 
