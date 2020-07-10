@@ -33,11 +33,11 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
 
     } else if (((!selectedCorner && !selectedRow && coords.col < 0) ||
                (selectedCorner && coords.col < 0)) && !controller.row) {
-      selection.selectRows(currentSelection.from.row, coords.row);
+      selection.selectRows(Math.max(currentSelection.from.row, 0), coords.row);
 
     } else if (((!selectedCorner && !selectedRow && coords.row < 0) ||
                (selectedRow && coords.row < 0)) && !controller.column) {
-      selection.selectColumns(currentSelection.from.col, coords.col);
+      selection.selectColumns(Math.max(currentSelection.from.col, 0), coords.col);
     }
 
   } else {

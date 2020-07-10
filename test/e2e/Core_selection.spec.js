@@ -619,6 +619,60 @@ describe('Core_selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
+  it('should allow switching between row/column selection, when clicking on the headers ' +
+    'while holding the SHIFT key', () => {
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      startRows: 5,
+      startCols: 5,
+    });
+
+    selectCell(0, 0, 0, 0);
+
+    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_left tr:eq(5) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([[0, -1, 4, 4]]);
+    expect(`
+    |   ║ - : - : - : - : - |
+    |===:===:===:===:===:===|
+    | * ║ A : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
+
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([[-1, 0, 4, 4]]);
+    expect(`
+    |   ║ * : * : * : * : * |
+    |===:===:===:===:===:===|
+    | - ║ A : 0 : 0 : 0 : 0 |
+    | - ║ 0 : 0 : 0 : 0 : 0 |
+    | - ║ 0 : 0 : 0 : 0 : 0 |
+    | - ║ 0 : 0 : 0 : 0 : 0 |
+    | - ║ 0 : 0 : 0 : 0 : 0 |
+    `).toBeMatchToSelectionPattern();
+
+    spec().$container.find('.ht_clone_left tr:eq(3) th:eq(0)').simulate('mousedown', { shiftKey: true });
+    spec().$container.find('.ht_clone_left tr:eq(3) th:eq(0)').simulate('mouseup');
+
+    expect(getSelected()).toEqual([[0, -1, 2, 4]]);
+    expect(`
+    |   ║ - : - : - : - : - |
+    |===:===:===:===:===:===|
+    | * ║ A : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    | * ║ 0 : 0 : 0 : 0 : 0 |
+    |   ║   :   :   :   :   |
+    |   ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
   it('should call onSelection while user selects cells with mouse; onSelectionEnd when user finishes selection', () => {
     let tick = 0;
     let tickEnd = 0;
