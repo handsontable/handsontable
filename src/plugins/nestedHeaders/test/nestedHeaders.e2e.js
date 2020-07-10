@@ -2303,7 +2303,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should select all column headers (on all levels) after clicking the corner header', function() {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
         rowHeaders: true,
