@@ -393,4 +393,24 @@ describe('WalkontableOverlay', () => {
       left: documentClientWidth - totalColumnsWidth,
     }));
   });
+
+  it('cloned overlays have to have all borders when an empty dataset is passed', () => {
+    createDataArray(0, 0);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [function(row, TH) { // makes top overlay
+        TH.innerHTML = row + 1;
+      }],
+      columnHeaders: [function(column, TH) { // makes left overlay
+        TH.innerHTML = column + 1;
+      }],
+    });
+
+    wt.draw();
+
+    expect(getTableTopClone().find('thead tr th').css('border-bottom-width')).toBe('1px');
+  });
 });
