@@ -305,6 +305,23 @@ describe('HandsontableEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
+  it('should not highlight the input element by browsers native selection', () => {
+    handsontable({
+      type: 'handsontable',
+      handsontable: {
+        colHeaders: ['Marque', 'Country', 'Parent company'],
+        data: getManufacturerData()
+      }
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    const editor = getActiveEditor().TEXTAREA;
+
+    expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
+  });
+
   it('should create an editor that is a Handsontable instance', () => {
     handsontable({
       columns: [

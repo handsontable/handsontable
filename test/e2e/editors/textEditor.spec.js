@@ -271,6 +271,19 @@ describe('TextEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
+  it('should not highlight the input element by browsers native selection', () => {
+    handsontable({
+      editor: 'text'
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    const editor = getActiveEditor().TEXTAREA;
+
+    expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
+  });
+
   it('should begin editing when enterBeginsEditing equals true', () => {
     handsontable({
       enterBeginsEditing: true,
