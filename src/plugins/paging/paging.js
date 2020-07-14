@@ -111,7 +111,7 @@ class Paging extends BasePlugin {
 
     if (pageCount > 9) {
       for (let i = 0; i < 3; i++) {
-        container.append(this.drawButton(i));
+        container.append(this.drawSingleButton(i));
       }
 
       if (this.currentPage > 4) {
@@ -119,15 +119,15 @@ class Paging extends BasePlugin {
       }
 
       if (this.currentPage > 3 && this.currentPage < pageCount - 2) {
-        container.append(this.drawButton(this.currentPage - 1));
+        container.append(this.drawSingleButton(this.currentPage - 1));
       }
 
       if (this.currentPage > 2 && this.currentPage < pageCount - 3) {
-        container.append(this.drawButton(this.currentPage));
+        container.append(this.drawSingleButton(this.currentPage));
       }
 
       if (this.currentPage > 1 && this.currentPage < pageCount - 4) {
-        container.append(this.drawButton(this.currentPage + 1));
+        container.append(this.drawSingleButton(this.currentPage + 1));
       }
 
       if (this.currentPage < pageCount - 5) {
@@ -135,11 +135,11 @@ class Paging extends BasePlugin {
       }
 
       for (let i = pageCount - 3; i < pageCount; i++) {
-        container.append(this.drawButton(i));
+        container.append(this.drawSingleButton(i));
       }
     } else {
       for (let i = 0; i < pageCount; i++) {
-        container.append(this.drawButton(i));
+        container.append(this.drawSingleButton(i));
       }
     }
 
@@ -147,7 +147,7 @@ class Paging extends BasePlugin {
     this.hot.rootElement.append(container);
   }
 
-  drawButton(i) {
+  drawSingleButton(i) {
     const button = this.hot.rootDocument.createElement('button');
     button.innerText = `${i + 1}`;
     button.onclick = () => this.goToPage(i);
