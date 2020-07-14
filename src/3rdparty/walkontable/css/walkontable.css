@@ -113,19 +113,14 @@
   border-right-width: 0;
 }
 
-/* Property controlled by top overlay */
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
-}
-
-/* Property controlled by bottom overlay */
-.ht_master:not(.innerBorderBottom) thead tr:last-child th,
-.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderBottom) thead tr.lastChild th,
-.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
+/*
+innerBorderTop - Property controlled by top overlay
+innerBorderBottom - Property controlled by bottom overlay
+ */
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
