@@ -473,20 +473,38 @@ class TableView {
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
+      // Number of renderable columns for the left overlay.
       fixedColumnsLeft: () => {
-        const fixedColumnsLeft = parseInt(this.settings.fixedColumnsLeft, 10);
+        const countCols = this.instance.countCols();
+        const visualFixedColumnsLeft = Math.min(parseInt(this.settings.fixedColumnsLeft, 10), countCols) - 1;
 
-        return this.countNotHiddenColumnIndexes(fixedColumnsLeft - 1, -1);
+        return this.countNotHiddenColumnIndexes(visualFixedColumnsLeft, -1);
       },
+      // Number of renderable rows for the top overlay.
       fixedRowsTop: () => {
-        const fixedRowsTop = parseInt(this.settings.fixedRowsTop, 10);
+        const countRows = this.instance.countRows();
+        const visualFixedRowsTop = Math.min(parseInt(this.settings.fixedRowsTop, 10), countRows) - 1;
 
-        return this.countNotHiddenRowIndexes(fixedRowsTop - 1, -1);
+        return this.countNotHiddenRowIndexes(visualFixedRowsTop, -1);
       },
+      // Number of renderable rows for the bottom overlay.
       fixedRowsBottom: () => {
-        const fixedRowsBottom = parseInt(this.settings.fixedRowsBottom, 10);
+        const countRows = this.instance.countRows();
+        const visualFixedRowsBottom = Math.max(countRows - parseInt(this.settings.fixedRowsBottom, 10), 0);
 
-        return this.countNotHiddenRowIndexes(this.instance.countRows() - fixedRowsBottom, 1);
+        return this.countNotHiddenRowIndexes(visualFixedRowsBottom, 1);
+      },
+      // Enable the left overlay when conditions are met.
+      shouldRenderLeftOverlay: () => {
+        return this.settings.fixedColumnsLeft > 0 || walkontableConfig.rowHeaders().length > 0;
+      },
+      // Enable the top overlay when conditions are met.
+      shouldRenderTopOverlay: () => {
+        return this.settings.fixedRowsTop > 0 || walkontableConfig.columnHeaders().length > 0;
+      },
+      // Enable the bottom overlay when conditions are met.
+      shouldRenderBottomOverlay: () => {
+        return this.settings.fixedRowsBottom > 0;
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
@@ -685,9 +703,23 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
-      onAfterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
-        const [visualRowIndex, visualColumnIndex] = this
-          .translateFromRenderableToVisualIndex(currentRow, currentColumn);
+      onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
+        let cornersOfSelection;
+        const [visualRowIndex, visualColumnIndex] =
+          this.translateFromRenderableToVisualIndex(currentRow, currentColumn);
+        const selectedRange = this.instance.selection.getSelectedRange();
+        const selectionRangeSize = selectedRange.size();
+
+        if (selectionRangeSize > 0) {
+          // Selection layers are stored from the "oldest" to the "newest". We should calculate the offset.
+          // Please look at the `SelectedRange` class and it's method for getting selection's layer for more information.
+          const selectionOffset = (layerLevel ?? 0) + 1 - selectionRangeSize;
+          const selectionForLayer = selectedRange.peekByIndex(selectionOffset);
+
+          cornersOfSelection = [
+            selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col
+          ];
+        }
 
         return this.instance
           .runHooks('afterDrawSelection', visualRowIndex, visualColumnIndex, cornersOfSelection, layerLevel);
@@ -872,9 +904,7 @@ class TableView {
    * @returns {boolean}
    */
   isSelectedOnlyCell() {
-    const [row, col, rowEnd, colEnd] = this.instance.getSelectedLast() || [];
-
-    return row !== void 0 && row === rowEnd && col === colEnd;
+    return this.instance.getSelectedRangeLast()?.isSingle() ?? false;
   }
 
   /**

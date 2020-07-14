@@ -169,7 +169,7 @@ class HiddenRows extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(rows, (visualRow) => {
           this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), false);
         });
@@ -210,7 +210,7 @@ class HiddenRows extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(rows, (visualRow) => {
           this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });

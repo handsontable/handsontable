@@ -407,8 +407,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 currentFromColumn = -1;
               }
 
+              // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
+              selection.getSelectedRange().pop();
+
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn));
+              selection.setRangeStartOnly(new CellCoords(currentFromRow + delta, currentFromColumn), true);
               selection.setRangeEnd(new CellCoords(currentToRow + delta, currentToColumn)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
@@ -424,6 +428,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
             if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [index, 0];
+
               spliceArray.length += delta; // inserts empty (undefined) elements at the end of an array
               Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
@@ -443,8 +448,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 currentFromRow = -1;
               }
 
+              // Remove from the stack the last added selection as that selection below will be
+              // replaced by new transformed selection.
+              selection.getSelectedRange().pop();
+
               // I can't use transforms as they don't work in negative indexes.
-              selection.setRangeStartOnly(new CellCoords(currentFromRow, currentFromColumn + delta));
+              selection.setRangeStartOnly(new CellCoords(currentFromRow, currentFromColumn + delta), true);
               selection.setRangeEnd(new CellCoords(currentToRow, currentToColumn + delta)); // will call render() internally
             } else {
               instance._refreshBorders(); // it will call render and prepare methods
@@ -513,7 +522,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
             // Normalize the {index, amount} groups into bigger groups.
             arrayEach(indexes, ([groupIndex, groupAmount]) => {
               const calcIndex = isEmpty(groupIndex) ? instance.countCols() - 1 : Math.max(groupIndex - offset, 0);
-
               let physicalColumnIndex = instance.toPhysicalColumn(calcIndex);
 
               // If the 'index' is an integer decrease it by 'offset' otherwise pass it through to make the value
@@ -959,7 +967,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
-  this.executeBatchOperations = function(wrappedOperations) {
+  this.batch = function(wrappedOperations) {
     this.columnIndexMapper.executeBatchOperations(() => {
       this.rowIndexMapper.executeBatchOperations(() => {
         wrappedOperations();
@@ -1885,10 +1893,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let j;
 
     if (isDefined(settings.rows)) {
-      throw new Error('"rows" setting is no longer supported. do you mean startRows, minRows or maxRows?');
+      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
     }
     if (isDefined(settings.cols)) {
-      throw new Error('"cols" setting is no longer supported. do you mean startCols, minCols or maxCols?');
+      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?');
+    }
+    if (isDefined(settings.ganttChart)) {
+      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
     // eslint-disable-next-line no-restricted-syntax
@@ -2964,6 +2975,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (physicalRow !== void 0) {
       physicalRow = instance.runHooks('modifyRowHeader', physicalRow);
     }
+
     if (physicalRow === void 0) {
       rowHeader = [];
       rangeEach(instance.countRows() - 1, (i) => {
@@ -3521,11 +3533,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean} [includeCorner=true] `true` If the selection should include the corner header, `false` otherwise.
+   * @param {boolean} [includeHeaders=true] `true` If the selection should include the row, column and corner headers,
+   * `false` otherwise.
    */
-  this.selectAll = function(includeCorner = true) {
+  this.selectAll = function(includeHeaders = true) {
+    const includeRowHeaders = includeHeaders && this.hasRowHeaders();
+    const includeColumnHeaders = includeHeaders && this.hasColHeaders();
+
     preventScrollingToCell = true;
-    selection.selectAll(includeCorner);
+    selection.selectAll(includeRowHeaders, includeColumnHeaders);
     preventScrollingToCell = false;
   };
 
@@ -3634,7 +3650,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.destroy();
     }
 
-    instance.executeBatchOperations(() => {
+    instance.batch(() => {
       // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
       instance.runHooks('afterDestroy');
     });

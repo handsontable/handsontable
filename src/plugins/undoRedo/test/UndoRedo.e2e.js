@@ -2428,6 +2428,34 @@ describe('UndoRedo', () => {
         }
       });
 
+      it('should not throw an error after undoing the row header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('alignment:center');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after undoing the column header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('alignment:right');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
       it('should redo a sequence of aligning cells', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(9, 9),
@@ -2533,6 +2561,100 @@ describe('UndoRedo', () => {
         cellMeta = hot.getCellMeta(8, 8);
         expect(cellMeta.className.indexOf('htBottom')).toBeGreaterThan(-1);
         expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
+      });
+
+      it('should not throw an error after redoing the row header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('alignment:center');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after redoing the column header aligning', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('alignment:right');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
+      });
+    });
+
+    describe('merge cells', () => {
+      it('should not throw an error after undoing cell merging triggered when the row header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after undoing cell merging triggered when the column header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+
+        expect(() => {
+          undo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after redoing cell merging triggered when the row header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectRows(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
+      });
+
+      it('should not throw an error after redoing cell merging triggered when the column header was selected', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          contextMenu: true,
+          mergeCells: true,
+        });
+
+        selectColumns(1);
+        getPlugin('contextMenu').executeCommand('mergeCells');
+        undo();
+
+        expect(() => {
+          redo();
+        }).not.toThrowError();
       });
     });
 
@@ -2786,6 +2908,120 @@ describe('UndoRedo', () => {
       expect(getSelected().length).toBe(2);
       expect(getSelected()[0]).toEqual([0, 0, 1, 1]);
       expect(getSelected()[1]).toEqual([1, 2, 2, 3]);
+    });
+
+    it('should transform the header selection down after undoing rows removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectRows(4, 5);
+      alter('remove_row', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[7, -1, 8, 9]]);
+      expect(`
+        |   ║ - : - : - : - : - : - : - : - : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform cells selection down after undoing rows removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectCells([[3, 3, 3, 3], [5, 2, 6, 2]]);
+      alter('remove_row', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3], [8, 2, 9, 2]]);
+      // By design only last selection is interactive.
+      expect(`
+        |   ║   :   : - : - :   :   :   :   :   :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   : 0 :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   : A :   :   :   :   :   :   :   |
+        | - ║   :   : 0 :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform the header selection right after undoing columns removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectColumns(4, 5);
+      alter('remove_col', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[-1, 7, 9, 8]]);
+      expect(`
+        |   ║   :   :   :   :   :   :   : * : * :   |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        | - ║   :   :   :   :   :   :   : A : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+        | - ║   :   :   :   :   :   :   : 0 : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should transform cells selection right after undoing columns removal', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectCells([[3, 3, 3, 3], [2, 5, 2, 6]]);
+      alter('remove_col', 1, 3);
+      undo();
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3], [2, 8, 2, 9]]);
+      // By design only last selection is interactive.
+      expect(`
+        |   ║   :   :   : - :   :   :   :   : - : - |
+        |===:===:===:===:===:===:===:===:===:===:===|
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        | - ║   :   :   :   :   :   :   :   : A : 0 |
+        | - ║   :   :   : 0 :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+        |   ║   :   :   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
   });
 });

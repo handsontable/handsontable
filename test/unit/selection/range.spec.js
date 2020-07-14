@@ -71,6 +71,44 @@ describe('SelectionRange', () => {
     });
   });
 
+  describe('.pop', () => {
+    it('should remove the last element from the ranges array', () => {
+      selectionRange.ranges.push(
+        new CellRange(new CellCoords(4, 4)),
+        new CellRange(new CellCoords(0, 0)),
+        new CellRange(new CellCoords(1, 2))
+      );
+
+      selectionRange.pop();
+
+      expect(selectionRange.ranges.length).toBe(2);
+      expect(selectionRange.ranges[0].toObject()).toEqual({
+        from: { col: 4, row: 4 },
+        to: { col: 4, row: 4 },
+      });
+      expect(selectionRange.ranges[1].toObject()).toEqual({
+        from: { col: 0, row: 0 },
+        to: { col: 0, row: 0 },
+      });
+
+      selectionRange.pop();
+
+      expect(selectionRange.ranges.length).toBe(1);
+      expect(selectionRange.ranges[0].toObject()).toEqual({
+        from: { col: 4, row: 4 },
+        to: { col: 4, row: 4 },
+      });
+
+      selectionRange.pop();
+
+      expect(selectionRange.ranges.length).toBe(0);
+
+      selectionRange.pop();
+
+      expect(selectionRange.ranges.length).toBe(0);
+    });
+  });
+
   describe('.current', () => {
     it('should return `undefined` when an array of ranges is empty', () => {
       expect(selectionRange.current()).not.toBeDefined();

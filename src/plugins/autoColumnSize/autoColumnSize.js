@@ -143,11 +143,12 @@ class AutoColumnSize extends BasePlugin {
      * @type {PhysicalIndexToValueMap}
      */
     this.columnWidthsMap = new IndexToValueMap();
-
-    // moved to constructor to allow auto-sizing the columns when the plugin is disabled
-    this
-      .addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
+
+    // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    this.addHook('beforeColumnResize',
+      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
   }
 
   /**
@@ -197,6 +198,18 @@ class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+
+    // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    this.addHook('beforeColumnResize',
+      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+  }
+
+  /**
    * Calculates a columns width.
    *
    * @param {number|object} colRange Visual column index or an object with `from` and `to` visual indexes as a range.
@@ -223,7 +236,7 @@ class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         this.ghostTable.getWidths((visualColumn, width) => {
           const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -467,7 +480,7 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(columns, (physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
@@ -574,13 +587,6 @@ class AutoColumnSize extends BasePlugin {
    */
   onAfterInit() {
     privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
-  }
-
-  /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    super.disablePlugin();
   }
 
   /**

@@ -9,7 +9,7 @@ import { KEY as SEPARATOR } from './predefinedItems/separator';
 export function normalizeSelection(selRanges) {
   return arrayMap(selRanges, range => ({
     start: range.getTopLeftCorner(),
-    end: range.getBottomRightCorner()
+    end: range.getBottomRightCorner(),
   }));
 }
 
@@ -108,15 +108,17 @@ export function prepareHorizontalAlignClass(className, alignment) {
 export function getAlignmentClasses(ranges, callback) {
   const classes = {};
 
-  arrayEach(ranges, ({ from, to }) => {
-    for (let row = from.row; row <= to.row; row++) {
-      for (let col = from.col; col <= to.col; col++) {
+  arrayEach(ranges, (range) => {
+    range.forAll((row, col) => {
+      // Alignment classes should only collected within cell ranges. We skip header coordinates.
+      if (row >= 0 && col >= 0) {
         if (!classes[row]) {
           classes[row] = [];
         }
+
         classes[row][col] = callback(row, col);
       }
-    }
+    });
   });
 
   return classes;
@@ -130,16 +132,13 @@ export function getAlignmentClasses(ranges, callback) {
  * @param {Function} propertySetter The function which contains logic for added/removed alignment.
  */
 export function align(ranges, type, alignment, cellDescriptor, propertySetter) {
-  arrayEach(ranges, ({ from, to }) => {
-    if (from.row === to.row && from.col === to.col) {
-      applyAlignClassName(from.row, from.col, type, alignment, cellDescriptor, propertySetter);
-    } else {
-      for (let row = from.row; row <= to.row; row++) {
-        for (let col = from.col; col <= to.col; col++) {
-          applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
-        }
+  arrayEach(ranges, (range) => {
+    range.forAll((row, col) => {
+      // Alignment classes should only collected within cell ranges. We skip header coordinates.
+      if (row >= 0 && col >= 0) {
+        applyAlignClassName(row, col, type, alignment, cellDescriptor, propertySetter);
       }
-    }
+    });
   });
 }
 

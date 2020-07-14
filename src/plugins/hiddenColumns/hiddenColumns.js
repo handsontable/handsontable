@@ -168,7 +168,7 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(columns, (visualColumn) => {
           this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
         });
@@ -210,7 +210,7 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(columns, (visualColumn) => {
           this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });

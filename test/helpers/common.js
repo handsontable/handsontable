@@ -96,6 +96,7 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
@@ -296,14 +297,20 @@ export function contextMenu(cell, instance) {
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
  * @param {string} optionName The context menu subitem name to click.
+ * @param {HTMLElement} [cell] The cell element to check.
  */
-export async function selectContextSubmenuOption(submenuName, optionName) {
-  contextMenu();
+export async function selectContextSubmenuOption(submenuName, optionName, cell) {
+  contextMenu(cell);
+
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
   item.simulate('mouseover');
+
   await sleep(300);
+
   const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+
   button.simulate('mousedown').simulate('mouseup');
   closeContextMenu();
 }
@@ -719,7 +726,7 @@ export function createAccessorForProperty(name) {
  */
 export function resizeColumn(renderableColumnIndex, width) {
   const $container = spec().$container;
-  const $th = $container.find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
+  const $th = getTopClone().find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
 
   $th.simulate('mouseover');
 
@@ -745,7 +752,8 @@ export function resizeColumn(renderableColumnIndex, width) {
  */
 export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = $container.find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const $th = getLeftClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const newHeight = renderableRowIndex !== 0 ? height + 1 : height; // compensate border
 
   $th.simulate('mouseover');
 
@@ -756,11 +764,7 @@ export function resizeRow(renderableRowIndex, height) {
     clientY: resizerPosition.top
   });
 
-  let delta = height - $th.height() - 2;
-
-  if (delta < 0) {
-    delta = 0;
-  }
+  const delta = newHeight - $th.height() - 2;
 
   $resizer.simulate('mousemove', {
     clientY: resizerPosition.top + delta
@@ -888,13 +892,25 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 }
 
 /**
- * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...).
+ * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
  *
  * @param {*} args The arguments passed directly to the Handsontable helper.
  * @returns {Array}
  */
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+/**
+ * Creates spreadsheet data as an array of objects filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
+export function createSpreadsheetObjectData(...args) {
+  return Handsontable.helper.createSpreadsheetObjectData(...args);
 }
 
 /**

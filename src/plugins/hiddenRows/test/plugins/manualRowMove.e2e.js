@@ -337,11 +337,11 @@ describe('HiddenRows', () => {
         expect(getCell(2, 0).innerText).toBe('A1');
         expect(getCell(3, 0).innerText).toBe('A4');
         expect(getCell(4, 0).innerText).toBe('A5');
-        expect(getSelected()).toEqual([[0, 0, 1, 1]]);
+        expect(getSelected()).toEqual([[0, -1, 1, 1]]);
         expect(getSelectedRangeLast().highlight.row).toBe(0);
         expect(getSelectedRangeLast().highlight.col).toBe(0);
         expect(getSelectedRangeLast().from.row).toBe(0);
-        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
         expect(getSelectedRangeLast().to.row).toBe(1);
         expect(getSelectedRangeLast().to.col).toBe(1);
         expect(`

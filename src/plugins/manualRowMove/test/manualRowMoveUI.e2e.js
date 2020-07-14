@@ -168,7 +168,7 @@ describe('manualRowMove', () => {
         });
         $rowHeader.simulate('mouseup');
 
-        expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+        expect(getSelected()).toEqual([[1, -1, 3, 9]]);
       });
 
       it('should be shown properly when moving multiple rows from the bottom to the top', () => {
@@ -192,7 +192,7 @@ describe('manualRowMove', () => {
         });
         $rowHeader.simulate('mouseup');
 
-        expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+        expect(getSelected()).toEqual([[1, -1, 3, 9]]);
       });
 
       describe('should be shown properly after undo action', () => {
@@ -219,7 +219,7 @@ describe('manualRowMove', () => {
 
           hot.undo();
 
-          expect(getSelected()).toEqual([[0, 0, 2, 9]]);
+          expect(getSelected()).toEqual([[0, -1, 2, 9]]);
         });
 
         it('when moving multiple rows from the bottom to the top', () => {
@@ -245,7 +245,7 @@ describe('manualRowMove', () => {
 
           hot.undo();
 
-          expect(getSelected()).toEqual([[3, 0, 5, 9]]);
+          expect(getSelected()).toEqual([[3, -1, 5, 9]]);
         });
       });
 
@@ -274,7 +274,7 @@ describe('manualRowMove', () => {
           hot.undo();
           hot.redo();
 
-          expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+          expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });
 
         it('when moving multiple rows from the bottom to the top', () => {
@@ -301,7 +301,7 @@ describe('manualRowMove', () => {
           hot.undo();
           hot.redo();
 
-          expect(getSelected()).toEqual([[1, 0, 3, 9]]);
+          expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });
       });
     });

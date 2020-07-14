@@ -5,8 +5,9 @@ import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
 import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
 
-// Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
+// Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
@@ -112,7 +113,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
+   * enabled).
    *
    * @fires Hooks#persistentStateSave
    */
@@ -121,7 +123,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
+   * has be enabled).
    *
    * @returns {Array}
    * @fires Hooks#persistentStateLoad
@@ -143,14 +146,11 @@ class ManualRowResize extends BasePlugin {
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
+    const newHeight = Math.max(height, ViewportRowsCalculator.DEFAULT_HEIGHT);
 
-    if (height < 0) {
-      height = null; // Do not change default size.
-    }
+    this.rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
 
-    this.rowHeightsMap.setValueAtIndex(physicalRow, height);
-
-    return height;
+    return newHeight;
   }
 
   /**
@@ -194,12 +194,12 @@ class ManualRowResize extends BasePlugin {
     }
 
     // If the TH is not a child of the top-left/bottom-left overlay, recalculate using
-    // the master overlay - as this overlay contains the rest of the headers.
+    // the left overlay - as this overlay contains the rest of the headers.
     if (!relativeHeaderPosition) {
-      const fallbackOverlay = wt.wtOverlays.leftOverlay;
-      const currentTH = fallbackOverlay.clone.wtTable.TBODY.children[row].firstChild;
-
-      relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .leftOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 
     const rowIndexMapper = this.hot.rowIndexMapper;
@@ -325,6 +325,24 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
+   * Returns the actual height for the provided row index.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @returns {number} Actual row height.
+   */
+  getActualRowHeight(row) {
+    // TODO: this should utilize `this.hot.getRowHeight` after it's fixed and working properly.
+    const walkontableHeight = this.hot.view.wt.wtTable.getRowHeight(row);
+
+    if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
+      return walkontableHeight;
+    }
+
+    return this.newSize;
+  }
+
+  /**
    * 'mouseover' event callback - set the handle position.
    *
    * @private
@@ -356,7 +374,7 @@ class ManualRowResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const resize = (row, forceRender) => {
-      const hookNewSize = this.hot.runHooks('beforeRowResize', this.newSize, row, true);
+      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
@@ -364,7 +382,7 @@ class ManualRowResize extends BasePlugin {
 
       this.setManualSize(row, this.newSize); // double click sets auto row size
 
-      this.hot.runHooks('afterRowResize', this.newSize, row, true);
+      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, true);
 
       if (forceRender) {
         render();
@@ -398,7 +416,7 @@ class ManualRowResize extends BasePlugin {
   onMouseDown(event) {
     if (hasClass(event.target, 'manualRowResizer')) {
       this.setupGuidePosition();
-      this.pressed = this.hot;
+      this.pressed = true;
 
       if (this.autoresizeTimeout === null) {
         this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
@@ -446,7 +464,7 @@ class ManualRowResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const runHooks = (row, forceRender) => {
-      this.hot.runHooks('beforeRowResize', this.newSize, row, false);
+      this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
 
       if (forceRender) {
         render();
@@ -454,7 +472,7 @@ class ManualRowResize extends BasePlugin {
 
       this.saveManualRowHeights();
 
-      this.hot.runHooks('afterRowResize', this.newSize, row, false);
+      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
     };
     if (this.pressed) {
       this.hideHandleAndGuide();
@@ -525,7 +543,7 @@ class ManualRowResize extends BasePlugin {
     const initialSetting = this.hot.getSettings().manualRowResize;
     const loadedManualRowHeights = this.loadManualRowHeights();
 
-    this.hot.executeBatchOperations(() => {
+    this.hot.batch(() => {
       if (typeof loadedManualRowHeights !== 'undefined') {
         loadedManualRowHeights.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);

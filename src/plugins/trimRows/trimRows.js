@@ -87,7 +87,7 @@ class TrimRows extends BasePlugin {
     const trimmedRows = this.hot.getSettings().trimRows;
 
     if (Array.isArray(trimmedRows)) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         this.trimmedRowsMap.clear();
 
         arrayEach(trimmedRows, (physicalRow) => {
@@ -141,7 +141,7 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(rows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });
@@ -185,7 +185,7 @@ class TrimRows extends BasePlugin {
     }
 
     if (isValidConfig) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(rows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, false);
         });
@@ -244,7 +244,7 @@ class TrimRows extends BasePlugin {
     const trimmedRows = this.hot.getSettings().trimRows;
 
     if (Array.isArray(trimmedRows)) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(trimmedRows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });

@@ -901,7 +901,6 @@ describe('Core_alter', () => {
     });
 
     it('should remove column header together with the column, if headers were specified explicitly', () => {
-
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -917,7 +916,6 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(2);
 
       expect(getColHeader()).toEqual(['Header0', 'Header2']);
-
     });
 
     it('should decrement the number of fixed columns, if a fix column is removed', () => {
@@ -1411,7 +1409,6 @@ describe('Core_alter', () => {
     });
 
     it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
-
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -1431,7 +1428,6 @@ describe('Core_alter', () => {
     });
 
     it('should create column header together with the column, if headers were specified explicitly', () => {
-
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -1447,7 +1443,6 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(4);
 
       expect(getColHeader()).toEqual(['Header0', 'B', 'Header1', 'Header2']);
-
     });
 
     it('should stretch the table after adding another column (if stretching is set to \'all\')', () => {

@@ -95,6 +95,16 @@ function isTopHeader(cell) {
 }
 
 /**
+ * Check if the provided cell element is a table header.
+ *
+ * @param {HTMLTableCellElement} cell The overlay element to process.
+ * @returns {boolean}
+ */
+function isHeader(cell) {
+  return cell.tagName === 'TH';
+}
+
+/**
  * @param {HTMLTableElement} overlay The overlay element to process.
  * @returns {Function}
  */
@@ -127,11 +137,18 @@ export function generateASCIITable(context) {
   const topOverlayCells = cellFactory(topOverlayTable);
   const masterCells = cellFactory(masterTable);
 
-  const hasLeftHeader = leftOverlayCells(1, 0) ? isLeftHeader(leftOverlayCells(1, 0)) : false;
-  const hasTopHeader = topOverlayCells(0, 1) ? isTopHeader(topOverlayCells(0, 1)) : false;
-  const hasCornerHeader = hasLeftHeader && hasTopHeader;
-  const hasFixedLeftCells = leftOverlayCells(1, 1) ? !isLeftHeader(leftOverlayCells(1, 1)) : false;
-  const hasFixedTopCells = topOverlayCells(1, 1) ? !isTopHeader(topOverlayCells(1, 1)) : false;
+  const hasTopHeader = topOverlayCells(0, 0) ? isTopHeader(topOverlayCells(0, 0)) : false;
+  const hasCornerHeader = cornerOverlayCells(0, 0) ? isHeader(cornerOverlayCells(0, 0)) : false;
+  const hasLeftHeader = (leftOverlayCells(0, 0) && isLeftHeader(leftOverlayCells(0, 0))) ||
+                        (hasTopHeader && hasCornerHeader);
+  const firstCellCoords = {
+    row: hasTopHeader ? 1 : 0,
+    column: hasLeftHeader ? 1 : 0
+  };
+  const leftOverlayFirstCell = leftOverlayCells(firstCellCoords.row, firstCellCoords.column);
+  const hasFixedLeftCells = leftOverlayFirstCell ? !isLeftHeader(leftOverlayFirstCell) : false;
+  const topOverlayFirstCell = topOverlayCells(firstCellCoords.row, firstCellCoords.column);
+  const hasFixedTopCells = topOverlayFirstCell ? !isTopHeader(topOverlayFirstCell) : false;
 
   const consumedFlags = new Map([
     ['hasLeftHeader', hasLeftHeader],

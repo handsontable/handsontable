@@ -201,36 +201,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   }),
   fragmentSelection: oneOf(true, 'cell'),
-  ganttChart: {
-    firstWeekDay: 'monday',
-    startYear: 2015,
-    weekHeaderGenerator(start, end) { return (start * end).toFixed(); },
-    allowSplitWeeks: true,
-    hideDaysBeforeFullWeeks: false,
-    hideDaysAfterFullWeeks: false,
-    dataSource: oneOf({
-      instance: new Handsontable(document.createElement('div'), {}),
-      startDateColumn: 4,
-      endDateColumn: 5,
-      additionalData: {
-        label: 0,
-        quantity: 1
-      },
-      asyncUpdates: true
-    },
-    [
-      {
-        additionalData: {label: 'Example label.', quantity: 'Four packs.'},
-        startDate: '1/5/2015',
-        endDate: '1/20/2015'
-      },
-      {
-        additionalData: {label: 'Another label.', quantity: 'One pack.'},
-        startDate: '1/11/2015',
-        endDate: '1/29/2015'
-      }
-    ])
-  },
   headerTooltips: oneOf(true, {
     rows: false,
     columns: true,

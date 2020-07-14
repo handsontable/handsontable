@@ -14,6 +14,10 @@ export default function alignmentItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT);
     },
     disabled() {
+      if (this.countRows() === 0 || this.countCols() === 0) {
+        return true;
+      }
+
       return !(this.getSelectedRange() && !this.selection.isSelectedByCorner());
     },
     submenu: {

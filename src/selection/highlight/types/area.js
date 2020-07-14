@@ -5,10 +5,8 @@ import VisualSelection from '../visualSelection';
  *
  * @returns {Selection}
  */
-function createHighlight({ visualToRenderableCoords, renderableToVisualCoords, layerLevel, areaCornerVisible }) {
+function createHighlight({ layerLevel, areaCornerVisible, ...restOptions }) {
   const s = new VisualSelection({
-    visualToRenderableCoords,
-    renderableToVisualCoords,
     className: 'area',
     markIntersections: true,
     layerLevel: Math.min(layerLevel, 7),
@@ -17,6 +15,7 @@ function createHighlight({ visualToRenderableCoords, renderableToVisualCoords, l
       color: '#4b89ff',
       cornerVisible: areaCornerVisible,
     },
+    ...restOptions,
   });
 
   return s;

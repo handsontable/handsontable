@@ -99,6 +99,8 @@ class MergeCells extends BasePlugin {
     this.addHook('afterModifyTransformStart', (...args) => this.onAfterModifyTransformStart(...args));
     this.addHook('modifyTransformEnd', (...args) => this.onModifyTransformEnd(...args));
     this.addHook('modifyGetCellCoords', (...args) => this.onModifyGetCellCoords(...args));
+    this.addHook('beforeSetRangeStart', (...args) => this.onBeforeSetRangeStart(...args));
+    this.addHook('beforeSetRangeStartOnly', (...args) => this.onBeforeSetRangeStart(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.onBeforeSetRangeEnd(...args));
     this.addHook('afterIsMultipleSelection', (...args) => this.onAfterIsMultipleSelection(...args));
     this.addHook('afterRenderer', (...args) => this.onAfterRenderer(...args));
@@ -538,8 +540,8 @@ class MergeCells extends BasePlugin {
       const selectionRange = this.hot.getSelectedRangeLast();
 
       for (let group = 0; group < mergedCells.length; group += 1) {
-        if (selectionRange.highlight.row === mergedCells[group].row &&
-          selectionRange.highlight.col === mergedCells[group].col &&
+        if (selectionRange.from.row === mergedCells[group].row &&
+          selectionRange.from.col === mergedCells[group].col &&
           selectionRange.to.row === mergedCells[group].row + mergedCells[group].rowspan - 1 &&
           selectionRange.to.col === mergedCells[group].col + mergedCells[group].colspan - 1) {
           return false;
@@ -606,13 +608,19 @@ class MergeCells extends BasePlugin {
       currentlySelectedRange.highlight.col + newDelta.col
     );
 
-    const nextParentIsMerged = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
+    const nextPositionMergedCell = this.mergedCellsCollection.get(nextPosition.row, nextPosition.col);
 
-    if (nextParentIsMerged) { // skipping the invisible cells in the merge range
+    if (nextPositionMergedCell) { // skipping the invisible cells in the merge range
+      const firstRenderableCoords = this.mergedCellsCollection.getFirstRenderableCoords(
+        nextPositionMergedCell.row,
+        nextPositionMergedCell.col
+      );
+
       priv.lastDesiredCoords = nextPosition;
+
       newDelta = {
-        row: nextParentIsMerged.row - currentPosition.row,
-        col: nextParentIsMerged.col - currentPosition.col
+        row: firstRenderableCoords.row - currentPosition.row,
+        col: firstRenderableCoords.col - currentPosition.col
       };
     }
 
@@ -735,8 +743,30 @@ class MergeCells extends BasePlugin {
   }
 
   /**
+   * `beforeSetRangeStart` and `beforeSetRangeStartOnly` hook callback.
+   * A selection within merge area should be rewritten to the start of merge area.
+   *
+   * @private
+   * @param {object} coords Cell coords.
+   */
+  onBeforeSetRangeStart(coords) {
+    // TODO: It is a workaround, but probably this hook may be needed. Every selection on the merge area
+    // could set start point of the selection to the start of the merge area. However, logic inside `expandByRange` need
+    // an initial start point. Click on the merge cell when there are some hidden indexes break the logic in some cases.
+    // Please take a look at #7010 for more information. I'm not sure if selection directions are calculated properly
+    // and what was idea for flipping direction inside `expandByRange` method.
+    if (this.mergedCellsCollection.isFirstRenderableMergedCell(coords.row, coords.col)) {
+      const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
+
+      [coords.row, coords.col] = [mergeParent.row, mergeParent.col];
+    }
+  }
+
+  /**
    * `beforeSetRangeEnd` hook callback.
    * While selecting cells with keyboard or mouse, make sure that rectangular area is expanded to the extent of the merged cell.
+   *
+   * Note: Please keep in mind that callback may modify both start and end range coordinates by the reference.
    *
    * @private
    * @param {object} coords Cell coords.
@@ -946,13 +976,13 @@ class MergeCells extends BasePlugin {
    * Translates merged cell coordinates to renderable indexes.
    *
    * @private
-   * @param {[type]} parentRow Visual row index.
-   * @param {[type]} rowspan Rowspan which describes shift which will be applied to parent row
+   * @param {number} parentRow Visual row index.
+   * @param {number} rowspan Rowspan which describes shift which will be applied to parent row
    *                         to calculate renderable index which points to the most bottom
    *                         index position. Pass rowspan as `0` to calculate the most top
    *                         index position.
-   * @param {[type]} parentColumn Visual column index.
-   * @param {[type]} colspan Colspan which describes shift which will be applied to parent column
+   * @param {number} parentColumn Visual column index.
+   * @param {number} colspan Colspan which describes shift which will be applied to parent column
    *                         to calculate renderable index which points to the most right
    *                         index position. Pass colspan as `0` to calculate the most left
    *                         index position.
@@ -1142,13 +1172,18 @@ class MergeCells extends BasePlugin {
    * `afterDrawSelection` hook callback. Used to add the additional class name for the entirely-selected merged cells.
    *
    * @private
-   * @param {number} currentRow Row index of the currently processed cell.
+   * @param {number} currentRow Visual row index of the currently processed cell.
    * @param {number} currentColumn Visual column index of the currently cell.
    * @param {Array} cornersOfSelection Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`.
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
   onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel) {
+    // Nothing's selected (hook might be triggered by the custom borders)
+    if (!cornersOfSelection) {
+      return;
+    }
+
     return this.selectionCalculations
       .getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
   }

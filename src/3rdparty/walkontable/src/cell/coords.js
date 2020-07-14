@@ -98,6 +98,28 @@ class CellCoords {
   }
 
   /**
+   * Normalizes the coordinates to the nearest valid position. The coordinates that point
+   * to the headers (negative values) are normalized to 0.
+   *
+   * @returns {CellCoords}
+   */
+  normalize() {
+    this.row = this.row === null ? this.row : Math.max(this.row, 0);
+    this.col = this.col === null ? this.col : Math.max(this.col, 0);
+
+    return this;
+  }
+
+  /**
+   * Clones the coordinates.
+   *
+   * @returns {CellCoords}
+   */
+  clone() {
+    return new CellCoords(this.row, this.col);
+  }
+
+  /**
    * Converts CellCoords to literal object with `row` and `col` properties.
    *
    * @returns {object} Returns a literal object with `row` and `col` properties.

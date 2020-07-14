@@ -3,11 +3,10 @@ import VisualSelection from '../visualSelection';
 /**
  * @returns {Selection}
  */
-function createHighlight({ visualToRenderableCoords, renderableToVisualCoords, activeHeaderClassName }) {
+function createHighlight({ activeHeaderClassName, ...restOptions }) {
   const s = new VisualSelection({
-    visualToRenderableCoords,
-    renderableToVisualCoords,
     highlightHeaderClassName: activeHeaderClassName,
+    ...restOptions,
   });
 
   return s;

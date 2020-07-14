@@ -176,14 +176,14 @@ class ManualColumnResize extends BasePlugin {
     const loadedManualColumnWidths = this.loadManualColumnWidths();
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         loadedManualColumnWidths.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
       });
 
     } else if (Array.isArray(initialSetting)) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         initialSetting.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
@@ -192,7 +192,7 @@ class ManualColumnResize extends BasePlugin {
       priv.config = initialSetting;
 
     } else if (initialSetting === true && Array.isArray(priv.config)) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         priv.config.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
@@ -234,22 +234,15 @@ class ManualColumnResize extends BasePlugin {
         .wtOverlays
         .topLeftCornerOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    }
 
-    } else {
+    // If the TH is not a child of the top-left overlay, recalculate using
+    // the top overlay - as this overlay contains the rest of the headers.
+    if (!relativeHeaderPosition) {
       relativeHeaderPosition = wt
         .wtOverlays
         .topOverlay
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
-    }
-
-    // If the TH is not a child of the top-left or top overlay, recalculate using
-    // the master overlay - as this overlay contains the rest of the headers.
-    if (!relativeHeaderPosition) {
-      const fallbackOverlay = wt.wtOverlays.topOverlay;
-      const rowHeadersCount = this.hot.getSettings().rowHeaders ? 1 : 0;
-      const currentTH = fallbackOverlay.clone.wtTable.THEAD.lastChild.children[col + rowHeadersCount];
-
-      relativeHeaderPosition = fallbackOverlay.getRelativeCellPosition(currentTH, cellCoords.row, cellCoords.col);
     }
 
     this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
@@ -459,7 +452,7 @@ class ManualColumnResize extends BasePlugin {
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
       this.setupGuidePosition();
-      this.pressed = this.hot;
+      this.pressed = true;
 
       if (this.autoresizeTimeout === null) {
         this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);

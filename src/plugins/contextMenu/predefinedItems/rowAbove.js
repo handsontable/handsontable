@@ -13,9 +13,20 @@ export default function rowAboveItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
     callback(key, normalizedSelection) {
-      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+      const isSelectedByCorner = this.selection.isSelectedByCorner();
+      let rowAbove = 0;
 
-      this.alter('insert_row', latestSelection.start.row, 1, 'ContextMenu.rowAbove');
+      if (!isSelectedByCorner) {
+        const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+
+        rowAbove = latestSelection.start.row;
+      }
+
+      this.alter('insert_row', rowAbove, 1, 'ContextMenu.rowAbove');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled() {
       const selected = getValidSelection(this);
@@ -24,8 +35,14 @@ export default function rowAboveItem() {
         return true;
       }
 
+      if (this.selection.isSelectedByCorner()) {
+        const totalRows = this.countRows();
+
+        // Enable "Insert row above" only when there is at least one row.
+        return totalRows === 0;
+      }
+
       return this.selection.isSelectedByColumnHeader() ||
-        this.selection.isSelectedByCorner() ||
         this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {
