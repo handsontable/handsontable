@@ -1578,9 +1578,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @since 0.36.0
    */
   this.emptySelectedCells = function(source) {
-    if (!selection.isSelected()) {
+    if (!selection.isSelected() || this.countRows() === 0 || this.countCols() === 0) {
       return;
     }
+
     const changes = [];
 
     arrayEach(selection.getSelectedRange(), (cellRange) => {

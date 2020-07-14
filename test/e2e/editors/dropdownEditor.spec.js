@@ -280,6 +280,20 @@ describe('DropdownEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
+  it('should not highlight the input element by browsers native selection', () => {
+    handsontable({
+      editor: 'dropdown',
+      source: choices,
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    const editor = getActiveEditor().TEXTAREA;
+
+    expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
+  });
+
   describe('open editor', () => {
     // see https://github.com/handsontable/handsontable/issues/3380
     it('should not throw error while selecting the next cell by hitting enter key', () => {
