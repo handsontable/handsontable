@@ -290,6 +290,19 @@ describe('SelectEditor', () => {
     }, 200);
   });
 
+  it('should not highlight the input element by browsers native selection', () => {
+    handsontable({
+      editor: 'select',
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    const editor = $('.htSelectEditor')[0];
+
+    expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
+  });
+
   it('should populate select with given options (array)', () => {
     const options = [
       'Misubishi', 'Chevrolet', 'Lamborgini'
