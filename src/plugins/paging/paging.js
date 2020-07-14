@@ -104,7 +104,7 @@ class Paging extends BasePlugin {
 
   drawButtons() {
     const container = this.createButtonContainer();
-    const totalRows = this.hot.countRows();
+    const totalRows = this.hot.rowIndexMapper.getRenderableIndexesLength();
     const pageCount = Math.ceil(totalRows / this.pageSize);
 
     container.append(this.drawPrevButton());
