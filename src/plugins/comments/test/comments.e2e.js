@@ -70,7 +70,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await sleep(300);
+      await sleep(400);
 
       expect(editor.parentNode.style.display).toEqual('block');
     });
@@ -102,7 +102,8 @@ describe('Comments', () => {
 
       plugin.showAtCell(0, 1);
 
-      expect($(editor.parentNode).offset()).toEqual($(getCell(0, 2)).offset());
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(0, 2)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(0, 2)).offset().left, 0);
     });
   });
 
@@ -703,13 +704,13 @@ describe('Comments', () => {
       textarea.focus();
       textarea.value = 'Edited comment';
 
-      await sleep(100);
+      await sleep(150);
 
       $('body').simulate('mousedown');
       $('body').simulate('mouseup');
       textarea.blur();
 
-      await sleep(400);
+      await sleep(500);
 
       expect(afterSetCellMetaCallback)
         .toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
@@ -778,48 +779,53 @@ describe('Comments', () => {
 
       plugin.showAtCell(0, 0);
 
-      expect($(editor.parentNode).offset()).toEqual($(hot.rootElement).offset());
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(hot.rootElement).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(hot.rootElement).offset().left, 0);
 
       plugin.showAtCell(1, 1);
 
-      expect($(editor.parentNode).offset()).toEqual($(hot.rootElement).offset());
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(hot.rootElement).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(hot.rootElement).offset().left, 0);
 
       plugin.showAtCell(2, 2);
 
-      expect($(editor.parentNode).offset()).toEqual($(getCell(2, 3)).offset());
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(2, 3)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(2, 3)).offset().left, 0);
 
       plugin.showAtCell(3, 3);
 
-      expect($(editor.parentNode).offset()).toEqual($(getCell(3, 5)).offset());
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(3, 5)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(3, 5)).offset().left, 0);
 
       plugin.showAtCell(4, 4);
 
-      expect($(editor.parentNode).offset()).toEqual($(getCell(5, 5)).offset());
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(5, 5)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(5, 5)).offset().left, 0);
 
       plugin.showAtCell(5, 5);
 
-      expect($(editor.parentNode).offset()).toEqual($(getCell(5, 6)).offset());
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(5, 6)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(5, 6)).offset().left, 0);
 
       plugin.showAtCell(7, 7);
 
-      expect($(editor.parentNode).offset()).toEqual({
-        top: $(getCell(7, 7)).offset().top,
-        left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
-      });
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(7, 7)).offset().top, 0);
+      expect($(editor.parentNode).offset().left)
+        .toBeCloseTo($(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth(), 0);
 
       plugin.showAtCell(8, 8);
 
-      expect($(editor.parentNode).offset()).toEqual({
-        top: $(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(),
-        left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
-      });
+      expect($(editor.parentNode).offset().top)
+        .toBeCloseTo($(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(), 0);
+      expect($(editor.parentNode).offset().left)
+        .toBeCloseTo($(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth(), 0);
 
       plugin.showAtCell(9, 9);
 
-      expect($(editor.parentNode).offset()).toEqual({
-        top: $(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(),
-        left: $(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth()
-      });
+      expect($(editor.parentNode).offset().top)
+        .toBeCloseTo($(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(), 0);
+      expect($(editor.parentNode).offset().left)
+        .toBeCloseTo($(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth(), 0);
     });
 
     it('should display the correct values in the comment editor, for cells placed past hidden rows/columns', () => {

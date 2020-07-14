@@ -556,7 +556,7 @@ class ManualColumnMove extends BasePlugin {
       const scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
       const wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
 
-      const mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
+      const mouseOffset = event.offsetX - (fixedColumns ? wrapperIsWindow : 0);
       const leftOffset = Math.abs(this.getColumnsWidth(start, coords.col - 1) + mouseOffset);
 
       this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start - 1) + leftOffset);

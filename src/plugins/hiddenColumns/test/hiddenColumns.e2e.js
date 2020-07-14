@@ -4489,7 +4489,7 @@ describe('HiddenColumns', () => {
 
       expect(hot.getColWidth(0)).toBe(0);
       expect(hot.getColWidth(1)).toBe(0);
-      expect([216 + 15, 229 + 15, 247 + 15, 260 + 15, 261 + 15]).toEqual(jasmine.arrayContaining([hot.getColWidth(2)]));
+      expect(hot.getColWidth(2)).toBeAroundValue(225, 1);
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is disabled)', () => {
@@ -4510,7 +4510,7 @@ describe('HiddenColumns', () => {
 
       expect(hot.getColWidth(0)).toBe(0);
       expect(hot.getColWidth(1)).toBe(0);
-      expect([216, 229, 247, 260, 261]).toEqual(jasmine.arrayContaining([hot.getColWidth(2)]));
+      expect(hot.getColWidth(2)).toBeAroundValue(210, 1);
     });
 
     it('should return proper values from the `getColWidth` function when the `ManualColumnResize` plugin define sizes for some columns', () => {
