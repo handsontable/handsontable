@@ -855,7 +855,7 @@ describe('AutoFill', () => {
     expect(hot.countRows()).toBe(4);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle upwards', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle upwards (selection from left to right)', () => {
     handsontable({
       data: [
         [null, null, null, null],
@@ -869,34 +869,198 @@ describe('AutoFill', () => {
       ]
     });
 
-    expect(JSON.stringify(getData(0, 1, 3, 2)))
-      .toEqual(JSON.stringify([[null, null], [null, null], [null, null], [null, null]]));
-
     selectCell(4, 1, 6, 2);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
-    $(getCell(0, 2, true)).simulate('mouseover').simulate('mouseup');
+    $(getCell(0, 2)).simulate('mouseover').simulate('mouseup');
 
-    expect(JSON.stringify(getData(0, 1, 3, 2))).toEqual(JSON.stringify([[0, 5], [2, 3], [1, 4], [0, 5]]));
+    expect(getData()).toEqual([
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, null, null, null],
+    ]);
   });
 
-  it('should populate the filled data in the correct order, when dragging the fill handle towards left', () => {
+  it('should populate the filled data in the correct order, when dragging the fill handle upwards (selection from right to left)', () => {
+    handsontable({
+      data: [
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, 2, 3, null],
+        [null, 1, 4, null],
+        [null, 0, 5, null],
+        [null, null, null, null],
+      ]
+    });
+
+    selectCell(6, 2, 4, 1);
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(0, 2)).simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, null, null, null],
+    ]);
+  });
+
+  it('should populate the filled data in the correct order, when dragging the fill handle downward (selection from left to right)', () => {
+    handsontable({
+      data: [
+        [null, null, null, null],
+        [null, 2, 3, null],
+        [null, 1, 4, null],
+        [null, 0, 5, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ]
+    });
+
+    selectCell(1, 1, 3, 2);
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(7, 2)).simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [null, null, null, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+    ]);
+  });
+
+  it('should populate the filled data in the correct order, when dragging the fill handle downward (selection from right to left)', () => {
+    handsontable({
+      data: [
+        [null, null, null, null],
+        [null, 2, 3, null],
+        [null, 1, 4, null],
+        [null, 0, 5, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+        [null, null, null, null],
+      ]
+    });
+
+    selectCell(3, 2, 1, 1);
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(7, 2)).simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [null, null, null, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+      [null, 1, 4, null],
+      [null, 0, 5, null],
+      [null, 2, 3, null],
+    ]);
+  });
+
+  it('should populate the filled data in the correct order, when dragging the fill handle towards left (selection from left to right)', () => {
     handsontable({
       data: [
         [null, null, null, null, null, null, null, null],
-        [null, null, null, null, null, 0, 1, 2],
-        [null, null, null, null, null, 3, 4, 5],
+        [null, null, null, null, 0, 1, 2, null],
+        [null, null, null, null, 3, 4, 5, null],
         [null, null, null, null, null, null, null, null],
       ]
     });
 
-    expect(JSON.stringify(getData(1, 1, 2, 4)))
-      .toEqual(JSON.stringify([[null, null, null, null], [null, null, null, null]]));
-
-    selectCell(1, 5, 2, 7);
+    selectCell(1, 4, 2, 6);
     spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
-    $(getCell(2, 1, true)).simulate('mouseover').simulate('mouseup');
+    $(getCell(2, 0)).simulate('mouseover').simulate('mouseup');
 
-    expect(JSON.stringify(getData(1, 1, 2, 4))).toEqual(JSON.stringify([[2, 0, 1, 2], [5, 3, 4, 5]]));
+    expect(getData()).toEqual([
+      [null, null, null, null, null, null, null, null],
+      [2, 0, 1, 2, 0, 1, 2, null],
+      [5, 3, 4, 5, 3, 4, 5, null],
+      [null, null, null, null, null, null, null, null],
+    ]);
+  });
+
+  it('should populate the filled data in the correct order, when dragging the fill handle towards left (selection from right to left)', () => {
+    handsontable({
+      data: [
+        [null, null, null, null, null, null, null, null],
+        [null, null, null, null, 0, 1, 2, null],
+        [null, null, null, null, 3, 4, 5, null],
+        [null, null, null, null, null, null, null, null],
+      ]
+    });
+
+    selectCell(2, 6, 1, 4);
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(2, 0)).simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [null, null, null, null, null, null, null, null],
+      [2, 0, 1, 2, 0, 1, 2, null],
+      [5, 3, 4, 5, 3, 4, 5, null],
+      [null, null, null, null, null, null, null, null],
+    ]);
+  });
+
+  it('should populate the filled data in the correct order, when dragging the fill handle towards right (selection from left to right)', () => {
+    handsontable({
+      data: [
+        [null, null, null, null, null, null, null, null],
+        [null, 0, 1, 2, null, null, null, null],
+        [null, 3, 4, 5, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+      ]
+    });
+
+    selectCell(1, 1, 2, 3);
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(2, 7)).simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [null, null, null, null, null, null, null, null],
+      [null, 0, 1, 2, 0, 1, 2, 0],
+      [null, 3, 4, 5, 3, 4, 5, 3],
+      [null, null, null, null, null, null, null, null],
+    ]);
+  });
+
+  it('should populate the filled data in the correct order, when dragging the fill handle towards right (selection from right to left)', () => {
+    handsontable({
+      data: [
+        [null, null, null, null, null, null, null, null],
+        [null, 0, 1, 2, null, null, null, null],
+        [null, 3, 4, 5, null, null, null, null],
+        [null, null, null, null, null, null, null, null],
+      ]
+    });
+
+    selectCell(2, 3, 1, 1);
+    spec().$container.find('.wtBorder.area.corner').simulate('mousedown');
+    $(getCell(2, 7)).simulate('mouseover').simulate('mouseup');
+
+    expect(getData()).toEqual([
+      [null, null, null, null, null, null, null, null],
+      [null, 0, 1, 2, 0, 1, 2, 0],
+      [null, 3, 4, 5, 3, 4, 5, 3],
+      [null, null, null, null, null, null, null, null],
+    ]);
   });
 
   it('should omit data propagation for hidden cells - fill vertically (option `copyPasteEnabled` set to `false` for the both plugins)', () => {
