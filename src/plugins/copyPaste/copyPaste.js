@@ -404,6 +404,7 @@ class CopyPaste extends BasePlugin {
       if (skipRowOnPaste === true) {
         maxRow += 1;
         selectionEndRow = maxRow;
+        /* eslint-disable no-continue */
         continue;
       }
 
@@ -415,6 +416,7 @@ class CopyPaste extends BasePlugin {
         if (skipColumnOnPaste === true) {
           maxColumn += 1;
           selectionEndColumn = maxColumn;
+          /* eslint-disable no-continue */
           continue;
         }
 
