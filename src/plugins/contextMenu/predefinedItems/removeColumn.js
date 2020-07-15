@@ -33,6 +33,10 @@ export default function removeColumnItem() {
         transformSelectionToColumnDistance(this.getSelected()), null, 'ContextMenu.removeColumn');
     },
     disabled() {
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+
       const selected = getValidSelection(this);
 
       if (!selected) {
@@ -46,9 +50,7 @@ export default function removeColumnItem() {
         return totalColumns === 0;
       }
 
-      return this.selection.isSelectedByRowHeader() ||
-        !this.isColumnModificationAllowed() ||
-        totalColumns === 0;
+      return this.selection.isSelectedByRowHeader() || totalColumns === 0;
     },
     hidden() {
       return !this.getSettings().allowRemoveColumn;
