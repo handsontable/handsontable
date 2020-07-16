@@ -454,6 +454,8 @@ class DataManager {
 
     const newRowIndex = this.getRowIndex(childElement);
 
+    this.hot.rowIndexMapper.insertIndexes(newRowIndex, 1);
+
     this.hot.runHooks('afterCreateRow', newRowIndex, 1);
     this.hot.runHooks('afterAddChild', parent, childElement);
   }
