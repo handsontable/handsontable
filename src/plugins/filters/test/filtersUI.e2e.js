@@ -3731,7 +3731,7 @@ describe('Filters UI', () => {
     expect(compStyleHtFiltersMenuLabel.fontSize).toBe('18px');
 
     expect(compStyleHtUISelectCaption.fontFamily).toBe('Helvetica');
-    expect(compStyleHtUISelectCaption.fontSize).toBe('16.8px');
+    expect(parseFloat(compStyleHtUISelectCaption.fontSize)).toBeCloseTo(16.8, 2);
 
     bodyStyle.fontFamily = fontFamily;
     bodyStyle.fontSize = fontSize;

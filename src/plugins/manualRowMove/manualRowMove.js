@@ -547,7 +547,7 @@ class ManualRowMove extends BasePlugin {
 
       this.backlight.setPosition(null, leftPos);
       this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
-      this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + event.layerY) * -1, null);
+      this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + event.offsetY) * -1, null);
 
       addClass(this.hot.rootElement, CSS_ON_MOVING);
 

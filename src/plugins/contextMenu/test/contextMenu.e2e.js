@@ -254,7 +254,7 @@ describe('ContextMenu', () => {
       docInside.documentElement.scrollTop = 500;
       docInside.documentElement.scrollLeft = 500;
 
-      await sleep(300);
+      await sleep(400);
 
       const cell = hot.getCell(2, 2);
       contextMenu(cell, hot);

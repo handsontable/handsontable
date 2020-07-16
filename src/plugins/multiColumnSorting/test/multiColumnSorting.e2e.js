@@ -2465,7 +2465,7 @@ describe('MultiColumnSorting', () => {
         .getPropertyValue('content')).toEqual('"+"');
     });
 
-    it('should be properly hided when just one column is sorted', () => {
+    it('should be properly hided when just one column is sorted', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -2489,9 +2489,9 @@ describe('MultiColumnSorting', () => {
       getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
-        .getPropertyValue('content')).toEqual('none');
+        .getPropertyValue('content')).toMatch(/^(none|)$/);
       expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after')
-        .getPropertyValue('content')).toEqual('none');
+        .getPropertyValue('content')).toMatch(/^(none|)$/);
     });
   });
 

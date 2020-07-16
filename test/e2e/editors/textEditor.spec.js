@@ -547,8 +547,8 @@ describe('TextEditor', () => {
 
     await sleep(200);
 
+    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(41, 1);
     expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(50, 4);
     expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
   });
 
@@ -1868,7 +1868,7 @@ describe('TextEditor', () => {
 
       await sleep(100);
 
-      expect($(textarea).width()).toBe(201);
+      expect($(textarea).width()).toBe(175);
       expect($(textarea).height()).toBe(23);
     });
   });
