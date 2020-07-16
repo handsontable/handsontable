@@ -1,4 +1,4 @@
-import { HyperFormula } from 'hyperformula/es/src/index';
+import { HyperFormula } from 'hyperformula/es/index';
 import BasePlugin from '../_base';
 import staticRegister from '../../utils/staticRegister';
 import { registerPlugin } from '../../plugins';
