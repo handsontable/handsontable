@@ -280,6 +280,32 @@ describe('NestedRows Data Manager', () => {
         expect(parentElement.__children[1].b).toEqual('test-b');
       });
 
+      it('should add a new child to the provided parent, when the parent is collapsed', () => {
+        const data = getSimplerNestedData();
+        const hot = handsontable({
+          data,
+          nestedRows: true,
+          rowHeaders: true,
+          colHeaders: true
+        });
+
+        const startRowCount = hot.countRows();
+        const plugin = hot.getPlugin('nestedRows');
+        const lastRowParentObject = plugin.dataManager.getRowParent(hot.countRows() - 1);
+        const lastRowParentIndex = plugin.dataManager.getRowIndex(lastRowParentObject);
+        const startLastRowChildCount = plugin.dataManager.countChildren(lastRowParentObject);
+
+        plugin.collapsingUI.collapseChildren(lastRowParentIndex);
+
+        plugin.dataManager.addChild(lastRowParentObject);
+
+        expect(plugin.dataManager.countChildren(lastRowParentObject)).toEqual(startLastRowChildCount + 1);
+
+        plugin.collapsingUI.expandAll();
+
+        expect(hot.countRows()).toEqual(startRowCount + 1);
+        expect(hot.getDataAtRow(hot.countRows() - 1)).toEqual([null, null, null, null]);
+      });
     });
 
     describe('detachFromParent', () => {
