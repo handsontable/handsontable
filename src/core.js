@@ -2421,7 +2421,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * Set the provided value in the source data set at the provided coordinates.
    *
    * @memberof Core#
-   * @function getSourceDataAtCol
+   * @function setSourceDataAtCell
    * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
    * @param {number|string} column Physical column index / prop name.
    * @param {*} value The value to be set at the provided coordinates.
