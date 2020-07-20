@@ -192,17 +192,24 @@ class Autofill extends BasePlugin {
     // the end is.
     const [fillStartRow, fillStartColumn, fillEndRow, fillEndColumn] =
       this.hot.selection.highlight.getFill().getVisualCorners();
-    const [selectionStartRow, selectionStartColumn, selectionEndRow, selectionEndColumn] = this.hot.getSelectedLast();
+    const selectionRangeLast = this.hot.getSelectedRangeLast();
+    const topLeftCorner = selectionRangeLast.getTopLeftCorner();
+    const bottomRightCorner = selectionRangeLast.getBottomRightCorner();
     let cornersOfSelectionAndDragAreas = [
-      Math.min(selectionStartRow, fillStartRow),
-      Math.min(selectionStartColumn, fillStartColumn),
-      Math.max(selectionEndRow, fillEndRow),
-      Math.max(selectionEndColumn, fillEndColumn)
+      Math.min(topLeftCorner.row, fillStartRow),
+      Math.min(topLeftCorner.col, fillStartColumn),
+      Math.max(bottomRightCorner.row, fillEndRow),
+      Math.max(bottomRightCorner.col, fillEndColumn),
     ];
 
     this.resetSelectionOfDraggedArea();
 
-    const cornersOfSelectedCells = this.hot.getSelectedLast();
+    const cornersOfSelectedCells = [
+      topLeftCorner.row,
+      topLeftCorner.col,
+      bottomRightCorner.row,
+      bottomRightCorner.col,
+    ];
 
     cornersOfSelectionAndDragAreas = this.hot
       .runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);

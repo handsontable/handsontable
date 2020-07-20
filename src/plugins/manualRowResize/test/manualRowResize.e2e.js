@@ -241,7 +241,7 @@ describe('manualRowResize', () => {
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
-    resizeRow(0, defaultRowHeight);
+    resizeRow(0, defaultRowHeight + 2);
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
   });
@@ -698,6 +698,42 @@ describe('manualRowResize', () => {
       const $handle = $('.manualRowResizer');
 
       expect($handle.css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
+    });
+  });
+
+  describe('hooks', () => {
+    it('should run the `beforeRowResize` and `afterRowResize` hooks with numeric values for both the row height and' +
+      ' row index', () => {
+      const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
+      const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 1),
+        rowHeaders: true,
+        manualRowResize: true,
+        beforeRowResize: beforeRowResizeCallback,
+        afterRowResize: afterRowResizeCallback
+      });
+
+      resizeRow(2, 300);
+
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false, void 0, void 0, void 0]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false, void 0, void 0, void 0]);
+
+      resizeRow(2, -10);
+
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
+
+      resizeRow(2, 100);
+
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false, void 0, void 0, void 0]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false, void 0, void 0, void 0]);
+
+      resizeRow(2, 5);
+
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([23, 2, false, void 0, void 0, void 0]);
     });
   });
 });

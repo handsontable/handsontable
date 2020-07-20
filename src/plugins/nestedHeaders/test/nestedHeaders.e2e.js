@@ -2302,6 +2302,32 @@ describe('NestedHeaders', () => {
       expect(hot.getSelected()).toEqual([[-1, 3, hot.countRows() - 1, 6]]);
     });
 
+    it('should select all column headers (on all levels) after clicking the corner header', function() {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ]
+      });
+
+      const $cornerHeader = this.$container.find('.ht_clone_top_left_corner thead tr:eq(0) th:eq(0)');
+
+      $cornerHeader.simulate('mousedown');
+      $cornerHeader.simulate('mouseup');
+
+      expect(
+        $('.ht_clone_top thead tr th:not(:first-child)').filter(function() {
+          return !$(this).hasClass('hiddenHeader') && !$(this).hasClass('ht__active_highlight');
+        }).size()
+      ).toEqual(0);
+    });
+
     it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 10),

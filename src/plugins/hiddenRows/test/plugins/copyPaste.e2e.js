@@ -171,7 +171,7 @@ describe('HiddenRows', () => {
 
     it('should not skip hidden rows, while pasting data, when "copyPasteEnabled" property is set to true', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(8, 3),
+        data: createSpreadsheetData(8, 3),
         hiddenRows: {
           rows: [2, 4],
           copyPasteEnabled: true
@@ -193,6 +193,14 @@ describe('HiddenRows', () => {
         ['A7', 'B7', 'C7'],
         ['A8', 'B8', 'C8'],
       ]);
+      expect(`
+        | A : 0 :   |
+        | 0 : 0 :   |
+        | 0 : 0 :   |
+        |   :   :   |
+        |   :   :   |
+        |   :   :   |
+        `).toBeMatchToSelectionPattern();
     });
 
     it('should skip hidden rows, while pasting data, when "copyPasteEnabled" property is set to false', () => {
@@ -219,6 +227,14 @@ describe('HiddenRows', () => {
         ['i', 'j', 'C7'],
         ['A8', 'B8', 'C8'],
       ]);
+      expect(`
+        | A : 0 :   |
+        | 0 : 0 :   |
+        | 0 : 0 :   |
+        | 0 : 0 :   |
+        | 0 : 0 :   |
+        |   :   :   |
+        `).toBeMatchToSelectionPattern();
     });
   });
 });

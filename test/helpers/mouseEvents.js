@@ -1,9 +1,10 @@
 
 const MOUSE_BUTTONS = new Map();
 
-MOUSE_BUTTONS.set('LMB', 1);
-MOUSE_BUTTONS.set('MMB', 2);
-MOUSE_BUTTONS.set('RMB', 3);
+// https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button#Return_value
+MOUSE_BUTTONS.set('LMB', 0);
+MOUSE_BUTTONS.set('MMB', 1);
+MOUSE_BUTTONS.set('RMB', 2);
 
 /**
  * Get number describing specific mouse click.
@@ -19,12 +20,11 @@ function getMouseButton(buttonKey) {
  * Returns a function that triggers a mouse event.
  *
  * @param {string} type Event type.
- * @param {number} [buttonKey] Number representing mouse button key.
- * @param {object} [eventProps] Addional object with props to merge with the event.
+ * @param {number} [defaultButtonKey] Number representing default mouse button key for this factory product.
  * @returns {Function}
  */
-export function handsontableMouseTriggerFactory(type, buttonKey = getMouseButton('LMB'), eventProps = {}) {
-  return function(element) {
+export function handsontableMouseTriggerFactory(type, defaultButtonKey = getMouseButton('LMB')) {
+  return function(element, buttonKey = defaultButtonKey, eventProps = {}) {
     let handsontableElement = element;
 
     if (!(handsontableElement instanceof jQuery)) {
@@ -32,7 +32,7 @@ export function handsontableMouseTriggerFactory(type, buttonKey = getMouseButton
     }
     const ev = $.Event(type);
 
-    ev.which = buttonKey;
+    ev.button = buttonKey;
 
     Object.keys(eventProps).forEach((key) => {
       ev[key] = eventProps[key];
@@ -47,6 +47,7 @@ export const mouseDown = handsontableMouseTriggerFactory('mousedown');
 export const mouseOver = handsontableMouseTriggerFactory('mouseover');
 export const mouseUp = handsontableMouseTriggerFactory('mouseup');
 export const mouseClick = handsontableMouseTriggerFactory('click');
+export const contextMenuEvent = handsontableMouseTriggerFactory('contextmenu');
 
 /**
  * Simulate click (all mouse events).
@@ -60,7 +61,16 @@ export function simulateClick(element, buttonKey, eventProps) {
 
   mouseDown(element, mouseButton, eventProps);
   mouseUp(element, mouseButton, eventProps);
-  mouseClick(element, mouseButton, eventProps);
+
+  // Only left click generates "click" events.
+  if (mouseButton === getMouseButton('LMB')) {
+    mouseClick(element, mouseButton, eventProps);
+  }
+
+  // Only right click generates "contextmenu" events.
+  if (mouseButton === getMouseButton('RMB')) {
+    contextMenuEvent(element, mouseButton, eventProps);
+  }
 }
 
 /**

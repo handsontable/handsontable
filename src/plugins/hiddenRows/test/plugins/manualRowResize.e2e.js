@@ -29,7 +29,7 @@ describe('HiddenRows', () => {
       // Resize renderable row index `1` (within visual index term the index at 1 is hidden).
       resizeRow(1, 100);
 
-      expect(rowHeight(spec().$container, 1)).toEqual(99);
+      expect(rowHeight(spec().$container, 1)).toEqual(100);
     });
 
     it('should resize a proper row when the table contains hidden row using public API', () => {

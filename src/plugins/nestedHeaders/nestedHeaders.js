@@ -315,7 +315,7 @@ class NestedHeaders extends BasePlugin {
     const highlightHeader = classNameModifier(hotSettings.currentHeaderClassName);
     const activeHeader = classNameModifier(hotSettings.activeHeaderClassName);
 
-    const selectionByHeader = hot.selection.isSelectedByColumnHeader();
+    const selectionByHeader = hot.selection.isSelectedByColumnHeader() || hot.selection.isSelectedByCorner();
     const layersCount = this.#stateManager.getLayersCount();
     const activeHeaderChanges = new Map();
     const highlightHeaderChanges = new Map();

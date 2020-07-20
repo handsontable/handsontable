@@ -395,10 +395,31 @@ class CopyPaste extends BasePlugin {
     endRow = Math.max(endRow, newValuesMaxRow + startRow);
     endColumn = Math.max(endColumn, newValuesMaxColumn + startColumn);
 
-    for (let row = startRow, valuesRow = 0; row <= endRow; row += 1) {
+    let selectionEndColumn = endColumn;
+    let selectionEndRow = endRow;
+
+    for (let row = startRow, maxRow = endRow, valuesRow = 0; row <= maxRow; row += 1) {
+      const { skipRowOnPaste } = this.hot.getCellMeta(row, startColumn);
+
+      if (skipRowOnPaste === true) {
+        maxRow += 1;
+        selectionEndRow = maxRow;
+        /* eslint-disable no-continue */
+        continue;
+      }
+
       const newRow = [];
 
-      for (let column = startColumn, valuesColumn = 0; column <= endColumn; column += 1) {
+      for (let column = startColumn, maxColumn = endColumn, valuesColumn = 0; column <= maxColumn; column += 1) {
+        const { skipColumnOnPaste } = this.hot.getCellMeta(row, column);
+
+        if (skipColumnOnPaste === true) {
+          maxColumn += 1;
+          selectionEndColumn = maxColumn;
+          /* eslint-disable no-continue */
+          continue;
+        }
+
         newRow.push(inputArray[valuesRow][valuesColumn]);
 
         valuesColumn = valuesColumn === newValuesMaxColumn ? 0 : valuesColumn += 1;
@@ -411,7 +432,7 @@ class CopyPaste extends BasePlugin {
 
     this.hot.populateFromArray(startRow, startColumn, newValues, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
 
-    return [startRow, startColumn, endRow, endColumn];
+    return [startRow, startColumn, selectionEndRow, selectionEndColumn];
   }
 
   /**

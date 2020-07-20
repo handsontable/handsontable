@@ -69,8 +69,9 @@ class TopOverlay extends Overlay {
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
-      const top = wtTable.hider.offsetTop;
-      const bottom = top + wtTable.hider.offsetHeight;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const top = Math.ceil(hiderRect.top);
+      const bottom = Math.ceil(hiderRect.bottom);
       let finalLeft;
       let finalTop;
 

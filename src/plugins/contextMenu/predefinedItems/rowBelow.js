@@ -14,29 +14,39 @@ export default function rowBelowItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
     callback(key, normalizedSelection) {
-      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-      const selectedRow = latestSelection?.end?.row;
-      // If there is no selection we have clicked on the corner and there is no data.
-      const rowBelow = isDefined(selectedRow) ? selectedRow + 1 : 0;
+      const isSelectedByCorner = this.selection.isSelectedByCorner();
+      let rowBelow = 0;
+
+      if (isSelectedByCorner) {
+        rowBelow = this.countRows();
+
+      } else {
+        const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+        const selectedRow = latestSelection?.end?.row;
+
+        // If there is no selection we have clicked on the corner and there is no data.
+        rowBelow = isDefined(selectedRow) ? selectedRow + 1 : 0;
+      }
 
       this.alter('insert_row', rowBelow, 1, 'ContextMenu.rowBelow');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled() {
       const selected = getValidSelection(this);
-      const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
-
-      // There is no selection, because we have clicked on the corner and there is no data (click on the corner by
-      // default select all cells, but there are no cells).
-      if (!anyCellVisible) {
-        return false;
-      }
 
       if (!selected) {
         return true;
       }
 
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert row below" always when the menu is triggered by corner click.
+        return false;
+      }
+
       return this.selection.isSelectedByColumnHeader() ||
-        this.selection.isSelectedByCorner() ||
         this.countRows() >= this.getSettings().maxRows;
     },
     hidden() {

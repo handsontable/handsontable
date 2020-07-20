@@ -254,7 +254,7 @@ describe('ContextMenu', () => {
       docInside.documentElement.scrollTop = 500;
       docInside.documentElement.scrollLeft = 500;
 
-      await sleep(300);
+      await sleep(400);
 
       const cell = hot.getCell(2, 2);
       contextMenu(cell, hot);
@@ -1199,12 +1199,6 @@ describe('ContextMenu', () => {
       contextMenu(corner);
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
-        'Insert row above',
-        'Insert row below',
-        'Insert column left',
-        'Insert column right',
-        'Remove rows',
-        'Remove columns',
         'Undo',
         'Redo',
         'Read only',
