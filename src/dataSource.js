@@ -147,8 +147,8 @@ class DataSource {
         const rangeEnd = this.countFirstRowKeys() - 1;
 
         rangeEach(rangeStart, rangeEnd, (column) => {
-          const colToPropResult = this.colToProp(column);
-          const prop = colToPropResult !== null ? colToPropResult : column;
+          // TODO: Can it return `null`?
+          const prop = this.colToProp(column);
 
           if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
             const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
