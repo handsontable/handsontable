@@ -190,22 +190,11 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * @param {string|number} column Visual column index or another passed argument.
-   * @returns {string|number|null} Column property, physical column index or passed argument.
+   * @param {string|number} column Visual column index.
+   * @returns {string|number|null} Column property which may be also a physical column index.
    */
   colToProp(column) {
-    // TODO: Should it work? Please, look at the test:
-    // "it should return the provided property name, when the user passes a property name as a column number".
-    if (Number.isInteger(column) === false) {
-      return column;
-    }
-
     const physicalColumn = this.instance.toPhysicalColumn(column);
-
-    // Beyond the table boundaries. // TODO: This conditional may be temporary.
-    if (physicalColumn === null) {
-      return null;
-    }
 
     // Cached property.
     if (this.colToPropCache && isDefined(this.colToPropCache[physicalColumn])) {
