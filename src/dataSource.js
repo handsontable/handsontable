@@ -88,7 +88,7 @@ class DataSource {
   /**
    * Returns array of column values from the data source. `column` is the index of the row in the data source.
    *
-   * @param {number} column Visual column index.
+   * @param {string|number} column Column property which may be also a physical column index.
    * @returns {Array}
    */
   getAtColumn(column) {
@@ -245,13 +245,18 @@ class DataSource {
    * Returns a single value from the data.
    *
    * @param {number} row Physical row index.
-   * @param {number} column Visual column index.
+   * @param {number} column Column property which may be also a physical column index.
    * @returns {*}
    */
   getAtCell(row, column) {
     const dataRow = this.modifyRowData(row);
+    let prop = column;
 
-    return this.getAtPhysicalCell(row, this.colToProp(column), dataRow);
+    if (Number.isInteger(column)) {
+      prop = this.colToProp(column);
+    }
+
+    return this.getAtPhysicalCell(row, prop, dataRow);
   }
 
   /**

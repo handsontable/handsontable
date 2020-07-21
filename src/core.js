@@ -1346,7 +1346,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
+        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), prop),
         input[i][2],
       ]);
     }
@@ -2426,10 +2426,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function getSourceDataAtCol
-   * @param {number} column Visual column index.
+   * @param {string|number} column Column property which may be also a physical column index.
    * @returns {Array} Array of the column's cell values.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column) {
     return dataSource.getAtColumn(column);
   };
@@ -2502,10 +2501,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getSourceDataAtCell
    * @param {number} row Physical row index.
-   * @param {number} column Visual column index.
+   * @param {string|number} column Column property which may be also a physical column index.
    * @returns {*} Cell data.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row, column) {
     return dataSource.getAtCell(row, column);
   };
