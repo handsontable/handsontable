@@ -21,9 +21,10 @@ class DropdownEditor extends AutocompleteEditor {
   }
 }
 
-Hooks.getSingleton().add('beforeValidate', function(value, row, col) {
-  const propToColResult = this.propToCol(col);
-  const column = propToColResult !== null ? propToColResult : col;
+Hooks.getSingleton().add('beforeValidate', function(value, row, prop) {
+  const propToColResult = this.propToCol(prop);
+  // Populated data may contain indexes beyond current table boundaries.
+  const column = propToColResult !== null ? propToColResult : prop;
   const cellMeta = this.getCellMeta(row, column);
 
   if (cellMeta.editor === DropdownEditor) {

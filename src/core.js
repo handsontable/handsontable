@@ -1099,6 +1099,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       } else {
         const [row, prop, , newValue] = changes[i];
         const propToColResult = datamap.propToCol(prop);
+        // Populated data may contain indexes beyond current table boundaries.
         const col = propToColResult !== null ? propToColResult : prop;
         const cellProperties = instance.getCellMeta(row, col);
 
@@ -1188,7 +1189,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         while (column > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
-          propToColResult = datamap.propToCol(changes[i][1]);
+          // Populated data may contain indexes beyond current table boundaries.
+          propToColResult = datamap.propToCol(prop);
           column = propToColResult !== null ? propToColResult : prop;
 
           if (numberOfCreatedColumns >= 1) {
@@ -2716,16 +2718,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
+    // We can also get cell meta for indexes beyond current table boundaries.
     if (physicalRow === null) {
       physicalRow = row;
     }
 
+    // We can also get cell meta for indexes beyond current table boundaries.
     if (physicalColumn === null) {
       physicalColumn = column;
     }
 
     const colToPropResult = datamap.colToProp(column);
-    const prop = colToPropResult !== null ? colToPropResult : column; // We can also get meta for columns beyond the table boundaries
+    // TODO: Should it be possible to get cell meta for index beyond the table boundaries when data is defined as
+    // array of objects? Will a column index represent properly the property (integer instead of string)?
+    const prop = colToPropResult !== null ? colToPropResult : column;
     const cellProperties = metaManager.getCellMeta(physicalRow, physicalColumn);
 
     // TODO(perf): Add assigning this props and executing below code only once per table render cycle.

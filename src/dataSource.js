@@ -252,7 +252,9 @@ class DataSource {
     const dataRow = this.modifyRowData(row);
     let prop = column;
 
+    // Please keep in mind that we may get data by physical index or by key when we store data as array of objects.
     if (Number.isInteger(column)) {
+      // When we store data as array of arrays a physical index is also a property.
       prop = this.colToProp(column);
     }
 
