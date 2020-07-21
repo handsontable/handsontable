@@ -664,7 +664,7 @@ declare namespace Handsontable {
       isHorizontal(): boolean;
       isVertical(): boolean;
       removeTable(): void;
-      setSettings(settings: DefaultSettings): void;
+      setSettings(settings: GridSettings): void;
       setSetting(name: string, value: any): void;
     }
 
@@ -1560,10 +1560,6 @@ declare namespace Handsontable {
     interface Time extends Base { }
   }
 
-  interface DefaultSettings {
-    new(): GridSettings;
-  }
-
   interface EventManager {
     new(context: object): plugins.EventManager;
   }
@@ -1809,7 +1805,7 @@ declare namespace Handsontable {
       afterRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
-      afterRowMove?: (rows: number[], target: number) => void;
+      afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean, orderChanged: boolean) => void;
       afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
       afterScrollHorizontally?: () => void;
       afterScrollVertically?: () => void;
@@ -1820,6 +1816,7 @@ declare namespace Handsontable {
       afterSetCellMeta?: (row: number, col: number, key: string, value: any) => void;
       afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
+      afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
       afterUnlisten?: () => void;
@@ -1876,7 +1873,7 @@ declare namespace Handsontable {
       beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
       beforeRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
-      beforeRowMove?: (rows: number[], target: number) => void;
+      beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | void, movePossible: boolean) => void;
       beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
       beforeSetCellMeta?: (row: number, col: number, key: string, value: any) => boolean | void;
       beforeSetRangeEnd?: (coords: wot.CellCoords) => void;
@@ -1893,8 +1890,6 @@ declare namespace Handsontable {
       beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
       beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
       construct?: () => void;
-      hiddenColumn?: (column: number) => void;
-      hiddenRow?: (row: number) => void;
       init?: () => void;
       modifyAutofillRange?: (startArea: [number, number, number, number][], entireArea: [number, number, number, number][]) => void;
       modifyColHeader?: (column: number) => void;
@@ -1908,6 +1903,7 @@ declare namespace Handsontable {
       modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
       modifyRowHeight?: (height: number, row: number) => void;
       modifyRowSourceData?: (row: number) => void;
+      modifySourceData?: (row: number, col: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
       modifyTransformEnd?: (delta: wot.CellCoords) => void;
       modifyTransformStart?: (delta: wot.CellCoords) => void;
       persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
@@ -2598,7 +2594,7 @@ declare class Handsontable extends _Handsontable.Core {
   static validators: Handsontable.Validators;
   static Core: typeof _Handsontable.Core;
   static EventManager: Handsontable.EventManager;
-  static DefaultSettings: Handsontable.DefaultSettings;
+  static DefaultSettings: Handsontable.GridSettings;
 }
 
 export default Handsontable;

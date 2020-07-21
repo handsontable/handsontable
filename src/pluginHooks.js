@@ -654,6 +654,7 @@ const REGISTERED_HOOKS = [
    * {@link Options#fillHandle} option is enabled.
    *
    * @event Hooks#afterAutofill
+   * @since 8.0.0
    * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
    * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
    * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
@@ -773,6 +774,7 @@ const REGISTERED_HOOKS = [
    * Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
    *
    * @event Hooks#beforeLoadData
+   * @since 8.0.0
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
@@ -1698,15 +1700,6 @@ const REGISTERED_HOOKS = [
   'afterDropdownMenuHide',
 
   /**
-   * Fired by {@link HiddenRows} plugin to check whether the provided row index is hidden. This hook is fired when
-   * {@link Options#hiddenRows} option is enabled.
-   *
-   * @event Hooks#hiddenRow
-   * @param {number} row The visual row index in question.
-   */
-  'hiddenRow',
-
-  /**
    * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
@@ -1839,6 +1832,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnCollapse
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -1850,6 +1844,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#afterColumnCollapse
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -1861,6 +1856,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnExpand
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -1872,6 +1868,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#afterColumnExpand
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
