@@ -147,10 +147,10 @@ class DataSource {
         const rangeEnd = this.countFirstRowKeys() - 1;
 
         rangeEach(rangeStart, rangeEnd, (column) => {
-          // TODO: Can it return `null`?
+          // It will return `null` for index beyond table boundaries.
           const prop = this.colToProp(column);
 
-          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && prop !== null) {
             const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
 
             if (toArray) {
