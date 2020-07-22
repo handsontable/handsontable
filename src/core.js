@@ -1184,15 +1184,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
         const prop = changes[i][1];
-        let propToColResult = datamap.propToCol(changes[i][1]);
+        const propToColResult = datamap.propToCol(prop);
         // Populated data may contain indexes beyond current table boundaries.
-        let column = propToColResult !== null ? propToColResult : prop;
+        const column = propToColResult !== null ? propToColResult : prop;
 
         while (column > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
-          // Next column indexes for properties.
-          propToColResult = datamap.propToCol(prop);
-          column = propToColResult !== null ? propToColResult : prop;
 
           if (numberOfCreatedColumns >= 1) {
             metaManager.createColumn(null, numberOfCreatedColumns);
