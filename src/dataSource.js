@@ -255,9 +255,10 @@ class DataSource {
     let prop = column;
 
     // Please keep in mind that we may get data by physical index or by key when we store data as array of objects.
-    if (Number.isInteger(column)) {
+    // TODO: What about physical index which do not have visual representation?
+    if (Number.isInteger(column) && this.dataType !== 'array') {
       // When we store data as array of arrays a physical index is also a property.
-      prop = this.colToProp(column);
+      prop = this.colToProp(this.hot.toVisualColumn(column));
     }
 
     return this.getAtPhysicalCell(row, prop, dataRow);
