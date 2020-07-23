@@ -88,7 +88,7 @@ class DataSource {
   /**
    * Returns array of column values from the data source. `column` is the index of the row in the data source.
    *
-   * @param {string|number} column Column property which may be also a physical column index.
+   * @param {number} column Visual column index.
    * @returns {Array}
    */
   getAtColumn(column) {

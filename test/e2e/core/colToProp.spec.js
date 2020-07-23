@@ -26,6 +26,20 @@ describe('Core.colToProp', () => {
     expect(colToProp(2)).toBe('lastName');
   });
 
+  it('it should return the provided property name, when the user passes a property name as a column number', () => {
+    handsontable({
+      data: [{
+        id: 1,
+        sort: true,
+        length: 2
+      }]
+    });
+
+    expect(colToProp('id')).toBe('id');
+    expect(colToProp('sort')).toBe('sort');
+    expect(colToProp('length')).toBe('length');
+  });
+
   it('should return proper value after calling the function when columns was reorganized (data is array of arrays)', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5)
