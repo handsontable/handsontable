@@ -190,10 +190,15 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * @param {string|number} column Visual column index.
-   * @returns {string|number|null} Column property which may be also a physical column index.
+   * @param {string|number} column Visual column index or another passed argument.
+   * @returns {string|number} Column property, physical column index or passed argument.
    */
   colToProp(column) {
+    // TODO: This should be removed. Please keep in mind that the `getSourceDataAtCol` and `getSourceDataAtCell` use it.
+    if (Number.isInteger(column) === false) {
+      return column;
+    }
+
     const physicalColumn = this.instance.toPhysicalColumn(column);
 
     // Cached property.

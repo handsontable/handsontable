@@ -441,7 +441,7 @@ class Filters extends BasePlugin {
     const visualIndex = this.hot.toVisualColumn(column);
     const data = [];
 
-    arrayEach(this.hot.getSourceDataAtCol(column), (value, rowIndex) => {
+    arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
       const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot
         .getCellMeta(rowIndex, visualIndex);
 

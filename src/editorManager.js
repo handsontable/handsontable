@@ -187,8 +187,9 @@ class EditorManager {
 
     if (editorClass && td) {
       const prop = this.instance.colToProp(visualColumnToCheck);
+
       const originalValue =
-        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), prop);
+        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
