@@ -208,7 +208,7 @@ class DataMap {
    * Translates property into visual column index.
    *
    * @param {string|number} prop Column property which may be also a physical column index.
-   * @returns {string|number|null} Visual column index or passed argument.
+   * @returns {number|null} Visual column index.
    */
   propToCol(prop) {
     const cachedPhysicalIndex = this.propToColCache.get(prop);
