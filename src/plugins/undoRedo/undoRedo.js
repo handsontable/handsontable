@@ -71,7 +71,8 @@ function UndoRedo(instance) {
     const physicalRowIndex = instance.toPhysicalRow(rowIndex);
     const removedData = deepClone(originalData.slice(physicalRowIndex, physicalRowIndex + amount));
 
-    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData));
+    plugin.done(new UndoRedo.RemoveRowAction(
+      rowIndex, removedData, instance.getSettings().fixedRowsBottom, instance.getSettings().fixedRowsTop));
   });
 
   instance.addHook('afterCreateCol', (index, amount, source) => {
@@ -115,7 +116,8 @@ function UndoRedo(instance) {
 
     const columnsMap = instance.columnIndexMapper.getIndexesSequence();
     const rowsMap = instance.rowIndexMapper.getIndexesSequence();
-    const action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap, rowsMap);
+    const action = new UndoRedo.RemoveColumnAction(
+      columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsLeft);
 
     plugin.done(action);
   });
@@ -364,15 +366,25 @@ UndoRedo.CreateRowAction.prototype.redo = function(instance, redoneCallback) {
  * @private
  * @param {number} index The visual row index.
  * @param {Array} data The removed data.
+ * @param {number} fixedRowsBottom Number of fixed rows on the bottom. Remove row action change it sometimes.
+ * @param {number} fixedRowsTop Number of fixed rows on the top. Remove row action change it sometimes.
  */
-UndoRedo.RemoveRowAction = function(index, data) {
+UndoRedo.RemoveRowAction = function(index, data, fixedRowsBottom, fixedRowsTop) {
   this.index = index;
   this.data = data;
   this.actionType = 'remove_row';
+  this.fixedRowsBottom = fixedRowsBottom;
+  this.fixedRowsTop = fixedRowsTop;
 };
 inherit(UndoRedo.RemoveRowAction, UndoRedo.Action);
 
 UndoRedo.RemoveRowAction.prototype.undo = function(instance, undoneCallback) {
+  const settings = instance.getSettings();
+
+  // Changing by the reference as `updateSettings` doesn't work the best.
+  settings.fixedRowsBottom = this.fixedRowsBottom;
+  settings.fixedRowsTop = this.fixedRowsTop;
+
   instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
   instance.addHookOnce('afterRender', undoneCallback);
   instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'UndoRedo.undo');
@@ -415,8 +427,9 @@ UndoRedo.CreateColumnAction.prototype.redo = function(instance, redoneCallback) 
  * @param {Array} headers The header values.
  * @param {number[]} columnPositions The column position.
  * @param {number[]} rowPositions The row position.
+ * @param {number} fixedColumnsLeft Number of fixed columns on the left. Remove column action change it sometimes.
  */
-UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions) {
+UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsLeft) {
   this.index = index;
   this.indexes = indexes;
   this.data = data;
@@ -425,10 +438,16 @@ UndoRedo.RemoveColumnAction = function(index, indexes, data, headers, columnPosi
   this.columnPositions = columnPositions.slice(0);
   this.rowPositions = rowPositions.slice(0);
   this.actionType = 'remove_col';
+  this.fixedColumnsLeft = fixedColumnsLeft;
 };
 inherit(UndoRedo.RemoveColumnAction, UndoRedo.Action);
 
 UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) {
+  const settings = instance.getSettings();
+
+  // Changing by the reference as `updateSettings` doesn't work the best.
+  settings.fixedColumnsLeft = this.fixedColumnsLeft;
+
   const ascendingIndexes = this.indexes.slice(0).sort();
   const sortByIndexes = (elem, j, arr) => arr[this.indexes.indexOf(ascendingIndexes[j])];
 

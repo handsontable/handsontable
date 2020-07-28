@@ -1705,6 +1705,40 @@ describe('UndoRedo', () => {
           expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
         });
 
+        it('should undo removal of fixed row on the bottom', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(3, 3),
+            columns: [
+              {}, {}, {}
+            ],
+            colHeaders: true,
+            rowHeaders: true,
+            fixedRowsBottom: 1,
+          });
+
+          alter('remove_row', 0, 3);
+          undo();
+
+          expect(hot.getSettings().fixedRowsBottom).toBe(1);
+          // Extra border has stayed after row removal in very specific case (`columns` defined, the Formula plugin enabled) #7146
+          expect($('.innerBorderBottom').length).toBe(0);
+          expect($('.innerBorderTop').length).toBe(0);
+        });
+
+        it('should undo removal of fixed row on the top', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(3, 3),
+            colHeaders: true,
+            rowHeaders: true,
+            fixedRowsTop: 1,
+          });
+
+          alter('remove_row', 0, 3);
+          undo();
+
+          expect(hot.getSettings().fixedRowsTop).toBe(1);
+        });
+
         it('should undo multiple changes', () => {
           handsontable({
             data: createObjectData().slice(0, 2)
@@ -3022,6 +3056,20 @@ describe('UndoRedo', () => {
         |   ║   :   :   :   :   :   :   :   :   :   |
         |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
+    });
+
+    it('should undo removal of fixed column on the left', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        colHeaders: true,
+        rowHeaders: true,
+        fixedColumnsLeft: 1,
+      });
+
+      alter('remove_col', 0, 3);
+      undo();
+
+      expect(hot.getSettings().fixedColumnsLeft).toBe(1);
     });
   });
 });
