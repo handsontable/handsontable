@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2
- * Release date: 15/07/2020 (built at 15/07/2020 12:43:54)
+ * Version: 8.0.0
+ * Release date: 05/08/2020 (built at 28/07/2020 15:29:38)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -3342,7 +3342,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.0.0-beta.2";
+  var hotVersion = "8.0.0";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -3352,7 +3352,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("15/07/2020", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("05/08/2020", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -6084,6 +6084,7 @@ var REGISTERED_HOOKS = [
  * {@link Options#fillHandle} option is enabled.
  *
  * @event Hooks#afterAutofill
+ * @since 8.0.0
  * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
  * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
  * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
@@ -6194,6 +6195,7 @@ var REGISTERED_HOOKS = [
  * Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
  *
  * @event Hooks#beforeLoadData
+ * @since 8.0.0
  * @param {Array} sourceData Array of arrays or array of objects containing data.
  * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
  */
@@ -7037,14 +7039,6 @@ var REGISTERED_HOOKS = [
  */
 'afterDropdownMenuHide',
 /**
- * Fired by {@link HiddenRows} plugin to check whether the provided row index is hidden. This hook is fired when
- * {@link Options#hiddenRows} option is enabled.
- *
- * @event Hooks#hiddenRow
- * @param {number} row The visual row index in question.
- */
-'hiddenRow',
-/**
  * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
  * {@link Options#nestedRows} option is enabled.
  *
@@ -7164,6 +7158,7 @@ var REGISTERED_HOOKS = [
  * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
  *
  * @event Hooks#beforeColumnCollapse
+ * @since 8.0.0
  * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
  * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
  * @param {boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -7174,6 +7169,7 @@ var REGISTERED_HOOKS = [
  * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
  *
  * @event Hooks#afterColumnCollapse
+ * @since 8.0.0
  * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
  * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
  * @param {boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -7184,6 +7180,7 @@ var REGISTERED_HOOKS = [
  * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
  *
  * @event Hooks#beforeColumnExpand
+ * @since 8.0.0
  * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
  * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
  * @param {boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -7194,6 +7191,7 @@ var REGISTERED_HOOKS = [
  * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
  *
  * @event Hooks#afterColumnExpand
+ * @since 8.0.0
  * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
  * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
  * @param {boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -37903,9 +37901,10 @@ function transformSelectionToColumnDistance(selectionRanges) {
         columnStart = _selectionSchemaNorma2[1],
         columnEnd = _selectionSchemaNorma2[3];
 
-    var amount = columnEnd - columnStart + 1;
+    var columnNonHeaderStart = Math.max(columnStart, 0);
+    var amount = columnEnd - columnNonHeaderStart + 1;
     (0, _array.arrayEach)(Array.from(new Array(amount), function (_, i) {
-      return columnStart + i;
+      return columnNonHeaderStart + i;
     }), function (index) {
       if (!unorderedIndexes.has(index)) {
         unorderedIndexes.add(index);
@@ -37957,9 +37956,10 @@ function transformSelectionToRowDistance(selectionRanges) {
         rowStart = _selectionSchemaNorma4[0],
         rowEnd = _selectionSchemaNorma4[2];
 
-    var amount = rowEnd - rowStart + 1;
+    var rowNonHeaderStart = Math.max(rowStart, 0);
+    var amount = rowEnd - rowNonHeaderStart + 1;
     (0, _array.arrayEach)(Array.from(new Array(amount), function (_, i) {
-      return rowStart + i;
+      return rowNonHeaderStart + i;
     }), function (index) {
       if (!unorderedIndexes.has(index)) {
         unorderedIndexes.add(index);
@@ -52921,7 +52921,7 @@ function Core(rootElement, userSettings) {
   this.emptySelectedCells = function (source) {
     var _this3 = this;
 
-    if (!selection.isSelected()) {
+    if (!selection.isSelected() || this.countRows() === 0 || this.countCols() === 0) {
       return;
     }
 
@@ -53786,7 +53786,7 @@ function Core(rootElement, userSettings) {
    * Set the provided value in the source data set at the provided coordinates.
    *
    * @memberof Core#
-   * @function getSourceDataAtCol
+   * @function setSourceDataAtCell
    * @param {number|Array} row Physical row index or array of changes in format `[[row, prop, value], ...]`.
    * @param {number|string} column Physical column index / prop name.
    * @param {*} value The value to be set at the provided coordinates.
@@ -63524,8 +63524,8 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "15/07/2020 12:43:54";
-Handsontable.version = "8.0.0-beta.2"; // Export Hooks singleton
+Handsontable.buildDate = "28/07/2020 15:29:38";
+Handsontable.version = "8.0.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
 
@@ -81281,16 +81281,12 @@ var Autofill = /*#__PURE__*/function (_BasePlugin) {
           fillEndRow = _this$hot$selection$h2[2],
           fillEndColumn = _this$hot$selection$h2[3];
 
-      var _this$hot$getSelected = this.hot.getSelectedLast(),
-          _this$hot$getSelected2 = (0, _slicedToArray2.default)(_this$hot$getSelected, 4),
-          selectionStartRow = _this$hot$getSelected2[0],
-          selectionStartColumn = _this$hot$getSelected2[1],
-          selectionEndRow = _this$hot$getSelected2[2],
-          selectionEndColumn = _this$hot$getSelected2[3];
-
-      var cornersOfSelectionAndDragAreas = [Math.min(selectionStartRow, fillStartRow), Math.min(selectionStartColumn, fillStartColumn), Math.max(selectionEndRow, fillEndRow), Math.max(selectionEndColumn, fillEndColumn)];
+      var selectionRangeLast = this.hot.getSelectedRangeLast();
+      var topLeftCorner = selectionRangeLast.getTopLeftCorner();
+      var bottomRightCorner = selectionRangeLast.getBottomRightCorner();
+      var cornersOfSelectionAndDragAreas = [Math.min(topLeftCorner.row, fillStartRow), Math.min(topLeftCorner.col, fillStartColumn), Math.max(bottomRightCorner.row, fillEndRow), Math.max(bottomRightCorner.col, fillEndColumn)];
       this.resetSelectionOfDraggedArea();
-      var cornersOfSelectedCells = this.hot.getSelectedLast();
+      var cornersOfSelectedCells = [topLeftCorner.row, topLeftCorner.col, bottomRightCorner.row, bottomRightCorner.col];
       cornersOfSelectionAndDragAreas = this.hot.runHooks('modifyAutofillRange', cornersOfSelectionAndDragAreas, cornersOfSelectedCells);
 
       var _getDragDirectionAndR = (0, _utils.getDragDirectionAndRange)(cornersOfSelectedCells, cornersOfSelectionAndDragAreas),
@@ -87026,6 +87022,10 @@ function removeColumnItem() {
       this.alter('remove_col', (0, _utils2.transformSelectionToColumnDistance)(this.getSelected()), null, 'ContextMenu.removeColumn');
     },
     disabled: function disabled() {
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+
       var selected = (0, _utils.getValidSelection)(this);
 
       if (!selected) {
@@ -87039,7 +87039,7 @@ function removeColumnItem() {
         return totalColumns === 0;
       }
 
-      return this.selection.isSelectedByRowHeader() || !this.isColumnModificationAllowed() || totalColumns === 0;
+      return this.selection.isSelectedByRowHeader() || totalColumns === 0;
     },
     hidden: function hidden() {
       return !this.getSettings().allowRemoveColumn;
@@ -88000,11 +88000,35 @@ var CopyPaste = /*#__PURE__*/function (_BasePlugin) {
 
       endRow = Math.max(endRow, newValuesMaxRow + startRow);
       endColumn = Math.max(endColumn, newValuesMaxColumn + startColumn);
+      var selectionEndColumn = endColumn;
+      var selectionEndRow = endRow;
 
-      for (var row = startRow, valuesRow = 0; row <= endRow; row += 1) {
+      for (var row = startRow, maxRow = endRow, valuesRow = 0; row <= maxRow; row += 1) {
+        var _this$hot$getCellMeta = this.hot.getCellMeta(row, startColumn),
+            skipRowOnPaste = _this$hot$getCellMeta.skipRowOnPaste;
+
+        if (skipRowOnPaste === true) {
+          maxRow += 1;
+          selectionEndRow = maxRow;
+          /* eslint-disable no-continue */
+
+          continue;
+        }
+
         var newRow = [];
 
-        for (var column = startColumn, valuesColumn = 0; column <= endColumn; column += 1) {
+        for (var column = startColumn, maxColumn = endColumn, valuesColumn = 0; column <= maxColumn; column += 1) {
+          var _this$hot$getCellMeta2 = this.hot.getCellMeta(row, column),
+              skipColumnOnPaste = _this$hot$getCellMeta2.skipColumnOnPaste;
+
+          if (skipColumnOnPaste === true) {
+            maxColumn += 1;
+            selectionEndColumn = maxColumn;
+            /* eslint-disable no-continue */
+
+            continue;
+          }
+
           newRow.push(inputArray[valuesRow][valuesColumn]);
           valuesColumn = valuesColumn === newValuesMaxColumn ? 0 : valuesColumn += 1;
         }
@@ -88014,7 +88038,7 @@ var CopyPaste = /*#__PURE__*/function (_BasePlugin) {
       }
 
       this.hot.populateFromArray(startRow, startColumn, newValues, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
-      return [startRow, startColumn, endRow, endColumn];
+      return [startRow, startColumn, selectionEndRow, selectionEndColumn];
     }
     /**
      * `copy` event callback on textarea element.
@@ -91159,7 +91183,7 @@ var ManualColumnMove = /*#__PURE__*/function (_BasePlugin) {
         var fixedColumns = coords.col < priv.fixedColumns;
         var scrollableElement = this.hot.view.wt.wtOverlays.scrollableElement;
         var wrapperIsWindow = scrollableElement.scrollX ? scrollableElement.scrollX - priv.rootElementOffset : 0;
-        var mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
+        var mouseOffset = event.offsetX - (fixedColumns ? wrapperIsWindow : 0);
         var leftOffset = Math.abs(this.getColumnsWidth(start, coords.col - 1) + mouseOffset);
         this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start - 1) + leftOffset);
         this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
@@ -92888,7 +92912,7 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
         var leftPos = wtTable.holder.scrollLeft + wtViewport.getRowHeaderWidth();
         this.backlight.setPosition(null, leftPos);
         this.backlight.setSize(wtTable.hider.offsetWidth - leftPos, this.getRowsHeight(start, end));
-        this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + event.layerY) * -1, null);
+        this.backlight.setOffset((this.getRowsHeight(start, coords.row - 1) + event.offsetY) * -1, null);
         (0, _element.addClass)(this.hot.rootElement, CSS_ON_MOVING);
         this.refreshPositions();
       } else {
@@ -98945,7 +98969,7 @@ function UndoRedo(instance) {
     var rowIndex = (originalData.length + index) % originalData.length;
     var physicalRowIndex = instance.toPhysicalRow(rowIndex);
     var removedData = (0, _object.deepClone)(originalData.slice(physicalRowIndex, physicalRowIndex + amount));
-    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData));
+    plugin.done(new UndoRedo.RemoveRowAction(rowIndex, removedData, instance.getSettings().fixedRowsBottom, instance.getSettings().fixedRowsTop));
   });
   instance.addHook('afterCreateCol', function (index, amount, source) {
     if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
@@ -98984,7 +99008,7 @@ function UndoRedo(instance) {
 
     var columnsMap = instance.columnIndexMapper.getIndexesSequence();
     var rowsMap = instance.rowIndexMapper.getIndexesSequence();
-    var action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap, rowsMap);
+    var action = new UndoRedo.RemoveColumnAction(columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsLeft);
     plugin.done(action);
   });
   instance.addHook('beforeCellAlignment', function (stateBefore, range, type, alignment) {
@@ -99230,18 +99254,26 @@ UndoRedo.CreateRowAction.prototype.redo = function (instance, redoneCallback) {
  * @private
  * @param {number} index The visual row index.
  * @param {Array} data The removed data.
+ * @param {number} fixedRowsBottom Number of fixed rows on the bottom. Remove row action change it sometimes.
+ * @param {number} fixedRowsTop Number of fixed rows on the top. Remove row action change it sometimes.
  */
 
 
-UndoRedo.RemoveRowAction = function (index, data) {
+UndoRedo.RemoveRowAction = function (index, data, fixedRowsBottom, fixedRowsTop) {
   this.index = index;
   this.data = data;
   this.actionType = 'remove_row';
+  this.fixedRowsBottom = fixedRowsBottom;
+  this.fixedRowsTop = fixedRowsTop;
 };
 
 (0, _object.inherit)(UndoRedo.RemoveRowAction, UndoRedo.Action);
 
 UndoRedo.RemoveRowAction.prototype.undo = function (instance, undoneCallback) {
+  var settings = instance.getSettings(); // Changing by the reference as `updateSettings` doesn't work the best.
+
+  settings.fixedRowsBottom = this.fixedRowsBottom;
+  settings.fixedRowsTop = this.fixedRowsTop;
   instance.alter('insert_row', this.index, this.data.length, 'UndoRedo.undo');
   instance.addHookOnce('afterRender', undoneCallback);
   instance.populateFromArray(this.index, 0, this.data, void 0, void 0, 'UndoRedo.undo');
@@ -99287,10 +99319,11 @@ UndoRedo.CreateColumnAction.prototype.redo = function (instance, redoneCallback)
  * @param {Array} headers The header values.
  * @param {number[]} columnPositions The column position.
  * @param {number[]} rowPositions The row position.
+ * @param {number} fixedColumnsLeft Number of fixed columns on the left. Remove column action change it sometimes.
  */
 
 
-UndoRedo.RemoveColumnAction = function (index, indexes, data, headers, columnPositions, rowPositions) {
+UndoRedo.RemoveColumnAction = function (index, indexes, data, headers, columnPositions, rowPositions, fixedColumnsLeft) {
   this.index = index;
   this.indexes = indexes;
   this.data = data;
@@ -99299,6 +99332,7 @@ UndoRedo.RemoveColumnAction = function (index, indexes, data, headers, columnPos
   this.columnPositions = columnPositions.slice(0);
   this.rowPositions = rowPositions.slice(0);
   this.actionType = 'remove_col';
+  this.fixedColumnsLeft = fixedColumnsLeft;
 };
 
 (0, _object.inherit)(UndoRedo.RemoveColumnAction, UndoRedo.Action);
@@ -99308,6 +99342,9 @@ UndoRedo.RemoveColumnAction.prototype.undo = function (instance, undoneCallback)
       _instance$getPlugin$e,
       _instance$getPlugin;
 
+  var settings = instance.getSettings(); // Changing by the reference as `updateSettings` doesn't work the best.
+
+  settings.fixedColumnsLeft = this.fixedColumnsLeft;
   var ascendingIndexes = this.indexes.slice(0).sort();
 
   var sortByIndexes = function sortByIndexes(elem, j, arr) {
@@ -114907,6 +114944,7 @@ var DataManager = /*#__PURE__*/function () {
 
       this.rewriteCache();
       var newRowIndex = this.getRowIndex(childElement);
+      this.hot.rowIndexMapper.insertIndexes(newRowIndex, 1);
       this.hot.runHooks('afterCreateRow', newRowIndex, 1);
       this.hot.runHooks('afterAddChild', parent, childElement);
     }
@@ -115970,8 +116008,6 @@ var ContextMenuUI = /*#__PURE__*/function (_BaseUI) {
           var translatedRowIndex = _this2.dataManager.translateTrimmedRow(_this2.hot.getSelectedLast()[0]);
 
           var parent = _this2.dataManager.getDataObject(translatedRowIndex);
-
-          _this2.hot.rowIndexMapper.insertIndexes(translatedRowIndex, 1);
 
           _this2.dataManager.addChild(parent);
         },
