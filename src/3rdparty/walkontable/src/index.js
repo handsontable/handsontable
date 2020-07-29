@@ -26,7 +26,7 @@ import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
 
-import getSvgPathsRenderer, { precalculateStylesAndCommands, compareStrokePriority } from './borderRenderer/svg/pathsRenderer';
+import getSvgPathsRenderer, { compareStrokePriority } from './borderRenderer/svg/pathsRenderer';
 import getSvgResizer from './borderRenderer/svg/resizer';
 import { setCurrentWindowContext, convertCssColorToRGBA, getLuminance, compareLuminance } from './borderRenderer/svg/color';
 
@@ -70,7 +70,6 @@ export {
   getListenersCounter,
 
   getSvgPathsRenderer,
-  precalculateStylesAndCommands,
   getSvgResizer,
   setCurrentWindowContext,
   convertCssColorToRGBA,
