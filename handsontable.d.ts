@@ -1865,7 +1865,7 @@ declare namespace Handsontable {
       afterRefreshDimensions?: (previousDimensions: object, currentDimensions: object, stateChanged: boolean) => void;
       afterRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
-      afterRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
+      afterRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
       afterRender?: (isForced: boolean) => void;
       afterRenderer?: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
       afterRowMove?: (startRow: number, endRow: number) => void;
