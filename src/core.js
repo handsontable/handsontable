@@ -1004,6 +1004,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * @ignore
    * @returns {object}
    */
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
@@ -1050,6 +1051,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   /**
+   * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
    * @param {Function} callback The callback function fot async validation.
@@ -1279,6 +1281,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * @ignore
    * @param {number} row The visual row index.
    * @param {string|number} propOrCol The visual prop or column index.
    * @param {*} value The cell value.
