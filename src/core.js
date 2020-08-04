@@ -965,6 +965,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
    * sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
    *
+   * @memberof Core#
+   * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
   this.batch = function(wrappedOperations) {
