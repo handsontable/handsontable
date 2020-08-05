@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.0.0-beta.2
- * Release date: 15/07/2020 (built at 15/07/2020 12:43:54)
+ * Version: 8.0.0
+ * Release date: 05/08/2020 (built at 05/08/2020 11:25:51)
  */
 /**
  * Fix for bootstrap styles
@@ -212,19 +212,14 @@
   border-right-width: 0;
 }
 
-/* Property controlled by top overlay */
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
-  border-bottom-width: 0;
-}
-
-/* Property controlled by bottom overlay */
-.ht_master:not(.innerBorderBottom) thead tr:last-child th,
-.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderBottom) thead tr.lastChild th,
-.ht_master:not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
+/*
+innerBorderTop - Property controlled by top overlay
+innerBorderBottom - Property controlled by bottom overlay
+ */
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
@@ -584,6 +579,10 @@
   /*overwrite styles potentionally made by a framework*/
 }
 
+.handsontableInput:focus {
+  outline: none;
+}
+
 .handsontableInputHolder {
   position: absolute;
   top: 0;
@@ -594,6 +593,10 @@
   -webkit-appearance: menulist-button !important;
   position: absolute;
   width: auto;
+}
+
+.htSelectEditor:focus {
+  outline: none;
 }
 
 /*
