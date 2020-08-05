@@ -2789,6 +2789,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js
