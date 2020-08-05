@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.0.0
- * Release date: 05/08/2020 (built at 28/07/2020 15:29:38)
+ * Release date: 05/08/2020 (built at 05/08/2020 11:25:51)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -6621,8 +6621,10 @@ var REGISTERED_HOOKS = [
  * {@link Options#manualColumnMove} option is enabled.
  *
  * @event Hooks#beforeColumnMove
- * @param {number[]} columns Array of visual column indexes to be moved.
- * @param {number} target Visual column index being a target for moved columns.
+ * @param {Array} movedColumns Array of visual column indexes to be moved.
+ * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+ * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
+ * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
  */
 'beforeColumnMove',
 /**
@@ -6630,8 +6632,11 @@ var REGISTERED_HOOKS = [
  * {@link Options#manualColumnMove} option is enabled.
  *
  * @event Hooks#afterColumnMove
- * @param {number[]} columns Array of visual column indexes that were moved.
- * @param {number} target Visual column index being a target for moved columns.
+ * @param {Array} movedColumns Array of visual column indexes to be moved.
+ * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+ * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
+ * @param {boolean} movePossible Indicates if it was possible to move columns to the desired position.
+ * @param {boolean} orderChanged Indicates if order of columns was changed by move.
  */
 'afterColumnMove',
 /**
@@ -6640,8 +6645,8 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#beforeRowMove
  * @param {Array} movedRows Array of visual row indexes to be moved.
- * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/demo-moving.html#manualRowMove).
- * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove). It's `undefined` when `dragRows` function wasn't called.
+ * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+ * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
  * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
  */
 'beforeRowMove',
@@ -6651,8 +6656,8 @@ var REGISTERED_HOOKS = [
  *
  * @event Hooks#afterRowMove
  * @param {Array} movedRows Array of visual row indexes to be moved.
- * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/demo-moving.html#manualRowMove).
- * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove). It's `undefined` when `dragRows` function wasn't called.
+ * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+ * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
  * @param {boolean} movePossible Indicates if it was possible to move rows to the desired position.
  * @param {boolean} orderChanged Indicates if order of rows was changed by move.
  */
@@ -52265,6 +52270,8 @@ function Core(rootElement, userSettings) {
    * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
    * sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
    *
+   * @memberof Core#
+   * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    */
 
@@ -52303,6 +52310,7 @@ function Core(rootElement, userSettings) {
     instance.runHooks('afterInit');
   };
   /**
+   * @ignore
    * @returns {object}
    */
 
@@ -52351,6 +52359,7 @@ function Core(rootElement, userSettings) {
     return numericData;
   }
   /**
+   * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
    * @param {Function} callback The callback function fot async validation.
@@ -52593,6 +52602,7 @@ function Core(rootElement, userSettings) {
     }
   };
   /**
+   * @ignore
    * @param {number} row The visual row index.
    * @param {string|number} propOrCol The visual prop or column index.
    * @param {*} value The cell value.
@@ -59606,6 +59616,7 @@ var _default = function _default() {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js
@@ -63524,7 +63535,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "28/07/2020 15:29:38";
+Handsontable.buildDate = "05/08/2020 11:25:51";
 Handsontable.version = "8.0.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -92341,7 +92352,7 @@ var CSS_AFTER_SELECTION = 'after-selection--rows';
  * - `dragRow` - drag single row to the new position.
  * - `dragRows` - drag many rows (as an array of indexes) to the new position.
  *
- * [Documentation](/demo-moving.html#manualRowMove) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
+ * [Documentation](/docs/demo-moving.html) explain differences between drag and move actions. Please keep in mind that if you want apply visual changes,
  * you have to call manually the `render` method on the instance of Handsontable.
  *
  * The plugin creates additional components to make moving possibly using user interface:
@@ -92477,7 +92488,7 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
      *
      * @param {number} row Visual row index to be moved.
      * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-     * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
      * @fires Hooks#beforeRowMove
      * @fires Hooks#afterRowMove
      * @returns {boolean}
@@ -92493,7 +92504,7 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
      *
      * @param {Array} rows Array of visual row indexes to be moved.
      * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-     * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
      * @fires Hooks#beforeRowMove
      * @fires Hooks#afterRowMove
      * @returns {boolean}
@@ -92525,7 +92536,7 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
      *
      * @param {number} row Visual row index to be dragged.
      * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-     * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html).
      * @fires Hooks#beforeRowMove
      * @fires Hooks#afterRowMove
      * @returns {boolean}
@@ -92541,7 +92552,7 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
      *
      * @param {Array} rows Array of visual row indexes to be dragged.
      * @param {number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-     * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html).
      * @fires Hooks#beforeRowMove
      * @fires Hooks#afterRowMove
      * @returns {boolean}
@@ -92560,7 +92571,7 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
      *
      * @param {Array} movedRows Array of visual row indexes to be moved.
      * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-     * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
      * @returns {boolean}
      */
 
@@ -92590,7 +92601,7 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
      * @private
      * @param {Array} movedRows Array of visual row indexes to be moved.
      * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-     * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
      * @returns {boolean}
      */
 
@@ -96860,17 +96871,18 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 /**
  * @plugin ObserveChanges
- * @deprecated This plugin is deprecated and will be removed in the next major release.
  *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
  * disabled. Enabling this plugin switches the table into one-way data binding where changes are applied into the data
  * source (outside from the table) will be automatically reflected in the table.
  *
+ * @example
  * ```js
  * // as a boolean
  * observeChanges: true,
- * ```.
+ * ```
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */
@@ -100700,7 +100712,7 @@ var ColumnSummary = /*#__PURE__*/function (_BasePlugin) {
      * @private
      * @param {Array} rows Array of visual row indexes to be moved.
      * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-     * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
      */
 
   }, {
@@ -113843,9 +113855,9 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
      * @private
      * @param {Array} rows Array of visual row indexes to be moved.
      * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-     * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
      * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-     * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html).
      * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
      * @fires Hooks#afterRowMove
      * @returns {boolean}
@@ -113967,7 +113979,7 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
      * @private
      * @param {Array} movedRows Array of visual row indexes to be moved.
      * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-     * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
      * @returns {boolean}
      */
 
@@ -113984,7 +113996,7 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
      * @private
      * @param {Array} rows Array of visual row indexes to be moved.
      * @param {undefined|number} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements.
-     * To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove).
+     * To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html).
      */
 
   }, {
