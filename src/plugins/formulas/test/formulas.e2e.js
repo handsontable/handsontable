@@ -218,7 +218,7 @@ describe('Formulas general', () => {
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  it('should recalculate table after changing cell value (by reference)', () => {
+  it('should recalculate table after changing cell value', () => {
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -228,7 +228,7 @@ describe('Formulas general', () => {
       afterChange,
     });
 
-    hot.getSourceData()[1][1] = 20;
+    hot.setSourceDataAtCell(1, 1, 20);
     hot.getPlugin('formulas').recalculateFull();
     hot.render();
 
@@ -276,7 +276,8 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#VALUE!', 12, '\'=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1))
+      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
   it('should recalculate table after changing cell value from escaped formula expression into valid formula expression', () => {
@@ -296,7 +297,8 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, 12]);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1))
+      .toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
   it('should recalculate table after changing cell value from primitive value into formula expression', () => {
@@ -336,7 +338,8 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 15, 2031, '#DIV/0!', 12, '\'=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[4, 1, '=Sum(a2:a5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1))
+      .toEqual([[[4, 1, '=Sum(a2:a5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
   });
 
   it('should recalculate table after changing cell value from formula expression into another formula expression', () => {
@@ -356,7 +359,8 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 6030, 8046, '#DIV/0!', 12, '\'=SUM(E5)']);
-    expect(afterChange.calls.argsFor(1)).toEqual([[[4, 1, '=Sum(a2:a5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+    expect(afterChange.calls.argsFor(1))
+      .toEqual([[[4, 1, '=Sum(a2:a5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
   it('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
@@ -580,7 +584,8 @@ describe('Formulas general', () => {
 
       expect(hot.getSourceDataAtRow(0)).toEqual(['=#REF!', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(2)).toEqual([2012, '=SUM(A2:A3)', '=SUM(B3,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(2))
+        .toEqual([2012, '=SUM(A2:A3)', '=SUM(B3,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(0)).toEqual(['#REF!', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '#REF!']);
       expect(hot.getDataAtRow(1)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(2)).toEqual([2012, 4023, '#REF!', '#REF!', 12, '\'=SUM(E5)']);
@@ -596,7 +601,8 @@ describe('Formulas general', () => {
 
       hot.alter('remove_row', 0, 4);
 
-      expect(hot.getSourceDataAtRow(0)).toEqual([2012, '=SUM(A1:A1)', '=SUM(B1,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(0))
+        .toEqual([2012, '=SUM(A1:A1)', '=SUM(B1,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(0)).toEqual([2012, 2012, '#REF!', '#REF!', 12, '\'=SUM(E5)']);
     });
 
@@ -658,7 +664,8 @@ describe('Formulas general', () => {
 
       expect(hot.getSourceDataAtRow(0)).toEqual([null, null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(1)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(2)).toEqual([2012, '=SUM(#REF!)', '=SUM(B3,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(2))
+        .toEqual([2012, '=SUM(#REF!)', '=SUM(B3,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(0)).toEqual([null, null, null, null, null, null]);
       expect(hot.getDataAtRow(1)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
       expect(hot.getDataAtRow(2)).toEqual([2012, '#REF!', '#REF!', '#REF!', 12, '\'=SUM(E5)']);
@@ -872,14 +879,16 @@ describe('Formulas general', () => {
       hot.alter('insert_row', 5);
       hot.undo();
 
-      expect(hot.getSourceDataAtRow(0)).toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
+      expect(hot.getSourceDataAtRow(0))
+        .toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(4)).toEqual([2009, null, 0, 2941, null, null, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(5)).toEqual([2010, null, 5, 2905, null, null, 2867, '=SUM(A7,2,3)', '=$C1']);
       expect(hot.getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, null, null, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(7)).toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(7))
+        .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
 
       hot.undo();
 
@@ -890,7 +899,8 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(4)).toEqual([2009, null, 0, 2941, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(5)).toEqual([2010, null, 5, 2905, 2867, '=SUM(A7,2,3)', '=$C1']);
       expect(hot.getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(7)).toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,F6)', '=A5/C5', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(7))
+        .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,F6)', '=A5/C5', 12, '\'=SUM(E5)']);
 
       hot.undo();
 
@@ -901,7 +911,8 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(4)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(5)).toEqual([2010, 5, 2905, 2867, '=SUM(A7,2,3)', '=$B1']);
       expect(hot.getSourceDataAtRow(6)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(7)).toEqual([2012, '=SUM(A5:A8)', '=SUM(B8,E6)', '=A5/B5', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(7))
+        .toEqual([2012, '=SUM(A5:A8)', '=SUM(B8,E6)', '=A5/B5', 12, '\'=SUM(E5)']);
 
       hot.undo();
 
@@ -909,7 +920,8 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1']);
       expect(hot.getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(4))
+        .toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
     });
 
     it('should redo into the next state after alter table (mixed insert operations)', () => {
@@ -960,14 +972,16 @@ describe('Formulas general', () => {
 
       hot.redo();
 
-      expect(hot.getSourceDataAtRow(0)).toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
+      expect(hot.getSourceDataAtRow(0))
+        .toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
       expect(hot.getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null, null, null, null]);
       expect(hot.getSourceDataAtRow(4)).toEqual([2009, null, 0, 2941, null, null, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(5)).toEqual([2010, null, 5, 2905, null, null, 2867, '=SUM(A7,2,3)', '=$C1']);
       expect(hot.getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, null, null, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(7)).toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(7))
+        .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
     });
 
     it('should restore previous state after alter table (mixed remove operations)', () => {
@@ -1088,7 +1102,8 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
       expect(hot.getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A3,2,3)', '=#REF!']);
       expect(hot.getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=SUM(#REF!)', '=SUM(B1,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
+      expect(hot.getSourceDataAtRow(4))
+        .toEqual([2012, '=SUM(#REF!)', '=SUM(B1,#REF!)', '=#REF!/#REF!', 12, '\'=SUM(E5)']);
 
       expect(hot.getDataAtRow(0)).toEqual([2012, '#REF!', '#REF!', '#REF!', 12, '\'=SUM(E5)']);
       expect(hot.getDataAtRow(1)).toEqual([2010, 5, 2905, 2867, 2016, '#REF!']);

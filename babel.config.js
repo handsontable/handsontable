@@ -8,6 +8,7 @@ const allowedE2EModules = [
   '@babel/runtime/*',
   './htmlNormalize',
   './common',
+  './mouseEvents',
   './../bootstrap',
   './helpers/custom-matchers',
   './asciiTable',
@@ -83,9 +84,6 @@ module.exports = {
           allowedModules: allowedE2EModules
         }]
       ],
-      ignore: [
-        'src/plugins/**/test/**'
-      ]
     },
   },
 

@@ -13,7 +13,7 @@ import Overlay from './_base';
  */
 class TopLeftCornerOverlay extends Overlay {
   /**
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     super(wotInstance);
@@ -24,7 +24,7 @@ class TopLeftCornerOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param {...*} args Parameters that will be forwarded to the `Table` constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {Table}
    */
   createTable(...args) {
@@ -32,18 +32,20 @@ class TopLeftCornerOverlay extends Overlay {
   }
 
   /**
-   * Checks if overlay should be fully rendered
+   * Checks if overlay should be fully rendered.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   shouldBeRendered() {
     const { wot } = this;
-    return !!((wot.getSetting('fixedRowsTop') || wot.getSetting('columnHeaders').length) &&
-        (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length));
+
+    return wot.getSetting('shouldRenderTopOverlay') && wot.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
-   * Updates the corner overlay position
+   * Updates the corner overlay position.
+   *
+   * @returns {boolean}
    */
   resetFixedPosition() {
     this.updateTrimmingContainer();
@@ -52,15 +54,17 @@ class TopLeftCornerOverlay extends Overlay {
       // removed from DOM
       return;
     }
+
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow) {
-      const box = this.wot.wtTable.hider.getBoundingClientRect();
-      const top = Math.ceil(box.top);
-      const left = Math.ceil(box.left);
-      const bottom = Math.ceil(box.bottom);
-      const right = Math.ceil(box.right);
+      const { wtTable } = this.wot;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const top = Math.ceil(hiderRect.top);
+      const left = Math.ceil(hiderRect.left);
+      const bottom = Math.ceil(hiderRect.bottom);
+      const right = Math.ceil(hiderRect.right);
       let finalLeft = '0';
       let finalTop = '0';
 
@@ -87,8 +91,10 @@ class TopLeftCornerOverlay extends Overlay {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight === 0 ? tableHeight : tableHeight + 4}px`;
-    overlayRoot.style.width = `${tableWidth === 0 ? tableWidth : tableWidth + 4}px`;
+    overlayRoot.style.height = `${tableHeight}px`;
+    overlayRoot.style.width = `${tableWidth}px`;
+
+    return false;
   }
 }
 

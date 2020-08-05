@@ -6,6 +6,8 @@ import {
   deepExtend,
   deepObjectSize,
   createObjectPropListener,
+  setProperty,
+  extend,
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -35,6 +37,33 @@ describe('Object helper', () => {
   });
 
   //
+  // Handsontable.helper.extend
+  //
+  describe('extend', () => {
+    it('should returns a target object reference', () => {
+      const target = {};
+      const extension = {};
+
+      expect(extend(target, extension)).toBe(target);
+    });
+
+    it('should extend a target object a overwrite existed values', () => {
+      expect(extend({})).toEqual({});
+      expect(extend({}, { a: 1, b: 2, 5: 5 })).toEqual({ a: 1, b: 2, 5: 5 });
+      expect(extend({ a: 'z', 5: 1 }, { a: 1, b: 2, 5: 5 })).toEqual({ a: 1, b: 2, 5: 5 });
+      expect(extend({ a: 'z', foo: 'bar' }, { a: 1, b: 2, 5: 5 })).toEqual({ a: 1, b: 2, 5: 5, foo: 'bar' });
+    });
+
+    it('should extend a target object only for keys which are declared as writable', () => {
+      expect(extend({}, { a: 1 }, ['a'])).toEqual({ a: 1 });
+      expect(extend({}, { a: 1, b: 2, c: 2 }, ['a'])).toEqual({ a: 1 });
+      expect(extend({ a: 'z' }, { a: 1, b: 2, c: 2 }, ['a'])).toEqual({ a: 1 });
+      expect(extend({ c: 'z' }, { a: 1, b: 2, c: 2 }, ['b', 'a', 'd'])).toEqual({ c: 'z', b: 2, a: 1 });
+      expect(extend({}, { a: 1, b: 2, c: 2 }, [])).toEqual({});
+    });
+  });
+
+  //
   // Handsontable.helper.duckSchema
   //
   describe('duckSchema', () => {
@@ -51,7 +80,8 @@ describe('Object helper', () => {
     it('should returns valid schema object (deeply)', () => {
       expect(duckSchema({ test: { a: { b: 11 } } })).toEqual({ test: { a: { b: null } } });
       expect(duckSchema({ test: { a: { b: [] } } })).toEqual({ test: { a: { b: [] } } });
-      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } })).toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
+      expect(duckSchema({ test: { a: { b: [{ q: 1, w: 2 }] } } }))
+        .toEqual({ test: { a: { b: [{ q: null, w: null }] } } });
     });
   });
 
@@ -252,6 +282,35 @@ describe('Object helper', () => {
 
       expect(deepObjectSize(toCount)).toEqual(8);
     });
+
+    it('should ignore the `__children` key, when calculating the object size', () => {
+      const toCount = {
+        prop1: 1,
+        prop2: 2,
+        prop3: {
+          prop31: {
+            prop311: 311,
+            prop312: 312
+          },
+          prop32: 32,
+          prop33: 33
+        },
+        prop4: 4,
+        prop5: 5,
+        __children: [
+          {
+            prop1: 1,
+            prop2: 2,
+          },
+          {
+            prop1: 1,
+            prop2: 2,
+          }
+        ]
+      };
+
+      expect(deepObjectSize(toCount)).toEqual(8);
+    });
   });
 
   //
@@ -302,6 +361,33 @@ describe('Object helper', () => {
 
       expect(propListener.isTouched()).toBe(true);
       expect(propListener.value).toBe(void 0);
+    });
+  });
+
+  //
+  // Handsontable.helper.setProperty
+  //
+  describe('setProperty', () => {
+    it('should set a property value on a given object', () => {
+      const testObject = {};
+      const testObject2 = { prop1: 0 };
+
+      setProperty(testObject, 'prop1', 'value1');
+      expect(testObject.prop1).toEqual('value1');
+
+      setProperty(testObject2, 'prop1', 'value1');
+      expect(testObject2.prop1).toEqual('value1');
+    });
+
+    it('should set a nested property value on a given object', () => {
+      const testObject = {};
+      const testObject2 = { prop1: { subprop1: 0 } };
+
+      setProperty(testObject, 'prop1.subprop1', 'value1');
+      expect(testObject.prop1.subprop1).toEqual('value1');
+
+      setProperty(testObject2, 'prop1.subprop1', 'value1');
+      expect(testObject2.prop1.subprop1).toEqual('value1');
     });
   });
 });

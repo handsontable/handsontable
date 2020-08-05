@@ -10,7 +10,8 @@ describe('i18n substituteVariables function', () => {
   it('should return substituted phrases propositions when handling array of phrase propositions', () => {
     const phrasePropositions = ['hello [name]', 'hi [name] [surname]'];
 
-    expect(substituteVariables(phrasePropositions, { name: 'Tim', surname: 'Cook' })).toEqual(['hello Tim', 'hi Tim Cook']);
+    expect(substituteVariables(phrasePropositions, { name: 'Tim', surname: 'Cook' }))
+      .toEqual(['hello Tim', 'hi Tim Cook']);
   });
 
   it('should return phrase propositions with removed variables when variables do not exist in second function argument', () => {

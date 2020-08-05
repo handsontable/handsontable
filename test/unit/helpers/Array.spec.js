@@ -8,6 +8,10 @@ import {
   arrayMin,
   arrayReduce,
   arraySum,
+  stringToArray,
+  getDifferenceOfArrays,
+  getIntersectionOfArrays,
+  getUnionOfArrays
 } from 'handsontable/helpers/array';
 
 describe('Array helper', () => {
@@ -274,6 +278,122 @@ describe('Array helper', () => {
       expect(arraySum([1, 1, 2, 3, 4])).toBe(11);
       expect(arraySum([1, 1, 0, 3.1, 4.2])).toBe(9.3);
       expect(arraySum(iterableObject)).toBe(12);
+    });
+  });
+
+  //
+  // Handsontable.helper.getDifferenceOfArrays
+  //
+  describe('getDifferenceOfArrays', () => {
+    describe('works with parameters as array of number', () => {
+      it('should return the difference between two arrays.', () => {
+
+        expect(getDifferenceOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1]);
+      });
+
+      it('should return the difference between more than two arrays.', () => {
+
+        expect(getDifferenceOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2]);
+      });
+    });
+
+    describe('works with parameters as array of string', () => {
+      it('should return the difference between two arrays.', () => {
+        expect(getDifferenceOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-2', 'class-3', 'class-4']
+        )).toStrictEqual(['class-1']);
+      });
+
+      it('should return the difference between more than two arrays.', () => {
+        expect(getDifferenceOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-3', 'class-4'],
+          ['class-3', 'class-4', 'class-5']
+        )).toStrictEqual(['class-1', 'class-2']);
+      });
+    });
+  });
+
+  //
+  // Handsontable.helper.getIntersectionOfArrays
+  //
+  describe('getIntersectionOfArrays', () => {
+    describe('works with parameters as array of number', () => {
+      it('should return elements that exists in two arrays.', () => {
+        expect(getIntersectionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([2, 3]);
+      });
+
+      it('should return elements that exists in more than two arrays.', () => {
+        expect(getIntersectionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([3]);
+      });
+    });
+
+    describe('works with parameters as array of string', () => {
+      it('should return elements that exists in two arrays.', () => {
+        expect(getIntersectionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-2', 'class-3', 'class-4']
+        )).toStrictEqual(['class-2', 'class-3']);
+      });
+
+      it('should return elements that exists in more than two arrays.', () => {
+        expect(getIntersectionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-3', 'class-4'],
+          ['class-3', 'class-4', 'class-5']
+        )).toStrictEqual(['class-3']);
+      });
+    });
+  });
+
+  //
+  // Handsontable.helper.getUnionOfArrays
+  //
+  describe('getUnionOfArrays', () => {
+    describe('works with parameters as array of number', () => {
+      it('should return elements exists in any of the two arrays.', () => {
+        expect(getUnionOfArrays([1, 2, 3], [2, 3, 4])).toStrictEqual([1, 2, 3, 4]);
+      });
+
+      it('should return elements that exists in any of the arrays.', () => {
+        expect(getUnionOfArrays([1, 2, 3], [3, 4], [3, 4, 5, 6, 7])).toStrictEqual([1, 2, 3, 4, 5, 6, 7]);
+      });
+    });
+
+    describe('works with parameters as array of string', () => {
+      it('should return elements exists in any of the two arrays.', () => {
+        expect(getUnionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-2', 'class-3', 'class-4']
+        )).toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4']);
+      });
+
+      it('should return elements that exists in any of the arrays.', () => {
+        expect(getUnionOfArrays(
+          ['class-1', 'class-2', 'class-3'],
+          ['class-3', 'class-4'],
+          ['class-3', 'class-4', 'class-5']
+        )).toStrictEqual(['class-1', 'class-2', 'class-3', 'class-4', 'class-5']);
+      });
+    });
+  });
+
+  //
+  // Handsontable.helper.stringToArray
+  //
+  describe('stringToArray', () => {
+    describe('works with parameter as string without the specified second parameter', () => {
+      it('should return array of strings.', () => {
+
+        expect(stringToArray('class-1 class-2 class-3')).toStrictEqual(['class-1', 'class-2', 'class-3']);
+      });
+    });
+
+    describe('works with parameter as a string with the specified second parameter', () => {
+      it('should return array of strings.', () => {
+        expect(stringToArray('class-1,class-2,class-3', ',')).toStrictEqual(['class-1', 'class-2', 'class-3']);
+      });
     });
   });
 });

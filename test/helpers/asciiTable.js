@@ -4,8 +4,8 @@ const $ = (selector, context = document) => context.querySelector(selector);
 /**
  * Return ASCII symbol for headers depends on what the class name HTMLTableCellElement has.
  *
- * @param {HTMLTableCellElement} cell
- * @return {String} Returns '   ', ` * ` or ' - '.
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {string} Returns '   ', ` * ` or ' - '.
  */
 function getSelectionSymbolForHeader(cell) {
   const hasActiveHeader = cell.classList.contains('ht__active_highlight');
@@ -26,8 +26,8 @@ function getSelectionSymbolForHeader(cell) {
 /**
  * Return ASCII symbol for cells depends on what the class name HTMLTableCellElement has.
  *
- * @param {HTMLTableCellElement} cell
- * @return {String} Returns valid symbol for the pariticaul cell.
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {string} Returns valid symbol for the pariticaul cell.
  */
 function getSelectionSymbolForCell(cell) {
   const hasCurrent = cell.classList.contains('current');
@@ -63,8 +63,8 @@ function getSelectionSymbolForCell(cell) {
 /**
  * Generate ASCII symbol for passed cell element.
  *
- * @param {HTMLTableCellElement} cell
- * @return {String}
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {string}
  */
 function getSelectionSymbol(cell) {
   if (isLeftHeader(cell) || isTopHeader(cell)) {
@@ -77,8 +77,8 @@ function getSelectionSymbol(cell) {
 /**
  * Check if passed element belong to the left header.
  *
- * @param {HTMLTableCellElement} cell
- * @return {Boolean}
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {boolean}
  */
 function isLeftHeader(cell) {
   return cell.tagName === 'TH' && cell.parentElement.parentElement.tagName === 'TBODY';
@@ -87,16 +87,26 @@ function isLeftHeader(cell) {
 /**
  * Check if passed element belong to the rop header.
  *
- * @param {HTMLTableCellElement} cell
- * @return {Boolean}
+ * @param {HTMLTableCellElement} cell The cell element to process.
+ * @returns {boolean}
  */
 function isTopHeader(cell) {
   return cell.tagName === 'TH' && cell.parentElement.parentElement.tagName === 'THEAD';
 }
 
 /**
- * @param {HTMLTableElement} overlay
- * @return {Function}
+ * Check if the provided cell element is a table header.
+ *
+ * @param {HTMLTableCellElement} cell The overlay element to process.
+ * @returns {boolean}
+ */
+function isHeader(cell) {
+  return cell.tagName === 'TH';
+}
+
+/**
+ * @param {HTMLTableElement} overlay The overlay element to process.
+ * @returns {Function}
  */
 function cellFactory(overlay) {
   return (row, column) => overlay && overlay.rows[row] && overlay.rows[row].cells[column];
@@ -106,7 +116,7 @@ function cellFactory(overlay) {
  * Generates table based on Handsontable structure.
  *
  * @param {HTMLElement} context The root element of the Handsontable instance to be generated.
- * @return {String}
+ * @returns {string}
  */
 export function generateASCIITable(context) {
   const TABLE_EDGES_SYMBOL = '|';
@@ -127,11 +137,18 @@ export function generateASCIITable(context) {
   const topOverlayCells = cellFactory(topOverlayTable);
   const masterCells = cellFactory(masterTable);
 
-  const hasLeftHeader = leftOverlayCells(1, 0) ? isLeftHeader(leftOverlayCells(1, 0)) : false;
-  const hasTopHeader = topOverlayCells(0, 1) ? isTopHeader(topOverlayCells(0, 1)) : false;
-  const hasCornerHeader = hasLeftHeader && hasTopHeader;
-  const hasFixedLeftCells = leftOverlayCells(1, 1) ? !isLeftHeader(leftOverlayCells(1, 1)) : false;
-  const hasFixedTopCells = topOverlayCells(1, 1) ? !isTopHeader(topOverlayCells(1, 1)) : false;
+  const hasTopHeader = topOverlayCells(0, 0) ? isTopHeader(topOverlayCells(0, 0)) : false;
+  const hasCornerHeader = cornerOverlayCells(0, 0) ? isHeader(cornerOverlayCells(0, 0)) : false;
+  const hasLeftHeader = (leftOverlayCells(0, 0) && isLeftHeader(leftOverlayCells(0, 0))) ||
+                        (hasTopHeader && hasCornerHeader);
+  const firstCellCoords = {
+    row: hasTopHeader ? 1 : 0,
+    column: hasLeftHeader ? 1 : 0
+  };
+  const leftOverlayFirstCell = leftOverlayCells(firstCellCoords.row, firstCellCoords.column);
+  const hasFixedLeftCells = leftOverlayFirstCell ? !isLeftHeader(leftOverlayFirstCell) : false;
+  const topOverlayFirstCell = topOverlayCells(firstCellCoords.row, firstCellCoords.column);
+  const hasFixedTopCells = topOverlayFirstCell ? !isTopHeader(topOverlayFirstCell) : false;
 
   const consumedFlags = new Map([
     ['hasLeftHeader', hasLeftHeader],
@@ -210,11 +227,13 @@ export function generateASCIITable(context) {
 
     if (consumedFlags.get('hasTopHeader')) {
       consumedFlags.delete('hasTopHeader');
-      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength).fill(COLUMN_HEADER_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
+      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength)
+        .fill(COLUMN_HEADER_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
     }
     if (insertTopOverlayRowSeparator) {
       insertTopOverlayRowSeparator = false;
-      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength).fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
+      stringRows.push(TABLE_EDGES_SYMBOL + new Array(columnsLength)
+        .fill(COLUMN_OVERLAY_SEPARATOR).join(COLUMN_SEPARATOR) + TABLE_EDGES_SYMBOL);
     }
   }
 

@@ -177,7 +177,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
       return date.getDay() === 0 || date.getDay() === 6;
     }
   },
-  debug: true,
   defaultDate: 'foo',
   disableVisualSelection: oneOf(true, 'current', 'area', 'header', [DisableVisualSelection.current, DisableVisualSelection.area, DisableVisualSelection.header]),
   dragToScroll: false,
@@ -202,36 +201,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     }
   }),
   fragmentSelection: oneOf(true, 'cell'),
-  ganttChart: {
-    firstWeekDay: 'monday',
-    startYear: 2015,
-    weekHeaderGenerator(start, end) { return (start * end).toFixed(); },
-    allowSplitWeeks: true,
-    hideDaysBeforeFullWeeks: false,
-    hideDaysAfterFullWeeks: false,
-    dataSource: oneOf({
-      instance: new Handsontable(document.createElement('div'), {}),
-      startDateColumn: 4,
-      endDateColumn: 5,
-      additionalData: {
-        label: 0,
-        quantity: 1
-      },
-      asyncUpdates: true
-    },
-    [
-      {
-        additionalData: {label: 'Example label.', quantity: 'Four packs.'},
-        startDate: '1/5/2015',
-        endDate: '1/20/2015'
-      },
-      {
-        additionalData: {label: 'Another label.', quantity: 'One pack.'},
-        startDate: '1/11/2015',
-        endDate: '1/29/2015'
-      }
-    ])
-  },
   headerTooltips: oneOf(true, {
     rows: false,
     columns: true,
@@ -351,12 +320,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
   // Hooks via settings object
   afterAddChild: (parent, element, index) => {},
+  afterAutofill: (start, end, data) => {},
   afterBeginEditing: (row, column) => {},
   afterCellMetaReset: () => {},
   afterChange: (changes, source) => changes && changes.forEach(change => change[0].toFixed()),
   afterChangesObserved: () => {},
+  afterColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible, successfullyCollapsed) => {},
+  afterColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible, successfullyExpanded) => {},
   afterColumnMove: (columns, target) => {},
-  afterColumnResize: (currentColumn, newSize, isDoubleClick) => {},
+  afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterContextMenuDefaultOptions: (predefinedItems) => {},
   afterContextMenuHide: (context) => {},
@@ -385,8 +357,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
-  afterLoadData: (firstTime) => {},
+  afterLoadData: (sourceData, firstTime) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
+  modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {},
   afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {},
   afterMomentumScroll: () => {},
@@ -406,8 +379,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  afterRowMove: (startRow, endRow) => {},
-  afterRowResize: (currentRow, newSize, isDoubleClick) => {},
+  afterRowMove: (movedRows, finalIndex, dropIndex, movePossible, orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
+  afterRowResize: (newSize, row, isDoubleClick) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterSelection: (r, c, r2, c2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
@@ -417,6 +390,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSetCellMeta: (row, col, key, value) => {},
   afterSetDataAtCell: (changes, source) => {},
   afterSetDataAtRowProp: (changes, source) => {},
+  afterSetSourceDataAtCell: (changes, source) => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUnlisten: () => {},
@@ -434,8 +408,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
   beforeChange: (changes, source) => { changes[0][3] = 10; return false; },
   beforeChangeRender: (changes, source) => {},
+  beforeColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible) => {},
+  beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
   beforeColumnMove: (columns, target) => {},
-  beforeColumnResize: (currentColumn, newSize, isDoubleClick) => {},
+  beforeColumnResize: (newSize, column, isDoubleClick) => {},
   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   beforeContextMenuSetItems: (menuItems) => {},
   beforeContextMenuShow: (context) => {},
@@ -455,6 +431,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeInitWalkontable: (walkontableConfig) => {},
   beforeKeyDown: (event) => {},
   beforeLanguageChange: (languageCode) => {},
+  beforeLoadData: (sourceData, firstTime) => {},
   beforeMergeCells: (cellRange, auto) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},
@@ -470,8 +447,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced, skipRender) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
-  beforeRowMove: (startRow, endRow) => {},
-  beforeRowResize: (currentRow, newSize, isDoubleClick) => {},
+  beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
+  beforeRowResize: (newSize, row, isDoubleClick) => {},
+  beforeSetCellMeta: (row, col, key, value) => {},
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
@@ -486,18 +464,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeValidate: (value, row, prop, source) => {},
   beforeValueRender: (value) => {},
   construct: () => {},
-  hiddenColumn: (column) => {},
-  hiddenRow: (row) => {},
   init: () => {},
   modifyAutofillRange: (startArea, entireArea) => {},
-  modifyCol: (col) => {},
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},
   modifyColWidth: (width) => {},
   modifyCopyableRange: (copyableRanges) => {},
   modifyData: () => {},
   modifyGetCellCoords: (row, column, topmost) => {},
-  modifyRow: (row) => {},
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
   modifyRowHeaderWidth: (rowHeaderWidth) => {},
@@ -508,7 +482,4 @@ const allSettings: Required<Handsontable.GridSettings> = {
   persistentStateLoad: () => {},
   persistentStateReset: () => {},
   persistentStateSave: () => {},
-  skipLengthCache: (delay) => {},
-  unmodifyCol: () => {},
-  unmodifyRow: (row) => {},
-}
+};

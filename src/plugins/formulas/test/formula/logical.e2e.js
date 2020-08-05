@@ -12,6 +12,11 @@ describe('Formulas -> logical functions', () => {
     }
   });
 
+  /**
+   * @param row
+   * @param column
+   * @param value
+   */
   function getData(row, column, value) {
     const data = getDataForFormulas();
     let cellValue = value;

@@ -14,7 +14,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('UI', () => {
-    it('should append UI elements to wtHider after click on row header', () => {
+    it('should append UI elements to wtHider after click on column header', () => {
       handsontable({
         data: arrayOfArrays.slice(),
         colHeaders: true,
@@ -89,7 +89,16 @@ describe('manualColumnMove', () => {
     it('should set properly width for the backlight element when stretchH is enabled and column order was changed', () => {
       handsontable({
         data: [
-          { id: 1, flag: 'EUR', currencyCode: 'EUR', currency: 'Euro', level: 0.9033, units: 'EUR / USD', asOf: '08/19/2015', onedChng: 0.0026 },
+          {
+            id: 1,
+            flag: 'EUR',
+            currencyCode: 'EUR',
+            currency: 'Euro',
+            level: 0.9033,
+            units: 'EUR / USD',
+            asOf: '08/19/2015',
+            onedChng: 0.0026
+          },
         ],
         width: 600,
         colHeaders: true,
@@ -188,7 +197,9 @@ describe('manualColumnMove', () => {
       const $backlight = spec().$container.find('.ht__manualColumnMove--backlight')[0];
       $summaryElement.simulate('mousedown');
 
-      const displayProp = $backlight.currentStyle ? $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
+      const displayProp = $backlight.currentStyle ?
+        $backlight.currentStyle.display : getComputedStyle($backlight, null).display;
+
       expect(displayProp).toEqual('none');
     });
 
@@ -210,6 +221,191 @@ describe('manualColumnMove', () => {
       const $backlight = this.$container.find('.ht__manualColumnMove--backlight');
 
       expect($backlight.length).toBe(0);
+    });
+
+    it('should draw backlight element properly when there are hidden columns', function() {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        manualColumnMove: true,
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [2, 3],
+        }
+      });
+
+      selectColumns(1, 4);
+
+      // Mouse events on second not hidden element.
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+      this.$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+
+      const backlight = this.$container.find('.ht__manualColumnMove--backlight')[0];
+
+      expect(backlight.offsetLeft).toBe(100);
+      expect(backlight.offsetWidth).toBe(100);
+    });
+
+    describe('selection', () => {
+      it('should be shown properly when moving multiple columns from the left to the right', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true
+        });
+
+        const $columnHeader = spec().$container.find('thead tr:eq(0) th:eq(4)');
+
+        selectColumns(0, 2);
+
+        spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+        spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+        spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+
+        $columnHeader.simulate('mouseover');
+        $columnHeader.simulate('mousemove', {
+          clientX: $columnHeader.offset().right - $columnHeader.width()
+        });
+        $columnHeader.simulate('mouseup');
+
+        expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
+      });
+
+      it('should be shown properly when moving multiple columns from the right to the left', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          manualColumnMove: true
+        });
+
+        const $columnHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
+
+        selectColumns(3, 5);
+
+        spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+        spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+        spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+
+        $columnHeader.simulate('mouseover');
+        $columnHeader.simulate('mousemove', {
+          clientX: $columnHeader.offset().left
+        });
+        $columnHeader.simulate('mouseup');
+
+        expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
+      });
+
+      // The `ManualColumnMove` plugin doesn't cooperate with the `UndoRedo` plugin.
+      describe('should be shown properly after undo action', () => {
+        xit('when moving multiple columns from the left to the right', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            colHeaders: true,
+            manualColumnMove: true
+          });
+
+          const $columnHeader = spec().$container.find('thead tr:eq(0) th:eq(4)');
+
+          selectColumns(0, 2);
+
+          spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+          spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+          spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+
+          $columnHeader.simulate('mouseover');
+          $columnHeader.simulate('mousemove', {
+            clientX: $columnHeader.offset().right - $columnHeader.width()
+          });
+          $columnHeader.simulate('mouseup');
+
+          hot.undo();
+
+          expect(getSelected()).toEqual([[0, 0, 9, 2]]);
+        });
+
+        xit('when moving multiple columns from the right to the left', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            colHeaders: true,
+            manualColumnMove: true
+          });
+
+          const $columnHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
+
+          selectColumns(3, 5);
+
+          spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+          spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+          spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+
+          $columnHeader.simulate('mouseover');
+          $columnHeader.simulate('mousemove', {
+            clientX: $columnHeader.offset().left
+          });
+          $columnHeader.simulate('mouseup');
+
+          hot.undo();
+
+          expect(getSelected()).toEqual([[0, 3, 9, 5]]);
+        });
+      });
+
+      describe('should be shown properly after redo action', () => {
+        xit('when moving multiple columns from the left to the right', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            colHeaders: true,
+            manualColumnMove: true
+          });
+
+          const $columnHeader = spec().$container.find('thead tr:eq(0) th:eq(4)');
+
+          selectColumns(0, 2);
+
+          spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+          spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mouseup');
+          spec().$container.find('thead tr:eq(0) th:eq(2)').simulate('mousedown');
+
+          $columnHeader.simulate('mouseover');
+          $columnHeader.simulate('mousemove', {
+            clientX: $columnHeader.offset().right - $columnHeader.width()
+          });
+          $columnHeader.simulate('mouseup');
+
+          hot.undo();
+          hot.redo();
+
+          expect(getSelected()).toEqual([[0, 1, 9, 3]]);
+        });
+
+        xit('when moving multiple columns from the right to the left', () => {
+          const hot = handsontable({
+            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            colHeaders: true,
+            manualColumnMove: true
+          });
+
+          const $columnHeader = spec().$container.find('thead tr:eq(0) th:eq(1)');
+
+          selectColumns(3, 5);
+
+          spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+          spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mouseup');
+          spec().$container.find('thead tr:eq(0) th:eq(3)').simulate('mousedown');
+
+          $columnHeader.simulate('mouseover');
+          $columnHeader.simulate('mousemove', {
+            clientX: $columnHeader.offset().left
+          });
+          $columnHeader.simulate('mouseup');
+
+          hot.undo();
+          hot.redo();
+
+          expect(getSelected()).toEqual([[0, 1, 9, 3]]);
+        });
+      });
     });
   });
 });

@@ -15,10 +15,11 @@ const orderToCssClass = new Map([
 
 /**
  * Get CSS classes which should be added to particular column header.
- * @param {Object} columnStatesManager Instance of column state manager.
- * @param {Number} column Physical column index.
- * @param {Boolean} showSortIndicator Indicates if indicator should be shown for the particular column.
- * @param {Boolean} headerAction Indicates if header click to sort should be possible.
+ *
+ * @param {object} columnStatesManager Instance of column state manager.
+ * @param {number} column Physical column index.
+ * @param {boolean} showSortIndicator Indicates if indicator should be shown for the particular column.
+ * @param {boolean} headerAction Indicates if header click to sort should be possible.
  * @returns {Array} Array of CSS classes.
  */
 export function getClassesToAdd(columnStatesManager, column, showSortIndicator, headerAction) {
@@ -46,5 +47,6 @@ export function getClassesToAdd(columnStatesManager, column, showSortIndicator, 
  * @returns {Array} Array of CSS classes.
  */
 export function getClassedToRemove() {
-  return Array.from(orderToCssClass.values()).concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
+  return Array.from(orderToCssClass.values())
+    .concat(HEADER_ACTION_CLASS, HEADER_CLASS_INDICATOR_DISABLED, HEADER_SORT_CLASS);
 }

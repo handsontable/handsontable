@@ -1,13 +1,17 @@
 import {
   outerWidth
 } from '../../helpers/dom/element';
+import { warn } from '../../helpers/console';
 import { registerPlugin } from '../../plugins';
 import { rangeEach } from '../../helpers/number';
 import BasePlugin from '../_base';
 
+let isDeprecationMessageShowed = false;
+
 /**
  * @plugin HeaderTooltips
  *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * Allows to add a tooltip to the table headers.
  *
@@ -38,7 +42,7 @@ class HeaderTooltips extends BasePlugin {
      * Cached plugin settings.
      *
      * @private
-     * @type {Boolean|Object}
+     * @type {boolean|object}
      */
     this.settings = null;
   }
@@ -47,7 +51,7 @@ class HeaderTooltips extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link HeaderTooltips#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().headerTooltips;
@@ -59,6 +63,11 @@ class HeaderTooltips extends BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
+    }
+
+    if (!isDeprecationMessageShowed) {
+      isDeprecationMessageShowed = true;
+      warn('The Header Tooltips plugin is deprecated and will be removed in the next major release');
     }
 
     this.settings = this.hot.getSettings().headerTooltips;
@@ -132,8 +141,8 @@ class HeaderTooltips extends BasePlugin {
    * Adds a tooltip to the headers.
    *
    * @private
-   * @param {Number} index
-   * @param {HTMLElement} TH
+   * @param {number} index Visual column index.
+   * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetHeader(index, TH) {
     const innerSpan = TH.querySelector('span');

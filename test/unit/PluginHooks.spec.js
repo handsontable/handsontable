@@ -125,6 +125,25 @@ describe('PluginHooks', () => {
     expect(hooks.add.calls.argsFor(1)[2]).toBe(null);
   });
 
+  it('should print out a warning message if removed hook from API is used', () => {
+    const hooks = new Hooks();
+    const fn1 = function() {};
+    const context = {};
+
+    spyOn(console, 'warn');
+
+    hooks.add('skipLengthCache', fn1, context);
+
+    // eslint-disable-next-line no-console
+    expect(console.warn.calls.mostRecent().args)
+      .toEqual([
+        'The plugin hook "skipLengthCache" was removed in Handsontable' +
+        ' 8.0.0. Please consult release notes https://github.com/handsontable/handsontable/releases/tag/8.0.0' +
+        ' to learn about the migration path.'
+      ]);
+    expect(context.pluginHookBucket.skipLengthCache).toEqual([fn1]);
+  });
+
   it('should remove hook', () => {
     const hooks = new Hooks();
     const fn1 = function() {};
@@ -274,6 +293,13 @@ describe('PluginHooks', () => {
     const hooks = new Hooks();
 
     expect(hooks.getRegistered().length).toBeGreaterThan(0);
+  });
+
+  it('should returns `true` if hooks is deprecated', () => {
+    const hooks = new Hooks();
+
+    expect(hooks.isDeprecated('skipLengthCache')).toBe(true);
+    expect(hooks.isDeprecated('test2')).toBe(false);
   });
 
   it('should returns `true` if at least one listener was added to the hook', () => {

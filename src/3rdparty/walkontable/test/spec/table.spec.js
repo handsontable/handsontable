@@ -2,16 +2,17 @@ describe('WalkontableTable', () => {
   const debug = false;
 
   function hotParentName(TH) {
-    const hotParent = TH.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;
+    const hotParent = TH.parentElement.parentElement.parentElement.parentElement.parentElement
+      .parentElement.parentElement;
     const classes = hotParent.className.split(' ');
     return classes[0];
   }
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
     this.$wrapper.width(100).height(201);
     this.$container = $('<div></div>');
-    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$table = $('<table></table>').addClass('htCore'); // create a table that is not attached to document
     this.$wrapper.append(this.$container);
     this.$container.append(this.$table);
     this.$wrapper.appendTo('body');
@@ -118,7 +119,8 @@ describe('WalkontableTable', () => {
       const result = wt.wtTable.getCell(new Walkontable.CellCoords(10, i));
       results.push(result instanceof HTMLElement ? HTMLElement : result);
     }
-    expect(results).toEqual([-3, -3, -3, -3, -3, HTMLElement, HTMLElement, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4]);
+    expect(results)
+      .toEqual([-3, -3, -3, -3, -3, HTMLElement, HTMLElement, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4]);
 
     results = [];
     for (let i = 0; i < 20; i++) {
@@ -126,7 +128,8 @@ describe('WalkontableTable', () => {
       results.push(result instanceof HTMLElement ? HTMLElement : result);
     }
 
-    const expectedGetCellOutputForRowsInFirstColumn = [-1, -1, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
+    const expectedGetCellOutputForRowsInFirstColumn = [-1, -1, HTMLElement, HTMLElement, HTMLElement,
+      HTMLElement, HTMLElement, HTMLElement, HTMLElement, HTMLElement,
       HTMLElement, HTMLElement, -2, -2, -2, -2, -2, -2, -2, -2];
 
     expect(results).toEqual(expectedGetCellOutputForRowsInFirstColumn);
@@ -165,17 +168,24 @@ describe('WalkontableTable', () => {
     });
     wt.draw();
 
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'master').toBe('ht_master-header-of-col--1');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }).innerHTML, 'master').toBe('ht_master-header-of-col-0');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }).innerHTML, 'master').toBe('ht_master-header-of-col-1');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }).innerHTML, 'master').toBe('ht_master-header-of-col-2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'master')
+      .toBe('ht_master-header-of-col--1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }).innerHTML, 'master')
+      .toBe('ht_master-header-of-col-0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }).innerHTML, 'master')
+      .toBe('ht_master-header-of-col-1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }).innerHTML, 'master')
+      .toBe('ht_master-header-of-col-2');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'master').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'master').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'master').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'master').toBe(-4);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'master').toBe('ht_master-header-of-row-0'); // TODO this should be -3, because it is rendered on left overlay
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'master').toBe('ht_master-header-of-row-1'); // TODO this should be -3, because it is rendered on left overlay
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'master').toBe('ht_master-header-of-row-2'); // TODO this should be -3, because it is rendered on left overlay
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'master')
+      .toBe('ht_master-header-of-row-0'); // TODO this should be -3, because it is rendered on left overlay
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'master')
+      .toBe('ht_master-header-of-row-1'); // TODO this should be -3, because it is rendered on left overlay
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'master')
+      .toBe('ht_master-header-of-row-2'); // TODO this should be -3, because it is rendered on left overlay
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'master').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'master').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'master').toBe(-2);
@@ -202,7 +212,8 @@ describe('WalkontableTable', () => {
     expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined); // TODO it should be undefined
 
     expect(wt.wtOverlays.leftOverlay.clone).not.toBe(undefined);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-col--1'); // TODO this should be negative, because it is rendered on top-left overlay
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'left')
+      .toBe('ht_clone_left-header-of-col--1'); // TODO this should be negative, because it is rendered on top-left overlay
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'left').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'left').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'left').toBe(-4);
@@ -210,9 +221,12 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'left').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'left').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'left').toBe(-4);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-0');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-1');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'left')
+      .toBe('ht_clone_left-header-of-row-0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'left')
+      .toBe('ht_clone_left-header-of-row-1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'left')
+      .toBe('ht_clone_left-header-of-row-2');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'left').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'left').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'left').toBe(-2);
@@ -235,7 +249,8 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'left').toBe(-2);
 
     expect(wt.wtOverlays.topLeftCornerOverlay).not.toBe(undefined);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-col--1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'topLeftCorner')
+      .toBe('ht_clone_top_left_corner-header-of-col--1');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'topLeftCorner').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'topLeftCorner').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'topLeftCorner').toBe(-4);
@@ -268,10 +283,14 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'topLeftCorner').toBe(-2);
 
     expect(wt.wtOverlays.topOverlay).not.toBe(undefined);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'top').toBe('ht_clone_top-header-of-col--1');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }).innerHTML, 'top').toBe('ht_clone_top-header-of-col-0');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }).innerHTML, 'top').toBe('ht_clone_top-header-of-col-1');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }).innerHTML, 'top').toBe('ht_clone_top-header-of-col-2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'top')
+      .toBe('ht_clone_top-header-of-col--1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }).innerHTML, 'top')
+      .toBe('ht_clone_top-header-of-col-0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }).innerHTML, 'top')
+      .toBe('ht_clone_top-header-of-col-1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }).innerHTML, 'top')
+      .toBe('ht_clone_top-header-of-col-2');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'top').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'top').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'top').toBe(-4);
@@ -366,8 +385,10 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'bottomLeftCorner').toBe(-1);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'bottomLeftCorner').toBe(-1);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'bottomLeftCorner').toBe(-1);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }).innerHTML, 'bottomLeftCorner').toBe('ht_clone_bottom_left_corner-header-of-row-16');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }).innerHTML, 'bottomLeftCorner').toBe('ht_clone_bottom_left_corner-header-of-row-17');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }).innerHTML, 'bottomLeftCorner')
+      .toBe('ht_clone_bottom_left_corner-header-of-row-16');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }).innerHTML, 'bottomLeftCorner')
+      .toBe('ht_clone_bottom_left_corner-header-of-row-17');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: -1 }), 'bottomLeftCorner').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 0 }), 'bottomLeftCorner').toBe(-1);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: 2 }), 'bottomLeftCorner').toBe(-1);
@@ -434,7 +455,8 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'left').toBe(-1);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }), 'left').toBe(-1);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }), 'left').toBe(-1);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'left').toBe('ht_clone_left-header-of-row-2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }).innerHTML, 'left')
+      .toBe('ht_clone_left-header-of-row-2');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'left').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'left').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 17, col: -1 }), 'left').toBe(-2);
@@ -457,16 +479,21 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'left').toBe(-2);
 
     expect(wt.wtOverlays.topLeftCornerOverlay).not.toBe(undefined);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-col--1');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-col-0');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-col-1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'topLeftCorner')
+      .toBe('ht_clone_top_left_corner-header-of-col--1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }).innerHTML, 'topLeftCorner')
+      .toBe('ht_clone_top_left_corner-header-of-col-0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }).innerHTML, 'topLeftCorner')
+      .toBe('ht_clone_top_left_corner-header-of-col-1');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }), 'topLeftCorner').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'topLeftCorner').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'topLeftCorner').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'topLeftCorner').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 18 }), 'topLeftCorner').toBe(-4);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-row-0');
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'topLeftCorner').toBe('ht_clone_top_left_corner-header-of-row-1');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 0, col: -1 }).innerHTML, 'topLeftCorner')
+      .toBe('ht_clone_top_left_corner-header-of-row-0');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: 1, col: -1 }).innerHTML, 'topLeftCorner')
+      .toBe('ht_clone_top_left_corner-header-of-row-1');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 2, col: -1 }), 'topLeftCorner').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 15, col: -1 }), 'topLeftCorner').toBe(-2);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: 16, col: -1 }), 'topLeftCorner').toBe(-2);
@@ -493,7 +520,8 @@ describe('WalkontableTable', () => {
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'top').toBe(-3);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 0 }), 'top').toBe(-3);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 1 }), 'top').toBe(-3);
-    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }).innerHTML, 'top').toBe('ht_clone_top-header-of-col-2');
+    expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 2 }).innerHTML, 'top')
+      .toBe('ht_clone_top-header-of-col-2');
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 15 }), 'top').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 16 }), 'top').toBe(-4);
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: 17 }), 'top').toBe(-4);
@@ -1074,7 +1102,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('cell header border', () => {
-    it('should be correct visible in fixedColumns and without row header', () => {
+    it('both left and right borders should be set on the first TH in the top overlay if `fixedColumns` is set but there are no `rowHeaders`', () => {
       createDataArray(50, 50);
       spec().$wrapper.width(500).height(400);
 
@@ -1090,7 +1118,8 @@ describe('WalkontableTable', () => {
 
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-right-width')).toBe('1px');
-      expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-left-width')).toBe('0px');
+      // was 0 before https://github.com/handsontable/handsontable/commit/32c163c6a98903a30daddac7582276d18a12a81a
+      expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-left-width')).toBe('1px');
       expect($('.ht_clone_top_left_corner thead tr th').eq(1).css('border-right-width')).toBe('1px');
     });
   });
@@ -1427,6 +1456,22 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'left').toBe(2);
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'topLeftCorner').toBe(0);
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(0);
+    });
+
+    it('should return 0 as the first rendered row, when there\'s more fixed bottom rows than rows in total', () => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: [[1], [1]],
+        totalRows: 2,
+        totalColumns: 1,
+        fixedRowsBottom: 3,
+      });
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(0);
+      expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(0);
     });
   });
 

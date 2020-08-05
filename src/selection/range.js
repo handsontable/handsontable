@@ -20,7 +20,7 @@ class SelectionRange {
   /**
    * Check if selected range is empty.
    *
-   * @return {Boolean}
+   * @returns {boolean}
    */
   isEmpty() {
     return this.size() === 0;
@@ -53,9 +53,20 @@ class SelectionRange {
   }
 
   /**
+   * Removes from the stack the last added coordinates.
+   *
+   * @returns {SelectionRange}
+   */
+  pop() {
+    this.ranges.pop();
+
+    return this;
+  }
+
+  /**
    * Get last added coordinates from ranges, it returns a CellRange instance.
    *
-   * @return {CellRange|undefined}
+   * @returns {CellRange|undefined}
    */
   current() {
     return this.peekByIndex(0);
@@ -64,7 +75,7 @@ class SelectionRange {
   /**
    * Get previously added coordinates from ranges, it returns a CellRange instance.
    *
-   * @return {CellRange|undefined}
+   * @returns {CellRange|undefined}
    */
   previous() {
     return this.peekByIndex(-1);
@@ -75,7 +86,7 @@ class SelectionRange {
    * the coords object is within selection range.
    *
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   includes(coords) {
     return this.ranges.some(cellRange => cellRange.includes(coords));
@@ -84,7 +95,7 @@ class SelectionRange {
   /**
    * Clear collection.
    *
-   * @return {SelectionRange}
+   * @returns {SelectionRange}
    */
   clear() {
     this.ranges.length = 0;
@@ -95,7 +106,7 @@ class SelectionRange {
   /**
    * Get count of added all coordinates added to the selection.
    *
-   * @return {Number}
+   * @returns {number}
    */
   size() {
     return this.ranges.length;
@@ -104,8 +115,8 @@ class SelectionRange {
   /**
    * Peek the coordinates based on the offset where that coordinate resides in the collection.
    *
-   * @param {Number} [offset=0] An offset where the coordinate will be retrieved from.
-   * @return {CellRange|undefined}
+   * @param {number} [offset=0] An offset where the coordinate will be retrieved from.
+   * @returns {CellRange|undefined}
    */
   peekByIndex(offset = 0) {
     const rangeIndex = this.size() + offset - 1;

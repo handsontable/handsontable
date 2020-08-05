@@ -16,107 +16,146 @@ describe('NestedRows Collapsing UI', () => {
     describe('collapseChildren', () => {
       it('should collapse all children nodes of the row provided as a number', () => {
         const hot = handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
-        const trimRowsPlugin = hot.getPlugin('trimRows');
+        const plugin = getPlugin('nestedRows');
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(trimRowsPlugin.isTrimmed(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
 
         plugin.collapsingUI.collapseChildren(0);
 
-        expect(trimRowsPlugin.isTrimmed(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(trimRowsPlugin.isTrimmed(i + 1)).toEqual(true);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(true);
         }
 
-        expect(trimRowsPlugin.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
+      });
+
+      it('should keep collapsed rows after collapsing next ones', () => {
+        const hot = handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          rowHeaders: true
+        });
+
+        const plugin = getPlugin('nestedRows');
+
+        plugin.collapsingUI.collapseChildren(0);
+
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(1)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(2)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(3)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(4)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(5)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(6)).toEqual(false);
+
+        plugin.collapsingUI.collapseChildren(6);
+
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(1)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(2)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(3)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(4)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(5)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(6)).toEqual(false);
+
+        expect(hot.rowIndexMapper.isTrimmed(6)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(7)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(8)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(9)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(10)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(11)).toEqual(true);
+        expect(hot.rowIndexMapper.isTrimmed(12)).toEqual(false);
       });
 
       it('should collapse all children nodes of the row provided as an object', () => {
+        const sourceDataReference = getMoreComplexNestedData();
+
         const hot = handsontable({
-          data: getDataForNestedRows(),
+          data: sourceDataReference,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
-        const trimRowsPlugin = hot.getPlugin('trimRows');
-        const child = hot.getSourceData()[0];
+        const plugin = getPlugin('nestedRows');
+        const child = sourceDataReference[0];
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(trimRowsPlugin.isTrimmed(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
 
         plugin.collapsingUI.collapseChildren(child);
 
-        expect(trimRowsPlugin.isTrimmed(0)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(0)).toEqual(false);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(trimRowsPlugin.isTrimmed(i + 1)).toEqual(true);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(true);
         }
 
-        expect(trimRowsPlugin.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
+        expect(hot.rowIndexMapper.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
     });
 
     describe('expandChildren', () => {
       it('should collapse all children nodes of the row provided as a number', () => {
         const hot = handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
-        const trimRowsPlugin = hot.getPlugin('trimRows');
+        const plugin = getPlugin('nestedRows');
 
         plugin.collapsingUI.collapseChildren(0);
         plugin.collapsingUI.expandChildren(0);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(trimRowsPlugin.isTrimmed(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
       });
 
       it('should collapse all children nodes of the row provided as an object', () => {
         const hot = handsontable({
-          data: getDataForNestedRows(),
+          data: getMoreComplexNestedData(),
           nestedRows: true,
         });
 
-        const plugin = hot.getPlugin('nestedRows');
-        const trimRowsPlugin = hot.getPlugin('trimRows');
+        const plugin = getPlugin('nestedRows');
 
         plugin.collapsingUI.collapseChildren(0);
         plugin.collapsingUI.expandChildren(0);
 
         for (let i = 0; i < plugin.dataManager.countChildren(0); i++) {
-          expect(trimRowsPlugin.isTrimmed(i + 1)).toEqual(false);
+          expect(hot.rowIndexMapper.isTrimmed(i + 1)).toEqual(false);
         }
       });
     });
 
     describe('expandRows', () => {
       it('Should make the rows provided in the arguments visible', (done) => {
-        const hot = handsontable({
-          data: getDataForNestedRows(),
+        handsontable({
+          data: getMoreComplexNestedData(),
           nestedRows: true,
-          rowHeaders: true,
-          trimRows: [1, 2, 3, 4], // "collapse" rows using the trimRows plugin
+          rowHeaders: true
         });
 
-        expect(hot.countRows()).toEqual(8);
+        const plugin = getPlugin('nestedRows');
 
-        const plugin = hot.getPlugin('nestedRows');
-        plugin.collapsingUI.expandRows([2], true, true);
-        hot.render();
+        plugin.collapsingUI.collapseRows([1, 2, 3, 4, 5], true, true);
+        render();
+
+        expect(countRows()).toEqual(8);
+
+        plugin.collapsingUI.expandRows([3], true, true);
+        render();
 
         setTimeout(() => {
-          expect(hot.countRows()).toEqual(11);
+          expect(countRows()).toEqual(11);
           done();
         }, 100);
       });
@@ -124,39 +163,45 @@ describe('NestedRows Collapsing UI', () => {
 
     describe('expandChildren', () => {
       it('Should make the child rows of the provided element visible', (done) => {
-        const hot = handsontable({
-          data: getDataForNestedRows(),
-          nestedRows: true,
-          trimRows: [3, 4], // "collapse" rows using the trimRows plugin
+        handsontable({
+          data: getMoreComplexNestedData(),
+          nestedRows: true
         });
 
-        expect(hot.countRows()).toEqual(10);
+        const plugin = getPlugin('nestedRows');
 
-        const plugin = hot.getPlugin('nestedRows');
-        plugin.collapsingUI.expandChildren(2);
-        hot.render();
+        plugin.collapsingUI.collapseRows([4, 5], false, true);
+        render();
+
+        expect(countRows()).toEqual(11);
+
+        plugin.collapsingUI.expandChildren(3);
+        render();
 
         setTimeout(() => {
-          expect(hot.countRows()).toEqual(12);
+          expect(countRows()).toEqual(13);
           done();
         }, 100);
       });
 
       it('Should make the child rows of the provided element visible, even if some of them are already visible', (done) => {
-        const hot = handsontable({
-          data: getDataForNestedRows(),
-          nestedRows: true,
-          trimRows: [3, 4], // "collapse" rows using the trimRows plugin
+        handsontable({
+          data: getMoreComplexNestedData(),
+          nestedRows: true
         });
 
-        expect(hot.countRows()).toEqual(10);
+        const plugin = getPlugin('nestedRows');
 
-        const plugin = hot.getPlugin('nestedRows');
+        plugin.collapsingUI.collapseRows([4, 5], false, true);
+        render();
+
+        expect(countRows()).toEqual(11);
+
         plugin.collapsingUI.expandChildren(0);
-        hot.render();
+        render();
 
         setTimeout(() => {
-          expect(hot.countRows()).toEqual(12);
+          expect(countRows()).toEqual(13);
           done();
         }, 100);
       });

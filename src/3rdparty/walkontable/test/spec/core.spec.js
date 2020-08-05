@@ -2,9 +2,9 @@ describe('WalkontableCore', () => {
   const debug = false;
 
   beforeEach(function() {
-    this.$wrapper = $('<div></div>').css({ overflow: 'hidden' });
+    this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
     this.$container = $('<div></div>');
-    this.$table = $('<table></table>'); // create a table that is not attached to document
+    this.$table = $('<table></table>').addClass('htCore'); // create a table that is not attached to document
     this.$wrapper.append(this.$container);
     this.$container.append(this.$table);
     this.$wrapper.appendTo('body');
@@ -48,7 +48,8 @@ describe('WalkontableCore', () => {
 
   it('should bootstrap column headers if THEAD is given', () => {
     spec().$table.remove();
-    spec().$table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>');
+    spec().$table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>')
+      .addClass('htCore');
     spec().$table.appendTo(spec().$container);
 
     const wt = walkontable({

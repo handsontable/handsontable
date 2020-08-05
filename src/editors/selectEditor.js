@@ -20,7 +20,6 @@ const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
 /**
  * @private
- * @editor SelectEditor
  * @class SelectEditor
  */
 class SelectEditor extends BaseEditor {
@@ -99,15 +98,15 @@ class SelectEditor extends BaseEditor {
   /**
    * Prepares editor's meta data and a list of available options.
    *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number|String} prop
-   * @param {HTMLTableCellElement} td
-   * @param {*} originalValue
-   * @param {Object} cellProperties
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, originalValue, cellProperties) {
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+  prepare(row, col, prop, td, value, cellProperties) {
+    super.prepare(row, col, prop, td, value, cellProperties);
 
     const selectOptions = this.cellProperties.selectOptions;
     let options;
@@ -120,11 +119,11 @@ class SelectEditor extends BaseEditor {
 
     empty(this.select);
 
-    objectEach(options, (value, key) => {
+    objectEach(options, (optionValue, key) => {
       const optionElement = this.hot.rootDocument.createElement('OPTION');
       optionElement.value = key;
 
-      fastInnerHTML(optionElement, value);
+      fastInnerHTML(optionElement, optionValue);
       this.select.appendChild(optionElement);
     });
   }
@@ -133,8 +132,8 @@ class SelectEditor extends BaseEditor {
    * Creates consistent list of available options.
    *
    * @private
-   * @param {Array|Object} optionsToPrepare
-   * @returns {Object}
+   * @param {Array|object} optionsToPrepare The list of the values to render in the select eleemnt.
+   * @returns {object}
    */
   prepareOptions(optionsToPrepare) {
     let preparedOptions = {};
@@ -182,6 +181,7 @@ class SelectEditor extends BaseEditor {
 
       return;
     }
+
     const { wtOverlays } = this.hot.view.wt;
     const currentOffset = offset(this.TD);
     const containerOffset = offset(this.hot.rootElement);
@@ -213,10 +213,16 @@ class SelectEditor extends BaseEditor {
         break;
     }
 
-    if (this.hot.getSelectedLast()[0] === 0) {
+    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+
+    if (renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;
     }
-    if (this.hot.getSelectedLast()[1] === 0) {
+
+    if (renderableColumn <= 0) {
       editLeft += 1;
     }
 
@@ -247,7 +253,7 @@ class SelectEditor extends BaseEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
    * @private
    */

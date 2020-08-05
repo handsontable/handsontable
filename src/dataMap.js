@@ -1,6 +1,8 @@
 import SheetClip from './../lib/SheetClip/SheetClip';
-import { cellMethodLookupFactory } from './helpers/data';
-import { columnFactory } from './helpers/setting';
+import {
+  cellMethodLookupFactory,
+  countFirstRowKeys
+} from './helpers/data';
 import {
   createObjectPropListener,
   deepClone,
@@ -12,15 +14,16 @@ import {
   objectEach
 } from './helpers/object';
 import { extendArray, to2dArray } from './helpers/array';
-import Interval from './utils/interval';
 import { rangeEach } from './helpers/number';
+import { isDefined } from './helpers/mixed';
 
 const copyableLookup = cellMethodLookupFactory('copyable', false);
 
 /**
- * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names
- * @todo refactor arguments of methods getRange, getText to be numbers (not objects)
- * @todo remove priv, GridSettings from object constructor
+ * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names.
+ *
+ * @todo Refactor arguments of methods getRange, getText to be numbers (not objects).
+ * @todo Remove priv, GridSettings from object constructor.
  *
  * @util
  * @class DataMap
@@ -28,74 +31,49 @@ const copyableLookup = cellMethodLookupFactory('copyable', false);
  */
 class DataMap {
   /**
-   * @type {Number}
+   * @type {number}
    */
   static get DESTINATION_RENDERER() {
     return 1;
   }
 
   /**
-   * @type {Number}
+   * @type {number}
    */
   static get DESTINATION_CLIPBOARD_GENERATOR() {
     return 2;
   }
 
   /**
-   * @param {Object} instance Instance of Handsontable
-   * @param {*} priv
-   * @param {GridSettings} GridSettings Grid settings
+   * @param {object} instance Instance of Handsontable.
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {TableMeta} tableMeta The table meta instance.
    */
-  constructor(instance, priv, GridSettings) {
+  constructor(instance, data, tableMeta) {
     /**
-     * Instance of {@link Handsontable}
+     * Instance of {@link Handsontable}.
      *
      * @private
      * @type {Handsontable}
      */
     this.instance = instance;
     /**
-     * Private settings object.
+     * Instance of {@link TableMeta}.
      *
      * @private
-     * @type {Object}
+     * @type {TableMeta}
      */
-    this.priv = priv;
-    /**
-     * Instance of {@link GridSettings}
-     *
-     * @private
-     * @type {GridSettings}
-     */
-    this.GridSettings = GridSettings;
+    this.tableMeta = tableMeta;
     /**
      * Reference to the original dataset.
      *
      * @type {*}
      */
-    this.dataSource = this.instance.getSettings().data;
-    /**
-     * Cached rows number.
-     *
-     * @type {Number}
-     */
-    this.cachedLength = null;
-    /**
-     * Flag determines if the cache should be used.
-     *
-     * @type {Boolean}
-     */
-    this.skipCache = false;
-    /**
-     * Cached sourceData rows number.
-     *
-     * @type {Number}
-     */
-    this.latestSourceRowsCount = 0;
+    this.dataSource = data;
     /**
      * Generated schema based on the first row from the source data.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.duckSchema = this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
     /**
@@ -112,15 +90,6 @@ class DataMap {
     this.propToColCache = void 0;
 
     this.createMap();
-    /**
-     * Instance of {@link Interval}
-     *
-     * @type {Interval}
-     */
-    this.interval = Interval.create(() => this.clearLengthCache(), '15fps');
-
-    this.instance.addHook('skipLengthCache', delay => this.onSkipLengthCache(delay));
-    this.onSkipLengthCache(500);
   }
 
   /**
@@ -128,27 +97,32 @@ class DataMap {
    */
   createMap() {
     const schema = this.getSchema();
-    let i;
 
     if (typeof schema === 'undefined') {
       throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
     }
 
+    const columns = this.tableMeta.columns;
+    let i;
+
     this.colToPropCache = [];
     this.propToColCache = new Map();
 
-    const columns = this.instance.getSettings().columns;
-
     if (columns) {
-      const maxCols = this.instance.getSettings().maxCols;
-      let columnsLen = Math.min(maxCols, columns.length);
+      let columnsLen = 0;
       let filteredIndex = 0;
       let columnsAsFunc = false;
-      const schemaLen = deepObjectSize(schema);
 
       if (typeof columns === 'function') {
-        columnsLen = schemaLen > 0 ? schemaLen : this.instance.countSourceCols();
+        const schemaLen = deepObjectSize(schema);
+
+        columnsLen = schemaLen > 0 ? schemaLen : this.countFirstRowKeys();
         columnsAsFunc = true;
+
+      } else {
+        const maxCols = this.tableMeta.maxCols;
+
+        columnsLen = Math.min(maxCols, columns.length);
       }
 
       for (i = 0; i < columnsLen; i++) {
@@ -171,12 +145,21 @@ class DataMap {
   }
 
   /**
+   * Get the amount of physical columns in the first data row.
+   *
+   * @returns {number} Amount of physical columns in the first data row.
+   */
+  countFirstRowKeys() {
+    return countFirstRowKeys(this.dataSource);
+  }
+
+  /**
    * Generates columns' translation cache.
    *
-   * @param {Object} schema
-   * @param {Number} lastCol
-   * @param {Number} parent
-   * @returns {Number}
+   * @param {object} schema An object to generate schema from.
+   * @param {number} lastCol The column index.
+   * @param {number} parent The property cache for recursive calls.
+   * @returns {number}
    */
   recursiveDuckColumns(schema, lastCol, parent) {
     let lastColumn = lastCol;
@@ -207,13 +190,25 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * @param {Number} col Visual column index.
-   * @returns {Number} Physical column index.
+   * @param {string|number} column Visual column index or another passed argument.
+   * @returns {string|number} Column property, physical column index or passed argument.
    */
-  colToProp(col) {
-    const physicalColumn = this.instance.toPhysicalColumn(col);
+  colToProp(column) {
+    // TODO: Should it work? Please, look at the test:
+    // "it should return the provided property name, when the user passes a property name as a column number".
+    if (Number.isInteger(column) === false) {
+      return column;
+    }
 
-    if (!isNaN(physicalColumn) && this.colToPropCache && typeof this.colToPropCache[physicalColumn] !== 'undefined') {
+    const physicalColumn = this.instance.toPhysicalColumn(column);
+
+    // Out of range, not visible column index.
+    if (physicalColumn === null) {
+      return column;
+    }
+
+    // Cached property.
+    if (this.colToPropCache && isDefined(this.colToPropCache[physicalColumn])) {
       return this.colToPropCache[physicalColumn];
     }
 
@@ -223,30 +218,33 @@ class DataMap {
   /**
    * Translates property into visual column index.
    *
-   * @param {Object} prop
-   * @fires Hooks#modifyCol
-   * @returns {Number}
+   * @param {string|number} prop Column property which may be also a physical column index.
+   * @returns {string|number} Visual column index or passed argument.
    */
   propToCol(prop) {
-    let col;
+    const cachedPhysicalIndex = this.propToColCache.get(prop);
 
-    if (typeof this.propToColCache.get(prop) === 'undefined') {
-      col = prop;
-    } else {
-      col = this.propToColCache.get(prop);
+    if (isDefined(cachedPhysicalIndex)) {
+      return this.instance.toVisualColumn(cachedPhysicalIndex);
     }
-    col = this.instance.toVisualColumn(col);
 
-    return col;
+    // Property may be a physical column index.
+    const visualColumn = this.instance.toVisualColumn(prop);
+
+    if (visualColumn === null) {
+      return prop;
+    }
+
+    return visualColumn;
   }
 
   /**
    * Returns data's schema.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getSchema() {
-    const schema = this.instance.getSettings().dataSchema;
+    const schema = this.tableMeta.dataSchema;
 
     if (schema) {
       if (typeof schema === 'function') {
@@ -261,34 +259,41 @@ class DataMap {
   /**
    * Creates row at the bottom of the data array.
    *
-   * @param {Number} [index] Physical index of the row before which the new row will be inserted.
-   * @param {Number} [amount=1] An amount of rows to add.
-   * @param {String} [source] Source of method call.
+   * @param {number} [index] Physical index of the row before which the new row will be inserted.
+   * @param {number} [amount=1] An amount of rows to add.
+   * @param {string} [source] Source of method call.
    * @fires Hooks#afterCreateRow
-   * @returns {Number} Returns number of created rows.
+   * @returns {number} Returns number of created rows.
    */
   createRow(index, amount = 1, source) {
+    const sourceRowsCount = this.instance.countSourceRows();
+    let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
     let rowIndex = index;
 
-    if (typeof rowIndex !== 'number' || rowIndex >= this.instance.countSourceRows()) {
-      rowIndex = this.instance.countSourceRows();
+    if (typeof rowIndex !== 'number' || rowIndex >= sourceRowsCount) {
+      rowIndex = sourceRowsCount;
+    }
+
+    if (rowIndex < this.instance.countRows()) {
+      physicalRowIndex = this.instance.toPhysicalRow(rowIndex);
     }
 
     const continueProcess = this.instance.runHooks('beforeCreateRow', rowIndex, amount, source);
 
-    if (continueProcess === false) {
+    if (continueProcess === false || physicalRowIndex === null) {
       return 0;
     }
 
-    const maxRows = this.instance.getSettings().maxRows;
+    const maxRows = this.tableMeta.maxRows;
     const columnCount = this.instance.countCols();
+    const rowsToAdd = [];
 
-    while (numberOfCreatedRows < amount && this.instance.countSourceRows() < maxRows) {
+    while (numberOfCreatedRows < amount && sourceRowsCount + numberOfCreatedRows < maxRows) {
       let row = null;
 
       if (this.instance.dataType === 'array') {
-        if (this.instance.getSettings().dataSchema) {
+        if (this.tableMeta.dataSchema) {
           // Clone template array
           row = deepClone(this.getSchema());
 
@@ -299,22 +304,21 @@ class DataMap {
         }
 
       } else if (this.instance.dataType === 'function') {
-        row = this.instance.getSettings().dataSchema(rowIndex);
+        row = this.tableMeta.dataSchema(rowIndex);
 
       } else {
         row = {};
         deepExtend(row, this.getSchema());
       }
 
-      if (rowIndex === this.instance.countSourceRows()) {
-        this.dataSource.push(row);
-
-      } else {
-        this.spliceData(rowIndex, 0, row);
-      }
+      rowsToAdd.push(row);
 
       numberOfCreatedRows += 1;
     }
+
+    this.instance.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
+
+    this.spliceData(physicalRowIndex, 0, ...rowsToAdd);
 
     this.instance.runHooks('afterCreateRow', rowIndex, numberOfCreatedRows, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -325,11 +329,11 @@ class DataMap {
   /**
    * Creates column at the right of the data array.
    *
-   * @param {Number} [index] Visual index of the column before which the new column will be inserted
-   * @param {Number} [amount=1] An amount of columns to add.
-   * @param {String} [source] Source of method call.
+   * @param {number} [index] Visual index of the column before which the new column will be inserted.
+   * @param {number} [amount=1] An amount of columns to add.
+   * @param {string} [source] Source of method call.
    * @fires Hooks#afterCreateCol
-   * @returns {Number} Returns number of created columns
+   * @returns {number} Returns number of created columns.
    */
   createCol(index, amount = 1, source) {
     if (!this.instance.isColumnModificationAllowed()) {
@@ -337,12 +341,14 @@ class DataMap {
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
         'If you want to be able to add new columns, you have to use array datasource.');
     }
-    const rlen = this.instance.countSourceRows();
-    const data = this.dataSource;
-    const countColumns = this.instance.countCols();
-    const columnIndex = typeof index !== 'number' || index >= countColumns ? countColumns : index;
-    let numberOfCreatedCols = 0;
-    let currentIndex;
+
+    const dataSource = this.dataSource;
+    const maxCols = this.tableMeta.maxCols;
+    let columnIndex = index;
+
+    if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countSourceCols()) {
+      columnIndex = this.instance.countSourceCols();
+    }
 
     const continueProcess = this.instance.runHooks('beforeCreateCol', columnIndex, amount, source);
 
@@ -350,37 +356,43 @@ class DataMap {
       return 0;
     }
 
-    currentIndex = columnIndex;
+    let physicalColumnIndex = this.instance.countSourceCols();
 
-    const maxCols = this.instance.getSettings().maxCols;
-    while (numberOfCreatedCols < amount && this.instance.countCols() < maxCols) {
-      const constructor = columnFactory(this.GridSettings, this.priv.columnsSettingConflicts);
+    if (columnIndex < this.instance.countCols()) {
+      physicalColumnIndex = this.instance.toPhysicalColumn(columnIndex);
+    }
 
-      if (typeof columnIndex !== 'number' || columnIndex >= this.instance.countCols()) {
-        if (rlen > 0) {
-          for (let r = 0; r < rlen; r++) {
-            if (typeof data[r] === 'undefined') {
-              data[r] = [];
+    const numberOfSourceRows = this.instance.countSourceRows();
+    let nrOfColumns = this.instance.countCols();
+    let numberOfCreatedCols = 0;
+    let currentIndex = physicalColumnIndex;
+
+    while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
+      if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
+        if (numberOfSourceRows > 0) {
+          for (let row = 0; row < numberOfSourceRows; row += 1) {
+            if (typeof dataSource[row] === 'undefined') {
+              dataSource[row] = [];
             }
-            data[r].push(null);
+
+            dataSource[row].push(null);
           }
         } else {
-          data.push([null]);
+          dataSource.push([null]);
         }
-        // Add new column constructor
-        this.priv.columnSettings.push(constructor);
 
       } else {
-        for (let row = 0; row < rlen; row++) {
-          data[row].splice(currentIndex, 0, null);
+        for (let row = 0; row < numberOfSourceRows; row++) {
+          dataSource[row].splice(currentIndex, 0, null);
         }
-        // Add new column constructor at given index
-        this.priv.columnSettings.splice(currentIndex, 0, constructor);
       }
 
       numberOfCreatedCols += 1;
       currentIndex += 1;
+      nrOfColumns += 1;
     }
+
+    this.instance.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
     this.instance.runHooks('afterCreateCol', columnIndex, numberOfCreatedCols, source);
     this.instance.forceFullRender = true; // used when data was changed
@@ -391,50 +403,70 @@ class DataMap {
   /**
    * Removes row from the data array.
    *
-   * @param {Number} [index] Visual index of the row to be removed. If not provided, the last row will be removed
-   * @param {Number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed
-   * @param {String} [source] Source of method call.
    * @fires Hooks#beforeRemoveRow
    * @fires Hooks#afterRemoveRow
+   * @param {number} [index] Visual index of the row to be removed. If not provided, the last row will be removed.
+   * @param {number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed.
+   * @param {string} [source] Source of method call.
+   * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
   removeRow(index, amount = 1, source) {
-    let rowIndex = typeof index !== 'number' ? -amount : index;
-    const rowsAmount = this.instance.runHooks('modifyRemovedAmount', amount, rowIndex);
+    let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
+    const removedPhysicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
     const sourceRowsLength = this.instance.countSourceRows();
 
     rowIndex = (sourceRowsLength + rowIndex) % sourceRowsLength;
 
-    const logicRows = this.visualRowsToPhysical(rowIndex, rowsAmount);
-    const actionWasNotCancelled = this.instance.runHooks('beforeRemoveRow', rowIndex, rowsAmount, logicRows, source);
+    // It handle also callback from the `NestedRows` plugin. Removing parent node has effect in removing children nodes.
+    const actionWasNotCancelled = this.instance.runHooks(
+      'beforeRemoveRow', rowIndex, removedPhysicalIndexes.length, removedPhysicalIndexes, source
+    );
 
     if (actionWasNotCancelled === false) {
-      return;
+      return false;
     }
 
     const data = this.dataSource;
-    const newData = this.filterData(rowIndex, rowsAmount);
+    // List of removed indexes might be changed in the `beforeRemoveRow` hook. There may be new values.
+    const numberOfRemovedIndexes = removedPhysicalIndexes.length;
+    const newData = this.filterData(rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes);
 
     if (newData) {
       data.length = 0;
       Array.prototype.push.apply(data, newData);
     }
 
-    this.instance.runHooks('afterRemoveRow', rowIndex, rowsAmount, logicRows, source);
+    // TODO: Function `removeRow` should validate fully, probably above.
+    if (rowIndex < this.instance.countRows()) {
+      this.instance.rowIndexMapper.removeIndexes(removedPhysicalIndexes);
+
+      const customDefinedColumns = isDefined(this.tableMeta.columns) || isDefined(this.tableMeta.dataSchema);
+
+      // All rows have been removed. There shouldn't be any columns.
+      if (this.instance.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
+        this.instance.columnIndexMapper.setIndexesSequence([]);
+      }
+    }
+
+    this.instance.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
 
     this.instance.forceFullRender = true; // used when data was changed
+
+    return true;
   }
 
   /**
    * Removes column from the data array.
    *
-   * @param {Number} [index] Visual index of the column to be removed. If not provided, the last column will be removed
-   * @param {Number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed
-   * @param {String} [source] Source of method call.
    * @fires Hooks#beforeRemoveCol
    * @fires Hooks#afterRemoveCol
+   * @param {number} [index] Visual index of the column to be removed. If not provided, the last column will be removed.
+   * @param {number} [amount=1] Amount of the columns to be removed. If not provided, one column will be removed.
+   * @param {string} [source] Source of method call.
+   * @returns {boolean} Returns `false` when action was cancelled, otherwise `true`.
    */
   removeCol(index, amount = 1, source) {
-    if (this.instance.dataType === 'object' || this.instance.getSettings().columns) {
+    if (this.instance.dataType === 'object' || this.tableMeta.columns) {
       throw new Error('cannot remove column with object data source or columns option specified');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
@@ -446,7 +478,7 @@ class DataMap {
     const actionWasNotCancelled = this.instance.runHooks('beforeRemoveCol', columnIndex, amount, logicColumns, source);
 
     if (actionWasNotCancelled === false) {
-      return;
+      return false;
     }
 
     let isTableUniform = true;
@@ -470,25 +502,33 @@ class DataMap {
           data[r].splice(descendingLogicColumns[c], 1);
         }
       }
+    }
 
-      for (let c = 0; c < removedColumnsCount; c++) {
-        this.priv.columnSettings.splice(logicColumns[c], 1);
+    // TODO: Function `removeCol` should validate fully, probably above.
+    if (columnIndex < this.instance.countCols()) {
+      this.instance.columnIndexMapper.removeIndexes(logicColumns);
+
+      // All columns have been removed. There shouldn't be any rows.
+      if (this.instance.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
+        this.instance.rowIndexMapper.setIndexesSequence([]);
       }
     }
 
     this.instance.runHooks('afterRemoveCol', columnIndex, amount, logicColumns, source);
 
     this.instance.forceFullRender = true; // used when data was changed
+
+    return true;
   }
 
   /**
    * Add/Removes data from the column.
    *
-   * @param {Number} col Physical index of column in which do you want to do splice
-   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end
-   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed
-   * @param {Array} [elements]
-   * @returns {Array} Returns removed portion of columns
+   * @param {number} col Physical index of column in which do you want to do splice.
+   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {Array} [elements] The new columns to add.
+   * @returns {Array} Returns removed portion of columns.
    */
   spliceCol(col, index, amount, ...elements) {
     const colData = this.instance.getDataAtCol(col);
@@ -510,11 +550,11 @@ class DataMap {
   /**
    * Add/Removes data from the row.
    *
-   * @param {Number} row Physical index of row in which do you want to do splice
-   * @param {Number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
-   * @param {Number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
-   * @param {Array} [elements]
-   * @returns {Array} Returns removed portion of rows
+   * @param {number} row Physical index of row in which do you want to do splice.
+   * @param {number} index Index at which to start changing the array. If negative, will begin that many elements from the end.
+   * @param {number} amount An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed.
+   * @param {Array} [elements] The new rows to add.
+   * @returns {Array} Returns removed portion of rows.
    */
   spliceRow(row, index, amount, ...elements) {
     const rowData = this.instance.getSourceDataAtRow(row);
@@ -535,27 +575,27 @@ class DataMap {
   /**
    * Add/remove row(s) to/from the data source.
    *
-   * @param {Number} index Physical index of the element to remove.
-   * @param {Number} amount Number of rows to add/remove.
-   * @param {Object} element Row to add.
+   * @param {number} index Physical index of the element to add/remove.
+   * @param {number} amount Number of rows to add/remove.
+   * @param {...object} elements Row elements to be added.
    */
-  spliceData(index, amount, element) {
-    const continueSplicing = this.instance.runHooks('beforeDataSplice', index, amount, element);
+  spliceData(index, amount, ...elements) {
+    const continueSplicing = this.instance.runHooks('beforeDataSplice', index, amount, elements);
 
     if (continueSplicing !== false) {
-      this.dataSource.splice(index, amount, element);
+      this.dataSource.splice(index, amount, ...elements);
     }
   }
 
   /**
    * Filter unwanted data elements from the data source.
    *
-   * @param {Number} index Visual index of the element to remove.
-   * @param {Number} amount Number of rows to add/remove.
+   * @param {number} index Visual index of the element to remove.
+   * @param {number} amount Number of rows to add/remove.
+   * @param {number} physicalRows Physical row indexes.
    * @returns {Array}
    */
-  filterData(index, amount) {
-    const physicalRows = this.visualRowsToPhysical(index, amount);
+  filterData(index, amount, physicalRows) {
     const continueSplicing = this.instance.runHooks('beforeDataFilter', index, amount, physicalRows);
 
     if (continueSplicing !== false) {
@@ -568,8 +608,8 @@ class DataMap {
   /**
    * Returns single value from the data array.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} prop
+   * @param {number} row Visual row index.
+   * @param {number} prop The column property.
    * @returns {*}
    */
   get(row, prop) {
@@ -606,7 +646,7 @@ class DataMap {
 
     } else if (typeof prop === 'function') {
       /**
-       *  allows for interacting with complex structures, for example
+       *  Allows for interacting with complex structures, for example
        *  d3/jQuery getter/setter properties:
        *
        *    {columns: [{
@@ -616,7 +656,7 @@ class DataMap {
        *        }
        *        row.property(value);
        *      }
-       *    }]}
+       *    }]}.
        */
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
@@ -637,9 +677,9 @@ class DataMap {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
-   * @param {Number} row Physical row index.
-   * @param {Number} prop
-   * @returns {String}
+   * @param {number} row Physical row index.
+   * @param {number} prop The column property.
+   * @returns {string}
    */
   getCopyable(row, prop) {
     if (copyableLookup.call(this.instance, row, this.propToCol(prop))) {
@@ -652,13 +692,12 @@ class DataMap {
   /**
    * Saves single value to the data array.
    *
-   * @param {Number} row Visual row index.
-   * @param {Number} prop
-   * @param {String} value
-   * @param {String} [source] Source of hook runner.
+   * @param {number} row Visual row index.
+   * @param {number} prop The column property.
+   * @param {string} value The value to set.
    */
-  set(row, prop, value, source) {
-    const physicalRow = this.instance.runHooks('modifyRow', row, source || 'datamapGet');
+  set(row, prop, value) {
+    const physicalRow = this.instance.toPhysicalRow(row);
     let newValue = value;
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -707,12 +746,11 @@ class DataMap {
   /**
    * This ridiculous piece of code maps rows Id that are present in table data to those displayed for user.
    * The trick is, the physical row id (stored in settings.data) is not necessary the same
-   * as the visual (displayed) row id (e.g. when sorting is applied).
+   * as the visual (displayed) row id (e.g. When sorting is applied).
    *
-   * @param {Number} index Visual row index.
-   * @param {Number} amount
-   * @fires Hooks#modifyRow
-   * @returns {Number}
+   * @param {number} index Visual row index.
+   * @param {number} amount An amount of rows to translate.
+   * @returns {number}
    */
   visualRowsToPhysical(index, amount) {
     const totalRows = this.instance.countSourceRows();
@@ -734,8 +772,8 @@ class DataMap {
 
   /**
    *
-   * @param index Visual column index.
-   * @param amount
+   * @param {number} index Visual column index.
+   * @param {number} amount An amount of rows to translate.
    * @returns {Array}
    */
   visualColumnsToPhysical(index, amount) {
@@ -768,54 +806,22 @@ class DataMap {
   }
 
   /**
-   * Clear cached data length.
-   */
-  clearLengthCache() {
-    this.cachedLength = null;
-  }
-
-  /**
    * Get data length.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLength() {
-    const maxRowsFromSettings = this.instance.getSettings().maxRows;
+    const maxRowsFromSettings = this.tableMeta.maxRows;
     let maxRows;
 
     if (maxRowsFromSettings < 0 || maxRowsFromSettings === 0) {
       maxRows = 0;
+
     } else {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    let length = this.instance.countSourceRows();
-
-    if (this.instance.hasHook('modifyRow')) {
-      let reValidate = this.skipCache;
-
-      this.interval.start();
-      if (length !== this.latestSourceRowsCount) {
-        reValidate = true;
-      }
-
-      this.latestSourceRowsCount = length;
-      if (this.cachedLength === null || reValidate) {
-        rangeEach(length - 1, (row) => {
-          const physicalRow = this.instance.toPhysicalRow(row);
-
-          if (physicalRow === null) {
-            length -= 1;
-          }
-        });
-        this.cachedLength = length;
-
-      } else {
-        length = this.cachedLength;
-      }
-    } else {
-      this.interval.stop();
-    }
+    const length = this.instance.rowIndexMapper.getNotTrimmedIndexesLength();
 
     return Math.min(length, maxRows);
   }
@@ -832,7 +838,7 @@ class DataMap {
     };
 
     const end = {
-      row: Math.max(this.instance.countSourceRows() - 1, 0),
+      row: Math.max(this.instance.countRows() - 1, 0),
       col: Math.max(this.instance.countCols() - 1, 0),
     };
 
@@ -844,11 +850,20 @@ class DataMap {
   }
 
   /**
+   * Count the number of columns cached in the `colToProp` cache.
+   *
+   * @returns {number} Amount of cached columns.
+   */
+  countCachedColumns() {
+    return this.colToPropCache.length;
+  }
+
+  /**
    * Returns data range as array.
    *
-   * @param {Object} [start] Start selection position. Visual indexes.
-   * @param {Object} [end] End selection position. Visual indexes.
-   * @param {Number} destination Destination of datamap.get
+   * @param {object} [start] Start selection position. Visual indexes.
+   * @param {object} [end] End selection position. Visual indexes.
+   * @param {number} destination Destination of datamap.get.
    * @returns {Array}
    */
   getRange(start, end, destination) {
@@ -857,8 +872,8 @@ class DataMap {
     let c;
     let row;
 
-    const maxRows = this.instance.getSettings().maxRows;
-    const maxCols = this.instance.getSettings().maxCols;
+    const maxRows = this.tableMeta.maxRows;
+    const maxCols = this.tableMeta.maxCols;
 
     if (maxRows === 0 || maxCols === 0) {
       return [];
@@ -871,7 +886,8 @@ class DataMap {
 
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
       row = [];
-      const physicalRow = this.instance.toPhysicalRow(r);
+      // We just store indexes for rows without headers.
+      const physicalRow = r >= 0 ? this.instance.toPhysicalRow(r) : r;
 
       for (c = Math.min(start.col, end.col); c <= clen; c++) {
 
@@ -891,9 +907,9 @@ class DataMap {
   /**
    * Return data as text (tab separated columns).
    *
-   * @param {Object} [start] Start selection position. Visual indexes.
-   * @param {Object} [end] End selection position. Visual indexes.
-   * @returns {String}
+   * @param {object} [start] Start selection position. Visual indexes.
+   * @param {object} [end] End selection position. Visual indexes.
+   * @returns {string}
    */
   getText(start, end) {
     return SheetClip.stringify(this.getRange(start, end, DataMap.DESTINATION_RENDERER));
@@ -902,40 +918,21 @@ class DataMap {
   /**
    * Return data as copyable text (tab separated columns intended for clipboard copy to an external application).
    *
-   * @param {Object} [start] Start selection position. Visual indexes.
-   * @param {Object} [end] End selection position. Visual indexes.
-   * @returns {String}
+   * @param {object} [start] Start selection position. Visual indexes.
+   * @param {object} [end] End selection position. Visual indexes.
+   * @returns {string}
    */
   getCopyableText(start, end) {
     return SheetClip.stringify(this.getRange(start, end, DataMap.DESTINATION_CLIPBOARD_GENERATOR));
   }
 
   /**
-   * `skipLengthCache` callback.
-   *
-   * @private
-   * @param {Number} delay Time of the delay in milliseconds.
-   */
-  onSkipLengthCache(delay) {
-    this.skipCache = true;
-
-    setTimeout(() => {
-      this.skipCache = false;
-    }, delay);
-  }
-
-  /**
    * Destroy instance.
    */
   destroy() {
-    this.interval.stop();
-
-    this.interval = null;
     this.instance = null;
-    this.priv = null;
-    this.GridSettings = null;
+    this.tableMeta = null;
     this.dataSource = null;
-    this.cachedLength = null;
     this.duckSchema = null;
     this.colToPropCache.length = 0;
 

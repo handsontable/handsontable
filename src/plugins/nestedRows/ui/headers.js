@@ -8,13 +8,13 @@ import BaseUI from './_base';
  *
  * @class HeadersUI
  * @util
- * @extends BaseUI
+ * @augments BaseUI
  */
 class HeadersUI extends BaseUI {
   /**
    * CSS classes used in the row headers.
    *
-   * @type {Object}
+   * @type {object}
    */
   static get CSS_CLASSES() {
     return {
@@ -51,26 +51,20 @@ class HeadersUI extends BaseUI {
     /**
      * Cache for the row headers width.
      *
-     * @type {null|Number}
+     * @type {null|number}
      */
     this.rowHeaderWidthCache = null;
-    /**
-     * Reference to the TrimRows instance connected with the Nested Rows plugin.
-     *
-     * @type {TrimRows}
-     */
-    this.trimRowsPlugin = nestedRowsPlugin.trimRowsPlugin;
   }
 
   /**
    * Append nesting indicators and buttons to the row headers.
    *
    * @private
-   * @param {Number} row Row index.
+   * @param {number} row Row index.
    * @param {HTMLElement} TH TH 3element.
    */
   appendLevelIndicators(row, TH) {
-    const rowIndex = this.trimRowsPlugin.rowsMapper.getValueByIndex(row);
+    const rowIndex = this.hot.toPhysicalRow(row);
     const rowLevel = this.dataManager.getRowLevel(rowIndex);
     const rowObject = this.dataManager.getDataObject(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
@@ -118,7 +112,7 @@ class HeadersUI extends BaseUI {
    * Update the row header width according to number of levels in the dataset.
    *
    * @private
-   * @param {Number} deepestLevel Cached deepest level of nesting.
+   * @param {number} deepestLevel Cached deepest level of nesting.
    */
   updateRowHeaderWidth(deepestLevel) {
     let deepestLevelIndex = deepestLevel;

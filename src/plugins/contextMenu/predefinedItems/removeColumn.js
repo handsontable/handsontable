@@ -4,6 +4,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_col';
 
+/**
+ * @returns {object}
+ */
 export default function removeColumnItem() {
   return {
     key: KEY,
@@ -26,18 +29,28 @@ export default function removeColumnItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
     },
     callback() {
-      this.alter('remove_col', transformSelectionToColumnDistance(this.getSelected()), null, 'ContextMenu.removeColumn');
+      this.alter('remove_col',
+        transformSelectionToColumnDistance(this.getSelected()), null, 'ContextMenu.removeColumn');
     },
     disabled() {
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+
       const selected = getValidSelection(this);
-      const totalColumns = this.countCols();
 
       if (!selected) {
         return true;
       }
 
-      return this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner() ||
-             !this.isColumnModificationAllowed() || !totalColumns;
+      const totalColumns = this.countCols();
+
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Remove column" only when there is at least one column.
+        return totalColumns === 0;
+      }
+
+      return this.selection.isSelectedByRowHeader() || totalColumns === 0;
     },
     hidden() {
       return !this.getSettings().allowRemoveColumn;

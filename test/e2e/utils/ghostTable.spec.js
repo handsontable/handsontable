@@ -63,7 +63,7 @@ describe('GhostTable', () => {
       expect(gt.rows.length).toBe(0);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo', row: 0 }, { value: 'Foo Bar', row: 0 }] });
+      samples.set(0, { strings: [{ value: 'Foo', row: 0, col: 0 }, { value: 'Foo Bar', row: 0, col: 0 }] });
 
       gt.addRow(0, samples);
 
@@ -75,7 +75,7 @@ describe('GhostTable', () => {
       expect(gt.rows[0].table.querySelector('tbody > tr > td').innerHTML).toBe('Foo');
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Bar', row: 1 }, { value: 'Baz1234', row: 1 }] });
+      samples.set(0, { strings: [{ value: 'Bar', row: 1, col: 0 }, { value: 'Baz1234', row: 1, col: 0 }] });
 
       gt.addRow(1, samples);
 
@@ -94,17 +94,17 @@ describe('GhostTable', () => {
       gt = new Handsontable.__GhostTable(hot);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo', row: 0 }, { value: 'Foo.....Bar', row: 0 }] });
+      samples.set(0, { strings: [{ value: 'Foo', row: 0, col: 0 }, { value: 'Foo.....Bar', row: 0, col: 0 }] });
 
       gt.addRow(0, samples);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo\nBar\nsqw', row: 1 }] });
+      samples.set(0, { strings: [{ value: 'Foo\nBar\nsqw', row: 1, col: 0 }] });
 
       gt.addRow(1, samples);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo', row: 0 }, { value: 'Foo Bar', row: 0 }] });
+      samples.set(0, { strings: [{ value: 'Foo', row: 0, col: 0 }, { value: 'Foo Bar', row: 0, col: 0 }] });
 
       gt.addRow(2, samples);
       gt.getHeights(heightSpy);
@@ -162,7 +162,7 @@ describe('GhostTable', () => {
       expect(gt.columns.length).toBe(0);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo', col: 0 }, { value: 'Foo Bar', col: 0 }] });
+      samples.set(0, { strings: [{ value: 'Foo', row: 0, col: 0 }, { value: 'Foo Bar', row: 0, col: 0 }] });
 
       gt.addColumn(0, samples);
 
@@ -176,7 +176,7 @@ describe('GhostTable', () => {
       expect(gt.columns[0].table.querySelector('tbody > tr > td').innerHTML).toBe('Foo');
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Bar', row: 1 }, { value: 'Baz1234', row: 1 }] });
+      samples.set(0, { strings: [{ value: 'Bar', row: 1, col: 0 }, { value: 'Baz1234', row: 1, col: 0 }] });
 
       gt.addColumn(1, samples);
 
@@ -195,28 +195,28 @@ describe('GhostTable', () => {
       gt = new Handsontable.__GhostTable(hot);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo', col: 0 }, { value: 'Foo.....Bar', col: 0 }] });
+      samples.set(0, { strings: [{ value: 'Foo', row: 0, col: 0 }, { value: 'Foo.....Bar', row: 0, col: 0 }] });
 
       gt.addColumn(0, samples);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo\nBar\nsqw', col: 1 }] });
+      samples.set(0, { strings: [{ value: 'Foo\nBar\nsqw', row: 0, col: 1 }] });
 
       gt.addColumn(1, samples);
 
       samples.clear();
-      samples.set(0, { strings: [{ value: 'Foo', col: 0 }, { value: 'Foo Bar', col: 0 }] });
+      samples.set(0, { strings: [{ value: 'Foo', row: 0, col: 0 }, { value: 'Foo Bar', row: 0, col: 0 }] });
 
       gt.addColumn(2, samples);
       gt.getWidths(widthSpy);
 
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBeAroundValue(87, 4);
+      expect(widthSpy.calls.argsFor(0)[1]).toBe(78);
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).toBeAroundValue(41, 4);
+      expect(widthSpy.calls.argsFor(1)[1]).toBe(36);
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(widthSpy.calls.argsFor(2)[1]).toBeAroundValue(68, 4);
+      expect(widthSpy.calls.argsFor(2)[1]).toBe(62);
     });
   });
 

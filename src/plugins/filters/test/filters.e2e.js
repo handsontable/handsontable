@@ -25,7 +25,9 @@ describe('Filters', () => {
 
     dropdownMenu(1);
     $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
-    $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td')).simulate('mousedown').simulate('mouseup');
+    $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
+      .simulate('mousedown')
+      .simulate('mouseup');
 
     setTimeout(() => {
       // Begins with 'c'
@@ -152,6 +154,30 @@ describe('Filters', () => {
     expect(getData().length).toEqual(3);
   });
 
+  it('should return proper response on the `toVisualRow` call when sorted filtered values #5890', () => {
+    const hot = handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      columnSorting: true
+    });
+
+    const filtersPlugin = getPlugin('filters');
+    const columnSortingPlugin = getPlugin('columnSorting');
+
+    filtersPlugin.addCondition(0, 'gt', [1]);
+    filtersPlugin.filter();
+
+    columnSortingPlugin.sort({
+      column: 0,
+      sortOrder: 'desc'
+    });
+
+    expect(hot.toVisualRow(0)).toEqual(null);
+    expect(hot.toVisualRow(1)).toBe(37);
+    expect(hot.toVisualRow(38)).toBe(0);
+  });
+
   it('should warn user by log at console when amount of conditions at specific column exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
     const warnSpy = spyOn(console, 'warn');
@@ -171,7 +197,9 @@ describe('Filters', () => {
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
-    expect(warnSpy).toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith('The filter conditions have been applied properly, but couldn’t be ' +
+      'displayed visually. The overall amount of conditions exceed the capability of the dropdown menu. For ' +
+      'more details see the documentation.');
   });
 
   it('should not warn user by log at console when amount of conditions at specific column not exceed the capability of ' +
@@ -269,7 +297,8 @@ describe('Filters', () => {
       expect(getData()[0][4]).toBe('brown');
       expect(getData()[0][5]).toBe(1800.03);
       expect(getData()[0][6]).toBe(true);
-      expect(getDataAtCol(1).join()).toBe('Ernestine Wiggins,Becky Ross,Lee Reed,Gertrude Nielsen,Peterson Bowers,Ferguson Nichols');
+      expect(getDataAtCol(1).join())
+        .toBe('Ernestine Wiggins,Becky Ross,Lee Reed,Gertrude Nielsen,Peterson Bowers,Ferguson Nichols');
     });
 
     it('should filter date value (yesterday)', () => {
@@ -343,7 +372,7 @@ describe('Filters', () => {
         manualColumnMove.moveColumn(0, 3);
         hot.render();
 
-        expect(this.$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
+        expect(this.$container.find('th:eq(3)').hasClass('htFiltersActive')).toEqual(true);
       });
 
       it('should show indicator at proper position when column order was changed - test no. 2', function() {
@@ -360,7 +389,7 @@ describe('Filters', () => {
         const filters = hot.getPlugin('filters');
         const manualColumnMove = hot.getPlugin('manualColumnMove');
 
-        manualColumnMove.moveColumn(0, 2);
+        manualColumnMove.moveColumn(0, 1);
         hot.render();
 
         filters.addCondition(1, 'not_empty', []);
@@ -386,7 +415,7 @@ describe('Filters', () => {
         filters.addCondition(0, 'not_empty', []);
         filters.filter();
 
-        manualColumnMove.moveColumn(0, 3);
+        manualColumnMove.moveColumn(0, 2);
         hot.render();
 
         dropdownMenu(2);
@@ -407,7 +436,7 @@ describe('Filters', () => {
 
         const manualColumnMove = hot.getPlugin('manualColumnMove');
 
-        manualColumnMove.moveColumn(0, 3);
+        manualColumnMove.moveColumn(0, 2);
         hot.render();
 
         dropdownMenu(2);
@@ -799,5 +828,36 @@ describe('Filters', () => {
         });
       });
     });
+  });
+
+  it('should add minSpareRows properly when the filters plugin is enabled #3937', () => {
+    handsontable({
+      minSpareRows: 1,
+      filters: true
+    });
+
+    loadData(Handsontable.helper.createSpreadsheetData(3, 3));
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2'],
+      ['A3', 'B3', 'C3'],
+      [null, null, null],
+    ]);
+  });
+
+  it('should work also when the `TrimRows` plugin is enabled #3937', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      filters: true,
+      trimRows: [1]
+    });
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1', 'D1', 'E1'],
+      ['A3', 'B3', 'C3', 'D3', 'E3'],
+      ['A4', 'B4', 'C4', 'D4', 'E4'],
+      ['A5', 'B5', 'C5', 'D5', 'E5'],
+    ]);
   });
 });

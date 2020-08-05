@@ -3,20 +3,19 @@ import { stringify } from './../helpers/mixed';
 import { getRenderer } from './index';
 
 /**
- * Default text renderer
+ * Default text renderer.
  *
  * @private
- * @renderer TextRenderer
- * @param {Object} instance Handsontable instance
- * @param {Element} TD Table cell where to render
- * @param {Number} row
- * @param {Number} col
- * @param {String|Number} prop Row object property name
- * @param value Value to render (remember to escape unsafe HTML before inserting to DOM!)
- * @param {Object} cellProperties Cell properties (shared by cell renderer and editor)
+ * @param {Core} instance The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The rendered cell element.
+ * @param {number} row The visual row index.
+ * @param {number} col The visual column index.
+ * @param {number|string} prop The column property (passed when datasource is an array of objects).
+ * @param {*} value The rendered value.
+ * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...args) {
-  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties, ...args]);
+function textRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   let escaped = value;
 
   if (!escaped && cellProperties.placeholder) {
@@ -25,7 +24,8 @@ function textRenderer(instance, TD, row, col, prop, value, cellProperties, ...ar
 
   escaped = stringify(escaped);
 
-  if (!instance.getSettings().trimWhitespace) {
+  if (!instance.getSettings().trimWhitespace && !instance.getSettings().wordWrap) {
+    // 160 is &nbsp; which won't wrap and preserves sequences of whitespace
     escaped = escaped.replace(/ /g, String.fromCharCode(160));
   }
 

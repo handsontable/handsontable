@@ -157,7 +157,8 @@ describe('CheckboxRenderer', () => {
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should not check single box after hitting space, if cell is readOnly', () => {
@@ -291,7 +292,73 @@ describe('CheckboxRenderer', () => {
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(getData()).toEqual([[false], [true], [false]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback).toHaveBeenCalledWith([
+      [0, 0, true, false],
+      [1, 0, false, true],
+      [2, 0, true, false]
+    ], 'edit', undefined, undefined, undefined, undefined);
+  });
+
+  it('should reverse checkboxes state after hitting space, when multiple non-contiguous cells are selected', () => {
+    handsontable({
+      data: [[true], [false], [true]],
+      columns: [
+        { type: 'checkbox' }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    let checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[true], [false], [true]]);
+
+    selectCells([[0, 0], [2, 0]]);
+
+    keyDown('space');
+
+    checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(false);
+    expect(checkboxes.eq(2).prop('checked')).toBe(false);
+    expect(getData()).toEqual([[false], [false], [false]]);
+    expect(afterChangeCallback.calls.count()).toEqual(2);
+  });
+
+  it('should reverse checkboxes state after hitting enter, when multiple non-contiguous cells are selected', () => {
+    handsontable({
+      data: [[false], [true], [true]],
+      columns: [
+        { type: 'checkbox' }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    let checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(false);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(2).prop('checked')).toBe(true);
+    expect(getData()).toEqual([[false], [true], [true]]);
+
+    selectCells([[0, 0], [2, 0]]);
+
+    keyDown('enter');
+
+    checkboxes = spec().$container.find(':checkbox');
+
+    expect(checkboxes.eq(0).prop('checked')).toBe(true);
+    expect(checkboxes.eq(1).prop('checked')).toBe(true);
+    expect(checkboxes.eq(2).prop('checked')).toBe(false);
+    expect(getData()).toEqual([[true], [true], [false]]);
+    expect(afterChangeCallback.calls.count()).toEqual(2);
   });
 
   it('should reverse checkboxes state after hitting space, when multiple cells are selected and selStart > selEnd', () => {
@@ -323,7 +390,11 @@ describe('CheckboxRenderer', () => {
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(getData()).toEqual([[false], [true], [false]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false], [1, 0, false, true], [2, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback).toHaveBeenCalledWith([
+      [0, 0, true, false],
+      [1, 0, false, true],
+      [2, 0, true, false]
+    ], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should toggle checkbox even if cell value is in another datatype', () => {
@@ -397,7 +468,8 @@ describe('CheckboxRenderer', () => {
     expect(checkboxes.eq(2).prop('checked')).toBe(true);
     expect(getData()).toEqual([[false], [true], [true]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should move down without changing checkbox state when enterBeginsEditing equals false', () => {
@@ -499,7 +571,8 @@ describe('CheckboxRenderer', () => {
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(getData()).toEqual([['no'], ['yes'], ['no']]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should change checkbox state from checked to unchecked after hitting ENTER using custom check/uncheck templates in numeric format', () => {
@@ -535,7 +608,8 @@ describe('CheckboxRenderer', () => {
     expect(checkboxes.eq(2).prop('checked')).toBe(false);
     expect(getData()).toEqual([[0], [1], [0]]);
     expect(afterChangeCallback.calls.count()).toEqual(1);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, 1, 0]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should change checkbox state to unchecked after hitting DELETE', () => {
@@ -569,7 +643,8 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [false], [true]]);
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should change checkbox notte to unchecked after hitting BACKSPACE', () => {
@@ -603,7 +678,8 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [false], [true]]);
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, true, false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should change  notkbox state to unchecked after hitting DELETE (from #bad-value# state)', () => {
@@ -630,7 +706,8 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [false]]);
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('should change checkbox  note to unchecked after hitting BACKSPACE (from #bad-value# state)', () => {
@@ -657,7 +734,8 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[false], [false]]);
 
     expect(afterChangeCallback.calls.count()).toEqual(2);
-    expect(afterChangeCallback).toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
+    expect(afterChangeCallback)
+      .toHaveBeenCalledWith([[0, 0, 'foo', false]], 'edit', undefined, undefined, undefined, undefined);
   });
 
   it('shouldn\'t change checkbo notate after hitting other keys then DELETE or BACKSPACE (from #bad-value# state)', () => {

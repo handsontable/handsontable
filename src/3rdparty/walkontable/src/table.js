@@ -24,14 +24,14 @@ import RowUtils from './utils/row';
  */
 class Table {
   /**
-   * @param {Walkontable} wotInstance
-   * @param {HTMLTableElement} table
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   * @param {HTMLTableElement} table An element to the Walkontable generated table is injected.
    */
   constructor(wotInstance, table) {
     /**
-     * Indicates if this instance is of type `MasterTable` (i.e. it is NOT an overlay)
+     * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.isMaster = !wotInstance.cloneOverlay; // "instanceof" operator isn't used, because it caused a circular reference in Webpack
     this.wot = wotInstance;
@@ -47,20 +47,20 @@ class Table {
     /**
      * Indicates if the table has height bigger than 0px.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.hasTableHeight = true;
     /**
      * Indicates if the table has width bigger than 0px.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.hasTableWidth = true;
     /**
      * Indicates if the table is visible. By visible, it means that the holder
      * element has CSS 'display' property different than 'none'.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.isTableVisible = false;
 
@@ -103,8 +103,8 @@ class Table {
    * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
    *
-   * @param {String} overlayTypeName
-   * @returns {Boolean}
+   * @param {string} overlayTypeName The overlay type.
+   * @returns {boolean}
    */
   is(overlayTypeName) {
     return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
@@ -141,7 +141,7 @@ class Table {
   }
 
   /**
-   * @param table
+   * @param {HTMLTableElement} table An element to process.
    * @returns {HTMLElement}
    */
   createSpreader(table) {
@@ -164,7 +164,7 @@ class Table {
   }
 
   /**
-   * @param spreader
+   * @param {HTMLElement} spreader An element to the hider element is injected.
    * @returns {HTMLElement}
    */
   createHider(spreader) {
@@ -187,7 +187,7 @@ class Table {
 
   /**
    *
-   * @param hider
+   * @param {HTMLElement} hider An element to the holder element is injected.
    * @returns {HTMLElement}
    */
   createHolder(hider) {
@@ -213,9 +213,9 @@ class Table {
   }
 
   /**
-   * Redraws the table
+   * Redraws the table.
    *
-   * @param {Boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
+   * @param {boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
    * @returns {Table}
    */
@@ -337,16 +337,15 @@ class Table {
         }
       }
     }
-    this.refreshSelections(runFastDraw);
 
     if (this.isMaster) {
-      wtOverlays.topOverlay.resetFixedPosition();
+      let positionChanged = wtOverlays.topOverlay.resetFixedPosition();
 
       if (wtOverlays.bottomOverlay.clone) {
-        wtOverlays.bottomOverlay.resetFixedPosition();
+        positionChanged = wtOverlays.bottomOverlay.resetFixedPosition() || positionChanged;
       }
 
-      wtOverlays.leftOverlay.resetFixedPosition();
+      positionChanged = wtOverlays.leftOverlay.resetFixedPosition() || positionChanged;
 
       if (wtOverlays.topLeftCornerOverlay) {
         wtOverlays.topLeftCornerOverlay.resetFixedPosition();
@@ -355,7 +354,17 @@ class Table {
       if (wtOverlays.bottomLeftCornerOverlay && wtOverlays.bottomLeftCornerOverlay.clone) {
         wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
+
+      if (positionChanged) {
+        // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
+        // remove `innerBorderTop` and `innerBorderLeft` CSS classes to the DOM element. This happens
+        // when there is a switch between rendering from 0 to N rows/columns and vice versa).
+        wtOverlays.refreshAll();
+      }
     }
+
+    this.refreshSelections(runFastDraw);
+
     if (syncScroll) {
       wtOverlays.syncScrollWithMaster();
     }
@@ -365,6 +374,9 @@ class Table {
     return this;
   }
 
+  /**
+   * @param {number} col The visual column index.
+   */
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.wot.wtTable.columnFilter.renderedToSource(col);
     let level = this.wot.getSetting('columnHeaders').length;
@@ -386,7 +398,8 @@ class Table {
       }
       currentHeaderHeight = innerHeight(currentHeader);
 
-      if (!previousColHeaderHeight && defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
+      if (!previousColHeaderHeight &&
+          defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
         this.wot.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
       }
 
@@ -399,12 +412,16 @@ class Table {
         this.wot.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
 
-      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] || columnHeaderHeightSetting)) {
-        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting);
+      if (this.wot.wtViewport.oversizedColumnHeaders[level] < (columnHeaderHeightSetting[level] ||
+          columnHeaderHeightSetting)) {
+        this.wot.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting); // eslint-disable-line max-len
       }
     }
   }
 
+  /**
+   *
+   */
   adjustColumnHeaderHeights() {
     const { wot } = this;
     const children = wot.wtTable.THEAD.childNodes;
@@ -445,6 +462,9 @@ class Table {
     }
   }
 
+  /**
+   * @param {string} className The CSS class name to remove from the table cells.
+   */
   removeClassFromCells(className) {
     const nodes = this.TABLE.querySelectorAll(`.${className}`);
 
@@ -456,7 +476,7 @@ class Table {
   /**
    * Refresh the table selection by re-rendering Selection instances connected with that instance.
    *
-   * @param {Boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
+   * @param {boolean} fastDraw If fast drawing is enabled than additionally className clearing is applied.
    */
   refreshSelections(fastDraw) {
     const { wot } = this;
@@ -529,12 +549,12 @@ class Table {
    * are given. Thus, if both the row and the column coords are out of the rendered bounds,
    * the method returns the error code for the row.
    *
-   * @param {CellCoords} coords
-   * @returns {HTMLElement|Number} HTMLElement on success or Number one of the exit codes on error:
+   * @param {CellCoords} coords The cell coordinates.
+   * @returns {HTMLElement|number} HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
    *  -3 column before viewport
-   *  -4 column after viewport
+   *  -4 column after viewport.
    */
   getCell(coords) {
     let row = coords.row;
@@ -562,14 +582,13 @@ class Table {
       return -4;
     }
 
-    if (row < 0) {
-      const columnHeaders = this.wot.getSetting('columnHeaders');
-      const columnHeadersCount = columnHeaders.length;
-      const zeroBasedHeaderLevel = columnHeadersCount + row;
-      return this.getColumnHeader(column, zeroBasedHeaderLevel);
-    }
+    let TR;
 
-    const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    if (row < 0) {
+      TR = this.THEAD.childNodes[this.rowFilter.sourceRowToVisibleColHeadedRow(row)];
+    } else {
+      TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+    }
 
     if (!TR && row >= 0) {
       throw new Error('TR was expected to be rendered but is not');
@@ -585,11 +604,11 @@ class Table {
   }
 
   /**
-   * getColumnHeader
+   * GetColumnHeader.
    *
-   * @param {Number} col Column index
-   * @param {Number} [level=0] Header level (0 = most distant to the table)
-   * @returns {Object} HTMLElement on success or undefined on error
+   * @param {number} col Column index.
+   * @param {number} [level=0] Header level (0 = most distant to the table).
+   * @returns {object} HTMLElement on success or undefined on error.
    */
   getColumnHeader(col, level = 0) {
     const TR = this.THEAD.childNodes[level];
@@ -600,10 +619,10 @@ class Table {
   }
 
   /**
-   * getRowHeader
+   * GetRowHeader.
    *
-   * @param {Number} row Row index
-   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`
+   * @param {number} row Row index.
+   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have row headers`.
    */
   getRowHeader(row) {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
@@ -670,7 +689,7 @@ class Table {
   }
 
   /**
-   * Check if any of the rendered rows is higher than expected, and if so, cache them
+   * Check if any of the rendered rows is higher than expected, and if so, cache them.
    */
   markOversizedRows() {
     if (this.wot.getSetting('externalRowCalculator')) {
@@ -711,132 +730,206 @@ class Table {
     }
   }
 
+  /**
+   * @param {number} row The visual row index.
+   * @returns {HTMLTableElement}
+   */
   getTrForRow(row) {
     return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
   }
 
   /**
-   * 0-based index of column header
+   * Checks if the column index (negative value from -1 to N) is rendered.
    *
-   * @param {Number} level
-   * @returns {Boolean}
+   * @param {number} column The column index (negative value from -1 to N).
+   * @returns {boolean}
    */
-  isColumnHeaderLevelRendered(level) {
+  isColumnHeaderRendered(column) {
+    if (column >= 0) {
+      return false;
+    }
+
+    const rowHeaders = this.wot.getSetting('rowHeaders');
+    const rowHeadersCount = rowHeaders.length;
+
+    return Math.abs(column) <= rowHeadersCount;
+  }
+
+  /**
+   * Checks if the row index (negative value from -1 to N) is rendered.
+   *
+   * @param {number} row The row index (negative value from -1 to N).
+   * @returns {boolean}
+   */
+  isRowHeaderRendered(row) {
+    if (row >= 0) {
+      return false;
+    }
+
     const columnHeaders = this.wot.getSetting('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 
-    return level > (columnHeadersCount - 1);
+    return Math.abs(row) <= columnHeadersCount;
   }
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * 0-based index of row header
+   * Check if the given row index is lower than the index of the first row that
+   * is currently rendered and return TRUE in that case, or FALSE otherwise.
    *
-   * @param {Number} level
-   * @returns {Boolean}
+   * Negative row index is used to check the columns' headers.
+   *
+   *  Headers
+   *           +--------------+                                     │
+   *       -3  │    │    │    │                                     │
+   *           +--------------+                                     │
+   *       -2  │    │    │    │                                     │ TRUE
+   *           +--------------+                                     │
+   *       -1  │    │    │    │                                     │
+   *  Cells  +==================+                                   │
+   *        0  ┇    ┇    ┇    ┇ <--- For fixedRowsTop: 1            │
+   *           +--------------+      the master overlay do       ---+ first rendered row (index 1)
+   *        1  │ A2 │ B2 │ C2 │      not render the first row.      │
+   *           +--------------+                                     │ FALSE
+   *        2  │ A3 │ B3 │ C3 │                                     │
+   *           +--------------+                                  ---+ last rendered row
+   *                                                                │
+   *                                                                │ FALSE
+   *
+   * @param {number} row The visual row index.
+   * @returns {boolean}
    */
-  isRowHeaderLevelRendered(level) {
-    const columnHeaders = this.wot.getSetting('rowHeaders');
-    const columnHeadersCount = columnHeaders.length;
-
-    return level > (columnHeadersCount - 1);
-  }
-
-  /**
-   * Check if the given row index is smaller than the index of the first row that is currently redered
-   * and return TRUE in that case, or FALSE otherwise.
-   *
-   * Negative row index is used to check the header cells. As a simplification, it checks negative row index
-   * the same way as a regular row 0. You can interpret this as follows: If the row 0 is rendered, all header
-   * cells are also rendered.
-   *
-   * @param {Number} row
-   * @returns {Boolean}
-   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowBeforeRenderedRows(row) {
     const first = this.getFirstRenderedRow();
 
-    if (row < 0) {
-      row = 0;
+    // Check the headers only in case when the first rendered row is -1 or 0.
+    // This is an indication that the overlay is placed on the most top position.
+    if (row < 0 && first <= 0) {
+      return !this.isRowHeaderRendered(row);
     }
 
-    if (first === -1) {
-      return true;
-    }
     return row < first;
   }
 
-  isRowAfterViewport(row) {
-    return this.rowFilter && (row > this.getLastVisibleRow());
-  }
-
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Check if the given column index is larger than the index of the last column that is currently redered
-   * and return TRUE in that case, or FALSE otherwise.
+   * Check if the given column index is greater than the index of the last column that
+   * is currently rendered and return TRUE in that case, or FALSE otherwise.
    *
-   * Negative column index is used to check the header cells.
+   * The negative row index is used to check the columns' headers. However,
+   * keep in mind that for negative indexes, the method always returns FALSE as
+   * it is not possible to render headers partially. The "after" index can not be
+   * lower than -1.
    *
-   * @param {Number} column
-   * @returns {Boolean}
+   *  Headers
+   *           +--------------+                                     │
+   *       -3  │    │    │    │                                     │
+   *           +--------------+                                     │
+   *       -2  │    │    │    │                                     │ FALSE
+   *           +--------------+                                     │
+   *       -1  │    │    │    │                                     │
+   *  Cells  +==================+                                   │
+   *        0  ┇    ┇    ┇    ┇ <--- For fixedRowsTop: 1            │
+   *           +--------------+      the master overlay do       ---+ first rendered row (index 1)
+   *        1  │ A2 │ B2 │ C2 │      not render the first rows      │
+   *           +--------------+                                     │ FALSE
+   *        2  │ A3 │ B3 │ C3 │                                     │
+   *           +--------------+                                  ---+ last rendered row
+   *                                                                │
+   *                                                                │ TRUE
+   *
+   * @param {number} row The visual row index.
+   * @returns {boolean}
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowAfterRenderedRows(row) {
-    if (row < 0) {
-      const columnHeaders = this.wot.getSetting('columnHeaders');
-      const columnHeadersCount = columnHeaders.length;
-      const zeroBasedHeaderLevel = columnHeadersCount + row;
-      return this.isColumnHeaderLevelRendered(zeroBasedHeaderLevel);
-    }
     return row > this.getLastRenderedRow();
   }
 
-  isColumnBeforeViewport(column) {
-    return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
-  }
-
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * Check if the given column index is smaller than the index of the first column that is currently redered
-   * and return TRUE in that case, or FALSE otherwise.
+   * Check if the given column index is lower than the index of the first column that
+   * is currently rendered and return TRUE in that case, or FALSE otherwise.
    *
-   * Negative column index is used to check the header cells. As a simplification, it checks negative column index
-   * the same way as a regular column 0. You can interpret this as follows: If the column 0 is rendered, all header
-   * cells are also rendered.
+   * Negative column index is used to check the rows' headers.
    *
-   * @param {Number} column
-   * @returns {Boolean}
+   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            do not render this first columns.
+   *  Headers    -3   -2   -1    |
+   *           +----+----+----║┄ ┄ +------+------+
+   *           │    │    │    ║    │  B1  │  C1  │
+   *           +--------------║┄ ┄ --------------│
+   *           │    │    │    ║    │  B2  │  C2  │
+   *           +--------------║┄ ┄ --------------│
+   *           │    │    │    ║    │  B3  │  C3  │
+   *           +----+----+----║┄ ┄ +------+------+
+   *                               ╷             ╷
+   *      -------------------------+-------------+---------------->
+   *          TRUE             first    FALSE   last         FALSE
+   *                           rendered         rendered
+   *                           column           column
+   *
+   * @param {number} column The visual column index.
+   * @returns {boolean}
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   isColumnBeforeRenderedColumns(column) {
     const first = this.getFirstRenderedColumn();
 
-    if (column < 0) {
-      column = 0;
+    // Check the headers only in case when the first rendered column is -1 or 0.
+    // This is an indication that the overlay is placed on the most left position.
+    if (column < 0 && first <= 0) {
+      return !this.isColumnHeaderRendered(column);
     }
 
-    if (first === -1) {
-      return true;
-    }
     return column < first;
+  }
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Check if the given column index is greater than the index of the last column that
+   * is currently rendered and return TRUE in that case, or FALSE otherwise.
+   *
+   * The negative column index is used to check the rows' headers. However,
+   * keep in mind that for negative indexes, the method always returns FALSE as
+   * it is not possible to render headers partially. The "after" index can not be
+   * lower than -1.
+   *
+   *                            For fixedColumnsLeft: 1 the master overlay
+   *                            do not render this first columns.
+   *  Headers    -3   -2   -1    |
+   *           +----+----+----║┄ ┄ +------+------+
+   *           │    │    │    ║    │  B1  │  C1  │
+   *           +--------------║┄ ┄ --------------│
+   *           │    │    │    ║    │  B2  │  C2  │
+   *           +--------------║┄ ┄ --------------│
+   *           │    │    │    ║    │  B3  │  C3  │
+   *           +----+----+----║┄ ┄ +------+------+
+   *                               ╷             ╷
+   *      -------------------------+-------------+---------------->
+   *          FALSE             first    FALSE   last         TRUE
+   *                           rendered         rendered
+   *                           column           column
+   *
+   * @param {number} column The visual column index.
+   * @returns {boolean}
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+  isColumnAfterRenderedColumns(column) {
+    return this.columnFilter && (column > this.getLastRenderedColumn());
   }
 
   isColumnAfterViewport(column) {
     return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
-  /**
-   * Check if the given column index is larger than the index of the last column that is currently redered
-   * and return TRUE in that case, or FALSE otherwise.
-   *
-   * Negative column index is used to check the header cells.
-   *
-   * @param {Number} column
-   * @returns {Boolean}
-   */
-  isColumnAfterRenderedColumns(column) {
-    if (column < 0) {
-      const rowHeaders = this.wot.getSetting('rowHeaders');
-      const rowHeadersCount = rowHeaders.length;
-      const zeroBasedHeaderLevel = rowHeadersCount + column;
-      return this.isRowHeaderLevelRendered(zeroBasedHeaderLevel);
-    }
-    return this.columnFilter && (column > this.getLastRenderedColumn());
+  isRowAfterViewport(row) {
+    return this.rowFilter && (row > this.getLastVisibleRow());
+  }
+
+  isColumnBeforeViewport(column) {
+    return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
   }
 
   isLastRowFullyVisible() {
@@ -856,23 +949,35 @@ class Table {
   }
 
   /**
-   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height
+   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height.
    *
-   * @param {Number} sourceRow
-   * @returns {Number}
+   * @param {number} sourceRow The physical row index.
+   * @returns {number}
    */
   getRowHeight(sourceRow) {
     return this.rowUtils.getHeight(sourceRow);
   }
 
+  /**
+   * @param {number} level The column level.
+   * @returns {number}
+   */
   getColumnHeaderHeight(level) {
     return this.columnUtils.getHeaderHeight(level);
   }
 
+  /**
+   * @param {number} sourceColumn The physical column index.
+   * @returns {number}
+   */
   getColumnWidth(sourceColumn) {
     return this.columnUtils.getWidth(sourceColumn);
   }
 
+  /**
+   * @param {number} sourceColumn The physical column index.
+   * @returns {number}
+   */
   getStretchedColumnWidth(sourceColumn) {
     return this.columnUtils.getStretchedColumnWidth(sourceColumn);
   }
@@ -881,7 +986,7 @@ class Table {
    * Checks if the table has defined size. It returns `true` when the table has width and height
    * set bigger than `0px`.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   hasDefinedSize() {
     return this.hasTableHeight && this.hasTableWidth;
@@ -891,7 +996,7 @@ class Table {
    * Checks if the table is visible. It returns `true` when the holder element (or its parents)
    * has CSS 'display' property different than 'none'.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isVisible() {
     return isVisible(this.TABLE);
@@ -901,6 +1006,8 @@ class Table {
    * Modify row header widths provided by user in class contructor.
    *
    * @private
+   * @param {Function} rowHeaderWidthFactory The function which can provide default width values for rows..
+   * @returns {number}
    */
   _modifyRowHeaderWidth(rowHeaderWidthFactory) {
     let widths = isFunction(rowHeaderWidthFactory) ? rowHeaderWidthFactory() : null;
@@ -919,6 +1026,8 @@ class Table {
    * Correct row header width if necessary.
    *
    * @private
+   * @param {number} width The width to process.
+   * @returns {number}
    */
   _correctRowHeaderWidth(width) {
     let rowHeaderWidth = width;

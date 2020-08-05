@@ -3,6 +3,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'clear_column';
 
+/**
+ * @returns {object}
+ */
 export default function clearColumnItem() {
   return {
     key: KEY,
@@ -13,7 +16,8 @@ export default function clearColumnItem() {
       const column = selection[0].start.col;
 
       if (this.countRows()) {
-        this.populateFromArray(0, column, [[null]], Math.max(selection[0].start.row, selection[0].end.row), column, 'ContextMenu.clearColumn');
+        this.populateFromArray(0, column, [[null]],
+          Math.max(selection[0].start.row, selection[0].end.row), column, 'ContextMenu.clearColumn');
       }
     },
     disabled() {

@@ -131,6 +131,112 @@ describe('Core_alter', () => {
         expect(getDataAtCol(0)).toEqual(['A1', 'A11', 'A13', 'A14', 'A15']);
         expect(getData().length).toBe(5);
       });
+
+      it('should not display columns when every row have been removed (row header enabled)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true
+        });
+
+        alter('remove_row', 0, 5);
+
+        expect(countCols()).toBe(0);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(0);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
+
+      it('should not display columns when every row have been removed (column header enabled)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          colHeaders: true
+        });
+
+        alter('remove_row', 0, 5);
+
+        expect(countCols()).toBe(0);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(0);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
+
+      it('should not display columns when every row have been removed (both headers enabled)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true
+        });
+
+        alter('remove_row', 0, 5);
+
+        expect(countCols()).toBe(0);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(1);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(1); // Corner visible.
+      });
+
+      it('should not display columns when every row have been removed and just `columns` property is defined', () => {
+        handsontable({
+          data: arrayOfNestedObjects(),
+          columns: [
+            { data: 'id' },
+            { data: 'name.first' }
+          ]
+        });
+
+        alter('remove_row', 0, 5);
+
+        expect(countCols()).toBe(2);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(0);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
+
+      it('should display columns when every row have been removed and `columns` property is defined with `title` for column header', () => {
+        handsontable({
+          data: arrayOfNestedObjects(),
+          columns: [
+            { data: 'id', title: 'ID' },
+            { data: 'name.first', title: 'First name' }
+          ]
+        });
+
+        alter('remove_row', 0, 5);
+
+        expect(countCols()).toBe(2);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(2);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
+
+      it('should display columns when every row have been removed and `dataSchema` property is defined and column headers are defined', () => {
+        handsontable({
+          data: arrayOfNestedObjects(),
+          dataSchema: {
+            id: null,
+            name: { first: null, last: null }
+          },
+          colHeaders: true
+        });
+
+        alter('remove_row', 0, 5);
+
+        expect(countCols()).toBe(3);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(3);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
     });
 
     it('should remove row', () => {
@@ -198,6 +304,22 @@ describe('Core_alter', () => {
       alter('remove_row');
 
       expect(countRows()).toEqual(3);
+    });
+
+    it('should not remove cell meta objects if removing has been canceled by beforeRemoveRow event handler', () => {
+      handsontable({
+        beforeRemoveRow: () => false,
+      });
+
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('remove_row', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
+      expect(getCellMeta(4, 0)._test).toBeUndefined();
     });
 
     it('should not remove rows below minRows', () => {
@@ -415,6 +537,39 @@ describe('Core_alter', () => {
 
       expect(getCellMeta(0, 1).className).toEqual('test');
     });
+
+    it('should cooperate with the `beforeRemoveRow` changing list of the removed rows properly', () => {
+      const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
+      let hookArgumentsBefore;
+      let hookArgumentsAfter;
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 5),
+        beforeRemoveRow(index, amount, physicalRows) {
+          hookArgumentsBefore = [index, amount, [...physicalRows]];
+
+          physicalRows.length = 0;
+          physicalRows.push(0, 1, 2, 3);
+
+          hookArgumentsAfter = [index, amount, [...physicalRows]];
+        },
+        afterRemoveRow
+      });
+
+      alter('remove_row', 5, 2);
+
+      expect(getData()).toEqual([
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+        ['A6', 'B6', 'C6', 'D6', 'E6'],
+        ['A7', 'B7', 'C7', 'D7', 'E7'],
+        ['A8', 'B8', 'C8', 'D8', 'E8'],
+        ['A9', 'B9', 'C9', 'D9', 'E9'],
+        ['A10', 'B10', 'C10', 'D10', 'E10'],
+      ]);
+      expect(hookArgumentsBefore).toEqual([5, 2, [5, 6]]);
+      expect(hookArgumentsAfter).toEqual([5, 2, [0, 1, 2, 3]]);
+      expect(afterRemoveRow).toHaveBeenCalledWith(5, 4, [0, 1, 2, 3], void 0, void 0, void 0);
+    });
   });
 
   describe('remove column', () => {
@@ -497,6 +652,55 @@ describe('Core_alter', () => {
 
         expect(getDataAtRow(0)).toEqual(['A1', 'K1', 'M1', 'N1', 'O1']);
         expect(getData()[0].length).toBe(5);
+      });
+
+      it('should not display rows when every column have been removed (row header enabled)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true
+        });
+
+        alter('remove_col', 0, 5);
+
+        expect(countRows()).toBe(0);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(0);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
+
+      it('should not display rows when every column have been removed (column header enabled)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          colHeaders: true
+        });
+
+        alter('remove_col', 0, 5);
+
+        expect(countRows()).toBe(0);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(0);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
+      });
+
+      it('should not display rows when every column have been removed (both headers enabled)', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          rowHeaders: true,
+          colHeaders: true
+        });
+
+        alter('remove_col', 0, 5);
+
+        expect(countRows()).toBe(0);
+        expect(getData()).toEqual([]);
+        expect($('.ht_master .htCore td').length).toBe(0);
+        expect($('.ht_master .htCore tbody th').length).toBe(0);
+        expect($('.ht_master .htCore thead th').length).toBe(1);
+        expect($('.ht_master .htCore .cornerHeader').length).toBe(1); // Corner visible.
       });
     });
 
@@ -605,6 +809,22 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(5);
     });
 
+    it('should not remove cell meta objects if removing has been canceled by beforeRemoveCol event handler', () => {
+      handsontable({
+        beforeRemoveCol: () => false,
+      });
+
+      setCellMeta(0, 2, '_test', 'foo');
+
+      alter('remove_col', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(0, 1)._test).toBeUndefined();
+      expect(getCellMeta(0, 2)._test).toBe('foo');
+      expect(getCellMeta(0, 3)._test).toBeUndefined();
+      expect(getCellMeta(0, 4)._test).toBeUndefined();
+    });
+
     it('should fire callback on remove col', () => {
       let outputBefore;
       let outputAfter;
@@ -681,7 +901,6 @@ describe('Core_alter', () => {
     });
 
     it('should remove column header together with the column, if headers were specified explicitly', () => {
-
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -697,7 +916,6 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(2);
 
       expect(getColHeader()).toEqual(['Header0', 'Header2']);
-
     });
 
     it('should decrement the number of fixed columns, if a fix column is removed', () => {
@@ -790,6 +1008,21 @@ describe('Core_alter', () => {
       alter('insert_row');
 
       expect(countRows()).toEqual(3);
+    });
+
+    it('should not create/shift cell meta objects if creating has been canceled by beforeCreateRow hook handler', () => {
+      handsontable({
+        beforeCreateRow: () => false,
+      });
+
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('insert_row', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
     });
 
     it('should insert row at the end if index is not given', () => {
@@ -939,23 +1172,6 @@ describe('Core_alter', () => {
       expect(spec().$container.find('tr:eq(6) td:eq(0)').html()).toEqual('b1');
     });
 
-    it('should not add more source rows than defined in maxRows when trimming rows using the modifyRow hook', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 4),
-        modifyRow(row) {
-          return [8, 9].indexOf(row) > -1 ? null : row;
-        },
-        maxRows: 10
-      });
-
-      expect(hot.countRows()).toEqual(8);
-
-      hot.populateFromArray(7, 0, [['a'], ['b'], ['c']]);
-
-      expect(hot.countSourceRows()).toEqual(10);
-      expect(hot.getDataAtCell(7, 0)).toEqual('a');
-    });
-
     it('should fire callback on create row', () => {
       let outputBefore;
       let outputAfter;
@@ -998,6 +1214,14 @@ describe('Core_alter', () => {
       expect(selected[0][0]).toBe(3);
       expect(selected[0][2]).toBe(3);
       expect(selected.length).toBe(1);
+      expect(`
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   : # :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should shift the cell meta according to the new row layout', () => {
@@ -1022,6 +1246,29 @@ describe('Core_alter', () => {
       alter('insert_row', 0, 3);
 
       expect(getCellMeta(5, 1).className).toEqual('test');
+    });
+
+    it('should insert row at proper position when there were some row sequence changes', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
+      });
+
+      hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+      alter('insert_row', 1, 1);
+
+      expect(getDataAtCol(0)).toEqual(['A5', null, 'A4', 'A3', 'A2', 'A1']);
+      expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', 'A5']);
+
+      alter('insert_row', 0, 1);
+
+      expect(getDataAtCol(0)).toEqual([null, 'A5', null, 'A4', 'A3', 'A2', 'A1']);
+      expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5']);
+
+      alter('insert_row', 7, 1);
+
+      expect(getDataAtCol(0)).toEqual([null, 'A5', null, 'A4', 'A3', 'A2', 'A1', null]);
+      expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5', null]);
     });
   });
 
@@ -1145,8 +1392,23 @@ describe('Core_alter', () => {
       expect(countCols()).toBe(countedColumns);
     });
 
-    it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
+    it('should not create/shift cell meta objects if creating has been canceled by beforeCreateCol hook handler', () => {
+      handsontable({
+        beforeCreateCol: () => false,
+      });
 
+      setCellMeta(2, 0, '_test', 'foo');
+
+      alter('insert_col', 1, 1);
+
+      expect(getCellMeta(0, 0)._test).toBeUndefined();
+      expect(getCellMeta(1, 0)._test).toBeUndefined();
+      expect(getCellMeta(2, 0)._test).toBe('foo');
+      expect(getCellMeta(3, 0)._test).toBeUndefined();
+      expect(getCellMeta(4, 0)._test).toBeUndefined();
+    });
+
+    it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -1166,7 +1428,6 @@ describe('Core_alter', () => {
     });
 
     it('should create column header together with the column, if headers were specified explicitly', () => {
-
       handsontable({
         startCols: 3,
         startRows: 2,
@@ -1182,7 +1443,6 @@ describe('Core_alter', () => {
       expect(countCols()).toEqual(4);
 
       expect(getColHeader()).toEqual(['Header0', 'B', 'Header1', 'Header2']);
-
     });
 
     it('should stretch the table after adding another column (if stretching is set to \'all\')', () => {
@@ -1226,6 +1486,28 @@ describe('Core_alter', () => {
 
       expect(getCellMeta(1, 5).className).toEqual('test');
     });
-  });
 
+    it('should insert column at proper position when there were some column sequence changes', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5)
+      });
+
+      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+
+      alter('insert_col', 1, 1);
+
+      expect(getDataAtRow(0)).toEqual(['E1', null, 'D1', 'C1', 'B1', 'A1']);
+      expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', 'E1']);
+
+      alter('insert_col', 0, 1);
+
+      expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1']);
+      expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1']);
+
+      alter('insert_col', 7, 1);
+
+      expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1', null]);
+      expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1', null]);
+    });
+  });
 });

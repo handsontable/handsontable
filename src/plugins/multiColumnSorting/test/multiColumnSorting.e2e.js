@@ -126,18 +126,7 @@ describe('MultiColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -155,7 +144,8 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -171,18 +161,7 @@ describe('MultiColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -200,7 +179,8 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -211,18 +191,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should display indicator properly after changing sorted column sequence', () => {
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -238,7 +207,8 @@ describe('MultiColumnSorting', () => {
     getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
@@ -1278,9 +1248,11 @@ describe('MultiColumnSorting', () => {
       { a: 'bbbb', b: 10, c: 11 }
     ];
 
+    /**
+     * @param row
+     */
     function customIsEmptyRow(row) {
-      const data = this.getSourceData();
-      return data[row].isNew;
+      return myData[row].isNew;
     }
 
     handsontable({
@@ -1565,7 +1537,7 @@ describe('MultiColumnSorting', () => {
     spec().$container2.remove();
   });
 
-  it('should return updated data at specyfied row after sorted', () => {
+  it('should return updated data at specified row after sorted', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1595,7 +1567,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
   });
 
-  it('should return updated data at specyfied col after sorted', () => {
+  it('should return updated data at specified col after sorted', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1950,17 +1922,21 @@ describe('MultiColumnSorting', () => {
   it('should properly sort the table, when it\'s scrolled to the far right', () => {
     const data = [
       ['Jasmine Ferguson', 'Britney Carey', 'Kelly Decker', 'Lacey Mcleod', 'Leona Shaffer', 'Kelli Ochoa',
-        'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale', 'Dorthy Hale',
-        'Munoz Randall', 'Fields Morse', 'Hubbard Nichols', 'Chang Yang', 'Osborn Anthony', 'Owens Warner', 'Gloria Hampton'],
-      ['Lane Hill', 'Belinda Mathews', 'York Gray', 'Celina Stone', 'Victoria Mays', 'Angelina Lott', 'Joyce Mason', 'Shawn Rodriguez',
-        'Susanna Mayo', 'Wolf Fuller', 'Long Hester', 'Dudley Doyle', 'Wilder Sutton', 'Oneal Avery', 'James Mclaughlin',
-        'Lenora Guzman', 'Mcmahon Sullivan', 'Abby Weeks', 'Beverly Joseph', 'Rosalind Church'],
-      ['Myrtle Landry', 'Hays Huff', 'Hernandez Benjamin', 'Mclaughlin Garza', 'Franklin Barton', 'Lara Buchanan', 'Ratliff Beck',
-        'Rosario Munoz', 'Isabelle Dalton', 'Smith Woodard', 'Marjorie Marshall', 'Spears Stein', 'Brianna Bowman',
-        'Marci Clay', 'Palmer Harrell', 'Ball Levy', 'Shelley Mendoza', 'Morrow Glass', 'Baker Knox', 'Adrian Holman'],
-      ['Trisha Howell', 'Brooke Harrison', 'Anthony Watkins', 'Ellis Cobb', 'Sheppard Dillon', 'Mathis Bray',
-        'Foreman Burns', 'Lina Glenn', 'Giles Pollard', 'Weiss Ballard', 'Lynnette Smith', 'Flores Kline', 'Graciela Singleton',
-        'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
+        'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale',
+        'Dorthy Hale', 'Munoz Randall', 'Fields Morse', 'Hubbard Nichols', 'Chang Yang', 'Osborn Anthony',
+        'Owens Warner', 'Gloria Hampton'],
+      ['Lane Hill', 'Belinda Mathews', 'York Gray', 'Celina Stone', 'Victoria Mays', 'Angelina Lott',
+        'Joyce Mason', 'Shawn Rodriguez', 'Susanna Mayo', 'Wolf Fuller', 'Long Hester', 'Dudley Doyle',
+        'Wilder Sutton', 'Oneal Avery', 'James Mclaughlin', 'Lenora Guzman', 'Mcmahon Sullivan', 'Abby Weeks',
+        'Beverly Joseph', 'Rosalind Church'],
+      ['Myrtle Landry', 'Hays Huff', 'Hernandez Benjamin', 'Mclaughlin Garza', 'Franklin Barton',
+        'Lara Buchanan', 'Ratliff Beck', 'Rosario Munoz', 'Isabelle Dalton', 'Smith Woodard',
+        'Marjorie Marshall', 'Spears Stein', 'Brianna Bowman', 'Marci Clay', 'Palmer Harrell', 'Ball Levy',
+        'Shelley Mendoza', 'Morrow Glass', 'Baker Knox', 'Adrian Holman'],
+      ['Trisha Howell', 'Brooke Harrison', 'Anthony Watkins', 'Ellis Cobb', 'Sheppard Dillon',
+        'Mathis Bray', 'Foreman Burns', 'Lina Glenn', 'Giles Pollard', 'Weiss Ballard', 'Lynnette Smith',
+        'Flores Kline', 'Graciela Singleton', 'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway',
+        'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
     ];
 
     const hot = handsontable({
@@ -2469,18 +2445,27 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after').getPropertyValue('content')).toEqual('"2"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after').getPropertyValue('content')).toEqual('"1"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[2], ':after').getPropertyValue('content')).toEqual('"3"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[3], ':after').getPropertyValue('content')).toEqual('"4"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[4], ':after').getPropertyValue('content')).toEqual('"5"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[5], ':after').getPropertyValue('content')).toEqual('"6"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[6], ':after').getPropertyValue('content')).toEqual('"7"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[7], ':after').getPropertyValue('content')).toEqual('"+"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[8], ':after').getPropertyValue('content')).toEqual('"+"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
+        .getPropertyValue('content')).toEqual('"2"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after')
+        .getPropertyValue('content')).toEqual('"1"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[2], ':after')
+        .getPropertyValue('content')).toEqual('"3"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[3], ':after')
+        .getPropertyValue('content')).toEqual('"4"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[4], ':after')
+        .getPropertyValue('content')).toEqual('"5"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[5], ':after')
+        .getPropertyValue('content')).toEqual('"6"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[6], ':after')
+        .getPropertyValue('content')).toEqual('"7"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[7], ':after')
+        .getPropertyValue('content')).toEqual('"+"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[8], ':after')
+        .getPropertyValue('content')).toEqual('"+"');
     });
 
-    it('should be properly hided when just one column is sorted', () => {
+    it('should be properly hided when just one column is sorted', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -2496,13 +2481,17 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after').getPropertyValue('content')).toEqual('"2"');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after').getPropertyValue('content')).toEqual('"1"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
+        .getPropertyValue('content')).toEqual('"2"');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after')
+        .getPropertyValue('content')).toEqual('"1"');
 
       getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after').getPropertyValue('content')).toEqual('none');
-      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after').getPropertyValue('content')).toEqual('none');
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[0], ':after')
+        .getPropertyValue('content')).toMatch(/^(none|)$/);
+      expect(window.getComputedStyle(spec().$container.find('th span.columnSorting')[1], ':after')
+        .getPropertyValue('content')).toMatch(/^(none|)$/);
     });
   });
 

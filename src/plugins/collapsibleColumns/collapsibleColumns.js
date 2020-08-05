@@ -1,5 +1,4 @@
-import { objectEach } from '../../helpers/object';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import {
@@ -10,11 +9,24 @@ import {
 import EventManager from '../../eventManager';
 import { registerPlugin } from '../../plugins';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { HidingMap } from '../../translations';
 import BasePlugin from '../_base';
+
+const actionDictionary = new Map([
+  ['collapse', {
+    hideColumn: true,
+    beforeHook: 'beforeColumnCollapse',
+    afterHook: 'afterColumnCollapse',
+  }],
+  ['expand', {
+    hideColumn: false,
+    beforeHook: 'beforeColumnExpand',
+    afterHook: 'afterColumnExpand',
+  }],
+]);
 
 /**
  * @plugin CollapsibleColumns
- * @dependencies NestedHeaders HiddenColumns
  *
  * @description
  * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property defined.
@@ -34,6 +46,7 @@ import BasePlugin from '../_base';
  *   data: generateDataObj(),
  *   colHeaders: true,
  *   rowHeaders: true,
+ *   nestedHeaders: true,
  *   // enable plugin
  *   collapsibleColumns: true,
  * });
@@ -43,6 +56,7 @@ import BasePlugin from '../_base';
  *   data: generateDataObj(),
  *   colHeaders: true,
  *   rowHeaders: true,
+ *   nestedHeaders: true,
  *   // enable and configure which columns can be collapsed
  *   collapsibleColumns: [
  *     {row: -4, col: 1, collapsible: true},
@@ -52,65 +66,39 @@ import BasePlugin from '../_base';
  * ```
  */
 class CollapsibleColumns extends BasePlugin {
-
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Cached plugin settings.
-     *
-     * @private
-     * @type {Boolean|Array}
-     */
-    this.settings = null;
-    /**
-     * Object listing headers with buttons enabled.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.buttonEnabledList = {};
-    /**
-     * Cached reference to the HiddenColumns plugin.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.hiddenColumnsPlugin = null;
-    /**
-     * Cached reference to the NestedHeaders plugin.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.nestedHeadersPlugin = null;
-    /**
-     * Object listing the currently collapsed sections.
-     *
-     * @private
-     * @type {Object}
-     */
-    this.collapsedSections = {};
-    /**
-     * Number of column header levels.
-     *
-     * @private
-     * @type {Number}
-     */
-    this.columnHeaderLevelCount = null;
-    /**
-     * Event manager instance reference.
-     *
-     * @private
-     * @type {EventManager}
-     */
-    this.eventManager = null;
-  }
+  /**
+   * Cached reference to the NestedHeaders plugin.
+   *
+   * @private
+   * @type {NestedHeaders}
+   */
+  nestedHeadersPlugin = null;
+  /**
+   * Event manager instance reference.
+   *
+   * @private
+   * @type {EventManager}
+   */
+  eventManager = new EventManager(this);
+  /**
+   * The NestedHeaders plugin StateManager instance.
+   *
+   * @type {StateManager}
+   */
+  headerStateManager = null;
+  /**
+   * Map of collapsed columns by the plugin.
+   *
+   * @private
+   * @type {HidingMap|null}
+   */
+  #collapsedColumnsMap = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link CollapsibleColumns#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return !!this.hot.getSettings().collapsibleColumns;
@@ -124,38 +112,63 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    this.settings = this.hot.getSettings().collapsibleColumns;
+    const { nestedHeaders } = this.hot.getSettings();
 
-    if (typeof this.settings !== 'boolean') {
-      this.parseSettings();
+    if (!nestedHeaders) {
+      warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
-    this.hiddenColumnsPlugin = this.hot.getPlugin('hiddenColumns');
+    this.#collapsedColumnsMap = new HidingMap();
+    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#collapsedColumnsMap);
+
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
+    this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
-    this.checkDependencies();
-
-    this.addHook('afterRender', () => this.onAfterRender());
-    this.addHook('afterInit', () => this.onAfterInit());
+    this.addHook('init', () => this.onInit());
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('afterGetColHeader', (col, TH) => this.onAfterGetColHeader(col, TH));
     this.addHook('beforeOnCellMouseDown', (event, coords, TD) => this.onBeforeOnCellMouseDown(event, coords, TD));
 
-    this.eventManager = new EventManager(this.hot);
-
     super.enablePlugin();
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
+    this.updatePlugin();
+  }
+
+  /**
+   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   */
+  updatePlugin() {
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
+    if (!this.hot.view) {
+      return;
+    }
+
+    if (!this.nestedHeadersPlugin.detectedOverlappedHeaders) {
+      const { collapsibleColumns } = this.hot.getSettings();
+
+      if (typeof collapsibleColumns === 'boolean') {
+        // Add `collapsible: true` attribute to all headers with colspan higher than 1.
+        this.headerStateManager.mapState((headerSettings) => {
+          return { collapsible: headerSettings.origColspan > 1 };
+        });
+
+      } else if (Array.isArray(collapsibleColumns)) {
+        this.headerStateManager.mergeStateWith(collapsibleColumns);
+      }
+    }
+
+    super.updatePlugin();
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.settings = null;
-    this.buttonEnabledList = {};
-    this.hiddenColumnsPlugin = null;
-    this.collapsedSections = {};
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    this.#collapsedColumnsMap = null;
+    this.nestedHeadersPlugin = null;
 
     this.clearButtons();
-
     super.disablePlugin();
   }
 
@@ -207,188 +220,39 @@ class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Parses the plugin settings and create a button configuration array.
-   *
-   * @private
-   */
-  parseSettings() {
-    objectEach(this.settings, (val) => {
-
-      if (!this.buttonEnabledList[val.row]) {
-        this.buttonEnabledList[val.row] = {};
-      }
-
-      this.buttonEnabledList[val.row][val.col] = val.collapsible;
-    });
-  }
-
-  /**
-   * Checks if plugin dependencies are met.
-   *
-   * @private
-   * @returns {Boolean}
-   */
-  meetsDependencies() {
-    const settings = this.hot.getSettings();
-
-    return settings.nestedHeaders && settings.hiddenColumns;
-  }
-
-  /**
-   * Checks if all the required dependencies are enabled.
-   *
-   * @private
-   */
-  checkDependencies() {
-    const settings = this.hot.getSettings();
-
-    if (this.meetsDependencies()) {
-      return;
-    }
-
-    if (!settings.nestedHeaders) {
-      warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
-    }
-
-    if (!settings.hiddenColumns) {
-      warn('You need to configure the Hidden Columns plugin in order to use collapsible headers.');
-    }
-  }
-
-  /**
-   * Generates the indicator element.
-   *
-   * @private
-   * @param {Number} column Column index.
-   * @param {HTMLElement} TH TH Element.
-   * @returns {HTMLElement}
-   */
-  generateIndicator(column, TH) {
-    const TR = TH.parentNode;
-    const THEAD = TR.parentNode;
-    const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
-
-    if (Object.keys(this.buttonEnabledList).length > 0 && (!this.buttonEnabledList[row] || !this.buttonEnabledList[row][column])) {
-      return null;
-    }
-
-    const divEl = this.hot.rootDocument.createElement('DIV');
-
-    addClass(divEl, 'collapsibleIndicator');
-
-    if (this.collapsedSections[row] && this.collapsedSections[row][column] === true) {
-      addClass(divEl, 'collapsed');
-      fastInnerText(divEl, '+');
-    } else {
-      addClass(divEl, 'expanded');
-      fastInnerText(divEl, '-');
-    }
-
-    return divEl;
-  }
-
-  /**
-   * Marks (internally) a section as 'collapsed' or 'expanded' (optionally, also mark the 'child' headers).
-   *
-   * @private
-   * @param {String} state State ('collapsed' or 'expanded').
-   * @param {Number} row Row index.
-   * @param {Number} column Column index.
-   * @param {Boolean} recursive If `true`, it will also attempt to mark the child sections.
-   */
-  markSectionAs(state, row, column, recursive) {
-    if (!this.collapsedSections[row]) {
-      this.collapsedSections[row] = {};
-    }
-
-    switch (state) {
-      case 'collapsed':
-        this.collapsedSections[row][column] = true;
-
-        break;
-      case 'expanded':
-        this.collapsedSections[row][column] = void 0;
-
-        break;
-      default:
-        break;
-    }
-
-    if (recursive) {
-      const nestedHeadersColspans = this.nestedHeadersPlugin.colspanArray;
-      const level = this.nestedHeadersPlugin.rowCoordsToLevel(row);
-      const childHeaders = this.nestedHeadersPlugin.getChildHeaders(row, column);
-      const childColspanLevel = nestedHeadersColspans[level + 1];
-
-      for (let i = 1; i < childHeaders.length; i++) {
-        if (childColspanLevel && childColspanLevel[childHeaders[i]].colspan > 1) {
-          this.markSectionAs(state, row + 1, childHeaders[i], true);
-        }
-      }
-    }
-  }
-
-  /**
    * Expands section at the provided coords.
    *
-   * @param {Object} coords Contains coordinates information. (`coords.row`, `coords.col`)
+   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
   expandSection(coords) {
-    this.markSectionAs('expanded', coords.row, coords.col, true);
-    this.toggleCollapsibleSection(coords, 'expand');
+    this.toggleCollapsibleSection([coords], 'expand');
   }
 
   /**
    * Collapses section at the provided coords.
    *
-   * @param {Object} coords Contains coordinates information. (`coords.row`, `coords.col`)
+   * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
   collapseSection(coords) {
-    this.markSectionAs('collapsed', coords.row, coords.col, true);
-    this.toggleCollapsibleSection(coords, 'collapse');
+    this.toggleCollapsibleSection([coords], 'collapse');
   }
 
   /**
    * Collapses or expand all collapsible sections, depending on the action parameter.
    *
-   * @param {String} action 'collapse' or 'expand'.
+   * @param {string} action 'collapse' or 'expand'.
    */
   toggleAllCollapsibleSections(action) {
-    const nestedHeadersColspanArray = this.nestedHeadersPlugin.colspanArray;
+    const coords = this.headerStateManager.mapNodes(({ collapsible, origColspan, headerLevel, columnIndex }) => {
+      if (collapsible === true && origColspan > 1) {
+        return {
+          row: this.headerStateManager.levelToRowCoords(headerLevel),
+          col: columnIndex,
+        };
+      }
+    });
 
-    if (this.settings === true) {
-
-      arrayEach(nestedHeadersColspanArray, (headerLevel, i) => {
-        arrayEach(headerLevel, (header, j) => {
-          if (header.colspan > 1) {
-            const row = this.nestedHeadersPlugin.levelToRowCoords(parseInt(i, 10));
-            const col = parseInt(j, 10);
-
-            this.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', row, col, true);
-            this.toggleCollapsibleSection({
-              row,
-              col
-            }, action);
-
-          }
-        });
-      });
-
-    } else {
-      objectEach(this.buttonEnabledList, (headerRow, i) => {
-        objectEach(headerRow, (header, j) => {
-          const rowIndex = parseInt(i, 10);
-          const columnIndex = parseInt(j, 10);
-
-          this.markSectionAs(action === 'collapse' ? 'collapsed' : 'expanded', rowIndex, columnIndex, true);
-          this.toggleCollapsibleSection({
-            row: rowIndex,
-            col: columnIndex
-          }, action);
-
-        });
-      });
-    }
+    this.toggleCollapsibleSection(coords, action);
   }
 
   /**
@@ -408,71 +272,155 @@ class CollapsibleColumns extends BasePlugin {
   /**
    * Collapses/Expands a section.
    *
-   * @param {Object} coords Section coordinates.
-   * @param {String} action Action definition ('collapse' or 'expand').
+   * @param {Array} coords Array of coords - section coordinates.
+   * @param {string} [action] Action definition ('collapse' or 'expand').
+   * @fires Hooks#beforeColumnCollapse
+   * @fires Hooks#beforeColumnExpand
+   * @fires Hooks#afterColumnCollapse
+   * @fires Hooks#afterColumnExpand
    */
   toggleCollapsibleSection(coords, action) {
-    if (coords.row) {
-      coords.row = parseInt(coords.row, 10);
+    if (!actionDictionary.has(action)) {
+      throw new Error(`Unsupported action is passed (${action}).`);
     }
-    if (coords.col) {
-      coords.col = parseInt(coords.col, 10);
-    }
-
-    const hiddenColumns = this.hiddenColumnsPlugin.hiddenColumns;
-    const colspanArray = this.nestedHeadersPlugin.colspanArray;
-    const level = this.nestedHeadersPlugin.rowCoordsToLevel(coords.row);
-    const currentHeaderColspan = colspanArray[level][coords.col].colspan;
-    const childHeaders = this.nestedHeadersPlugin.getChildHeaders(coords.row, coords.col);
-    let nextLevel = level + 1;
-    let childColspanLevel = colspanArray[nextLevel];
-    let firstChildColspan = childColspanLevel ? childColspanLevel[childHeaders[0]].colspan || 1 : 1;
-
-    while (firstChildColspan === currentHeaderColspan && nextLevel < this.columnHeaderLevelCount) {
-      nextLevel += 1;
-      childColspanLevel = colspanArray[nextLevel];
-      firstChildColspan = childColspanLevel ? childColspanLevel[childHeaders[0]].colspan || 1 : 1;
+    if (!Array.isArray(coords)) {
+      return;
     }
 
-    rangeEach(firstChildColspan, currentHeaderColspan - 1, (i) => {
-      const colToHide = coords.col + i;
+    // Ignore coordinates which points to the cells range.
+    const filteredCoords = arrayFilter(coords, ({ row }) => row < 0);
+    let isActionPossible = filteredCoords.length > 0;
 
-      switch (action) {
-        case 'collapse':
-          if (!this.hiddenColumnsPlugin.isHidden(colToHide)) {
-            hiddenColumns.push(colToHide);
-          }
+    arrayEach(filteredCoords, ({ row, col: column }) => {
+      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column);
 
-          break;
-        case 'expand':
-          if (this.hiddenColumnsPlugin.isHidden(colToHide)) {
-            hiddenColumns.splice(hiddenColumns.indexOf(colToHide), 1);
-          }
+      if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
+        isActionPossible = false;
 
-          break;
-        default:
-          break;
+        return false;
       }
     });
+
+    const nodeModRollbacks = [];
+    const affectedColumnsIndexes = [];
+
+    if (isActionPossible) {
+      arrayEach(filteredCoords, ({ row, col: column }) => {
+        const {
+          colspanCompensation,
+          affectedColumns,
+          rollbackModification,
+        } = this.headerStateManager.triggerNodeModification(action, row, column);
+
+        if (colspanCompensation > 0) {
+          affectedColumnsIndexes.push(...affectedColumns);
+          nodeModRollbacks.push(rollbackModification);
+        }
+      });
+    }
+
+    const currentCollapsedColumns = this.getCollapsedColumns();
+    let destinationCollapsedColumns = [];
+
+    if (action === 'collapse') {
+      destinationCollapsedColumns = arrayUnique([...currentCollapsedColumns, ...affectedColumnsIndexes]);
+
+    } else if (action === 'expand') {
+      destinationCollapsedColumns = arrayFilter(currentCollapsedColumns,
+        index => !affectedColumnsIndexes.includes(index));
+    }
+
+    const actionTranslator = actionDictionary.get(action);
+    const isActionAllowed = this.hot.runHooks(
+      actionTranslator.beforeHook,
+      currentCollapsedColumns,
+      destinationCollapsedColumns,
+      isActionPossible,
+    );
+
+    if (isActionAllowed === false) {
+      // Rollback all header nodes modification (collapse or expand).
+      arrayEach(nodeModRollbacks, (nodeModRollback) => {
+        nodeModRollback();
+      });
+
+      return;
+    }
+
+    this.hot.batch(() => {
+      arrayEach(affectedColumnsIndexes, (visualColumn) => {
+        this.#collapsedColumnsMap
+          .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
+      });
+    });
+
+    const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
+
+    this.hot.runHooks(
+      actionTranslator.afterHook,
+      currentCollapsedColumns,
+      destinationCollapsedColumns,
+      isActionPossible,
+      isActionPerformed,
+    );
 
     this.hot.render();
     this.hot.view.wt.wtOverlays.adjustElementsSize(true);
   }
 
   /**
+   * Gets an array of physical indexes of collapsed columns.
+   *
+   * @private
+   * @returns {number[]}
+   */
+  getCollapsedColumns() {
+    return this.#collapsedColumnsMap.getHiddenIndexes();
+  }
+
+  /**
+   * Generates the indicator element.
+   *
+   * @private
+   * @param {number} row Row index.
+   * @param {number} column Column index.
+   * @returns {HTMLElement}
+   */
+  generateIndicator(row, column) {
+    const divEl = this.hot.rootDocument.createElement('div');
+    const columnSettings = this.headerStateManager.getHeaderSettings(row, column);
+
+    addClass(divEl, 'collapsibleIndicator');
+
+    if (columnSettings.isCollapsed) {
+      addClass(divEl, 'collapsed');
+      fastInnerText(divEl, '+');
+
+    } else {
+      addClass(divEl, 'expanded');
+      fastInnerText(divEl, '-');
+    }
+
+    return divEl;
+  }
+
+  /**
    * Adds the indicator to the headers.
    *
    * @private
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @param {HTMLElement} TH TH element.
    */
   onAfterGetColHeader(column, TH) {
-    if (TH.hasAttribute('colspan') && TH.getAttribute('colspan') > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
-      const button = this.generateIndicator(column, TH);
+    const TR = TH.parentNode;
+    const THEAD = TR.parentNode;
+    const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
+    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column);
 
-      if (button !== null) {
-        TH.querySelector('div:first-child').appendChild(button);
-      }
+    if (collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
+      const button = this.generateIndicator(row, column);
+
+      TH.querySelector('div:first-child').appendChild(button);
     }
   }
 
@@ -480,51 +428,45 @@ class CollapsibleColumns extends BasePlugin {
    * Indicator mouse event callback.
    *
    * @private
-   * @param {Object} event Mouse event.
-   * @param {Object} coords Event coordinates.
+   * @param {object} event Mouse event.
+   * @param {object} coords Event coordinates.
    */
   onBeforeOnCellMouseDown(event, coords) {
     if (hasClass(event.target, 'collapsibleIndicator')) {
       if (hasClass(event.target, 'expanded')) {
-
-        // mark section as collapsed
-        if (!this.collapsedSections[coords.row]) {
-          this.collapsedSections[coords.row] = [];
-        }
-
-        this.markSectionAs('collapsed', coords.row, coords.col, true);
         this.eventManager.fireEvent(event.target, 'mouseup');
-        this.toggleCollapsibleSection(coords, 'collapse');
+        this.toggleCollapsibleSection([coords], 'collapse');
 
       } else if (hasClass(event.target, 'collapsed')) {
-
-        this.markSectionAs('expanded', coords.row, coords.col, true);
         this.eventManager.fireEvent(event.target, 'mouseup');
-        this.toggleCollapsibleSection(coords, 'expand');
+        this.toggleCollapsibleSection([coords], 'expand');
       }
 
       stopImmediatePropagation(event);
-      return false;
     }
   }
 
   /**
-   * AfterInit hook callback.
+   * Updates the plugin state after HoT initialization.
    *
    * @private
    */
-  onAfterInit() {
-    this.columnHeaderLevelCount = this.hot.view.wt.getSetting('columnHeaders').length;
+  onInit() {
+    // @TODO: Workaround for broken plugin initialization abstraction (#6806).
+    this.updatePlugin();
   }
 
   /**
-   * AfterRender hook callback.
+   * Updates the plugin state after new dataset load.
    *
    * @private
+   * @param {Array[]} sourceData Array of arrays or array of objects containing data.
+   * @param {boolean} initialLoad Flag that determines whether the data has been loaded
+   *                              during the initialization.
    */
-  onAfterRender() {
-    if (!this.nestedHeadersPlugin.enabled || !this.hiddenColumnsPlugin.enabled) {
-      this.disablePlugin();
+  onAfterLoadData(sourceData, initialLoad) {
+    if (!initialLoad) {
+      this.updatePlugin();
     }
   }
 
@@ -532,16 +474,11 @@ class CollapsibleColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.settings = null;
-    this.buttonEnabledList = null;
-    this.hiddenColumnsPlugin = null;
-    this.nestedHeadersPlugin = null;
-    this.collapsedSections = null;
-    this.columnHeaderLevelCount = null;
+    this.#collapsedColumnsMap = null;
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
 
     super.destroy();
   }
-
 }
 
 registerPlugin('collapsibleColumns', CollapsibleColumns);

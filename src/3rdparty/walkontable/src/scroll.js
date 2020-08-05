@@ -11,7 +11,7 @@ import {
  */
 class Scroll {
   /**
-   * @param {Walkontable} wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     this.wot = wotInstance;
@@ -20,12 +20,12 @@ class Scroll {
   /**
    * Scrolls viewport to a cell.
    *
-   * @param {CellCoords} coords
-   * @param {Boolean} [snapToTop]
-   * @param {Boolean} [snapToRight]
-   * @param {Boolean} [snapToBottom]
-   * @param {Boolean} [snapToLeft]
-   * @returns {Boolean}
+   * @param {CellCoords} coords The cell coordinates.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @returns {boolean}
    */
   scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft) {
     if (coords.col < 0 || coords.row < 0) {
@@ -40,10 +40,10 @@ class Scroll {
   /**
    * Scrolls viewport to a column.
    *
-   * @param {Number} column Visual column index.
-   * @param {Boolean} [snapToRight]
-   * @param {Boolean} [snapToLeft]
-   * @returns {Boolean}
+   * @param {number} column Visual column index.
+   * @param {boolean} [snapToRight] If `true`, viewport is scrolled to show the cell on the right of the table.
+   * @param {boolean} [snapToLeft] If `true`, viewport is scrolled to show the cell on the left of the table.
+   * @returns {boolean}
    */
   scrollViewportHorizontally(column, snapToRight, snapToLeft) {
     if (!this.wot.drawn) {
@@ -74,10 +74,10 @@ class Scroll {
   /**
    * Scrolls viewport to a row.
    *
-   * @param {Number} row Visual row index.
-   * @param {Boolean} [snapToTop]
-   * @param {Boolean} [snapToBottom]
-   * @returns {Boolean}
+   * @param {number} row Visual row index.
+   * @param {boolean} [snapToTop] If `true`, viewport is scrolled to show the cell on the top of the table.
+   * @param {boolean} [snapToBottom] If `true`, viewport is scrolled to show the cell on the bottom of the table.
+   * @returns {boolean}
    */
   scrollViewportVertically(row, snapToTop, snapToBottom) {
     if (!this.wot.drawn) {
@@ -98,7 +98,8 @@ class Scroll {
 
       if (row >= fixedRowsTop && firstVisibleRow > -1 && (row < firstVisibleRow || snapToTop)) {
         result = topOverlay.scrollTo(row);
-      } else if (lastVisibleRow === -1 || lastVisibleRow > -1 && ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {
+      } else if (lastVisibleRow === -1 || lastVisibleRow > -1 &&
+                ((row > lastVisibleRow && row < totalRows - fixedRowsBottom) || snapToBottom)) {
         result = topOverlay.scrollTo(row, true);
       }
     }
@@ -109,7 +110,7 @@ class Scroll {
   /**
    * Get first visible row based on virtual dom and how table is visible in browser window viewport.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getFirstVisibleRow() {
     const {
@@ -153,7 +154,7 @@ class Scroll {
   /**
    * Get last visible row based on virtual dom and how table is visible in browser window viewport.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLastVisibleRow() {
     const {
@@ -192,7 +193,7 @@ class Scroll {
   /**
    * Get first visible column based on virtual dom and how table is visible in browser window viewport.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getFirstVisibleColumn() {
     const {
@@ -233,7 +234,7 @@ class Scroll {
   /**
    * Get last visible column based on virtual dom and how table is visible in browser window viewport.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLastVisibleColumn() {
     const {
@@ -273,7 +274,7 @@ class Scroll {
   /**
    * Returns collection of variables used to rows and columns visibility calculations.
    *
-   * @returns {Object}
+   * @returns {object}
    * @private
    */
   _getVariables() {

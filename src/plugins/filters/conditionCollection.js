@@ -15,14 +15,14 @@ class ConditionCollection {
     /**
      * Conditions collection grouped by operation type and then column index.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.conditions = this.initConditionsCollection();
 
     /**
      * Types of operations grouped by column index.
      *
-     * @type {Object}
+     * @type {object}
      */
     this.columnTypes = {};
 
@@ -37,7 +37,7 @@ class ConditionCollection {
   /**
    * Check if condition collection is empty (so no needed to filter data).
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEmpty() {
     return !this.orderStack.length;
@@ -46,9 +46,9 @@ class ConditionCollection {
   /**
    * Check if value is matched to the criteria of conditions chain.
    *
-   * @param {Object} value Object with `value` and `meta` keys.
-   * @param {Number} [column] Column index.
-   * @returns {Boolean}
+   * @param {object} value Object with `value` and `meta` keys.
+   * @param {number} [column] Column index.
+   * @returns {boolean}
    */
   isMatch(value, column) {
     let result = true;
@@ -73,9 +73,9 @@ class ConditionCollection {
    * Check if the value is matches the conditions.
    *
    * @param {Array} conditions List of conditions.
-   * @param {Object} value Object with `value` and `meta` keys.
-   * @param {String} [operationType='conjunction'] Type of conditions operation
-   * @returns {Boolean}
+   * @param {object} value Object with `value` and `meta` keys.
+   * @param {string} [operationType='conjunction'] Type of conditions operation.
+   * @returns {boolean}
    */
   isMatchInConditions(conditions, value, operationType = OPERATION_AND) {
     let result = false;
@@ -93,11 +93,11 @@ class ConditionCollection {
   /**
    * Add condition to the collection.
    *
-   * @param {Number} column Column index.
-   * @param {Object} conditionDefinition Object with keys:
+   * @param {number} column Column index.
+   * @param {object} conditionDefinition Object with keys:
    *  * `command` Object, Command object with condition name as `key` property.
    *  * `args` Array, Condition arguments.
-   * @param {String} [operation='conjunction'] Type of conditions operation
+   * @param {string} [operation='conjunction'] Type of conditions operation.
    * @fires ConditionCollection#beforeAdd
    * @fires ConditionCollection#afterAdd
    */
@@ -115,15 +115,16 @@ class ConditionCollection {
 
     if (columnType) {
       if (columnType !== operation) {
-        throw Error(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`
-        filter operation. Use \`removeConditions\` to clear the current conditions and then add new ones.
-        Mind that you cannot mix different types of operations (for instance, if you use \`conjunction\`,
+        throw Error(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`\x20
+        filter operation. Use \`removeConditions\` to clear the current conditions and then add new ones.\x20
+        Mind that you cannot mix different types of operations (for instance, if you use \`conjunction\`,\x20
         use it consequently for a particular column).`);
       }
 
     } else {
       if (!this.conditions[operation]) {
-        throw new Error(`Unexpected operation named \`${operation}\`. Possible ones are \`disjunction\` and \`conjunction\`.`);
+        throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
+          \`disjunction\` and \`conjunction\`.`);
       }
 
       this.columnTypes[column] = operation;
@@ -142,7 +143,7 @@ class ConditionCollection {
   /**
    * Get all added conditions from the collection at specified column index.
    *
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @returns {Array} Returns conditions collection as an array.
    */
   getConditions(column) {
@@ -183,6 +184,8 @@ class ConditionCollection {
 
   /**
    * Import conditions to the collection.
+   *
+   * @param {Array} conditions The collection of the conditions.
    */
   importAllConditions(conditions) {
     this.clean();
@@ -197,7 +200,7 @@ class ConditionCollection {
   /**
    * Remove conditions at given column index.
    *
-   * @param {Number} column Column index.
+   * @param {number} column Column index.
    * @fires ConditionCollection#beforeRemove
    * @fires ConditionCollection#afterRemove
    */
@@ -214,7 +217,7 @@ class ConditionCollection {
   /**
    * Clear conditions at specified column index but without clearing stack order.
    *
-   * @param {Number }column Column index.
+   * @param {number}column Column index.
    * @fires ConditionCollection#beforeClear
    * @fires ConditionCollection#afterClear
    */
@@ -229,9 +232,9 @@ class ConditionCollection {
    * Check if at least one condition was added at specified column index. And if second parameter is passed then additionally
    * check if condition exists under its name.
    *
-   * @param {Number} column Column index.
-   * @param {String} [name] Condition name.
-   * @returns {Boolean}
+   * @param {number} column Column index.
+   * @param {string} [name] Condition name.
+   * @returns {boolean}
    */
   hasConditions(column, name) {
     const columnType = this.columnTypes[column];
@@ -277,9 +280,10 @@ class ConditionCollection {
   }
 
   /**
-   * Init conditions collection
+   * Init conditions collection.
    *
    * @private
+   * @returns {object} Returns an initial bucket for conditions.
    */
   initConditionsCollection() {
     const conditions = Object.create(null);

@@ -3,8 +3,7 @@ import {
   isValidCoord,
   normalizeSelectionFactory,
   transformSelectionToColumnDistance,
-  // TODO: add tests for transformSelectionToRowDistance
-  // transformSelectionToRowDistance,
+  transformSelectionToRowDistance,
   SELECTION_TYPE_ARRAY,
   SELECTION_TYPE_EMPTY,
   SELECTION_TYPE_OBJECT,
@@ -61,7 +60,8 @@ describe('selection utils', () => {
       expect(detectSelectionType(range(1, 2))).toBe(SELECTION_TYPE_UNRECOGNIZED);
       expect(detectSelectionType([[range(1, 2), range(1, 2)]])).toBe(SELECTION_TYPE_UNRECOGNIZED);
       expect(detectSelectionType([[range(1, 2), range(1, 2), range(1, 2)]])).toBe(SELECTION_TYPE_UNRECOGNIZED);
-      expect(detectSelectionType([[range(1, 2), range(1, 2), range(1, 2), range(1, 2)]])).toBe(SELECTION_TYPE_UNRECOGNIZED);
+      expect(detectSelectionType([[range(1, 2), range(1, 2), range(1, 2), range(1, 2)]]))
+        .toBe(SELECTION_TYPE_UNRECOGNIZED);
     });
 
     it('should ignore nested structures', () => {
@@ -170,13 +170,44 @@ describe('selection utils', () => {
     it('should translate selection ranges passed as an array of arrays to column distances', () => {
       expect(transformSelectionToColumnDistance([[1, 1, 2, 2]])).toEqual([[1, 2]]);
       expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5]])).toEqual([[1, 1], [3, 3]]);
+      expect(transformSelectionToColumnDistance([[-1, 1], [-3, -3, 3, 5]])).toEqual([[0, 6]]);
       expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3]])).toEqual([[1, 5]]);
-      expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3], [5, 7, 5, 7]])).toEqual([[1, 5], [7, 1]]);
+      expect(transformSelectionToColumnDistance([[1, 1], [3, 3, 3, 5], [5, 1, 6, 3], [5, 7, 5, 7]]))
+        .toEqual([[1, 5], [7, 1]]);
     });
 
     it('should translate selection ranges passed as an array of CellRange objects to column distances', () => {
       expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2)])).toEqual([[1, 2]]);
-      expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 3, 5)])).toEqual([[1, 5]]);
+      expect(transformSelectionToColumnDistance([range(0, 0, 1, 1, -2, -2)])).toEqual([[0, 2]]);
+      expect(transformSelectionToColumnDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 3, 5)]))
+        .toEqual([[1, 5]]);
+    });
+  });
+
+  describe('transformSelectionToRowDistance', () => {
+    it('should return an empty array when selection schema is unrecoginized', () => {
+      expect(transformSelectionToRowDistance()).toEqual([]);
+      expect(transformSelectionToRowDistance(0)).toEqual([]);
+      expect(transformSelectionToRowDistance(true)).toEqual([]);
+      expect(transformSelectionToRowDistance([])).toEqual([]);
+      expect(transformSelectionToRowDistance([1])).toEqual([]);
+      expect(transformSelectionToRowDistance([[1], [3, 3, 3, 5]])).toEqual([]);
+    });
+
+    it('should translate selection ranges passed as an array of arrays to row distances', () => {
+      expect(transformSelectionToRowDistance([[1, 1, 2, 2]])).toEqual([[1, 2]]);
+      expect(transformSelectionToRowDistance([[1, 1], [3, 3, 5, 3]])).toEqual([[1, 1], [3, 3]]);
+      expect(transformSelectionToRowDistance([[1, -1], [-3, -3, 5, 3]])).toEqual([[0, 6]]);
+      expect(transformSelectionToRowDistance([[1, 1], [3, 3, 5, 3], [1, 5, 3, 6]])).toEqual([[1, 5]]);
+      expect(transformSelectionToRowDistance([[1, 1], [3, 3, 5, 3], [1, 5, 3, 6], [7, 5, 7, 5]]))
+        .toEqual([[1, 5], [7, 1]]);
+    });
+
+    it('should translate selection ranges passed as an array of CellRange objects to row distances', () => {
+      expect(transformSelectionToRowDistance([range(1, 1, 1, 1, 2, 2)])).toEqual([[1, 2]]);
+      expect(transformSelectionToRowDistance([range(0, 0, 1, 1, -2, -2)])).toEqual([[0, 2]]);
+      expect(transformSelectionToRowDistance([range(1, 1, 1, 1, 2, 2), range(3, 3, 3, 3, 5, 3)]))
+        .toEqual([[1, 5]]);
     });
   });
 

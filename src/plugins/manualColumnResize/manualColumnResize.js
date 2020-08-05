@@ -1,13 +1,15 @@
 import BasePlugin from './../_base';
 import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
-import { pageX } from './../../helpers/dom/event';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
+import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
+const PERSISTENT_STATE_KEY = 'manualColumnWidths';
+const privatePool = new WeakMap();
 /**
  * @description
  * This plugin allows to change columns width. To make columns width persistent the {@link Options#persistentState}
@@ -39,7 +41,20 @@ class ManualColumnResize extends BasePlugin {
     this.pressed = null;
     this.dblclick = 0;
     this.autoresizeTimeout = null;
-    this.manualColumnWidths = [];
+
+    /**
+     * PhysicalIndexToValueMap to keep and track widths for physical column indexes.
+     *
+     * @private
+     * @type {PhysicalIndexToValueMap}
+     */
+    this.columnWidthsMap = void 0;
+    /**
+     * Private pool to save configuration from updateSettings.
+     */
+    privatePool.set(this, {
+      config: void 0,
+    });
 
     addClass(this.handle, 'manualColumnResizer');
     addClass(this.guide, 'manualColumnResizerGuide');
@@ -49,7 +64,7 @@ class ManualColumnResize extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ManualColumnResize#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().manualColumnResize;
@@ -63,24 +78,15 @@ class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    this.manualColumnWidths = [];
-    const initialColumnWidth = this.hot.getSettings().manualColumnResize;
-    const loadedManualColumnWidths = this.loadManualColumnWidths();
+    this.columnWidthsMap = new IndexToValueMap();
+    this.columnWidthsMap.addLocalHook('init', () => this.onMapInit());
+    this.hot.columnIndexMapper.registerMap(this.pluginName, this.columnWidthsMap);
 
     this.addHook('modifyColWidth', (width, col) => this.onModifyColWidth(width, col));
-    this.addHook('beforeStretchingColumnWidth', (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
-    this.addHook('beforeColumnResize', (currentColumn, newSize, isDoubleClick) => this.onBeforeColumnResize(currentColumn, newSize, isDoubleClick));
-
-    if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.manualColumnWidths = loadedManualColumnWidths;
-    } else if (Array.isArray(initialColumnWidth)) {
-      this.manualColumnWidths = initialColumnWidth;
-    } else {
-      this.manualColumnWidths = [];
-    }
-
-    // Handsontable.hooks.register('beforeColumnResize');
-    // Handsontable.hooks.register('afterColumnResize');
+    this.addHook('beforeStretchingColumnWidth',
+      (stretchedWidth, column) => this.onBeforeStretchingColumnWidth(stretchedWidth, column));
+    this.addHook('beforeColumnResize',
+      (newSize, column, isDoubleClick) => this.onBeforeColumnResize(newSize, column, isDoubleClick));
 
     this.bindEvents();
 
@@ -91,44 +97,107 @@ class ManualColumnResize extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const initialColumnWidth = this.hot.getSettings().manualColumnResize;
+    this.disablePlugin();
+    this.enablePlugin();
 
-    if (Array.isArray(initialColumnWidth)) {
-      this.manualColumnWidths = initialColumnWidth;
-
-    } else if (!initialColumnWidth) {
-      this.manualColumnWidths = [];
-    }
+    super.updatePlugin();
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    const priv = privatePool.get(this);
+
+    priv.config = this.columnWidthsMap.getValues();
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
   }
 
   /**
    * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   *
+   * @fires Hooks#persistentStateSave
    */
   saveManualColumnWidths() {
-    this.hot.runHooks('persistentStateSave', 'manualColumnWidths', this.manualColumnWidths);
+    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.columnWidthsMap.getValues());
   }
 
   /**
    * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
    *
    * @returns {Array}
-   *
    * @fires Hooks#persistentStateLoad
-   * @fires Hooks#manualColumnWidths
    */
   loadManualColumnWidths() {
     const storedState = {};
 
-    this.hot.runHooks('persistentStateLoad', 'manualColumnWidths', storedState);
+    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
 
     return storedState.value;
+  }
+
+  /**
+   * Sets the new width for specified column index.
+   *
+   * @param {number} column Visual column index.
+   * @param {number} width Column width (no less than 20px).
+   * @returns {number} Returns new width.
+   */
+  setManualSize(column, width) {
+    const newWidth = Math.max(width, 20);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    this.columnWidthsMap.setValueAtIndex(physicalColumn, newWidth);
+
+    return newWidth;
+  }
+
+  /**
+   * Clears the cache for the specified column index.
+   *
+   * @param {number} column Visual column index.
+   */
+  clearManualSize(column) {
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    this.columnWidthsMap.setValueAtIndex(physicalColumn, null);
+  }
+
+  /**
+   * Callback to call on map's `init` local hook.
+   *
+   * @private
+   */
+  onMapInit() {
+    const priv = privatePool.get(this);
+
+    const initialSetting = this.hot.getSettings().manualColumnResize;
+    const loadedManualColumnWidths = this.loadManualColumnWidths();
+
+    if (typeof loadedManualColumnWidths !== 'undefined') {
+      this.hot.batch(() => {
+        loadedManualColumnWidths.forEach((width, physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
+        });
+      });
+
+    } else if (Array.isArray(initialSetting)) {
+      this.hot.batch(() => {
+        initialSetting.forEach((width, physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
+        });
+      });
+
+      priv.config = initialSetting;
+
+    } else if (initialSetting === true && Array.isArray(priv.config)) {
+      this.hot.batch(() => {
+        priv.config.forEach((width, physicalIndex) => {
+          this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
+        });
+      });
+    }
   }
 
   /**
@@ -139,60 +208,75 @@ class ManualColumnResize extends BasePlugin {
    */
   setupHandlePosition(TH) {
     if (!TH.parentNode) {
-      return false;
+      return;
     }
 
     this.currentTH = TH;
 
-    const cellCoords = this.hot.view.wt.wtTable.getCoords(this.currentTH);
+    const { view: { wt } } = this.hot;
+    const cellCoords = wt.wtTable.getCoords(this.currentTH);
     const col = cellCoords.col;
+
+    // Ignore column headers.
+    if (col < 0) {
+      return;
+    }
+
     const headerHeight = outerHeight(this.currentTH);
+    const box = this.currentTH.getBoundingClientRect();
+    // Read "fixedColumnsLeft" through the Walkontable as in that context, the fixed columns
+    // are modified (reduced by the number of hidden columns) by TableView module.
+    const fixedColumn = col < wt.getSetting('fixedColumnsLeft');
+    let relativeHeaderPosition;
 
-    if (col >= 0) { // if col header
-      const box = this.currentTH.getBoundingClientRect();
-      const fixedColumn = col < this.hot.getSettings().fixedColumnsLeft;
-      const parentOverlay = fixedColumn ? this.hot.view.wt.wtOverlays.topLeftCornerOverlay : this.hot.view.wt.wtOverlays.topOverlay;
-      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    if (fixedColumn) {
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .topLeftCornerOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    }
 
-      // If the TH is not a child of the top/top-left overlay, recalculate using the top-most header
-      if (!relativeHeaderPosition) {
-        const topMostHeader = parentOverlay.clone.wtTable.THEAD.lastChild.children[+!!this.hot.getSettings().rowHeaders + col];
-        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
+    // If the TH is not a child of the top-left overlay, recalculate using
+    // the top overlay - as this overlay contains the rest of the headers.
+    if (!relativeHeaderPosition) {
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .topOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    }
+
+    this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
+    this.selectedCols = [];
+
+    if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByColumnHeader()) {
+      const { from, to } = this.hot.getSelectedRangeLast();
+      let start = from.col;
+      let end = to.col;
+
+      if (start >= end) {
+        start = to.col;
+        end = from.col;
       }
 
-      this.currentCol = col;
-      this.selectedCols = [];
-
-      if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByColumnHeader()) {
-        const { from, to } = this.hot.getSelectedRangeLast();
-        let start = from.col;
-        let end = to.col;
-
-        if (start >= end) {
-          start = to.col;
-          end = from.col;
-        }
-
-        if (this.currentCol >= start && this.currentCol <= end) {
-          rangeEach(start, end, i => this.selectedCols.push(i));
-
-        } else {
-          this.selectedCols.push(this.currentCol);
-        }
+      if (this.currentCol >= start && this.currentCol <= end) {
+        rangeEach(start, end, i => this.selectedCols.push(i));
 
       } else {
         this.selectedCols.push(this.currentCol);
       }
 
-      this.startOffset = relativeHeaderPosition.left - 6;
-      this.startWidth = parseInt(box.width, 10);
-
-      this.handle.style.top = `${relativeHeaderPosition.top}px`;
-      this.handle.style.left = `${this.startOffset + this.startWidth}px`;
-
-      this.handle.style.height = `${headerHeight}px`;
-      this.hot.rootElement.appendChild(this.handle);
+    } else {
+      this.selectedCols.push(this.currentCol);
     }
+
+    this.startOffset = relativeHeaderPosition.left - 6;
+    this.startWidth = parseInt(box.width, 10);
+
+    this.handle.style.top = `${relativeHeaderPosition.top}px`;
+    this.handle.style.left = `${this.startOffset + this.startWidth}px`;
+
+    this.handle.style.height = `${headerHeight}px`;
+    this.hot.rootElement.appendChild(this.handle);
   }
 
   /**
@@ -247,7 +331,7 @@ class ManualColumnResize extends BasePlugin {
    *
    * @private
    * @param {HTMLElement} element HTML element.
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   checkIfColumnHeader(element) {
     if (element !== this.hot.rootElement) {
@@ -275,8 +359,8 @@ class ManualColumnResize extends BasePlugin {
       if (element.tagName === 'TH') {
         return element;
       }
-      return this.getTHFromTargetElement(element.parentNode);
 
+      return this.getTHFromTargetElement(element.parentNode);
     }
 
     return null;
@@ -286,7 +370,7 @@ class ManualColumnResize extends BasePlugin {
    * 'mouseover' event callback - set the handle position.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
     if (this.checkIfColumnHeader(event.target)) {
@@ -310,7 +394,6 @@ class ManualColumnResize extends BasePlugin {
    * Auto-size row after doubleclick - callback.
    *
    * @private
-   *
    * @fires Hooks#beforeColumnResize
    * @fires Hooks#afterColumnResize
    */
@@ -320,26 +403,26 @@ class ManualColumnResize extends BasePlugin {
       this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
-    const resize = (selectedCol, forceRender) => {
-      const hookNewSize = this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize, true);
+    const resize = (column, forceRender) => {
+      const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, column, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
       }
 
       if (this.hot.getSettings().stretchH === 'all') {
-        this.clearManualSize(selectedCol);
+        this.clearManualSize(column);
       } else {
-        this.setManualSize(selectedCol, this.newSize); // double click sets by auto row size plugin
-      }
-
-      if (forceRender) {
-        render();
+        this.setManualSize(column, this.newSize); // double click sets by auto row size plugin
       }
 
       this.saveManualColumnWidths();
 
-      this.hot.runHooks('afterColumnResize', selectedCol, this.newSize, true);
+      this.hot.runHooks('afterColumnResize', this.newSize, column, true);
+
+      if (forceRender) {
+        render();
+      }
     };
 
     if (this.dblclick >= 2) {
@@ -364,12 +447,12 @@ class ManualColumnResize extends BasePlugin {
    * 'mousedown' event callback.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
       this.setupGuidePosition();
-      this.pressed = this.hot;
+      this.pressed = true;
 
       if (this.autoresizeTimeout === null) {
         this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
@@ -378,7 +461,7 @@ class ManualColumnResize extends BasePlugin {
       }
       this.dblclick += 1;
 
-      this.startX = pageX(event);
+      this.startX = event.pageX;
       this.newSize = this.startWidth;
     }
   }
@@ -387,11 +470,11 @@ class ManualColumnResize extends BasePlugin {
    * 'mousemove' event callback - refresh the handle and guide positions, cache the new column width.
    *
    * @private
-   * @param {MouseEvent} event
+   * @param {MouseEvent} event The mouse event.
    */
   onMouseMove(event) {
     if (this.pressed) {
-      this.currentWidth = this.startWidth + (pageX(event) - this.startX);
+      this.currentWidth = this.startWidth + (event.pageX - this.startX);
 
       arrayEach(this.selectedCols, (selectedCol) => {
         this.newSize = this.setManualSize(selectedCol, this.currentWidth);
@@ -416,8 +499,8 @@ class ManualColumnResize extends BasePlugin {
       this.hot.view.render(); // updates all
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
-    const resize = (selectedCol, forceRender) => {
-      this.hot.runHooks('beforeColumnResize', selectedCol, this.newSize, false);
+    const resize = (column, forceRender) => {
+      this.hot.runHooks('beforeColumnResize', this.newSize, column, false);
 
       if (forceRender) {
         render();
@@ -425,7 +508,7 @@ class ManualColumnResize extends BasePlugin {
 
       this.saveManualColumnWidths();
 
-      this.hot.runHooks('afterColumnResize', selectedCol, this.newSize);
+      this.hot.runHooks('afterColumnResize', this.newSize, column, false);
     };
 
     if (this.pressed) {
@@ -466,51 +549,19 @@ class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Sets the new width for specified column index.
-   *
-   * @param {Number} column Visual column index.
-   * @param {Number} width Column width (no less than 20px).
-   * @returns {Number} Returns new width.
-   */
-  setManualSize(column, width) {
-    const newWidth = Math.max(width, 20);
-
-    /**
-     *  We need to run col through modifyCol hook, in case the order of displayed columns is different than the order
-     *  in data source. For instance, this order can be modified by manualColumnMove plugin.
-     */
-    const physicalColumn = this.hot.runHooks('modifyCol', column);
-
-    this.manualColumnWidths[physicalColumn] = newWidth;
-
-    return newWidth;
-  }
-
-  /**
-   * Clears the cache for the specified column index.
-   *
-   * @param {Number} column Visual column index.
-   */
-  clearManualSize(column) {
-    const physicalColumn = this.hot.runHooks('modifyCol', column);
-
-    this.manualColumnWidths[physicalColumn] = void 0;
-  }
-
-  /**
-   * Modifies the provided column width, based on the plugin settings
+   * Modifies the provided column width, based on the plugin settings.
    *
    * @private
-   * @param {Number} width Column width.
-   * @param {Number} column Visual column index.
-   * @returns {Number}
+   * @param {number} width Column width.
+   * @param {number} column Visual column index.
+   * @returns {number}
    */
   onModifyColWidth(width, column) {
     let newWidth = width;
 
     if (this.enabled) {
-      const physicalColumn = this.hot.runHooks('modifyCol', column);
-      const columnWidth = this.manualColumnWidths[physicalColumn];
+      const physicalColumn = this.hot.toPhysicalColumn(column);
+      const columnWidth = this.columnWidthsMap.getValueAtIndex(physicalColumn);
 
       if (this.hot.getSettings().manualColumnResize && columnWidth) {
         newWidth = columnWidth;
@@ -524,14 +575,14 @@ class ManualColumnResize extends BasePlugin {
    * Modifies the provided column stretched width. This hook decides if specified column should be stretched or not.
    *
    * @private
-   * @param {Number} stretchedWidth Stretched width.
-   * @param {Number} column Physical column index.
-   * @returns {Number}
+   * @param {number} stretchedWidth Stretched width.
+   * @param {number} column Visual column index.
+   * @returns {number}
    */
   onBeforeStretchingColumnWidth(stretchedWidth, column) {
-    let width = this.manualColumnWidths[column];
+    let width = this.columnWidthsMap.getValueAtIndex(column);
 
-    if (width === void 0) {
+    if (width === null) {
       width = stretchedWidth;
     }
 
@@ -545,7 +596,16 @@ class ManualColumnResize extends BasePlugin {
    */
   onBeforeColumnResize() {
     // clear the header height cache information
-    this.hot.view.wt.wtViewport.hasOversizedColumnHeadersMarked = {};
+    this.hot.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+  }
+
+  /**
+   * Destroys the plugin instance.
+   */
+  destroy() {
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+
+    super.destroy();
   }
 }
 

@@ -1,7 +1,6 @@
 import { Parser, ERROR_REF, error as isFormulaError } from 'hot-formula-parser';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import localHooks from '../../mixins/localHooks';
-import { getTranslator } from '../../utils/recordTranslator';
 import { mixin } from '../../helpers/object';
 import CellValue from './cell/value';
 import CellReference from './cell/reference';
@@ -28,12 +27,6 @@ class Sheet {
      */
     this.hot = hot;
     /**
-     * Record translator for translating visual records into psychical and vice versa.
-     *
-     * @type {RecordTranslator}
-     */
-    this.t = getTranslator(this.hot);
-    /**
      * Data provider for sheet calculations.
      *
      * @type {DataProvider}
@@ -50,7 +43,7 @@ class Sheet {
      *
      * @type {Matrix}
      */
-    this.matrix = new Matrix(this.t);
+    this.matrix = new Matrix(this.hot);
     /**
      * Instance of {@link AlterManager}.
      *
@@ -67,7 +60,7 @@ class Sheet {
     /**
      * State of the sheet.
      *
-     * @type {Number}
+     * @type {number}
      * @private
      */
     this._state = STATE_NEED_FULL_REBUILD;
@@ -134,7 +127,7 @@ class Sheet {
   /**
    * Set predefined variable name which can be visible while parsing formula expression.
    *
-   * @param {String} name Variable name.
+   * @param {string} name Variable name.
    * @param {*} value Variable value.
    */
   setVariable(name, value) {
@@ -144,7 +137,7 @@ class Sheet {
   /**
    * Get variable name.
    *
-   * @param {String} name Variable name.
+   * @param {string} name Variable name.
    * @returns {*}
    */
   getVariable(name) {
@@ -154,8 +147,8 @@ class Sheet {
   /**
    * Apply changes to the sheet.
    *
-   * @param {Number} row Physical row index.
-   * @param {Number} column Physical column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Physical column index.
    * @param {*} newValue Current cell value.
    */
   applyChanges(row, column, newValue) {
@@ -169,7 +162,7 @@ class Sheet {
       this.parseExpression(new CellValue(row, column), newValue.substr(1));
     }
 
-    const deps = this.getCellDependencies(...this.t.toVisual(row, column));
+    const deps = this.getCellDependencies(this.hot.toVisualRow(row), this.hot.toVisualColumn(column));
 
     arrayEach(deps, (cellValue) => {
       cellValue.setState(CellValue.STATE_OUT_OFF_DATE);
@@ -181,8 +174,8 @@ class Sheet {
   /**
    * Parse and evaluate formula for provided cell.
    *
-   * @param {CellValue|Object} cellValue Cell value object.
-   * @param {String} formula Value to evaluate.
+   * @param {CellValue|object} cellValue Cell value object.
+   * @param {string} formula Value to evaluate.
    */
   parseExpression(cellValue, formula) {
     cellValue.setState(CellValue.STATE_COMPUTING);
@@ -206,8 +199,8 @@ class Sheet {
   /**
    * Get cell value object at specified physical coordinates.
    *
-   * @param {Number} row Physical row index.
-   * @param {Number} column Physical column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Physical column index.
    * @returns {CellValue|undefined}
    */
   getCellAt(row, column) {
@@ -217,8 +210,8 @@ class Sheet {
   /**
    * Get cell dependencies at specified physical coordinates.
    *
-   * @param {Number} row Physical row index.
-   * @param {Number} column Physical column index.
+   * @param {number} row Physical row index.
+   * @param {number} column Physical column index.
    * @returns {Array}
    */
   getCellDependencies(row, column) {
@@ -229,7 +222,7 @@ class Sheet {
    * Listener for parser cell value.
    *
    * @private
-   * @param {Object} cellCoords Cell coordinates.
+   * @param {object} cellCoords Cell coordinates.
    * @param {Function} done Function to call with valid cell value.
    */
   _onCallCellValue({ row, column }, done) {
@@ -269,12 +262,13 @@ class Sheet {
    * Listener for parser cells (range) value.
    *
    * @private
-   * @param {Object} startCell Cell coordinates (top-left corner coordinate).
-   * @param {Object} endCell Cell coordinates (bottom-right corner coordinate).
+   * @param {object} startCell Cell coordinates (top-left corner coordinate).
+   * @param {object} endCell Cell coordinates (bottom-right corner coordinate).
    * @param {Function} done Function to call with valid cells values.
    */
   _onCallRangeValue({ row: startRow, column: startColumn }, { row: endRow, column: endColumn }, done) {
-    const cellValues = this.dataProvider.getRawDataByRange(startRow.index, startColumn.index, endRow.index, endColumn.index);
+    const cellValues = this.dataProvider
+      .getRawDataByRange(startRow.index, startColumn.index, endRow.index, endColumn.index);
 
     const mapRowData = (rowData, rowIndex) => arrayMap(rowData, (cellData, columnIndex) => {
       const rowCellCoord = startRow.index + rowIndex;
@@ -330,7 +324,6 @@ class Sheet {
    */
   destroy() {
     this.hot = null;
-    this.t = null;
     this.dataProvider.destroy();
     this.dataProvider = null;
     this.alterManager.destroy();

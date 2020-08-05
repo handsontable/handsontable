@@ -1,6 +1,9 @@
 describe('ConditionUpdateObserver', () => {
   const id = 'testContainer';
 
+  /**
+   *
+   */
   function getConditionUpdateObserver() {
     return handsontable({ filters: true }).getPlugin('filters').conditionUpdateObserver;
   }

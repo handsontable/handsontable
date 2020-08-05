@@ -39,6 +39,9 @@ const scrollbarWidth = (function calculateScrollbarWidth() {
 beforeEach(function() {
   const currentSpec = this;
 
+  /**
+   * @returns {Handsontable}
+   */
   function hot() {
     return currentSpec.$container.data('handsontable');
   }
@@ -68,10 +71,12 @@ beforeEach(function() {
           const margin = diff || 1;
 
           const pass = actual >= expected - margin && actual <= expected + margin;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin}
+ and ${expected + margin})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
+            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin}
+ and ${expected + margin})`;
           }
 
           return {
@@ -93,19 +98,14 @@ beforeEach(function() {
 
           result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
 
-          if (typeof jest === 'object') {
-            /* eslint-disable global-require */
-            const jestMatcherUtils = require('jest-matcher-utils');
-
-            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
-          }
-
           return result;
         }
       };
     },
     /**
      * The matcher checks if the passed cell element is contained in the table viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleInViewport() {
       return {
@@ -126,6 +126,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible at the top of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtTopOfViewport() {
       return {
@@ -142,6 +144,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible at the bottom of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtBottomOfViewport() {
       return {
@@ -158,6 +162,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible on the left of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtLeftOfViewport() {
       return {
@@ -174,6 +180,8 @@ beforeEach(function() {
     },
     /**
      * The matcher checks if the viewport is scrolled in the way that the cell is visible on the right of the viewport.
+     *
+     * @returns {object}
      */
     toBeVisibleAtRightOfViewport() {
       return {
@@ -208,7 +216,8 @@ beforeEach(function() {
             message = 'Non-empty list should be passed as expect parameter.';
 
           } else if (containsUndefined) {
-            message = `List ${redColor}${checkedArray.join(', ')}${resetColor} contains ${redColor}undefined${resetColor} value.`;
+            message = `List ${redColor}${checkedArray.join(', ')}${resetColor}
+contains ${redColor}undefined${resetColor} value.`;
 
           } else if (elementNotFulfillingCondition !== undefined) {
             let entityValue = elementNotFulfillingCondition;
@@ -217,7 +226,8 @@ beforeEach(function() {
               entityValue = `"${elementNotFulfillingCondition}"`;
             }
 
-            message = `Entity ${redColor}${entityValue}${resetColor}, from list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the condition.`;
+            message = `Entity ${redColor}${entityValue}${resetColor}, from
+list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the condition.`;
           }
 
           return {
@@ -227,6 +237,7 @@ beforeEach(function() {
         }
       };
     },
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * The matcher checks if the provided selection pattern matches to the rendered cells by checking if
      * the appropriate CSS class name was added.
@@ -271,7 +282,10 @@ beforeEach(function() {
      * '===' - This symbol separates the column headers from the table content.
      * '|'   - The symbol which indicates the left overlay edge.
      * '---' - The symbol which indicates the top overlay edge.
+     *
+     * @returns {object}
      */
+    /* eslint-enable jsdoc/require-description-complete-sentence */
     toBeMatchToSelectionPattern() {
       return {
         compare(actualPattern) {
@@ -304,7 +318,8 @@ beforeEach(function() {
           }, []);
 
           const actualAsciiTable = normalizedPattern.join('\n');
-          const message = `Expected the pattern selection \n${actualAsciiTable}\nto match to the visual state of the rendered selection \n${asciiTable}\n`;
+          const message = `Expected the pattern selection \n${actualAsciiTable}\nto
+match to the visual state of the rendered selection \n${asciiTable}\n`;
 
           return {
             pass: asciiTable === actualAsciiTable,

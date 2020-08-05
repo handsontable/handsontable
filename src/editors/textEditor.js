@@ -10,7 +10,6 @@ import {
   setCaretPosition,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
-  selectElementIfAllowed,
   hasClass,
   removeClass
 } from './../helpers/dom/element';
@@ -20,20 +19,18 @@ import { isMobileBrowser, isIE, isEdge } from './../helpers/browser';
 import BaseEditor, { EditorState } from './_baseEditor';
 import EventManager from './../eventManager';
 import { KEY_CODES } from './../helpers/unicode';
-import { stopPropagation, stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from './../helpers/dom/event';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
 
 /**
  * @private
- * @editor TextEditor
  * @class TextEditor
- * @dependencies autoResize
  */
 class TextEditor extends BaseEditor {
   /**
-   * @param {Handsontable} instance
+   * @param {Core} instance The Handsontable instance.
    */
   constructor(instance) {
     super(instance);
@@ -80,7 +77,7 @@ class TextEditor extends BaseEditor {
      */
     this.textareaParentStyle = void 0;
     /**
-     * z-index class style for the editor.
+     * Z-index class style for the editor.
      *
      * @private
      * @type {string}
@@ -96,7 +93,7 @@ class TextEditor extends BaseEditor {
   /**
    * Gets current value from editable element.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getValue() {
     return this.TEXTAREA.value;
@@ -105,7 +102,7 @@ class TextEditor extends BaseEditor {
   /**
    * Sets new value into editable element.
    *
-   * @param {*} newValue
+   * @param {*} newValue The editor value.
    */
   setValue(newValue) {
     this.TEXTAREA.value = newValue;
@@ -138,17 +135,17 @@ class TextEditor extends BaseEditor {
   /**
    * Prepares editor's meta data.
    *
-   * @param {Number} row
-   * @param {Number} col
-   * @param {Number|String} prop
-   * @param {HTMLTableCellElement} td
-   * @param {*} originalValue
-   * @param {Object} cellProperties
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
    */
-  prepare(row, col, prop, td, originalValue, cellProperties) {
+  prepare(row, col, prop, td, value, cellProperties) {
     const previousState = this.state;
 
-    super.prepare(row, col, prop, td, originalValue, cellProperties);
+    super.prepare(row, col, prop, td, value, cellProperties);
 
     if (!cellProperties.readOnly) {
       this.refreshDimensions(true);
@@ -159,19 +156,21 @@ class TextEditor extends BaseEditor {
       } = cellProperties;
 
       if (allowInvalid) {
-        this.TEXTAREA.value = ''; // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste functionality work with IME)
+        // Remove an empty space from texarea (added by copyPaste plugin to make copy/paste
+        // functionality work with IME)
+        this.TEXTAREA.value = '';
       }
 
       if (previousState !== EditorState.FINISHED) {
         this.hideEditableElement();
       }
 
-      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature refocus has to
-      // be disabled (to make IME working).
+      // @TODO: The fragmentSelection functionality is conflicted with IME. For this feature
+      // refocus has to be disabled (to make IME working).
       const restoreFocus = !fragmentSelection;
 
       if (restoreFocus && !isMobileBrowser()) {
-        this.hot._registerImmediate(() => this.focus(true));
+        this.focus();
       }
     }
   }
@@ -179,8 +178,8 @@ class TextEditor extends BaseEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
-   * @param {*} newInitialValue
-   * @param {*} event
+   * @param {*} newInitialValue The editor initial value.
+   * @param {Event} event The keyboard event object.
    */
   beginEditing(newInitialValue, event) {
     if (this.state !== EditorState.VIRGIN) {
@@ -193,20 +192,13 @@ class TextEditor extends BaseEditor {
 
   /**
    * Sets focus state on the select element.
-   *
-   * @param {Boolean} [safeFocus=false] If `true` select element only when is handsontableInput. Otherwise sets focus on this element.
-   * If focus is calling without param textarea need be select and set caret position.
    */
-  focus(safeFocus = false) {
-    // For IME editor textarea element must be focused using ".select" method. Using ".focus" browser automatically scroll into
-    // the focused element which is undesire effect.
-    if (safeFocus) {
-      selectElementIfAllowed(this.TEXTAREA);
-
-    } else {
-      this.TEXTAREA.select();
-      setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
-    }
+  focus() {
+    // For IME editor textarea element must be focused using ".select" method.
+    // Using ".focus" browser automatically scroll into the focused element which
+    // is undesire effect.
+    this.TEXTAREA.select();
+    setCaretPosition(this.TEXTAREA, this.TEXTAREA.value.length);
   }
 
   /**
@@ -216,6 +208,7 @@ class TextEditor extends BaseEditor {
     const { rootDocument } = this.hot;
 
     this.TEXTAREA = rootDocument.createElement('TEXTAREA');
+    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.tabIndex = -1;
 
     addClass(this.TEXTAREA, 'handsontableInput');
@@ -324,7 +317,7 @@ class TextEditor extends BaseEditor {
    * Refreshes editor's size and position.
    *
    * @private
-   * @param {Boolean} force
+   * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
    */
   refreshDimensions(force = false) {
     if (this.state !== EditorState.EDITING && !force) {
@@ -346,9 +339,10 @@ class TextEditor extends BaseEditor {
     const containerOffset = offset(this.hot.rootElement);
     const scrollableContainerTop = wtOverlays.topOverlay.holder;
     const scrollableContainerLeft = wtOverlays.leftOverlay.holder;
-    const totalRowsCount = this.hot.countRows();
-    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ? scrollableContainerTop.scrollTop : 0;
-    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ? scrollableContainerLeft.scrollLeft : 0;
+    const containerScrollTop = scrollableContainerTop !== this.hot.rootWindow ?
+      scrollableContainerTop.scrollTop : 0;
+    const containerScrollLeft = scrollableContainerLeft !== this.hot.rootWindow ?
+      scrollableContainerLeft.scrollLeft : 0;
     const editorSection = this.checkEditorSection();
 
     const scrollTop = ['', 'left'].includes(editorSection) ? containerScrollTop : 0;
@@ -356,9 +350,6 @@ class TextEditor extends BaseEditor {
 
     // If colHeaders is disabled, cells in the first row have border-top
     const editTopModifier = currentOffset.top === containerOffset.top ? 0 : 1;
-
-    const settings = this.hot.getSettings();
-    const colHeadersCount = this.hot.hasColHeaders();
     const backgroundColor = this.TD.style.backgroundColor;
 
     let editTop = currentOffset.top - containerOffset.top - editTopModifier - scrollTop;
@@ -386,12 +377,17 @@ class TextEditor extends BaseEditor {
         break;
     }
 
-    if (colHeadersCount && this.hot.getSelectedLast()[0] === 0 ||
-        (settings.fixedRowsBottom && this.hot.getSelectedLast()[0] === totalRowsCount - settings.fixedRowsBottom)) {
+    const hasColumnHeaders = this.hot.hasColHeaders();
+    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view.wt.getSetting('fixedRowsBottom');
+
+    if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       editTop += 1;
     }
 
-    if (this.hot.getSelectedLast()[1] === 0) {
+    if (renderableColumn <= 0) {
       editLeft += 1;
     }
 
@@ -419,7 +415,7 @@ class TextEditor extends BaseEditor {
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
     const height = this.TD.scrollHeight + 1;
-    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
+    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23); // eslint-disable-line max-len
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);
 
@@ -441,8 +437,8 @@ class TextEditor extends BaseEditor {
    * @private
    */
   bindEvents() {
-    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => stopPropagation(event));
-    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => stopPropagation(event));
+    this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
+    this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
@@ -476,9 +472,9 @@ class TextEditor extends BaseEditor {
   }
 
   /**
-   * onBeforeKeyDown callback.
+   * OnBeforeKeyDown callback.
    *
-   * @param {Event} event
+   * @param {Event} event The keyboard event object.
    */
   onBeforeKeyDown(event) {
     // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
@@ -548,7 +544,9 @@ class TextEditor extends BaseEditor {
         break;
     }
 
-    if ([KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT].indexOf(event.keyCode) === -1) {
+    const arrowKeyCodes = [KEY_CODES.ARROW_UP, KEY_CODES.ARROW_RIGHT, KEY_CODES.ARROW_DOWN, KEY_CODES.ARROW_LEFT];
+
+    if (arrowKeyCodes.indexOf(event.keyCode) === -1) {
       this.autoResize.resize(String.fromCharCode(event.keyCode));
     }
   }

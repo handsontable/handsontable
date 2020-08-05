@@ -38,7 +38,9 @@ describe('Core_validate', () => {
     });
 
     hot.validateCells();
-    await sleep(10);
+
+    await sleep(100);
+
     hot.destroy();
     spec().$container.remove();
 

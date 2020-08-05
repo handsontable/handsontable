@@ -3,6 +3,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'col_left';
 
+/**
+ * @returns {object}
+ */
 export default function columnLeftItem() {
   return {
     key: KEY,
@@ -10,25 +13,41 @@ export default function columnLeftItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback(key, normalizedSelection) {
-      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+      const isSelectedByCorner = this.selection.isSelectedByCorner();
+      let columnLeft = 0;
 
-      this.alter('insert_col', latestSelection.start.col, 1, 'ContextMenu.columnLeft');
+      if (!isSelectedByCorner) {
+        const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+
+        columnLeft = latestSelection.start.col;
+      }
+
+      this.alter('insert_col', columnLeft, 1, 'ContextMenu.columnLeft');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled() {
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+
       const selected = getValidSelection(this);
 
       if (!selected) {
         return true;
       }
-      if (!this.isColumnModificationAllowed()) {
-        return true;
-      }
-      const [startRow, startColumn, endRow] = selected[0];
-      const entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
-      const rowSelected = entireRowSelection.join(',') === selected.join(',');
-      const onlyOneColumn = this.countCols() === 1;
 
-      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
+      if (this.selection.isSelectedByCorner()) {
+        const totalColumns = this.countCols();
+
+        // Enable "Insert column left" only when there is at least one column.
+        return totalColumns === 0;
+      }
+
+      return this.selection.isSelectedByRowHeader() ||
+        this.countCols() >= this.getSettings().maxCols;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;

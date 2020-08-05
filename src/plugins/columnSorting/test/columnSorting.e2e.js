@@ -126,18 +126,7 @@ describe('ColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -155,7 +144,8 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -171,18 +161,7 @@ describe('ColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -200,7 +179,8 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -211,18 +191,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should display indicator properly after changing sorted column sequence', () => {
-    const modification = (column) => {
-      if (column === 0) {
-        return 1;
-
-      } else if (column === 1) {
-        return 0;
-      }
-
-      return column;
-    };
-
-    handsontable({
+    const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -238,7 +207,8 @@ describe('ColumnSorting', () => {
     getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    updateSettings({ modifyCol: modification, unmodifyCol: modification });
+    hot.columnIndexMapper.moveIndexes([1], 0);
+    hot.render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
@@ -667,13 +637,13 @@ describe('ColumnSorting', () => {
 
     const plugin = getPlugin('columnSorting');
 
-    expect(plugin.columnMetaCache.size).toEqual(1);
+    expect(plugin.columnMetaCache.getLength()).toEqual(1);
 
     updateSettings({
       data: [['first columns', 'second column', 'third column']]
     });
 
-    expect(plugin.columnMetaCache.size).toEqual(3);
+    expect(plugin.columnMetaCache.getLength()).toEqual(3);
   });
 
   describe('isSorted', () => {
@@ -1296,9 +1266,11 @@ describe('ColumnSorting', () => {
       { a: 'bbbb', b: 10, c: 11 }
     ];
 
+    /**
+     * @param row
+     */
     function customIsEmptyRow(row) {
-      const data = this.getSourceData();
-      return data[row].isNew;
+      return myData[row].isNew;
     }
 
     handsontable({
@@ -1583,7 +1555,7 @@ describe('ColumnSorting', () => {
     spec().$container2.remove();
   });
 
-  it('should return updated data at specyfied row after sorted', () => {
+  it('should return updated data at specified row after sorted', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1613,7 +1585,7 @@ describe('ColumnSorting', () => {
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
   });
 
-  it('should return updated data at specyfied col after sorted', () => {
+  it('should return updated data at specified col after sorted', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1968,17 +1940,21 @@ describe('ColumnSorting', () => {
   it('should properly sort the table, when it\'s scrolled to the far right', () => {
     const data = [
       ['Jasmine Ferguson', 'Britney Carey', 'Kelly Decker', 'Lacey Mcleod', 'Leona Shaffer', 'Kelli Ochoa',
-        'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale', 'Dorthy Hale',
-        'Munoz Randall', 'Fields Morse', 'Hubbard Nichols', 'Chang Yang', 'Osborn Anthony', 'Owens Warner', 'Gloria Hampton'],
-      ['Lane Hill', 'Belinda Mathews', 'York Gray', 'Celina Stone', 'Victoria Mays', 'Angelina Lott', 'Joyce Mason', 'Shawn Rodriguez',
-        'Susanna Mayo', 'Wolf Fuller', 'Long Hester', 'Dudley Doyle', 'Wilder Sutton', 'Oneal Avery', 'James Mclaughlin',
-        'Lenora Guzman', 'Mcmahon Sullivan', 'Abby Weeks', 'Beverly Joseph', 'Rosalind Church'],
-      ['Myrtle Landry', 'Hays Huff', 'Hernandez Benjamin', 'Mclaughlin Garza', 'Franklin Barton', 'Lara Buchanan', 'Ratliff Beck',
-        'Rosario Munoz', 'Isabelle Dalton', 'Smith Woodard', 'Marjorie Marshall', 'Spears Stein', 'Brianna Bowman',
-        'Marci Clay', 'Palmer Harrell', 'Ball Levy', 'Shelley Mendoza', 'Morrow Glass', 'Baker Knox', 'Adrian Holman'],
+        'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale',
+        'Dorthy Hale', 'Munoz Randall', 'Fields Morse', 'Hubbard Nichols', 'Chang Yang', 'Osborn Anthony',
+        'Owens Warner', 'Gloria Hampton'],
+      ['Lane Hill', 'Belinda Mathews', 'York Gray', 'Celina Stone', 'Victoria Mays', 'Angelina Lott',
+        'Joyce Mason', 'Shawn Rodriguez', 'Susanna Mayo', 'Wolf Fuller', 'Long Hester', 'Dudley Doyle',
+        'Wilder Sutton', 'Oneal Avery', 'James Mclaughlin', 'Lenora Guzman', 'Mcmahon Sullivan', 'Abby Weeks',
+        'Beverly Joseph', 'Rosalind Church'],
+      ['Myrtle Landry', 'Hays Huff', 'Hernandez Benjamin', 'Mclaughlin Garza', 'Franklin Barton',
+        'Lara Buchanan', 'Ratliff Beck', 'Rosario Munoz', 'Isabelle Dalton', 'Smith Woodard',
+        'Marjorie Marshall', 'Spears Stein', 'Brianna Bowman', 'Marci Clay', 'Palmer Harrell', 'Ball Levy',
+        'Shelley Mendoza', 'Morrow Glass', 'Baker Knox', 'Adrian Holman'],
       ['Trisha Howell', 'Brooke Harrison', 'Anthony Watkins', 'Ellis Cobb', 'Sheppard Dillon', 'Mathis Bray',
-        'Foreman Burns', 'Lina Glenn', 'Giles Pollard', 'Weiss Ballard', 'Lynnette Smith', 'Flores Kline', 'Graciela Singleton',
-        'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
+        'Foreman Burns', 'Lina Glenn', 'Giles Pollard', 'Weiss Ballard', 'Lynnette Smith', 'Flores Kline',
+        'Graciela Singleton', 'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe',
+        'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
     ];
 
     const hot = handsontable({
@@ -2583,23 +2559,63 @@ describe('ColumnSorting', () => {
     });
   });
 
-  describe('index mappers', () => {
-    it('should not map indexes when already sorted column was set to not sorted', () => {
-      const hot = handsontable({
-        colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
-        columnSorting: {
-          initialConfig: {
-            column: 0,
-            sortOrder: 'desc'
-          }
-        }
-      });
-
-      updateSettings({ columnSorting: { initialConfig: [] } });
-
-      expect(hot.toVisualRow(0)).toEqual(0);
+  it('should revert starting indexes sequence after resetting the state to not sorted', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+      columnSorting: true
     });
+
+    hot.rowIndexMapper.setIndexesSequence([2, 0, 1]);
+
+    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(0);
+
+    expect(getData()).toEqual([
+      ['A3', 'B3', 'C3'],
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2']
+    ]);
+  });
+
+  it('should not map indexes when already sorted column was set to not sorted', () => {
+    const hot = handsontable({
+      colHeaders: true,
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      columnSorting: {
+        initialConfig: {
+          column: 0,
+          sortOrder: 'desc'
+        }
+      }
+    });
+
+    updateSettings({ columnSorting: { initialConfig: [] } });
+
+    expect(hot.toVisualRow(0)).toEqual(0);
+  });
+
+  it('should not break data order when extra `loadData` is triggered #3809', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      columnSorting: true
+    });
+
+    alter('insert_row');
+
+    getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+    loadData(Handsontable.helper.createSpreadsheetData(3, 3));
+
+    alter('insert_row');
+
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A2', 'B2', 'C2'],
+      ['A3', 'B3', 'C3'],
+      [null, null, null],
+    ]);
   });
 
   // TODO: Remove tests when workaround will be removed.

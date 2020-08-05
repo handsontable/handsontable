@@ -12,6 +12,9 @@ describe('DragToScroll', () => {
     }
   });
 
+  /**
+   *
+   */
   function createBoundaries() {
     return {
       top: 100,

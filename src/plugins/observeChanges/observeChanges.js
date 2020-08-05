@@ -1,6 +1,7 @@
 import BasePlugin from './../_base';
 import DataObserver from './dataObserver';
 import { arrayEach } from './../../helpers/array';
+import { warn } from '../../helpers/console';
 import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
@@ -8,11 +9,13 @@ import { registerPlugin } from './../../plugins';
 /**
  * @plugin ObserveChanges
  *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
  * disabled. Enabling this plugin switches the table into one-way data binding where changes are applied into the data
  * source (outside from the table) will be automatically reflected in the table.
  *
+ * @example
  * ```js
  * // as a boolean
  * observeChanges: true,
@@ -36,7 +39,7 @@ class ObserveChanges extends BasePlugin {
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ObserveChanges#enablePlugin} method is called.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return this.hot.getSettings().observeChanges;
@@ -50,7 +53,8 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
-      this.observer = new DataObserver(this.hot.getSourceData());
+      warn('The Observe Changes plugin is deprecated and will be removed in the next major release');
+      this.observer = new DataObserver(this.hot.getSettings().data);
       this._exposePublicApi();
     }
 
@@ -60,7 +64,7 @@ class ObserveChanges extends BasePlugin {
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', firstRun => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(sourceData, firstRun));
 
     super.enablePlugin();
   }
@@ -85,21 +89,33 @@ class ObserveChanges extends BasePlugin {
    * @param {Array} patches An array of objects which every item defines coordinates where data was changed.
    */
   onDataChange(patches) {
+    let render = false;
+
     if (!this.observer.isPaused()) {
       const sourceName = `${this.pluginName}.change`;
       const actions = {
         add: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterCreateRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.insertIndexes(visualRow, 1);
+            this.hot.runHooks('afterCreateRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterCreateCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.insertIndexes(visualColumn, 1);
+            this.hot.runHooks('afterCreateCol', visualColumn, 1, sourceName);
           }
         },
         remove: (patch) => {
-          if (isNaN(patch.col)) {
-            this.hot.runHooks('afterRemoveRow', patch.row, 1, sourceName);
+          const [visualRow, visualColumn] = [patch.row, patch.col];
+
+          if (isNaN(visualColumn)) {
+            this.hot.rowIndexMapper.removeIndexes([visualRow]);
+            this.hot.runHooks('afterRemoveRow', visualRow, 1, sourceName);
+
           } else {
-            this.hot.runHooks('afterRemoveCol', patch.col, 1, sourceName);
+            this.hot.columnIndexMapper.removeIndexes([visualColumn]);
+            this.hot.runHooks('afterRemoveCol', visualColumn, 1, sourceName);
           }
         },
         replace: (patch) => {
@@ -112,17 +128,22 @@ class ObserveChanges extends BasePlugin {
           actions[patch.op](patch);
         }
       });
-      this.hot.render();
+
+      render = true;
     }
 
     this.hot.runHooks('afterChangesObserved');
+
+    if (render) {
+      this.hot.render();
+    }
   }
 
   /**
    * On after table alter listener. Prevents infinity loop between internal and external data changing.
    *
    * @private
-   * @param source
+   * @param {string} source The identifier of the code that performed the action.
    */
   onAfterTableAlter(source) {
     if (source !== 'loadData') {
@@ -135,11 +156,12 @@ class ObserveChanges extends BasePlugin {
    * On after load data listener.
    *
    * @private
-   * @param {Boolean} firstRun `true` if event was fired first time.
+   * @param {Array} sourceData Source data array.
+   * @param {boolean} firstRun `true` if event was fired first time.
    */
-  onAfterLoadData(firstRun) {
+  onAfterLoadData(sourceData, firstRun) {
     if (!firstRun) {
-      this.observer.setObservedData(this.hot.getSourceData());
+      this.observer.setObservedData(sourceData);
     }
   }
 

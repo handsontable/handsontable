@@ -1,3 +1,7 @@
+/**
+ * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
+ * @returns {Promise}
+ */
 export function sleep(delay = 100) {
   return Promise.resolve({
     then(resolve) {
@@ -6,14 +10,19 @@ export function sleep(delay = 100) {
   });
 }
 
+/**
+ * @param {Function} fn The function to convert to Promise.
+ * @returns {Promise}
+ */
 export function promisfy(fn) {
   return new Promise((resolve, reject) => fn(resolve, reject));
 }
 
 /**
- * Calls a method in current Handsontable instance, returns its output
- * @param method
- * @return {Function}
+ * Calls a method in current Handsontable instance, returns its output.
+ *
+ * @param {string} method The method to compose.
+ * @returns {Function}
  */
 export function handsontableMethodFactory(method) {
   return function(...args) {
@@ -42,6 +51,7 @@ export function handsontableMethodFactory(method) {
   };
 }
 
+export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
 export const alter = handsontableMethodFactory('alter');
 export const colToProp = handsontableMethodFactory('colToProp');
@@ -64,6 +74,7 @@ export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
 export const getCellValidator = handsontableMethodFactory('getCellValidator');
 export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
 export const getData = handsontableMethodFactory('getData');
@@ -85,6 +96,7 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
@@ -99,6 +111,7 @@ export const selectColumns = handsontableMethodFactory('selectColumns');
 export const selectRows = handsontableMethodFactory('selectRows');
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
+export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
@@ -115,14 +128,26 @@ afterEach(() => {
   specContext.spec = null;
 });
 
+/**
+ * @returns {object} Returns the spec object for currently running test.
+ */
 export function spec() {
   return specContext.spec;
 }
 
+/**
+ * @returns {Handsontable} Returns the Handsontable instance.
+ */
 export function hot() {
   return spec().$container.data('handsontable');
 }
 
+/**
+ * Creates the Handsontable instance.
+ *
+ * @param {object} options The Handsontale options.
+ * @returns {Handsontable}
+ */
 export function handsontable(options) {
   const currentSpec = spec();
 
@@ -137,47 +162,72 @@ export function handsontable(options) {
  * Therefore, simple $(".htCore") will return more than one object. Most of the time, you're interested in the original
  * htCore, not the copies made by native scroll.
  *
- * This method returns the original htCore object
+ * This method returns the original htCore object.
  *
- * @returns {jqObject} reference to the original htCore
+ * @returns {jQuery} The reference to the original htCore.
  */
 export function getHtCore() {
   return spec().$container.find('.htCore').first();
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getMaster() {
   return spec().$container.find('.ht_master');
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getTopClone() {
   return spec().$container.find('.ht_clone_top');
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getTopLeftClone() {
   return spec().$container.find('.ht_clone_top_left_corner');
 }
-// for compatybility
-// const getCornerClone = getTopLeftClone;
 
+/**
+ * @returns {jQuery}
+ */
 export function getLeftClone() {
   return spec().$container.find('.ht_clone_left');
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getBottomClone() {
   return spec().$container.find('.ht_clone_bottom');
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getBottomLeftClone() {
   return spec().$container.find('.ht_clone_bottom_left_corner');
 }
 
-// Rename me to countTD
+/**
+ * TODO: Rename me to countTD.
+ *
+ * @returns {number}
+ */
 export function countCells() {
   return getHtCore().find('tbody td').length;
 }
 
+/**
+ * @param {HTMLElement} editableElement The element to check.
+ * @returns {boolean}
+ */
 export function isEditorVisible(editableElement) {
-  if (editableElement && !(editableElement.hasClass('handsontableInput') || editableElement.hasClass('handsontableEditor'))) {
+  if (editableElement && !(editableElement.hasClass('handsontableInput') ||
+      editableElement.hasClass('handsontableEditor'))) {
     throw new Error('Editable element of the editor was not found.');
   }
 
@@ -191,10 +241,18 @@ export function isEditorVisible(editableElement) {
   return css('z-index') !== '-1' && css('top') !== '-9999px' && css('left') !== '-9999px';
 }
 
+/**
+ * @returns {boolean}
+ */
 export function isFillHandleVisible() {
   return !!spec().$container.find('.wtBorder.corner:visible').length;
 }
 
+/**
+ * @param {HTMLElement} cell The cell element to check.
+ * @param {jQuery} container The Handsontable container element.
+ * @returns {jQuery}
+ */
 export function getCorrespondingOverlay(cell, container) {
   const overlay = $(cell).parents('.handsontable');
 
@@ -206,7 +264,10 @@ export function getCorrespondingOverlay(cell, container) {
 }
 
 /**
- * Shows context menu
+ * Shows context menu.
+ *
+ * @param {HTMLElement} cell The cell element to check.
+ * @param {Handsontable} [instance] The Handsontable instance.
  */
 export function contextMenu(cell, instance) {
   const hotInstance = instance || spec().$container.data('handsontable');
@@ -231,23 +292,40 @@ export function contextMenu(cell, instance) {
   });
 }
 
-export async function selectContextSubmenuOption(submenuName, optionName) {
-  contextMenu();
+/**
+ * Shows context menu.
+ *
+ * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
+ * @param {string} optionName The context menu subitem name to click.
+ * @param {HTMLElement} [cell] The cell element to check.
+ */
+export async function selectContextSubmenuOption(submenuName, optionName, cell) {
+  contextMenu(cell);
+
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
   item.simulate('mouseover');
+
   await sleep(300);
+
   const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+
   button.simulate('mousedown').simulate('mouseup');
   closeContextMenu();
 }
 
+/**
+ * Closes the context menu.
+ */
 export function closeContextMenu() {
   $(document).simulate('mousedown');
 }
 
 /**
- * Shows dropdown menu
+ * Shows dropdown menu.
+ *
+ * @param {number} columnIndex The column index under which the dropdown menu is triggered.
  */
 export function dropdownMenu(columnIndex) {
   const hotInstance = spec().$container.data('handsontable');
@@ -261,10 +339,16 @@ export function dropdownMenu(columnIndex) {
   }
 }
 
+/**
+ * Closes the dropdown menu.
+ */
 export function closeDropdownMenu() {
   $(document).simulate('mousedown');
 }
 
+/**
+ * @returns {HTMLElement}
+ */
 export function dropdownMenuRootElement() {
   const plugin = hot().getPlugin('dropdownMenu');
   let root;
@@ -277,43 +361,10 @@ export function dropdownMenuRootElement() {
 }
 
 /**
- * Returns a function that triggers a mouse event
- * @param {String} type Event type
- * @return {Function}
- */
-export function handsontableMouseTriggerFactory(type, button) {
-  return function(element) {
-    let handsontableElement = element;
-
-    if (!(handsontableElement instanceof jQuery)) {
-      handsontableElement = $(handsontableElement);
-    }
-    const ev = $.Event(type);
-    ev.which = button || 1; // left click by default
-
-    handsontableElement.simulate(type, ev);
-  };
-}
-
-export const mouseDown = handsontableMouseTriggerFactory('mousedown');
-export const mouseMove = handsontableMouseTriggerFactory('mousemove');
-export const mouseOver = handsontableMouseTriggerFactory('mouseover');
-export const mouseUp = handsontableMouseTriggerFactory('mouseup');
-
-export function mouseDoubleClick(element) {
-  mouseDown(element);
-  mouseUp(element);
-  mouseDown(element);
-  mouseUp(element);
-}
-
-export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
-export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
-
-/**
- * Returns a function that triggers a key event
- * @param {String} type Event type
- * @return {Function}
+ * Returns a function that triggers a key event.
+ *
+ * @param {string} type Event type.
+ * @returns {Function}
  */
 export function handsontableKeyTriggerFactory(type) {
   return function(key, extend) {
@@ -430,7 +481,10 @@ export const keyDown = handsontableKeyTriggerFactory('keydown');
 export const keyUp = handsontableKeyTriggerFactory('keyup');
 
 /**
- * Presses keyDown, then keyUp
+ * Presses keyDown, then keyUp.
+ *
+ * @param {string} key The key code which will be associated with the event.
+ * @param {object} extend Additional options which extends the event.
  */
 export function keyDownUp(key, extend) {
   if (typeof key === 'string' && key.indexOf('shift+') > -1) {
@@ -446,13 +500,18 @@ export function keyDownUp(key, extend) {
 }
 
 /**
- * Returns current value of the keyboard proxy textarea
- * @return {String}
+ * Returns current value of the keyboard proxy textarea.
+ *
+ * @returns {string}
  */
 export function keyProxy() {
   return spec().$container.find('textarea.handsontableInput');
 }
 
+/**
+ * @param {Event} event The event object.
+ * @returns {Event}
+ */
 export function serveImmediatePropagation(event) {
   if ((event !== null || event !== void 0)
     && (event.isImmediatePropagationEnabled === null || event.isImmediatePropagationEnabled === void 0)) {
@@ -469,12 +528,17 @@ export function serveImmediatePropagation(event) {
   return event;
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function autocompleteEditor() {
   return spec().$container.find('.handsontableInput');
 }
 
 /**
- * Sets text cursor inside keyboard proxy
+ * Sets text cursor inside keyboard proxy.
+ *
+ * @param {number} pos The cursor position.
  */
 export function setCaretPosition(pos) {
   const el = keyProxy()[0];
@@ -493,24 +557,29 @@ export function setCaretPosition(pos) {
 }
 
 /**
- * Returns autocomplete instance
+ * Returns autocomplete instance.
+ *
+ * @returns {jQuery}
  */
 export function autocomplete() {
   return spec().$container.find('.autocompleteEditor');
 }
 
 /**
- * Triggers paste string on current selection
+ * Triggers paste string on current selection.
+ *
+ * @param {string} str The string to paste.
  */
 export function triggerPaste(str) {
   spec().$container.data('handsontable').getPlugin('CopyPaste').paste(str);
 }
 
 /**
- * Returns column width for HOT container
- * @param $elem
- * @param col
- * @returns {Number}
+ * Returns column width for HOT container.
+ *
+ * @param {jQuery} $elem An element to calculate from.
+ * @param {number} col The column index.
+ * @returns {number}
  */
 export function colWidth($elem, col) {
   const TR = $elem[0].querySelector('TBODY TR');
@@ -530,10 +599,11 @@ export function colWidth($elem, col) {
 }
 
 /**
- * Returns row height for HOT container
- * @param $elem
- * @param row
- * @returns {Number}
+ * Returns row height for HOT container.
+ *
+ * @param {jQuery} $elem An element to calculate from.
+ * @param {number} row The row index.
+ * @returns {number}
  */
 export function rowHeight($elem, row) {
   let TD;
@@ -552,29 +622,32 @@ export function rowHeight($elem, row) {
 }
 
 /**
- * Returns value that has been rendered in table cell
- * @param {Number} trIndex
- * @param {Number} tdIndex
- * @returns {String}
+ * Returns value that has been rendered in table cell.
+ *
+ * @param {number} trIndex The visual index.
+ * @param {number} tdIndex The visual index.
+ * @returns {string}
  */
 export function getRenderedValue(trIndex, tdIndex) {
   return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).html();
 }
 
 /**
- * Returns nodes that have been rendered in table cell
- * @param {Number} trIndex
- * @param {Number} tdIndex
- * @returns {String}
+ * Returns nodes that have been rendered in table cell.
+ *
+ * @param {number} trIndex The visual index.
+ * @param {number} tdIndex The visual index.
+ * @returns {string}
  */
 export function getRenderedContent(trIndex, tdIndex) {
   return spec().$container.find('tbody tr').eq(trIndex).find('td').eq(tdIndex).children();
 }
 
 /**
- * Create numerical data values for the table
- * @param rowCount
- * @param colCount
+ * Create numerical data values for the table.
+ *
+ * @param {number} rowCount The number of rows to create.
+ * @param {number} colCount The number of columns to create.
  * @returns {Array}
  */
 export function createNumericData(rowCount, colCount) {
@@ -598,10 +671,10 @@ export function createNumericData(rowCount, colCount) {
 
 /**
  * Model factory, which creates object with private properties, accessible by setters and getters.
- * Created for the purpose of testing HOT with Backbone-like Models
- * @param opts
- * @returns {{}}
- * @constructor
+ * Created for the purpose of testing HOT with Backbone-like Models.
+ *
+ * @param {object} opts The model options.
+ * @class
  */
 export function Model(opts) {
   const obj = {};
@@ -632,12 +705,13 @@ export function Model(opts) {
 
   return obj;
 }
+
 /**
  * Factory which produces an accessor for objects of type "Model" (see above).
  * This function should be used to create accessor for a given property name and pass it as `data` option in column
  * configuration.
  *
- * @param name - name of the property for which an accessor function will be created
+ * @param {string} name The name of the property for which an accessor function will be created.
  * @returns {Function}
  */
 export function createAccessorForProperty(name) {
@@ -646,9 +720,13 @@ export function createAccessorForProperty(name) {
   };
 }
 
-export function resizeColumn(displayedColumnIndex, width) {
+/**
+ * @param {number} renderableColumnIndex The renderable column index.
+ * @param {number} width The target column width.
+ */
+export function resizeColumn(renderableColumnIndex, width) {
   const $container = spec().$container;
-  const $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
+  const $th = getTopClone().find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
 
   $th.simulate('mouseover');
 
@@ -668,9 +746,14 @@ export function resizeColumn(displayedColumnIndex, width) {
   $resizer.simulate('mouseup');
 }
 
-export function resizeRow(displayedRowIndex, height) {
+/**
+ * @param {number} renderableRowIndex The renderable row index.
+ * @param {number} height The target row height.
+ */
+export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
+  const $th = getLeftClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const newHeight = renderableRowIndex !== 0 ? height + 1 : height; // compensate border
 
   $th.simulate('mouseover');
 
@@ -681,11 +764,7 @@ export function resizeRow(displayedRowIndex, height) {
     clientY: resizerPosition.top
   });
 
-  let delta = height - $th.height() - 2;
-
-  if (delta < 0) {
-    delta = 0;
-  }
+  const delta = newHeight - $th.height() - 2;
 
   $resizer.simulate('mousemove', {
     clientY: resizerPosition.top + delta
@@ -694,6 +773,10 @@ export function resizeRow(displayedRowIndex, height) {
   $resizer.simulate('mouseup');
 }
 
+/**
+ * @param {HTMLElement} container An container element that holds the DOM structure of the Handsontable.
+ * @param {number} secondDisplayedRowIndex The visual row index.
+ */
 export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedRowIndex) {
   const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
   const $rowHeaders = container.find('tbody tr th');
@@ -717,6 +800,10 @@ export function moveSecondDisplayedRowBeforeFirstRow(container, secondDisplayedR
   }
 }
 
+/**
+ * @param {HTMLElement} container An container element that holds the DOM structure of the Handsontable.
+ * @param {number} firstDisplayedRowIndex The visual row index.
+ */
 export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRowIndex) {
   const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
   const $rowHeaders = container.find('tbody tr th');
@@ -740,6 +827,11 @@ export function moveFirstDisplayedRowAfterSecondRow(container, firstDisplayedRow
   }
 }
 
+/**
+ * @param {HTMLElement} container An container element that holds the DOM structure of the Handsontable.
+ * @param {number} from The visual column index.
+ * @param {number} to The visual column index.
+ */
 export function swapDisplayedColumns(container, from, to) {
   const $mainContainer = container.parents('.handsontable').not('[class*=clone]').not('[class*=master]').first();
   const $colHeaders = container.find('thead tr:eq(0) th');
@@ -766,6 +858,12 @@ export function swapDisplayedColumns(container, from, to) {
   $from.simulate('mouseup');
 }
 
+/**
+ * @param {string} type A name/type of the event.
+ * @param {HTMLElement} target The target element from the event was triggered.
+ * @param {number} pageX The page x coordinates.
+ * @param {number} pageY The page y coordinates.
+ */
 export function triggerTouchEvent(type, target, pageX, pageY) {
   const e = document.createEvent('TouchEvent');
 
@@ -788,14 +886,36 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
     changedTouches = document.createTouchList(touch);
   }
 
-  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
+  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false,
+    touches, targetTouches, changedTouches, 1, 0);
   target.dispatchEvent(e);
 }
 
+/**
+ * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
 }
 
+/**
+ * Creates spreadsheet data as an array of objects filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
+export function createSpreadsheetObjectData(...args) {
+  return Handsontable.helper.createSpreadsheetObjectData(...args);
+}
+
+/**
+ * @returns {Event}
+ */
 export function getClipboardEvent() {
   const event = {};
 

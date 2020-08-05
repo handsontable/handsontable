@@ -12,31 +12,31 @@ class MergedCellCoords {
     /**
      * The index of the topmost merged cell row.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.row = row;
     /**
      * The index of the leftmost column.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.col = column;
     /**
      * The `rowspan` value of the merged cell.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.rowspan = rowspan;
     /**
      * The `colspan` value of the merged cell.
      *
-     * @type {Number}
+     * @type {number}
      */
     this.colspan = colspan;
     /**
      * `true` only if the merged cell is bound to be removed.
      *
-     * @type {Boolean}
+     * @type {boolean}
      */
     this.removed = false;
   }
@@ -44,53 +44,53 @@ class MergedCellCoords {
   /**
    * Get a warning message for when the declared merged cell data contains negative values.
    *
-   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-   * @return {String}
+   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @returns {string}
    */
   static NEGATIVE_VALUES_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col}, rowspan: 
-    ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} contains negative values, which is not supported. It 
-    will not be added to the collection.`;
+    return toSingleLine`The merged cell declared with {row: ${newMergedCell.row}, col: ${newMergedCell.col},\x20
+      rowspan: ${newMergedCell.rowspan}, colspan: ${newMergedCell.colspan}} contains negative values, which is\x20
+      not supported. It will not be added to the collection.`;
   }
 
   /**
    * Get a warning message for when the declared merged cell data contains values exceeding the table limits.
    *
-   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-   * @return {String}
+   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @returns {string}
    */
   static IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned (or positioned partially) 
-       outside of the table range. It was not added to the table, please fix your setup.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] is positioned\x20
+      (or positioned partially) outside of the table range. It was not added to the table, please fix your setup.`;
   }
 
   /**
    * Get a warning message for when the declared merged cell data represents a single cell.
    *
-   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-   * @return {String}
+   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @returns {string}
    */
   static IS_SINGLE_CELL(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has both "rowspan" 
-     and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has both "rowspan"\x20
+      and "colspan" declared as "1", which makes it a single cell. It cannot be added to the collection.`;
   }
 
   /**
    * Get a warning message for when the declared merged cell data contains "colspan" or "rowspan", that equals 0.
    *
-   * @param {Object} newMergedCell Object containg information about the merged cells that was about to be added.
-   * @return {String}
+   * @param {object} newMergedCell Object containg information about the merged cells that was about to be added.
+   * @returns {string}
    */
   static ZERO_SPAN_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan" or "colspan" declared as 
-      "0", which is not supported. It cannot be added to the collection.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}] has "rowspan"\x20
+      or "colspan" declared as "0", which is not supported. It cannot be added to the collection.`;
   }
 
   /**
    * Check whether the values provided for a merged cell contain any negative values.
    *
-   * @param {Object} mergedCellInfo Object containing the `row`, `col`, `rowspan` and `colspan` properties.
-   * @return {Boolean}
+   * @param {object} mergedCellInfo Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+   * @returns {boolean}
    */
   static containsNegativeValues(mergedCellInfo) {
     return mergedCellInfo.row < 0 || mergedCellInfo.col < 0 || mergedCellInfo.rowspan < 0 || mergedCellInfo.colspan < 0;
@@ -100,8 +100,8 @@ class MergedCellCoords {
    * Check whether the provided merged cell information object represents a single cell.
    *
    * @private
-   * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
-   * @return {Boolean}
+   * @param {object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @returns {boolean}
    */
   static isSingleCell(mergedCellInfo) {
     return mergedCellInfo.colspan === 1 && mergedCellInfo.rowspan === 1;
@@ -111,8 +111,8 @@ class MergedCellCoords {
    * Check whether the provided merged cell information object contains a rowspan or colspan of 0.
    *
    * @private
-   * @param {Object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
-   * @return {Boolean}
+   * @param {object} mergedCellInfo An object with `row`, `col`, `rowspan` and `colspan` properties.
+   * @returns {boolean}
    */
   static containsZeroSpan(mergedCellInfo) {
     return mergedCellInfo.colspan === 0 || mergedCellInfo.rowspan === 0;
@@ -121,10 +121,10 @@ class MergedCellCoords {
   /**
    * Check whether the provided merged cell object is to be declared out of bounds of the table.
    *
-   * @param {Object} mergeCell Object containing the `row`, `col`, `rowspan` and `colspan` properties.
-   * @param {Number} rowCount Number of rows in the table.
-   * @param {Number} columnCount Number of rows in the table.
-   * @return {Boolean}
+   * @param {object} mergeCell Object containing the `row`, `col`, `rowspan` and `colspan` properties.
+   * @param {number} rowCount Number of rows in the table.
+   * @param {number} columnCount Number of rows in the table.
+   * @returns {boolean}
    */
   static isOutOfBounds(mergeCell, rowCount, columnCount) {
     return mergeCell.row < 0 ||
@@ -138,7 +138,7 @@ class MergedCellCoords {
   /**
    * Sanitize (prevent from going outside the boundaries) the merged cell.
    *
-   * @param hotInstance
+   * @param {Core} hotInstance The Handsontable instance.
    */
   normalize(hotInstance) {
     const totalRows = hotInstance.countRows();
@@ -170,19 +170,20 @@ class MergedCellCoords {
   /**
    * Returns `true` if the provided coordinates are inside the merged cell.
    *
-   * @param {Number} row The row index.
-   * @param {Number} column The column index.
-   * @return {Boolean}
+   * @param {number} row The row index.
+   * @param {number} column The column index.
+   * @returns {boolean}
    */
   includes(row, column) {
-    return this.row <= row && this.col <= column && this.row + this.rowspan - 1 >= row && this.col + this.colspan - 1 >= column;
+    return this.row <= row && this.col <= column &&
+      this.row + this.rowspan - 1 >= row && this.col + this.colspan - 1 >= column;
   }
 
   /**
    * Returns `true` if the provided `column` property is within the column span of the merged cell.
    *
-   * @param {Number} column The column index.
-   * @return {Boolean}
+   * @param {number} column The column index.
+   * @returns {boolean}
    */
   includesHorizontally(column) {
     return this.col <= column && this.col + this.colspan - 1 >= column;
@@ -191,8 +192,8 @@ class MergedCellCoords {
   /**
    * Returns `true` if the provided `row` property is within the row span of the merged cell.
    *
-   * @param {Number} row Row index.
-   * @return {Boolean}
+   * @param {number} row Row index.
+   * @returns {boolean}
    */
   includesVertically(row) {
     return this.row <= row && this.row + this.rowspan - 1 >= row;
@@ -202,8 +203,8 @@ class MergedCellCoords {
    * Shift (and possibly resize, if needed) the merged cell.
    *
    * @param {Array} shiftVector 2-element array containing the information on the shifting in the `x` and `y` axis.
-   * @param {Number} indexOfChange Index of the preceding change.
-   * @returns {Boolean} Returns `false` if the whole merged cell was removed.
+   * @param {number} indexOfChange Index of the preceding change.
+   * @returns {boolean} Returns `false` if the whole merged cell was removed.
    */
   shift(shiftVector, indexOfChange) {
     const shiftValue = shiftVector[0] || shiftVector[1];
@@ -260,8 +261,8 @@ class MergedCellCoords {
    * Check if the second provided merged cell is "farther" in the provided direction.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to check.
-   * @param {String} direction Drag direction.
-   * @return {Boolean|null} `true` if the second provided merged cell is "farther".
+   * @param {string} direction Drag direction.
+   * @returns {boolean|null} `true` if the second provided merged cell is "farther".
    */
   isFarther(mergedCell, direction) {
     if (!mergedCell) {
@@ -286,7 +287,7 @@ class MergedCellCoords {
   /**
    * Get the bottom row index of the merged cell.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLastRow() {
     return this.row + this.rowspan - 1;
@@ -295,7 +296,7 @@ class MergedCellCoords {
   /**
    * Get the rightmost column index of the merged cell.
    *
-   * @returns {Number}
+   * @returns {number}
    */
   getLastColumn() {
     return this.col + this.colspan - 1;
@@ -304,10 +305,14 @@ class MergedCellCoords {
   /**
    * Get the range coordinates of the merged cell.
    *
-   * @return {CellRange}
+   * @returns {CellRange}
    */
   getRange() {
-    return new CellRange(new CellCoords(this.row, this.col), new CellCoords(this.row, this.col), new CellCoords(this.getLastRow(), this.getLastColumn()));
+    return new CellRange(
+      new CellCoords(this.row, this.col),
+      new CellCoords(this.row, this.col),
+      new CellCoords(this.getLastRow(), this.getLastColumn())
+    );
   }
 }
 

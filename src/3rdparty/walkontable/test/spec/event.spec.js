@@ -44,7 +44,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseDown).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(1, 1),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseDown).toHaveBeenCalledTimes(1);
     }
 
@@ -61,7 +66,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseDown).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(2, 2),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseDown).toHaveBeenCalledTimes(1);
     }
 
@@ -78,7 +88,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseDown).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(3, 3),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseDown).toHaveBeenCalledTimes(1);
     }
   });
@@ -106,7 +121,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseUp).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(1, 1),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseUp).toHaveBeenCalledTimes(1);
     }
 
@@ -123,7 +143,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseUp).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(2, 2),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseUp).toHaveBeenCalledTimes(1);
     }
 
@@ -140,7 +165,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseUp).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(3, 3),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseUp).toHaveBeenCalledTimes(1);
     }
   });
@@ -160,7 +190,12 @@ describe('WalkontableEvent', () => {
 
     $td.simulate('contextmenu');
 
-    expect(onCellContextMenu).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellContextMenu).toHaveBeenCalledWith(
+      jasmine.any(MouseEvent),
+      new Walkontable.CellCoords(1, 1),
+      $td[0],
+      jasmine.any(wt.constructor)
+    );
     expect(onCellContextMenu).toHaveBeenCalledTimes(1);
   });
 
@@ -187,7 +222,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOver).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(1, 1),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseOver).toHaveBeenCalledTimes(1);
     }
 
@@ -204,7 +244,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOver).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(2, 2),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseOver).toHaveBeenCalledTimes(1);
     }
 
@@ -221,7 +266,12 @@ describe('WalkontableEvent', () => {
         .simulate('click', { button })
       ;
 
-      expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOver).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(3, 3),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseOver).toHaveBeenCalledTimes(1);
     }
   });
@@ -269,7 +319,12 @@ describe('WalkontableEvent', () => {
         .simulate('mouseout', { button })
       ;
 
-      expect(onCellMouseOut).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOut).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(1, 1),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseOut).toHaveBeenCalledTimes(1);
     }
 
@@ -284,7 +339,12 @@ describe('WalkontableEvent', () => {
         .simulate('mouseout', { button })
       ;
 
-      expect(onCellMouseOut).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(2, 2), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOut).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(2, 2),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseOut).toHaveBeenCalledTimes(1);
     }
 
@@ -299,7 +359,12 @@ describe('WalkontableEvent', () => {
         .simulate('mouseout', { button })
       ;
 
-      expect(onCellMouseOut).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(3, 3), $td[0], jasmine.any(wt.constructor));
+      expect(onCellMouseOut).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(3, 3),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellMouseOut).toHaveBeenCalledTimes(1);
     }
   });
@@ -355,7 +420,12 @@ describe('WalkontableEvent', () => {
         .simulate('dblclick', { button })
       ;
 
-      expect(onCellDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+      expect(onCellDblClick).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        new Walkontable.CellCoords(1, 1),
+        $td[0],
+        jasmine.any(wt.constructor)
+      );
       expect(onCellDblClick).toHaveBeenCalledTimes(1);
     }
 
@@ -428,7 +498,12 @@ describe('WalkontableEvent', () => {
       .simulate('click')
     ;
 
-    expect(onCellDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellDblClick).toHaveBeenCalledWith(
+      jasmine.any(MouseEvent),
+      new Walkontable.CellCoords(1, 1),
+      $td[0],
+      jasmine.any(wt.constructor)
+    );
   });
 
   it('should call `onCellMouseDown` callback when clicked on TH', () => {
@@ -455,7 +530,8 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (column headers)', () => {
-    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
+    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi']
+      .map(value => `<option value="${value}">${value}</option>`).join('');
     const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
     const wt = walkontable({
       data: getData,
@@ -480,7 +556,8 @@ describe('WalkontableEvent', () => {
   });
 
   it('should not call `onCellMouseDown` callback when clicked on the focusable element (cell renderer)', () => {
-    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'].map(value => `<option value="${value}">${value}</option>`).join('');
+    const opt = ['Maserati', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi']
+      .map(value => `<option value="${value}">${value}</option>`).join('');
     const onCellMouseDown = jasmine.createSpy('onCellMouseDown');
     const wt = walkontable({
       data: getData,
@@ -523,7 +600,12 @@ describe('WalkontableEvent', () => {
       .simulate('mousemove')
     ;
 
-    expect(onCellMouseOver).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(-1, 0), jasmine.anything(), jasmine.any(wt.constructor));
+    expect(onCellMouseOver).toHaveBeenCalledWith(
+      jasmine.any(MouseEvent),
+      new Walkontable.CellCoords(-1, 0),
+      jasmine.anything(),
+      jasmine.any(wt.constructor)
+    );
   });
 
   it('should call `onCellDblClick` callback when clicked on TH', () => {
@@ -616,7 +698,12 @@ describe('WalkontableEvent', () => {
       .simulate('dblclick')
     ;
 
-    expect(onCellDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellDblClick).toHaveBeenCalledWith(
+      jasmine.any(MouseEvent),
+      new Walkontable.CellCoords(1, 1),
+      $td[0],
+      jasmine.any(wt.constructor)
+    );
     expect(onCellDblClick).toHaveBeenCalledTimes(1);
   });
 
@@ -653,7 +740,12 @@ describe('WalkontableEvent', () => {
       .simulate('click')
     ;
 
-    expect(onCellMouseDown).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellMouseDown).toHaveBeenCalledWith(
+      jasmine.any(MouseEvent),
+      new Walkontable.CellCoords(1, 1),
+      $td[0],
+      jasmine.any(wt.constructor)
+    );
     expect(onCellMouseDown).toHaveBeenCalledTimes(1);
   });
 
@@ -690,7 +782,12 @@ describe('WalkontableEvent', () => {
       .simulate('click')
     ;
 
-    expect(onCellMouseUp).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(1, 1), $td[0], jasmine.any(wt.constructor));
+    expect(onCellMouseUp).toHaveBeenCalledWith(
+      jasmine.any(MouseEvent),
+      new Walkontable.CellCoords(1, 1),
+      $td[0],
+      jasmine.any(wt.constructor)
+    );
     expect(onCellMouseUp).toHaveBeenCalledTimes(1);
   });
 
@@ -769,7 +866,12 @@ describe('WalkontableEvent', () => {
       .simulate('click')
     ;
 
-    expect(onCellCornerDblClick).toHaveBeenCalledWith(jasmine.any(MouseEvent), new Walkontable.CellCoords(10, 2), -2, jasmine.any(wt.constructor));
+    expect(onCellCornerDblClick).toHaveBeenCalledWith(
+      jasmine.any(MouseEvent),
+      new Walkontable.CellCoords(10, 2),
+      -2,
+      jasmine.any(wt.constructor)
+    );
   });
 
   it('should call `onDraw` callback after render', () => {

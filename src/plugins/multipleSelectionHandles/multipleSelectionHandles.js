@@ -11,7 +11,7 @@ import { CellCoords } from './../../3rdparty/walkontable/src';
  */
 class MultipleSelectionHandles extends BasePlugin {
   /**
-   * @param {Object} hotInstance
+   * @param {object} hotInstance The handsontable instance.
    */
   constructor(hotInstance) {
     super(hotInstance);
@@ -34,7 +34,7 @@ class MultipleSelectionHandles extends BasePlugin {
   /**
    * Check if the plugin is enabled in the handsontable settings.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   isEnabled() {
     return isMobileBrowser();
@@ -55,13 +55,18 @@ class MultipleSelectionHandles extends BasePlugin {
   }
 
   /**
-   * Bind the touch events
+   * Bind the touch events.
+   *
    * @private
    */
   registerListeners() {
     const _this = this;
     const { rootElement } = this.hot;
 
+    /**
+     * @param {string} query Query for the position.
+     * @returns {boolean}
+     */
     function removeFromDragged(query) {
 
       if (_this.dragged.length === 1) {
@@ -173,7 +178,13 @@ class MultipleSelectionHandles extends BasePlugin {
           _this.hot.selection.setRangeEnd(targetCoords);
         }
 
-        newRangeCoords = _this.getCurrentRangeCoords(selectedRange, targetCoords, _this.touchStartRange.direction, rangeDirection, _this.dragged[0]);
+        newRangeCoords = _this.getCurrentRangeCoords(
+          selectedRange,
+          targetCoords,
+          _this.touchStartRange.direction,
+          rangeDirection,
+          _this.dragged[0]
+        );
 
         if (newRangeCoords.start !== null) {
           _this.hot.selection.setRangeStart(newRangeCoords.start);
@@ -356,7 +367,7 @@ class MultipleSelectionHandles extends BasePlugin {
   /**
    * Check if user is currently dragging the handle.
    *
-   * @returns {boolean} Dragging state
+   * @returns {boolean} Dragging state.
    */
   isDragged() {
     return this.dragged.length > 0;

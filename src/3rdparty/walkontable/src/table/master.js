@@ -82,7 +82,7 @@ class MasterTable extends Table {
       const columnCount = this.getRenderedColumnsCount();
 
       for (let i = 0; i < columnHeadersCount; i++) {
-        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) { // eslint-disable-line max-len
           this.markIfOversizedColumnHeader(renderedColumnIndex);
         }
       }

@@ -1,4 +1,5 @@
 import './css/bootstrap.css';
+import './3rdparty/walkontable/css/walkontable.css';
 import './css/handsontable.css';
 import './css/mobile.handsontable.css';
 
@@ -10,6 +11,7 @@ import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cel
 import Core from './core';
 import jQueryWrapper from './helpers/wrappers/jquery';
 import EventManager, { getListenersCounter } from './eventManager';
+import { getRegisteredMapsCounter } from './translations/mapCollection';
 import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
@@ -22,20 +24,28 @@ import * as functionHelpers from './helpers/function';
 import * as mixedHelpers from './helpers/mixed';
 import * as numberHelpers from './helpers/number';
 import * as objectHelpers from './helpers/object';
-import * as settingHelpers from './helpers/setting';
 import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
 import { registerPlugin } from './plugins';
-import DefaultSettings from './defaultSettings';
+import { metaSchemaFactory } from './dataMap/index';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
 
-import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
+import {
+  registerLanguageDictionary,
+  getLanguagesDictionaries,
+  getLanguageDictionary
+} from './i18n/dictionariesManager';
 
+/**
+ * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * @param {object} userSettings The user defined options.
+ * @returns {Core}
+ */
 function Handsontable(rootElement, userSettings) {
   const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
 
@@ -49,9 +59,10 @@ jQueryWrapper(Handsontable);
 Handsontable.Core = function(rootElement, userSettings = {}) {
   return new Core(rootElement, userSettings, rootInstanceSymbol);
 };
-Handsontable.DefaultSettings = DefaultSettings;
+Handsontable.DefaultSettings = metaSchemaFactory();
 Handsontable.EventManager = EventManager;
 Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
+Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
@@ -75,7 +86,6 @@ const HELPERS = [
   mixedHelpers,
   numberHelpers,
   objectHelpers,
-  settingHelpers,
   stringHelpers,
   unicodeHelpers,
   parseTableHelpers,

@@ -19,7 +19,7 @@ import {
  */
 class Viewport {
   /**
-   * @param wotInstance
+   * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     this.wot = wotInstance;
@@ -111,27 +111,27 @@ class Viewport {
   }
 
   /**
-   * Checks if viewport has vertical scroll
+   * Checks if viewport has vertical scroll.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   hasVerticalScroll() {
     return this.getWorkspaceActualHeight() > this.getWorkspaceHeight();
   }
 
   /**
-   * Checks if viewport has horizontal scroll
+   * Checks if viewport has horizontal scroll.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   hasHorizontalScroll() {
     return this.getWorkspaceActualWidth() > this.getWorkspaceWidth();
   }
 
   /**
-   * @param from
-   * @param length
-   * @returns {Number}
+   * @param {number} from The visual column index from the width sum is start calculated.
+   * @param {number} length The length of the column to traverse.
+   * @returns {number}
    */
   sumColumnWidths(from, length) {
     const { wtTable } = this.wot;
@@ -147,7 +147,7 @@ class Viewport {
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getContainerFillWidth() {
     if (this.containerWidth) {
@@ -170,21 +170,21 @@ class Viewport {
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getWorkspaceOffset() {
     return offset(this.wot.wtTable.TABLE);
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getWorkspaceActualHeight() {
     return outerHeight(this.wot.wtTable.TABLE);
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getWorkspaceActualWidth() {
     const { wtTable } = this.wot;
@@ -194,7 +194,7 @@ class Viewport {
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getColumnHeaderHeight() {
     const columnHeaders = this.instance.getSetting('columnHeaders');
@@ -209,7 +209,7 @@ class Viewport {
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getViewportHeight() {
     let containerHeight = this.getWorkspaceHeight();
@@ -228,7 +228,7 @@ class Viewport {
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getRowHeaderWidth() {
     const rowHeadersWidthSetting = this.instance.getSetting('rowHeaderWidth');
@@ -268,13 +268,14 @@ class Viewport {
       }
     }
 
-    this.rowHeaderWidth = this.instance.getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
+    this.rowHeaderWidth = this.instance
+      .getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
 
     return this.rowHeaderWidth;
   }
 
   /**
-   * @returns {Number}
+   * @returns {number}
    */
   getViewportWidth() {
     const containerWidth = this.getWorkspaceWidth();
@@ -294,9 +295,11 @@ class Viewport {
 
   /**
    * Creates:
-   *  - rowsRenderCalculator (before draw, to qualify rows for rendering)
-   *  - rowsVisibleCalculator (after draw, to measure which rows are actually visible)
+   * - rowsRenderCalculator (before draw, to qualify rows for rendering)
+   * - rowsVisibleCalculator (after draw, to measure which rows are actually visible).
    *
+   * @param {number} calculationType The render type ID, which determines for what type of
+   *                                 calculation calculator is created.
    * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(calculationType = RENDER_TYPE) {
@@ -355,9 +358,11 @@ class Viewport {
 
   /**
    * Creates:
-   *  - columnsRenderCalculator (before draw, to qualify columns for rendering)
-   *  - columnsVisibleCalculator (after draw, to measure which columns are actually visible)
+   * - columnsRenderCalculator (before draw, to qualify columns for rendering)
+   * - columnsVisibleCalculator (after draw, to measure which columns are actually visible).
    *
+   * @param {number} calculationType The render type ID, which determines for what type of
+   *                                 calculation calculator is created.
    * @returns {ViewportRowsCalculator}
    */
   createColumnsCalculator(calculationType = RENDER_TYPE) {
@@ -391,17 +396,19 @@ class Viewport {
       overrideFn: wtSettings.settings.viewportColumnCalculatorOverride,
       calculationType,
       stretchMode: wot.getSetting('stretchH'),
-      stretchingItemWidthFn: (stretchedWidth, column) => wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column),
+      stretchingItemWidthFn: (stretchedWidth, column) => {
+        return wot.getSetting('onBeforeStretchingColumnWidth', stretchedWidth, column);
+      },
     });
   }
 
   /**
    * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and
-   * cols should be rendered)
+   * cols should be rendered).
    *
-   * @param fastDraw {Boolean} If `true`, will try to avoid full redraw and only update the border positions.
-   *                           If `false` or `undefined`, will perform a full redraw
-   * @returns fastDraw {Boolean} The fastDraw value, possibly modified
+   * @param {boolean} fastDraw If `true`, will try to avoid full redraw and only update the border positions.
+   *                           If `false` or `undefined`, will perform a full redraw.
+   * @returns {boolean} The fastDraw value, possibly modified.
    */
   createRenderCalculators(fastDraw = false) {
     let runFastDraw = fastDraw;
@@ -429,7 +436,7 @@ class Viewport {
 
   /**
    * Creates rowsVisibleCalculator and columnsVisibleCalculator (after draw, to determine what are
-   * the actually fully visible rows and columns)
+   * the actually fully visible rows and columns).
    */
   createVisibleCalculators() {
     this.rowsVisibleCalculator = this.createRowsCalculator(FULLY_VISIBLE_TYPE);
@@ -438,11 +445,11 @@ class Viewport {
 
   /**
    * Returns information whether proposedRowsVisibleCalculator viewport
-   * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator)
+   * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator).
    *
-   * @param {Object} proposedRowsVisibleCalculator
-   * @returns {Boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
-   *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed)
+   * @param {ViewportRowsCalculator} proposedRowsVisibleCalculator The instance of the viewport calculator to compare with.
+   * @returns {boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
+   *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) {
     if (!this.rowsVisibleCalculator) {
@@ -465,11 +472,11 @@ class Viewport {
 
   /**
    * Returns information whether proposedColumnsVisibleCalculator viewport
-   * is contained inside column rendered in previous draw (cached in columnsRenderCalculator)
+   * is contained inside column rendered in previous draw (cached in columnsRenderCalculator).
    *
-   * @param {Object} proposedColumnsVisibleCalculator
-   * @returns {Boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
-   *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed)
+   * @param {ViewportRowsCalculator} proposedColumnsVisibleCalculator The instance of the viewport calculator to compare with.
+   * @returns {boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
+   *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) {
     if (!this.columnsVisibleCalculator) {

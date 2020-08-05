@@ -37,14 +37,13 @@ describe('Core_removeCellMeta', () => {
   });
 
   it('should remove proper cell meta when indexes was modified', () => {
-    handsontable({
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
-      }
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5
     });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
@@ -109,18 +108,17 @@ describe('Core_removeCellMeta', () => {
     let rowInsideHook;
     let colInsideHook;
 
-    handsontable({
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
       beforeRemoveCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
-      },
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
       }
     });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 
@@ -132,18 +130,17 @@ describe('Core_removeCellMeta', () => {
     let rowInsideHook;
     let colInsideHook;
 
-    handsontable({
+    const hot = handsontable({
+      minRows: 5,
+      minCols: 5,
       afterRemoveCellMeta(row, col) {
         rowInsideHook = row;
         colInsideHook = col;
-      },
-      modifyRow(row) {
-        return row + 10;
-      },
-      modifyCol(col) {
-        return col + 10;
       }
     });
+
+    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 

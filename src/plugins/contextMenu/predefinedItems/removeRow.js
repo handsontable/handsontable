@@ -4,6 +4,9 @@ import * as C from './../../../i18n/constants';
 
 export const KEY = 'remove_row';
 
+/**
+ * @returns {object}
+ */
 export default function removeRowItem() {
   return {
     key: KEY,
@@ -32,13 +35,19 @@ export default function removeRowItem() {
     },
     disabled() {
       const selected = getValidSelection(this);
-      const totalRows = this.countRows();
 
       if (!selected) {
         return true;
       }
 
-      return this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner() || !totalRows;
+      const totalRows = this.countRows();
+
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Remove row" only when there is at least one row.
+        return totalRows === 0;
+      }
+
+      return this.selection.isSelectedByColumnHeader() || totalRows === 0;
     },
     hidden() {
       return !this.getSettings().allowRemoveRow;

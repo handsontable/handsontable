@@ -101,6 +101,7 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
+      expect($menu.width()).toEqual(218);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
@@ -176,6 +177,30 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it('should not open context menu after right click on inner htCore', async() => {
+      handsontable({
+        contextMenu: true,
+        height: 100
+      });
+
+      contextMenu();
+
+      let eventPrevented = false;
+      const rewriteEventPrevention = (e) => {
+        eventPrevented = e.defaultPrevented;
+      };
+
+      document.addEventListener('contextmenu', rewriteEventPrevention);
+
+      const contextMenuHtCore = $('.htContextMenu .ht_master .htCore')[0];
+      const contextmenuEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+
+      contextMenuHtCore.dispatchEvent(contextmenuEvent);
+      document.removeEventListener('contextmenu', rewriteEventPrevention);
+
+      expect(eventPrevented).toBe(true);
+    });
+
     it('should be possible to define a custom container for ContextMenu\'s UI elements', () => {
       const uiContainer = $('<div/>').addClass('uiContainer');
       spec().$container.append(uiContainer);
@@ -203,7 +228,8 @@ describe('ContextMenu', () => {
         </head>`);
       docOutside.close();
 
-      const iframeInside = $('<iframe/>').css({ margin: '250px 500px 500px 250px', width: '500px', height: '500px' }).appendTo(docOutside.body);
+      const iframeInside = $('<iframe/>')
+        .css({ margin: '250px 500px 500px 250px', width: '500px', height: '500px' }).appendTo(docOutside.body);
       const docInside = iframeInside[0].contentDocument;
 
       docInside.open('text/html', 'replace');
@@ -228,7 +254,7 @@ describe('ContextMenu', () => {
       docInside.documentElement.scrollTop = 500;
       docInside.documentElement.scrollLeft = 500;
 
-      await sleep(300);
+      await sleep(400);
 
       const cell = hot.getCell(2, 2);
       contextMenu(cell, hot);
@@ -955,7 +981,8 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      expect(contextSubMenu.offset().left)
+        .toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
     it('should open subMenu on the left-bottom of main menu if there\'s free space', async() => {
@@ -981,8 +1008,10 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(parseInt(contextSubMenu.offset().top, 10)).toBeAroundValue(parseInt(item.offset().top, 10) - 1);
-      expect(parseInt(contextSubMenu.offset().left, 10)).toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
+      expect(parseInt(contextSubMenu.offset().top, 10))
+        .toBeAroundValue(parseInt(item.offset().top, 10) - 1);
+      expect(parseInt(contextSubMenu.offset().left, 10))
+        .toBeLessThan(contextMenuRoot.offset().left - contextSubMenu.width() + 30); // 30 - scroll
     });
 
     it('should open subMenu on the right-bottom of main menu if there\'s free space', async() => {
@@ -1009,8 +1038,10 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(parseInt(contextSubMenu.offset().top, 10)).toBeAroundValue(parseInt(item.offset().top, 10) - 1);
-      expect(parseInt(contextSubMenu.offset().left, 10)).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      expect(parseInt(contextSubMenu.offset().top, 10))
+        .toBeAroundValue(parseInt(item.offset().top, 10) - 1);
+      expect(parseInt(contextSubMenu.offset().left, 10))
+        .toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
 
     it('should open subMenu on the left-top of main menu if there\'s no free space on bottom', async() => {
@@ -1061,8 +1092,10 @@ describe('ContextMenu', () => {
 
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
 
-      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28).toBeAroundValue(item.offset().top);
-      expect(contextSubMenu.offset().left).toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
+      expect(contextSubMenu.offset().top + contextSubMenu.height() - 28)
+        .toBeAroundValue(item.offset().top);
+      expect(contextSubMenu.offset().left)
+        .toBeGreaterThan(contextMenuRoot.offset().left + contextMenuRoot.width() - 30); // 30 - scroll
     });
   });
 
@@ -1111,12 +1144,9 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      $('.ht_clone_left .htCore')
-        .eq(0)
-        .find('tbody')
-        .find('th')
-        .eq(0)
-        .simulate('mousedown', { which: 3 });
+      const rowHeader = $('.ht_clone_left .htCore').eq(0).find('tbody').find('th').eq(0);
+
+      simulateClick(rowHeader, 'RMB');
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1139,7 +1169,7 @@ describe('ContextMenu', () => {
 
       const header = $('.ht_clone_top .htCore').find('thead').find('th').eq(2);
 
-      header.simulate('mousedown', { which: 3 });
+      simulateClick(header, 'RMB');
       contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1151,7 +1181,7 @@ describe('ContextMenu', () => {
       ].join(''));
     });
 
-    it('should disable cells manipulation when corner header selected', () => {
+    it('should disable proper options when corner header was selected and there are visible cells', () => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -1160,21 +1190,113 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      $('.ht_clone_top_left_corner .htCore')
+      const corner = $('.ht_clone_top_left_corner .htCore')
         .find('thead')
         .find('th')
-        .eq(0)
-        .simulate('mousedown', { which: 3 });
-      contextMenu();
+        .eq(0);
+
+      simulateClick(corner, 'RMB');
+      contextMenu(corner);
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
-        'Remove row',
-        'Remove column',
         'Undo',
         'Redo',
         'Read only',
         'Alignment',
       ].join(''));
+    });
+
+    // This test should be removed when some changes in handling a such dataset will be done. Regression check.
+    it('should disable proper options when row header was selected and there are no visible cells #6733', () => {
+      handsontable({
+        data: [null],
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      const header = $('.ht_clone_left .htCore')
+        .find('tbody')
+        .find('th')
+        .eq(0);
+      simulateClick(header, 'RMB');
+      contextMenu(header);
+
+      expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+        'Insert column left',
+        'Insert column right',
+        'Remove column',
+        'Undo',
+        'Redo',
+        'Read only',
+        'Alignment',
+        'Copy',
+        'Cut',
+      ].join(''));
+    });
+
+    describe('should disable proper options when corner header was selected and there are no visible cells and', () => {
+      it('data schema was defined', () => {
+        handsontable({
+          data: [],
+          dataSchema: [],
+          contextMenu: true,
+          colHeaders: true,
+          rowHeaders: true
+        });
+
+        const corner = $('.ht_clone_top_left_corner .htCore')
+          .find('thead')
+          .find('th')
+          .eq(0);
+
+        simulateClick(corner, 'RMB');
+        contextMenu(corner);
+
+        expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+          'Insert row above',
+          'Insert column left',
+          'Remove row',
+          'Remove column',
+          'Undo',
+          'Redo',
+          'Read only',
+          'Alignment',
+          'Copy',
+          'Cut'
+        ].join(''));
+      });
+
+      it('data schema was not defined', () => {
+        handsontable({
+          data: [],
+          contextMenu: true,
+          colHeaders: true,
+          rowHeaders: true
+        });
+
+        const corner = $('.ht_clone_top_left_corner .htCore')
+          .find('thead')
+          .find('th')
+          .eq(0);
+
+        simulateClick(corner, 'RMB');
+        contextMenu(corner);
+
+        expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
+          'Insert row above',
+          'Insert column left',
+          'Insert column right',
+          'Remove row',
+          'Remove column',
+          'Undo',
+          'Redo',
+          'Read only',
+          'Alignment',
+          'Copy',
+          'Cut'
+        ].join(''));
+      });
     });
 
     it('should insert row above selection', () => {
@@ -1204,7 +1326,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert row above selection when initial data is empty', () => {
+    it('should insert row below selection when initial data is empty', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1222,16 +1344,16 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', { which: 3 });
+      simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
         .not('.htSeparator')
-        .eq(0)
+        .eq(1)
         .simulate('mousedown')
         .simulate('mouseup'); // Insert row above
 
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowAbove', void 0, void 0, void 0);
+      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -1322,8 +1444,7 @@ describe('ContextMenu', () => {
     it('should insert row below selection', () => {
       handsontable({
         data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
+        contextMenu: true
       });
 
       const afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
@@ -1339,50 +1460,17 @@ describe('ContextMenu', () => {
         .not('.htSeparator')
         .eq(1)
         .simulate('mousedown')
-        .simulate('mouseup'); // Insert row above
+        .simulate('mouseup'); // Insert row below
 
       expect(afterCreateRowCallback).toHaveBeenCalledWith(4, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
       expect(countRows()).toEqual(5);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should insert row below selection when initial data is empty', () => {
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        data: [],
-        dataSchema: [],
-        contextMenu: true,
-        height: 400
-      });
-
-      const afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
-
-      addHook('afterCreateRow', afterCreateRowCallback);
-
-      expect(countRows()).toEqual(0);
-
-      const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
-
-      cell.simulate('mousedown', { which: 3 });
-      contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(1)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Insert row below
-
-      expect(afterCreateRowCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.rowBelow', void 0, void 0, void 0);
-      expect(countRows()).toEqual(1);
-      expect($('.htContextMenu').is(':visible')).toBe(false);
-    });
-
     it('should insert row below selection (reverse selection)', () => {
       handsontable({
         data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
+        contextMenu: true
       });
 
       const afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
@@ -1433,7 +1521,7 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
-    it('should Insert column left of selection when initial data is empty', () => {
+    it('should Insert column right of selection when initial data is empty', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1451,14 +1539,14 @@ describe('ContextMenu', () => {
 
       const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
 
-      cell.simulate('mousedown', { which: 3 });
+      simulateClick(cell, 'RMB');
       contextMenu(cell[0]);
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
         .not('.htSeparator')
         .eq(3)
         .simulate('mousedown')
-        .simulate('mouseup'); // Insert column left
+        .simulate('mouseup'); // Insert column right
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
       expect(countCols()).toEqual(1);
@@ -1516,38 +1604,6 @@ describe('ContextMenu', () => {
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(1, 1, 'ContextMenu.columnLeft', void 0, void 0, void 0);
       expect(countCols()).toEqual(5);
-      expect($('.htContextMenu').is(':visible')).toBe(false);
-    });
-
-    it('should Insert column right of selection when initial data is empty', () => {
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        data: [],
-        dataSchema: [],
-        contextMenu: true,
-        height: 400
-      });
-
-      const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
-
-      addHook('afterCreateCol', afterCreateColCallback);
-
-      expect(countCols()).toEqual(0);
-
-      const cell = $('.ht_clone_top_left_corner .htCore').find('thead').find('th').eq(0);
-
-      cell.simulate('mousedown', { which: 3 });
-      contextMenu(cell[0]);
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(3)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Insert column right
-
-      expect(afterCreateColCallback).toHaveBeenCalledWith(0, 1, 'ContextMenu.columnRight', void 0, void 0, void 0);
-      expect(countCols()).toEqual(1);
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
 
@@ -1813,108 +1869,6 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
     });
 
-    it('should make a single selected cell read-only', () => {
-      handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      selectCell(0, 0);
-
-      expect(getDataAtCell(0, 0)).toEqual('A1');
-      expect(getCellMeta(0, 0).readOnly).toBe(false);
-
-      selectCell(0, 0);
-      contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore tbody');
-
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup'); // Make read-only
-
-      expect(getCellMeta(0, 0).readOnly).toBe(true);
-    });
-
-    it('should make a single selected cell writable, when it\'s set to read-only', () => {
-      handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      selectCell(0, 0);
-
-      expect(getDataAtCell(0, 0)).toEqual('A1');
-
-      getCellMeta(0, 0).readOnly = true;
-
-      selectCell(0, 0);
-      contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore tbody');
-
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup');
-
-      expect(getCellMeta(0, 0).readOnly).toBe(false);
-    });
-
-    it('should make a range of selected cells read-only, if all of them are writable', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toEqual(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toEqual(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toEqual(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toEqual(false);
-
-      selectCell(0, 0, 2, 2);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup');
-
-      expect(hot.getCellMeta(0, 0).readOnly).toEqual(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toEqual(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toEqual(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toEqual(true);
-      expect(getSelected()).toEqual([[0, 0, 2, 2]]);
-    });
-
-    it('should make a multiple of selected cells read-only, if all of them are writable', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      selectCell(0, 0, 2, 2);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore tbody')
-        .find('td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup');
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
-    });
-
     it('should not close menu after clicking on submenu root item', () => {
       handsontable({
         data: createSpreadsheetData(4, 4),
@@ -1966,92 +1920,6 @@ describe('ContextMenu', () => {
 
       // The selection of the ContextMenu should be active and pointed to "alignment" item
       expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('alignment');
-    });
-
-    it('should make a group of selected cells read-only, if all of them are writable (reverse selection)', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      selectCell(2, 2, 0, 0);
-
-      contextMenu();
-
-      const menu = $('.htContextMenu .ht_master .htCore tbody');
-
-      menu.find('td').not('.htSeparator').eq(8).simulate('mousedown').simulate('mouseup'); // Make read-only
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
-    });
-
-    it('should make a group of selected cells writable if at least one of them is read-only', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      hot.getCellMeta(1, 1).readOnly = true;
-
-      selectCell(0, 0, 2, 2);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Make writable
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-    });
-
-    it('should make a group of selected cells writable if at least one of them is read-only (reverse selection)', () => {
-      const hot = handsontable({
-        data: createSpreadsheetData(4, 4),
-        contextMenu: true,
-        height: 100
-      });
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
-
-      hot.getCellMeta(1, 1).readOnly = true;
-
-      selectCell(2, 2, 0, 0);
-
-      contextMenu();
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(8)
-        .simulate('mousedown')
-        .simulate('mouseup'); // Make writable
-
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
     });
   });
 
@@ -2285,7 +2153,8 @@ describe('ContextMenu', () => {
       contextMenu();
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
-      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual(['CustomItem1', 'CustomItem2'].join(''));
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text())
+        .toEqual(['CustomItem1', 'CustomItem2'].join(''));
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
@@ -2402,7 +2271,8 @@ describe('ContextMenu', () => {
       contextMenu();
 
       expect($('.htContextMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
-      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text()).toEqual(['Remove row', 'Delete column'].join(''));
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').text())
+        .toEqual(['Remove row', 'Delete column'].join(''));
 
       $('.htContextMenu .ht_master .htCore').find('tbody td:eq(0)').simulate('mousedown').simulate('mouseup');
 
@@ -2554,7 +2424,8 @@ describe('ContextMenu', () => {
         keyDownUp('arrow_down');
         keyDownUp('arrow_down');
 
-        const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
+        const scrollHeight = typeof window.scrollY !== 'undefined' ?
+          window.scrollY : document.documentElement.scrollTop;
 
         expect(scrollHeight).not.toBe(0);
       });
@@ -3546,6 +3417,9 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
+      /**
+       *
+       */
       function contextMenu2() {
         const hot = spec().$container2.data('handsontable');
         let selected = hot.getSelected();
@@ -3598,6 +3472,9 @@ describe('ContextMenu', () => {
       expect(hot1.countRows()).toEqual(6);
       expect(hot2.countRows()).toEqual(6);
 
+      /**
+       *
+       */
       function contextMenu2() {
         const hot = spec().$container2.data('handsontable');
         let selected = hot.getSelected();
@@ -3920,6 +3797,50 @@ describe('ContextMenu', () => {
     });
   });
 
+  describe('table listening', () => {
+    it('should listen to changes after removing all rows', () => {
+      const hot = handsontable({
+        data: [[1]],
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['remove_row'],
+      });
+
+      selectRows(0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td:eq(0)')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      expect(hot.countRows()).toBe(0);
+      expect(hot.isListening()).toBe(true);
+    });
+
+    it('should listen to changes after removing all columns', () => {
+      const hot = handsontable({
+        data: [[1]],
+        rowHeaders: true,
+        colHeaders: true,
+        contextMenu: ['remove_col'],
+      });
+
+      selectColumns(0);
+      contextMenu();
+
+      $('.htContextMenu .ht_master .htCore tbody td:eq(0)')
+        .simulate('mousedown')
+        .simulate('mouseup')
+        .simulate('click')
+      ;
+
+      expect(hot.countCols()).toBe(0);
+      expect(hot.isListening()).toBe(true);
+    });
+  });
+
   describe('Cleaning up after the context menu', () => {
     it('should not leave any context menu containers after destroying the Handsontable instance', () => {
       handsontable({
@@ -3937,6 +3858,92 @@ describe('ContextMenu', () => {
 
       expect($('.htMenu').size()).toEqual(0);
       expect($('.htMenu').size()).toEqual(0);
+    });
+  });
+
+  describe('Changing selection after alter actions from context-menu', () => {
+    describe('should keep the row selection in the same position as before inserting the row', () => {
+      it('above the selected row', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true
+        });
+
+        const header = $('.ht_clone_left .htCore')
+          .find('tbody')
+          .find('th')
+          .eq(0);
+        simulateClick(header, 'RMB');
+        contextMenu(header);
+
+        $('.htContextMenu .ht_master .htCore')
+          .find('tbody td')
+          .not('.htSeparator')
+          .eq(0)
+          .simulate('mousedown')
+          .simulate('mouseup'); // Insert row above
+
+        expect(getSelected()).toEqual([
+          [1, -1, 1, 3]
+        ]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(3);
+        expect(`
+        |   ║ - : - : - : - |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        | * ║ A : 0 : 0 : 0 |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+
+      it('below the selected row', () => {
+        handsontable({
+          data: createSpreadsheetData(4, 4),
+          contextMenu: true,
+          rowHeaders: true,
+          colHeaders: true
+        });
+
+        const header = $('.ht_clone_left .htCore')
+          .find('tbody')
+          .find('th')
+          .eq(0);
+        simulateClick(header, 'RMB');
+        contextMenu(header);
+
+        $('.htContextMenu .ht_master .htCore')
+          .find('tbody td')
+          .not('.htSeparator')
+          .eq(1)
+          .simulate('mousedown')
+          .simulate('mouseup'); // Insert row below
+
+        expect(getSelected()).toEqual([[0, -1, 0, 3]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(0);
+        expect(getSelectedRangeLast().to.col).toBe(3);
+        expect(`
+        |   ║ - : - : - : - |
+        |===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
     });
   });
 });

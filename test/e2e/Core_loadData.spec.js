@@ -75,6 +75,25 @@ describe('Core_loadData', () => {
     expect(getDataAtCell(0, 2)).toEqual('Nissan');
   });
 
+  it('should load data properly when it is defined as an array of objects #4204', () => {
+    handsontable({});
+
+    loadData(arrayOfObjects());
+
+    expect(getData()).toEqual([
+      [1, 'Ted', 'Right'],
+      [2, 'Frank', 'Honest'],
+      [3, 'Joan', 'Well'],
+      [4, 'Sid', 'Strong'],
+      [5, 'Jane', 'Neat'],
+      [6, 'Chuck', 'Jackson'],
+      [7, 'Meg', 'Jansen'],
+      [8, 'Rob', 'Norris'],
+      [9, 'Sean', 'O\'Hara'],
+      [10, 'Eve', 'Branson']
+    ]);
+  });
+
   it('should allow array of objects', () => {
     handsontable({
       columns: [
@@ -655,4 +674,14 @@ describe('Core_loadData', () => {
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
+  it('should create new data schema after loading data', () => {
+    handsontable({
+      data: arrayOfObjects()
+    });
+
+    loadData(arrayOfArrays());
+
+    expect(getSourceData()).toEqual(arrayOfArrays());
+    expect(getData()).toEqual(arrayOfArrays());
+  });
 });

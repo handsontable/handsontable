@@ -1,11 +1,12 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import VisualSelection from '../visualSelection';
 
 /**
- * @return {Selection}
+ * @returns {Selection}
  */
-function createHighlight({ activeHeaderClassName }) {
-  const s = new Selection({
+function createHighlight({ activeHeaderClassName, ...restOptions }) {
+  const s = new VisualSelection({
     highlightHeaderClassName: activeHeaderClassName,
+    ...restOptions,
   });
 
   return s;

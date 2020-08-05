@@ -1,5 +1,7 @@
 describe('ColumnSummarySpec', () => {
   const id = 'testContainer';
+  const warnMessage = 'One of the Column Summary plugins\' destination points you ' +
+    'provided is beyond the table boundaries!';
   const columnSummaryFunction = function() {
     // We're assuming there are two levels, and the upper level has the summary results, while its children contain the calculation data.
     const endpoints = [];
@@ -249,6 +251,9 @@ describe('ColumnSummarySpec', () => {
               const hotInstance = this.hot;
 
               // helper function
+              /**
+               * @param rowRange
+               */
               function checkRange(rowRange) {
                 let i = rowRange[1] || rowRange[0];
                 let counter = 0;
@@ -508,9 +513,13 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+        .toEqual('[[0,6]]');
+
       hot.getPlugin('manualRowMove').moveRow(10, 3);
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[10,10],[3,6]]');
+
+      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+        .toEqual('[[0,2],[10,10],[3,6]]');
     });
 
     it('should shift the visual calculation result position when a row was moved outside the endpoint range', function() {
@@ -587,6 +596,9 @@ describe('ColumnSummarySpec', () => {
         });
 
         const nestedRowsPlugin = hot.getPlugin('nestedRows');
+        /**
+         * @param row
+         */
         function toggle(row) {
           const rowIndex = parseInt(row, 10);
           if (isNaN(rowIndex)) {
@@ -633,7 +645,7 @@ describe('ColumnSummarySpec', () => {
       expect(this.$container.find('.columnSummaryResult').size()).toEqual(3);
       expect(this.$container.find('.htDimmed').size()).toEqual(3);
 
-      hot.getPlugin('manualRowMove').moveRow(2, 7);
+      hot.getPlugin('manualRowMove').dragRow(2, 6);
 
       expect(hot.getDataAtCell(0, 1)).toEqual(70);
       expect(hot.getDataAtCell(3, 1)).toEqual(4032);
@@ -674,5 +686,52 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(0, 3)).toEqual(5);
       expect(getDataAtCell(0, 4)).toEqual(3);
     });
+  });
+
+  it('should warn user that provided destination points are beyond the table boundaries', () => {
+    const warnSpy = spyOn(console, 'warn');
+
+    handsontable({
+      startRows: 3,
+      startCols: 3,
+      columnSummary: [{
+        destinationRow: 3,
+        destinationColumn: 1,
+        type: 'sum'
+      }]
+    });
+
+    expect(warnSpy).toHaveBeenCalledWith(warnMessage);
+  });
+
+  it('should not show endpoint when it\'s destination point is proper just after new row insertion', () => {
+    const warnSpy = spyOn(console, 'warn');
+    let warnFirstArgs;
+
+    handsontable({
+      startRows: 3,
+      startCols: 3,
+      columnSummary: [{
+        destinationRow: 3,
+        destinationColumn: 1,
+        type: 'sum'
+      }]
+    });
+
+    warnFirstArgs = warnSpy.calls.allArgs().map(args => args[0]);
+
+    expect(warnFirstArgs.filter(arg => arg === warnMessage).length).toBe(1);
+
+    alter('insert_row', 0);
+
+    warnFirstArgs = warnSpy.calls.allArgs().map(args => args[0]);
+
+    expect(warnFirstArgs.filter(arg => arg === warnMessage).length).toBe(2);
+    expect(getData()).toEqual([
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
   });
 });

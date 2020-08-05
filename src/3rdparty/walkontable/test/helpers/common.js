@@ -1,5 +1,9 @@
 import { normalize, pretty } from './htmlNormalize';
 
+/**
+ * @param {number} [delay=100] The delay in ms after which the Promise is resolved.
+ * @returns {Promise}
+ */
 export function sleep(delay = 100) {
   return Promise.resolve({
     then(resolve) {
@@ -15,14 +19,14 @@ export function sleep(delay = 100) {
 /**
  * Test context object.
  *
- * @type {Object}
+ * @type {object}
  */
 const specContext = {};
 
 /**
  * Get the test case context.
  *
- * @returns {Object|null}
+ * @returns {object|null}
  */
 export function spec() {
   return specContext.spec;
@@ -30,8 +34,10 @@ export function spec() {
 
 /**
  * Create the Walkontable instance with the provided options and cache it as `wotInstance` in the test context.
- * @param {Object} options Walkontable options.
+ *
+ * @param {object} options Walkontable options.
  * @param {HTMLTableElement} [table] The table element to base the instance on.
+ * @returns {Walkontable}
  */
 export function walkontable(options, table) {
   const currentSpec = spec();
@@ -47,6 +53,12 @@ export function walkontable(options, table) {
   return currentSpec.wotInstance;
 }
 
+/**
+ * Creates the new data into an object returned by "spec()" function.
+ *
+ * @param {number} [rows=100] The number of rows to generate.
+ * @param {number} [cols=4] The number of columns to generate.
+ */
 export function createDataArray(rows = 100, cols = 4) {
   spec().data = [];
 
@@ -66,14 +78,31 @@ export function createDataArray(rows = 100, cols = 4) {
   }
 }
 
+/**
+ * Returns the date value at specified coordinates.
+ *
+ * @param {number} row The physical row index.
+ * @param {number} col The physical column index.
+ * @returns {*}
+ */
 export function getData(row, col) {
   return spec().data[row][col];
 }
 
+/**
+ * Returns the total rows of the currently used dataset.
+ *
+ * @returns {number}
+ */
 export function getTotalRows() {
   return spec().data.length;
 }
 
+/**
+ * Returns the total columns of the currently used dataset.
+ *
+ * @returns {number}
+ */
 export function getTotalColumns() {
   return spec().data[0] ? spec().data[0].length : 0;
 }
@@ -82,8 +111,8 @@ export function getTotalColumns() {
  * Simulates WheelEvent on the element.
  *
  * @param {Element} elem Element to dispatch event.
- * @param {Number} deltaX Relative distance in px to scroll horizontally.
- * @param {Number} deltaY Relative distance in px to scroll vertically.
+ * @param {number} deltaX Relative distance in px to scroll horizontally.
+ * @param {number} deltaY Relative distance in px to scroll vertically.
  */
 export function wheelOnElement(elem, deltaX = 0, deltaY = 0) {
   elem.dispatchEvent(new WheelEvent('wheel', { deltaX, deltaY }));
@@ -123,13 +152,6 @@ beforeEach(function() {
 
           result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
 
-          if (typeof jest === 'object') {
-            /* eslint-disable global-require */
-            const jestMatcherUtils = require('jest-matcher-utils');
-
-            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
-          }
-
           return result;
         }
       };
@@ -138,10 +160,12 @@ beforeEach(function() {
       return {
         compare(actual, expected, diff = 1) {
           const pass = actual >= expected - diff && actual <= expected + diff;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          let message = `Expected ${actual} to be around ${expected}
+ (between ${expected - diff} and ${expected + diff})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+            message = `Expected ${actual} NOT to be around ${expected}
+ (between ${expected - diff} and ${expected + diff})`;
           }
 
           return {
@@ -161,10 +185,23 @@ afterEach(() => {
   window.scrollTo(0, 0);
 });
 
+/**
+ * Returns the table width.
+ *
+ * @param {Element} elem An table element to check.
+ * @returns {number}
+ */
 export function getTableWidth(elem) {
   return $(elem).outerWidth() || $(elem).find('tbody').outerWidth() || $(elem).find('thead').outerWidth(); // IE8 reports 0 as <table> offsetWidth
 }
 
+/**
+ * Creates an array with data defined by the range.
+ *
+ * @param {number} start The first index.
+ * @param {number} end The last index.
+ * @returns {Array}
+ */
 export function range(start, end) {
   if (!arguments.length) {
     return [];
@@ -196,8 +233,8 @@ export function range(start, end) {
  * Creates the selection controller necessary for the Walkontable to make selections typical for Handsontable such as
  * current selection, area selection, selection for autofill and custom borders.
  *
- * @param {Object} selections An object with custom selection instances.
- * @returns {Object} Selection controller.
+ * @param {object} selections An object with custom selection instances.
+ * @returns {object} Selection controller.
  */
 export function createSelectionController({ current, area, fill, custom } = {}) {
   const currentCtrl = current || new Walkontable.Selection({
@@ -247,18 +284,34 @@ export function createSelectionController({ current, area, fill, custom } = {}) 
   };
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getTableTopClone() {
   return $('.ht_clone_top');
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getTableLeftClone() {
   return $('.ht_clone_left');
 }
 
+/**
+ * @returns {jQuery}
+ */
 export function getTableCornerClone() {
   return $('.ht_clone_top_left_corner');
 }
 
+/**
+ * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...).
+ *
+ * @param {number} rows The number of rows to generate.
+ * @param {number} columns The number of columns to generate.
+ * @returns {Array}
+ */
 export function createSpreadsheetData(rows, columns) {
   const _rows = [];
   let i;
@@ -282,8 +335,8 @@ const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
 /**
  * Generates spreadsheet-like column names: A, B, C, ..., Z, AA, AB, etc.
  *
- * @param {Number} index Column index.
- * @returns {String}
+ * @param {number} index The column index.
+ * @returns {string}
  */
 export function spreadsheetColumnLabel(index) {
   let dividend = index + 1;
@@ -299,6 +352,11 @@ export function spreadsheetColumnLabel(index) {
   return columnLabel;
 }
 
+/**
+ * Returns the computed width of the native browser scroll bar.
+ *
+ * @returns {number}
+ */
 export function walkontableCalculateScrollbarWidth() {
   const inner = document.createElement('div');
   inner.style.height = '200px';
@@ -330,6 +388,11 @@ export function walkontableCalculateScrollbarWidth() {
 
 let cachedScrollbarWidth;
 
+/**
+ * Returns the computed width of the native browser scroll bar.
+ *
+ * @returns {number}
+ */
 export function getScrollbarWidth() {
   if (cachedScrollbarWidth === void 0) {
     cachedScrollbarWidth = walkontableCalculateScrollbarWidth();
@@ -339,13 +402,16 @@ export function getScrollbarWidth() {
 }
 
 /**
- * Run expectation towards a certain WtTable overlay
- * @param {*} wt WOT instance
- * @param {*} name Name of the overlay
- * @param {*} callb Callback that will receive wtTable of that overlay
+ * Run expectation towards a certain WtTable overlay.
+ *
+ * @param {*} wt WOT instance.
+ * @param {*} callb Callback that will receive wtTable of that overlay.
+ * @param {*} name Name of the overlay.
+ * @returns {Function}
  */
 export function expectWtTable(wt, callb, name) {
   const callbAsString = callb.toString().replace(/\s\s+/g, ' ');
+
   if (name === 'master') {
     return expect(callb(wt.wtTable)).withContext(`${name}: ${callbAsString}`);
   }

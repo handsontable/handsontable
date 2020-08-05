@@ -45,7 +45,7 @@ class ConditionComponent extends BaseComponent {
   /**
    * Set state of the component.
    *
-   * @param {Object} value State to restore.
+   * @param {object} value State to restore.
    */
   setState(value) {
     this.reset();
@@ -78,7 +78,7 @@ class ConditionComponent extends BaseComponent {
   /**
    * Export state of the component (get selected filter and filter arguments).
    *
-   * @returns {Object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
+   * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
    */
   getState() {
     const command = this.getSelectElement().getValue() || getConditionDescriptor(CONDITION_NONE);
@@ -98,10 +98,11 @@ class ConditionComponent extends BaseComponent {
 
   /**
    * Update state of component.
-   * @param {Object} condition Object with keys:
-   *  * `command` Object, Command object with condition name as `key` property.
-   *  * `args` Array, Condition arguments.
-   * @param column Physical column index.
+   *
+   * @param {object} condition The condition object.
+   * @param {object} condition.command The command object with condition name as `key` property.
+   * @param {Array} condition.args An array of values to compare.
+   * @param {number} column Physical column index.
    */
   updateState(condition, column) {
     const command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
@@ -128,7 +129,7 @@ class ConditionComponent extends BaseComponent {
   /**
    * Get input element.
    *
-   * @param {Number} index Index an array of elements.
+   * @param {number} index Index an array of elements.
    * @returns {InputUI}
    */
   getInputElement(index = 0) {
@@ -147,7 +148,7 @@ class ConditionComponent extends BaseComponent {
   /**
    * Get menu object descriptor.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getMenuItemDescriptor() {
     return {
@@ -200,13 +201,13 @@ class ConditionComponent extends BaseComponent {
    * On condition select listener.
    *
    * @private
-   * @param {Object} command Menu item object (command).
+   * @param {object} command Menu item object (command).
    */
   onConditionSelect(command) {
     arrayEach(this.getInputElements(), (element, index) => {
       element[command.inputsCount > index ? 'show' : 'hide']();
 
-      if (!index) {
+      if (index === 0) {
         setTimeout(() => element.focus(), 10);
       }
     });
@@ -227,7 +228,7 @@ class ConditionComponent extends BaseComponent {
    * Key down listener.
    *
    * @private
-   * @param {Event} event DOM event object.
+   * @param {Event} event The DOM event object.
    */
   onInputKeyDown(event) {
     if (isKey(event.keyCode, 'ENTER')) {

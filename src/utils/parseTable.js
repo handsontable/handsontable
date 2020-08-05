@@ -13,7 +13,7 @@ const regEscapedChars = new RegExp(Object.keys(ESCAPED_HTML_CHARS).map(key => `(
  * Verifies if node is an HTMLTable element.
  *
  * @param {Node} element Node to verify if it's an HTMLTable.
- * @returns {Boolean}
+ * @returns {boolean}
  */
 function isHTMLTable(element) {
   return (element && element.nodeName || '') === 'TABLE';
@@ -22,8 +22,8 @@ function isHTMLTable(element) {
 /**
  * Converts Handsontable into HTMLTableElement.
  *
- * @param {Core} instance
- * @returns {String} outerHTML of the HTMLTableElement
+ * @param {Core} instance The Handsontable instance.
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 export function instanceToHTML(instance) {
   const hasColumnHeaders = instance.hasColHeaders();
@@ -104,8 +104,8 @@ export function instanceToHTML(instance) {
 /**
  * Converts 2D array into HTMLTableElement.
  *
- * @param {Array} input Input array which will be converted to HTMLTable
- * @returns {String} outerHTML of the HTMLTableElement
+ * @param {Array} input Input array which will be converted to HTMLTable.
+ * @returns {string} OuterHTML of the HTMLTableElement.
  */
 // eslint-disable-next-line no-restricted-globals
 export function _dataToHTML(input) {
@@ -150,9 +150,9 @@ export function _dataToHTML(input) {
 /**
  * Converts HTMLTable or string into Handsontable configuration object.
  *
- * @param {Element|String} element Node element which should contain `<table>...</table>`.
- * @param {Document} [rootDocument]
- * @returns {Object} Return configuration object. Contains keys as DefaultSettings.
+ * @param {Element|string} element Node element which should contain `<table>...</table>`.
+ * @param {Document} [rootDocument] The document window owner.
+ * @returns {object} Return configuration object. Contains keys as DefaultSettings.
  */
 // eslint-disable-next-line no-restricted-globals
 export function htmlToGridSettings(element, rootDocument = document) {
@@ -166,7 +166,8 @@ export function htmlToGridSettings(element, rootDocument = document) {
   if (typeof checkElement === 'string') {
     const escapedAdjacentHTML = checkElement.replace(/<td\b[^>]*?>([\s\S]*?)<\/\s*td>/g, (cellFragment) => {
       const openingTag = cellFragment.match(/<td\b[^>]*?>/g)[0];
-      const cellValue = cellFragment.substring(openingTag.length, cellFragment.lastIndexOf('<')).replace(/(<(?!br)([^>]+)>)/gi, '');
+      const cellValue = cellFragment
+        .substring(openingTag.length, cellFragment.lastIndexOf('<')).replace(/(<(?!br)([^>]+)>)/gi, '');
       const closingTag = '</td>';
 
       return `${openingTag}${cellValue}${closingTag}`;
@@ -194,7 +195,8 @@ export function htmlToGridSettings(element, rootDocument = document) {
 
   const generator = tempElem.querySelector('meta[name$="enerator"]');
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
-  const countCols = Array.from(checkElement.querySelector('tr').cells).reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
+  const countCols = Array.from(checkElement.querySelector('tr').cells)
+    .reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
   const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
   const fixedRowsTop = [];
   let hasColHeaders = false;
@@ -323,10 +325,12 @@ export function htmlToGridSettings(element, rootDocument = document) {
         let cellValue = '';
 
         if (cellStyle.whiteSpace === 'nowrap') {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20').replace(/<br(\s*|\/)>/gim, '\r\n');
+          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20')
+            .replace(/<br(\s*|\/)>/gim, '\r\n');
 
         } else if (generator && /excel/gi.test(generator.content)) {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20').replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n');
+          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20')
+            .replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n');
 
         } else {
           cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');

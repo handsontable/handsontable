@@ -27,7 +27,7 @@ class AutofillCalculations {
      * Cache of the currently processed autofill data.
      *
      * @private
-     * @type {Object}
+     * @type {object}
      */
     this.currentFillData = null;
   }
@@ -35,7 +35,7 @@ class AutofillCalculations {
   /**
    * Correct the provided selection area, so it's not selecting only a part of a merged cell.
    *
-   * @param {Array} selectionArea
+   * @param {Array} selectionArea The selection to correct.
    */
   correctSelectionAreaSize(selectionArea) {
     if (selectionArea[0] === selectionArea[2] && selectionArea[1] === selectionArea[3]) {
@@ -53,15 +53,17 @@ class AutofillCalculations {
    *
    * @param {Array} selectionArea The selection area.
    * @param {Array} finalArea The final area (base + drag).
-   * @return {String} `up`, `down`, `left` or `right`.
+   * @returns {string} `up`, `down`, `left` or `right`.
    */
   getDirection(selectionArea, finalArea) {
     let direction = null;
 
-    if (finalArea[0] === selectionArea[0] && finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
+    if (finalArea[0] === selectionArea[0] &&
+        finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
       direction = 'down';
 
-    } else if (finalArea[2] === selectionArea[2] && finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
+    } else if (finalArea[2] === selectionArea[2] &&
+               finalArea[1] === selectionArea[1] && finalArea[3] === selectionArea[3]) {
       direction = 'up';
 
     } else if (finalArea[1] === selectionArea[1] && finalArea[2] === selectionArea[2]) {
@@ -79,16 +81,17 @@ class AutofillCalculations {
    *
    * @param {Array} baseArea The base selected area.
    * @param {Array} dragArea The drag area.
-   * @param {String} dragDirection The autofill drag direction.
+   * @param {string} dragDirection The autofill drag direction.
    * @param {Array} foundMergedCells MergeCellCoords found in the base selection area.
-   * @return {Array} The new drag area
+   * @returns {Array} The new drag area.
    */
   snapDragArea(baseArea, dragArea, dragDirection, foundMergedCells) {
     const newDragArea = dragArea.slice(0);
     const fillSize = this.getAutofillSize(baseArea, dragArea, dragDirection);
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
     const verticalDirection = ['up', 'down'].indexOf(dragDirection) > -1;
-    const fullCycle = verticalDirection ? baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
+    const fullCycle = verticalDirection ?
+      baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
     const farthestCollection = this.getFarthestCollection(baseArea, dragArea, dragDirection, foundMergedCells);
@@ -156,7 +159,7 @@ class AutofillCalculations {
    * Update the current fill cache with the provided object.
    *
    * @private
-   * @param {Object} updateObject
+   * @param {object} updateObject The current filled object cache.
    */
   updateCurrentFillCache(updateObject) {
     if (!this.currentFillData) {
@@ -172,8 +175,8 @@ class AutofillCalculations {
    * @private
    * @param {Array} baseArea The base selection area.
    * @param {Array} dragArea The drag area (containing the base area).
-   * @param {String} direction The drag direction.
-   * @return {Number|null} The "length" (height or width, depending on the direction) of the drag.
+   * @param {string} direction The drag direction.
+   * @returns {number|null} The "length" (height or width, depending on the direction) of the drag.
    */
   getAutofillSize(baseArea, dragArea, direction) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
@@ -199,8 +202,8 @@ class AutofillCalculations {
    * @private
    * @param {Array} baseArea The base selection area.
    * @param {Array} dragArea The base selection area extended by the drag area.
-   * @param {String} direction Drag direction.
-   * @return {Array|null} Array representing the drag area coordinates.
+   * @param {string} direction Drag direction.
+   * @returns {Array|null} Array representing the drag area coordinates.
    */
   getDragArea(baseArea, dragArea, direction) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
@@ -226,9 +229,9 @@ class AutofillCalculations {
    * @private
    * @param {Array} baseArea The base selection area.
    * @param {Array} dragArea The drag area (containing the base area).
-   * @param {String} direction The drag direction.
+   * @param {string} direction The drag direction.
    * @param {Array} mergedCellArray Array of the merged cells found in the base area.
-   * @return {MergedCellCoords|null}
+   * @returns {MergedCellCoords|null}
    */
   getFarthestCollection(baseArea, dragArea, direction, mergedCellArray) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
@@ -236,7 +239,8 @@ class AutofillCalculations {
     const baseEnd = verticalDirection ? baseAreaEndRow : baseAreaEndColumn;
     const baseStart = verticalDirection ? baseAreaStartRow : baseAreaStartColumn;
     const fillSize = this.getAutofillSize(baseArea, dragArea, direction);
-    const fullCycle = verticalDirection ? baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
+    const fullCycle = verticalDirection ?
+      baseAreaEndRow - baseAreaStartRow + 1 : baseAreaEndColumn - baseAreaStartColumn + 1;
     const fulls = Math.floor(fillSize / fullCycle) * fullCycle;
     const partials = fillSize - fulls;
     let inclusionFunctionName = null;
@@ -372,7 +376,7 @@ class AutofillCalculations {
    *
    * @private
    * @param {Array} changes The changes made.
-   * @returns {Object} Object with `from` and `to` properties, both containing `row` and `column` keys.
+   * @returns {object} Object with `from` and `to` properties, both containing `row` and `column` keys.
    */
   getRangeFromChanges(changes) {
     const rows = { min: null, max: null };
@@ -416,8 +420,8 @@ class AutofillCalculations {
    *
    * @param {Array} baseArea The base selection area.
    * @param {Array} fullArea The base area extended by the drag area.
-   * @param {String} direction Drag direction.
-   * @returns {Boolean}
+   * @param {string} direction Drag direction.
+   * @returns {boolean}
    */
   dragAreaOverlapsCollections(baseArea, fullArea, direction) {
     const dragArea = this.getDragArea(baseArea, fullArea, direction);

@@ -139,8 +139,10 @@ describe('DomElement helper', () => {
   // Handsontable.helper.closestDown
   //
   describe('closestDown', () => {
-    const test1 = '<div class="wrapper1"><table><tbody><tr><td class="test1">test1</td></tr></tbody></table></div>';
-    const test2 = `<div class="wrapper2"><table><tbody><tr><td class="test2">test2${test1}</td></tr></tbody></table></div>`;
+    const test1 = '<div class="wrapper1"><table><tbody><tr>' +
+      '<td class="test1">test1</td></tr></tbody></table></div>';
+    const test2 = `<div class="wrapper2"><table><tbody><tr>' +
+      '<td class="test2">test2${test1}</td></tr></tbody></table></div>`;
 
     it('should return last TD element (starting from last child element)', () => {
       const wrapper = document.createElement('div');
@@ -171,7 +173,8 @@ describe('DomElement helper', () => {
 
     beforeEach(() => {
       element = document.createElement('div');
-      element.innerHTML = '<div id="a1"><ul id="a2"></ul><ul id="b2"><li id="a3"><span id="a4">HELLO</span></li></ul></div>';
+      element.innerHTML = '<div id="a1"><ul id="a2"></ul><ul id="b2"><li id="a3">' +
+        '<span id="a4">HELLO</span></li></ul></div>';
     });
 
     afterEach(() => {
@@ -282,6 +285,12 @@ describe('DomElement helper', () => {
       expect(element.className).toBe('test1 test2 test4 test3');
     });
 
+    it('should add all CSS classes without removing old one (passed as an array)', () => {
+      addClass(element, ['test2', 'test4', '', 'test3']);
+
+      expect(element.className).toBe('test1 test2 test4 test3');
+    });
+
     it('should not touch the DOM element when the passed argument is empty', () => {
       const elementMock = {
         classList: {
@@ -306,6 +315,12 @@ describe('DomElement helper', () => {
       addClass(elementMock, ['']);
 
       expect(elementMock.classList.add).not.toHaveBeenCalled();
+    });
+
+    it('should filter empty and falsy classNames', () => {
+      addClass(element, [undefined, null, '', false, 'false']); // only the last one is not filtered
+
+      expect(element.className).toBe('test1 false');
     });
   });
 
@@ -373,25 +388,54 @@ describe('DomElement helper', () => {
   // Handsontable.helper.selectElementIfAllowed
   //
   describe('selectElementIfAllowed', () => {
-    it('should select hot editor', () => {
+    it('should focus known textarea element', () => {
       const textarea = document.createElement('textarea');
-      textarea.className = 'handsontableInput';
+
+      document.body.appendChild(textarea);
+
+      textarea.setAttribute('data-hot-input', '');
+      textarea.focus();
 
       const spy = spyOn(textarea, 'select');
 
       selectElementIfAllowed(textarea);
 
       expect(spy).toHaveBeenCalled();
+
+      document.body.removeChild(textarea);
     });
 
-    it('shouldn\'t focus input', () => {
+    it('should not focus unknown textarea element with the same class name as HOT editor input', () => {
+      const textarea = document.createElement('textarea');
+
+      document.body.appendChild(textarea);
+
+      textarea.className = 'handsontableInput';
+      textarea.focus();
+
+      const spy = spyOn(textarea, 'select');
+
+      selectElementIfAllowed(textarea);
+
+      expect(spy).not.toHaveBeenCalled();
+
+      document.body.removeChild(textarea);
+    });
+
+    it('should not focus unknown input (bare input)', () => {
       const input = document.createElement('input');
+
+      document.body.appendChild(input);
+
+      input.focus();
 
       const spy = spyOn(input, 'focus');
 
       selectElementIfAllowed(input);
 
       expect(spy).not.toHaveBeenCalled();
+
+      document.body.removeChild(input);
     });
   });
 });

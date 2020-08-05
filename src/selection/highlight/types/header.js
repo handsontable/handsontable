@@ -1,17 +1,23 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import VisualSelection from '../visualSelection';
 
 /**
  * Creates the new instance of Selection, responsible for highlighting row and column headers. This type of selection
  * can occur multiple times.
  *
- * @return {Selection}
+ * @returns {Selection}
  */
-function createHighlight({ headerClassName, rowClassName, columnClassName }) {
-  const s = new Selection({
+function createHighlight({
+  headerClassName,
+  rowClassName,
+  columnClassName,
+  ...restOptions
+}) {
+  const s = new VisualSelection({
     className: 'highlight',
     highlightHeaderClassName: headerClassName,
     highlightRowClassName: rowClassName,
     highlightColumnClassName: columnClassName,
+    ...restOptions,
   });
 
   return s;

@@ -8,7 +8,7 @@ const BARE_CELL_STRICT_REGEX = /^\$?[A-Z]+\$?\d+$/;
 const BARE_CELL_REGEX = /\$?[A-Z]+\$?\d+/;
 const CELL_REGEX = /(?:[^0-9A-Z$: ]|^)\s*(\$?[A-Z]+\$?\d+)\s*(?![0-9A-Z_: ])/g;
 const RANGE_REGEX = /\$?[A-Z]+\$?\d+\s*:\s*\$?[A-Z]+\$?\d+/g;
-const CELL_AND_RANGE_REGEX = /((?:[^0-9A-Z$: ]|^)\s*(\$?[A-Z]+\$?\d+)\s*(?![0-9A-Z_: ]))|(\$?[A-Z]+\$?\d+\s*:\s*\$?[A-Z]+\$?\d+)/g;
+const CELL_AND_RANGE_REGEX = /((?:[^0-9A-Z$: ]|^)\s*(\$?[A-Z]+\$?\d+)\s*(?![0-9A-Z_: ]))|(\$?[A-Z]+\$?\d+\s*:\s*\$?[A-Z]+\$?\d+)/g; // eslint-disable-line max-len
 
 /**
  * Component adds an ability to parse and modify formula expressions. It is designed for translating cell
@@ -23,7 +23,7 @@ class ExpressionModifier {
     /**
      * Formula expression to modify.
      *
-     * @type {String}
+     * @type {string}
      */
     this.expression = '';
     /**
@@ -47,7 +47,7 @@ class ExpressionModifier {
   /**
    * Set formula expression to modify.
    *
-   * @param {String} expression Formula expression to process.
+   * @param {string} expression Formula expression to process.
    * @returns {ExpressionModifier}
    */
   setExpression(expression) {
@@ -69,12 +69,12 @@ class ExpressionModifier {
    *  - delta, Number as distance to translate. Can be positive or negative.
    *  - startFromIndex, Base index which translation will be applied from.
    *
-   * the function must return an array with 3 items, where:
+   * The function must return an array with 3 items, where:
    *  [
    *    deltaStart, Number as a delta to translate first part of coordinates.
-   *    deltaEnd,   Number as a delta to translate second part of coordinates (if cell range is modified).
-   *    refError,   Defines an error which refers to the situation when translated cell overcrossed the data boundary.
-   *  ]
+   *    DeltaEnd,   Number as a delta to translate second part of coordinates (if cell range is modified).
+   *    RefError,   Defines an error which refers to the situation when translated cell overcrossed the data boundary.
+   *  ].
    *
    *
    * @param {Function} customModifier Function with custom logic.
@@ -86,8 +86,8 @@ class ExpressionModifier {
   /**
    * Translate formula expression cells.
    *
-   * @param {Object} delta Distance to move in proper direction.
-   * @param {Object} [startFrom] Coordinates which translation will be applied from.
+   * @param {object} delta Distance to move in proper direction.
+   * @param {object} [startFrom] Coordinates which translation will be applied from.
    * @returns {ExpressionModifier}
    */
   translate({ row: deltaRow, column: deltaColumn }, startFrom = {}) {
@@ -106,7 +106,7 @@ class ExpressionModifier {
   /**
    * Translate object into string representation.
    *
-   * @returns {String}
+   * @returns {string}
    */
   toString() {
     let expression = this.expression.replace(CELL_AND_RANGE_REGEX, (match, p1, p2) => {
@@ -143,10 +143,10 @@ class ExpressionModifier {
   /**
    * Translate single cell.
    *
-   * @param {Object} cell Cell object.
-   * @param {String} axis Axis to modify.
-   * @param {Number} delta Distance to move.
-   * @param {Number} [startFromIndex] Base index which translation will be applied from.
+   * @param {object} cell Cell object.
+   * @param {string} axis Axis to modify.
+   * @param {number} delta Distance to move.
+   * @param {number} [startFromIndex] Base index which translation will be applied from.
    * @private
    */
   _translateCell(cell, axis, delta, startFromIndex) {
@@ -241,8 +241,8 @@ class ExpressionModifier {
   /**
    * Search cell by its label.
    *
-   * @param {String} label Cell label eq. `B4` or `$B$6`.
-   * @returns {Object|null}
+   * @param {string} label Cell label eq. `B4` or `$B$6`.
+   * @returns {object|null}
    * @private
    */
   _searchCell(label) {
@@ -254,10 +254,10 @@ class ExpressionModifier {
   /**
    * Create object cell.
    *
-   * @param {Object} start Start coordinates (top-left).
-   * @param {Object} end End coordinates (bottom-right).
-   * @param {String} label Original label name.
-   * @returns {Object}
+   * @param {object} start Start coordinates (top-left).
+   * @param {object} end End coordinates (bottom-right).
+   * @param {string} label Original label name.
+   * @returns {object}
    * @private
    */
   _createCell(start, end, label) {

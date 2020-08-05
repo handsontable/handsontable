@@ -9,7 +9,7 @@ import BaseRenderer from './_base';
  *     ├ <tr>    \
  *     ├ <tr>     - ColumnHeadersRenderer
  *     ├ <tr>    /
- *     └ <tr>   /
+ *     └ <tr>   /.
  *
  * @class {ColumnHeadersRenderer}
  */
@@ -65,18 +65,18 @@ export default class ColumnHeadersRenderer extends BaseRenderer {
   render() {
     const { columnHeadersCount } = this.table;
 
-    for (let visibleRowIndex = 0; visibleRowIndex < columnHeadersCount; visibleRowIndex++) {
+    for (let rowHeaderIndex = 0; rowHeaderIndex < columnHeadersCount; rowHeaderIndex += 1) {
       const { columnHeaderFunctions, columnsToRender, rowHeadersCount } = this.table;
-      const TR = this.rootNode.childNodes[visibleRowIndex];
+      const TR = this.rootNode.childNodes[rowHeaderIndex];
 
-      for (let renderedColumnIndex = (-1) * rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex++) {
+      for (let renderedColumnIndex = (-1) * rowHeadersCount; renderedColumnIndex < columnsToRender; renderedColumnIndex += 1) { // eslint-disable-line max-len
         const sourceColumnIndex = this.table.renderedColumnToSource(renderedColumnIndex);
         const TH = TR.childNodes[renderedColumnIndex + rowHeadersCount];
 
         TH.className = '';
         TH.removeAttribute('style');
 
-        columnHeaderFunctions[visibleRowIndex](sourceColumnIndex, TH, visibleRowIndex);
+        columnHeaderFunctions[rowHeaderIndex](sourceColumnIndex, TH, rowHeaderIndex);
       }
     }
   }

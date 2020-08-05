@@ -8,12 +8,11 @@ const STRICT_FORMATS = [
 ];
 
 /**
- * Time cell validator
+ * The Time cell validator.
  *
  * @private
- * @validator TimeValidator
- * @param {*} value - Value of edited cell
- * @param {Function} callback - Callback called with validation result
+ * @param {*} value Value of edited cell.
+ * @param {Function} callback Callback called with validation result.
  */
 export default function timeValidator(value, callback) {
   const timeFormat = this.timeFormat || 'h:mm:ss a';
@@ -32,7 +31,8 @@ export default function timeValidator(value, callback) {
     valueToValidate += ':00';
   }
 
-  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ? moment(valueToValidate) : moment(valueToValidate, timeFormat);
+  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ?
+    moment(valueToValidate) : moment(valueToValidate, timeFormat);
   let isValidTime = date.isValid();
 
   // is it in the specified format
@@ -51,8 +51,8 @@ export default function timeValidator(value, callback) {
   if (isValidTime && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
       const correctedValue = date.format(timeFormat);
-      const row = this.instance.runHooks('unmodifyRow', this.row);
-      const column = this.instance.runHooks('unmodifyCol', this.col);
+      const row = this.instance.toVisualRow(this.row);
+      const column = this.instance.toVisualColumn(this.col);
 
       this.instance.setDataAtCell(row, column, correctedValue, 'timeValidator');
       valid = true;

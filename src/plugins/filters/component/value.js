@@ -37,7 +37,7 @@ class ValueComponent extends BaseComponent {
   /**
    * Set state of the component.
    *
-   * @param {Object} value
+   * @param {object} value The component value.
    */
   setState(value) {
     this.reset();
@@ -53,7 +53,7 @@ class ValueComponent extends BaseComponent {
   /**
    * Export state of the component (get selected filter and filter arguments).
    *
-   * @returns {Object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
+   * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
    */
   getState() {
     const select = this.getMultipleSelectElement();
@@ -69,7 +69,7 @@ class ValueComponent extends BaseComponent {
   /**
    * Update state of component.
    *
-   * @param {Object} stateInfo Information about state containing stack of edited column,
+   * @param {object} stateInfo Information about state containing stack of edited column,
    * stack of dependent conditions, data factory and optional condition arguments change. It's described by object containing keys:
    * `editedConditionStack`, `dependentConditionStacks`, `visibleDataFactory` and `conditionArgsChange`.
    */
@@ -89,11 +89,16 @@ class ValueComponent extends BaseComponent {
         }
 
         const selectedValues = [];
-        const itemsSnapshot = intersectValues(rowValues, firstByValueCondition.args[0], defaultBlankCellValue, (item) => {
-          if (item.checked) {
-            selectedValues.push(item.value);
+        const itemsSnapshot = intersectValues(
+          rowValues,
+          firstByValueCondition.args[0],
+          defaultBlankCellValue,
+          (item) => {
+            if (item.checked) {
+              selectedValues.push(item.value);
+            }
           }
-        });
+        );
 
         state.args = [selectedValues];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
@@ -138,7 +143,7 @@ class ValueComponent extends BaseComponent {
   /**
    * Get object descriptor for menu item entry.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getMenuItemDescriptor() {
     return {
@@ -183,7 +188,7 @@ class ValueComponent extends BaseComponent {
    * Key down listener.
    *
    * @private
-   * @param {Event} event DOM event object.
+   * @param {Event} event The DOM event object.
    */
   onInputKeyDown(event) {
     if (isKey(event.keyCode, 'ESCAPE')) {
