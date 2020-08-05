@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added additional test for autofill plugin. [#6756](https://github.com/handsontable/handsontable/issues/6756)
 
 ### Changed
-- Changed how `manualRowMove` and `manualColumnMove` plugins works [#5945](https://github.com/handsontable/handsontable/pull/5945)
+- Changed how `manualRowMove` and `manualColumnMove` plugins work [#5945](https://github.com/handsontable/handsontable/pull/5945)
 - Click on a row header will select all cells (also hidden). [#2391](https://github.com/handsontable/handsontable/issues/2391)
 - Extracted Cell-Meta logic from Core to separate module. [#6254](https://github.com/handsontable/handsontable/pull/6254)
 - The `CellMeta` manager was refactored for future features and improvements. [#6233](https://github.com/handsontable/handsontable/issues/6233)
