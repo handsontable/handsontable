@@ -40,8 +40,8 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">2</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A2</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">2</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
           </tr>
           <tr>
             <th class="">3</th>
@@ -66,12 +66,12 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
+            <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">3</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A3</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">3</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A3</td>
           </tr>
         </tbody>
         `);
@@ -92,7 +92,7 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
+            <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
           </tr>
         </tbody>
@@ -115,8 +115,8 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN} ${CSS_CLASS_BEFORE_HIDDEN}">2</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A2</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW} ${CSS_CLASS_BEFORE_HIDDEN_ROW}">2</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
           </tr>
         </tbody>
         `);

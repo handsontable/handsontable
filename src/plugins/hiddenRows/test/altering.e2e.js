@@ -64,9 +64,9 @@ describe('HiddenRows', () => {
       expect(plugin.isHidden(6)).toBe(true); // 8 -> 6
       expect(hot.getRowHeight(6)).toBe(0);
 
-      expect(getCell(5, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(5, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
       expect(getCell(6, -1)).toBe(null);
-      expect(getCell(7, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(7, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
 
       expect(plugin.isHidden(5)).toBe(false);
       expect(hot.getRowHeight(5)).toBeUndefined(); // When row height is not specyfied it fallback to 'undefined' (#2822).
@@ -146,13 +146,13 @@ describe('HiddenRows', () => {
       expect(plugin.isHidden(10)).toBe(true); // 8 -> 10
       expect(hot.getRowHeight(10)).toBe(0);
 
-      expect(getCell(5, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(5, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
       expect(getCell(6, -1)).toBe(null);
-      expect(getCell(7, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(getCell(8, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(7, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
+      expect(getCell(8, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
       expect(getCell(9, -1)).toBe(null);
       expect(getCell(10, -1)).toBe(null);
-      expect(getCell(11, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(11, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
 
       expect(plugin.isHidden(5)).toBe(false);
       expect(hot.getRowHeight(5)).toBeUndefined(); // When row height is not specyfied it fallback to 'undefined' (#2822).
