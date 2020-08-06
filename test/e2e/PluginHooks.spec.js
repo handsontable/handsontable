@@ -13,7 +13,7 @@ describe('PluginHooks', () => {
     }
   });
 
-  it('should add a many local hooks at init (as array)', () => {
+  it('should add few local hooks at init (defined as array)', () => {
     const handler1 = jasmine.createSpy('handler1');
     const handler2 = jasmine.createSpy('handler2');
     const handler3 = jasmine.createSpy('handler3');

@@ -426,4 +426,26 @@ describe('ColHeader', () => {
     expect(htCore.find('thead th:eq(2)').text()).toEqual('1');
     expect(htCore.find('thead th:eq(3)').text()).toEqual('0');
   });
+
+  it('should trigger `afterGetColHeader` hook for all displayed columns on init', () => {
+    const afterGetColHeader = jasmine.createSpy('afterGetColHeader');
+
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      colHeaders: true,
+      afterGetColHeader,
+    });
+
+    expect(afterGetColHeader).toHaveBeenCalledWith(0,
+      spec().$container.find('.ht_clone_top thead tr th:eq(0)')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetColHeader).toHaveBeenCalledWith(1,
+      spec().$container.find('.ht_clone_top thead tr th:eq(1)')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetColHeader).toHaveBeenCalledWith(2,
+      spec().$container.find('.ht_clone_top thead tr th:eq(2)')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetColHeader).toHaveBeenCalledWith(3,
+      spec().$container.find('.ht_clone_top thead tr th:eq(3)')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetColHeader).toHaveBeenCalledWith(4,
+      spec().$container.find('.ht_clone_top thead tr th:eq(4)')[0], void 0, void 0, void 0, void 0);
+  });
 });
