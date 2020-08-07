@@ -102,8 +102,7 @@ describe('HiddenRows', () => {
       //                         ↓        merged data         ↓
       expect(getData()).toEqual([['A1'], [null], [null], [null], ['A5']]);
 
-      // TODO: It should show value from the hidden row?
-      // expect(getHtCore().find('td:eq(0)').text()).toBe('A1');
+      expect(getHtCore().find('td:eq(0)').text()).toBe('A1');
 
       expect(getHtCore().outerHeight()).toBe(47);
       expect(getHtCore().find('td:eq(0)').outerHeight()).toBe(47);
@@ -193,9 +192,7 @@ describe('HiddenRows', () => {
       // Merged from visual row index 0 (invisible) to visual row index 4 (invisible).
       //                         ↓           merged data               ↓
       expect(getData()).toEqual([['A1'], [null], [null], [null], [null]]);
-
-      // TODO: It should show value from the hidden row?
-      // expect(getHtCore().find('td:eq(0)').text()).toBe('A1');
+      expect(getHtCore().find('td:eq(0)').text()).toBe('A1');
 
       expect(getHtCore().outerHeight()).toBe(47);
       expect(getHtCore().find('td:eq(0)').outerHeight()).toBe(47);
@@ -278,6 +275,34 @@ describe('HiddenRows', () => {
       // Still the same height for the whole table.
       expect(getHtCore().outerHeight()).toBe(116);
       expect(getHtCore().find('td:eq(1)').outerHeight()).toBe(69);
+    });
+
+    // Please keep in mind that this test doesn't fulfil checks for all types of renderers. Change code carefully
+    // when something is failing.
+    it('should show start of the merge area properly also when first row from the area is hidden', () => {
+      handsontable({
+        data: [
+          ['<b>Hello world</b>', 123, 'secret'],
+          ['Hello!', 'not numeric', 'secret too']
+        ],
+        columns: [
+          { renderer: 'html' },
+          { renderer: 'numeric' },
+          { renderer: 'password' },
+        ],
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 1 },
+          { row: 0, col: 1, rowspan: 2, colspan: 1 },
+          { row: 0, col: 2, rowspan: 2, colspan: 1 },
+        ],
+        hiddenRows: {
+          rows: [0]
+        }
+      });
+
+      expect($(getHtCore()).find('td')[0].innerHTML).toBe('<b>Hello world</b>');
+      expect($(getHtCore()).find('td')[1].innerText).toBe('123');
+      expect($(getHtCore()).find('td')[2].innerText).toBe('******');
     });
 
     it('should select proper cells when calling the `selectCell` within area of merge ' +
