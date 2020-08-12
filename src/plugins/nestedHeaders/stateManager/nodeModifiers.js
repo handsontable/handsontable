@@ -4,7 +4,8 @@ import { arrayEach } from '../../../helpers/array';
  * The NodeModifiers module is responsible for the modification of a tree
  * structure in a way to achieve new column headers state.
  *
- * @type {NodeModifiers}
+ * @class NodeModifiers
+ * @plugin NestedHeaders
  */
 export default class NodeModifiers {
   static AVAILABLE_ACTIONS = ['collapse', 'expand'];
