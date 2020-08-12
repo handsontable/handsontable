@@ -27,6 +27,7 @@ const META_READONLY = 'readOnly';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class Comments
  * @plugin Comments
  *
  * @description
