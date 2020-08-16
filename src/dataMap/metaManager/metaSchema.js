@@ -2890,7 +2890,7 @@ export default () => {
      * @description
      * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
      *
-     * See [quick setup of the Nested rows](https://handsontable.com/docs/demo-nested-rows.html).
+     * See [quick setup of the Nested rows]({@link https://handsontable.com/docs/demo-nested-rows.html}).
      * @example
      * ```js
      * nestedRows: true,
