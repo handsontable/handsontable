@@ -46,7 +46,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // access to hiddenColumns plugin instance:
  * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
  *
- * // show single row
+ * // show single column
  * hiddenColumnsPlugin.showColumn(1);
  *
  * // show multiple columns
@@ -55,7 +55,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // or as an array
  * hiddenColumnsPlugin.showColumns([1, 2, 9]);
  *
- * // hide single row
+ * // hide single column
  * hiddenColumnsPlugin.hideColumn(1);
  *
  * // hide multiple columns
@@ -254,7 +254,7 @@ class HiddenColumns extends BasePlugin {
   /**
    * Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
    *
-   * @param {Array} hiddenColumns List of hidden row indexes.
+   * @param {Array} hiddenColumns List of hidden column indexes.
    * @returns {boolean}
    */
   isValidConfig(hiddenColumns) {
