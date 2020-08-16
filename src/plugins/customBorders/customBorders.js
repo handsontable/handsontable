@@ -138,7 +138,7 @@ class CustomBorders extends BasePlugin {
    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
    * // You need to select a range first.
    * hot.selectCell(0,0,2,2);
-   * // The rangde will be returned by the getSelectedRange method
+   * // The range will be returned by the getSelectedRange method
    * customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
    * ```
    *
