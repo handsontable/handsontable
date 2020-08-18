@@ -404,7 +404,7 @@ export default () => {
      * @example
      * ```js
      * cells: function(row, column, prop) {
-     *   const cellProperties = {};
+     *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
      *   const visualColIndex = this.instance.toVisualColumn(column);
      *
