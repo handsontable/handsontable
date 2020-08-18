@@ -560,9 +560,20 @@ class TableView {
       cellRenderer: (renderedRowIndex, renderedColumnIndex, TD) => {
         const [visualRowIndex, visualColumnIndex] = this
           .translateFromRenderableToVisualIndex(renderedRowIndex, renderedColumnIndex);
-        const cellProperties = this.instance.getCellMeta(visualRowIndex, visualColumnIndex);
-        const prop = this.instance.colToProp(visualColumnIndex);
-        let value = this.instance.getDataAtRowProp(visualRowIndex, prop);
+
+        // Coords may be modified. For example, by the `MergeCells` plugin. It should affect cell value and cell meta.
+        const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex);
+
+        let visualRowToCheck = visualRowIndex;
+        let visualColumnToCheck = visualColumnIndex;
+
+        if (Array.isArray(modifiedCellCoords)) {
+          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
+        }
+
+        const cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
+        const prop = this.instance.colToProp(visualColumnToCheck);
+        let value = this.instance.getDataAtRowProp(visualRowToCheck, prop);
 
         if (this.instance.hasHook('beforeValueRender')) {
           value = this.instance.runHooks('beforeValueRender', value, cellProperties);
