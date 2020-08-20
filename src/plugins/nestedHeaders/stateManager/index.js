@@ -31,7 +31,8 @@ import { generateMatrix } from './matrixGenerator';
  *                            That settings describes how the TH element should be modified (colspan attribute,
  *                            CSS classes, etc) for a specific column and layer level.
  *
- * @type {StateManager}
+ * @class StateManager
+ * @plugin NestedHeaders
  */
 export default class StateManager {
   /**

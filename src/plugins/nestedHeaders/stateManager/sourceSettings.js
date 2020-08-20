@@ -8,7 +8,8 @@ import { HEADER_CONFIGURABLE_PROPS } from './constants';
  * into the nested headers plugin. The SourceSettings class is a
  * source of truth for tree builder (HeaderTree) module.
  *
- * @class {SourceSettings}
+ * @class SourceSettings
+ * @plugin NestedHeaders
  */
 export default class SourceSettings {
   /**
