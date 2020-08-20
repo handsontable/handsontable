@@ -220,8 +220,15 @@ class ManualRowResize extends BasePlugin {
           start = to.row;
           end = from.row;
         }
-        rangeEach(start, end, i => this.selectedRows.push(i));
+        rangeEach(start, end, (i) => {
+          if (!this.selectedRows.includes(i)) {
+            this.selectedRows.push(i);
+          }
+        });
       }
+    }
+    if (this.hot.selection.isSelected() && !this.selectedRows.includes(this.currentRow)) {
+      this.selectedRows = [this.currentRow];
     } else {
       this.selectedRows.push(this.currentRow);
     }

@@ -261,8 +261,15 @@ class ManualColumnResize extends BasePlugin {
           start = to.col;
           end = from.col;
         }
-        rangeEach(start, end, i => this.selectedCols.push(i));
+        rangeEach(start, end, (i) => {
+          if (!this.selectedCols.includes(i)) {
+            this.selectedCols.push(i);
+          }
+        });
       }
+    }
+    if (this.hot.selection.isSelected() && !this.selectedCols.includes(this.currentCol)) {
+      this.selectedCols = [this.currentCol];
     } else {
       this.selectedCols.push(this.currentCol);
     }
