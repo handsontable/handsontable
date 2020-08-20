@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added e2e tests and reorganized already existing ones [6491](https://github.com/handsontable/handsontable/issues/6491)
+
 ### Fixed
 - Fixed an issue where if the first part of the merged area is hidden the value does not show [6871](https://github.com/handsontable/handsontable/issues/6871)
 

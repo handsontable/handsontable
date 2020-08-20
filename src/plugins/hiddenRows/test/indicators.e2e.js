@@ -23,12 +23,12 @@ describe('HiddenRows', () => {
         rowHeaders: true,
       });
 
-      expect(getCell(0, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(0, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
       expect(getCell(1, -1)).toBe(null);
-      expect(getCell(2, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(2, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(2, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
+      expect(getCell(2, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
       expect(getCell(3, -1)).toBe(null);
-      expect(getCell(4, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(4, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
     });
 
     it('should render indicators after enabling them in updateSettings', () => {
@@ -40,8 +40,8 @@ describe('HiddenRows', () => {
         rowHeaders: true,
       });
 
-      expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
+      expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
 
       updateSettings({
         hiddenRows: {
@@ -50,8 +50,8 @@ describe('HiddenRows', () => {
         },
       });
 
-      expect(getCell(1, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
-      expect(getCell(1, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(1, -1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
+      expect(getCell(1, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
     });
   });
 });
