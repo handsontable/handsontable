@@ -2294,7 +2294,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|boolean}
-     * @default {syncLimit: 500}
+     * @default undefined
      *
      * @example
      * ```js
