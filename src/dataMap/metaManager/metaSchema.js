@@ -1355,7 +1355,7 @@ export default () => {
 
     /**
      * @description
-     * Makes cell, column or commment [read only](https://docs.handsontable.com/demo-read-only.html).
+     * Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
      *
      * @memberof Options#
      * @type {boolean}
