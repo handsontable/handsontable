@@ -1701,6 +1701,8 @@ export default () => {
 
     /**
      * If `true`, undo/redo functionality is enabled.
+     * Note: `undefined` by default but it acts as enabled.
+     * You need to switch it to `false` to disable it completely.
      *
      * @memberof Options#
      * @type {boolean}
