@@ -577,6 +577,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired after cell data was changed.
+   * Called only when `setDataAtRowProp` was executed.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
