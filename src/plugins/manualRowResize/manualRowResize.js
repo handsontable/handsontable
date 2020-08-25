@@ -202,35 +202,30 @@ class ManualRowResize extends BasePlugin {
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 
-    const rowIndexMapper = this.hot.rowIndexMapper;
-
-    this.currentRow = rowIndexMapper.getVisualFromRenderableIndex(row);
+    this.currentRow = this.hot.rowIndexMapper.getVisualFromRenderableIndex(row);
     this.selectedRows = [];
 
-    if (this.hot.selection.isSelected()) {
-      const selRowRange = this.hot.getSelectedRange();
-      for (let key = 0; key < selRowRange.length; key++) {
-        const from = selRowRange[key].getTopLeftCorner();
-        const to = selRowRange[key].getBottomLeftCorner();
+    const isFullRowSelected = this.hot.selection.isSelectedByCorner() || this.hot.selection.isSelectedByRowHeader();
 
-        let start = from.row;
-        let end = to.row;
+    if (this.hot.selection.isSelected() && isFullRowSelected) {
+      const selectionRanges = this.hot.getSelectedRange();
 
-        if (start >= end) {
-          start = to.row;
-          end = from.row;
-        }
-        rangeEach(start, end, (i) => {
-          if (!this.selectedRows.includes(i)) {
-            this.selectedRows.push(i);
+      arrayEach(selectionRanges, (selectionRange) => {
+        const fromRow = selectionRange.getTopLeftCorner().row;
+        const toRow = selectionRange.getBottomLeftCorner().row;
+
+        // Add every selected row for resize action.
+        rangeEach(fromRow, toRow, (rowIndex) => {
+          if (!this.selectedRows.includes(rowIndex)) {
+            this.selectedRows.push(rowIndex);
           }
         });
-      }
+      });
     }
-    if (this.hot.selection.isSelected() && !this.selectedRows.includes(this.currentRow)) {
+
+    // Resizing element beyond the current selection (also when there is no selection).
+    if (!this.selectedRows.includes(this.currentRow)) {
       this.selectedRows = [this.currentRow];
-    } else {
-      this.selectedRows.push(this.currentRow);
     }
 
     this.startOffset = relativeHeaderPosition.top - 6;
