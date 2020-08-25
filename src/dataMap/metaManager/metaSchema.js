@@ -1643,6 +1643,10 @@ export default () => {
      * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
      * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom).
      *
+     * If the value is an object, you can also customize the options with:
+     * * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
+     * * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
+     *
      * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
      *
      * @memberof Options#
