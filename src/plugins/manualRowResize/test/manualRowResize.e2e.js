@@ -543,7 +543,7 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
-    expect(getLeftClone().find('tbody tr:eq(1) th:eq(0)').height()).toEqual(52);
+    expect(getLeftClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(52);
     expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(22);
     expect(getLeftClone().find('tbody tr:eq(3) th:eq(0)').height()).toBe(22);
   });
@@ -758,6 +758,27 @@ describe('manualRowResize', () => {
       expect(getLeftClone().find('tbody tr:eq(9) th:eq(0)').height()).toBe(22);
       expect(getLeftClone().find('tbody tr:eq(10) th:eq(0)').height()).toBe(52);
       expect(getLeftClone().find('tbody tr:eq(11) th:eq(0)').height()).toBe(22);
+    });
+
+    it('should not resize few rows when selected just single cells before resize action', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+
+      getLeftClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+      $resizer.simulate('mouseup');
+
+      expect(getLeftClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(22);
     });
   });
 
