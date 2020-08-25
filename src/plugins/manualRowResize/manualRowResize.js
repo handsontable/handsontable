@@ -207,23 +207,28 @@ class ManualRowResize extends BasePlugin {
     this.currentRow = rowIndexMapper.getVisualFromRenderableIndex(row);
     this.selectedRows = [];
 
-    if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByRowHeader()) {
-      const { from, to } = this.hot.getSelectedRangeLast();
-      let start = from.row;
-      let end = to.row;
+    if (this.hot.selection.isSelected()) {
+      const selRowRange = this.hot.getSelectedRange();
+      for (let key = 0; key < selRowRange.length; key++) {
+        const from = selRowRange[key].getTopLeftCorner();
+        const to = selRowRange[key].getBottomLeftCorner();
 
-      if (start >= end) {
-        start = to.row;
-        end = from.row;
+        let start = from.row;
+        let end = to.row;
+
+        if (start >= end) {
+          start = to.row;
+          end = from.row;
+        }
+        rangeEach(start, end, (i) => {
+          if (!this.selectedRows.includes(i)) {
+            this.selectedRows.push(i);
+          }
+        });
       }
-
-      if (this.currentRow >= start && this.currentRow <= end) {
-        rangeEach(start, end, i => this.selectedRows.push(i));
-
-      } else {
-        this.selectedRows.push(this.currentRow);
-      }
-
+    }
+    if (this.hot.selection.isSelected() && !this.selectedRows.includes(this.currentRow)) {
+      this.selectedRows = [this.currentRow];
     } else {
       this.selectedRows.push(this.currentRow);
     }
@@ -415,6 +420,7 @@ class ManualRowResize extends BasePlugin {
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualRowResizer')) {
+      this.setupHandlePosition(this.currentTH);
       this.setupGuidePosition();
       this.pressed = true;
 

@@ -248,23 +248,28 @@ class ManualColumnResize extends BasePlugin {
     this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
     this.selectedCols = [];
 
-    if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByColumnHeader()) {
-      const { from, to } = this.hot.getSelectedRangeLast();
-      let start = from.col;
-      let end = to.col;
+    if (this.hot.selection.isSelected()) {
+      const selColumnRange = this.hot.getSelectedRange();
+      for (let key = 0; key < selColumnRange.length; key++) {
+        const from = selColumnRange[key].getTopLeftCorner();
+        const to = selColumnRange[key].getBottomRightCorner();
 
-      if (start >= end) {
-        start = to.col;
-        end = from.col;
+        let start = from.col;
+        let end = to.col;
+
+        if (start >= end) {
+          start = to.col;
+          end = from.col;
+        }
+        rangeEach(start, end, (i) => {
+          if (!this.selectedCols.includes(i)) {
+            this.selectedCols.push(i);
+          }
+        });
       }
-
-      if (this.currentCol >= start && this.currentCol <= end) {
-        rangeEach(start, end, i => this.selectedCols.push(i));
-
-      } else {
-        this.selectedCols.push(this.currentCol);
-      }
-
+    }
+    if (this.hot.selection.isSelected() && !this.selectedCols.includes(this.currentCol)) {
+      this.selectedCols = [this.currentCol];
     } else {
       this.selectedCols.push(this.currentCol);
     }
@@ -451,6 +456,7 @@ class ManualColumnResize extends BasePlugin {
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
+      this.setupHandlePosition(this.currentTH);
       this.setupGuidePosition();
       this.pressed = true;
 
