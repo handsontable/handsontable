@@ -158,7 +158,7 @@ class HiddenRows extends BasePlugin {
     let destinationHideConfig = currentHideConfig;
 
     if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(row => rows.includes(row) === false);
+      destinationHideConfig = Array.from(new Set(this.#hiddenRowsMap.getNotHiddenIndexes().concat(rows)));
     }
 
     const continueHiding = this.hot

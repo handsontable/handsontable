@@ -174,7 +174,7 @@ class TrimRows extends BasePlugin {
     let destinationTrimConfig = currentTrimConfig;
 
     if (isValidConfig) {
-      destinationTrimConfig = currentTrimConfig.filter(trimmedRow => rows.includes(trimmedRow) === false);
+      destinationTrimConfig = Array.from(new Set(this.trimmedRowsMap.getNotTrimmedIndexes().concat(rows)));
     }
 
     const allowUntrimRow = this.hot

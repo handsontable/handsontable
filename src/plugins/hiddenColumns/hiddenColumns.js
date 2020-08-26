@@ -157,7 +157,7 @@ class HiddenColumns extends BasePlugin {
     let destinationHideConfig = currentHideConfig;
 
     if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(column => columns.includes(column) === false);
+      destinationHideConfig = Array.from(new Set(this.#hiddenColumnsMap.getNotHiddenIndexes().concat(columns)));
     }
 
     const continueHiding = this.hot
