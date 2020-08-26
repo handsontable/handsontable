@@ -950,13 +950,13 @@ describe('manualColumnResize', () => {
     it('should not resize few columns when selected just single cells before resize action', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
-        rowHeaders: true,
+        colHeaders: true,
         manualColumnResize: true
       });
 
       selectCells([[1, 1, 2, 2]]);
 
-      getLeftClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+      getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
 
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
@@ -964,8 +964,8 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
 
-      expect(colWidth(spec().$container, 1)).toBe(80);
-      expect(colWidth(spec().$container, 2)).toBe(50);
+      expect(colWidth(spec().$container, 1)).toBe(50);
+      expect(colWidth(spec().$container, 2)).toBe(80);
     });
   });
 
