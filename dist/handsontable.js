@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.0.0
- * Release date: 05/08/2020 (built at 05/08/2020 11:25:51)
+ * Release date: 05/08/2020 (built at 26/08/2020 12:26:09)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -42698,7 +42698,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "05/08/2020 11:25:51";
+Handsontable.buildDate = "26/08/2020 12:26:09";
 Handsontable.version = "8.0.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -48650,9 +48650,9 @@ module.exports = __WEBPACK_EXTERNAL_MODULE__366__;
 
 /***/ }),
 /* 367 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-
+// extracted by mini-css-extract-plugin
 
 /***/ }),
 /* 368 */
@@ -69470,6 +69470,13 @@ var ManualColumnResize = /*#__PURE__*/function (_BasePlugin) {
         }
       } else {
         this.selectedCols.push(this.currentCol);
+      }
+
+      if (!relativeHeaderPosition) {
+        relativeHeaderPosition = {
+          top: 0,
+          left: 6
+        };
       }
 
       this.startOffset = relativeHeaderPosition.left - 6;

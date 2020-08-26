@@ -269,6 +269,14 @@ class ManualColumnResize extends BasePlugin {
       this.selectedCols.push(this.currentCol);
     }
 
+    if (!relativeHeaderPosition) {
+      relativeHeaderPosition = {
+        top: 0,
+        left: 6,
+      };
+
+    }
+
     this.startOffset = relativeHeaderPosition.left - 6;
     this.startWidth = parseInt(box.width, 10);
 
