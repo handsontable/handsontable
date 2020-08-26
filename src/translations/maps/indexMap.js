@@ -2,6 +2,7 @@ import { rangeEach } from '../../helpers/number';
 import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import localHooks from '../../mixins/localHooks';
+import { arrayReduce } from '../../helpers/array';
 
 /**
  * Map for storing mappings from an index to a value.
@@ -119,6 +120,23 @@ class IndexMap {
     }
 
     this.runLocalHooks('change');
+  }
+
+  /**
+   * Get indexes basing on searched value in the map.
+   *
+   * @private
+   * @param {boolean} value Searched value in the map.
+   * @returns {Array}
+   */
+  getIndexesByValue(value) {
+    return arrayReduce(this.getValues(), (indexesList, valueInMap, index) => {
+      if (valueInMap === value) {
+        indexesList.push(index);
+      }
+
+      return indexesList;
+    }, []);
   }
 
   /**
