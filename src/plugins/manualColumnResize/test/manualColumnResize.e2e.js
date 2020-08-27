@@ -708,35 +708,30 @@ describe('manualColumnResize', () => {
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should resize all columns after selecting all column headers by clicking at top corner header', () => {
+  it('should resize proper row after resizing element adjacent to a selection', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
       rowHeaders: true,
       colHeaders: true,
       manualColumnResize: true
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    selectColumns(2, 3);
 
-    const $cornerHeader = spec().$container.find('.ht_clone_top_left_corner thead tr:eq(0) th:eq(0)');
-    $cornerHeader.simulate('mousedown');
-    $cornerHeader.simulate('mouseup');
-
-    getTopClone().find('thead tr:eq(0) th:eq(1)').simulate('mouseover');
+    getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
+
     $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
     $resizer.simulate('mouseup');
 
-    expect(colWidth(spec().$container, 0)).toBe(80);
     expect(colWidth(spec().$container, 1)).toBe(80);
-    expect(colWidth(spec().$container, 2)).toBe(80);
+    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 3)).toBe(50);
   });
 
-  it('should resize all columns after selecting all columns by selecting single cell & hitting CTRL+A', () => {
+  it('should resize all columns after resize action when selected all cells', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       rowHeaders: true,
@@ -748,8 +743,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
 
-    selectCell(1, 1);
-    keyDown('ctrl+a');
+    selectAll();
 
     getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
     const $resizer = spec().$container.find('.manualColumnResizer');
@@ -951,6 +945,27 @@ describe('manualColumnResize', () => {
       expect(colWidth(spec().$container, 9)).toBe(50);
       expect(colWidth(spec().$container, 10)).toBe(80);
       expect(colWidth(spec().$container, 11)).toBe(50);
+    });
+
+    it('should not resize few columns when selected just single cells before resize action', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        manualColumnResize: true
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+
+      getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualColumnResizer');
+      const resizerPosition = $resizer.position();
+      $resizer.simulate('mousedown', { clientX: resizerPosition.left });
+      $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
+      $resizer.simulate('mouseup');
+
+      expect(colWidth(spec().$container, 1)).toBe(50);
+      expect(colWidth(spec().$container, 2)).toBe(80);
     });
   });
 
