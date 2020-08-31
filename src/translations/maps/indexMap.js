@@ -2,7 +2,6 @@ import { rangeEach } from '../../helpers/number';
 import { mixin } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import localHooks from '../../mixins/localHooks';
-import { arrayReduce } from '../../helpers/array';
 
 /**
  * Map for storing mappings from an index to a value.
