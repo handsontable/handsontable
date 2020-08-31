@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { TrimmingMap } from '../../translations';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayReduce } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
@@ -172,9 +172,23 @@ class TrimRows extends BasePlugin {
     const currentTrimConfig = this.getTrimmedRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
+    const trimmingMapValues = this.trimmedRowsMap.getValues();
+    const isUntrimmed = rows.length > 0;
 
-    if (isValidConfig) {
-      destinationTrimConfig = Array.from(new Set(this.trimmedRowsMap.getNotTrimmedIndexes().concat(rows)));
+    if (isValidConfig && isUntrimmed) {
+      // Preparing new values for trimming map.
+      arrayEach(rows, (physicalRow) => {
+        trimmingMapValues[physicalRow] = false;
+      });
+
+      // Preparing new trim config.
+      destinationTrimConfig = arrayReduce(trimmingMapValues, (trimmedIndexes, isTrimmed, physicalIndex) => {
+        if (isTrimmed) {
+          trimmingMapValues.concat(physicalIndex);
+        }
+
+        return trimmedIndexes;
+      }, []);
     }
 
     const allowUntrimRow = this.hot
@@ -184,12 +198,8 @@ class TrimRows extends BasePlugin {
       return;
     }
 
-    if (isValidConfig) {
-      this.hot.batch(() => {
-        arrayEach(rows, (physicalRow) => {
-          this.trimmedRowsMap.setValueAtIndex(physicalRow, false);
-        });
-      });
+    if (isValidConfig && isUntrimmed) {
+      this.trimmedRowsMap.setValues(trimmingMapValues);
     }
 
     this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,

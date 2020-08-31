@@ -1,4 +1,5 @@
 import PhysicalIndexToValueMap from './physicalIndexToValueMap';
+import { arrayReduce } from '../../helpers/array';
 
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
@@ -17,16 +18,13 @@ class HidingMap extends PhysicalIndexToValueMap {
    * @returns {Array}
    */
   getHiddenIndexes() {
-    return this.getIndexesByValue(true);
-  }
+    return arrayReduce(this.getValues(), (indexesList, isHidden, physicalIndex) => {
+      if (isHidden) {
+        indexesList.push(physicalIndex);
+      }
 
-  /**
-   * Get physical indexes which are NOT hidden.
-   *
-   * @returns {Array}
-   */
-  getNotHiddenIndexes() {
-    return this.getIndexesByValue(false);
+      return indexesList;
+    }, []);
   }
 }
 

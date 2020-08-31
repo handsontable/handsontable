@@ -123,23 +123,6 @@ class IndexMap {
   }
 
   /**
-   * Get indexes basing on searched value in the map.
-   *
-   * @private
-   * @param {boolean} value Searched value in the map.
-   * @returns {Array}
-   */
-  getIndexesByValue(value) {
-    return arrayReduce(this.getValues(), (indexesList, valueInMap, index) => {
-      if (valueInMap === value) {
-        indexesList.push(index);
-      }
-
-      return indexesList;
-    }, []);
-  }
-
-  /**
    * Initialize list with default values for particular indexes.
    *
    * @private

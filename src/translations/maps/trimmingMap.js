@@ -1,4 +1,5 @@
 import PhysicalIndexToValueMap from './physicalIndexToValueMap';
+import { arrayReduce } from '../../helpers/array';
 
 /**
  * Map for storing mappings from an physical index to a boolean value. It stores information whether physical index is
@@ -17,16 +18,13 @@ class TrimmingMap extends PhysicalIndexToValueMap {
    * @returns {Array}
    */
   getTrimmedIndexes() {
-    return this.getIndexesByValue(true);
-  }
+    return arrayReduce(this.getValues(), (indexesList, isTrimmed, physicalIndex) => {
+      if (isTrimmed) {
+        indexesList.push(physicalIndex);
+      }
 
-  /**
-   * Get physical indexes which are NOT trimmed.
-   *
-   * @returns {Array}
-   */
-  getNotTrimmedIndexes() {
-    return this.getIndexesByValue(false);
+      return indexesList;
+    }, []);
   }
 }
 
