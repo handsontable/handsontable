@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import {arrayEach, arrayMap, arrayReduce} from '../../helpers/array';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -156,9 +156,9 @@ class HiddenColumns extends BasePlugin {
     const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
     const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
-    const isShowed = columns.length > 0;
+    const isAnyColumnShowed = columns.length > 0;
 
-    if (isValidConfig && isShowed) {
+    if (isValidConfig && isAnyColumnShowed) {
       const physicalColumns = columns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
 
       // Preparing new values for hiding map.
@@ -177,18 +177,18 @@ class HiddenColumns extends BasePlugin {
     }
 
     const continueHiding = this.hot
-      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isShowed);
+      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isAnyColumnShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isValidConfig && isShowed) {
+    if (isValidConfig && isAnyColumnShowed) {
       this.#hiddenColumnsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isShowed,
-      isValidConfig && destinationHideConfig.length < currentHideConfig.length);
+    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
+      isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**

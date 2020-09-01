@@ -173,9 +173,9 @@ class TrimRows extends BasePlugin {
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
     const trimmingMapValues = this.trimmedRowsMap.getValues().slice();
-    const isUntrimmed = rows.length > 0;
+    const isAnyRowUntrimmed = rows.length > 0;
 
-    if (isValidConfig && isUntrimmed) {
+    if (isValidConfig && isAnyRowUntrimmed) {
       // Preparing new values for trimming map.
       arrayEach(rows, (physicalRow) => {
         trimmingMapValues[physicalRow] = false;
@@ -192,17 +192,17 @@ class TrimRows extends BasePlugin {
     }
 
     const allowUntrimRow = this.hot
-      .runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isUntrimmed);
+      .runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isAnyRowUntrimmed);
 
     if (allowUntrimRow === false) {
       return;
     }
 
-    if (isValidConfig && isUntrimmed) {
+    if (isValidConfig && isAnyRowUntrimmed) {
       this.trimmedRowsMap.setValues(trimmingMapValues);
     }
 
-    this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isUntrimmed,
+    this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isAnyRowUntrimmed,
       isValidConfig && destinationTrimConfig.length < currentTrimConfig.length);
   }
 

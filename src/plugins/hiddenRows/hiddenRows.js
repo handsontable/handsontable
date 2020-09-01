@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import {arrayEach, arrayMap, arrayReduce} from '../../helpers/array';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -157,9 +157,9 @@ class HiddenRows extends BasePlugin {
     const isValidConfig = this.isValidConfig(rows);
     let destinationHideConfig = currentHideConfig;
     const hidingMapValues = this.#hiddenRowsMap.getValues().slice();
-    const isShowed = rows.length > 0;
+    const isAnyRowShowed = rows.length > 0;
 
-    if (isValidConfig && isShowed) {
+    if (isValidConfig && isAnyRowShowed) {
       const physicalRows = rows.map(visualRow => this.hot.toPhysicalRow(visualRow));
 
       // Preparing new values for hiding map.
@@ -178,17 +178,17 @@ class HiddenRows extends BasePlugin {
     }
 
     const continueHiding = this.hot
-      .runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isShowed);
+      .runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isValidConfig && isShowed) {
+    if (isValidConfig && isAnyRowShowed) {
       this.#hiddenRowsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isShowed,
+    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed,
       isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
