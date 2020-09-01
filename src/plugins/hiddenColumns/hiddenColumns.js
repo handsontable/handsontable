@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayMap } from '../../helpers/array';
+import {arrayEach, arrayMap, arrayReduce} from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -153,30 +153,42 @@ class HiddenColumns extends BasePlugin {
    */
   showColumns(columns) {
     const currentHideConfig = this.getHiddenColumns();
-    const isConfigValid = this.isValidConfig(columns);
+    const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
+    const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
+    const isShowed = columns.length > 0;
 
-    if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(column => columns.includes(column) === false);
+    if (isValidConfig && isShowed) {
+      const physicalColumns = columns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
+
+      // Preparing new values for hiding map.
+      arrayEach(physicalColumns, (physicalColumn) => {
+        hidingMapValues[physicalColumn] = false;
+      });
+
+      // Preparing new hiding config.
+      destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
+        if (isHidden) {
+          hiddenIndexes.concat(this.hot.toVisualColumn(physicalIndex));
+        }
+
+        return hiddenIndexes;
+      }, []);
     }
 
     const continueHiding = this.hot
-      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
+      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isConfigValid) {
-      this.hot.batch(() => {
-        arrayEach(columns, (visualColumn) => {
-          this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
-        });
-      });
+    if (isValidConfig && isShowed) {
+      this.#hiddenColumnsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
-      isConfigValid && destinationHideConfig.length < currentHideConfig.length);
+    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isShowed,
+      isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
