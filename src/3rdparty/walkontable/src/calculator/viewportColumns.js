@@ -125,7 +125,7 @@ class ViewportColumnsCalculator {
       if (calculationType !== FULLY_VISIBLE_TYPE) {
         this.endColumn = i;
       }
-      if (sum >= scrollOffset + viewportWidth) {
+      if (sum > scrollOffset + viewportWidth) {
         needReverse = false;
         break;
       }
