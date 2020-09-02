@@ -58,15 +58,14 @@ describe('HiddenColumns', () => {
           },
         });
 
-        const hot = spec().$container.handsontable('getInstance');
-        const initialHiderWidth = $(hot.view.wt.wtTable.hider).width();
+        const initialHiderWidth = $(hot().view.wt.wtTable.hider).width();
 
         getPlugin('hiddenColumns').hideColumns([2, 3, 4, 5]);
         render();
         getPlugin('hiddenColumns').showColumns([2, 3, 4, 5]);
         render();
 
-        expect($(hot.view.wt.wtTable.hider).width()).toEqual(initialHiderWidth);
+        expect($(hot().view.wt.wtTable.hider).width()).toEqual(initialHiderWidth);
       });
     });
 
