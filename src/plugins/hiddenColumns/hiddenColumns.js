@@ -169,7 +169,7 @@ class HiddenColumns extends BasePlugin {
       // Preparing new hiding config.
       destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
         if (isHidden) {
-          return hiddenIndexes.concat(this.hot.toVisualColumn(physicalIndex));
+          hiddenIndexes.push(this.hot.toVisualColumn(physicalIndex));
         }
 
         return hiddenIndexes;
