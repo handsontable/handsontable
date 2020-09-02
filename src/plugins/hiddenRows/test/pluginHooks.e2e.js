@@ -19,13 +19,15 @@ describe('HiddenRows', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          hiddenRows: true,
+          hiddenRows: {
+            rows: [0],
+          },
           beforeHideRows,
         });
 
         getPlugin('hiddenRows').hideRow(2);
 
-        expect(beforeHideRows).toHaveBeenCalledWith([], [2], true, void 0, void 0, void 0);
+        expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2], true, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeHideRows` hook before hiding multiple rows by plugin API', () => {
@@ -33,13 +35,15 @@ describe('HiddenRows', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          hiddenRows: true,
+          hiddenRows: {
+            rows: [0],
+          },
           beforeHideRows,
         });
 
         getPlugin('hiddenRows').hideRows([2, 3, 4]);
 
-        expect(beforeHideRows).toHaveBeenCalledWith([], [2, 3, 4], true, void 0, void 0, void 0);
+        expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2, 3, 4], true, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the hiding action by returning `false` from the `beforeHideRows` hook', () => {
@@ -217,14 +221,14 @@ describe('HiddenRows', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           hiddenRows: {
-            rows: [2]
+            rows: [0, 2]
           },
           beforeUnhideRows,
         });
 
         getPlugin('hiddenRows').showRow(2);
 
-        expect(beforeUnhideRows).toHaveBeenCalledWith([2], [], true, void 0, void 0, void 0);
+        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2], [0], true, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeUnhideRows` hook before unhiding the multiple, previously hidden rows ', () => {
@@ -233,14 +237,14 @@ describe('HiddenRows', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           hiddenRows: {
-            rows: [2, 3, 4]
+            rows: [0, 2, 3, 4]
           },
           beforeUnhideRows,
         });
 
         getPlugin('hiddenRows').showRows([2, 3, 4]);
 
-        expect(beforeUnhideRows).toHaveBeenCalledWith([2, 3, 4], [], true, void 0, void 0, void 0);
+        expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2, 3, 4], [0], true, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the unhiding action by returning `false` from the `beforeUnhideRows` hook', () => {
