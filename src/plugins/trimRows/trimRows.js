@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { registerPlugin } from '../../plugins';
 import { TrimmingMap } from '../../translations';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayReduce } from '../../helpers/array';
 
 /**
  * @plugin TrimRows
@@ -172,27 +172,37 @@ class TrimRows extends BasePlugin {
     const currentTrimConfig = this.getTrimmedRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationTrimConfig = currentTrimConfig;
+    const trimmingMapValues = this.trimmedRowsMap.getValues().slice();
+    const isAnyRowUntrimmed = rows.length > 0;
 
-    if (isValidConfig) {
-      destinationTrimConfig = currentTrimConfig.filter(trimmedRow => rows.includes(trimmedRow) === false);
+    if (isValidConfig && isAnyRowUntrimmed) {
+      // Preparing new values for trimming map.
+      arrayEach(rows, (physicalRow) => {
+        trimmingMapValues[physicalRow] = false;
+      });
+
+      // Preparing new trimming config.
+      destinationTrimConfig = arrayReduce(trimmingMapValues, (trimmedIndexes, isTrimmed, physicalIndex) => {
+        if (isTrimmed) {
+          trimmedIndexes.push(physicalIndex);
+        }
+
+        return trimmedIndexes;
+      }, []);
     }
 
     const allowUntrimRow = this.hot
-      .runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig);
+      .runHooks('beforeUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isAnyRowUntrimmed);
 
     if (allowUntrimRow === false) {
       return;
     }
 
-    if (isValidConfig) {
-      this.hot.batch(() => {
-        arrayEach(rows, (physicalRow) => {
-          this.trimmedRowsMap.setValueAtIndex(physicalRow, false);
-        });
-      });
+    if (isValidConfig && isAnyRowUntrimmed) {
+      this.trimmedRowsMap.setValues(trimmingMapValues);
     }
 
-    this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
+    this.hot.runHooks('afterUntrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig && isAnyRowUntrimmed,
       isValidConfig && destinationTrimConfig.length < currentTrimConfig.length);
   }
 

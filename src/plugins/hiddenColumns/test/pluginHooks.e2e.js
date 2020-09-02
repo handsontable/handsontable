@@ -19,13 +19,15 @@ describe('HiddenColumns', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          hiddenColumns: true,
+          hiddenColumns: {
+            columns: [0],
+          },
           beforeHideColumns: beforeHideColumnsHookCallback
         });
 
         getPlugin('hiddenColumns').hideColumn(2);
 
-        expect(beforeHideColumnsHookCallback).toHaveBeenCalledWith([], [2], true, void 0, void 0, void 0);
+        expect(beforeHideColumnsHookCallback).toHaveBeenCalledWith([0], [0, 2], true, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeHideColumns` hook before hiding multiple columns by plugin API', () => {
@@ -33,13 +35,15 @@ describe('HiddenColumns', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          hiddenColumns: true,
+          hiddenColumns: {
+            columns: [0],
+          },
           beforeHideColumns: beforeHideColumnsHookCallback
         });
 
         getPlugin('hiddenColumns').hideColumns([2, 3, 4]);
 
-        expect(beforeHideColumnsHookCallback).toHaveBeenCalledWith([], [2, 3, 4], true, void 0, void 0, void 0);
+        expect(beforeHideColumnsHookCallback).toHaveBeenCalledWith([0], [0, 2, 3, 4], true, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the hiding action by returning `false` from the `beforeHideColumns` hook', () => {
@@ -215,14 +219,14 @@ describe('HiddenColumns', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           hiddenColumns: {
-            columns: [2]
+            columns: [0, 2]
           },
           beforeUnhideColumns: beforeUnhideColumnsHookCallback
         });
 
         getPlugin('hiddenColumns').showColumn(2);
 
-        expect(beforeUnhideColumnsHookCallback).toHaveBeenCalledWith([2], [], true, void 0, void 0, void 0);
+        expect(beforeUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 2], [0], true, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeUnhideColumns` hook before unhiding the multiple, previously hidden columns ', () => {
@@ -231,14 +235,14 @@ describe('HiddenColumns', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
           hiddenColumns: {
-            columns: [2, 3, 4]
+            columns: [0, 2, 3, 4]
           },
           beforeUnhideColumns: beforeUnhideColumnsHookCallback
         });
 
         getPlugin('hiddenColumns').showColumns([2, 3, 4]);
 
-        expect(beforeUnhideColumnsHookCallback).toHaveBeenCalledWith([2, 3, 4], [], true, void 0, void 0, void 0);
+        expect(beforeUnhideColumnsHookCallback).toHaveBeenCalledWith([0, 2, 3, 4], [0], true, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the unhiding action by returning `false` from the `beforeUnhideColumns` hook', () => {

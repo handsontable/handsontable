@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)
+- Improved performance for TrimRows, HiddenRows and HiddenColumns plugins for big datasets with lots trimmed/hidden indexes [#7223](https://github.com/handsontable/handsontable/pull/7223)
 
 ## [8.0.0] - 2020-08-05
 
