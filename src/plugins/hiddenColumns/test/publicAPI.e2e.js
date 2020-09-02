@@ -27,7 +27,9 @@ describe('HiddenColumns', () => {
 
         expect(getCell(0, 1)).toBe(null);
       });
+    });
 
+    describe('showColumn()', () => {
       it('should show column by passing the visual column index', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(1, 3),
@@ -42,6 +44,28 @@ describe('HiddenColumns', () => {
         render();
 
         expect(getCell(0, 1).innerText).toBe('B1');
+      });
+    });
+
+    describe('showColumns', () => {
+      it('should update the table width, when calling `showColumns` after running `hideColumns` beforehand', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 7),
+          colHeaders: true,
+          rowHeaders: true,
+          hiddenColumns: {
+            columns: [],
+          },
+        });
+
+        const initialHiderWidth = $(hot().view.wt.wtTable.hider).width();
+
+        getPlugin('hiddenColumns').hideColumns([2, 3, 4, 5]);
+        render();
+        getPlugin('hiddenColumns').showColumns([2, 3, 4, 5]);
+        render();
+
+        expect($(hot().view.wt.wtTable.hider).width()).toEqual(initialHiderWidth);
       });
     });
 

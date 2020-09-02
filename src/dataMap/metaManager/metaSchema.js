@@ -1355,7 +1355,7 @@ export default () => {
 
     /**
      * @description
-     * Makes cell [read only](https://docs.handsontable.com/demo-read-only.html).
+     * Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
      *
      * @memberof Options#
      * @type {boolean}
@@ -1363,7 +1363,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set cell as read only
+     * // set as read only
      * readOnly: true,
      * ```
      */
