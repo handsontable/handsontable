@@ -1539,8 +1539,14 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired after initializing all the plugins.
+   * This hook should be added before Handsontable is initialized.
    *
    * @event Hooks#afterPluginsInitialized
+   *
+   * @example
+   * ```js
+   * Handsontable.hooks.add('afterPluginsInitialized', myCallback);
+   * ```
    */
   'afterPluginsInitialized',
 

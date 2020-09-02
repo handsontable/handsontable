@@ -58,7 +58,7 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   page.setCacheEnabled(false);
   page.setViewport({
     width: 1200,
-    height: 1000,
+    height: 1200,
   });
 
   const server = http.createServer(ecstatic({
