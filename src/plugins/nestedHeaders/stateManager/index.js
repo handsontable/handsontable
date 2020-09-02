@@ -192,6 +192,7 @@ export default class StateManager {
   /**
    * @memberof StateManager#
    * @function rowCoordsToLevel
+   *
    * Translates row coordinates into header level. The row coordinates counts from -1 to -N
    * and describes headers counting from most closest to most distant from the table.
    * The header levels are counted from 0 to N where 0 describes most distant header

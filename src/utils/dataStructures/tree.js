@@ -137,6 +137,7 @@ export default class TreeNode {
   /**
    * @memberof TreeNode#
    * @function cloneTree
+   *
    * Clones a tree structure deeply.
    *
    * For example, for giving a tree structure:
