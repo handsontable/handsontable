@@ -2037,6 +2037,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (!init) {
       if (instance.view) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+        instance.view.wt.exportSettingsAsClassNames();
       }
 
       instance.runHooks('afterUpdateSettings', settings);

@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ://github.com/handsontable/handsontable/pull/7162)
 - Fixed an issue where the column headers were cut off after hiding and then showing columns using the Hidden Columns
  plugin. [#6395](https://github.com/handsontable/handsontable/issues/6395)
+- Fixed an issue where the rows were missing their left border after disabling the row headers using `updateSettings
+`, while there were `fixedColumnsLeft` defined. [#5735](https://github.com/handsontable/handsontable/issues/5735)
 
 ### Changed
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)
