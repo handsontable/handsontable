@@ -135,7 +135,7 @@ export default class TreeNode {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
-   * @class TreeNode#
+   * @memberof TreeNode#
    * @function cloneTree
    * Clones a tree structure deeply.
    *
