@@ -184,7 +184,7 @@ class TrimRows extends BasePlugin {
       // Preparing new trimming config.
       destinationTrimConfig = arrayReduce(trimmingMapValues, (trimmedIndexes, isTrimmed, physicalIndex) => {
         if (isTrimmed) {
-          trimmingMapValues.concat(physicalIndex);
+          return trimmedIndexes.concat(physicalIndex);
         }
 
         return trimmedIndexes;

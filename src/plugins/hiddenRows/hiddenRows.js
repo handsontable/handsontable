@@ -170,7 +170,7 @@ class HiddenRows extends BasePlugin {
       // Preparing new hiding config.
       destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
         if (isHidden) {
-          hiddenIndexes.concat(this.hot.toVisualRow(physicalIndex));
+          return hiddenIndexes.concat(this.hot.toVisualRow(physicalIndex));
         }
 
         return hiddenIndexes;
