@@ -387,35 +387,38 @@ class CopyPaste extends BasePlugin {
 
     const populatedRowsLength = inputArray.length;
     const populatedColumnsLength = inputArray[0].length;
-    const newValues = [];
+    const newRows = [];
 
     const { row: startRow, col: startColumn } = selection.getTopLeftCorner();
-    const { row: endRowBySelection, col: endColumnBySelection } = selection.getBottomRightCorner();
+    const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomRightCorner();
 
     let visualRowForPopulatedData = startRow;
     let visualColumnForPopulatedData = startColumn;
     let lastVisualRow = startRow;
     let lastVisualColumn = startColumn;
 
-    while (newValues.length < populatedRowsLength || visualRowForPopulatedData <= endRowBySelection) {
+    // We try to populate just all copied data or repeat copied data within a selection. Please keep in mind that we
+    // don't know whether populated data is bigger than selection on start as there are some cells for which values
+    // should be not inserted (it's known right after getting cell meta).
+    while (newRows.length < populatedRowsLength || visualRowForPopulatedData <= endRowFromSelection) {
       const { skipRowOnPaste, visualRow } = this.hot.getCellMeta(visualRowForPopulatedData, startColumn);
 
-      lastVisualRow = visualRow;
       visualRowForPopulatedData = visualRow + 1;
-      visualColumnForPopulatedData = startColumn;
 
       if (skipRowOnPaste === true) {
         /* eslint-disable no-continue */
         continue;
       }
 
-      const newRow = [];
-      const insertedRow = newValues.length % populatedRowsLength;
+      lastVisualRow = visualRow;
+      visualColumnForPopulatedData = startColumn;
 
-      while (newRow.length < populatedColumnsLength || visualColumnForPopulatedData <= endColumnBySelection) {
+      const newRow = [];
+      const insertedRow = newRows.length % populatedRowsLength;
+
+      while (newRow.length < populatedColumnsLength || visualColumnForPopulatedData <= endColumnFromSelection) {
         const { skipColumnOnPaste, visualCol } = this.hot.getCellMeta(startRow, visualColumnForPopulatedData);
 
-        lastVisualColumn = visualCol;
         visualColumnForPopulatedData = visualCol + 1;
 
         if (skipColumnOnPaste === true) {
@@ -423,15 +426,16 @@ class CopyPaste extends BasePlugin {
           continue;
         }
 
+        lastVisualColumn = visualCol;
         const insertedColumn = newRow.length % populatedColumnsLength;
 
         newRow.push(inputArray[insertedRow][insertedColumn]);
       }
 
-      newValues.push(newRow);
+      newRows.push(newRow);
     }
 
-    this.hot.populateFromArray(startRow, startColumn, newValues, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
+    this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
 
     return [startRow, startColumn, lastVisualRow, lastVisualColumn];
   }
