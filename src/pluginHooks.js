@@ -877,6 +877,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRender
    * @param {boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
    *                           rendering was triggered by scrolling or moving selection.
+   * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
   'beforeRender',
 
