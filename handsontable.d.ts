@@ -404,14 +404,14 @@ declare namespace Handsontable {
   namespace plugins {
     // utils for Filters
     namespace FiltersPlugin {
-      type OperationType = 'conjunction' | 'disjunction' | undefined;
+      type OperationType = 'conjunction' | 'disjunction';
       type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' | 'ends_with' | 'eq' | 'gt' |
         'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' | 'not_empty' | 'neq';
 
       type ColumnConditions = {
         column: number;
         conditions: Handsontable.plugins.FiltersPlugin.ConditionId[];
-        operation: Handsontable.plugins.FiltersPlugin.OperationType;
+        operation?: Handsontable.plugins.FiltersPlugin.OperationType;
       }
 
       interface ConditionId {
