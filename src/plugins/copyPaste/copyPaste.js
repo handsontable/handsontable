@@ -385,54 +385,55 @@ class CopyPaste extends BasePlugin {
       return;
     }
 
-    const newValuesMaxRow = inputArray.length - 1;
-    const newValuesMaxColumn = inputArray[0].length - 1;
+    const populatedRowsLength = inputArray.length;
+    const populatedColumnsLength = inputArray[0].length;
     const newValues = [];
 
     const { row: startRow, col: startColumn } = selection.getTopLeftCorner();
-    let { row: endRow, col: endColumn } = selection.getBottomRightCorner();
+    const { row: endRowBySelection, col: endColumnBySelection } = selection.getBottomRightCorner();
 
-    endRow = Math.max(endRow, newValuesMaxRow + startRow);
-    endColumn = Math.max(endColumn, newValuesMaxColumn + startColumn);
+    let visualRowForPopulatedData = startRow;
+    let visualColumnForPopulatedData = startColumn;
+    let lastVisualRow = startRow;
+    let lastVisualColumn = startColumn;
 
-    let selectionEndColumn = endColumn;
-    let selectionEndRow = endRow;
+    while (newValues.length < populatedRowsLength || visualRowForPopulatedData <= endRowBySelection) {
+      const { skipRowOnPaste, visualRow } = this.hot.getCellMeta(visualRowForPopulatedData, startColumn);
 
-    for (let row = startRow, maxRow = endRow, valuesRow = 0; row <= maxRow; row += 1) {
-      const { skipRowOnPaste } = this.hot.getCellMeta(row, startColumn);
+      lastVisualRow = visualRow;
+      visualRowForPopulatedData = visualRow + 1;
+      visualColumnForPopulatedData = startColumn;
 
       if (skipRowOnPaste === true) {
-        maxRow += 1;
-        selectionEndRow = maxRow;
         /* eslint-disable no-continue */
         continue;
       }
 
       const newRow = [];
+      const insertedRow = newValues.length % populatedRowsLength;
 
-      for (let column = startColumn, maxColumn = endColumn, valuesColumn = 0; column <= maxColumn; column += 1) {
-        const { skipColumnOnPaste } = this.hot.getCellMeta(row, column);
+      while (newRow.length < populatedColumnsLength || visualColumnForPopulatedData <= endColumnBySelection) {
+        const { skipColumnOnPaste, visualCol } = this.hot.getCellMeta(startRow, visualColumnForPopulatedData);
+
+        lastVisualColumn = visualCol;
+        visualColumnForPopulatedData = visualCol + 1;
 
         if (skipColumnOnPaste === true) {
-          maxColumn += 1;
-          selectionEndColumn = maxColumn;
           /* eslint-disable no-continue */
           continue;
         }
 
-        newRow.push(inputArray[valuesRow][valuesColumn]);
+        const insertedColumn = newRow.length % populatedColumnsLength;
 
-        valuesColumn = valuesColumn === newValuesMaxColumn ? 0 : valuesColumn += 1;
+        newRow.push(inputArray[insertedRow][insertedColumn]);
       }
 
       newValues.push(newRow);
-
-      valuesRow = valuesRow === newValuesMaxRow ? 0 : valuesRow += 1;
     }
 
     this.hot.populateFromArray(startRow, startColumn, newValues, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
 
-    return [startRow, startColumn, selectionEndRow, selectionEndColumn];
+    return [startRow, startColumn, lastVisualRow, lastVisualColumn];
   }
 
   /**
