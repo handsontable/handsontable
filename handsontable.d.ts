@@ -404,7 +404,7 @@ declare namespace Handsontable {
   namespace plugins {
     // utils for Filters
     namespace FiltersPlugin {
-      type OperationType = 'conjunction' | 'disjunction';
+      type OperationType = 'conjunction' | 'disjunction' | undefined;
       type ConditionName = 'begins_with' | 'between' | 'by_value' | 'contains' | 'empty' | 'ends_with' | 'eq' | 'gt' |
         'gte' | 'lt' | 'lte' | 'not_between' | 'not_contains' | 'not_empty' | 'neq';
 
