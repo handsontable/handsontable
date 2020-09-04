@@ -2259,7 +2259,8 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`.
+     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`,
+     * meaning, the `syncLimit` is set to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
      *
      * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
@@ -2292,6 +2293,8 @@ export default () => {
      * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
      * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
      *
+     * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
+     *
      * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
      * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
      * operations don't block the browser UI.
@@ -2300,7 +2303,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|boolean}
-     * @default {syncLimit: 500}
+     * @default undefined
      *
      * @example
      * ```js

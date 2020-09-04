@@ -3,6 +3,8 @@ import { assert, isUnsignedNumber, isNullish } from './utils';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class LazyFactoryMap
+ *
  * The LazyFactoryMap object holds key-value pairs in the structure similar to the
  * regular Map. Once created, items can be moved around a grid depending on the operations
  * performed on that grid - adding or removing rows. The collection requires "key"
