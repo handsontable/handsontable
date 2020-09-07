@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where after selecting the top-left element the row range resizing was not possible [#7162](https://github.com/handsontable/handsontable/pull/7162)
 - Fixed an issue where the column headers were cut off after hiding and then showing columns using the Hidden Columns plugin. [#6395](https://github.com/handsontable/handsontable/issues/6395)
 - Fixed an issue where redundant row has been added during copy/paste operations in some case [#5961](https://github.com/handsontable/handsontable/issues/5961)
+- Fixed a bug, where trying to move collapsed parent rows with the Nested Rows plugin enabled threw an error. [#7132](https://github.com/handsontable/handsontable/issues/7132)
 
 ### Changed
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)
