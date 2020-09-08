@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -154,30 +154,42 @@ class HiddenRows extends BasePlugin {
    */
   showRows(rows) {
     const currentHideConfig = this.getHiddenRows();
-    const isConfigValid = this.isValidConfig(rows);
+    const isValidConfig = this.isValidConfig(rows);
     let destinationHideConfig = currentHideConfig;
+    const hidingMapValues = this.#hiddenRowsMap.getValues().slice();
+    const isAnyRowShowed = rows.length > 0;
 
-    if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(row => rows.includes(row) === false);
+    if (isValidConfig && isAnyRowShowed) {
+      const physicalRows = rows.map(visualRow => this.hot.toPhysicalRow(visualRow));
+
+      // Preparing new values for hiding map.
+      arrayEach(physicalRows, (physicalRow) => {
+        hidingMapValues[physicalRow] = false;
+      });
+
+      // Preparing new hiding config.
+      destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
+        if (isHidden) {
+          hiddenIndexes.push(this.hot.toVisualRow(physicalIndex));
+        }
+
+        return hiddenIndexes;
+      }, []);
     }
 
     const continueHiding = this.hot
-      .runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isConfigValid);
+      .runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isConfigValid) {
-      this.hot.batch(() => {
-        arrayEach(rows, (visualRow) => {
-          this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), false);
-        });
-      });
+    if (isValidConfig && isAnyRowShowed) {
+      this.#hiddenRowsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isConfigValid,
-      isConfigValid && destinationHideConfig.length < currentHideConfig.length);
+    this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed,
+      isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**

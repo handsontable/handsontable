@@ -12,6 +12,8 @@ export default class NodeModifiers {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
+   * @memberof NodeModifiers#
+   * @function collapseNode
    * Collapsing a node is a process where the processing node is collapsed
    * to the colspan width of the first child. All node children, except the
    * first one, are hidden. To prevent losing a current state of node children
@@ -102,6 +104,8 @@ export default class NodeModifiers {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
+   * @memberof NodeModifiers#
+   * @function expandNode
    * Expanding a node is a process where the processing node is expanded to
    * its original colspan width. To restore an original state of all node
    * children on the right, the modified nodes are replaced with the cloned
