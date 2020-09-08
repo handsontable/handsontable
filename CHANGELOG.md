@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where if the first part of the merged area was hidden the value did not show [#6871](https://github.com/handsontable/handsontable/issues/6871) along with refactor and bug fix introduced within #6871 PR [#7220](https://github.com/handsontable/handsontable/pull/7220)
 - Fixed an issue where after selecting the top-left element the row range resizing was not possible [#7162](https://github.com/handsontable/handsontable/pull/7162)
 - Fixed an issue where the column headers were cut off after hiding and then showing columns using the Hidden Columns plugin. [#6395](https://github.com/handsontable/handsontable/issues/6395)
+- Fixed an issue where redundant row has been added during copy/paste operations in some case [#5961](https://github.com/handsontable/handsontable/issues/5961)
+- Fixed an issue where too many values have been pasted when column was hidden [#6743](https://github.com/handsontable/handsontable/issues/6743)
 - Fixed a bug, where trying to move collapsed parent rows with the Nested Rows plugin enabled threw an error. [#7132](https://github.com/handsontable/handsontable/issues/7132)
 
 ### Changed
