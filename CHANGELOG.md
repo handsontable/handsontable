@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where redundant row has been added during copy/paste operations in some case [#5961](https://github.com/handsontable/handsontable/issues/5961)
 - Fixed an issue where too many values have been pasted when column was hidden [#6743](https://github.com/handsontable/handsontable/issues/6743)
 - Fixed a bug, where trying to move collapsed parent rows with the Nested Rows plugin enabled threw an error. [#7132](https://github.com/handsontable/handsontable/issues/7132)
+- Fixed an issue where the rows were missing their left border after disabling the row headers using `updateSettings`, while there were `fixedColumnsLeft` defined. [#5735](https://github.com/handsontable/handsontable/issues/5735)
 
 ### Changed
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)
