@@ -167,7 +167,7 @@ class NestedRows extends BasePlugin {
     for (i = 0; i < rowsLen; i++) {
       const rowIndex = rows[i];
       const translatedStartIndex = this.dataManager.translateTrimmedRow(rowIndex);
-      
+
       translatedStartIndexes.push(translatedStartIndex);
 
       if (this.dataManager.isParent(translatedStartIndex) || this.dataManager.isRowHighestLevel(translatedStartIndex)) {
