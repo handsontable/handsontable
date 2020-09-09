@@ -226,6 +226,30 @@ describe('ColHeader', () => {
 
   });
 
+  it('should remove the column-headers-related css class from the Handsontable container after disabling the' +
+    ' `colHeaders` option using the updateSettings method and add the same css class after re-enabling the option in' +
+    ' the same way', () => {
+    handsontable({
+      startCols: 2,
+      startRows: 2,
+      colHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htColumnHeaders');
+
+    hot().updateSettings({
+      colHeaders: false
+    });
+
+    expect(hot().rootElement.className).not.toContain('htColumnHeaders');
+
+    hot().updateSettings({
+      colHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htColumnHeaders');
+  });
+
   it('should be possible to define colHeaders with a function', () => {
     handsontable({
       startCols: 2,
