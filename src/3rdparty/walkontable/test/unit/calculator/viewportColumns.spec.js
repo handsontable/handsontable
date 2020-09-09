@@ -465,4 +465,20 @@ describe('ViewportColumnsCalculator', () => {
     expect(partiallyVisibleCalc.startColumn).toBe(0);
     expect(partiallyVisibleCalc.endColumn).toBe(3);
   });
+
+  it('should render 2 columns when handsontable cell type is set on first column', () => {
+    const options = {
+      viewportSize: 50,
+      scrollOffset: 0,
+      totalItems: 2,
+      itemSizeFn: () => 50,
+      overrideFn: void 0,
+      stretchMode: 'none',
+      stretchingItemWidthFn: void 0,
+    };
+    const renderedCalc = new ViewportColumnsCalculator({ ...options, calculationType: RENDER_TYPE });
+    expect(renderedCalc.startColumn).toBe(0);
+    expect(renderedCalc.endColumn).toBe(1);
+    expect(renderedCalc.count).toBe(2);
+  });
 });
