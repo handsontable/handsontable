@@ -194,6 +194,7 @@ class AutoColumnSize extends BasePlugin {
     if (changedColumns.length) {
       this.clearCache(changedColumns);
     }
+
     super.updatePlugin();
   }
 
@@ -454,8 +455,9 @@ class AutoColumnSize extends BasePlugin {
     const columnHeaders = this.hot.getColHeader();
     const { cachedColumnHeaders } = privatePool.get(this);
 
-    const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
+    const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, visualColumn) => {
       const cachedColumnsLength = cachedColumnHeaders.length;
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
       if (cachedColumnsLength - 1 < physicalColumn || cachedColumnHeaders[physicalColumn] !== columnTitle) {
         acc.push(physicalColumn);
@@ -506,8 +508,8 @@ class AutoColumnSize extends BasePlugin {
    *
    * @private
    */
-  onBeforeRender() {
-    const force = this.hot.renderCall;
+  onBeforeRender(force) {
+    // const force = this.hot.renderCall;
     const rowsCount = this.hot.countRows();
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
