@@ -88,7 +88,8 @@ describe('NestedRows', () => {
       expect(getDataAtCell(2, 0)).toEqual('a0-a1');
     });
 
-    it('should not move rows when any of them is a parent', () => {
+    it('should not move rows when any of them is a parent, regardless of if it\'s collapsed or not (and not throw any' +
+      ' errors in the process)', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true,
@@ -96,13 +97,37 @@ describe('NestedRows', () => {
         rowHeaders: true
       });
 
-      getPlugin('manualRowMove').dragRows([0, 1], 2);
+      let errorCount = 0;
+
+      try {
+        getPlugin('manualRowMove').dragRows([0, 1], 2);
+
+        expect(getData()).toEqual(dataInOrder);
+
+        getPlugin('manualRowMove').dragRows([1, 0], 2);
+
+        expect(getData()).toEqual(dataInOrder);
+
+      } catch (err) {
+        errorCount += 1;
+      }
+
+      hot().getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+      hot().getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+
+      try {
+        getPlugin('manualRowMove').dragRows([1], 2);
+
+      } catch (err) {
+        errorCount += 1;
+      }
+
+      hot().getPlugin('nestedRows').collapsingUI.expandChildren(0);
+      hot().getPlugin('nestedRows').collapsingUI.expandChildren(8);
 
       expect(getData()).toEqual(dataInOrder);
 
-      getPlugin('manualRowMove').dragRows([1, 0], 2);
-
-      expect(getData()).toEqual(dataInOrder);
+      expect(errorCount).toEqual(0);
     });
 
     it('should not move rows when they are on the highest level of nesting (don\'t have a parent)', () => {
@@ -273,8 +298,8 @@ describe('NestedRows', () => {
       expect(getDataAtCell(7, 0)).toEqual('a0-a0');
     });
 
-    it('should not move row when there was a try of moving it on the row ' +
-      'being a parent and it has no rows above', () => {
+    it('should not move any rows, when trying to move a row above a parent, when the parent is the first row in the' +
+      ' table', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true,

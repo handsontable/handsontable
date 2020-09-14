@@ -836,5 +836,53 @@ describe('CopyPaste', () => {
       expect(getDataAtCell(1, 1)).toEqual(null);
       expect(getDataAtCell(1, 2)).toEqual('C2');
     });
+
+    it('should populate data just within selection - there was bug #5961', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenRows: {
+          copyPasteEnabled: false,
+          rows: [1, 2]
+        },
+        hiddenColumns: {
+          copyPasteEnabled: false,
+          columns: [4, 5]
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 9, 0);
+
+      plugin.onCopy(copyEvent);
+
+      selectColumns(1, 9);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['A1', 'A1', 'A1', 'A1', 'E1', 'F1', 'A1', 'A1', 'A1', 'A1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ['A4', 'A4', 'A4', 'A4', 'E4', 'F4', 'A4', 'A4', 'A4', 'A4'],
+        ['A5', 'A5', 'A5', 'A5', 'E5', 'F5', 'A5', 'A5', 'A5', 'A5'],
+        ['A6', 'A6', 'A6', 'A6', 'E6', 'F6', 'A6', 'A6', 'A6', 'A6'],
+        ['A7', 'A7', 'A7', 'A7', 'E7', 'F7', 'A7', 'A7', 'A7', 'A7'],
+        ['A8', 'A8', 'A8', 'A8', 'E8', 'F8', 'A8', 'A8', 'A8', 'A8'],
+        ['A9', 'A9', 'A9', 'A9', 'E9', 'F9', 'A9', 'A9', 'A9', 'A9'],
+        ['A10', 'A10', 'A10', 'A10', 'E10', 'F10', 'A10', 'A10', 'A10', 'A10'],
+      ]);
+
+      expect(getSelected()).toEqual([[0, 1, 9, 9]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(9);
+      expect(getSelectedRangeLast().to.col).toBe(9);
+    });
   });
 });

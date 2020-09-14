@@ -211,5 +211,42 @@ describe('hiddenColumns', () => {
         |   :   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
     });
+
+    it('should paste data properly when populating data within a selection in specific case #6743', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [1],
+          copyPasteEnabled: false,
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 0, 0);
+
+      plugin.onCopy(copyEvent);
+
+      selectCell(0, 0, 0, 2);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'A1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 2]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(0);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(0);
+      expect(getSelectedRangeLast().to.row).toBe(0);
+      expect(getSelectedRangeLast().to.col).toBe(2);
+    });
   });
 });
