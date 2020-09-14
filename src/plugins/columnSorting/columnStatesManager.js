@@ -1,4 +1,4 @@
-import { isObject, objectEach, deepClone } from '../../helpers/object';
+import { isObject, objectEach } from '../../helpers/object';
 import { arrayMap } from '../../helpers/array';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
@@ -15,13 +15,11 @@ const HEADER_ACTION_DEFAULT = true;
  */
 // eslint-disable-next-line import/prefer-default-export
 export class ColumnStatesManager {
-  constructor() {
+  constructor(sortingStates) {
     /**
-     * Queue of sort states containing sorted columns and their orders (Array of objects containing `column` and `sortOrder` properties).
-     *
-     * @type {Array}
+     * Sorting state for every column.
      */
-    this.sortedColumnsStates = [];
+    this.sortingStates = sortingStates;
     /**
      * Determines whether we should sort empty cells.
      *
@@ -44,6 +42,41 @@ export class ColumnStatesManager {
      * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
      */
     this.compareFunctionFactory = void 0;
+  }
+
+  /**
+   * Get states for sorted columns.
+   *
+   * @returns {* | *[]}
+   */
+  getSortedColumnsStates() {
+    if (this.sortingStates === null) {
+      return [];
+    }
+
+    return this.sortingStates.getValues().reduce((sortedColumnsStates, config, physicalIndex) => {
+      if (config !== null) {
+        return sortedColumnsStates.concat({
+          column: physicalIndex,
+          ...config
+        });
+      }
+
+      return sortedColumnsStates;
+    }, []).sort(
+      (sortConfigForColumn1, sortConfigForColumn2) => {
+        if (sortConfigForColumn1.importance < sortConfigForColumn2.importance) {
+          return -1;
+        }
+
+        if (sortConfigForColumn1.importance > sortConfigForColumn2.importance) {
+          return 1;
+        }
+
+        return 0;
+      }).map((sortConfigForColumn) => {
+      return { column: sortConfigForColumn.column, sortOrder: sortConfigForColumn.sortOrder };
+    });
   }
 
   /**
@@ -85,35 +118,13 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Get index of first sorted column.
-   *
-   * @returns {number|undefined}
-   */
-  getFirstSortedColumn() {
-    let firstSortedColumn;
-
-    if (this.getNumberOfSortedColumns() > 0) {
-      firstSortedColumn = this.sortedColumnsStates[0].column;
-    }
-
-    return firstSortedColumn;
-  }
-
-  /**
    * Get sort order of column.
    *
    * @param {number} searchedColumn Physical column index.
    * @returns {string|undefined} Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
    */
   getSortOrderOfColumn(searchedColumn) {
-    const searchedState = this.sortedColumnsStates.find(({ column }) => searchedColumn === column);
-    let sortOrder;
-
-    if (isObject(searchedState)) {
-      sortOrder = searchedState.sortOrder;
-    }
-
-    return sortOrder;
+    return this.sortingStates.getValueAtIndex(searchedColumn)?.sortOrder;
   }
 
   /**
@@ -122,7 +133,7 @@ export class ColumnStatesManager {
    * @returns {Array}
    */
   getSortedColumns() {
-    return arrayMap(this.sortedColumnsStates, ({ column }) => column);
+    return arrayMap(this.getSortedColumnsStates(), ({ column }) => column);
   }
 
   /**
@@ -141,7 +152,7 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getNumberOfSortedColumns() {
-    return this.sortedColumnsStates.length;
+    return this.getSortedColumnsStates().length;
   }
 
   /**
@@ -150,7 +161,7 @@ export class ColumnStatesManager {
    * @returns {boolean}
    */
   isListOfSortedColumnsEmpty() {
-    return this.getNumberOfSortedColumns() === 0;
+    return this.sortingStates.getValues().some(sortState => isObject(sortState)) === false;
   }
 
   /**
@@ -160,7 +171,7 @@ export class ColumnStatesManager {
    * @returns {boolean}
    */
   isColumnSorted(column) {
-    return this.getSortedColumns().includes(column);
+    return isObject(this.sortingStates.getValueAtIndex(column));
   }
 
   /**
@@ -169,7 +180,7 @@ export class ColumnStatesManager {
    * @returns {Array}
    */
   getSortStates() {
-    return deepClone(this.sortedColumnsStates);
+    return this.getSortedColumnsStates();
   }
 
   /**
@@ -182,24 +193,13 @@ export class ColumnStatesManager {
    */
   getColumnSortState(column) {
     if (this.isColumnSorted(column)) {
-      return deepClone(this.sortedColumnsStates[this.getIndexOfColumnInSortQueue(column)]);
+      return this.getSortedColumnsStates()[this.getIndexOfColumnInSortQueue(column)];
     }
-  }
-
-  /**
-   * Set all sorted columns states.
-   *
-   * @param {Array} sortStates The sort state.
-   */
-  setSortStates(sortStates) {
-    this.sortedColumnsStates = sortStates;
   }
 
   /**
    * Destroy the state manager.
    */
   destroy() {
-    this.sortedColumnsStates.length = 0;
-    this.sortedColumnsStates = null;
   }
 }

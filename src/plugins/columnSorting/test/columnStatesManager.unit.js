@@ -191,26 +191,6 @@ describe('ColumnSorting', () => {
     });
   });
 
-  describe('ColumnStatesManager.getFirstSortedColumn', () => {
-    it('should return first sorted column', () => {
-      const columnStatesManager = new ColumnStatesManager();
-
-      columnStatesManager.setSortStates([
-        { column: 0, sortOrder: DESC_SORT_STATE },
-        { column: 2, sortOrder: ASC_SORT_STATE },
-        { column: 1, sortOrder: ASC_SORT_STATE },
-      ]);
-
-      expect(columnStatesManager.getFirstSortedColumn()).toEqual(0);
-    });
-
-    it('should return `undefined` when no column has been sorted', () => {
-      const columnStatesManager = new ColumnStatesManager();
-
-      expect(columnStatesManager.getFirstSortedColumn()).toBeUndefined();
-    });
-  });
-
   describe('ColumnStatesManager.isColumnSorted', () => {
     it('should return if particular column is sorted', () => {
       const columnStatesManager = new ColumnStatesManager();

@@ -84,13 +84,6 @@ class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
-     * Instance of column state manager.
-     *
-     * @private
-     * @type {ColumnStatesManager}
-     */
-    this.columnStatesManager = new ColumnStatesManager();
-    /**
      * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
      *
      * @private
@@ -111,6 +104,20 @@ class ColumnSorting extends BasePlugin {
      * @type {null|IndexesSequence}
      */
     this.indexesSequenceCache = null;
+    /**
+     * Sorting states for columns.
+     *
+     * @private
+     * @type {null|IndexesSequence}
+     */
+    this.sortingStates = null;
+    /**
+     * Instance of column state manager.
+     *
+     * @private
+     * @type {ColumnStatesManager}
+     */
+    this.columnStatesManager = null;
   }
 
   /**
@@ -130,6 +137,10 @@ class ColumnSorting extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    this.sortingStates = new IndexToValueMap();
+    this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.sortingStates`, this.sortingStates);
+    this.columnStatesManager = new ColumnStatesManager(this.sortingStates);
 
     this.columnMetaCache = new IndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
@@ -184,6 +195,7 @@ class ColumnSorting extends BasePlugin {
       }
 
       this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+      this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.sortingStates`);
     });
 
     super.disablePlugin();
@@ -226,12 +238,16 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (sortPossible) {
-      const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
-        ({ column: this.hot.columnIndexMapper.getPhysicalFromVisualIndex(visualColumn), ...restOfProperties });
-      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig =>
-        translateColumnToPhysical(columnSortConfig));
+      this.sortingStates.clear();
 
-      this.columnStatesManager.setSortStates(internalSortStates);
+      for (let i = 0; i < destinationSortConfigs.length; i += 1) {
+        this.sortingStates.setValueAtIndex(
+          this.hot.columnIndexMapper.getPhysicalFromVisualIndex(destinationSortConfigs[i].column), {
+            sortOrder: destinationSortConfigs[i].sortOrder,
+            importance: i,
+          });
+      }
+
       this.sortByPresetSortStates();
       this.saveAllSortSettings();
     }
@@ -800,9 +816,10 @@ class ColumnSorting extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.columnStatesManager.destroy();
+    this.columnStatesManager = null;
     this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+    this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.sortingStates`);
 
     super.destroy();
   }
