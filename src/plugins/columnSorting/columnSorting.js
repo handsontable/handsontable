@@ -108,7 +108,7 @@ class ColumnSorting extends BasePlugin {
      * Sorting states for columns.
      *
      * @private
-     * @type {null|IndexesSequence}
+     * @type {null|PhysicalIndexToValueMap}
      */
     this.sortingStates = null;
     /**
@@ -238,15 +238,11 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (sortPossible) {
-      this.sortingStates.clear();
-
-      for (let i = 0; i < destinationSortConfigs.length; i += 1) {
-        this.sortingStates.setValueAtIndex(
-          this.hot.columnIndexMapper.getPhysicalFromVisualIndex(destinationSortConfigs[i].column), {
-            sortOrder: destinationSortConfigs[i].sortOrder,
-            importance: i,
-          });
-      }
+      const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
+        ({ column: this.hot.columnIndexMapper.getPhysicalFromVisualIndex(visualColumn), ...restOfProperties });
+      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig =>
+        translateColumnToPhysical(columnSortConfig));
+      this.columnStatesManager.setSortStates(internalSortStates);
 
       this.sortByPresetSortStates();
       this.saveAllSortSettings();

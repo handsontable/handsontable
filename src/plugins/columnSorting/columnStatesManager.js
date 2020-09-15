@@ -17,7 +17,9 @@ const HEADER_ACTION_DEFAULT = true;
 export class ColumnStatesManager {
   constructor(sortingStates) {
     /**
-     * Sorting state for every column.
+     * Map storing sorting state for every column.
+     *
+     * @type {IndexMap}
      */
     this.sortingStates = sortingStates;
     /**
@@ -54,27 +56,20 @@ export class ColumnStatesManager {
       return [];
     }
 
-    return this.sortingStates.getValues().reduce((sortedColumnsStates, config, physicalIndex) => {
-      if (config !== null) {
+    return this.sortingStates.getValues().reduce((sortedColumnsStates, sortState, physicalIndex) => {
+      if (sortState !== null) {
         return sortedColumnsStates.concat({
           column: physicalIndex,
-          ...config
+          ...sortState
         });
       }
 
       return sortedColumnsStates;
-    }, []).sort(
-      (sortConfigForColumn1, sortConfigForColumn2) => {
-        if (sortConfigForColumn1.importance < sortConfigForColumn2.importance) {
-          return -1;
-        }
-
-        if (sortConfigForColumn1.importance > sortConfigForColumn2.importance) {
-          return 1;
-        }
-
-        return 0;
-      }).map((sortConfigForColumn) => {
+    }, []).sort((sortStateForColumn1, sortStateForColumn2) => {
+      // Sort state should be sorted by the priority. Please keep in mind that a lower number has a higher priority.
+      return sortStateForColumn1.priority - sortStateForColumn2.priority;
+    }).map((sortConfigForColumn) => {
+      // Removing the `priority` key, needed just for sorting states.
       return { column: sortConfigForColumn.column, sortOrder: sortConfigForColumn.sortOrder };
     });
   }
@@ -198,8 +193,18 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Destroy the state manager.
+   * Set all column states.
+   *
+   * @param {Array} sortStates Sort states.
    */
-  destroy() {
+  setSortStates(sortStates) {
+    this.sortingStates.clear();
+
+    for (let i = 0; i < sortStates.length; i += 1) {
+      this.sortingStates.setValueAtIndex(sortStates[i].column, {
+        sortOrder: sortStates[i].sortOrder,
+        priority: i, // Please keep in mind that a lower number has a higher priority.
+      });
+    }
   }
 }
