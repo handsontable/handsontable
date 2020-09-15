@@ -497,10 +497,12 @@ class Endpoints {
       this.hot.toVisualColumn(endpoint.destinationColumn)
     ];
 
-    // Clear the meta on the "old" indexes
-    const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
-    cellMeta.readOnly = false;
-    cellMeta.className = '';
+    if (visualColumnIndex !== null && visualRowIndex !== null) {
+      // Clear the meta on the "old" indexes
+      const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
+      cellMeta.readOnly = false;
+      cellMeta.className = '';
+    }
 
     this.cellsToSetCache.push([
       this.hot.toVisualRow(endpoint.destinationRow + (useOffset ? alterRowOffset : 0)),
@@ -527,14 +529,18 @@ class Endpoints {
       return;
     }
 
-    const cellMeta = this.hot.getCellMeta(
-      this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset),
-      endpoint.destinationColumn + reverseColOffset
-    );
+    const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow + reverseRowOffset);
 
-    if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
-      cellMeta.readOnly = endpoint.readOnly;
-      cellMeta.className = 'columnSummaryResult';
+    if (destinationVisualRow !== null) {
+      const cellMeta = this.hot.getCellMeta(
+        destinationVisualRow,
+        endpoint.destinationColumn + reverseColOffset
+      );
+
+      if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
+        cellMeta.readOnly = endpoint.readOnly;
+        cellMeta.className = 'columnSummaryResult';
+      }
     }
 
     if (endpoint.roundFloat && !isNaN(endpoint.result)) {
