@@ -58,9 +58,10 @@ export class ColumnStatesManager {
 
     return this.sortingStates.getValues().reduce((sortedColumnsStates, sortState, physicalIndex) => {
       if (sortState !== null) {
-        return sortedColumnsStates.concat({
+        sortedColumnsStates.push({
           column: physicalIndex,
-          ...sortState
+          sortOrder: sortState.sortOrder,
+          priority: sortState.priority,
         });
       }
 
@@ -125,7 +126,7 @@ export class ColumnStatesManager {
   /**
    * Get list of sorted columns respecting the sort order.
    *
-   * @returns {Array}
+   * @returns {Array<number>}
    */
   getSortedColumns() {
     return arrayMap(this.getSortedColumnsStates(), ({ column }) => column);
@@ -170,7 +171,7 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Get states for all sorted columns respecting the sort order.
+   * Queue of sort states containing sorted columns and their orders (Array of objects containing `column` and `sortOrder` properties).
    *
    * @returns {Array}
    */
