@@ -47,9 +47,9 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Get states for sorted columns.
+   * Get list of states for sorted columns.
    *
-   * @returns {* | *[]}
+   * @returns {Array<object>}
    */
   getSortedColumnsStates() {
     if (this.sortingStates === null) {
@@ -69,7 +69,7 @@ export class ColumnStatesManager {
       // Sort state should be sorted by the priority. Please keep in mind that a lower number has a higher priority.
       return sortStateForColumn1.priority - sortStateForColumn2.priority;
     }).map((sortConfigForColumn) => {
-      // Removing the `priority` key, needed just for sorting states.
+      // Removing the `priority` key, needed just for sorting the states.
       return { column: sortConfigForColumn.column, sortOrder: sortConfigForColumn.sortOrder };
     });
   }
@@ -123,7 +123,7 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Get list of sorted columns.
+   * Get list of sorted columns respecting the sort order.
    *
    * @returns {Array}
    */
@@ -147,7 +147,7 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getNumberOfSortedColumns() {
-    return this.getSortedColumnsStates().length;
+    return this.sortingStates.getValues().filter(sortState => isObject(sortState)).length;
   }
 
   /**
@@ -170,7 +170,7 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Get states for all sorted columns.
+   * Get states for all sorted columns respecting the sort order.
    *
    * @returns {Array}
    */
@@ -188,7 +188,13 @@ export class ColumnStatesManager {
    */
   getColumnSortState(column) {
     if (this.isColumnSorted(column)) {
-      return this.getSortedColumnsStates()[this.getIndexOfColumnInSortQueue(column)];
+      const sortingStateWithPriority = this.sortingStates.getValueAtIndex(column);
+
+      // We return state without the `priority` key.
+      return {
+        column,
+        sortOrder: sortingStateWithPriority.sortOrder,
+      };
     }
   }
 
