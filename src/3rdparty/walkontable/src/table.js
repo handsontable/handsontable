@@ -360,6 +360,7 @@ class Table {
         // remove `innerBorderTop` and `innerBorderLeft` CSS classes to the DOM element. This happens
         // when there is a switch between rendering from 0 to N rows/columns and vice versa).
         wtOverlays.refreshAll();
+        wtOverlays.adjustElementsSize();
       }
     }
 

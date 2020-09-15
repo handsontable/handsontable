@@ -394,8 +394,8 @@ export default () => {
      * operations based on the __visual__ representation of Handsontable.
      *
      * Possible values of `prop`:
-     * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
-     * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array).
+     * - property name for column's data source object, when dataset is an [array of objects](https://handsontable.com/docs/tutorial-data-sources.html#page-object)
+     * - the same number as `col`, when dataset is an [array of arrays](https://handsontable.com/docs/tutorial-data-sources.html#page-array).
      *
      * @memberof Options#
      * @type {Function}

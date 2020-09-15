@@ -1627,6 +1627,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
   };
 
+  /**
+   * Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
+   *
+   * @memberof Core#
+   * @function refreshDimensions
+   * @fires Hooks#beforeRefreshDimensions
+   * @fires Hooks#afterRefreshDimensions
+   */
   this.refreshDimensions = function() {
     if (!instance.view) {
       return;
@@ -2037,6 +2045,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (!init) {
       if (instance.view) {
         instance.view.wt.wtViewport.resetHasOversizedColumnHeadersMarked();
+        instance.view.wt.exportSettingsAsClassNames();
       }
 
       instance.runHooks('afterUpdateSettings', settings);

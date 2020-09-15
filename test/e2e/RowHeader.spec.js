@@ -181,6 +181,30 @@ describe('RowHeader', () => {
 
   });
 
+  it('should remove the row-headers-related css class from the Handsontable container after disabling the' +
+    ' `rowHeaders` option using the updateSettings method and add the same css class after re-enabling the option in' +
+    ' the same way', () => {
+    handsontable({
+      startCols: 2,
+      startRows: 2,
+      rowHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htRowHeaders');
+
+    hot().updateSettings({
+      rowHeaders: false
+    });
+
+    expect(hot().rootElement.className).not.toContain('htRowHeaders');
+
+    hot().updateSettings({
+      rowHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htRowHeaders');
+  });
+
   it('should allow defining custom row header width using the rowHeaderWidth config option', () => {
     handsontable({
       startCols: 3,
