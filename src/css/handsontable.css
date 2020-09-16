@@ -1,8 +1,8 @@
 .handsontable.htAutoSize {
-  /* visibility: hidden;
+  visibility: hidden;
   left: -99000px;
   position: absolute;
-  top: -99000px; */
+  top: -99000px;
 }
 
 .handsontable td.htInvalid {
