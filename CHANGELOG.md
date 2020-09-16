@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where using updateSettings() has been breaking column sorting in specific cases [#7228](https://github.com/handsontable/handsontable/issues/7228)
 - Fixed an issue where the rows were missing their left border after disabling the row headers using `updateSettings`, while there were `fixedColumnsLeft` defined. [#5735](https://github.com/handsontable/handsontable/issues/5735)
 - Fixed an issue where the Handsontable could fall into an infinite loop during vertical scrolling. It only happened when the scrollable element was the `window` object. [#7260](https://github.com/handsontable/handsontable/issues/7260);
+- Fixed an issue with moving rows to the last row of the table, when the Nested Rows plugin was enabled along with some other minor moving-related bugs. [#6067](https://github.com/handsontable/handsontable/issues/6067)
 
 ### Changed
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)

@@ -10,6 +10,7 @@ const privatePool = new WeakMap();
  *
  * @class ContextMenuUI
  * @util
+ * @private
  * @augments BaseUI
  */
 class ContextMenuUI extends BaseUI {
