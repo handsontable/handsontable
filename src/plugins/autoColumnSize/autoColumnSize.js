@@ -193,7 +193,7 @@ class AutoColumnSize extends BasePlugin {
 
     if (changedColumns.length) {
       this.clearCache(changedColumns);
-      this.calculateVisibleColumns(true);
+      this.calculateVisibleColumns();
     }
 
     super.updatePlugin();
@@ -213,10 +213,8 @@ class AutoColumnSize extends BasePlugin {
 
   /**
    * Calculates visible columns width.
-   *
-   * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateVisibleColumns(force) {
+  calculateVisibleColumns() {
     const rowsCount = this.hot.countRows();
 
     // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
@@ -224,6 +222,7 @@ class AutoColumnSize extends BasePlugin {
       return;
     }
 
+    const force = this.hot.renderCall;
     const firstVisibleColumn = this.getFirstVisibleColumn();
     const lastVisibleColumn = this.getLastVisibleColumn();
 
@@ -530,10 +529,9 @@ class AutoColumnSize extends BasePlugin {
    * On before render listener.
    *
    * @private
-   * @param {boolean} [force] Indicates if the render call was trigered by a change of settings or data.
    */
-  onBeforeRender(force) {
-    this.calculateVisibleColumns(force);
+  onBeforeRender() {
+    this.calculateVisibleColumns();
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();
