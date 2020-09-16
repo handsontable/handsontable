@@ -332,10 +332,6 @@ class LeftOverlay extends Overlay {
         removeClass(masterParent, 'innerBorderLeft');
         positionChanged = previousState;
       }
-
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
-      }
     }
 
     return positionChanged;
