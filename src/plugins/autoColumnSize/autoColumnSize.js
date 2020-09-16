@@ -193,6 +193,7 @@ class AutoColumnSize extends BasePlugin {
 
     if (changedColumns.length) {
       this.clearCache(changedColumns);
+      this.calculateVisibleColumns(true);
     }
 
     super.updatePlugin();
@@ -208,6 +209,29 @@ class AutoColumnSize extends BasePlugin {
     // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
     this.addHook('beforeColumnResize',
       (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+  }
+
+  /**
+   * Calculates visible columns width.
+   *
+   * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
+   */
+  calculateVisibleColumns(force) {
+    const rowsCount = this.hot.countRows();
+
+    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
+    if (!rowsCount) {
+      return;
+    }
+
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+
+    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
+      return;
+    }
+
+    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
   }
 
   /**
@@ -455,9 +479,8 @@ class AutoColumnSize extends BasePlugin {
     const columnHeaders = this.hot.getColHeader();
     const { cachedColumnHeaders } = privatePool.get(this);
 
-    const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, visualColumn) => {
+    const changedColumns = arrayReduce(columnHeaders, (acc, columnTitle, physicalColumn) => {
       const cachedColumnsLength = cachedColumnHeaders.length;
-      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
       if (cachedColumnsLength - 1 < physicalColumn || cachedColumnHeaders[physicalColumn] !== columnTitle) {
         acc.push(physicalColumn);
@@ -507,23 +530,10 @@ class AutoColumnSize extends BasePlugin {
    * On before render listener.
    *
    * @private
+   * @param {boolean} [force] Indicates if the render call was trigered by a change of settings or data.
    */
   onBeforeRender(force) {
-    // const force = this.hot.renderCall;
-    const rowsCount = this.hot.countRows();
-    const firstVisibleColumn = this.getFirstVisibleColumn();
-    const lastVisibleColumn = this.getLastVisibleColumn();
-
-    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
-      return;
-    }
-
-    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
-    if (!rowsCount) {
-      return;
-    }
-
-    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
+    this.calculateVisibleColumns(force);
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();
