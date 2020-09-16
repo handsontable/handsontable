@@ -308,6 +308,7 @@ class NestedRows extends BasePlugin {
    * Callback for the `beforeRemoveRow` change list of removed physical indexes by reference. Removing parent node
    * has effect in removing children nodes.
    *
+   * @private
    * @param {number} index Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
    * @param {Array} physicalRows List of physical indexes.

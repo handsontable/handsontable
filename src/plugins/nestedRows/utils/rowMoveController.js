@@ -12,9 +12,25 @@ import { CellCoords } from '../../../3rdparty/walkontable/src';
  */
 export default class RowMoveController {
   constructor(plugin) {
+    /**
+     * Reference to the Nested Rows plugin instance.
+     * @type {NestedRows}
+     */
     this.plugin = plugin;
+    /**
+     * Reference to the Handsontable instance.
+     * @type {Handsontable.Core}
+     */
     this.hot = plugin.hot;
+    /**
+     * Reference to the Data Manager class instance.
+     * @type {DataManager}
+     */
     this.dataManager = plugin.dataManager;
+    /**
+     * Referencje to the Collapsing UI class instance.
+     * @type {CollapsingUI}
+     */
     this.collapsingUI = plugin.collapsingUI;
   }
 
