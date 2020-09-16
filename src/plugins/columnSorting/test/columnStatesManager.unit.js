@@ -60,7 +60,7 @@ describe('ColumnSorting', () => {
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
       const initialState = columnStatesManager.getSortedColumnsStates();
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates([{ column: 0, sortOrder: ASC_SORT_STATE }]);
 
@@ -80,7 +80,7 @@ describe('ColumnSorting', () => {
         { column: 1, sortOrder: ASC_SORT_STATE },
       ];
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates(newStatesQueue);
 
@@ -99,7 +99,7 @@ describe('ColumnSorting', () => {
         { column: 1, sortOrder: ASC_SORT_STATE },
       ];
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates(newStatesQueue);
 
@@ -113,7 +113,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
 
       expect(columnStatesManager.isListOfSortedColumnsEmpty()).toBeTruthy();
@@ -123,7 +123,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates([{ column: 0, sortOrder: ASC_SORT_STATE }]);
       columnStatesManager.setSortStates([]);
@@ -135,7 +135,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates([{ column: 0, sortOrder: ASC_SORT_STATE }]);
 
@@ -148,7 +148,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
 
       columnStatesManager.setSortStates([
@@ -164,7 +164,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       expect(columnStatesManager.getSortedColumns()).toEqual([]);
     });
@@ -175,7 +175,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates([
         { column: 0, sortOrder: DESC_SORT_STATE },
@@ -192,7 +192,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
 
       expect(columnStatesManager.getIndexOfColumnInSortQueue(0)).toEqual(-1);
@@ -204,7 +204,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
 
       columnStatesManager.setSortStates([
@@ -233,7 +233,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
 
       columnStatesManager.setSortStates([{ column: 1, sortOrder: ASC_SORT_STATE }]);
@@ -248,7 +248,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
 
       expect(columnStatesManager.getSortOrderOfColumn(0)).toBeUndefined();
@@ -258,7 +258,7 @@ describe('ColumnSorting', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
 
-      // Mocking map for sorting states when table have 3 columns.
+      // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates([
         { column: 0, sortOrder: DESC_SORT_STATE },

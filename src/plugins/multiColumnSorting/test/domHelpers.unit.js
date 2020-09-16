@@ -1,11 +1,16 @@
 import { ColumnStatesManager } from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { DESC_SORT_STATE, ASC_SORT_STATE } from 'handsontable/plugins/columnSorting/utils';
 import { getClassesToAdd, getClassedToRemove } from 'handsontable/plugins/multiColumnSorting/domHelpers';
+import { PhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
 
 describe('MultiColumnSorting DOM helpers', () => {
   describe('getClassesToAdd', () => {
     it('multiple sorted columns', () => {
-      const columnStatesManager = new ColumnStatesManager();
+      const indexToValueMap = new IndexToValueMap();
+      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
+
+      // Mocking map for sorting states when a table have 5 columns.
+      indexToValueMap.init(5);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE },
@@ -22,7 +27,11 @@ describe('MultiColumnSorting DOM helpers', () => {
 
   describe('getClassedToRemove', () => {
     it('should return all calculated classes', () => {
-      const columnStatesManager = new ColumnStatesManager();
+      const indexToValueMap = new IndexToValueMap();
+      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
+
+      // Mocking map for sorting states when a table have 5 columns.
+      indexToValueMap.init(5);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE },

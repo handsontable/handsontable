@@ -1,11 +1,16 @@
 import { ColumnStatesManager } from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { DESC_SORT_STATE, ASC_SORT_STATE } from 'handsontable/plugins/columnSorting/utils';
 import { getClassesToAdd, getClassedToRemove } from 'handsontable/plugins/columnSorting/domHelpers';
+import { PhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
 
 describe('ColumnSorting DOM helpers', () => {
   describe('getClassesToAdd', () => {
     it('should add `columnSorting` CSS class by default', () => {
-      const columnStatesManager = new ColumnStatesManager();
+      const indexToValueMap = new IndexToValueMap();
+      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
+
+      // Mocking map for sorting states when a table have 3 columns.
+      indexToValueMap.init(3);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE }
@@ -16,7 +21,11 @@ describe('ColumnSorting DOM helpers', () => {
     });
 
     it('should add `sortAction` CSS class for clickable header', () => {
-      const columnStatesManager = new ColumnStatesManager();
+      const indexToValueMap = new IndexToValueMap();
+      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
+
+      // Mocking map for sorting states when a table have 3 columns.
+      indexToValueMap.init(3);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE }
@@ -31,7 +40,11 @@ describe('ColumnSorting DOM helpers', () => {
 
     describe('should add proper CSS classes for enabled / disabled indicator', () => {
       it('single sorted column', () => {
-        const columnStatesManager = new ColumnStatesManager();
+        const indexToValueMap = new IndexToValueMap();
+        const columnStatesManager = new ColumnStatesManager(indexToValueMap);
+
+        // Mocking map for sorting states when a table have 3 columns.
+        indexToValueMap.init(3);
 
         columnStatesManager.setSortStates([
           { column: 1, sortOrder: DESC_SORT_STATE }
@@ -56,7 +69,12 @@ describe('ColumnSorting DOM helpers', () => {
 
   describe('getClassedToRemove', () => {
     it('should return all calculated classes', () => {
-      const columnStatesManager = new ColumnStatesManager();
+      const indexToValueMap = new IndexToValueMap();
+      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
+
+      // Mocking map for sorting states when a table have 3 columns.
+      indexToValueMap.init(3);
+
       columnStatesManager.setSortStates([
         { column: 3, sortOrder: ASC_SORT_STATE },
       ]);
