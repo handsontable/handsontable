@@ -2111,6 +2111,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   /**
    * Allows altering the table structure by either inserting/removing rows or columns.
+   * This method works with an array data structure only.
    *
    * @memberof Core#
    * @function alter
