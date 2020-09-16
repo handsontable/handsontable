@@ -2924,5 +2924,19 @@ describe('MultiColumnSorting', () => {
 
       expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
     });
+
+    it('should not break sorting with UI after `updateSettings` call #7228', () => {
+      const onErrorSpy = spyOn(window, 'onerror');
+
+      handsontable({
+        columns: [{}, {}, {}, {}, {}, {}],
+        multiColumnSorting: true,
+        colHeaders: true
+      });
+
+      updateSettings({});
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
+    });
   });
 });
