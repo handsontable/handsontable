@@ -350,19 +350,6 @@ class BottomOverlay extends Overlay {
         removeClass(masterParent, 'innerBorderBottom');
         positionChanged = previousState;
       }
-
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
-      }
-    }
-
-    // nasty workaround for double border in the header, TODO: find a pure-css solution
-    if (this.wot.getSetting('rowHeaders').length === 0) {
-      const secondHeaderCell = this.clone.wtTable.THEAD.querySelector('th:nth-of-type(2)');
-
-      if (secondHeaderCell) {
-        secondHeaderCell.style['border-left-width'] = 0;
-      }
     }
 
     return positionChanged;

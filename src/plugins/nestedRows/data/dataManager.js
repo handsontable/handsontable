@@ -308,7 +308,7 @@ class DataManager {
   /**
    * Get the parent of the row at the provided index.
    *
-   * @param {number|object} row Row index.
+   * @param {number|object} row Physical row index.
    * @returns {object}
    */
   getRowParent(row) {
@@ -416,7 +416,7 @@ class DataManager {
       rowObj = this.getDataObject(rowObj);
     }
 
-    return !!rowObj.__children && rowObj.__children?.length !== 0;
+    return rowObj && (!!rowObj.__children && rowObj.__children?.length !== 0);
   }
 
   /**
@@ -704,15 +704,18 @@ class DataManager {
    *
    * @param {number} fromIndex Index of the row to be moved.
    * @param {number} toIndex Index of the destination.
+   * @param {boolean} moveToCollapsed `true` if moving a row to a collapsed parent.
+   * @param {boolean} moveToLastChild `true` if moving a row to be a last child of the new parent.
    */
-  /* eslint-enable jsdoc/require-param */
-  moveRow(fromIndex, toIndex, silentMode = false) {
-    const targetIsParent = this.isParent(toIndex);
 
+  /* eslint-enable jsdoc/require-param */
+  moveRow(fromIndex, toIndex, moveToCollapsed, moveToLastChild, silentMode = false) {
+    const moveToLastRow = toIndex === this.hot.countRows();
     const fromParent = this.getRowParent(fromIndex);
     const indexInFromParent = this.getRowIndexWithinParent(fromIndex);
-
-    let toParent = this.getRowParent(toIndex);
+    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
+    const movingUp = fromIndex > toIndex;
+    let toParent = moveToLastRow ? this.getRowParent(toIndex - 1) : this.getRowParent(toIndex);
 
     if (toParent === null || toParent === void 0) {
       toParent = this.getRowParent(toIndex - 1);
@@ -730,19 +733,17 @@ class DataManager {
       toParent.__children = [];
     }
 
-    const previousToTargetParent = this.getRowParent(toIndex - 1);
-    const indexInToParent = targetIsParent ?
-      this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
+    const indexInTargetParent = moveToLastRow || moveToCollapsed || moveToLastChild ?
+      toParent.__children.length : this.getRowIndexWithinParent(toIndex);
+    const sameParent = fromParent === toParent;
 
-    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
-
-    fromParent.__children.splice(indexInFromParent, 1);
-    toParent.__children.splice(indexInToParent, 0, elemToMove[0]);
+    toParent.__children.splice(indexInTargetParent, 0, elemToMove[0]);
+    fromParent.__children.splice(indexInFromParent + (movingUp && sameParent ? 1 : 0), 1);
 
     // Sync the changes in the cached data with the actual data stored in HOT.
     this.syncRowWithRawSource(fromParent);
 
-    if (fromParent !== toParent) {
+    if (!sameParent) {
       this.syncRowWithRawSource(toParent);
     }
 
@@ -752,21 +753,7 @@ class DataManager {
   }
 
   /**
-   * Move the cell meta.
-   *
-   * @private
-   * @param {number} fromIndex Index of the starting row.
-   * @param {number} toIndex Index of the ending row.
-   */
-  moveCellMeta(fromIndex, toIndex) {
-    const rowOfMeta = this.hot.getCellMetaAtRow(fromIndex);
-
-    this.hot.spliceCellsMeta(fromIndex, 1);
-    this.hot.spliceCellsMeta(toIndex, 0, rowOfMeta);
-  }
-
-  /**
-   * Translate the row index according to the `TrimRows` plugin.
+   * Translate the visual row index to the physical index, taking into consideration the state of collapsed rows.
    *
    * @private
    * @param {number} row Row index.
@@ -775,6 +762,21 @@ class DataManager {
   translateTrimmedRow(row) {
     if (this.plugin.collapsingUI) {
       return this.plugin.collapsingUI.translateTrimmedRow(row);
+    }
+
+    return row;
+  }
+
+  /**
+   * Translate the physical row index to the visual index, taking into consideration the state of collapsed rows.
+   *
+   * @private
+   * @param {number} row Row index.
+   * @returns {number}
+   */
+  untranslateTrimmedRow(row) {
+    if (this.plugin.collapsingUI) {
+      return this.plugin.collapsingUI.untranslateTrimmedRow(row);
     }
 
     return row;

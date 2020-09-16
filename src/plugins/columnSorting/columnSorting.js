@@ -715,7 +715,8 @@ class ColumnSorting extends BasePlugin {
     super.onUpdateSettings();
 
     if (this.columnMetaCache !== null) {
-      this.columnMetaCache.init(this.hot.countSourceCols());
+      // Column meta cache base on settings, thus we should re-init the map.
+      this.columnMetaCache.init(this.hot.columnIndexMapper.getNumberOfIndexes());
     }
 
     if (isDefined(newSettings[this.pluginKey])) {
