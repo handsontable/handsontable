@@ -2891,6 +2891,64 @@ describe('MultiColumnSorting', () => {
     });
   });
 
+  describe('cooperation with alter actions', () => {
+    it('should sort proper columns after removing column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        multiColumnSorting: {
+          initialConfig: [{
+            column: 1,
+            sortOrder: 'desc',
+          }, {
+            column: 2,
+            sortOrder: 'asc',
+          }],
+        },
+      });
+
+      alter('remove_col', 0);
+
+      expect(getData()).toEqual([
+        ['B3', 'C3'],
+        ['B2', 'C2'],
+        ['B1', 'C1'],
+      ]);
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+        { column: 0, sortOrder: 'desc' },
+        { column: 1, sortOrder: 'asc' },
+      ]);
+    });
+
+    it('should sort proper columns after inserting column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        multiColumnSorting: {
+          initialConfig: [{
+            column: 1,
+            sortOrder: 'desc',
+          }, {
+            column: 2,
+            sortOrder: 'asc',
+          }],
+        },
+      });
+
+      alter('insert_col', 1);
+
+      expect(getData()).toEqual([
+        ['A3', null, 'B3', 'C3'],
+        ['A2', null, 'B2', 'C2'],
+        ['A1', null, 'B1', 'C1'],
+      ]);
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+        { column: 2, sortOrder: 'desc' },
+        { column: 3, sortOrder: 'asc' },
+      ]);
+    });
+  });
+
   // TODO: Remove tests when workaround will be removed.
   describe('workaround regression check', () => {
     it('should not break the dataset when inserted new row', () => {
