@@ -105,7 +105,7 @@ class ColumnSorting extends BasePlugin {
      */
     this.indexesSequenceCache = null;
     /**
-     * Sorting states for columns.
+     * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
      *
      * @private
      * @type {null|PhysicalIndexToValueMap}
@@ -115,7 +115,7 @@ class ColumnSorting extends BasePlugin {
      * Instance of column state manager.
      *
      * @private
-     * @type {ColumnStatesManager}
+     * @type {null|ColumnStatesManager}
      */
     this.columnStatesManager = null;
   }
@@ -242,8 +242,8 @@ class ColumnSorting extends BasePlugin {
         ({ column: this.hot.columnIndexMapper.getPhysicalFromVisualIndex(visualColumn), ...restOfProperties });
       const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig =>
         translateColumnToPhysical(columnSortConfig));
-      this.columnStatesManager.setSortStates(internalSortStates);
 
+      this.columnStatesManager.setSortStates(internalSortStates);
       this.sortByPresetSortStates();
       this.saveAllSortSettings();
     }

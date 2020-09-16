@@ -17,9 +17,9 @@ const HEADER_ACTION_DEFAULT = true;
 export class ColumnStatesManager {
   constructor(sortingStates) {
     /**
-     * Map storing sorting state for every column.
+     * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
      *
-     * @type {IndexMap}
+     * @type {PhysicalIndexToValueMap}
      */
     this.sortingStates = sortingStates;
     /**
@@ -44,35 +44,6 @@ export class ColumnStatesManager {
      * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
      */
     this.compareFunctionFactory = void 0;
-  }
-
-  /**
-   * Get list of states for sorted columns.
-   *
-   * @returns {Array<object>}
-   */
-  getSortedColumnsStates() {
-    if (this.sortingStates === null) {
-      return [];
-    }
-
-    return this.sortingStates.getValues().reduce((sortedColumnsStates, sortState, physicalIndex) => {
-      if (sortState !== null) {
-        sortedColumnsStates.push({
-          column: physicalIndex,
-          sortOrder: sortState.sortOrder,
-          priority: sortState.priority,
-        });
-      }
-
-      return sortedColumnsStates;
-    }, []).sort((sortStateForColumn1, sortStateForColumn2) => {
-      // Sort state should be sorted by the priority. Please keep in mind that a lower number has a higher priority.
-      return sortStateForColumn1.priority - sortStateForColumn2.priority;
-    }).map((sortConfigForColumn) => {
-      // Removing the `priority` key, needed just for sorting the states.
-      return { column: sortConfigForColumn.column, sortOrder: sortConfigForColumn.sortOrder };
-    });
   }
 
   /**
@@ -129,7 +100,7 @@ export class ColumnStatesManager {
    * @returns {Array<number>}
    */
   getSortedColumns() {
-    return arrayMap(this.getSortedColumnsStates(), ({ column }) => column);
+    return arrayMap(this.getSortStates(), ({ column }) => column);
   }
 
   /**
@@ -173,10 +144,30 @@ export class ColumnStatesManager {
   /**
    * Queue of sort states containing sorted columns and their orders (Array of objects containing `column` and `sortOrder` properties).
    *
-   * @returns {Array}
+   * @returns {Array<object>}
    */
   getSortStates() {
-    return this.getSortedColumnsStates();
+    if (this.sortingStates === null) {
+      return [];
+    }
+
+    return this.sortingStates.getValues().reduce((sortedColumnsStates, sortState, physicalIndex) => {
+      if (sortState !== null) {
+        sortedColumnsStates.push({
+          column: physicalIndex,
+          sortOrder: sortState.sortOrder,
+          priority: sortState.priority,
+        });
+      }
+
+      return sortedColumnsStates;
+    }, []).sort((sortStateForColumn1, sortStateForColumn2) => {
+      // Sort state should be sorted by the priority. Please keep in mind that a lower number has a higher priority.
+      return sortStateForColumn1.priority - sortStateForColumn2.priority;
+    }).map((sortConfigForColumn) => {
+      // Removing the `priority` key, needed just for sorting the states.
+      return { column: sortConfigForColumn.column, sortOrder: sortConfigForColumn.sortOrder };
+    });
   }
 
   /**

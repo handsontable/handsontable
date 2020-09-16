@@ -58,13 +58,13 @@ describe('ColumnSorting', () => {
     it('should change state queue', () => {
       const indexToValueMap = new IndexToValueMap();
       const columnStatesManager = new ColumnStatesManager(indexToValueMap);
-      const initialState = columnStatesManager.getSortedColumnsStates();
+      const initialState = columnStatesManager.getSortStates();
 
       // Mocking map for sorting states when a table have 3 columns.
       indexToValueMap.init(3);
       columnStatesManager.setSortStates([{ column: 0, sortOrder: ASC_SORT_STATE }]);
 
-      const stateAfterFunctionCall = columnStatesManager.getSortedColumnsStates();
+      const stateAfterFunctionCall = columnStatesManager.getSortStates();
 
       expect(stateAfterFunctionCall).not.toEqual(initialState);
     });
