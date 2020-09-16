@@ -193,7 +193,7 @@ class AutoColumnSize extends BasePlugin {
 
     if (changedColumns.length) {
       this.clearCache(changedColumns);
-      this.calculateVisibleColumns();
+      this.calculateVisibleColumnsWidth();
     }
 
     super.updatePlugin();
@@ -214,7 +214,7 @@ class AutoColumnSize extends BasePlugin {
   /**
    * Calculates visible columns width.
    */
-  calculateVisibleColumns() {
+  calculateVisibleColumnsWidth() {
     const rowsCount = this.hot.countRows();
 
     // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
@@ -531,7 +531,7 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onBeforeRender() {
-    this.calculateVisibleColumns();
+    this.calculateVisibleColumnsWidth();
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();
