@@ -21,7 +21,7 @@ class MasterTable extends Table {
       const preventOverflow = this.wot.getSetting('preventOverflow');
 
       if (!preventOverflow) {
-        this.holder.style.overflow = 'visible';
+        this.holder.style.overflow = 'scroll';
         this.wtRootElement.style.overflow = 'visible';
       }
     } else {
