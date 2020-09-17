@@ -6,7 +6,7 @@ const COLUMN_ORDER_PREFIX = 'sort';
  * Get CSS classes which should be added to particular column header.
  *
  * @param {object} columnStatesManager Instance of column state manager.
- * @param {number} column Physical column index.
+ * @param {number} column Visual column index.
  * @param {boolean} showSortIndicator Indicates if indicator should be shown for the particular column.
  * @returns {Array} Array of CSS classes.
  */

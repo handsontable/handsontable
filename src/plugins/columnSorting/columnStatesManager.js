@@ -97,11 +97,11 @@ export class ColumnStatesManager {
   /**
    * Get sort order of column.
    *
-   * @param {number} searchedColumn Physical column index.
+   * @param {number} searchedColumn Visual column index.
    * @returns {string|undefined} Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
    */
   getSortOrderOfColumn(searchedColumn) {
-    return this.sortingStates.getValueAtIndex(searchedColumn)?.sortOrder;
+    return this.sortingStates.getValueAtIndex(this.hot.toPhysicalColumn(searchedColumn))?.sortOrder;
   }
 
   /**
@@ -120,7 +120,9 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getIndexOfColumnInSortQueue(column) {
-    return this.getSortedColumns().indexOf(column);
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    return this.getSortedColumns().indexOf(physicalColumn);
   }
 
   /**
@@ -144,15 +146,17 @@ export class ColumnStatesManager {
   /**
    * Get if particular column is sorted.
    *
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @returns {boolean}
    */
   isColumnSorted(column) {
-    return isObject(this.sortingStates.getValueAtIndex(column));
+    return isObject(this.sortingStates.getValueAtIndex(this.hot.toPhysicalColumn(column)));
   }
 
   /**
    * Queue of sort states containing sorted columns and their orders (Array of objects containing `column` and `sortOrder` properties).
+   *
+   * **Note**: Please keep in mind that returned objects expose **visual** column index under the `column` key.
    *
    * @returns {Array<object>}
    */
@@ -161,10 +165,10 @@ export class ColumnStatesManager {
       return [];
     }
 
-    return this.sortingStates.getValues().reduce((sortedColumnsStates, sortState, physicalIndex) => {
+    return this.sortingStates.getValues().reduce((sortedColumnsStates, sortState, physicalColumn) => {
       if (sortState !== null) {
         sortedColumnsStates.push({
-          column: physicalIndex,
+          column: this.hot.toVisualColumn(physicalColumn),
           sortOrder: sortState.sortOrder,
           priority: sortState.priority,
         });
@@ -183,14 +187,16 @@ export class ColumnStatesManager {
   /**
    * Get sort state for particular column. Object contains `column` and `sortOrder` properties.
    *
-   * **Note**: Please keep in mind that returned objects expose **physical** column index under the `column` key.
+   * **Note**: Please keep in mind that returned objects expose **visual** column index under the `column` key.
    *
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @returns {object|undefined}
    */
   getColumnSortState(column) {
     if (this.isColumnSorted(column)) {
-      const sortingStateWithPriority = this.sortingStates.getValueAtIndex(column);
+      const physicalColumn = this.hot.toPhysicalColumn(column);
+
+      const sortingStateWithPriority = this.sortingStates.getValueAtIndex(physicalColumn);
 
       // We return state without the `priority` key.
       return {
