@@ -468,7 +468,7 @@ export default () => {
      * // or
      * // enable comments plugin and add predefined comments
      * const hot = new Handsontable(document.getElementById('example'), {
-     *   date: getData(),
+     *   data: getData(),
      *   comments: true,
      *   cell: [
      *     { row: 1, col: 1, comment: { value: 'Foo' } },

@@ -35,7 +35,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   hiddenColumns: {
  *     copyPasteEnabled: true,
  *     indicators: true,
