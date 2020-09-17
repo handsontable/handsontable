@@ -42,7 +42,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * @example
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
+ *   data: getData(),
  *   autoColumnSize: true
  * });
  * // Access to plugin instance:
