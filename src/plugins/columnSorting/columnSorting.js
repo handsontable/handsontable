@@ -105,13 +105,6 @@ class ColumnSorting extends BasePlugin {
      */
     this.indexesSequenceCache = null;
     /**
-     * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
-     *
-     * @private
-     * @type {null|PhysicalIndexToValueMap}
-     */
-    this.sortingStates = null;
-    /**
      * Instance of column state manager.
      *
      * @private
@@ -138,9 +131,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.sortingStates = new IndexToValueMap();
-    this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.sortingStates`, this.sortingStates);
-    this.columnStatesManager = new ColumnStatesManager(this.sortingStates);
+    this.columnStatesManager = new ColumnStatesManager(this.hot);
 
     this.columnMetaCache = new IndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
@@ -193,10 +184,10 @@ class ColumnSorting extends BasePlugin {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
       }
-
-      this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
-      this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.sortingStates`);
     });
+
+    this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
+    this.columnStatesManager.destroy();
 
     super.disablePlugin();
   }
@@ -238,12 +229,7 @@ class ColumnSorting extends BasePlugin {
     }
 
     if (sortPossible) {
-      const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
-        ({ column: this.hot.columnIndexMapper.getPhysicalFromVisualIndex(visualColumn), ...restOfProperties });
-      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig =>
-        translateColumnToPhysical(columnSortConfig));
-
-      this.columnStatesManager.setSortStates(internalSortStates);
+      this.columnStatesManager.setSortStates(destinationSortConfigs);
       this.sortByPresetSortStates();
       this.saveAllSortSettings();
     }
@@ -328,12 +314,7 @@ class ColumnSorting extends BasePlugin {
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
-      const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
-        ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
-      const internalSortStates = arrayMap(destinationSortConfigs, columnSortConfig =>
-        translateColumnToPhysical(columnSortConfig));
-
-      this.columnStatesManager.setSortStates(internalSortStates);
+      this.columnStatesManager.setSortStates(destinationSortConfigs);
     }
   }
 
@@ -812,10 +793,11 @@ class ColumnSorting extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.columnStatesManager = null;
+    // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
+    // eslint-disable-next-line no-unused-expressions
+    this.columnStatesManager?.destroy();
     this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
-    this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.sortingStates`);
 
     super.destroy();
   }

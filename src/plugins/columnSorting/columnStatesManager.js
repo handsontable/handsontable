@@ -1,11 +1,13 @@
 import { isObject, objectEach } from '../../helpers/object';
 import { arrayMap } from '../../helpers/array';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 
 const SORT_EMPTY_CELLS_DEFAULT = false;
 const SHOW_SORT_INDICATOR_DEFAULT = true;
 const HEADER_ACTION_DEFAULT = true;
+const MAP_NAME = 'ColumnStatesManager.sortingStates';
 
 /**
  * Store and manages states of sorted columns.
@@ -15,13 +17,19 @@ const HEADER_ACTION_DEFAULT = true;
  */
 // eslint-disable-next-line import/prefer-default-export
 export class ColumnStatesManager {
-  constructor(sortingStates) {
+  constructor(hot) {
+    /**
+     * Handsontable instance.
+     *
+     * @type {Core}
+     */
+    this.hot = hot;
     /**
      * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
      *
      * @type {PhysicalIndexToValueMap}
      */
-    this.sortingStates = sortingStates;
+    this.sortingStates = new IndexToValueMap();
     /**
      * Determines whether we should sort empty cells.
      *
@@ -44,6 +52,8 @@ export class ColumnStatesManager {
      * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
      */
     this.compareFunctionFactory = void 0;
+
+    this.hot.columnIndexMapper.registerMap(MAP_NAME, this.sortingStates);
   }
 
   /**
@@ -199,10 +209,18 @@ export class ColumnStatesManager {
     this.sortingStates.clear();
 
     for (let i = 0; i < sortStates.length; i += 1) {
-      this.sortingStates.setValueAtIndex(sortStates[i].column, {
+      this.sortingStates.setValueAtIndex(this.hot.toPhysicalColumn(sortStates[i].column), {
         sortOrder: sortStates[i].sortOrder,
         priority: i, // Please keep in mind that a lower number has a higher priority.
       });
     }
+  }
+
+  /**
+   * Destroy the state manager.
+   */
+  destroy() {
+    this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
+    this.sortingStates = null;
   }
 }
