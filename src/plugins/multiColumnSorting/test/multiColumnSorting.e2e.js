@@ -1735,7 +1735,7 @@ describe('MultiColumnSorting', () => {
 
   });
 
-  it('should add a sorting indicator to the column header after it\'s been sorted, if indicator property is set to true (by default)', () => {
+  it('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1745,77 +1745,49 @@ describe('MultiColumnSorting', () => {
         [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
-      multiColumnSorting: true
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR THE WHOLE TABLE
-    // ---------------------------------
-
-    updateSettings({
-      columns() {
-        return {
-          multiColumnSorting: {
-            indicator: true
-          }
-        };
-      },
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending (updateSettings doesn't reset sorting stack)
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR A SINGLE COLUMN
-    // ---------------------------------
-
-    updateSettings({
       columns(column) {
         if (column === 2) {
           return {
             multiColumnSorting: {
-              indicator: false
+              indicator: false,
+              headerAction: false,
             }
           };
         }
 
         return {};
-      }
+      },
+      multiColumnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(2);
 
-    sortedColumn = spec().$container.find('th span.columnSorting')[0];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    let sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // ascending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // descending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 

@@ -84,6 +84,13 @@ class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
+     * Instance of column state manager.
+     *
+     * @private
+     * @type {null|ColumnStatesManager}
+     */
+    this.columnStatesManager = null;
+    /**
      * Cached column properties from plugin like i.e. `indicator`, `headerAction`.
      *
      * @private
@@ -104,13 +111,6 @@ class ColumnSorting extends BasePlugin {
      * @type {null|IndexesSequence}
      */
     this.indexesSequenceCache = null;
-    /**
-     * Instance of column state manager.
-     *
-     * @private
-     * @type {null|ColumnStatesManager}
-     */
-    this.columnStatesManager = null;
   }
 
   /**
