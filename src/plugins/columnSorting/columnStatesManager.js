@@ -1,5 +1,4 @@
 import { isObject, objectEach } from '../../helpers/object';
-import { arrayMap } from '../../helpers/array';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
