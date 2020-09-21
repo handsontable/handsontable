@@ -193,7 +193,9 @@ class AutoColumnSize extends BasePlugin {
 
     if (changedColumns.length) {
       this.clearCache(changedColumns);
+      this.calculateVisibleColumnsWidth();
     }
+
     super.updatePlugin();
   }
 
@@ -207,6 +209,28 @@ class AutoColumnSize extends BasePlugin {
     // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
     this.addHook('beforeColumnResize',
       (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+  }
+
+  /**
+   * Calculates visible columns width.
+   */
+  calculateVisibleColumnsWidth() {
+    const rowsCount = this.hot.countRows();
+
+    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
+    if (!rowsCount) {
+      return;
+    }
+
+    const force = this.hot.renderCall;
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+
+    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
+      return;
+    }
+
+    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
   }
 
   /**
@@ -507,21 +531,7 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onBeforeRender() {
-    const force = this.hot.renderCall;
-    const rowsCount = this.hot.countRows();
-    const firstVisibleColumn = this.getFirstVisibleColumn();
-    const lastVisibleColumn = this.getLastVisibleColumn();
-
-    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
-      return;
-    }
-
-    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
-    if (!rowsCount) {
-      return;
-    }
-
-    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
+    this.calculateVisibleColumnsWidth();
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();
