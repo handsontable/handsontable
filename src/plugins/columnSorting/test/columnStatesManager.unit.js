@@ -143,33 +143,6 @@ describe('ColumnSorting', () => {
     });
   });
 
-  describe('ColumnStatesManager.getSortedColumns', () => {
-    it('should return list of all sorted columns (respecting the states queue)', () => {
-      const indexToValueMap = new IndexToValueMap();
-      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
-
-      // Mocking map for sorting states when a table have 3 columns.
-      indexToValueMap.init(3);
-
-      columnStatesManager.setSortStates([
-        { column: 0, sortOrder: DESC_SORT_STATE },
-        { column: 2, sortOrder: ASC_SORT_STATE },
-        { column: 1, sortOrder: ASC_SORT_STATE },
-      ]);
-
-      expect(columnStatesManager.getSortedColumns()).toEqual([0, 2, 1]);
-    });
-
-    it('should return empty array when no column has been sorted', () => {
-      const indexToValueMap = new IndexToValueMap();
-      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
-
-      // Mocking map for sorting states when a table have 3 columns.
-      indexToValueMap.init(3);
-      expect(columnStatesManager.getSortedColumns()).toEqual([]);
-    });
-  });
-
   describe('ColumnStatesManager.getIndexOfColumnInSortQueue', () => {
     it('should return index of particular column in the states queue', () => {
       const indexToValueMap = new IndexToValueMap();

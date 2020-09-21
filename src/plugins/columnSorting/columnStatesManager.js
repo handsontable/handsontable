@@ -105,24 +105,13 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Get list of sorted columns respecting the sort order.
-   *
-   * @returns {Array<number>}
-   */
-  getSortedColumns() {
-    return arrayMap(this.getSortStates(), ({ column }) => column);
-  }
-
-  /**
    * Get order of particular column in the states queue.
    *
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @returns {number}
    */
   getIndexOfColumnInSortQueue(column) {
-    const physicalColumn = this.hot.toPhysicalColumn(column);
-
-    return this.getSortedColumns().indexOf(physicalColumn);
+    return this.getSortStates().findIndex(sortState => sortState.column === column);
   }
 
   /**

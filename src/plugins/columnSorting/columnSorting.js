@@ -230,11 +230,12 @@ class ColumnSorting extends BasePlugin {
 
     if (sortPossible) {
       this.columnStatesManager.setSortStates(destinationSortConfigs);
-      this.sortByPresetSortStates();
-      this.saveAllSortSettings();
+      this.sortByPresetSortStates(destinationSortConfigs);
+      this.saveAllSortSettings(destinationSortConfigs);
     }
 
-    this.hot.runHooks('afterColumnSort', currentSortConfig, this.getSortConfig(), sortPossible);
+    this.hot.runHooks('afterColumnSort',
+      currentSortConfig, sortPossible ? destinationSortConfigs : currentSortConfig, sortPossible);
 
     if (sortPossible) {
       this.hot.render();
@@ -346,15 +347,17 @@ class ColumnSorting extends BasePlugin {
   /**
    * Saves all sorting settings. Saving works only when {@link Options#persistentState} option is enabled.
    *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns. Objects contain `column` and `sortOrder` properties.
+   *
    * @private
    * @fires Hooks#persistentStateSave
    */
-  saveAllSortSettings() {
+  saveAllSortSettings(sortConfigs) {
     const allSortSettings = this.columnStatesManager.getAllColumnsProperties();
     const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }) =>
       ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
 
-    allSortSettings.initialConfig = arrayMap(this.columnStatesManager.getSortStates(), translateColumnToPhysical);
+    allSortSettings.initialConfig = arrayMap(sortConfigs, translateColumnToPhysical);
 
     this.hot.runHooks('persistentStateSave', 'columnSorting', allSortSettings);
   }
@@ -549,21 +552,21 @@ class ColumnSorting extends BasePlugin {
   /**
    * Performs the sorting using a stable sort function basing on internal state of sorting.
    *
+   * @param {Array} sortConfigs Sort configuration for all sorted columns. Objects contain `column` and `sortOrder` properties.
    * @private
    */
-  sortByPresetSortStates() {
-    if (this.columnStatesManager.isListOfSortedColumnsEmpty()) {
+  sortByPresetSortStates(sortConfigs) {
+    if (sortConfigs.length === 0) {
       this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
 
       return;
     }
 
     const indexesWithData = [];
-    const sortedColumnsList = this.columnStatesManager.getSortedColumns();
     const numberOfRows = this.hot.countRows();
 
     const getDataForSortedColumns = visualRowIndex =>
-      arrayMap(sortedColumnsList, visualColumn => this.hot.getDataAtCell(visualRowIndex, visualColumn)); // eslint-disable-line max-len
+      arrayMap(sortConfigs, sortConfig => this.hot.getDataAtCell(visualRowIndex, sortConfig.column));
 
     for (let visualRowIndex = 0; visualRowIndex < this.getNumberOfRowsToSort(numberOfRows); visualRowIndex += 1) {
       indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex)].concat(getDataForSortedColumns(visualRowIndex)));
@@ -574,8 +577,8 @@ class ColumnSorting extends BasePlugin {
     sort(
       indexesWithData,
       this.pluginKey,
-      arrayMap(sortedColumnsList, visualColumn => this.columnStatesManager.getSortOrderOfColumn(visualColumn)),
-      arrayMap(sortedColumnsList, visualColumn => this.getFirstCellSettings(visualColumn))
+      arrayMap(sortConfigs, sortConfig => sortConfig.sortOrder),
+      arrayMap(sortConfigs, sortConfig => this.getFirstCellSettings(sortConfig.column))
     );
 
     // Append spareRows
