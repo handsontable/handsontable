@@ -135,10 +135,7 @@ export function isCtrlKey(keyCode) {
  */
 export function isCtrlMetaKey(keyCode) {
   return [
-    KEY_CODES.CONTROL,
-    KEY_CODES.COMMAND_LEFT,
-    KEY_CODES.COMMAND_RIGHT,
-    KEY_CODES.COMMAND_FIREFOX
+    KEY_CODES.CONTROL
   ].includes(keyCode);
 }
 
