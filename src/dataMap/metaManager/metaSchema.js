@@ -1696,7 +1696,7 @@ export default () => {
      * // disable copy and paste
      * copyPaste: false,
      *
-     * // enable copy and paste with custom values
+     * // enable copy and paste with custom configuration
      * copyPaste: {
      *   columnsLimit: 25,
      *   rowsLimit: 50,
