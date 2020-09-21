@@ -1670,7 +1670,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Loads new data to Handsontable. Loading new data resets the cell meta.
    * Since 8.0.0 loading new data also resets states corresponding to rows and columns
-   * (ie. Row/column sequence, column width, row height, freezed columns etc.).
+   * (ie. row/column sequence, column width, row height, freezed columns etc.).
    *
    * @memberof Core#
    * @function loadData
@@ -1889,7 +1889,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
    * Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
-   * (ie. Row/column sequence, column width, row height, freezed columns etc.).
+   * (ie. row/column sequence, column width, row height, freezed columns etc.).
    *
    * @memberof Core#
    * @function updateSettings
