@@ -1,5 +1,5 @@
 import { isObject, objectEach } from '../../helpers/object';
-import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 
@@ -110,7 +110,8 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getIndexOfColumnInSortQueue(column) {
-    return this.getSortStates().findIndex(sortState => sortState.column === column);
+    return this.sortingStates.getIndexesQueue()
+      .findIndex(physicalColumn => this.hot.toVisualColumn(physicalColumn) === column);
   }
 
   /**
@@ -119,7 +120,7 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getNumberOfSortedColumns() {
-    return this.sortingStates.getValues().filter(sortState => isObject(sortState)).length;
+    return this.sortingStates.getIndexesQueue().length;
   }
 
   /**
@@ -128,7 +129,7 @@ export class ColumnStatesManager {
    * @returns {boolean}
    */
   isListOfSortedColumnsEmpty() {
-    return this.sortingStates.getValues().some(sortState => isObject(sortState)) === false;
+    return this.getNumberOfSortedColumns() === 0;
   }
 
   /**
@@ -153,23 +154,10 @@ export class ColumnStatesManager {
       return [];
     }
 
-    return this.sortingStates.getValues().reduce((sortedColumnsStates, sortState, physicalColumn) => {
-      if (sortState !== null) {
-        sortedColumnsStates.push({
-          column: this.hot.toVisualColumn(physicalColumn),
-          sortOrder: sortState.sortOrder,
-          priority: sortState.priority,
-        });
-      }
+    const sortingStatesQueue = this.sortingStates.getEntries();
 
-      return sortedColumnsStates;
-    }, []).sort((sortStateForColumn1, sortStateForColumn2) => {
-      // Sort state should be sorted by the priority. Please keep in mind that a lower number has a higher priority.
-      return sortStateForColumn1.priority - sortStateForColumn2.priority;
-    }).map((sortConfigForColumn) => {
-      // Removing the `priority` key, needed just for sorting the states.
-      return { column: sortConfigForColumn.column, sortOrder: sortConfigForColumn.sortOrder };
-    });
+    return sortingStatesQueue.map(
+      ([physicalColumn, value]) => ({ column: this.hot.toVisualColumn(physicalColumn), ...value }));
   }
 
   /**
@@ -186,7 +174,6 @@ export class ColumnStatesManager {
 
       const sortingStateWithPriority = this.sortingStates.getValueAtIndex(physicalColumn);
 
-      // We return state without the `priority` key.
       return {
         column,
         sortOrder: sortingStateWithPriority.sortOrder,
@@ -204,8 +191,7 @@ export class ColumnStatesManager {
 
     for (let i = 0; i < sortStates.length; i += 1) {
       this.sortingStates.setValueAtIndex(this.hot.toPhysicalColumn(sortStates[i].column), {
-        sortOrder: sortStates[i].sortOrder,
-        priority: i, // Please keep in mind that a lower number has a higher priority.
+        sortOrder: sortStates[i].sortOrder
       });
     }
   }
