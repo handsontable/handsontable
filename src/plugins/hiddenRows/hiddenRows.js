@@ -36,7 +36,7 @@ Hooks.getSingleton().register('afterUnhideRows');
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   hiddenRows: {
  *     copyPasteEnabled: true,
  *     indicators: true,

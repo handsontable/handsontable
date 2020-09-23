@@ -334,6 +334,36 @@ describe('AutoColumnSize', () => {
     expect(width1).toBeLessThan(width2);
   });
 
+  it(`should keep proper topOverlay size after render() -> adjustElementSize() -> updateSettings
+      with a different set of colHeaders`, () => {
+    const getHeaders = () => [
+      'A_longer',
+      'B_longer',
+      'C_longer',
+      'D_longer',
+      'E_longer',
+    ];
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: getHeaders(),
+      rowHeaders: true,
+    });
+
+    const topOverlay = spec().$container.find('.ht_clone_top .wtHider');
+    const topOverlayWidthBefore = topOverlay.width();
+
+    // Simulates a sequence of methods used in contextMenu commands for plugins like Hidden*, Freeze*
+    // or internal plugins' methods like Filters, Manual*Move, Manual*Resize.
+    hot.render();
+    hot.view.wt.wtOverlays.adjustElementsSize(true);
+
+    hot.updateSettings({
+      colHeaders: getHeaders().reverse(),
+    });
+
+    expect(topOverlayWidthBefore).toEqual(topOverlay.width());
+  });
+
   it('should consider CSS style of each instance separately', () => {
     const $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({

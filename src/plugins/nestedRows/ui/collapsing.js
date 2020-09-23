@@ -10,6 +10,7 @@ import HeadersUI from './headers';
  *
  * @class
  * @util
+ * @private
  * @augments BaseUI
  */
 class CollapsingUI extends BaseUI {
@@ -22,22 +23,25 @@ class CollapsingUI extends BaseUI {
     this.dataManager = this.plugin.dataManager;
     this.collapsedRows = [];
     this.collapsedRowsStash = {
-      stash: () => {
+      stash: (forceRender = false) => {
         this.lastCollapsedRows = this.collapsedRows.slice(0);
 
         // Workaround for wrong indexes being set in the trimRows plugin
-        this.expandMultipleChildren(this.lastCollapsedRows, false);
+        this.expandMultipleChildren(this.lastCollapsedRows, forceRender);
       },
-      shiftStash: (index, delta = 1) => {
-        const elementIndex = this.translateTrimmedRow(index);
+      shiftStash: (baseIndex, targetIndex, delta = 1) => {
+        if (targetIndex === null || targetIndex === void 0) {
+          targetIndex = Infinity;
+        }
+
         arrayEach(this.lastCollapsedRows, (elem, i) => {
-          if (elem > elementIndex - 1) {
+          if (elem >= baseIndex && elem < targetIndex) {
             this.lastCollapsedRows[i] = elem + delta;
           }
         });
       },
-      applyStash: () => {
-        this.collapseMultipleChildren(this.lastCollapsedRows, true);
+      applyStash: (forceRender = true) => {
+        this.collapseMultipleChildren(this.lastCollapsedRows, forceRender);
         this.lastCollapsedRows = void 0;
       },
       trimStash: (realElementIndex, amount) => {
@@ -373,17 +377,19 @@ class CollapsingUI extends BaseUI {
    * Check if all child rows are collapsed.
    *
    * @private
-   * @param {number|object} row The parent row.
+   * @param {number|object|null} row The parent row. `null` for the top level.
    * @returns {boolean}
    */
   areChildrenCollapsed(row) {
-    let rowObj = null;
+    let rowObj = isNaN(row) ? row : this.dataManager.getDataObject(row);
     let allCollapsed = true;
 
-    if (isNaN(row)) {
-      rowObj = row;
-    } else {
-      rowObj = this.dataManager.getDataObject(row);
+    // Checking the children of the top-level "parent"
+    if (rowObj === null) {
+      rowObj = {
+        __children: this.dataManager.data
+      };
+
     }
 
     if (this.dataManager.hasChildren(rowObj)) {
@@ -448,7 +454,7 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
-   * Translate physical row after trimming to physical base row index.
+   * Translate visual row after trimming to physical base row index.
    *
    * @private
    * @param {number} row Row index.
@@ -456,6 +462,17 @@ class CollapsingUI extends BaseUI {
    */
   translateTrimmedRow(row) {
     return this.hot.toPhysicalRow(row);
+  }
+
+  /**
+   * Translate physical row after trimming to visual base row index.
+   *
+   * @private
+   * @param {number} row Row index.
+   * @returns {number} Base row index.
+   */
+  untranslateTrimmedRow(row) {
+    return this.hot.toVisualRow(row);
   }
 
   /**

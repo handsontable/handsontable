@@ -15,7 +15,7 @@ import { arrayEach, arrayReduce } from '../../helpers/array';
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   // hide selected rows on table initialization
  *   trimRows: [1, 2, 5]
  * });

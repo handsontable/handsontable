@@ -760,6 +760,7 @@ declare namespace Handsontable {
 
       calculateAllColumnsWidth(rowRange?: number | object): void;
       calculateColumnsWidth(colRange?: number | object, rowRange?: number | object, force?: boolean): void;
+      calculateVisibleColumnsWidth(): void;
       clearCache(columns?: any[]): void;
       findColumnsWhereHeaderWasChanged(): any[];
       getColumnWidth(col: number, defaultWidth?: number, keepMinimum?: boolean): number;

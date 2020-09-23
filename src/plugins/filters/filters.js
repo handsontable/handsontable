@@ -293,7 +293,7 @@ class Filters extends BasePlugin {
    * ```js
    * const container = document.getElementById('example');
    * const hot = new Handsontable(container, {
-   *   date: getData(),
+   *   data: getData(),
    *   filters: true
    * });
    *
