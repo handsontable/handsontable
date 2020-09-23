@@ -4,9 +4,10 @@ import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndex
 import { isFunction } from '../../helpers/function';
 
 /**
- * Map for storing mappings from an physical index to a value. Some values may be stored in a certain order.
+ * Map for storing mappings from an physical index to a value. Some values are stored in a certain order.
  *
- * Does not update stored values on remove/add row or column action.
+ * Does not update stored values on remove/add row or column action. Otherwise, queue of indexes related to ordered
+ * values is updated after such changes.
  */
 class QueuedPhysicalIndexToValueMap extends IndexMap {
   constructor() {
@@ -15,7 +16,7 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Add values to list and reorganize.
+   * Add values to list and reorganize. It updates queue of indexes related to ordered values.
    *
    * @private
    * @param {number} insertionIndex Position inside the list.
@@ -34,7 +35,7 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Remove values from the list and reorganize.
+   * Remove values from the list and reorganize. It updates queue of indexes related to ordered values.
    *
    * @private
    * @param {Array} removedIndexes List of removed indexes.
@@ -47,7 +48,7 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Add new value to queue of values. Some values may be stored in a certain order.
+   * Set value at index and add it to the queue of values. Non-default values are stored in a certain order.
    *
    * Note: Queued value will be added at the end of the queue.
    *
@@ -62,6 +63,8 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
 
   /**
    * Remove every queued value.
+   *
+   * Note: Please keep in mind that clear for the rest of the map won't be executed.
    */
   clear() {
     if (isFunction(this.initValueOrFn)) {

@@ -26,7 +26,7 @@ export class ColumnStatesManager {
     /**
      * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
      *
-     * @type {PhysicalIndexToValueMap}
+     * @type {QueuedPhysicalIndexToValueMap}
      */
     this.sortingStates = new IndexToValueMap();
     /**
