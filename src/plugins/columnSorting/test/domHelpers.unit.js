@@ -1,16 +1,21 @@
 import { ColumnStatesManager } from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { DESC_SORT_STATE, ASC_SORT_STATE } from 'handsontable/plugins/columnSorting/utils';
 import { getClassesToAdd, getClassedToRemove } from 'handsontable/plugins/columnSorting/domHelpers';
-import { PhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
+import { IndexMapper } from 'handsontable/translations';
+
+const hotMock = {
+  toPhysicalColumn: column => column,
+  toVisualColumn: column => column,
+  columnIndexMapper: new IndexMapper()
+};
+
+// Mocking that table have 3 columns.
+hotMock.columnIndexMapper.initToLength(3);
 
 describe('ColumnSorting DOM helpers', () => {
   describe('getClassesToAdd', () => {
     it('should add `columnSorting` CSS class by default', () => {
-      const indexToValueMap = new IndexToValueMap();
-      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
-
-      // Mocking map for sorting states when a table have 3 columns.
-      indexToValueMap.init(3);
+      const columnStatesManager = new ColumnStatesManager(hotMock);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE }
@@ -18,14 +23,12 @@ describe('ColumnSorting DOM helpers', () => {
 
       expect(getClassesToAdd(columnStatesManager, 0).includes('columnSorting')).toBeTruthy();
       expect(getClassesToAdd(columnStatesManager, 1).includes('columnSorting')).toBeTruthy();
+
+      columnStatesManager.destroy(); // Unregister already registered Index Map.
     });
 
     it('should add `sortAction` CSS class for clickable header', () => {
-      const indexToValueMap = new IndexToValueMap();
-      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
-
-      // Mocking map for sorting states when a table have 3 columns.
-      indexToValueMap.init(3);
+      const columnStatesManager = new ColumnStatesManager(hotMock);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE }
@@ -36,15 +39,13 @@ describe('ColumnSorting DOM helpers', () => {
 
       expect(getClassesToAdd(columnStatesManager, 1, void 0, true).includes('sortAction')).toBeTruthy();
       expect(getClassesToAdd(columnStatesManager, 1, void 0, false).includes('sortAction')).toBeFalsy();
+
+      columnStatesManager.destroy(); // Unregister already registered Index Map.
     });
 
     describe('should add proper CSS classes for enabled / disabled indicator', () => {
       it('single sorted column', () => {
-        const indexToValueMap = new IndexToValueMap();
-        const columnStatesManager = new ColumnStatesManager(indexToValueMap);
-
-        // Mocking map for sorting states when a table have 3 columns.
-        indexToValueMap.init(3);
+        const columnStatesManager = new ColumnStatesManager(hotMock);
 
         columnStatesManager.setSortStates([
           { column: 1, sortOrder: DESC_SORT_STATE }
@@ -63,17 +64,15 @@ describe('ColumnSorting DOM helpers', () => {
         expect(getClassesToAdd(columnStatesManager, 1, true).includes('ascending')).toBeFalsy();
         expect(getClassesToAdd(columnStatesManager, 1, true).includes('descending')).toBeTruthy();
         expect(getClassesToAdd(columnStatesManager, 1, true).includes('indicatorDisabled')).toBeFalsy();
+
+        columnStatesManager.destroy(); // Unregister already registered Index Map.
       });
     });
   });
 
   describe('getClassedToRemove', () => {
     it('should return all calculated classes', () => {
-      const indexToValueMap = new IndexToValueMap();
-      const columnStatesManager = new ColumnStatesManager(indexToValueMap);
-
-      // Mocking map for sorting states when a table have 3 columns.
-      indexToValueMap.init(3);
+      const columnStatesManager = new ColumnStatesManager(hotMock);
 
       columnStatesManager.setSortStates([
         { column: 3, sortOrder: ASC_SORT_STATE },
@@ -87,6 +86,8 @@ describe('ColumnSorting DOM helpers', () => {
       expect(getClassedToRemove(htmlElementMock).includes('sortAction')).toBeTruthy();
       expect(getClassedToRemove(htmlElementMock).includes('ascending')).toBeTruthy();
       expect(getClassedToRemove(htmlElementMock).includes('descending')).toBeTruthy();
+
+      columnStatesManager.destroy(); // Unregister already registered Index Map.
     });
   });
 });
