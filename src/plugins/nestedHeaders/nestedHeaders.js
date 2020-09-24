@@ -30,7 +30,7 @@ import './nestedHeaders.css';
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   nestedHeaders: [
  *     ['A', {label: 'B', colspan: 8}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
