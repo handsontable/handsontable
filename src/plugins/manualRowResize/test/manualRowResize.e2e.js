@@ -597,8 +597,8 @@ describe('manualRowResize', () => {
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
 
+      $(mainHolder).scrollTop(1); // we have to trigger innerBorderTop before we scroll to correct position
       $(mainHolder).scrollTop(200);
-
       await sleep(400);
 
       $rowHeader = getLeftClone().find('tr:eq(13) th:eq(0)');
