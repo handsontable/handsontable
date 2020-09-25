@@ -434,7 +434,7 @@ class Table {
         if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
-        children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
+        children[i].style.height = `${oversizedColumnHeaders[i]}px`;
       }
     }
   }
@@ -718,9 +718,9 @@ class Table {
       rowHeader = currentTr.querySelector('th');
 
       if (rowHeader) {
-        rowInnerHeight = innerHeight(rowHeader);
+        rowInnerHeight = rowHeader.getBoundingClientRect().height;
       } else {
-        rowInnerHeight = innerHeight(currentTr) - 1;
+        rowInnerHeight = currentTr.getBoundingClientRect().height;
       }
 
       if ((!previousRowHeight && this.wot.wtSettings.settings.defaultRowHeight < rowInnerHeight ||
