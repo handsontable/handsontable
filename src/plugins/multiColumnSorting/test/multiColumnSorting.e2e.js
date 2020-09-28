@@ -2919,6 +2919,33 @@ describe('MultiColumnSorting', () => {
         { column: 3, sortOrder: 'asc' },
       ]);
     });
+
+    // DIFF - MultiColumnSorting & ColumnSorting: extra test
+    it('should sort proper columns after removing already sorted one', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        multiColumnSorting: {
+          initialConfig: [{
+            column: 1,
+            sortOrder: 'asc'
+          }, {
+            column: 3,
+            sortOrder: 'desc'
+          }, {
+            column: 5,
+            sortOrder: 'desc'
+          }]
+        },
+      });
+
+      alter('remove_col', 3);
+
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+        { column: 1, sortOrder: 'asc' },
+        { column: 4, sortOrder: 'desc' },
+      ]);
+    });
   });
 
   // TODO: Remove tests when workaround will be removed.

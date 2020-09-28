@@ -1,5 +1,6 @@
 import IndexMap from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
+import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
 import { isFunction } from '../../helpers/function';
 
@@ -10,10 +11,12 @@ import { isFunction } from '../../helpers/function';
  * values is updated after such changes.
  */
 class QueuedPhysicalIndexToValueMap extends IndexMap {
-  constructor() {
-    super();
-    this.queueOfIndexes = [];
-  }
+  /**
+   * Some values are stored in a certain order. Queue of indexes represent indexes related to ordered values.
+   *
+   * @type {Array<number>}
+   */
+  queueOfIndexes = []
 
   /**
    * Add values to list and reorganize. It updates queue of indexes related to ordered values.
@@ -42,6 +45,7 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
    */
   remove(removedIndexes) {
     this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
+    this.queueOfIndexes = getListWithoutIndexes(this.queueOfIndexes, removedIndexes);
     this.queueOfIndexes = getDecreasedIndexes(this.queueOfIndexes, removedIndexes);
 
     super.remove(removedIndexes);
