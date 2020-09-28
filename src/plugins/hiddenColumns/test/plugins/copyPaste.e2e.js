@@ -248,5 +248,41 @@ describe('hiddenColumns', () => {
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(2);
     });
+
+    it('should paste data in the correct place after hiding and un-hiding columns', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: [],
+          copyPasteEnabled: false,
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const hiddenColumns = getPlugin('hiddenColumns');
+      const copyPastePlugin = getPlugin('copyPaste');
+
+      selectCell(0, 1, 0, 1);
+
+      copyPastePlugin.onCopy(copyEvent);
+
+      hiddenColumns.hideColumn(1);
+
+      hot().render();
+
+      hiddenColumns.showColumn(1);
+
+      selectCell(1, 1, 1, 1);
+
+      copyPastePlugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B1', 'C2', 'D2', 'E2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3'],
+        ['A4', 'B4', 'C4', 'D4', 'E4'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+    });
   });
 });
