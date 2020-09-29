@@ -102,5 +102,33 @@ describe('TrimRows', () => {
         <tbody></tbody>
         `);
     });
+
+    it('should resize the container after trimming rows using the `trimRows` API method, when there are fixed rows' +
+      ' declared', async() => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 2),
+        rowHeaders: true,
+        fixedRowsTop: 2,
+        trimRows: true,
+      });
+
+      selectCell(1, 1);
+
+      const initialHeight = spec().$container.height();
+
+      hot().getPlugin('trimRows').trimRows(
+        Array.from(Array(45).keys())
+      );
+      hot().render();
+
+      const resultingHeight = spec().$container.height();
+
+      expect(resultingHeight < initialHeight).toBe(true);
+
+      hot().getPlugin('trimRows').untrimAll();
+      hot().render();
+
+      expect(spec().$container.height()).toEqual(initialHeight);
+    });
   });
 });
