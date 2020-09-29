@@ -319,10 +319,8 @@ class HiddenRows extends BasePlugin {
    * @param {object} cellProperties Object containing the cell properties.
    */
   onAfterGetCellMeta(row, column, cellProperties) {
-    if (this.#settings.copyPasteEnabled === false && this.isHidden(row)) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
-      cellProperties.skipRowOnPaste = true;
-    }
+    // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
+    cellProperties.skipRowOnPaste = this.#settings.copyPasteEnabled === false && this.isHidden(row);
 
     if (this.isHidden(row - 1)) {
       cellProperties.className = cellProperties.className || '';
