@@ -1,4 +1,18 @@
+import Cursor from './cursor';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
+import {
+  filterSeparators,
+  hasSubMenu,
+  isDisabled,
+  isItemHidden,
+  isSeparator,
+  isSelectionDisabled,
+  normalizeSelection
+} from './utils';
 import Core from './../../core';
+import EventManager from './../../eventManager';
+import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
+import { isWindowsOS } from './../../helpers/browser';
 import {
   addClass,
   empty,
@@ -10,26 +24,13 @@ import {
   getParentWindow,
   hasClass,
 } from './../../helpers/dom/element';
-import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
-import Cursor from './cursor';
-import EventManager from './../../eventManager';
-import { mixin, hasOwnProperty } from './../../helpers/object';
-import { isUndefined, isDefined } from './../../helpers/mixed';
+import { stopImmediatePropagation, isRightClick } from './../../helpers/dom/event';
 import { debounce, isFunction } from './../../helpers/function';
-import {
-  filterSeparators,
-  hasSubMenu,
-  isDisabled,
-  isItemHidden,
-  isSeparator,
-  isSelectionDisabled,
-  normalizeSelection
-} from './utils';
+import { isUndefined, isDefined } from './../../helpers/mixed';
+import { mixin, hasOwnProperty } from './../../helpers/object';
+import { stripTags } from '../../helpers/string';
 import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
-import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
-import { stopImmediatePropagation, isRightClick } from './../../helpers/dom/event';
-import { isWindowsOS } from './../../helpers/browser';
 
 const MIN_WIDTH = 215;
 
@@ -592,7 +593,7 @@ class Menu {
       TD.appendChild(item.renderer(hot, wrapper, row, col, prop, itemValue));
 
     } else {
-      fastInnerHTML(wrapper, itemValue);
+      fastInnerHTML(wrapper, stripTags(itemValue));
     }
     if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');

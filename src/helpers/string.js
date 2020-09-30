@@ -1,3 +1,4 @@
+import { sanitize } from 'dompurify';
 import { stringify } from './mixed';
 
 /**
@@ -78,14 +79,13 @@ export function substitute(template, variables = {}) {
   });
 }
 
-const STRIP_TAGS_REGEX = /<\/?\w+\/?>|<\w+[\s|/][^>]*>/gi;
-
 /**
  * Strip any HTML tag from the string.
  *
- * @param  {string} string String to cut HTML from.
+ * @param {string} string String to cut HTML from.
+ * @param {object} [options] DOMPurify's configuration object.
  * @returns {string}
  */
-export function stripTags(string) {
-  return `${string}`.replace(STRIP_TAGS_REGEX, '');
+export function stripTags(string, options = { ALLOWED_TAGS: [] }) {
+  return sanitize(`${string}`, options);
 }

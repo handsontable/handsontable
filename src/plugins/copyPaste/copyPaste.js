@@ -3,6 +3,7 @@ import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
+import { stripTags } from './../../helpers/string';
 import { getSelectionText } from './../../helpers/dom/element';
 import { registerPlugin } from './../../plugins';
 import copyItem from './contextMenuItem/copy';
@@ -535,7 +536,11 @@ class CopyPaste extends BasePlugin {
     let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      const textHTML = event.clipboardData.getData('text/html');
+      const textHTML = stripTags(event.clipboardData.getData('text/html'), {
+        ADD_TAGS: ['meta'],
+        ADD_ATTR: ['name', 'content'],
+        FORCE_BODY: true,
+      });
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
