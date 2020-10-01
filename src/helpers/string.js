@@ -1,4 +1,4 @@
-import { sanitize } from 'dompurify';
+import { sanitize as purifySanitize } from 'dompurify';
 import { stringify } from './mixed';
 
 /**
@@ -83,9 +83,19 @@ export function substitute(template, variables = {}) {
  * Strip any HTML tag from the string.
  *
  * @param {string} string String to cut HTML from.
+ * @returns {string}
+ */
+export function stripTags(string) {
+  return sanitize(`${string}`, { ALLOWED_TAGS: [] });
+}
+
+/**
+ * Sanitizes string from potential security vulnerabilities.
+ *
+ * @param {string} string String to sanitize.
  * @param {object} [options] DOMPurify's configuration object.
  * @returns {string}
  */
-export function stripTags(string, options = { ALLOWED_TAGS: [] }) {
-  return sanitize(`${string}`, options);
+export function sanitize(string, options = { PROFILES: { html: true } }) {
+  return purifySanitize(string, options);
 }

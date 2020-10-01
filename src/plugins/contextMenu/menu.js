@@ -28,7 +28,6 @@ import { stopImmediatePropagation, isRightClick } from './../../helpers/dom/even
 import { debounce, isFunction } from './../../helpers/function';
 import { isUndefined, isDefined } from './../../helpers/mixed';
 import { mixin, hasOwnProperty } from './../../helpers/object';
-import { stripTags } from '../../helpers/string';
 import { KEY_CODES } from './../../helpers/unicode';
 import localHooks from './../../mixins/localHooks';
 
@@ -593,7 +592,7 @@ class Menu {
       TD.appendChild(item.renderer(hot, wrapper, row, col, prop, itemValue));
 
     } else {
-      fastInnerHTML(wrapper, stripTags(itemValue));
+      fastInnerHTML(wrapper, itemValue);
     }
     if (itemIsDisabled(item)) {
       addClass(TD, 'htDisabled');
