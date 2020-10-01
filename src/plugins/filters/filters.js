@@ -257,6 +257,8 @@ class Filters extends BasePlugin {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
+   * @memberof Filters#
+   * @function addCondition
    * @description
    * Adds condition to the conditions collection at specified column index.
    *
@@ -291,7 +293,7 @@ class Filters extends BasePlugin {
    * ```js
    * const container = document.getElementById('example');
    * const hot = new Handsontable(container, {
-   *   date: getData(),
+   *   data: getData(),
    *   filters: true
    * });
    *

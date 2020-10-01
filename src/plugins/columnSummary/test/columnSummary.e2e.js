@@ -474,6 +474,42 @@ describe('ColumnSummarySpec', () => {
       expect(getCellMeta(0, 2).readOnly).toEqual(true);
     });
 
+    describe('if range is undefined', () => {
+      it('should not throw an error if removing column', () => {
+        const hot = handsontable({
+          data: createNumericData(3, 3),
+          height: 200,
+          width: 200,
+          columnSummary: [{
+            destinationRow: 2,
+            destinationColumn: 2,
+            type: 'sum'
+          }],
+        });
+
+        expect(() => {
+          hot.alter('remove_col', 0, 1);
+        }).not.toThrow();
+      });
+
+      it('should not throw an error if removing row', () => {
+        const hot = handsontable({
+          data: createNumericData(3, 3),
+          height: 200,
+          width: 200,
+          columnSummary: [{
+            destinationRow: 2,
+            destinationColumn: 2,
+            type: 'sum'
+          }],
+        });
+
+        expect(() => {
+          hot.alter('remove_row', 0, 1);
+        }).not.toThrow();
+      });
+    });
+
     it('should modify the calculation row range when a row was moved outside the range', () => {
       const hot = handsontable({
         data: createNumericData(40, 40),

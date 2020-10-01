@@ -63,14 +63,14 @@ describe('HiddenRows', () => {
             <td class="">B4</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_BEFORE_HIDDEN}">3</th>
+            <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">3</th>
             <td class="">A5</td>
             <td class="">B5</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">5</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A2</td>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">B2</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B2</td>
           </tr>
         </tbody>
         `);
@@ -102,14 +102,14 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
+            <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A4</td>
             <td class="">B4</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">3</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A1</td>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">B1</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">3</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A1</td>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B1</td>
           </tr>
           <tr>
             <th class="">4</th>
@@ -151,14 +151,14 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
+            <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">3</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A2</td>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">B2</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">3</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A2</td>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B2</td>
           </tr>
           <tr>
             <th class="">4</th>
@@ -205,14 +205,14 @@ describe('HiddenRows', () => {
             <td class="">B1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_BEFORE_HIDDEN}">2</th>
+            <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">2</th>
             <td class="">A3</td>
             <td class="">B3</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">4</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A5</td>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">B5</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">4</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A5</td>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B5</td>
           </tr>
           <tr>
             <th class="">5</th>
@@ -253,14 +253,14 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
+            <th class="${CSS_CLASS_BEFORE_HIDDEN_ROW}">1</th>
             <td class="">A1</td>
             <td class="">B1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">5</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A5</td>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">B5</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A5</td>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B5</td>
           </tr>
         </tbody>
         `);
@@ -296,14 +296,14 @@ describe('HiddenRows', () => {
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
         <tbody>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN} ${CSS_CLASS_BEFORE_HIDDEN}">3</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A1</td>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">B1</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW} ${CSS_CLASS_BEFORE_HIDDEN_ROW}">3</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A1</td>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B1</td>
           </tr>
           <tr>
-            <th class="${CSS_CLASS_AFTER_HIDDEN}">5</th>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">A3</td>
-            <td class="${CSS_CLASS_AFTER_HIDDEN}">B3</td>
+            <th class="${CSS_CLASS_AFTER_HIDDEN_ROW}">5</th>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">A3</td>
+            <td class="${CSS_CLASS_AFTER_HIDDEN_ROW}">B3</td>
           </tr>
         </tbody>
         `);

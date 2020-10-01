@@ -1,8 +1,8 @@
 describe('HiddenColumns', () => {
   const id = 'testContainer';
 
-  const CSS_CLASS_BEFORE_HIDDEN = 'beforeHiddenColumn';
-  const CSS_CLASS_AFTER_HIDDEN = 'afterHiddenColumn';
+  const CSS_CLASS_BEFORE_HIDDEN_COLUMN = 'beforeHiddenColumn';
+  const CSS_CLASS_AFTER_HIDDEN_COLUMN = 'afterHiddenColumn';
   const CONTEXTMENU_ITEM_SHOW = 'hidden_columns_show';
 
   beforeEach(function() {
@@ -37,9 +37,9 @@ describe('HiddenColumns', () => {
       ]);
       expect(hot.getColWidth(3)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
@@ -66,9 +66,9 @@ describe('HiddenColumns', () => {
       ]);
       expect(hot.getColWidth(1)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('D1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('B1');
@@ -95,9 +95,9 @@ describe('HiddenColumns', () => {
       ]);
       expect(hot.getColWidth(1)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('C1');
@@ -124,9 +124,9 @@ describe('HiddenColumns', () => {
       ]);
       expect(hot.getColWidth(2)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
-      expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 2)).toBe(null);
-      expect(getCell(-1, 3)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 3)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('E1');
@@ -153,11 +153,11 @@ describe('HiddenColumns', () => {
       ]);
       expect(hot.getColWidth(2)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
-      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 1)).toBe(null);
       expect(getCell(-1, 2)).toBe(null);
       expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('E1');
     });
@@ -188,10 +188,10 @@ describe('HiddenColumns', () => {
       expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();
       expect(getCell(-1, 0)).toBe(null);
       expect(getCell(-1, 1)).toBe(null);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
-      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
+      expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 3)).toBe(null);
-      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN);
+      expect(getCell(-1, 4)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
     });

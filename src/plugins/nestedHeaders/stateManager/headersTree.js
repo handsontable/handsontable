@@ -3,6 +3,8 @@ import TreeNode from '../../../utils/dataStructures/tree';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class HeadersTree
+ *
  * The header tree class keeps nested header settings in the tree
  * structure for easier node manipulation (e.q collapse or expand column).
  * That trees represent the current state of the nested headers. From the
@@ -32,7 +34,7 @@ import TreeNode from '../../../utils/dataStructures/tree';
  *   .--(B1)--.           (B2)--.              (B3)--.
  *  (C1)     (C2)              (C3)                 (C4)
  *
- * @type {HeadersTree}
+ * @plugin NestedHeaders
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export default class HeadersTree {

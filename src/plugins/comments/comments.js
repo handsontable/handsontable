@@ -27,6 +27,7 @@ const META_READONLY = 'readOnly';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class Comments
  * @plugin Comments
  *
  * @description
@@ -52,7 +53,7 @@ const META_READONLY = 'readOnly';
  *
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
+ *   data: getData(),
  *   comments: true,
  *   cell: [
  *     {row: 1, col: 1, comment: {value: 'Foo'}},

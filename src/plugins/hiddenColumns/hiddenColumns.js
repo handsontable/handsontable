@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -35,7 +35,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   hiddenColumns: {
  *     copyPasteEnabled: true,
  *     indicators: true,
@@ -46,7 +46,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // access to hiddenColumns plugin instance:
  * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
  *
- * // show single row
+ * // show single column
  * hiddenColumnsPlugin.showColumn(1);
  *
  * // show multiple columns
@@ -55,7 +55,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // or as an array
  * hiddenColumnsPlugin.showColumns([1, 2, 9]);
  *
- * // hide single row
+ * // hide single column
  * hiddenColumnsPlugin.hideColumn(1);
  *
  * // hide multiple columns
@@ -153,30 +153,45 @@ class HiddenColumns extends BasePlugin {
    */
   showColumns(columns) {
     const currentHideConfig = this.getHiddenColumns();
-    const isConfigValid = this.isValidConfig(columns);
+    const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
+    const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
+    const isAnyColumnShowed = columns.length > 0;
 
-    if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(column => columns.includes(column) === false);
+    if (isValidConfig && isAnyColumnShowed) {
+      const physicalColumns = columns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
+
+      // Preparing new values for hiding map.
+      arrayEach(physicalColumns, (physicalColumn) => {
+        hidingMapValues[physicalColumn] = false;
+      });
+
+      // Preparing new hiding config.
+      destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
+        if (isHidden) {
+          hiddenIndexes.push(this.hot.toVisualColumn(physicalIndex));
+        }
+
+        return hiddenIndexes;
+      }, []);
     }
 
     const continueHiding = this.hot
-      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
+      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isAnyColumnShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isConfigValid) {
-      this.hot.batch(() => {
-        arrayEach(columns, (visualColumn) => {
-          this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
-        });
-      });
+    if (isValidConfig && isAnyColumnShowed) {
+      this.#hiddenColumnsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
-      isConfigValid && destinationHideConfig.length < currentHideConfig.length);
+    // @TODO Should call once per render cycle, currently fired separately in different plugins
+    this.hot.view.wt.wtOverlays.adjustElementsSize();
+
+    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
+      isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
@@ -254,7 +269,7 @@ class HiddenColumns extends BasePlugin {
   /**
    * Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
    *
-   * @param {Array} hiddenColumns List of hidden row indexes.
+   * @param {Array} hiddenColumns List of hidden column indexes.
    * @returns {boolean}
    */
   isValidConfig(hiddenColumns) {

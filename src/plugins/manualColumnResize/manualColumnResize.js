@@ -248,25 +248,28 @@ class ManualColumnResize extends BasePlugin {
     this.currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
     this.selectedCols = [];
 
-    if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByColumnHeader()) {
-      const { from, to } = this.hot.getSelectedRangeLast();
-      let start = from.col;
-      let end = to.col;
+    const isFullColumnSelected = this.hot.selection.isSelectedByCorner() ||
+      this.hot.selection.isSelectedByColumnHeader();
 
-      if (start >= end) {
-        start = to.col;
-        end = from.col;
-      }
+    if (this.hot.selection.isSelected() && isFullColumnSelected) {
+      const selectionRanges = this.hot.getSelectedRange();
 
-      if (this.currentCol >= start && this.currentCol <= end) {
-        rangeEach(start, end, i => this.selectedCols.push(i));
+      arrayEach(selectionRanges, (selectionRange) => {
+        const fromColumn = selectionRange.getTopLeftCorner().col;
+        const toColumn = selectionRange.getBottomRightCorner().col;
 
-      } else {
-        this.selectedCols.push(this.currentCol);
-      }
+        // Add every selected column for resize action.
+        rangeEach(fromColumn, toColumn, (columnIndex) => {
+          if (!this.selectedCols.includes(columnIndex)) {
+            this.selectedCols.push(columnIndex);
+          }
+        });
+      });
+    }
 
-    } else {
-      this.selectedCols.push(this.currentCol);
+    // Resizing element beyond the current selection (also when there is no selection).
+    if (!this.selectedCols.includes(this.currentCol)) {
+      this.selectedCols = [this.currentCol];
     }
 
     this.startOffset = relativeHeaderPosition.left - 6;
@@ -451,6 +454,7 @@ class ManualColumnResize extends BasePlugin {
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualColumnResizer')) {
+      this.setupHandlePosition(this.currentTH);
       this.setupGuidePosition();
       this.pressed = true;
 

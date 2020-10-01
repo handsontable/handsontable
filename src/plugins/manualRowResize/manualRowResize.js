@@ -202,30 +202,30 @@ class ManualRowResize extends BasePlugin {
         .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
     }
 
-    const rowIndexMapper = this.hot.rowIndexMapper;
-
-    this.currentRow = rowIndexMapper.getVisualFromRenderableIndex(row);
+    this.currentRow = this.hot.rowIndexMapper.getVisualFromRenderableIndex(row);
     this.selectedRows = [];
 
-    if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByRowHeader()) {
-      const { from, to } = this.hot.getSelectedRangeLast();
-      let start = from.row;
-      let end = to.row;
+    const isFullRowSelected = this.hot.selection.isSelectedByCorner() || this.hot.selection.isSelectedByRowHeader();
 
-      if (start >= end) {
-        start = to.row;
-        end = from.row;
-      }
+    if (this.hot.selection.isSelected() && isFullRowSelected) {
+      const selectionRanges = this.hot.getSelectedRange();
 
-      if (this.currentRow >= start && this.currentRow <= end) {
-        rangeEach(start, end, i => this.selectedRows.push(i));
+      arrayEach(selectionRanges, (selectionRange) => {
+        const fromRow = selectionRange.getTopLeftCorner().row;
+        const toRow = selectionRange.getBottomLeftCorner().row;
 
-      } else {
-        this.selectedRows.push(this.currentRow);
-      }
+        // Add every selected row for resize action.
+        rangeEach(fromRow, toRow, (rowIndex) => {
+          if (!this.selectedRows.includes(rowIndex)) {
+            this.selectedRows.push(rowIndex);
+          }
+        });
+      });
+    }
 
-    } else {
-      this.selectedRows.push(this.currentRow);
+    // Resizing element beyond the current selection (also when there is no selection).
+    if (!this.selectedRows.includes(this.currentRow)) {
+      this.selectedRows = [this.currentRow];
     }
 
     this.startOffset = relativeHeaderPosition.top - 6;
@@ -415,6 +415,7 @@ class ManualRowResize extends BasePlugin {
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualRowResizer')) {
+      this.setupHandlePosition(this.currentTH);
       this.setupGuidePosition();
       this.pressed = true;
 

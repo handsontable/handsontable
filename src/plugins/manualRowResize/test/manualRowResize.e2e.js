@@ -525,6 +525,55 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(3).height()).toEqual(35);
   });
 
+  it('should resize proper row after resizing element adjacent to a selection', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      manualRowResize: true
+    });
+
+    selectRows(2, 3);
+
+    getLeftClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+    $resizer.simulate('mouseup');
+
+    expect(getLeftClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(52);
+    expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(22);
+    expect(getLeftClone().find('tbody tr:eq(3) th:eq(0)').height()).toBe(22);
+  });
+
+  it('should resize all rows after resize action when selected all cells', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      colHeaders: true,
+      manualRowResize: true
+    });
+
+    expect(getLeftClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(22);
+    expect(getLeftClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(22);
+    expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(22);
+
+    selectAll();
+
+    getLeftClone().find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+    $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+    $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+    $resizer.simulate('mouseup');
+
+    expect(getLeftClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(52);
+    expect(getLeftClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(52);
+    expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(52);
+  });
+
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
     it('should display the handles in the correct position, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
@@ -652,6 +701,84 @@ describe('manualRowResize', () => {
       expect(getLeftClone().find('tbody tr:eq(14) th:eq(0)').height()).toBe(52);
 
       $(window).scrollTop(0);
+    });
+  });
+
+  describe('contiguous/non-contiguous selected rows resizing in a table', () => {
+    it('should resize (expanding) height of selected contiguous rows', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      selectRows(3, 5);
+      getLeftClone().find('tbody tr:eq(5) th:eq(0)').simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+      $resizer.simulate('mouseup');
+
+      expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(22);
+      expect(getLeftClone().find('tbody tr:eq(3) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(4) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(5) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(6) th:eq(0)').height()).toBe(22);
+    });
+
+    it('should resize (expanding) height of selected non-contiguous rows', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      selectRows(3);
+      keyDown('ctrl');
+      selectRows(7);
+      selectRows(10);
+      keyUp('ctrl');
+      getLeftClone().find('tbody tr:eq(10) th:eq(0)').simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+      $resizer.simulate('mouseup');
+
+      expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(22);
+      expect(getLeftClone().find('tbody tr:eq(3) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(4) th:eq(0)').height()).toBe(22);
+      expect(getLeftClone().find('tbody tr:eq(5) th:eq(0)').height()).toBe(22);
+      expect(getLeftClone().find('tbody tr:eq(6) th:eq(0)').height()).toBe(22);
+      expect(getLeftClone().find('tbody tr:eq(7) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(8) th:eq(0)').height()).toBe(22);
+      expect(getLeftClone().find('tbody tr:eq(9) th:eq(0)').height()).toBe(22);
+      expect(getLeftClone().find('tbody tr:eq(10) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(11) th:eq(0)').height()).toBe(22);
+    });
+
+    it('should not resize few rows when selected just single cells before resize action', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        manualRowResize: true
+      });
+
+      selectCells([[1, 1, 2, 2]]);
+
+      getLeftClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const resizerPosition = $resizer.position();
+      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
+      $resizer.simulate('mouseup');
+
+      expect(getLeftClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(52);
+      expect(getLeftClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(22);
     });
   });
 

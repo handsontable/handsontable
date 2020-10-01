@@ -31,7 +31,8 @@ import { generateMatrix } from './matrixGenerator';
  *                            That settings describes how the TH element should be modified (colspan attribute,
  *                            CSS classes, etc) for a specific column and layer level.
  *
- * @type {StateManager}
+ * @class StateManager
+ * @plugin NestedHeaders
  */
 export default class StateManager {
   /**
@@ -189,6 +190,9 @@ export default class StateManager {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
+   * @memberof StateManager#
+   * @function rowCoordsToLevel
+   *
    * Translates row coordinates into header level. The row coordinates counts from -1 to -N
    * and describes headers counting from most closest to most distant from the table.
    * The header levels are counted from 0 to N where 0 describes most distant header
@@ -220,6 +224,9 @@ export default class StateManager {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
+   * @memberof StateManager#
+   * @function levelToRowCoords
+   *
    * Translates header level into row coordinates. The row coordinates counts from -1 to -N
    * and describes headers counting from most closest to most distant from the table.
    * The header levels are counted from 0 to N where 0 describes most distant header

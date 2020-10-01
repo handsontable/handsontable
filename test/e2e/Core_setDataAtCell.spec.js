@@ -363,5 +363,15 @@ describe('Core_setDataAtCell', () => {
       setDataAtCell([[1, 0, 'new row']], 'customSource');
       expect(countRows()).toBe(countedRows);
     });
+
+    it('should work also when the `editor` option is set to `false`', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        editor: false,
+      });
+
+      setDataAtCell(0, 0, 'aaa');
+      expect(getData()).toEqual([['aaa']]);
+    });
   });
 });

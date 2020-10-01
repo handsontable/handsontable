@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.1.0] - 2020-10-01
+
+### Added
+- Added support for resizing non-contiguous selected rows [#7162](https://github.com/handsontable/handsontable/pull/7162) along with refactor and bug fix introduced within #6871 PR [#7220](https://github.com/handsontable/handsontable/pull/7220)
+- Added e2e tests and reorganized already existing ones [#6491](https://github.com/handsontable/handsontable/issues/6491)
+
+### Fixed
+- Fixed an issue where if the first part of the merged area was hidden the value did not show [#6871](https://github.com/handsontable/handsontable/issues/6871)
+- Fixed an issue where after selecting the top-left element the row range resizing was not possible [#7162](https://github.com/handsontable/handsontable/pull/7162) along with refactor and bug fix introduced within #6871 PR [#7220](https://github.com/handsontable/handsontable/pull/7220)
+- Fixed an issue where the column headers were cut off after hiding and then showing columns using the Hidden Columns plugin. [#6395](https://github.com/handsontable/handsontable/issues/6395)
+- Fixed an issue where redundant row has been added during copy/paste operations in some case [#5961](https://github.com/handsontable/handsontable/issues/5961)
+- Fixed an issue where too many values have been pasted when column was hidden [#6743](https://github.com/handsontable/handsontable/issues/6743)
+- Fixed a bug, where trying to move collapsed parent rows with the Nested Rows plugin enabled threw an error. [#7132](https://github.com/handsontable/handsontable/issues/7132)
+- Fixed an issue where after column or row alteration, Handsontable threw an error if ColumnSummary was enabled without defined rows ranges [#7174](https://github.com/handsontable/handsontable/pull/7174)
+- Fixed an issue where using updateSettings() has been breaking column sorting in specific cases [#7228](https://github.com/handsontable/handsontable/issues/7228)
+- Fixed an issue where the rows were missing their left border after disabling the row headers using `updateSettings`, while there were `fixedColumnsLeft` defined. [#5735](https://github.com/handsontable/handsontable/issues/5735)
+- Fixed an issue where the Handsontable could fall into an infinite loop during vertical scrolling. It only happened when the scrollable element was the `window` object. [#7260](https://github.com/handsontable/handsontable/issues/7260);
+- Fixed an issue with moving rows to the last row of the table, when the Nested Rows plugin was enabled along with some other minor moving-related bugs. [#6067](https://github.com/handsontable/handsontable/issues/6067)
+- Fixed an issue with adding unnecessary extra empty line in cells on Safari. [#7262](https://github.com/handsontable/handsontable/issues/7262)
+- Fixed an issue with clipped column headers if they were changed before or within usage `updateSettings`. [#6004](https://github.com/handsontable/handsontable/issues/6004)
+
+### Changed
+- Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)
+- Improved performance for TrimRows, HiddenRows and HiddenColumns plugins for big datasets with lots trimmed/hidden indexes [#7223](https://github.com/handsontable/handsontable/pull/7223)
+
 ## [8.0.0] - 2020-08-05
 
 ### Added

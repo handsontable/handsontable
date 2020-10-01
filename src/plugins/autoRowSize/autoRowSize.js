@@ -48,7 +48,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
+ *   data: getData(),
  *   autoRowSize: true
  * });
  * // Access to plugin instance:

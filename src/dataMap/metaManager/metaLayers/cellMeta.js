@@ -4,6 +4,8 @@ import LazyFactoryMap from '../lazyFactoryMap';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class CellMeta
+ *
  * The cell meta object is a root of all settings defined for the specific cell rendered by the
  * Handsontable. Each cell meta inherits settings from higher layers. When a property doesn't
  * exist in that layer, it is looked up through a prototype to the highest layer. Starting

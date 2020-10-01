@@ -360,6 +360,7 @@ class Table {
         // remove `innerBorderTop` and `innerBorderLeft` CSS classes to the DOM element. This happens
         // when there is a switch between rendering from 0 to N rows/columns and vice versa).
         wtOverlays.refreshAll();
+        wtOverlays.adjustElementsSize();
       }
     }
 
@@ -797,6 +798,8 @@ class Table {
    *                                                                │ FALSE
    *
    * @param {number} row The visual row index.
+   * @memberof Table#
+   * @function isRowBeforeRenderedRows
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -840,6 +843,8 @@ class Table {
    *                                                                │ TRUE
    *
    * @param {number} row The visual row index.
+   * @memberof Table#
+   * @function isRowAfterRenderedRows
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -871,6 +876,8 @@ class Table {
    *                           column           column
    *
    * @param {number} column The visual column index.
+   * @memberof Table#
+   * @function isColumnBeforeRenderedColumns
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
@@ -913,6 +920,8 @@ class Table {
    *                           column           column
    *
    * @param {number} column The visual column index.
+   * @memberof Table#
+   * @function isColumnAfterRenderedColumns
    * @returns {boolean}
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */

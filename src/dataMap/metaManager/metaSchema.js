@@ -394,8 +394,8 @@ export default () => {
      * operations based on the __visual__ representation of Handsontable.
      *
      * Possible values of `prop`:
-     * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
-     * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array).
+     * - property name for column's data source object, when dataset is an [array of objects](https://handsontable.com/docs/tutorial-data-sources.html#page-object)
+     * - the same number as `col`, when dataset is an [array of arrays](https://handsontable.com/docs/tutorial-data-sources.html#page-array).
      *
      * @memberof Options#
      * @type {Function}
@@ -404,7 +404,7 @@ export default () => {
      * @example
      * ```js
      * cells: function(row, column, prop) {
-     *   const cellProperties = {};
+     *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
      *   const visualColIndex = this.instance.toVisualColumn(column);
      *
@@ -468,7 +468,7 @@ export default () => {
      * // or
      * // enable comments plugin and add predefined comments
      * const hot = new Handsontable(document.getElementById('example'), {
-     *   date: getData(),
+     *   data: getData(),
      *   comments: true,
      *   cell: [
      *     { row: 1, col: 1, comment: { value: 'Foo' } },
@@ -1355,7 +1355,7 @@ export default () => {
 
     /**
      * @description
-     * Makes cell [read only](https://docs.handsontable.com/demo-read-only.html).
+     * Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
      *
      * @memberof Options#
      * @type {boolean}
@@ -1363,7 +1363,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set cell as read only
+     * // set as read only
      * readOnly: true,
      * ```
      */
@@ -1643,6 +1643,10 @@ export default () => {
      * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
      * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom).
      *
+     * If the value is an object, you can also customize the options with:
+     * * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
+     * * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
+     *
      * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
      *
      * @memberof Options#
@@ -1701,6 +1705,8 @@ export default () => {
 
     /**
      * If `true`, undo/redo functionality is enabled.
+     * Note: `undefined` by default but it acts as enabled.
+     * You need to switch it to `false` to disable it completely.
      *
      * @memberof Options#
      * @type {boolean}
@@ -2253,7 +2259,8 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`.
+     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`,
+     * meaning, the `syncLimit` is set to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
      *
      * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
@@ -2286,6 +2293,8 @@ export default () => {
      * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
      * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
      *
+     * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
+     *
      * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
      * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
      * operations don't block the browser UI.
@@ -2294,7 +2303,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|boolean}
-     * @default {syncLimit: 500}
+     * @default undefined
      *
      * @example
      * ```js
