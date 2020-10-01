@@ -71,7 +71,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-##### [See the live demo](//handsontable.com/examples)
+##### [See the live demo](//handsontable.com/examples):
 
 ## Features
 
