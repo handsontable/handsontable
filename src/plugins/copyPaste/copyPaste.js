@@ -538,7 +538,7 @@ class CopyPaste extends BasePlugin {
     if (event && typeof event.clipboardData !== 'undefined') {
       const textHTML = sanitize(event.clipboardData.getData('text/html'), {
         ADD_TAGS: ['meta'],
-        ADD_ATTR: ['name', 'content'],
+        ADD_ATTR: ['content'],
         FORCE_BODY: true,
       });
 

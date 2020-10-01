@@ -1,5 +1,6 @@
 import {
   equalsIgnoreCase,
+  sanitize,
   substitute,
   stripTags,
 } from 'handsontable/helpers/string';
@@ -39,6 +40,40 @@ describe('String helper', () => {
       expect(substitute('[empty][zero][string1]', vars)).toBe('0foo;');
       expect(substitute('BAZ [string2] test', vars)).toBe('BAZ foo\nbar test');
       expect(substitute('1[undef]', vars)).toBe('1');
+    });
+  });
+
+  //
+  // Handsontable.helper.sanitize
+  //
+  describe('sanitize', () => {
+    it('should sanitize HTML from insecure values', () => {
+      expect(sanitize('')).toBe('');
+      expect(sanitize('<i>foo</i>')).toBe('<i>foo</i>');
+      expect(sanitize('<img src onerror=alert(1)>')).toBe('<img src="">');
+      expect(sanitize('<script>alert()</script>')).toBe('');
+      expect(sanitize('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>'))
+        .toBe('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>');
+      expect(sanitize('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>'))
+        .toBe('This is my <a href="https://handsontable.com">link</a>');
+    });
+
+    it('should be possible to pass custom options configuration to sanitizer', () => {
+      expect(sanitize(
+        '<meta name="Generator" content="Handsontable"><table><tr><td>A1</td></tr></table>',
+        {
+          ADD_TAGS: ['meta'],
+          FORCE_BODY: true,
+        }))
+        .toBe('<meta name="Generator"><table><tbody><tr><td>A1</td></tr></tbody></table>');
+      expect(sanitize(
+        '<meta name="Generator" content="Handsontable"><table><tr><td>A1</td></tr></table>',
+        {
+          ADD_TAGS: ['meta'],
+          ADD_ATTR: ['content'],
+          FORCE_BODY: false,
+        }))
+        .toBe('<table><tbody><tr><td>A1</td></tr></tbody></table>');
     });
   });
 
