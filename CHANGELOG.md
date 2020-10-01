@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.1.0] - 2020-10-01
+
 ### Added
 - Added support for resizing non-contiguous selected rows [#7162](https://github.com/handsontable/handsontable/pull/7162) along with refactor and bug fix introduced within #6871 PR [#7220](https://github.com/handsontable/handsontable/pull/7220)
 - Added e2e tests and reorganized already existing ones [#6491](https://github.com/handsontable/handsontable/issues/6491)
