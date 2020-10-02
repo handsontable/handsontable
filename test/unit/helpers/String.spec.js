@@ -49,11 +49,11 @@ describe('String helper', () => {
   describe('sanitize', () => {
     it('should sanitize HTML from insecure values', () => {
       expect(sanitize('')).toBe('');
-      expect(sanitize('<i>foo</i>')).toBe('<i>foo</i>');
+      expect(sanitize('<i aria-label="bar">foo</i>')).toBe('<i aria-label="bar">foo</i>');
       expect(sanitize('<img src onerror=alert(1)>')).toBe('<img src="">');
       expect(sanitize('<script>alert()</script>')).toBe('');
-      expect(sanitize('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>'))
-        .toBe('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>');
+      expect(sanitize('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>'))
+        .toBe('<strong>Hello</strong> <span class="my">my <sup>world</sup></span>2');
       expect(sanitize('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>'))
         .toBe('This is my <a href="https://handsontable.com">link</a>');
     });
