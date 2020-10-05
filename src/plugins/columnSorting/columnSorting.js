@@ -332,16 +332,11 @@ class ColumnSorting extends BasePlugin {
    * @returns {boolean}
    */
   areValidSortConfigs(sortConfigs) {
-    if (Array.isArray(sortConfigs) === false) {
-      return false;
-    }
-
-    const sortedColumns = sortConfigs.map(({ column }) => column);
     const numberOfColumns = this.hot.countCols();
-    const onlyExistingVisualIndexes = sortedColumns.every(visualColumn =>
-      visualColumn <= numberOfColumns && visualColumn >= 0);
 
-    return areValidSortStates(sortConfigs) && onlyExistingVisualIndexes; // We don't translate visual indexes to physical indexes.
+    // We don't translate visual indexes to physical indexes.
+    return areValidSortStates(sortConfigs) && sortConfigs.every(({ column }) =>
+      column <= numberOfColumns && column >= 0);
   }
 
   /**
