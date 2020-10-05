@@ -1,6 +1,6 @@
 import { isObject, objectEach } from '../../helpers/object';
 import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import {isDefined} from '../../helpers/mixed';
+import { isDefined } from '../../helpers/mixed';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 
