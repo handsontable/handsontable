@@ -321,7 +321,7 @@ class ColumnSorting extends BasePlugin {
       return sortConfig.slice(0, 1);
     }
 
-    return [sortConfig].slice(0, 1);
+    return [sortConfig];
   }
 
   /**
