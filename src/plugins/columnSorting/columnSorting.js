@@ -391,14 +391,16 @@ class ColumnSorting extends BasePlugin {
    * @returns {undefined|object}
    */
   getColumnNextConfig(column) {
-    if (this.columnStatesManager.isColumnSorted(column)) {
-      const columnSortConfig = this.getSortConfig(column);
-      const sortOrder = getNextSortOrder(columnSortConfig.sortOrder);
+    const sortOrder = this.columnStatesManager.getSortOrderOfColumn(column);
 
-      if (isDefined(sortOrder)) {
-        columnSortConfig.sortOrder = sortOrder;
+    if (isDefined(sortOrder)) {
+      const nextSortOrder = getNextSortOrder(sortOrder);
 
-        return columnSortConfig;
+      if (isDefined(nextSortOrder)) {
+        return {
+          column,
+          sortOrder: nextSortOrder,
+        };
       }
 
       return;
@@ -429,7 +431,7 @@ class ColumnSorting extends BasePlugin {
    */
   getNextSortConfig(columnToChange, strategyId = APPEND_COLUMN_CONFIG_STRATEGY) {
     const indexOfColumnToChange = this.columnStatesManager.getIndexOfColumnInSortQueue(columnToChange);
-    const isColumnSorted = this.columnStatesManager.isColumnSorted(columnToChange);
+    const isColumnSorted = indexOfColumnToChange !== -1;
     const currentSortConfig = this.getSortConfig();
     const nextColumnConfig = this.getColumnNextConfig(columnToChange);
 

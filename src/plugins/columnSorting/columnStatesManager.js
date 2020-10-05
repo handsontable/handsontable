@@ -1,5 +1,6 @@
 import { isObject, objectEach } from '../../helpers/object';
 import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import {isDefined} from '../../helpers/mixed';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 
@@ -169,14 +170,12 @@ export class ColumnStatesManager {
    * @returns {object|undefined}
    */
   getColumnSortState(column) {
-    if (this.isColumnSorted(column)) {
-      const physicalColumn = this.hot.toPhysicalColumn(column);
+    const sortOrder = this.getSortOrderOfColumn(column);
 
-      const sortingStateWithPriority = this.sortingStates.getValueAtIndex(physicalColumn);
-
+    if (isDefined(sortOrder)) {
       return {
         column,
-        sortOrder: sortingStateWithPriority.sortOrder,
+        sortOrder,
       };
     }
   }
