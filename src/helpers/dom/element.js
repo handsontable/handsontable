@@ -763,7 +763,7 @@ export function getComputedStyle(element, rootWindow = window) {
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
-  return element.offsetWidth;
+  return Math.ceil(element.getBoundingClientRect().width);
 }
 
 /**

@@ -55,7 +55,10 @@ module.exports.create = function create(envArgs) {
           'lib/jquery.simulate.js',
           '../dist/walkontable.js',
         ],
-      })
+      }),
+      new webpack.DefinePlugin({
+        '__ENV_ARGS__': JSON.stringify(envArgs),
+      }),
     ],
   };
 

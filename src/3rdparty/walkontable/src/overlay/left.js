@@ -154,10 +154,6 @@ class LeftOverlay extends Overlay {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
     }
   }
 
@@ -213,9 +209,6 @@ class LeftOverlay extends Overlay {
   applyToDOM() {
     const total = this.wot.getSetting('totalColumns');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
       this.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
