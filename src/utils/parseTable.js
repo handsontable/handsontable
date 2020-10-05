@@ -195,7 +195,8 @@ export function htmlToGridSettings(element, rootDocument = document) {
 
   const generator = tempElem.querySelector('meta[name$="enerator"]');
   const hasRowHeaders = checkElement.querySelector('tbody th') !== null;
-  const countCols = Array.from(checkElement.querySelector('tr').cells)
+  const rows = checkElement.querySelector('tr');
+  const countCols = !rows ? 0 : Array.from(rows.cells)
     .reduce((cols, cell) => cols + cell.colSpan, 0) - (hasRowHeaders ? 1 : 0);
   const fixedRowsBottom = checkElement.tFoot && Array.from(checkElement.tFoot.rows) || [];
   const fixedRowsTop = [];
