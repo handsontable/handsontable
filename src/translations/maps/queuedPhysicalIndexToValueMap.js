@@ -85,6 +85,17 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
     this.queueOfIndexes = [];
   }
 
+  clearValue(physicalIndex) {
+    if (isFunction(this.initValueOrFn)) {
+      super.setValueAtIndex(physicalIndex, this.initValueOrFn(physicalIndex));
+
+    } else {
+      super.setValueAtIndex(physicalIndex, this.initValueOrFn);
+    }
+
+    this.queueOfIndexes = getListWithoutIndexes(this.queueOfIndexes, [physicalIndex]);
+  }
+
   /**
    * Get every queued value.
    *

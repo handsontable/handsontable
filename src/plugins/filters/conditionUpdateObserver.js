@@ -5,6 +5,7 @@ import localHooks from '../../mixins/localHooks';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import { createArrayAssertion } from './utils';
+import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified
@@ -16,7 +17,7 @@ import { createArrayAssertion } from './utils';
  * @plugin Filters
  */
 class ConditionUpdateObserver {
-  constructor(conditionCollection, columnDataFactory = () => []) {
+  constructor(conditionCollection, columnDataFactory = () => [], hot) {
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *
@@ -55,6 +56,7 @@ class ConditionUpdateObserver {
      * @type {Array}
      */
     this.latestOrderStack = [];
+    this.hot = hot;
 
     this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
     this.conditionCollection.addLocalHook('afterAdd', column => this.updateStatesAtColumn(column));
@@ -91,7 +93,7 @@ class ConditionUpdateObserver {
    * @private
    */
   _onConditionBeforeModify(column) {
-    this.latestEditedColumnPosition = this.conditionCollection.orderStack.indexOf(column);
+    this.latestEditedColumnPosition = this.conditionCollection.filteringStates.getIndexesQueue().indexOf(column);
   }
 
   /**
@@ -111,7 +113,8 @@ class ConditionUpdateObserver {
       return;
     }
     const allConditions = this.conditionCollection.exportAllConditions();
-    let editedColumnPosition = this.conditionCollection.orderStack.indexOf(column);
+
+    let editedColumnPosition = this.conditionCollection.filteringStates.getIndexesQueue().indexOf(column);
 
     if (editedColumnPosition === -1) {
       editedColumnPosition = this.latestEditedColumnPosition;
@@ -119,7 +122,7 @@ class ConditionUpdateObserver {
 
     // Collection of all conditions defined before currently edited `column` (without edited one)
     const conditionsBefore = allConditions.slice(0, editedColumnPosition);
-    // Collection of all conditions defined after currently edited `column` (without edited one)
+    // Collection of all conditions defined after currently edited `column` (with edited one)
     const conditionsAfter = allConditions.slice(editedColumnPosition);
 
     // Make sure that conditionAfter doesn't contain edited column conditions
@@ -128,7 +131,8 @@ class ConditionUpdateObserver {
     }
 
     const visibleDataFactory = curry((curriedConditionsBefore, curriedColumn, conditionsStack = []) => {
-      const splitConditionCollection = new ConditionCollection();
+      const splitConditionCollection =
+        new ConditionCollection(new IndexToValueMap().init(this.hot.columnIndexMapper.getNumberOfIndexes()));
       const curriedConditionsBeforeArray = [].concat(curriedConditionsBefore, conditionsStack);
 
       // Create new condition collection to determine what rows should be visible in "filter by value" box
@@ -169,7 +173,7 @@ class ConditionUpdateObserver {
    * @private
    */
   _onConditionBeforeClean() {
-    this.latestOrderStack = [].concat(this.conditionCollection.orderStack);
+    this.latestOrderStack = [].concat(this.conditionCollection.filteringStates.getIndexesQueue());
   }
 
   /**

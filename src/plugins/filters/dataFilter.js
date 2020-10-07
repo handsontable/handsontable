@@ -29,7 +29,7 @@ class DataFilter {
     let filteredData = [];
 
     if (!this.conditionCollection.isEmpty()) {
-      arrayEach(this.conditionCollection.orderStack, (column, index) => {
+      arrayEach(this.conditionCollection.filteringStates.getIndexesQueue(), (column, index) => {
         let columnData = this.columnDataFactory(column);
 
         if (index) {

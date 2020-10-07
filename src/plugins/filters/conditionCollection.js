@@ -1,37 +1,19 @@
-import { arrayEach, arrayMap, arrayFilter } from '../../helpers/array';
-import { objectEach, mixin } from '../../helpers/object';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
+import { mixin } from '../../helpers/object';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import localHooks from '../../mixins/localHooks';
 import { getCondition } from './conditionRegisterer';
 import { OPERATION_ID as OPERATION_AND } from './logicalOperations/conjunction';
 import { operations, getOperationFunc } from './logicalOperationRegisterer';
+import { isUndefined } from '../../helpers/mixed';
 
 /**
  * @class ConditionCollection
  * @plugin Filters
  */
 class ConditionCollection {
-  constructor() {
-    /**
-     * Conditions collection grouped by operation type and then column index.
-     *
-     * @type {object}
-     */
-    this.conditions = this.initConditionsCollection();
-
-    /**
-     * Types of operations grouped by column index.
-     *
-     * @type {object}
-     */
-    this.columnTypes = {};
-
-    /**
-     * Order of added condition filters.
-     *
-     * @type {Array}
-     */
-    this.orderStack = [];
+  constructor(filteringStates) {
+    this.filteringStates = filteringStates;
   }
 
   /**
@@ -40,33 +22,22 @@ class ConditionCollection {
    * @returns {boolean}
    */
   isEmpty() {
-    return !this.orderStack.length;
+    return this.filteringStates.getIndexesQueue().length === 0;
   }
 
   /**
    * Check if value is matched to the criteria of conditions chain.
    *
    * @param {object} value Object with `value` and `meta` keys.
-   * @param {number} [column] Column index.
+   * @param {number} column Column index.
    * @returns {boolean}
    */
   isMatch(value, column) {
-    let result = true;
+    const stateForColumn = this.filteringStates.getValueAtIndex(column);
+    const conditions = stateForColumn?.conditions ?? [];
+    const operation = stateForColumn?.operation;
 
-    if (column === void 0) {
-      objectEach(this.columnTypes, (columnType, columnIndex) => {
-        result = this.isMatchInConditions(this.conditions[columnType][columnIndex], value, columnType);
-
-        return result;
-      });
-
-    } else {
-      const columnType = this.columnTypes[column];
-
-      result = this.isMatchInConditions(this.getConditions(column), value, columnType);
-    }
-
-    return result;
+    return this.isMatchInConditions(conditions, value, operation);
   }
 
   /**
@@ -107,11 +78,7 @@ class ConditionCollection {
 
     this.runLocalHooks('beforeAdd', column);
 
-    if (this.orderStack.indexOf(column) === -1) {
-      this.orderStack.push(column);
-    }
-
-    const columnType = this.columnTypes[column];
+    const columnType = this.filteringStates.getValueAtIndex(column)?.operation;
 
     if (columnType) {
       if (columnType !== operation) {
@@ -121,21 +88,31 @@ class ConditionCollection {
         use it consequently for a particular column).`);
       }
 
-    } else {
-      if (!this.conditions[operation]) {
-        throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
-          \`disjunction\` and \`conjunction\`.`);
-      }
-
-      this.columnTypes[column] = operation;
+    } else if (isUndefined(operations[operation])) {
+      throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
+        \`disjunction\` and \`conjunction\`.`);
     }
 
-    // Add condition
-    this.getConditions(column).push({
-      name,
-      args,
-      func: getCondition(name, args)
-    });
+    const conditionsForColumn = this.getConditions(column);
+
+    if (conditionsForColumn.length === 0) {
+      this.filteringStates.setValueAtIndex(column, {
+        operation,
+        conditions: [{
+          name,
+          args,
+          func: getCondition(name, args),
+        }]
+      });
+
+    } else {
+      // Add condition
+      conditionsForColumn.push({
+        name,
+        args,
+        func: getCondition(name, args)
+      });
+    }
 
     this.runLocalHooks('afterAdd', column);
   }
@@ -147,17 +124,7 @@ class ConditionCollection {
    * @returns {Array} Returns conditions collection as an array.
    */
   getConditions(column) {
-    const columnType = this.columnTypes[column];
-
-    if (!columnType) {
-      return [];
-    }
-
-    if (!this.conditions[columnType][column]) {
-      this.conditions[columnType][column] = [];
-    }
-
-    return this.conditions[columnType][column];
+    return this.filteringStates.getValueAtIndex(column)?.conditions ?? [];
   }
 
   /**
@@ -166,20 +133,13 @@ class ConditionCollection {
    * @returns {Array}
    */
   exportAllConditions() {
-    const result = [];
-
-    arrayEach(this.orderStack, (column) => {
-      const conditions = arrayMap(this.getConditions(column), ({ name, args }) => ({ name, args }));
-      const operation = this.columnTypes[column];
-
-      result.push({
+    return arrayReduce(this.filteringStates.getEntries(), (allConditions, [column, { operation, conditions }]) => {
+      return allConditions.concat({
         column,
         operation,
-        conditions
+        conditions: arrayMap(conditions, ({ name, args }) => ({ name, args })),
       });
-    });
-
-    return result;
+    }, []);
   }
 
   /**
@@ -191,8 +151,6 @@ class ConditionCollection {
     this.clean();
 
     arrayEach(conditions, (stack) => {
-      this.orderStack.push(stack.column);
-
       arrayEach(stack.conditions, condition => this.addCondition(stack.column, condition));
     });
   }
@@ -206,10 +164,6 @@ class ConditionCollection {
    */
   removeConditions(column) {
     this.runLocalHooks('beforeRemove', column);
-
-    if (this.orderStack.indexOf(column) >= 0) {
-      this.orderStack.splice(this.orderStack.indexOf(column), 1);
-    }
     this.clearConditions(column);
     this.runLocalHooks('afterRemove', column);
   }
@@ -223,8 +177,7 @@ class ConditionCollection {
    */
   clearConditions(column) {
     this.runLocalHooks('beforeClear', column);
-    this.getConditions(column).length = 0;
-    delete this.columnTypes[column];
+    this.filteringStates.clearValue(column);
     this.runLocalHooks('afterClear', column);
   }
 
@@ -237,22 +190,13 @@ class ConditionCollection {
    * @returns {boolean}
    */
   hasConditions(column, name) {
-    const columnType = this.columnTypes[column];
-    let result = false;
-
-    if (!columnType) {
-      return false;
-    }
-
     const conditions = this.getConditions(column);
 
     if (name) {
-      result = arrayFilter(conditions, condition => condition.name === name).length > 0;
-    } else {
-      result = conditions.length > 0;
+      return conditions.some(condition => condition.name === name);
     }
 
-    return result;
+    return conditions.length > 0;
   }
 
   /**
@@ -263,9 +207,7 @@ class ConditionCollection {
    */
   clean() {
     this.runLocalHooks('beforeClean');
-    this.columnTypes = Object.create(null);
-    this.orderStack.length = 0;
-    this.conditions = this.initConditionsCollection();
+    this.filteringStates.clear();
     this.runLocalHooks('afterClean');
   }
 
@@ -274,25 +216,6 @@ class ConditionCollection {
    */
   destroy() {
     this.clearLocalHooks();
-    this.conditions = null;
-    this.orderStack = null;
-    this.columnTypes = null;
-  }
-
-  /**
-   * Init conditions collection.
-   *
-   * @private
-   * @returns {object} Returns an initial bucket for conditions.
-   */
-  initConditionsCollection() {
-    const conditions = Object.create(null);
-
-    objectEach(operations, (_, operation) => {
-      conditions[operation] = Object.create(null);
-    });
-
-    return conditions;
   }
 }
 

@@ -23,7 +23,7 @@ import {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
-import { TrimmingMap } from '../../translations';
+import { TrimmingMap, QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 import './filters.css';
 
@@ -139,6 +139,9 @@ class Filters extends BasePlugin {
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
+    this.sortingStates = this.hot.columnIndexMapper.registerMap(
+      `${this.pluginName}.sortingStates`, new IndexToValueMap());
+
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
 
@@ -194,12 +197,13 @@ class Filters extends BasePlugin {
       })));
     }
     if (!this.conditionCollection) {
-      this.conditionCollection = new ConditionCollection();
+      this.conditionCollection = new ConditionCollection(this.sortingStates);
     }
     if (!this.conditionUpdateObserver) {
       this.conditionUpdateObserver = new ConditionUpdateObserver(
         this.conditionCollection,
-        column => this.getDataMapAtColumn(column)
+        column => this.getDataMapAtColumn(column),
+        this.hot
       );
       this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
@@ -250,6 +254,7 @@ class Filters extends BasePlugin {
       this.conditionCollection.clean();
 
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
+      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.sortingStates`);
     }
 
     super.disablePlugin();
@@ -607,25 +612,19 @@ class Filters extends BasePlugin {
       );
 
       this.conditionUpdateObserver.groupChanges();
-      this.conditionCollection.clearConditions(physicalIndex);
 
-      if (byConditionState1.command.key === CONDITION_NONE &&
-          byConditionState2.command.key === CONDITION_NONE &&
-          byValueState.command.key === CONDITION_NONE) {
-        this.conditionCollection.removeConditions(physicalIndex);
+      this.conditionCollection.removeConditions(physicalIndex);
 
-      } else {
-        if (byConditionState1.command.key !== CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation);
+      if (byConditionState1.command.key !== CONDITION_NONE) {
+        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation);
 
-          if (byConditionState2.command.key !== CONDITION_NONE) {
-            this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation);
-          }
+        if (byConditionState2.command.key !== CONDITION_NONE) {
+          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation);
         }
+      }
 
-        if (byValueState.command.key !== CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byValueState, operation);
-        }
+      if (byValueState.command.key !== CONDITION_NONE) {
+        this.conditionCollection.addCondition(physicalIndex, byValueState, operation);
       }
 
       this.conditionUpdateObserver.flush();
@@ -748,7 +747,7 @@ class Filters extends BasePlugin {
     const column = conditionsState.editedConditionStack.column;
     const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
-    const operationType = this.conditionCollection.columnTypes[column];
+    const operationType = this.conditionCollection.filteringStates.getValueAtIndex(column)?.operation;
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
@@ -907,6 +906,7 @@ class Filters extends BasePlugin {
       });
 
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
+      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.sortingStates`);
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();
