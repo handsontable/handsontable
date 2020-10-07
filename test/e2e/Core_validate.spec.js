@@ -2244,4 +2244,32 @@ describe('Core_validate', () => {
       done();
     }, 200);
   });
+
+  it('should call the callback in the `done` function using the renderable indexes (passing them to the renderer)', (done) => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(1, 4),
+      hiddenColumns: {
+        columns: [1]
+      },
+      columns: [
+        { type: 'text' },
+        { type: 'text' },
+        { type: 'date' },
+        { type: 'text' },
+      ]
+    });
+
+    spyOn(hot.view.wt.wtSettings.settings, 'cellRenderer');
+
+    hot.validateCells();
+
+    setTimeout(() => {
+      const mostRecentRendererCallArgs = hot.view.wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
+
+      // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
+      expect(mostRecentRendererCallArgs[1]).toEqual(1);
+
+      done();
+    }, 200);
+  });
 });

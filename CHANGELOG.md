@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed a problem with data being pasted with an offset compensating the number of previously hidden rows/columns. [#6742](https://github.com/handsontable/handsontable/issues/6742)
 - Fixed an issue the container not being updated after trimming rows. [#7241](https://github.com/handsontable/handsontable/issues/7241)
+- Fixed an issue, where calling the validation-triggering methods on a `hiddenColumns`-enabled Handsontable instance rendered the validated cells improperly. [#7301](https://github.com/handsontable/handsontable/issues/7301)
 
 ## [8.1.0] - 2020-10-01
 
