@@ -579,8 +579,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        offsetX:5,
-        offsetY:5,
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
