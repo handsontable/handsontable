@@ -1280,7 +1280,7 @@ describe('TrimRows', () => {
     });
 
     // This test don't pass on the actual code.
-    xit('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
+    it('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
