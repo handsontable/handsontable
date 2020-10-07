@@ -490,7 +490,8 @@ describe('HiddenRows', () => {
           $secondHeaderTH
             .simulate('mouseover')
             .simulate('mousemove', {
-              clientY: $secondHeaderTH.offset().top,
+              offsetX: 5,
+              offsetY: 5,
             })
           ; // Header "6"
 
@@ -552,7 +553,8 @@ describe('HiddenRows', () => {
           $secondHeaderTH
             .simulate('mouseover')
             .simulate('mousemove', {
-              clientY: $secondHeaderTH.offset().top,
+              offsetX: 5,
+              offsetY: 5,
             })
           ; // Header "4"
 
