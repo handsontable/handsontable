@@ -360,7 +360,7 @@ class Filters extends BasePlugin {
     } else {
       const physicalColumn = this.hot.toPhysicalColumn(column);
 
-      this.conditionCollection.clearConditions(physicalColumn);
+      this.conditionCollection.removeConditions(physicalColumn);
     }
   }
 

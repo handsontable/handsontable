@@ -59,8 +59,8 @@ class ConditionUpdateObserver {
     this.hot = hot;
 
     this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
+    this.conditionCollection.addLocalHook('afterRemove', column => this.updateStatesAtColumn(column));
     this.conditionCollection.addLocalHook('afterAdd', column => this.updateStatesAtColumn(column));
-    this.conditionCollection.addLocalHook('afterClear', column => this.updateStatesAtColumn(column));
     this.conditionCollection.addLocalHook('beforeClean', () => this._onConditionBeforeClean());
     this.conditionCollection.addLocalHook('afterClean', () => this._onConditionAfterClean());
   }

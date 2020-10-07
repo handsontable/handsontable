@@ -164,21 +164,20 @@ class ConditionCollection {
    */
   removeConditions(column) {
     this.runLocalHooks('beforeRemove', column);
-    this.clearConditions(column);
+    this.filteringStates.clearValue(column);
     this.runLocalHooks('afterRemove', column);
   }
 
   /**
-   * Clear conditions at specified column index but without clearing stack order.
+   * Clean all conditions collection and reset order stack.
    *
-   * @param {number}column Column index.
-   * @fires ConditionCollection#beforeClear
-   * @fires ConditionCollection#afterClear
+   * @fires ConditionCollection#beforeClean
+   * @fires ConditionCollection#afterClean
    */
-  clearConditions(column) {
-    this.runLocalHooks('beforeClear', column);
-    this.filteringStates.clearValue(column);
-    this.runLocalHooks('afterClear', column);
+  clean() {
+    this.runLocalHooks('beforeClean');
+    this.filteringStates.clear();
+    this.runLocalHooks('afterClean');
   }
 
   /**
@@ -197,18 +196,6 @@ class ConditionCollection {
     }
 
     return conditions.length > 0;
-  }
-
-  /**
-   * Clean all conditions collection and reset order stack.
-   *
-   * @fires ConditionCollection#beforeClean
-   * @fires ConditionCollection#afterClean
-   */
-  clean() {
-    this.runLocalHooks('beforeClean');
-    this.filteringStates.clear();
-    this.runLocalHooks('afterClean');
   }
 
   /**
