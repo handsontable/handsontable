@@ -17,7 +17,7 @@ import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translat
  * @plugin Filters
  */
 class ConditionUpdateObserver {
-  constructor(conditionCollection, columnDataFactory = () => [], hot) {
+  constructor(conditionCollection, columnDataFactory = () => [], getNumberOfColumns) {
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *
@@ -56,7 +56,12 @@ class ConditionUpdateObserver {
      * @type {Array}
      */
     this.latestOrderStack = [];
-    this.hot = hot;
+    /**
+     * Function which provide number of columns which may have conditions.
+     *
+     * @type {Function}
+     */
+    this.getNumberOfColumns = getNumberOfColumns;
 
     this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
     this.conditionCollection.addLocalHook('afterRemove', column => this.updateStatesAtColumn(column));
@@ -131,8 +136,7 @@ class ConditionUpdateObserver {
     }
 
     const visibleDataFactory = curry((curriedConditionsBefore, curriedColumn, conditionsStack = []) => {
-      const splitConditionCollection =
-        new ConditionCollection(new IndexToValueMap().init(this.hot.columnIndexMapper.getNumberOfIndexes()));
+      const splitConditionCollection = new ConditionCollection(new IndexToValueMap().init(this.getNumberOfColumns()));
       const curriedConditionsBeforeArray = [].concat(curriedConditionsBefore, conditionsStack);
 
       // Create new condition collection to determine what rows should be visible in "filter by value" box
@@ -153,6 +157,8 @@ class ConditionUpdateObserver {
       visibleRows = arrayMap(visibleRows, rowData => rowData.meta.visualRow);
 
       const visibleRowsAssertion = createArrayAssertion(visibleRows);
+
+      splitConditionCollection.destroy();
 
       return arrayFilter(allRows, rowData => visibleRowsAssertion(rowData.meta.visualRow));
     })(conditionsBefore);

@@ -49,16 +49,11 @@ class ConditionCollection {
    * @returns {boolean}
    */
   isMatchInConditions(conditions, value, operationType = OPERATION_AND) {
-    let result = false;
-
     if (conditions.length) {
-      result = getOperationFunc(operationType)(conditions, value);
-
-    } else {
-      result = true;
+      return getOperationFunc(operationType)(conditions, value);
     }
 
-    return result;
+    return true;
   }
 
   /**
@@ -96,6 +91,7 @@ class ConditionCollection {
     const conditionsForColumn = this.getConditions(column);
 
     if (conditionsForColumn.length === 0) {
+      // Create first condition for particular column.
       this.filteringStates.setValueAtIndex(column, {
         operation,
         conditions: [{
@@ -106,7 +102,7 @@ class ConditionCollection {
       });
 
     } else {
-      // Add condition
+      // Add next condition for particular column.
       conditionsForColumn.push({
         name,
         args,
@@ -202,6 +198,7 @@ class ConditionCollection {
    * Destroy object.
    */
   destroy() {
+    this.filteringStates = null;
     this.clearLocalHooks();
   }
 }

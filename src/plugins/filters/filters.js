@@ -203,7 +203,7 @@ class Filters extends BasePlugin {
       this.conditionUpdateObserver = new ConditionUpdateObserver(
         this.conditionCollection,
         column => this.getDataMapAtColumn(column),
-        this.hot
+        () => this.hot.columnIndexMapper.getNumberOfIndexes()
       );
       this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }

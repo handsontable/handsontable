@@ -85,6 +85,11 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
     this.queueOfIndexes = [];
   }
 
+  /**
+   * Remove queued value for particular column.
+   *
+   * @param {number} physicalIndex Physical column.
+   */
   clearValue(physicalIndex) {
     if (isFunction(this.initValueOrFn)) {
       super.setValueAtIndex(physicalIndex, this.initValueOrFn(physicalIndex));
