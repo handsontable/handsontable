@@ -860,4 +860,52 @@ describe('Filters', () => {
       ['A5', 'B5', 'C5', 'D5', 'E5'],
     ]);
   });
+
+  describe('cooperation with alter actions', () => {
+    it('should filter proper column after removing column right before the already filtered one', function() {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        filters: true,
+      });
+
+      const plugin = getPlugin('filters');
+
+      plugin.addCondition(1, 'contains', ['b']);
+      plugin.filter();
+
+      alter('remove_col', 0);
+
+      expect(getData()).toEqual([
+        ['B1', 'C1'],
+        ['B2', 'C2'],
+        ['B3', 'C3'],
+      ]);
+      expect(this.$container.find('th:eq(0)').hasClass('htFiltersActive')).toEqual(true);
+    });
+
+    it('should filter proper column after inserting column right before the already filtered one', function() {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        filters: true,
+      });
+
+      const plugin = getPlugin('filters');
+
+      plugin.addCondition(1, 'contains', ['b']);
+      plugin.filter();
+
+      alter('insert_col', 1);
+
+      expect(getData()).toEqual([
+        ['A1', null, 'B1', 'C1'],
+        ['A2', null, 'B2', 'C2'],
+        ['A3', null, 'B3', 'C3'],
+      ]);
+      expect(this.$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
+    });
+  });
 });
