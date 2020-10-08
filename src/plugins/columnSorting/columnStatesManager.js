@@ -113,7 +113,7 @@ export class ColumnStatesManager {
   getIndexOfColumnInSortQueue(column) {
     column = this.hot.toPhysicalColumn(column);
 
-    return this.sortingStates.getIndexesQueue().findIndex(physicalColumn => physicalColumn === column);
+    return this.sortingStates.getEntries().findIndex(([physicalColumn]) => physicalColumn === column);
   }
 
   /**
@@ -122,7 +122,7 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getNumberOfSortedColumns() {
-    return this.sortingStates.getIndexesQueue().length;
+    return this.sortingStates.getLength();
   }
 
   /**

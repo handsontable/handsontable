@@ -14,6 +14,7 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   /**
    * Some values are stored in a certain order. Queue of indexes represent indexes related to ordered values.
    *
+   * @private
    * @type {Array<number>}
    */
   queueOfIndexes = []
@@ -95,12 +96,12 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Get sequence of indexes related to values which have been queued.
+   * Get length of the index map.
    *
-   * @returns {Array}
+   * @returns {number}
    */
-  getIndexesQueue() {
-    return this.queueOfIndexes;
+  getLength() {
+    return this.queueOfIndexes.length;
   }
 }
 
