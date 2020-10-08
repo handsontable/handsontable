@@ -73,7 +73,7 @@ class ConditionCollection {
 
     this.runLocalHooks('beforeAdd', column);
 
-    const columnType = this.filteringStates.getValueAtIndex(column)?.operation;
+    const columnType = this.getOperation(column);
 
     if (columnType) {
       if (columnType !== operation) {
@@ -102,7 +102,7 @@ class ConditionCollection {
       });
 
     } else {
-      // Add next condition for particular column by reference.
+      // Add next condition for particular column (by reference).
       conditionsForColumn.push({
         name,
         args,
@@ -124,7 +124,7 @@ class ConditionCollection {
   }
 
   /**
-   * Get all filtered columns in the order in which the action is performed.
+   * Get all filtered columns in the order in which actions are performed.
    *
    * @returns {Array}
    */
