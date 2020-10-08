@@ -98,7 +98,7 @@ class ConditionUpdateObserver {
    * @private
    */
   _onConditionBeforeModify(column) {
-    this.latestEditedColumnPosition = this.conditionCollection.filteringStates.getIndexesQueue().indexOf(column);
+    this.latestEditedColumnPosition = this.conditionCollection.getFilteredColumns().indexOf(column);
   }
 
   /**
@@ -119,7 +119,7 @@ class ConditionUpdateObserver {
     }
     const allConditions = this.conditionCollection.exportAllConditions();
 
-    let editedColumnPosition = this.conditionCollection.filteringStates.getIndexesQueue().indexOf(column);
+    let editedColumnPosition = this.conditionCollection.getFilteredColumns().indexOf(column);
 
     if (editedColumnPosition === -1) {
       editedColumnPosition = this.latestEditedColumnPosition;
@@ -179,7 +179,7 @@ class ConditionUpdateObserver {
    * @private
    */
   _onConditionBeforeClean() {
-    this.latestOrderStack = [].concat(this.conditionCollection.filteringStates.getIndexesQueue());
+    this.latestOrderStack = [].concat(this.conditionCollection.getFilteredColumns());
   }
 
   /**

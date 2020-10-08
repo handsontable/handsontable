@@ -28,17 +28,15 @@ class DataFilter {
   filter() {
     let filteredData = [];
 
-    if (!this.conditionCollection.isEmpty()) {
-      arrayEach(this.conditionCollection.filteringStates.getIndexesQueue(), (column, index) => {
-        let columnData = this.columnDataFactory(column);
+    arrayEach(this.conditionCollection.getFilteredColumns(), (column, index) => {
+      let columnData = this.columnDataFactory(column);
 
-        if (index) {
-          columnData = this._getIntersectData(columnData, filteredData);
-        }
+      if (index) {
+        columnData = this._getIntersectData(columnData, filteredData);
+      }
 
-        filteredData = this.filterByColumn(column, columnData);
-      });
-    }
+      filteredData = this.filterByColumn(column, columnData);
+    });
 
     return filteredData;
   }

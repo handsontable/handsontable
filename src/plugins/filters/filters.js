@@ -747,7 +747,7 @@ class Filters extends BasePlugin {
     const column = conditionsState.editedConditionStack.column;
     const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
-    const operationType = this.conditionCollection.filteringStates.getValueAtIndex(column)?.operation;
+    const operationType = this.conditionCollection.getOperation(column);
 
     if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20

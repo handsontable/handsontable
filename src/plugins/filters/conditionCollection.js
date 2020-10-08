@@ -22,7 +22,7 @@ class ConditionCollection {
    * @returns {boolean}
    */
   isEmpty() {
-    return this.filteringStates.getIndexesQueue().length === 0;
+    return this.getFilteredColumns().length === 0;
   }
 
   /**
@@ -102,7 +102,7 @@ class ConditionCollection {
       });
 
     } else {
-      // Add next condition for particular column.
+      // Add next condition for particular column by reference.
       conditionsForColumn.push({
         name,
         args,
@@ -121,6 +121,25 @@ class ConditionCollection {
    */
   getConditions(column) {
     return this.filteringStates.getValueAtIndex(column)?.conditions ?? [];
+  }
+
+  /**
+   * Get all filtered columns in the order in which the action is performed.
+   *
+   * @returns {Array}
+   */
+  getFilteredColumns() {
+    return this.filteringStates.getIndexesQueue();
+  }
+
+  /**
+   * Get operation for particular column.
+   *
+   * @param {number} column Column index.
+   * @returns {string|undefined}
+   */
+  getOperation(column) {
+    return this.filteringStates.getValueAtIndex(column)?.operation;
   }
 
   /**
