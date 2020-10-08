@@ -6,17 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added new type of Index Map named `QueuedPhysicalIndexToValueMap` [#7276](https://github.com/handsontable/handsontable/pull/7276)
+
 ### Fixed
 - Fixed a problem with data being pasted with an offset compensating the number of previously hidden rows/columns. [#6742](https://github.com/handsontable/handsontable/issues/6742)
 - Fixed an issue the container not being updated after trimming rows. [#7241](https://github.com/handsontable/handsontable/issues/7241)
 - Fixed an issue where altering columns did not update filters attached to columns [#6830](https://github.com/handsontable/handsontable/issues/6830)
+- Fixed an issue where sorting indicator moved incorrectly when column was added. [#6397](https://github.com/handsontable/handsontable/issues/6397)
+- Fixed a bug, where untrimming previously trimmed rows would sometimes result in the table instance not refreshing its height, leaving the row headers not properly rendered. [#6276](https://github.com/handsontable/handsontable/issues/6276)
 
 ## [8.1.0] - 2020-10-01
 
 ### Added
 - Added support for resizing non-contiguous selected rows [#7162](https://github.com/handsontable/handsontable/pull/7162) along with refactor and bug fix introduced within #6871 PR [#7220](https://github.com/handsontable/handsontable/pull/7220)
 - Added e2e tests and reorganized already existing ones [#6491](https://github.com/handsontable/handsontable/issues/6491)
-- Added new type of Index Map named `QueuedPhysicalIndexToValueMap` [#7276](https://github.com/handsontable/handsontable/pull/7276)
 
 ### Fixed
 - Fixed an issue where if the first part of the merged area was hidden the value did not show [#6871](https://github.com/handsontable/handsontable/issues/6871)
@@ -32,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue with moving rows to the last row of the table, when the Nested Rows plugin was enabled along with some other minor moving-related bugs. [#6067](https://github.com/handsontable/handsontable/issues/6067)
 - Fixed an issue with adding unnecessary extra empty line in cells on Safari. [#7262](https://github.com/handsontable/handsontable/issues/7262)
 - Fixed an issue with clipped column headers if they were changed before or within usage `updateSettings`. [#6004](https://github.com/handsontable/handsontable/issues/6004)
-- Fixed an issue where sorting indicator moved incorrectly when column was added. [#6397](https://github.com/handsontable/handsontable/issues/6397)
 
 ### Changed
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)
