@@ -13,6 +13,11 @@ import { isUndefined } from '../../helpers/mixed';
  */
 class ConditionCollection {
   constructor(filteringStates) {
+    /**
+     * Index map storing filtering states for every column. ConditionCollection write and read to/from this element.
+     *
+     * @type {QueuedPhysicalIndexToValueMap}
+     */
     this.filteringStates = filteringStates;
   }
 

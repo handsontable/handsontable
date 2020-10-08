@@ -4,14 +4,29 @@ import { OPERATION_AND, OPERATION_OR } from 'handsontable/plugins/filters/consta
 import { QueuedPhysicalIndexToValueMap as IndexMap } from 'handsontable/translations';
 
 describe('ConditionCollection', () => {
+  it('should be initialized and accessible from the plugin', () => {
+    expect(ConditionCollection).toBeDefined();
+  });
+
   describe('isEmpty', () => {
-    it('should return `true` when order stack is empty', () => {
+    it('should return `true` when condition collection is empty', () => {
       const indexMap = new IndexMap();
+      const conditionCollection = new ConditionCollection(indexMap);
+      const conditionMock = {};
+
+      // Mocking that the index mapper is prepared for 5 columns.
+      indexMap.init(5);
 
       spyOn(indexMap, 'getValueAtIndex').and.returnValue(null);
 
-      const conditionCollection = new ConditionCollection(indexMap);
       expect(conditionCollection.isEmpty()).toBe(true);
+
+      indexMap.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
+
+      expect(conditionCollection.isEmpty()).toBe(false);
     });
   });
 
@@ -239,6 +254,96 @@ describe('ConditionCollection', () => {
       expect(() => {
         conditionCollection.addCondition(3, conditionMock, 'unknownOperation');
       }).toThrow(/Unexpected operation/);
+    });
+  });
+
+  describe('getFilteredColumns', () => {
+    it('should return list of filtered columns in proper order', () => {
+      const indexMap = new IndexMap();
+      const conditionCollection = new ConditionCollection(indexMap);
+
+      // Mocking that the index mapper is prepared for 5 columns.
+      indexMap.init(5);
+
+      const conditionMock1 = { a: 'b' };
+      const conditionMock2 = { c: 'd' };
+      const conditionMock3 = { e: 'f' };
+
+      // Mocking that the index mapper is prepared for 5 columns.
+      indexMap.init(5);
+
+      indexMap.setValueAtIndex(4, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      expect(conditionCollection.getFilteredColumns()).toEqual([4]);
+
+      indexMap.setValueAtIndex(1, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock2]
+      });
+
+      expect(conditionCollection.getFilteredColumns()).toEqual([4, 1]);
+
+      indexMap.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock3]
+      });
+
+      expect(conditionCollection.getFilteredColumns()).toEqual([4, 1, 3]);
+    });
+  });
+
+  describe('getOperation', () => {
+    it('should return proper operation for particular column', () => {
+
+      const indexMap = new IndexMap();
+      const conditionCollection = new ConditionCollection(indexMap);
+
+      // Mocking that the index mapper is prepared for 5 columns.
+      indexMap.init(5);
+
+      const conditionMock1 = { a: 'b' };
+
+      // Mocking that the index mapper is prepared for 5 columns.
+      indexMap.init(5);
+
+      indexMap.setValueAtIndex(4, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      indexMap.setValueAtIndex(1, {
+        operation: OPERATION_OR,
+        conditions: [conditionMock1]
+      });
+
+      indexMap.setValueAtIndex(2, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      indexMap.setValueAtIndex(2, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      indexMap.setValueAtIndex(0, {
+        operation: OPERATION_OR,
+        conditions: [conditionMock1]
+      });
+
+      indexMap.setValueAtIndex(0, {
+        operation: OPERATION_OR,
+        conditions: [conditionMock1]
+      });
+
+      expect(conditionCollection.getOperation(0)).toEqual(OPERATION_OR);
+      expect(conditionCollection.getOperation(1)).toEqual(OPERATION_OR);
+      expect(conditionCollection.getOperation(2)).toEqual(OPERATION_AND);
+      expect(conditionCollection.getOperation(3)).not.toBeDefined();
+      expect(conditionCollection.getOperation(4)).toEqual(OPERATION_AND);
     });
   });
 
