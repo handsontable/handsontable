@@ -1,8 +1,4 @@
 import IndexMap from './indexMap';
-import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
-import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
-import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
-import { isFunction } from '../../helpers/function';
 
 /**
  * Map for storing mappings from an physical index to a value. Some values are stored in a certain order.
@@ -14,41 +10,31 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   /**
    * Some values are stored in a certain order. Queue of indexes represent indexes related to ordered values.
    *
+   * @private
    * @type {Array<number>}
    */
   queueOfIndexes = []
 
   /**
-   * Add values to list and reorganize. It updates queue of indexes related to ordered values.
+   * Get full list of values for particular indexes.
    *
-   * @private
-   * @param {number} insertionIndex Position inside the list.
-   * @param {Array} insertedIndexes List of inserted indexes.
+   * @returns {Array}
    */
-  insert(insertionIndex, insertedIndexes) {
-    this.indexedValues = getListWithInsertedItems(
-      this.indexedValues,
-      insertionIndex,
-      insertedIndexes,
-      this.initValueOrFn
-    );
-    this.queueOfIndexes = getIncreasedIndexes(this.queueOfIndexes, insertedIndexes);
-
-    super.insert(insertionIndex, insertedIndexes);
+  getValues() {
+    return this.queueOfIndexes.map(physicalIndex => this.getValueAtIndex(physicalIndex));
   }
 
   /**
-   * Remove values from the list and reorganize. It updates queue of indexes related to ordered values.
+   * Set new values for particular indexes.
    *
-   * @private
-   * @param {Array} removedIndexes List of removed indexes.
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
+   *
+   * @param {Array} values List of set values.
    */
-  remove(removedIndexes) {
-    this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
-    this.queueOfIndexes = getListWithoutIndexes(this.queueOfIndexes, removedIndexes);
-    this.queueOfIndexes = getDecreasedIndexes(this.queueOfIndexes, removedIndexes);
+  setValues(values) {
+    super.setValues(values);
 
-    super.remove(removedIndexes);
+    this.queueOfIndexes = [...Array(values.length).keys()];
   }
 
   /**
@@ -58,29 +44,38 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
    *
    * @param {number} index The index.
    * @param {*} value The value to save.
+   *
+   * @returns {boolean}
    */
   setValueAtIndex(index, value) {
-    super.setValueAtIndex(index, value);
+    const result = super.setValueAtIndex(index, value);
 
-    this.queueOfIndexes.push(index);
+    if (result === true) {
+      this.queueOfIndexes.push(index);
+    }
+
+    return result;
+  }
+
+  /**
+   * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
+   *
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
+   *
+   * @private
+   * @param {number} [length] Length of list.
+   */
+  setDefaultValues(length = this.indexedValues.length) {
+    super.setDefaultValues(length);
+
+    this.queueOfIndexes.length = 0;
   }
 
   /**
    * Remove every queued value.
-   *
-   * Note: Please keep in mind that clear for the rest of the map won't be executed.
    */
   clear() {
-    if (isFunction(this.initValueOrFn)) {
-      this.queueOfIndexes.forEach((physicalIndex) => {
-        super.setValueAtIndex(physicalIndex, this.initValueOrFn(physicalIndex));
-      });
-
-    } else {
-      this.queueOfIndexes.forEach((physicalIndex) => {
-        super.setValueAtIndex(physicalIndex, this.initValueOrFn);
-      });
-    }
+    super.clear();
 
     this.queueOfIndexes = [];
   }
@@ -95,12 +90,12 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Get sequence of indexes related to values which have been queued.
+   * Get length of the index map.
    *
-   * @returns {Array}
+   * @returns {number}
    */
-  getIndexesQueue() {
-    return this.queueOfIndexes;
+  getLength() {
+    return this.queueOfIndexes.length;
   }
 }
 

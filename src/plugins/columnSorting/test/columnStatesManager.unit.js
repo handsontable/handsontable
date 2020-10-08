@@ -238,4 +238,22 @@ describe('ColumnSorting', () => {
       columnStatesManager.destroy(); // Unregister already registered Index Map.
     });
   });
+
+  it('should initialize index map within column state manager properly', () => {
+    const columnStatesManager = new ColumnStatesManager(hotMock);
+
+    columnStatesManager.setSortStates([
+      { column: 0, sortOrder: DESC_SORT_STATE },
+      { column: 2, sortOrder: ASC_SORT_STATE },
+      { column: 1, sortOrder: ASC_SORT_STATE },
+    ]);
+
+    expect(columnStatesManager.sortingStates.getLength()).toBe(3);
+    expect(columnStatesManager.sortingStates.getValues().length).toBe(3);
+
+    hotMock.columnIndexMapper.initToLength(5);
+
+    expect(columnStatesManager.sortingStates.getLength()).toBe(0);
+    expect(columnStatesManager.sortingStates.getValues().length).toBe(5);
+  });
 });
