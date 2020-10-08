@@ -1604,7 +1604,7 @@ declare namespace Handsontable {
   }
 
   interface UndoRedo {
-    doneAction: plugins.UndoRedoAction[];
+    doneActions: plugins.UndoRedoAction[];
     instance: Handsontable;
     ignoreNewActions: boolean;
     undoneActions: plugins.UndoRedoAction[];
