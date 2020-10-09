@@ -2,7 +2,6 @@ import IndexMap from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
-import { isFunction } from '../../helpers/function';
 
 /**
  * Map for storing mappings from an physical index to a value. Some values are stored in a certain order.
@@ -18,6 +17,86 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
    * @type {Array<number>}
    */
   queueOfIndexes = []
+
+  /**
+   * Get full list of values for particular indexes.
+   *
+   * @returns {Array}
+   */
+  getValues() {
+    return this.queueOfIndexes.map(physicalIndex => this.indexedValues[physicalIndex]);
+  }
+
+  /**
+   * Set new values for particular indexes.
+   *
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
+   *
+   * @param {Array} values List of set values.
+   */
+  setValues(values) {
+    this.queueOfIndexes = [...Array(values.length).keys()];
+
+    super.setValues(values);
+  }
+
+  /**
+   * Set value at index and add it to the queue of values. Non-default values are stored in a certain order.
+   *
+   * Note: Queued value will be added at the end of the queue.
+   *
+   * @param {number} index The index.
+   * @param {*} value The value to save.
+   *
+   * @returns {boolean}
+   */
+  setValueAtIndex(index, value) {
+    if (index < this.indexedValues.length) {
+      this.indexedValues[index] = value;
+
+      if (this.queueOfIndexes.includes(index) === false) {
+        this.queueOfIndexes.push(index);
+      }
+
+      this.runLocalHooks('change');
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Remove every queued value.
+   */
+  clear() {
+    this.queueOfIndexes.length = 0;
+
+    super.clear();
+  }
+
+  /**
+   * Get length of the index map.
+   *
+   * @returns {number}
+   */
+  getLength() {
+    return this.queueOfIndexes.length;
+  }
+
+  /**
+   * Set default values for elements from `0` to `n`, where `n` is equal to the handled variable.
+   *
+   * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
+   *
+   * @private
+   * @param {number} [length] Length of list.
+   */
+  setDefaultValues(length = this.indexedValues.length) {
+    this.queueOfIndexes.length = 0;
+
+    super.setDefaultValues(length);
+  }
 
   /**
    * Add values to list and reorganize. It updates queue of indexes related to ordered values.
@@ -53,55 +132,12 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Set value at index and add it to the queue of values. Non-default values are stored in a certain order.
-   *
-   * Note: Queued value will be added at the end of the queue.
-   *
-   * @param {number} index The index.
-   * @param {*} value The value to save.
-   */
-  setValueAtIndex(index, value) {
-    super.setValueAtIndex(index, value);
-
-    this.queueOfIndexes.push(index);
-  }
-
-  /**
-   * Remove every queued value.
-   *
-   * Note: Please keep in mind that clear for the rest of the map won't be executed.
-   */
-  clear() {
-    if (isFunction(this.initValueOrFn)) {
-      this.queueOfIndexes.forEach((physicalIndex) => {
-        super.setValueAtIndex(physicalIndex, this.initValueOrFn(physicalIndex));
-      });
-
-    } else {
-      this.queueOfIndexes.forEach((physicalIndex) => {
-        super.setValueAtIndex(physicalIndex, this.initValueOrFn);
-      });
-    }
-
-    this.queueOfIndexes = [];
-  }
-
-  /**
    * Get every queued value.
    *
    * @returns {Array}
    */
   getEntries() {
     return this.queueOfIndexes.map(physicalIndex => [physicalIndex, this.getValueAtIndex(physicalIndex)]);
-  }
-
-  /**
-   * Get length of the index map.
-   *
-   * @returns {number}
-   */
-  getLength() {
-    return this.queueOfIndexes.length;
   }
 }
 

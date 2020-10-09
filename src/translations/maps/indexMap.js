@@ -40,7 +40,7 @@ class IndexMap {
    * @returns {*}
    */
   getValueAtIndex(index) {
-    const values = this.getValues();
+    const values = this.indexedValues;
 
     if (index < values.length) {
       return values[index];

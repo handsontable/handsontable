@@ -1,0 +1,217 @@
+import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
+
+it('should work with get, and set functions properly', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(1, 1);
+  indexToValueMap.setValueAtIndex(2, 0);
+
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
+
+  indexToValueMap.init(3);
+
+  expect(indexToValueMap.indexedValues).toEqual([null, null, null]);
+  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
+  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(1, 1);
+  indexToValueMap.setValueAtIndex(2, 0);
+
+  expect(indexToValueMap.indexedValues).toEqual([2, 1, 0]);
+  expect(indexToValueMap.getValues()).toEqual([2, 1, 0]);
+  expect(indexToValueMap.getLength()).toBe(3);
+
+  indexToValueMap.setValues([1, 2, 0]);
+
+  expect(indexToValueMap.indexedValues).toEqual([1, 2, 0]);
+  expect(indexToValueMap.getValues()).toEqual([1, 2, 0]);
+  expect(indexToValueMap.getLength()).toBe(3);
+});
+
+it('should init map properly when passing function as initialization property', () => {
+  const indexToValueMap = new IndexToValueMap(index => ({ key: index }));
+
+  indexToValueMap.init(3);
+
+  expect(indexToValueMap.indexedValues).toEqual([{ key: 0 }, { key: 1 }, { key: 2 }]);
+  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
+  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+});
+
+it('should init map properly when passing value as initialization property', () => {
+  const indexToValueMap = new IndexToValueMap({ key: 1 });
+
+  indexToValueMap.init(3);
+
+  expect(indexToValueMap.indexedValues).toEqual([{ key: 1 }, { key: 1 }, { key: 1 }]);
+  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
+  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+});
+
+it('should clear values properly', () => {
+  const indexToValueMap = new IndexToValueMap(index => ({ key: index + 2 }));
+
+  indexToValueMap.init(3);
+  indexToValueMap.setValues([{ key: 1 }, { key: 2 }, { key: 0 }]);
+  indexToValueMap.clear();
+
+  expect(indexToValueMap.indexedValues).toEqual([{ key: 2 }, { key: 3 }, { key: 4 }]);
+  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
+  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+});
+
+describe('Triggering `change` hook', () => {
+  it('should trigger `change` hook on initialization once', () => {
+    const indexToValueMap = new IndexToValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    expect(changeCallback.calls.count()).toEqual(0);
+
+    indexToValueMap.init(10);
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook on insertion once', () => {
+    const indexToValueMap = new IndexToValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    expect(changeCallback.calls.count()).toEqual(0);
+
+    indexToValueMap.insert(0, [0]);
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook on removal once', () => {
+    const indexToValueMap = new IndexToValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    expect(changeCallback.calls.count()).toEqual(0);
+
+    indexToValueMap.remove([0]);
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook on setting data on index in range', () => {
+    const indexToValueMap = new IndexToValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    indexToValueMap.init(10);
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    expect(changeCallback.calls.count()).toEqual(0);
+
+    indexToValueMap.setValueAtIndex(0, true);
+
+    // Triggered for index in range.
+    expect(changeCallback.calls.count()).toEqual(1);
+
+    // Not triggered for index out of range.
+    indexToValueMap.setValueAtIndex(10, true);
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook on setting data which does not change value', () => {
+    const indexToValueMap = new IndexToValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    indexToValueMap.init(10);
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    // Default value is `null`. No real change, but hook is called anyway.
+    indexToValueMap.setValueAtIndex(0, null);
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook on setting data on indexes once', () => {
+    const indexToValueMap = new IndexToValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    expect(changeCallback.calls.count()).toEqual(0);
+
+    indexToValueMap.setValues([0, 1, 2, 3, 4]);
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook on clearing data once', () => {
+    const indexToValueMap = new IndexToValueMap();
+    const changeCallback = jasmine.createSpy('change');
+
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    expect(changeCallback.calls.count()).toEqual(0);
+
+    indexToValueMap.clear();
+
+    expect(changeCallback.calls.count()).toEqual(1);
+  });
+
+  it('should trigger `change` hook after setting also order of indexes (not before it)', () => {
+    const indexToValueMap = new IndexToValueMap();
+    let indexedValues;
+    let values; // Only non-default values
+    let length; // Number of non-default values.
+    let queueOfIndexes;
+
+    const changeCallback = () => {
+      indexedValues = indexToValueMap.indexedValues;
+      values = indexToValueMap.getValues();
+      length = indexToValueMap.getLength();
+      queueOfIndexes = indexToValueMap.queueOfIndexes;
+    };
+
+    indexToValueMap.addLocalHook('change', changeCallback);
+
+    indexToValueMap.init(3);
+
+    expect(indexedValues).toEqual([null, null, null]);
+    expect(values).toEqual([]);
+    expect(length).toBe(0);
+    expect(queueOfIndexes).toEqual([]);
+
+    indexToValueMap.setValues([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+
+    expect(indexedValues).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+    expect(values).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+    expect(length).toBe(3);
+    expect(queueOfIndexes).toEqual([0, 1, 2]);
+
+    indexToValueMap.setValueAtIndex(1, { g: 'h' });
+
+    expect(indexedValues).toEqual([{ a: 'b' }, { g: 'h' }, { e: 'f' }]);
+    expect(values).toEqual([{ a: 'b' }, { g: 'h' }, { e: 'f' }]);
+    expect(length).toBe(3);
+    expect(queueOfIndexes).toEqual([0, 1, 2]);
+
+    indexToValueMap.clear();
+
+    expect(indexedValues).toEqual([null, null, null]);
+    expect(values).toEqual([]);
+    expect(length).toBe(0);
+    expect(queueOfIndexes).toEqual([]);
+
+    indexToValueMap.setValueAtIndex(1, { a: 'b' });
+    indexToValueMap.setValueAtIndex(0, { c: 'd' });
+
+    expect(indexedValues).toEqual([{ c: 'd' }, { a: 'b' }, null]);
+    expect(values).toEqual([{ a: 'b' }, { c: 'd' }]);
+    expect(length).toBe(2);
+    expect(queueOfIndexes).toEqual([1, 0]);
+  });
+});
