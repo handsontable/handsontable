@@ -208,6 +208,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false, then the create rows action will be canceled.
    */
   'beforeCreateRow',
 
@@ -755,6 +756,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The removed meta key.
    * @param {*} value Value which is under removed key of cell meta.
+   * @returns {*|boolean} If false, then the cell meta will not be removed.
    */
   'beforeRemoveCellMeta',
 
@@ -857,6 +859,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of columns to be removed.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false, then the remove column action will be canceled.
    */
   'beforeRemoveCol',
 
@@ -868,6 +871,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of rows to be removed.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false, then the remove row action will be canceled.
    */
   'beforeRemoveRow',
 
@@ -890,6 +894,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The updated meta key.
    * @param {*} value The updated meta value.
+   * @returns {*|boolean} If false, then the set cell meta action will be canceled.
    */
   'beforeSetCellMeta',
 
@@ -1275,6 +1280,7 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
    * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @returns {*|boolean} If false, then the move row action will be canceled.
    */
   'beforeRowMove',
 
@@ -1434,6 +1440,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeUndo
    * @param {object} action The action object. Contains information about the action being undone. The `actionType`
    *                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   * @returns {*|boolean} If false, then the undo action will be canceled.
    */
   'beforeUndo',
 
@@ -1454,6 +1461,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRedo
    * @param {object} action The action object. Contains information about the action being redone. The `actionType`
    *                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`).
+   * @returns {*|boolean} If false, then the redo action will be canceled.
    */
   'beforeRedo',
 
