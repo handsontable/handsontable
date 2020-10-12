@@ -757,7 +757,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The removed meta key.
    * @param {*} value Value which is under removed key of cell meta.
-   * @returns {*|boolean} If false, then the cell meta will not be removed.
+   * @returns {*|boolean} If false, then the remove cell meta action will be canceled.
    */
   'beforeRemoveCellMeta',
 
