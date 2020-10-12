@@ -1,4 +1,4 @@
-import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
+import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
 
 it('should work with get, and set functions properly', () => {
   const indexToValueMap = new IndexToValueMap();
@@ -167,13 +167,13 @@ describe('Triggering `change` hook', () => {
     let indexedValues;
     let values; // Only non-default values
     let length; // Number of non-default values.
-    let queueOfIndexes;
+    let orderOfIndexes;
 
     const changeCallback = () => {
       indexedValues = indexToValueMap.indexedValues;
       values = indexToValueMap.getValues();
       length = indexToValueMap.getLength();
-      queueOfIndexes = indexToValueMap.queueOfIndexes;
+      orderOfIndexes = indexToValueMap.orderOfIndexes;
     };
 
     indexToValueMap.addLocalHook('change', changeCallback);
@@ -183,28 +183,28 @@ describe('Triggering `change` hook', () => {
     expect(indexedValues).toEqual([null, null, null]);
     expect(values).toEqual([]);
     expect(length).toBe(0);
-    expect(queueOfIndexes).toEqual([]);
+    expect(orderOfIndexes).toEqual([]);
 
     indexToValueMap.setValues([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
 
     expect(indexedValues).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
     expect(values).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
     expect(length).toBe(3);
-    expect(queueOfIndexes).toEqual([0, 1, 2]);
+    expect(orderOfIndexes).toEqual([0, 1, 2]);
 
     indexToValueMap.setValueAtIndex(1, { g: 'h' });
 
     expect(indexedValues).toEqual([{ a: 'b' }, { g: 'h' }, { e: 'f' }]);
     expect(values).toEqual([{ a: 'b' }, { g: 'h' }, { e: 'f' }]);
     expect(length).toBe(3);
-    expect(queueOfIndexes).toEqual([0, 1, 2]);
+    expect(orderOfIndexes).toEqual([0, 1, 2]);
 
     indexToValueMap.clear();
 
     expect(indexedValues).toEqual([null, null, null]);
     expect(values).toEqual([]);
     expect(length).toBe(0);
-    expect(queueOfIndexes).toEqual([]);
+    expect(orderOfIndexes).toEqual([]);
 
     indexToValueMap.setValueAtIndex(1, { a: 'b' });
     indexToValueMap.setValueAtIndex(0, { c: 'd' });
@@ -212,6 +212,6 @@ describe('Triggering `change` hook', () => {
     expect(indexedValues).toEqual([{ c: 'd' }, { a: 'b' }, null]);
     expect(values).toEqual([{ a: 'b' }, { c: 'd' }]);
     expect(length).toBe(2);
-    expect(queueOfIndexes).toEqual([1, 0]);
+    expect(orderOfIndexes).toEqual([1, 0]);
   });
 });

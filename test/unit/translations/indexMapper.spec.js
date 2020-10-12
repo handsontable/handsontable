@@ -3,7 +3,7 @@ import {
   TrimmingMap,
   HidingMap,
   PhysicalIndexToValueMap as PIndexToValueMap,
-  QueuedPhysicalIndexToValueMap as QPIndexToValueMap,
+  LinkedPhysicalIndexToValueMap as LPIndexToValueMap,
   IndexesSequence
 } from 'handsontable/translations';
 
@@ -34,31 +34,31 @@ describe('IndexMapper', () => {
     const trimmingMap = new TrimmingMap();
     const hidingMap = new HidingMap();
     const pIndexToValueMap = new PIndexToValueMap();
-    const qPIndexToValueMap = new QPIndexToValueMap();
+    const lPIndexToValueMap = new LPIndexToValueMap();
 
     indexMapper.registerMap('trimmingMap', trimmingMap);
     indexMapper.registerMap('hidingMap', hidingMap);
     indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-    indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+    indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
 
     indexMapper.initToLength(5);
 
     trimmingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(1, true);
     pIndexToValueMap.setValueAtIndex(1, { a: 'b' });
-    qPIndexToValueMap.setValueAtIndex(1, { a: 'b' });
+    lPIndexToValueMap.setValueAtIndex(1, { a: 'b' });
 
     indexMapper.initToLength(7);
 
     expect(trimmingMap.getValues()).toEqual([false, false, false, false, false, false, false]);
     expect(hidingMap.getValues()).toEqual([false, false, false, false, false, false, false]);
     expect(pIndexToValueMap.getValues()).toEqual([null, null, null, null, null, null, null]);
-    expect(qPIndexToValueMap.getValues()).toEqual([]);
+    expect(lPIndexToValueMap.getValues()).toEqual([]);
 
     indexMapper.unregisterMap('trimmingMap');
     indexMapper.unregisterMap('hidingMap');
     indexMapper.unregisterMap('pIndexToValueMap');
-    indexMapper.unregisterMap('qPIndexToValueMap');
+    indexMapper.unregisterMap('lPIndexToValueMap');
   });
 
   it('should trigger `change` hook on initialization once', () => {
@@ -672,21 +672,21 @@ describe('IndexMapper', () => {
       const indexMapper = new IndexMapper();
       const indexesSequence = new IndexesSequence();
       const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-      const qPIndexToValueMap = new QPIndexToValueMap();
+      const lPIndexToValueMap = new LPIndexToValueMap();
       const trimmingMap = new TrimmingMap();
       const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexesSequence', indexesSequence);
       indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-      indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+      indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
       indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, false, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, true, false, true, false, false, false, false, false, true]);
-      qPIndexToValueMap.setValueAtIndex(0, { a: 'b' });
-      qPIndexToValueMap.setValueAtIndex(5, { c: 'd' });
-      qPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(0, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(5, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
 
       // renderable   |       0        1     2
       // visual       |    0  1  2     3     4     5
@@ -765,15 +765,15 @@ describe('IndexMapper', () => {
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6]);
       // Next values are just preserved, they aren't counted again.
       expect(pIndexToValueMap.getValues()).toEqual([5, 6, 7, 8, 9, 10, 11]);
-      expect(qPIndexToValueMap.indexedValues).toEqual([null, { e: 'f' }, { c: 'd' }, null, null, null, null]);
-      expect(qPIndexToValueMap.getValues()).toEqual([{ c: 'd' }, { e: 'f' }]);
-      expect(qPIndexToValueMap.queueOfIndexes).toEqual([2, 1]);
+      expect(lPIndexToValueMap.indexedValues).toEqual([null, { e: 'f' }, { c: 'd' }, null, null, null, null]);
+      expect(lPIndexToValueMap.getValues()).toEqual([{ c: 'd' }, { e: 'f' }]);
+      expect(lPIndexToValueMap.orderOfIndexes).toEqual([2, 1]);
       expect(trimmingMap.getValues()).toEqual([false, true, false, true, false, true, false]);
       expect(hidingMap.getValues()).toEqual([true, false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexesSequence');
       indexMapper.unregisterMap('pIndexToValueMap');
-      indexMapper.unregisterMap('qPIndexToValueMap');
+      indexMapper.unregisterMap('lPIndexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
     });
@@ -782,21 +782,21 @@ describe('IndexMapper', () => {
       const indexMapper = new IndexMapper();
       const indexesSequence = new IndexesSequence();
       const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-      const qPIndexToValueMap = new QPIndexToValueMap();
+      const lPIndexToValueMap = new LPIndexToValueMap();
       const trimmingMap = new TrimmingMap();
       const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexesSequence', indexesSequence);
       indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-      indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+      indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
       indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, false, false, true, false, false, false, true]);
-      qPIndexToValueMap.setValueAtIndex(3, { a: 'b' });
-      qPIndexToValueMap.setValueAtIndex(4, { c: 'd' });
-      qPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(3, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(4, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
       // renderable   |    0     1           2
       // visual       |    0     1     2     3     4
@@ -877,15 +877,15 @@ describe('IndexMapper', () => {
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       // Next values are just preserved, they aren't counted again.
       expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 8, 9, 10, 11]);
-      expect(qPIndexToValueMap.indexedValues).toEqual([{ e: 'f' }, null, null, { a: 'b' }, null, null, null, null]);
-      expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { e: 'f' }]);
-      expect(qPIndexToValueMap.queueOfIndexes).toEqual([3, 0]);
+      expect(lPIndexToValueMap.indexedValues).toEqual([{ e: 'f' }, null, null, { a: 'b' }, null, null, null, null]);
+      expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { e: 'f' }]);
+      expect(lPIndexToValueMap.orderOfIndexes).toEqual([3, 0]);
       expect(trimmingMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
       expect(hidingMap.getValues()).toEqual([false, false, false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexesSequence');
       indexMapper.unregisterMap('pIndexToValueMap');
-      indexMapper.unregisterMap('qPIndexToValueMap');
+      indexMapper.unregisterMap('lPIndexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
     });
@@ -894,21 +894,21 @@ describe('IndexMapper', () => {
       const indexMapper = new IndexMapper();
       const indexesSequence = new IndexesSequence();
       const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-      const qPIndexToValueMap = new QPIndexToValueMap();
+      const lPIndexToValueMap = new LPIndexToValueMap();
       const trimmingMap = new TrimmingMap();
       const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexesSequence', indexesSequence);
       indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-      indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+      indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
       indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
-      qPIndexToValueMap.setValueAtIndex(9, { a: 'b' });
-      qPIndexToValueMap.setValueAtIndex(8, { c: 'd' });
-      qPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(9, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(8, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
       // renderable   |    0                 1
       // visual       |    0     1     2     3     4
@@ -988,15 +988,15 @@ describe('IndexMapper', () => {
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
       // Next values are just preserved, they aren't counted again.
       expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
-      expect(qPIndexToValueMap.indexedValues).toEqual([{ e: 'f' }, null, null, null, null, null, null, null]);
-      expect(qPIndexToValueMap.getValues()).toEqual([{ e: 'f' }]);
-      expect(qPIndexToValueMap.queueOfIndexes).toEqual([0]);
+      expect(lPIndexToValueMap.indexedValues).toEqual([{ e: 'f' }, null, null, null, null, null, null, null]);
+      expect(lPIndexToValueMap.getValues()).toEqual([{ e: 'f' }]);
+      expect(lPIndexToValueMap.orderOfIndexes).toEqual([0]);
       expect(trimmingMap.getValues()).toEqual([true, false, true, false, true, false, true, false]);
       expect(hidingMap.getValues()).toEqual([false, false, false, true, false, true, false, false]);
 
       indexMapper.unregisterMap('indexesSequence');
       indexMapper.unregisterMap('pIndexToValueMap');
-      indexMapper.unregisterMap('qPIndexToValueMap');
+      indexMapper.unregisterMap('lPIndexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
     });
@@ -1005,22 +1005,22 @@ describe('IndexMapper', () => {
       const indexMapper = new IndexMapper();
       const indexesSequence = new IndexesSequence();
       const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-      const qPIndexToValueMap = new QPIndexToValueMap();
+      const lPIndexToValueMap = new LPIndexToValueMap();
       const trimmingMap = new TrimmingMap();
       const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexesSequence', indexesSequence);
       indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-      indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+      indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
       indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, false, false, true, false, false]);
-      qPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
-      qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-      qPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
-      qPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
+      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
 
       // renderable   |    0           1           2
       // visual       |    0     1     2     3     4
@@ -1090,15 +1090,15 @@ describe('IndexMapper', () => {
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
       expect(pIndexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
-      expect(qPIndexToValueMap.indexedValues).toEqual([{ g: 'h' }, { e: 'f' }, null, null, null, null]);
-      expect(qPIndexToValueMap.getValues()).toEqual([{ e: 'f' }, { g: 'h' }]);
-      expect(qPIndexToValueMap.queueOfIndexes).toEqual([1, 0]);
+      expect(lPIndexToValueMap.indexedValues).toEqual([{ g: 'h' }, { e: 'f' }, null, null, null, null]);
+      expect(lPIndexToValueMap.getValues()).toEqual([{ e: 'f' }, { g: 'h' }]);
+      expect(lPIndexToValueMap.orderOfIndexes).toEqual([1, 0]);
       expect(trimmingMap.getValues()).toEqual([true, true, true, false, true, false]);
       expect(hidingMap.getValues()).toEqual([false, false, false, true, false, false]);
 
       indexMapper.unregisterMap('indexesSequence');
       indexMapper.unregisterMap('pIndexToValueMap');
-      indexMapper.unregisterMap('qPIndexToValueMap');
+      indexMapper.unregisterMap('lPIndexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
     });
@@ -1107,22 +1107,22 @@ describe('IndexMapper', () => {
       const indexMapper = new IndexMapper();
       const indexesSequence = new IndexesSequence();
       const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-      const qPIndexToValueMap = new QPIndexToValueMap();
+      const lPIndexToValueMap = new LPIndexToValueMap();
       const trimmingMap = new TrimmingMap();
       const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexesSequence', indexesSequence);
       indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-      indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+      indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
       indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
-      qPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
-      qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-      qPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
-      qPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
+      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
 
       // renderable   |    0                 1
       // visual       |    0     1     2     3     4
@@ -1192,15 +1192,15 @@ describe('IndexMapper', () => {
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
       expect(pIndexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
-      expect(qPIndexToValueMap.indexedValues).toEqual([{ g: 'h' }, { e: 'f' }, null, null, null, null]);
-      expect(qPIndexToValueMap.getValues()).toEqual([{ e: 'f' }, { g: 'h' }]);
-      expect(qPIndexToValueMap.queueOfIndexes).toEqual([1, 0]);
+      expect(lPIndexToValueMap.indexedValues).toEqual([{ g: 'h' }, { e: 'f' }, null, null, null, null]);
+      expect(lPIndexToValueMap.getValues()).toEqual([{ e: 'f' }, { g: 'h' }]);
+      expect(lPIndexToValueMap.orderOfIndexes).toEqual([1, 0]);
       expect(trimmingMap.getValues()).toEqual([true, true, true, false, true, false]);
       expect(hidingMap.getValues()).toEqual([false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexesSequence');
       indexMapper.unregisterMap('pIndexToValueMap');
-      indexMapper.unregisterMap('qPIndexToValueMap');
+      indexMapper.unregisterMap('lPIndexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
     });
@@ -1209,22 +1209,22 @@ describe('IndexMapper', () => {
       const indexMapper = new IndexMapper();
       const indexesSequence = new IndexesSequence();
       const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-      const qPIndexToValueMap = new QPIndexToValueMap();
+      const lPIndexToValueMap = new LPIndexToValueMap();
       const trimmingMap = new TrimmingMap();
       const hidingMap = new HidingMap();
 
       indexMapper.registerMap('indexesSequence', indexesSequence);
       indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-      indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+      indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
       indexMapper.registerMap('trimmingMap', trimmingMap);
       indexMapper.registerMap('hidingMap', hidingMap);
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
-      qPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
-      qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-      qPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
-      qPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
+      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
 
       // renderable   |    0                 1
       // visual       |    0     1     2     3     4
@@ -1294,15 +1294,15 @@ describe('IndexMapper', () => {
       expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5]);
       // Next values are just preserved, they aren't counted again.
       expect(pIndexToValueMap.getValues()).toEqual([4, 6, 8, 9, 10, 11]);
-      expect(qPIndexToValueMap.indexedValues).toEqual([{ g: 'h' }, { e: 'f' }, null, null, null, null]);
-      expect(qPIndexToValueMap.getValues()).toEqual([{ e: 'f' }, { g: 'h' }]);
-      expect(qPIndexToValueMap.queueOfIndexes).toEqual([1, 0]);
+      expect(lPIndexToValueMap.indexedValues).toEqual([{ g: 'h' }, { e: 'f' }, null, null, null, null]);
+      expect(lPIndexToValueMap.getValues()).toEqual([{ e: 'f' }, { g: 'h' }]);
+      expect(lPIndexToValueMap.orderOfIndexes).toEqual([1, 0]);
       expect(trimmingMap.getValues()).toEqual([true, true, true, false, true, false]);
       expect(hidingMap.getValues()).toEqual([false, false, false, false, false, true]);
 
       indexMapper.unregisterMap('indexesSequence');
       indexMapper.unregisterMap('pIndexToValueMap');
-      indexMapper.unregisterMap('qPIndexToValueMap');
+      indexMapper.unregisterMap('lPIndexToValueMap');
       indexMapper.unregisterMap('trimmingMap');
       indexMapper.unregisterMap('hidingMap');
     });
@@ -1314,16 +1314,16 @@ describe('IndexMapper', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        qPIndexToValueMap.setValueAtIndex(1, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(0, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(1, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(0, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
 
         indexMapper.insertIndexes(0, 3);
 
@@ -1332,30 +1332,30 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, null, null, { c: 'd' }, { a: 'b' }, null, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, null, null, { c: 'd' }, { a: 'b' }, null, null,
           { e: 'f' }, null, null, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([4, 3, 7]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([4, 3, 7]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
       });
 
       it('should insert multiple indexes at the middle', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        qPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(6, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(6, { e: 'f' });
 
         indexMapper.insertIndexes(4, 3);
 
@@ -1364,30 +1364,30 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 6, 7, 8, 9, 10, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
           null, { e: 'f' }, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([2, 1, 9]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([2, 1, 9]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
       });
 
       it('should insert multiple indexes next to the end', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        qPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
 
         indexMapper.insertIndexes(9, 3);
 
@@ -1396,30 +1396,30 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
           null, null, null, null, { e: 'f' }]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([2, 1, 12]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([2, 1, 12]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
       });
 
       it('should insert multiple indexes at the end (index equal to the length of maps)', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        qPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
 
         indexMapper.insertIndexes(10, 3);
 
@@ -1428,30 +1428,30 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
           null, { e: 'f' }, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([2, 1, 9]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([2, 1, 9]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
       });
 
       it('should insert multiple indexes at the end (index higher than length of maps)', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        qPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
 
         indexMapper.insertIndexes(12, 3);
 
@@ -1460,14 +1460,14 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, { c: 'd' }, { a: 'b' }, null, null, null, null, null,
           null, { e: 'f' }, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([2, 1, 9]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([2, 1, 9]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
       });
 
       it('should insert index properly when starting sequence of indexes is from `n` to `0`, where `n` is number of indexes minus 1', () => {
@@ -1496,19 +1496,19 @@ describe('IndexMapper', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
         const trimmingMap = new TrimmingMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.registerMap('trimmingMap', trimmingMap);
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([false, false, false, true, false, false, false, false, false, false]);
-        qPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
 
         indexMapper.insertIndexes(3, 1);
 
@@ -1519,16 +1519,16 @@ describe('IndexMapper', () => {
         // Next values are just preserved, they aren't counted again.
         // Element is inserted at 4th position (before 5th element, because third element is trimmed).
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 6, 7, 8, 9, 10, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, null, { e: 'f' }, { c: 'd' }, null, { a: 'b' },
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, null, { e: 'f' }, { c: 'd' }, null, { a: 'b' },
           null, null, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([5, 3, 2]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([5, 3, 2]);
         expect(trimmingMap.getValues())
           .toEqual([false, false, false, true, false, false, false, false, false, false, false]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
         indexMapper.unregisterMap('trimmingMap');
       });
 
@@ -1536,19 +1536,19 @@ describe('IndexMapper', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
         const trimmingMap = new TrimmingMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.registerMap('trimmingMap', trimmingMap);
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([true, true, true, true, false, false, false, false, false, false]);
-        qPIndexToValueMap.setValueAtIndex(3, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(0, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(3, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(0, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
 
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([4, 5, 6, 7, 8, 9]); // trimmed indexes: 0, 1, 2, 3 <----------------------
 
@@ -1560,16 +1560,16 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 6, 7, 8, 9, 10, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([{ c: 'd' }, null, null, { a: 'b' }, null, null, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([{ c: 'd' }, null, null, { a: 'b' }, null, null, null,
           { e: 'f' }, null, null, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([3, 0, 7]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([3, 0, 7]);
         expect(trimmingMap.getValues())
           .toEqual([true, true, true, true, false, false, false, false, false, false, false, false, false]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
         indexMapper.unregisterMap('trimmingMap');
       });
 
@@ -1577,19 +1577,19 @@ describe('IndexMapper', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
         const trimmingMap = new TrimmingMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.registerMap('trimmingMap', trimmingMap);
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([false, false, false, false, false, false, true, true, true, true]);
-        qPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3, 4, 5]); // trimmed indexes: 6, 7, 8, 9 <----------------------
 
@@ -1601,16 +1601,16 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, null, null, { e: 'f' }, { c: 'd' }, { a: 'b' }, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, null, null, { e: 'f' }, { c: 'd' }, { a: 'b' }, null,
           null, null, null, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([5, 4, 3]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([5, 4, 3]);
         expect(trimmingMap.getValues())
           .toEqual([false, false, false, false, false, false, false, false, false, true, true, true, true]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
         indexMapper.unregisterMap('trimmingMap');
       });
 
@@ -1618,19 +1618,19 @@ describe('IndexMapper', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
         const trimmingMap = new TrimmingMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.registerMap('trimmingMap', trimmingMap);
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([true, true, true, true, true, true, true, true, true, true]);
-        qPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
         indexMapper.insertIndexes(0, 3);
 
@@ -1640,16 +1640,16 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([{ e: 'f' }, { c: 'd' }, { a: 'b' }, null, null, null, null,
+        expect(lPIndexToValueMap.indexedValues).toEqual([{ e: 'f' }, { c: 'd' }, { a: 'b' }, null, null, null, null,
           null, null, null, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([2, 1, 0]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([2, 1, 0]);
         expect(trimmingMap.getValues())
           .toEqual([true, true, true, true, true, true, true, true, true, true, false, false, false]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
         indexMapper.unregisterMap('trimmingMap');
       });
     });
@@ -1659,19 +1659,19 @@ describe('IndexMapper', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
         const hidingMap = new HidingMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.registerMap('hidingMap', hidingMap);
         indexMapper.initToLength(10);
 
         hidingMap.setValues([true, true, false, false, false, false, false, false, false, true]);
-        qPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
 
         indexMapper.insertIndexes(3, 3);
 
@@ -1681,16 +1681,16 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 5, 6, 7, 8, 9, 10, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, null, { e: 'f' }, null, null, null, { c: 'd' },
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, null, { e: 'f' }, null, null, null, { c: 'd' },
           { a: 'b' }, null, null, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([7, 6, 2]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([7, 6, 2]);
         expect(hidingMap.getValues())
           .toEqual([true, true, false, false, false, false, false, false, false, false, false, false, true]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
         indexMapper.unregisterMap('hidingMap');
       });
 
@@ -1698,19 +1698,19 @@ describe('IndexMapper', () => {
         const indexMapper = new IndexMapper();
         const indexesSequence = new IndexesSequence();
         const pIndexToValueMap = new PIndexToValueMap(index => index + 2);
-        const qPIndexToValueMap = new QPIndexToValueMap();
+        const lPIndexToValueMap = new LPIndexToValueMap();
         const hidingMap = new HidingMap();
 
         indexMapper.registerMap('indexesSequence', indexesSequence);
         indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
-        indexMapper.registerMap('qPIndexToValueMap', qPIndexToValueMap);
+        indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.registerMap('hidingMap', hidingMap);
         indexMapper.initToLength(10);
 
         hidingMap.setValues([true, true, true, true, true, true, true, true, true, true]);
-        qPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
-        qPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
-        qPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
+        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
 
         indexMapper.insertIndexes(3, 3);
 
@@ -1720,16 +1720,16 @@ describe('IndexMapper', () => {
         expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         // // Next values are just preserved, they aren't counted again.
         expect(pIndexToValueMap.getValues()).toEqual([2, 3, 4, 5, 6, 7, 5, 6, 7, 8, 9, 10, 11]);
-        expect(qPIndexToValueMap.indexedValues).toEqual([null, null, { e: 'f' }, null, null, null, { c: 'd' },
+        expect(lPIndexToValueMap.indexedValues).toEqual([null, null, { e: 'f' }, null, null, null, { c: 'd' },
           { a: 'b' }, null, null, null, null, null]);
-        expect(qPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
-        expect(qPIndexToValueMap.queueOfIndexes).toEqual([7, 6, 2]);
+        expect(lPIndexToValueMap.getValues()).toEqual([{ a: 'b' }, { c: 'd' }, { e: 'f' }]);
+        expect(lPIndexToValueMap.orderOfIndexes).toEqual([7, 6, 2]);
         expect(hidingMap.getValues())
           .toEqual([true, true, true, false, false, false, true, true, true, true, true, true, true]);
 
         indexMapper.unregisterMap('indexesSequence');
         indexMapper.unregisterMap('pIndexToValueMap');
-        indexMapper.unregisterMap('qPIndexToValueMap');
+        indexMapper.unregisterMap('lPIndexToValueMap');
         indexMapper.unregisterMap('hidingMap');
       });
     });

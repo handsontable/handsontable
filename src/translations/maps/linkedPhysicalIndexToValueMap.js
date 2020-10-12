@@ -4,46 +4,46 @@ import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexe
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
 
 /**
- * Map for storing mappings from an physical index to a value. Some values are stored in a certain order.
+ * Map for storing mappings from an physical index to a value. Those entries are linked and stored in a certain order.
  *
- * Does not update stored values on remove/add row or column action. Otherwise, queue of indexes related to ordered
- * values is updated after such changes.
+ * It does not update stored values on remove/add row or column action. Otherwise, order of entries is updated after
+ * such changes.
  */
-class QueuedPhysicalIndexToValueMap extends IndexMap {
+class LinkedPhysicalIndexToValueMap extends IndexMap {
   /**
-   * Some values are stored in a certain order. Queue of indexes represent indexes related to ordered values.
+   * Indexes and values corresponding to them (entries) are stored in a certain order.
    *
    * @private
    * @type {Array<number>}
    */
-  queueOfIndexes = []
+  orderOfIndexes = []
 
   /**
-   * Get full list of values for particular indexes.
+   * Get full list of ordered values for particular indexes.
    *
    * @returns {Array}
    */
   getValues() {
-    return this.queueOfIndexes.map(physicalIndex => this.indexedValues[physicalIndex]);
+    return this.orderOfIndexes.map(physicalIndex => this.indexedValues[physicalIndex]);
   }
 
   /**
-   * Set new values for particular indexes.
+   * Set new values for particular indexes. Entries are linked and stored in a certain order.
    *
    * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @param {Array} values List of set values.
    */
   setValues(values) {
-    this.queueOfIndexes = [...Array(values.length).keys()];
+    this.orderOfIndexes = [...Array(values.length).keys()];
 
     super.setValues(values);
   }
 
   /**
-   * Set value at index and add it to the queue of values. Non-default values are stored in a certain order.
+   * Set value at index and add it to the linked list of entries. Entries are stored in a certain order.
    *
-   * Note: Queued value will be added at the end of the queue.
+   * Note: Value will be added at the end of the queue.
    *
    * @param {number} index The index.
    * @param {*} value The value to save.
@@ -54,8 +54,8 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
     if (index < this.indexedValues.length) {
       this.indexedValues[index] = value;
 
-      if (this.queueOfIndexes.includes(index) === false) {
-        this.queueOfIndexes.push(index);
+      if (this.orderOfIndexes.includes(index) === false) {
+        this.orderOfIndexes.push(index);
       }
 
       this.runLocalHooks('change');
@@ -67,10 +67,10 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Remove every queued value.
+   * Clear all values to the defaults and reset order of indexes.
    */
   clear() {
-    this.queueOfIndexes.length = 0;
+    this.orderOfIndexes.length = 0;
 
     super.clear();
   }
@@ -81,7 +81,7 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
    * @returns {number}
    */
   getLength() {
-    return this.queueOfIndexes.length;
+    return this.orderOfIndexes.length;
   }
 
   /**
@@ -93,13 +93,13 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
    * @param {number} [length] Length of list.
    */
   setDefaultValues(length = this.indexedValues.length) {
-    this.queueOfIndexes.length = 0;
+    this.orderOfIndexes.length = 0;
 
     super.setDefaultValues(length);
   }
 
   /**
-   * Add values to list and reorganize. It updates queue of indexes related to ordered values.
+   * Add values to list and reorganize. It updates list of indexes related to ordered values.
    *
    * @private
    * @param {number} insertionIndex Position inside the list.
@@ -112,33 +112,33 @@ class QueuedPhysicalIndexToValueMap extends IndexMap {
       insertedIndexes,
       this.initValueOrFn
     );
-    this.queueOfIndexes = getIncreasedIndexes(this.queueOfIndexes, insertedIndexes);
+    this.orderOfIndexes = getIncreasedIndexes(this.orderOfIndexes, insertedIndexes);
 
     super.insert(insertionIndex, insertedIndexes);
   }
 
   /**
-   * Remove values from the list and reorganize. It updates queue of indexes related to ordered values.
+   * Remove values from the list and reorganize. It updates list of indexes related to ordered values.
    *
    * @private
    * @param {Array} removedIndexes List of removed indexes.
    */
   remove(removedIndexes) {
     this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
-    this.queueOfIndexes = getListWithoutIndexes(this.queueOfIndexes, removedIndexes);
-    this.queueOfIndexes = getDecreasedIndexes(this.queueOfIndexes, removedIndexes);
+    this.orderOfIndexes = getListWithoutIndexes(this.orderOfIndexes, removedIndexes);
+    this.orderOfIndexes = getDecreasedIndexes(this.orderOfIndexes, removedIndexes);
 
     super.remove(removedIndexes);
   }
 
   /**
-   * Get every queued value.
+   * Get every entry containing index and value, respecting order of indexes.
    *
    * @returns {Array}
    */
   getEntries() {
-    return this.queueOfIndexes.map(physicalIndex => [physicalIndex, this.getValueAtIndex(physicalIndex)]);
+    return this.orderOfIndexes.map(physicalIndex => [physicalIndex, this.getValueAtIndex(physicalIndex)]);
   }
 }
 
-export default QueuedPhysicalIndexToValueMap;
+export default LinkedPhysicalIndexToValueMap;
