@@ -2,7 +2,7 @@ import IndexMap from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
-import {isFunction} from '../../helpers/function';
+import { isFunction } from '../../helpers/function';
 
 /**
  * Map for storing mappings from an physical index to a value. Those entries are linked and stored in a certain order.
