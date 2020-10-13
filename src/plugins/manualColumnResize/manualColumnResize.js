@@ -1,10 +1,11 @@
 import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
+import { addClass, hasClass, removeClass, outerHeight, isDetached } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
 import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { getTargetParent } from '../../helpers/dom/event';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -337,14 +338,14 @@ class ManualColumnResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfColumnHeader(element) {
-    if (element !== this.hot.rootElement) {
-      const parent = element.parentNode;
-
-      if (parent.tagName === 'THEAD') {
+    if (element) {
+      if (element.tagName === 'THEAD') {
         return true;
       }
 
-      return this.checkIfColumnHeader(parent);
+      if (element !== this.hot.rootElement) {
+        return this.checkIfColumnHeader(element.parentNode);
+      }
     }
 
     return false;
@@ -357,13 +358,13 @@ class ManualColumnResize extends BasePlugin {
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
-  getTHFromTargetElement(element) {
+  getClosestTHParent(element) {
     if (element.tagName !== 'TABLE') {
       if (element.tagName === 'TH') {
         return element;
       }
 
-      return this.getTHFromTargetElement(element.parentNode);
+      return this.getClosestTHParent(element.parentNode);
     }
 
     return null;
@@ -376,8 +377,11 @@ class ManualColumnResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
-    if (this.checkIfColumnHeader(event.target)) {
-      const th = this.getTHFromTargetElement(event.target);
+    // Workaround for #6926 - if the `event.target` is temporarily detached, we can go straight the the parent.
+    if (this.checkIfColumnHeader(isDetached(event.target) ? getTargetParent(event) : event.target)) {
+      // Because of a problem described in #6926, the `event.target` element is sometimes (temporarily) detached.
+      // This workaround prevents the error from #6926 happening.
+      const th = event.target.tagName === 'TH' ? event.target : this.getClosestTHParent(getTargetParent(event));
 
       if (!th) {
         return;
