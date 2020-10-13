@@ -1,5 +1,5 @@
 import { isObject, objectEach } from '../../helpers/object';
-import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { isDefined } from '../../helpers/mixed';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
@@ -27,7 +27,7 @@ export class ColumnStatesManager {
     /**
      * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
      *
-     * @type {QueuedPhysicalIndexToValueMap}
+     * @type {LinkedPhysicalIndexToValueMap}
      */
     this.sortingStates = new IndexToValueMap();
     /**
@@ -113,7 +113,7 @@ export class ColumnStatesManager {
   getIndexOfColumnInSortQueue(column) {
     column = this.hot.toPhysicalColumn(column);
 
-    return this.sortingStates.getIndexesQueue().findIndex(physicalColumn => physicalColumn === column);
+    return this.sortingStates.getEntries().findIndex(([physicalColumn]) => physicalColumn === column);
   }
 
   /**
@@ -122,7 +122,7 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getNumberOfSortedColumns() {
-    return this.sortingStates.getIndexesQueue().length;
+    return this.sortingStates.getLength();
   }
 
   /**

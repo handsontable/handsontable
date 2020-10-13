@@ -16,7 +16,7 @@ class ConditionCollection {
     /**
      * Index map storing filtering states for every column. ConditionCollection write and read to/from this element.
      *
-     * @type {QueuedPhysicalIndexToValueMap}
+     * @type {LinkedPhysicalIndexToValueMap}
      */
     this.filteringStates = filteringStates;
   }
@@ -134,7 +134,7 @@ class ConditionCollection {
    * @returns {Array}
    */
   getFilteredColumns() {
-    return this.filteringStates.getIndexesQueue();
+    return this.filteringStates.getEntries().map(([physicalColumn]) => physicalColumn);
   }
 
   /**

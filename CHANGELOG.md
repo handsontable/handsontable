@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Added new type of Index Map named `QueuedPhysicalIndexToValueMap` [#7276](https://github.com/handsontable/handsontable/pull/7276)
+- Added new type of Index Map named `LinkedPhysicalIndexToValueMap` [#7276](https://github.com/handsontable/handsontable/pull/7276)
 
 ### Fixed
 - Fixed a problem with data being pasted with an offset compensating the number of previously hidden rows/columns. [#6742](https://github.com/handsontable/handsontable/issues/6742)

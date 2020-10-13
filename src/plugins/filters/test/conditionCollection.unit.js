@@ -1,7 +1,7 @@
 import ConditionCollection from 'handsontable/plugins/filters/conditionCollection';
 import { conditions } from 'handsontable/plugins/filters/conditionRegisterer';
 import { OPERATION_AND, OPERATION_OR } from 'handsontable/plugins/filters/constants';
-import { QueuedPhysicalIndexToValueMap as IndexMap } from 'handsontable/translations';
+import { LinkedPhysicalIndexToValueMap as IndexMap } from 'handsontable/translations';
 
 describe('ConditionCollection', () => {
   it('should be initialized and accessible from the plugin', () => {

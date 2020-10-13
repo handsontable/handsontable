@@ -5,7 +5,7 @@ import localHooks from '../../mixins/localHooks';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import { createArrayAssertion } from './utils';
-import { QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified

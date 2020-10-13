@@ -23,7 +23,7 @@ import {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
-import { TrimmingMap, QueuedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { TrimmingMap, LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 import './filters.css';
 
