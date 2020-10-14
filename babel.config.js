@@ -55,19 +55,23 @@ module.exports = {
     commonjs_dist: {
       plugins: [
         ['@babel/plugin-transform-modules-commonjs', { loose: true }],
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['babel-plugin-transform-remove-imports', { test: /^\.\/presets\/all$/ }],
       ],
       ignore: [
-        'src/plugins/**/test/**'
+        'src/plugins/**/test/**',
+        'src/plugins/index.js'
       ]
     },
     // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['babel-plugin-transform-remove-imports', { test: /^\.\/presets\/all$/ }],
       ],
       ignore: [
-        'src/plugins/**/test/**'
+        'src/plugins/**/test/**',
+        'src/plugins/index.js'
       ]
     },
     // Environment for building E2E tests (UMD).

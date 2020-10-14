@@ -29,7 +29,7 @@ import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './presets/all';
-import { registerPlugin, getRegistredPluginNames, getPlugin } from './plugins';
+import { registerPlugin } from './plugins';
 import { metaSchemaFactory } from './dataMap/index';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
@@ -163,8 +163,6 @@ Handsontable.validators.getValidator = getValidator;
 
 // Export all registered plugins from the Handsontable.
 Handsontable.plugins = {};
-
-console.log(getRegistredPluginNames);
 
 arrayHelpers.arrayEach(typeof plugins !== 'undefined' ? Object.getOwnPropertyNames(plugins) : [], (pluginName) => {
   const plugin = plugins[pluginName];
