@@ -730,7 +730,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {boolean|string|object}
-     * @default true
+     * @default false
      *
      * @example
      * ```js
