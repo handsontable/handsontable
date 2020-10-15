@@ -47,7 +47,7 @@
     "watch": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ./hot.config.js webpack --hide-modules --watch src/index.js",
     "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.min",
     "build:commonjs": "cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ./hot.config.js babel src --out-dir commonjs",
-    "build:es": "cross-env-shell BABEL_ENV=es env-cmd -f ./hot.config.js babel src --out-dir es",
+    "build:es": "cross-env-shell BABEL_ENV=es env-cmd -f ./hot.config.js babel src --out-dir es --copy-files --no-copy-ignored",
     "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
