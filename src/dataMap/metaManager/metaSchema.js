@@ -945,7 +945,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {boolean}
-     * @default false
+     * @default undefined
      *
      * @example
      * ```js
