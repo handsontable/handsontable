@@ -2128,7 +2128,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {boolean|string|number}
-     * @default true
+     * @default undefined
      *
      * @example
      * ```js
@@ -2145,7 +2145,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {boolean|string|number}
-     * @default false
+     * @default undefined
      *
      * @example
      * ```js
