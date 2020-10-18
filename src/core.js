@@ -1303,8 +1303,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function setDataAtCell
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
-   * @param {number} [column] Visual column index.
-   * @param {string} [value] New value.
+   * @param {number} column Visual column index.
+   * @param {string} value New value.
    * @param {string} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
    */
   this.setDataAtCell = function(row, column, value, source) {
