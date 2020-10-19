@@ -18,6 +18,14 @@ it('should return proper length by the `getLength` method', () => {
 
   expect(indexToValueMap.getValues()).toEqual([2, 1, 0]);
   expect(indexToValueMap.getLength()).toBe(3);
+  expect(indexToValueMap.orderOfIndexes).toEqual([0, 1, 2]);
+
+  // fake value, checking whether method checks length of the array (which is faster than going through all values)
+  indexToValueMap.orderOfIndexes.length = 5;
+  indexToValueMap.getValues = jasmine.createSpy('getValues').and.callFake(() => []);
+
+  expect(indexToValueMap.getLength()).toBe(5);
+  expect(indexToValueMap.getValues).not.toHaveBeenCalled();
 });
 
 it('should work with get, and set functions properly', () => {

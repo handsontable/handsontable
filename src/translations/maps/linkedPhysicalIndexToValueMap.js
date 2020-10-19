@@ -67,15 +67,6 @@ class LinkedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Clear all values to the defaults and reset order of indexes.
-   */
-  clear() {
-    this.orderOfIndexes.length = 0;
-
-    super.clear();
-  }
-
-  /**
    * Get length of the index map.
    *
    * @returns {number}
