@@ -179,7 +179,7 @@ class ConditionUpdateObserver {
    * @private
    */
   _onConditionBeforeClean() {
-    this.latestOrderStack = [].concat(this.conditionCollection.getFilteredColumns());
+    this.latestOrderStack = this.conditionCollection.getFilteredColumns();
   }
 
   /**
