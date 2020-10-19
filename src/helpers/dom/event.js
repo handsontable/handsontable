@@ -37,20 +37,3 @@ export function isRightClick(event) {
 export function isLeftClick(event) {
   return event.button === 0;
 }
-
-/**
- * Get the parent element of the provided event. Useful, when `event.target.parentElement` returns `null` after it's
- * been freshly added to DOM.
- *
- * @param {Event} event The event to get the target's parent from.
- * @returns {HTMLElement|null} The parent of the `target` element or `null`, if it doesn't have any parents.
- */
-export function getTargetParent(event) {
-  let targetParent = event.target.parentElement;
-
-  if (!targetParent && event.composedPath) {
-    targetParent = event.composedPath()[1] || null;
-  }
-
-  return targetParent;
-}

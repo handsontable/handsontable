@@ -1,12 +1,11 @@
 import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerWidth, isDetached } from './../../helpers/dom/element';
+import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
 import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
 import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
-import { getTargetParent } from '../../helpers/dom/event';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
@@ -293,17 +292,9 @@ class ManualRowResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfRowHeader(element) {
-    if (element) {
-      if (element.tagName === 'TH' && element.parentNode?.parentNode?.tagName === 'TBODY') {
-        return true;
-      }
+    const thElement = closest(element, ['TH'], this.hot.rootElement);
 
-      if (element !== this.hot.rootElement) {
-        return this.checkIfRowHeader(element.parentNode);
-      }
-    }
-
-    return false;
+    return thElement && element.parentNode?.parentNode?.tagName === 'TBODY';
   }
 
   /**
@@ -350,11 +341,14 @@ class ManualRowResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
-    // Workaround for #6926 - if the `event.target` is temporarily detached, we can go straight the the parent.
-    if (this.checkIfRowHeader(isDetached(event.target) ? getTargetParent(event) : event.target)) {
-      // Because of a problem described in #6926, the `event.target` element is sometimes (temporarily) detached.
-      // This workaround prevents the error from #6926 happening.
-      const th = event.target.tagName === 'TH' ? event.target : this.getClosestTHParent(getTargetParent(event));
+    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+    // the next `onmouseover`.
+    if (isDetached(event.target)) {
+      return;
+    }
+
+    if (this.checkIfRowHeader(event.target)) {
+      const th = this.getClosestTHParent(event.target);
 
       if (th) {
         if (!this.pressed) {
