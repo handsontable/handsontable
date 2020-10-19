@@ -1,5 +1,25 @@
 import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/translations';
 
+it('should return proper length by the `getLength` method', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(1, 1);
+  indexToValueMap.setValueAtIndex(2, 0);
+
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
+
+  indexToValueMap.init(5);
+
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(1, 1);
+  indexToValueMap.setValueAtIndex(2, 0);
+
+  expect(indexToValueMap.getValues()).toEqual([2, 1, 0]);
+  expect(indexToValueMap.getLength()).toBe(3);
+});
+
 it('should work with get, and set functions properly', () => {
   const indexToValueMap = new IndexToValueMap();
 
@@ -61,6 +81,122 @@ it('should clear values properly', () => {
   expect(indexToValueMap.indexedValues).toEqual([{ key: 2 }, { key: 3 }, { key: 4 }]);
   expect(indexToValueMap.getValues()).toEqual([]);
   expect(indexToValueMap.getLength()).toBe(0);
+});
+
+it('should handle `insert` method properly', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.init(5);
+
+  indexToValueMap.setValueAtIndex(3, 0);
+  indexToValueMap.setValueAtIndex(2, 1);
+  indexToValueMap.setValueAtIndex(0, 2);
+
+  indexToValueMap.insert(0, [0]);
+
+  expect(indexToValueMap.indexedValues).toEqual([null, 2, null, 1, 0, null]);
+  expect(indexToValueMap.getValues()).toEqual([0, 1, 2]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([4, 3, 1]);
+  expect(indexToValueMap.getLength()).toBe(3);
+
+  indexToValueMap.insert(2, [2]);
+
+  expect(indexToValueMap.indexedValues).toEqual([null, 2, null, null, 1, 0, null]);
+  expect(indexToValueMap.getValues()).toEqual([0, 1, 2]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([5, 4, 1]);
+  expect(indexToValueMap.getLength()).toBe(3);
+
+  indexToValueMap.insert(6, [6]);
+
+  expect(indexToValueMap.getValues()).toEqual([0, 1, 2]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([5, 4, 1]);
+  expect(indexToValueMap.getLength()).toBe(3);
+});
+
+it('should handle `remove` method properly', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.init(5);
+
+  indexToValueMap.setValueAtIndex(3, 0);
+  indexToValueMap.setValueAtIndex(2, 1);
+  indexToValueMap.setValueAtIndex(0, 2);
+
+  indexToValueMap.remove([0]);
+
+  expect(indexToValueMap.indexedValues).toEqual([null, 1, 0, null]);
+  expect(indexToValueMap.getValues()).toEqual([0, 1]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([2, 1]);
+  expect(indexToValueMap.getLength()).toBe(2);
+
+  indexToValueMap.remove([3]);
+
+  expect(indexToValueMap.indexedValues).toEqual([null, 1, 0]);
+  expect(indexToValueMap.getValues()).toEqual([0, 1]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([2, 1]);
+  expect(indexToValueMap.getLength()).toBe(2);
+
+  indexToValueMap.remove([2]);
+
+  expect(indexToValueMap.indexedValues).toEqual([null, 1]);
+  expect(indexToValueMap.getValues()).toEqual([1]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([1]);
+  expect(indexToValueMap.getLength()).toBe(1);
+
+  indexToValueMap.remove([0]);
+
+  expect(indexToValueMap.indexedValues).toEqual([1]);
+  expect(indexToValueMap.getValues()).toEqual([1]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([0]);
+  expect(indexToValueMap.getLength()).toBe(1);
+
+  indexToValueMap.remove([0]);
+
+  expect(indexToValueMap.indexedValues).toEqual([]);
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
+});
+
+it('should handle `setDefaultValues` method properly', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.init(5);
+
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(1, 1);
+  indexToValueMap.setValueAtIndex(2, 0);
+
+  indexToValueMap.setDefaultValues();
+
+  expect(indexToValueMap.indexedValues).toEqual([null, null, null, null, null]);
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
+});
+
+it('should return entries by `getEntries` method properly', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(1, 1);
+  indexToValueMap.setValueAtIndex(2, 0);
+
+  expect(indexToValueMap.getEntries()).toEqual([]);
+
+  indexToValueMap.init(5);
+
+  expect(indexToValueMap.getEntries()).toEqual([]);
+
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(1, 1);
+  indexToValueMap.setValueAtIndex(2, 0);
+
+  expect(indexToValueMap.getEntries()).toEqual([
+    [0, 2],
+    [1, 1],
+    [2, 0],
+  ]);
 });
 
 describe('Triggering `change` hook', () => {
@@ -165,8 +301,8 @@ describe('Triggering `change` hook', () => {
   it('should trigger `change` hook after setting also order of indexes (not before it)', () => {
     const indexToValueMap = new IndexToValueMap();
     let indexedValues;
-    let values; // Only non-default values
-    let length; // Number of non-default values.
+    let values;
+    let length;
     let orderOfIndexes;
 
     const changeCallback = () => {
