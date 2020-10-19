@@ -1,6 +1,6 @@
 import { KEY_CODES, isPrintableChar } from './../helpers/unicode';
 import { stringify, isDefined } from './../helpers/mixed';
-import { stripTags } from './../helpers/string';
+import { sanitize, stripTags } from './../helpers/string';
 import { pivot, arrayMap } from './../helpers/array';
 import { getRenderer } from '../renderers';
 import {
@@ -122,9 +122,12 @@ class AutocompleteEditor extends HandsontableEditor {
             match = cellValue.substr(indexOfMatch, query.length);
             cellValue = cellValue.replace(match, `<strong>${match}</strong>`);
           }
+
+          TD.innerHTML = sanitize(cellValue);
+        } else {
+          TD.innerHTML = cellValue;
         }
 
-        TD.innerHTML = cellValue;
       },
       autoColumnSize: true,
     });
@@ -493,13 +496,13 @@ class AutocompleteEditor extends HandsontableEditor {
  */
 AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   const choicesRelevance = [];
-  let currentItem;
-  const valueLength = value.length;
-  let valueIndex;
-  let charsLeft;
   const result = [];
-  let i;
+  const valueLength = value.length;
   let choicesCount = choices.length;
+  let charsLeft;
+  let currentItem;
+  let i;
+  let valueIndex;
 
   if (valueLength === 0) {
     for (i = 0; i < choicesCount; i++) {
