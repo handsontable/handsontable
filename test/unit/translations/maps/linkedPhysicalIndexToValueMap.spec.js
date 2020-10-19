@@ -93,6 +93,28 @@ it('should clear values properly', () => {
   expect(indexToValueMap.orderOfIndexes).toEqual([]);
 });
 
+it('should clear single value properly', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.init(3);
+  indexToValueMap.setValues([{ key: 1 }, { key: 2 }, { key: 0 }]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([0, 1, 2]);
+
+  indexToValueMap.clearValue(1);
+
+  expect(indexToValueMap.indexedValues).toEqual([{ key: 1 }, null, { key: 0 }]);
+  expect(indexToValueMap.getValues()).toEqual([{ key: 1 }, { key: 0 }]);
+  expect(indexToValueMap.getLength()).toBe(2);
+  expect(indexToValueMap.orderOfIndexes).toEqual([0, 2]);
+
+  indexToValueMap.clearValue(0);
+
+  expect(indexToValueMap.indexedValues).toEqual([null, null, { key: 0 }]);
+  expect(indexToValueMap.getValues()).toEqual([{ key: 0 }]);
+  expect(indexToValueMap.getLength()).toBe(1);
+  expect(indexToValueMap.orderOfIndexes).toEqual([2]);
+});
+
 it('should handle `insert` method properly', () => {
   const indexToValueMap = new IndexToValueMap();
 
