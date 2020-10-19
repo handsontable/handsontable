@@ -1974,7 +1974,7 @@ declare namespace Handsontable {
 
   namespace RecordTranslation {
     interface IndexMap {
-      getValues: number[],
+      getValues: () => any[],
       getValueAtIndex: (index: number) => any;
       setValues: (values: any[]) => void;
       setValueAtIndex: (index: number, value: any) => boolean;
