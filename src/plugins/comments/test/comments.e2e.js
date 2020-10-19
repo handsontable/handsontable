@@ -704,13 +704,13 @@ describe('Comments', () => {
       textarea.focus();
       textarea.value = 'Edited comment';
 
-      await sleep(150);
+      await sleep(300);
 
       $('body').simulate('mousedown');
       $('body').simulate('mouseup');
       textarea.blur();
 
-      await sleep(500);
+      await sleep(1000);
 
       expect(afterSetCellMetaCallback)
         .toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
