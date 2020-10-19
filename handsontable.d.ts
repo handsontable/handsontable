@@ -514,15 +514,13 @@ declare namespace Handsontable {
       }
 
       interface ConditionCollection {
-        conditions: object;
-        orderStack: any[];
-
         addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType): void;
         clean(): void;
-        clearConditions(column: number): void;
         destroy(): void;
         exportAllConditions(): ConditionId[];
         getConditions(column: number): Condition[];
+        getFilteredColumns(): number[];
+        getOperation(column: number): void | OperationType;
         hasConditions(column: number, name: string): boolean;
         isEmpty(): boolean;
         isMatch(value: CellLikeData, column: number): boolean;
@@ -538,6 +536,7 @@ declare namespace Handsontable {
         grouping: boolean;
         latestEditedColumnPosition: number;
         latestOrderStack: number[];
+        getNumberOfColumns: () => number;
 
         destroy(): void;
         flush(): void;

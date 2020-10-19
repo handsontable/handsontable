@@ -16,6 +16,7 @@ class ConditionCollection {
     /**
      * Index map storing filtering states for every column. ConditionCollection write and read to/from this element.
      *
+     * @private
      * @type {LinkedPhysicalIndexToValueMap}
      */
     this.filteringStates = filteringStates;
@@ -154,11 +155,13 @@ class ConditionCollection {
    */
   exportAllConditions() {
     return arrayReduce(this.filteringStates.getEntries(), (allConditions, [column, { operation, conditions }]) => {
-      return allConditions.concat({
+      allConditions.push({
         column,
         operation,
         conditions: arrayMap(conditions, ({ name, args }) => ({ name, args })),
       });
+
+      return allConditions;
     }, []);
   }
 

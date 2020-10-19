@@ -139,8 +139,8 @@ class Filters extends BasePlugin {
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
-    this.sortingStates = this.hot.columnIndexMapper.registerMap(
-      `${this.pluginName}.sortingStates`, new IndexToValueMap());
+    this.filteringStates = this.hot.columnIndexMapper.registerMap(
+      `${this.pluginName}.filteringStates`, new IndexToValueMap());
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
@@ -197,7 +197,7 @@ class Filters extends BasePlugin {
       })));
     }
     if (!this.conditionCollection) {
-      this.conditionCollection = new ConditionCollection(this.sortingStates);
+      this.conditionCollection = new ConditionCollection(this.filteringStates);
     }
     if (!this.conditionUpdateObserver) {
       this.conditionUpdateObserver = new ConditionUpdateObserver(
@@ -254,7 +254,7 @@ class Filters extends BasePlugin {
       this.conditionCollection.clean();
 
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.sortingStates`);
+      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.filteringStates`);
     }
 
     super.disablePlugin();
@@ -906,7 +906,7 @@ class Filters extends BasePlugin {
       });
 
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.sortingStates`);
+      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.filteringStates`);
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();
