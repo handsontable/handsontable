@@ -13,8 +13,8 @@ it('should work with get, and set functions properly', () => {
   indexToValueMap.init(3);
 
   expect(indexToValueMap.indexedValues).toEqual([null, null, null]);
-  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
-  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
 
   indexToValueMap.setValueAtIndex(0, 2);
   indexToValueMap.setValueAtIndex(1, 1);
@@ -37,8 +37,8 @@ it('should init map properly when passing function as initialization property', 
   indexToValueMap.init(3);
 
   expect(indexToValueMap.indexedValues).toEqual([{ key: 0 }, { key: 1 }, { key: 2 }]);
-  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
-  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
 });
 
 it('should init map properly when passing value as initialization property', () => {
@@ -47,8 +47,8 @@ it('should init map properly when passing value as initialization property', () 
   indexToValueMap.init(3);
 
   expect(indexToValueMap.indexedValues).toEqual([{ key: 1 }, { key: 1 }, { key: 1 }]);
-  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
-  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
 });
 
 it('should clear values properly', () => {
@@ -59,8 +59,8 @@ it('should clear values properly', () => {
   indexToValueMap.clear();
 
   expect(indexToValueMap.indexedValues).toEqual([{ key: 2 }, { key: 3 }, { key: 4 }]);
-  expect(indexToValueMap.getValues()).toEqual([]); // Returns only non-default values.
-  expect(indexToValueMap.getLength()).toBe(0); // Returns number of non-default values.
+  expect(indexToValueMap.getValues()).toEqual([]);
+  expect(indexToValueMap.getLength()).toBe(0);
 });
 
 describe('Triggering `change` hook', () => {
