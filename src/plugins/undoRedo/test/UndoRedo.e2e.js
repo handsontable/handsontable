@@ -1714,6 +1714,8 @@ describe('UndoRedo', () => {
             colHeaders: true,
             rowHeaders: true,
             fixedRowsBottom: 1,
+            width: 500,
+            height: 400,
           });
 
           alter('remove_row', 0, 3);

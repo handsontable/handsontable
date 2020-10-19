@@ -1305,7 +1305,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
    * @param {number} [column] Visual column index.
    * @param {string} [value] New value.
-   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback). Set to 'edit' if left empty.
    */
   this.setDataAtCell = function(row, column, value, source) {
     const input = setDataInputToArray(row, column, value);
@@ -1579,7 +1579,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function emptySelectedCells
-   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback).
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in onAfterChange or onBeforeChange callback). Set to 'edit' if left empty.
    * @since 0.36.0
    */
   this.emptySelectedCells = function(source) {

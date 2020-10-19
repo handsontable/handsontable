@@ -349,7 +349,7 @@ describe('NestedRows', () => {
         data: getSimplerNestedData(),
         nestedRows: true,
         manualRowMove: true,
-        rowHeaders: true
+        rowHeaders: true,
       });
 
       const $fromHeader = spec().$container.find('tbody tr:eq(7) th:eq(0)');
@@ -361,7 +361,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -395,7 +396,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -418,7 +420,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -460,7 +463,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 10
+        offsetX: 5,
+        offsetY: 10,
       });
 
       $targetHeader.simulate('mouseup');
@@ -538,7 +542,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -574,7 +579,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -688,7 +694,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
