@@ -188,7 +188,8 @@ describe('manualRowMove', () => {
 
         $rowHeader.simulate('mouseover');
         $rowHeader.simulate('mousemove', {
-          clientY: $rowHeader.offset().top
+          offsetX: 5,
+          offsetY: 5,
         });
         $rowHeader.simulate('mouseup');
 
@@ -239,7 +240,8 @@ describe('manualRowMove', () => {
 
           $rowHeader.simulate('mouseover');
           $rowHeader.simulate('mousemove', {
-            clientY: $rowHeader.offset().top
+            offsetX: 5,
+            offsetY: 5,
           });
           $rowHeader.simulate('mouseup');
 
@@ -294,7 +296,8 @@ describe('manualRowMove', () => {
 
           $rowHeader.simulate('mouseover');
           $rowHeader.simulate('mousemove', {
-            clientY: $rowHeader.offset().top
+            offsetX: 5,
+            offsetY: 5,
           });
           $rowHeader.simulate('mouseup');
 
