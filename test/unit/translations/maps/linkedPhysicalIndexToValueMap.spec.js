@@ -76,11 +76,13 @@ it('should clear values properly', () => {
 
   indexToValueMap.init(3);
   indexToValueMap.setValues([{ key: 1 }, { key: 2 }, { key: 0 }]);
+  expect(indexToValueMap.orderOfIndexes).toEqual([0, 1, 2]);
   indexToValueMap.clear();
 
   expect(indexToValueMap.indexedValues).toEqual([{ key: 2 }, { key: 3 }, { key: 4 }]);
   expect(indexToValueMap.getValues()).toEqual([]);
   expect(indexToValueMap.getLength()).toBe(0);
+  expect(indexToValueMap.orderOfIndexes).toEqual([]);
 });
 
 it('should handle `insert` method properly', () => {
