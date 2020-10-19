@@ -68,7 +68,7 @@ class LinkedPhysicalIndexToValueMap extends IndexMap {
   }
 
   /**
-   * Remove value for particular index.
+   * Clear value for particular index.
    *
    * @param {number} physicalIndex Physical index.
    */
