@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where sorting indicator moved incorrectly when column was added. [#6397](https://github.com/handsontable/handsontable/issues/6397)
 - Fixed a bug, where untrimming previously trimmed rows would sometimes result in the table instance not refreshing its height, leaving the row headers not properly rendered. [#6276](https://github.com/handsontable/handsontable/issues/6276)
 - Fix a problem when `event.target`'s parent in the `mouseover` event was not defined, the table threw an error when hovering over row/column headers. [#6926](https://github.com/handsontable/handsontable/issues/6926)
+- Fixed an issue, where calling the validation-triggering methods on a `hiddenColumns`-enabled Handsontable instance rendered the validated cells improperly. [#7301](https://github.com/handsontable/handsontable/issues/7301)
 
 ## [8.1.0] - 2020-10-01
 
