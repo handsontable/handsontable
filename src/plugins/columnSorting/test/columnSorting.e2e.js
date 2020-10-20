@@ -2684,4 +2684,29 @@ describe('ColumnSorting', () => {
       expect(onErrorSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('compatibility with options', () => {
+    it('should not break virtual rendering if preventOverflow is used', async() => {
+      spec().$container.css({
+        height: 'auto',
+        width: 'auto',
+        overflow: 'visible'
+      });
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(100, 1),
+        columnSorting: true,
+        preventOverflow: 'horizontal',
+      });
+
+      $(window).scrollTop(3000);
+
+      await sleep(500);
+
+      const wtSpreader = spec().$container.find('.ht_master .wtSpreader');
+      const cssTop = parseInt(wtSpreader.css('top'), 10);
+
+      expect(cssTop).toBeGreaterThan(0);
+    });
+  })
 });
