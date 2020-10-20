@@ -1,5 +1,5 @@
 import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerHeight } from './../../helpers/dom/element';
+import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
@@ -337,17 +337,7 @@ class ManualColumnResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfColumnHeader(element) {
-    if (element !== this.hot.rootElement) {
-      const parent = element.parentNode;
-
-      if (parent.tagName === 'THEAD') {
-        return true;
-      }
-
-      return this.checkIfColumnHeader(parent);
-    }
-
-    return false;
+    return !!closest(element, ['THEAD'], this.hot.rootElement);
   }
 
   /**
@@ -357,13 +347,13 @@ class ManualColumnResize extends BasePlugin {
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
-  getTHFromTargetElement(element) {
+  getClosestTHParent(element) {
     if (element.tagName !== 'TABLE') {
       if (element.tagName === 'TH') {
         return element;
       }
 
-      return this.getTHFromTargetElement(element.parentNode);
+      return this.getClosestTHParent(element.parentNode);
     }
 
     return null;
@@ -376,8 +366,14 @@ class ManualColumnResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
+    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+    // the next `onmouseover`.
+    if (isDetached(event.target)) {
+      return;
+    }
+
     if (this.checkIfColumnHeader(event.target)) {
-      const th = this.getTHFromTargetElement(event.target);
+      const th = this.getClosestTHParent(event.target);
 
       if (!th) {
         return;
