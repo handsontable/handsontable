@@ -2245,7 +2245,7 @@ describe('Core_validate', () => {
     }, 200);
   });
 
-  it('should call the callback in the `done` function using the renderable indexes (passing them to the renderer)', (done) => {
+  it('should call the callback in the `done` function using the renderable indexes (passing them to the renderer)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(1, 4),
       hiddenColumns: {
@@ -2263,13 +2263,11 @@ describe('Core_validate', () => {
 
     hot.validateCells();
 
-    setTimeout(() => {
-      const mostRecentRendererCallArgs = hot.view.wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
+    await sleep(200);
 
-      // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
-      expect(mostRecentRendererCallArgs[1]).toEqual(1);
+    const mostRecentRendererCallArgs = hot.view.wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
 
-      done();
-    }, 200);
+    // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
+    expect(mostRecentRendererCallArgs[1]).toEqual(1);
   });
 });
