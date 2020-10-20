@@ -2310,6 +2310,23 @@ describe('ContextMenu', () => {
       expect(customItem.callback.calls.count()).toEqual(1);
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
     });
+
+    it('should sanitize HTML for custom item', () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            customItemKey: {
+              name: '<img src onerror="xss()"> XSS item',
+            }
+          }
+        },
+      });
+
+      contextMenu();
+
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
+        .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
+    });
   });
 
   describe('keyboard navigation', () => {

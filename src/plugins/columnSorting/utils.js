@@ -1,4 +1,3 @@
-import { isUndefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 
@@ -13,7 +12,7 @@ export const HEADER_SPAN_CLASS = 'colHeader';
  * @returns {boolean}
  */
 function isValidColumnState(columnState) {
-  if (isUndefined(columnState)) {
+  if (isObject(columnState) === false) {
     return false;
   }
 
@@ -29,14 +28,14 @@ function isValidColumnState(columnState) {
  * @returns {boolean}
  */
 export function areValidSortStates(sortStates) {
-  if (Array.isArray(sortStates) === false || sortStates.every(columnState => isObject(columnState)) === false) {
+  if (sortStates.some(columnState => isValidColumnState(columnState) === false)) {
     return false;
   }
 
   const sortedColumns = sortStates.map(({ column }) => column);
-  const indexOccursOnlyOnce = new Set(sortedColumns).size === sortedColumns.length;
 
-  return indexOccursOnlyOnce && sortStates.every(isValidColumnState);
+  // Indexes occurs only once.
+  return new Set(sortedColumns).size === sortedColumns.length;
 }
 
 /**

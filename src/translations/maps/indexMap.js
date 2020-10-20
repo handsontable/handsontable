@@ -40,7 +40,7 @@ class IndexMap {
    * @returns {*}
    */
   getValueAtIndex(index) {
-    const values = this.getValues();
+    const values = this.indexedValues;
 
     if (index < values.length) {
       return values[index];
@@ -73,7 +73,7 @@ class IndexMap {
    * @returns {boolean}
    */
   setValueAtIndex(index, value) {
-    if (index < this.getLength()) {
+    if (index < this.indexedValues.length) {
       this.indexedValues[index] = value;
 
       this.runLocalHooks('change');
@@ -92,7 +92,7 @@ class IndexMap {
   }
 
   /**
-   * Get length of index map.
+   * Get length of the index map.
    *
    * @returns {number}
    */
@@ -126,7 +126,7 @@ class IndexMap {
    *
    * @private
    * @param {number} length New length of indexed list.
-   * @returns {Array}
+   * @returns {IndexMap}
    */
   init(length) {
     this.setDefaultValues(length);

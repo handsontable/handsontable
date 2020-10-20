@@ -5,6 +5,7 @@ import {
   isGetComputedStyleSupported,
 } from '../feature';
 import { isSafari, isIE9 } from '../browser';
+import { sanitize } from '../string';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -409,7 +410,7 @@ export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  */
 export function fastInnerHTML(element, content) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = content;
+    element.innerHTML = sanitize(content);
   } else {
     fastInnerText(element, content);
   }
@@ -1110,4 +1111,14 @@ export function selectElementIfAllowed(element) {
   if (!isOutsideInput(activeElement)) {
     element.select();
   }
+}
+
+/**
+ * Check if the provided element is detached from DOM.
+ *
+ * @param {HTMLElement} element HTML element to be checked.
+ * @returns {boolean} `true` if the element is detached, `false` otherwise.
+ */
+export function isDetached(element) {
+  return !element.parentNode;
 }

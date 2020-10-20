@@ -18,7 +18,7 @@ class LooseBindsMap extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertionIndex, insertedIndexes);
+    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertedIndexes);
 
     this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes, this.initValueOrFn);
 

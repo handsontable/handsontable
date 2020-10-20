@@ -208,6 +208,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeCreateRow',
 
@@ -648,6 +649,7 @@ const REGISTERED_HOOKS = [
    * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
    * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
    * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeAutofill',
 
@@ -755,6 +757,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The removed meta key.
    * @param {*} value Value which is under removed key of cell meta.
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCellMeta',
 
@@ -857,6 +860,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of columns to be removed.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCol',
 
@@ -868,6 +872,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of rows to be removed.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveRow',
 
@@ -890,6 +895,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The updated meta key.
    * @param {*} value The updated meta value.
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeSetCellMeta',
 
@@ -1275,6 +1281,7 @@ const REGISTERED_HOOKS = [
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
    * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRowMove',
 
@@ -1434,6 +1441,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeUndo
    * @param {object} action The action object. Contains information about the action being undone. The `actionType`
    *                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeUndo',
 
@@ -1454,6 +1462,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRedo
    * @param {object} action The action object. Contains information about the action being redone. The `actionType`
    *                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRedo',
 
