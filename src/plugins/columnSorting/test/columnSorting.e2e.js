@@ -2708,5 +2708,5 @@ describe('ColumnSorting', () => {
 
       expect(cssTop).toBeGreaterThan(0);
     });
-  })
+  });
 });
