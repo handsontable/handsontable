@@ -17,11 +17,10 @@ export function getDecreasedIndexes(indexedValues, removedIndexes) {
  *
  * @private
  * @param {Array} indexedValues List of values for particular indexes.
- * @param {number} insertionIndex Position inside the actual list.
  * @param {Array} insertedIndexes List of inserted indexes.
  * @returns {Array} List with increased indexes.
  */
-export function getIncreasedIndexes(indexedValues, insertionIndex, insertedIndexes) {
+export function getIncreasedIndexes(indexedValues, insertedIndexes) {
   const firstInsertedIndex = insertedIndexes[0];
   const amountOfIndexes = insertedIndexes.length;
 

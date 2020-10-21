@@ -1753,7 +1753,7 @@ describe('ColumnSorting', () => {
 
   });
 
-  it('should add a sorting indicator to the column header after it\'s been sorted, if indicator property is set to true (by default)', () => {
+  it('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1763,77 +1763,49 @@ describe('ColumnSorting', () => {
         [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
-      columnSorting: true
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR THE WHOLE TABLE
-    // ---------------------------------
-
-    updateSettings({
-      columns() {
-        return {
-          columnSorting: {
-            indicator: true
-          }
-        };
-      },
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending (updateSettings doesn't reset sorting stack)
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR A SINGLE COLUMN
-    // ---------------------------------
-
-    updateSettings({
       columns(column) {
         if (column === 2) {
           return {
             columnSorting: {
-              indicator: false
+              indicator: false,
+              headerAction: false,
             }
           };
         }
 
         return {};
-      }
+      },
+      columnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(2);
 
-    sortedColumn = spec().$container.find('th span.columnSorting')[0];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    let sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // ascending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // descending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
@@ -2616,6 +2588,52 @@ describe('ColumnSorting', () => {
       ['A3', 'B3', 'C3'],
       [null, null, null],
     ]);
+  });
+
+  describe('cooperation with alter actions', () => {
+    it('should sort proper column after removing column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: {
+          initialConfig: {
+            column: 1,
+            sortOrder: 'desc',
+          }
+        },
+      });
+
+      alter('remove_col', 0);
+
+      expect(getData()).toEqual([
+        ['B3', 'C3'],
+        ['B2', 'C2'],
+        ['B1', 'C1'],
+      ]);
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+    });
+
+    it('should sort proper column after inserting column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: {
+          initialConfig: {
+            column: 1,
+            sortOrder: 'desc',
+          }
+        },
+      });
+
+      alter('insert_col', 1);
+
+      expect(getData()).toEqual([
+        ['A3', null, 'B3', 'C3'],
+        ['A2', null, 'B2', 'C2'],
+        ['A1', null, 'B1', 'C1'],
+      ]);
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'desc' }]);
+    });
   });
 
   // TODO: Remove tests when workaround will be removed.

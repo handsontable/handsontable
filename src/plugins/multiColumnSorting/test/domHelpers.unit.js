@@ -1,11 +1,21 @@
 import { ColumnStatesManager } from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { DESC_SORT_STATE, ASC_SORT_STATE } from 'handsontable/plugins/columnSorting/utils';
 import { getClassesToAdd, getClassedToRemove } from 'handsontable/plugins/multiColumnSorting/domHelpers';
+import { IndexMapper } from 'handsontable/translations';
+
+const hotMock = {
+  toPhysicalColumn: column => column,
+  toVisualColumn: column => column,
+  columnIndexMapper: new IndexMapper()
+};
+
+// Mocking that table have 5.
+hotMock.columnIndexMapper.initToLength(5);
 
 describe('MultiColumnSorting DOM helpers', () => {
   describe('getClassesToAdd', () => {
     it('multiple sorted columns', () => {
-      const columnStatesManager = new ColumnStatesManager();
+      const columnStatesManager = new ColumnStatesManager(hotMock);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE },
@@ -17,12 +27,14 @@ describe('MultiColumnSorting DOM helpers', () => {
 
       expect(getClassesToAdd(columnStatesManager, 1, false).includes('sort-1')).toBeFalsy();
       expect(getClassesToAdd(columnStatesManager, 1, true).includes('sort-1')).toBeTruthy();
+
+      columnStatesManager.destroy(); // Unregister already registered Index Map.
     });
   });
 
   describe('getClassedToRemove', () => {
     it('should return all calculated classes', () => {
-      const columnStatesManager = new ColumnStatesManager();
+      const columnStatesManager = new ColumnStatesManager(hotMock);
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE },
@@ -38,6 +50,8 @@ describe('MultiColumnSorting DOM helpers', () => {
       expect(getClassedToRemove(htmlElementMock).includes('sort-2')).toBeTruthy();
       expect(getClassedToRemove(htmlElementMock).includes('sort-3')).toBeTruthy();
       expect(getClassedToRemove(htmlElementMock).includes('sort-4')).toBeTruthy();
+
+      columnStatesManager.destroy(); // Unregister already registered Index Map.
     });
   });
 });

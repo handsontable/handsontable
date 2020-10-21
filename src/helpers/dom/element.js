@@ -1112,3 +1112,13 @@ export function selectElementIfAllowed(element) {
     element.select();
   }
 }
+
+/**
+ * Check if the provided element is detached from DOM.
+ *
+ * @param {HTMLElement} element HTML element to be checked.
+ * @returns {boolean} `true` if the element is detached, `false` otherwise.
+ */
+export function isDetached(element) {
+  return !element.parentNode;
+}
