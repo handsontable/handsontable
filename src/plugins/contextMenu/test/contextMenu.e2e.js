@@ -3383,6 +3383,27 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
       expect(getSelected()).toEqual([[0, 0, 2, 2], [2, 2, 7, 2], [2, 4, 2, 4]]);
     });
+
+    it('should properly change selection on right click on headers', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(2, 2),
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      selectCell(0, 0);
+      contextMenu(getCell(-1, 0));
+
+      expect(getSelected()).toEqual([[-1, 0, 1, 0]]);
+      expect(hot.selection.isEntireColumnSelected()).toBe(true);
+
+      selectCell(1, 0);
+      contextMenu(getCell(1, -1));
+
+      expect(getSelected()).toEqual([[1, -1, 1, 1]]);
+      expect(hot.selection.isEntireRowSelected()).toBe(true);
+    });
   });
 
   describe('working with multiple tables', () => {
