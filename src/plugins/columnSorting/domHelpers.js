@@ -1,5 +1,4 @@
-/* eslint-disable import/prefer-default-export */
-
+import { isDefined } from '../../helpers/mixed';
 import { ASC_SORT_STATE, DESC_SORT_STATE } from './utils';
 
 const HEADER_CLASS_ASC_SORT = 'ascending';
@@ -17,7 +16,7 @@ const orderToCssClass = new Map([
  * Get CSS classes which should be added to particular column header.
  *
  * @param {object} columnStatesManager Instance of column state manager.
- * @param {number} column Physical column index.
+ * @param {number} column Visual column index.
  * @param {boolean} showSortIndicator Indicates if indicator should be shown for the particular column.
  * @param {boolean} headerAction Indicates if header click to sort should be possible.
  * @returns {Array} Array of CSS classes.
@@ -32,9 +31,12 @@ export function getClassesToAdd(columnStatesManager, column, showSortIndicator, 
   if (showSortIndicator === false) {
     cssClasses.push(HEADER_CLASS_INDICATOR_DISABLED);
 
-  } else if (columnStatesManager.isColumnSorted(column)) {
-    const columnOrder = columnStatesManager.getSortOrderOfColumn(column);
+    return cssClasses;
+  }
 
+  const columnOrder = columnStatesManager.getSortOrderOfColumn(column);
+
+  if (isDefined(columnOrder)) {
     cssClasses.push(orderToCssClass.get(columnOrder));
   }
 

@@ -1,11 +1,13 @@
-import { isObject, objectEach, deepClone } from '../../helpers/object';
-import { arrayMap } from '../../helpers/array';
+import { isObject, objectEach } from '../../helpers/object';
+import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { isDefined } from '../../helpers/mixed';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 
 const SORT_EMPTY_CELLS_DEFAULT = false;
 const SHOW_SORT_INDICATOR_DEFAULT = true;
 const HEADER_ACTION_DEFAULT = true;
+const MAP_NAME = 'ColumnStatesManager.sortingStates';
 
 /**
  * Store and manages states of sorted columns.
@@ -15,13 +17,19 @@ const HEADER_ACTION_DEFAULT = true;
  */
 // eslint-disable-next-line import/prefer-default-export
 export class ColumnStatesManager {
-  constructor() {
+  constructor(hot) {
     /**
-     * Queue of sort states containing sorted columns and their orders (Array of objects containing `column` and `sortOrder` properties).
+     * Handsontable instance.
      *
-     * @type {Array}
+     * @type {Core}
      */
-    this.sortedColumnsStates = [];
+    this.hot = hot;
+    /**
+     * Index map storing sorting states for every column. ColumnStatesManager write and read to/from this element.
+     *
+     * @type {LinkedPhysicalIndexToValueMap}
+     */
+    this.sortingStates = new IndexToValueMap();
     /**
      * Determines whether we should sort empty cells.
      *
@@ -44,6 +52,8 @@ export class ColumnStatesManager {
      * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
      */
     this.compareFunctionFactory = void 0;
+
+    this.hot.columnIndexMapper.registerMap(MAP_NAME, this.sortingStates);
   }
 
   /**
@@ -85,54 +95,25 @@ export class ColumnStatesManager {
   }
 
   /**
-   * Get index of first sorted column.
-   *
-   * @returns {number|undefined}
-   */
-  getFirstSortedColumn() {
-    let firstSortedColumn;
-
-    if (this.getNumberOfSortedColumns() > 0) {
-      firstSortedColumn = this.sortedColumnsStates[0].column;
-    }
-
-    return firstSortedColumn;
-  }
-
-  /**
    * Get sort order of column.
    *
-   * @param {number} searchedColumn Physical column index.
+   * @param {number} searchedColumn Visual column index.
    * @returns {string|undefined} Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
    */
   getSortOrderOfColumn(searchedColumn) {
-    const searchedState = this.sortedColumnsStates.find(({ column }) => searchedColumn === column);
-    let sortOrder;
-
-    if (isObject(searchedState)) {
-      sortOrder = searchedState.sortOrder;
-    }
-
-    return sortOrder;
-  }
-
-  /**
-   * Get list of sorted columns.
-   *
-   * @returns {Array}
-   */
-  getSortedColumns() {
-    return arrayMap(this.sortedColumnsStates, ({ column }) => column);
+    return this.sortingStates.getValueAtIndex(this.hot.toPhysicalColumn(searchedColumn))?.sortOrder;
   }
 
   /**
    * Get order of particular column in the states queue.
    *
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @returns {number}
    */
   getIndexOfColumnInSortQueue(column) {
-    return this.getSortedColumns().indexOf(column);
+    column = this.hot.toPhysicalColumn(column);
+
+    return this.sortingStates.getEntries().findIndex(([physicalColumn]) => physicalColumn === column);
   }
 
   /**
@@ -141,7 +122,7 @@ export class ColumnStatesManager {
    * @returns {number}
    */
   getNumberOfSortedColumns() {
-    return this.sortedColumnsStates.length;
+    return this.sortingStates.getLength();
   }
 
   /**
@@ -156,50 +137,70 @@ export class ColumnStatesManager {
   /**
    * Get if particular column is sorted.
    *
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @returns {boolean}
    */
   isColumnSorted(column) {
-    return this.getSortedColumns().includes(column);
+    return isObject(this.sortingStates.getValueAtIndex(this.hot.toPhysicalColumn(column)));
   }
 
   /**
-   * Get states for all sorted columns.
+   * Queue of sort states containing sorted columns and their orders (Array of objects containing `column` and `sortOrder` properties).
    *
-   * @returns {Array}
+   * **Note**: Please keep in mind that returned objects expose **visual** column index under the `column` key.
+   *
+   * @returns {Array<object>}
    */
   getSortStates() {
-    return deepClone(this.sortedColumnsStates);
+    if (this.sortingStates === null) {
+      return [];
+    }
+
+    const sortingStatesQueue = this.sortingStates.getEntries();
+
+    return sortingStatesQueue.map(
+      ([physicalColumn, value]) => ({ column: this.hot.toVisualColumn(physicalColumn), ...value }));
   }
 
   /**
    * Get sort state for particular column. Object contains `column` and `sortOrder` properties.
    *
-   * **Note**: Please keep in mind that returned objects expose **physical** column index under the `column` key.
+   * **Note**: Please keep in mind that returned objects expose **visual** column index under the `column` key.
    *
-   * @param {number} column Physical column index.
+   * @param {number} column Visual column index.
    * @returns {object|undefined}
    */
   getColumnSortState(column) {
-    if (this.isColumnSorted(column)) {
-      return deepClone(this.sortedColumnsStates[this.getIndexOfColumnInSortQueue(column)]);
+    const sortOrder = this.getSortOrderOfColumn(column);
+
+    if (isDefined(sortOrder)) {
+      return {
+        column,
+        sortOrder,
+      };
     }
   }
 
   /**
-   * Set all sorted columns states.
+   * Set all column states.
    *
-   * @param {Array} sortStates The sort state.
+   * @param {Array} sortStates Sort states.
    */
   setSortStates(sortStates) {
-    this.sortedColumnsStates = sortStates;
+    this.sortingStates.clear();
+
+    for (let i = 0; i < sortStates.length; i += 1) {
+      this.sortingStates.setValueAtIndex(this.hot.toPhysicalColumn(sortStates[i].column), {
+        sortOrder: sortStates[i].sortOrder
+      });
+    }
   }
 
   /**
    * Destroy the state manager.
    */
   destroy() {
-    this.sortedColumnsStates.length = 0;
-    this.sortedColumnsStates = null;
+    this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
+    this.sortingStates = null;
   }
 }

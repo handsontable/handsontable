@@ -757,6 +757,50 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(80);
   });
 
+  it('should not throw any errors, when selecting headers partially outside of viewport, when the header renderer' +
+    ' is meant to remove all header children and re-render them from scratch', () => {
+    const nativeOnError = window.onerror;
+    let errors = 0;
+
+    window.onerror = function() {
+      errors += 1;
+
+      return true;
+    };
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(200, 20),
+      colHeaders: true,
+      rowHeaders: true,
+      manualColumnResize: true,
+      height: 205,
+      width: 590,
+      afterGetColumnHeaderRenderers(rendererFactoryArray) {
+
+        // custom header renderer -> removes all TH content and re-renders them again.
+        rendererFactoryArray[0] = function(index, TH) {
+          Handsontable.dom.empty(TH);
+          TH.innerHTML = '<div style="width: 100%;"> test </div>';
+        };
+      },
+    });
+
+    const firstHeader = getTopClone().find('thead tr:eq(0) th:eq(10) div');
+
+    firstHeader.simulate('mouseover');
+    firstHeader.simulate('mousedown');
+
+    const secondHeader = getTopClone().find('thead tr:eq(0) th:eq(11) div');
+
+    secondHeader.simulate('mouseover');
+    secondHeader.simulate('mouseup');
+
+    expect(errors).withContext('Expected not to throw any errors, but errors were thrown.').toEqual(0);
+
+    // Reassign the native onerror handler.
+    window.onerror = nativeOnError;
+  });
+
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
     it('should display the handles in the correct position, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
