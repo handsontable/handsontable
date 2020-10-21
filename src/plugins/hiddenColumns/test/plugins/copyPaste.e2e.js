@@ -284,5 +284,28 @@ describe('hiddenColumns', () => {
         ['A5', 'B5', 'C5', 'D5', 'E5'],
       ]);
     });
+
+    it('should keep the same number of columns if all columns are hidden', () => {
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const copyPastePlugin = getPlugin('copyPaste');
+
+      selectRows(0);
+      listen(); // unlike selectCell behaviour, selectRows will not call `listen` under the hood
+
+      copyPastePlugin.onCopy(copyEvent);
+      copyPastePlugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1'],
+      ]);
+    });
   });
 });
