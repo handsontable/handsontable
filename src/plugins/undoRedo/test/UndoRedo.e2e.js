@@ -469,42 +469,26 @@ describe('UndoRedo', () => {
 
         it('should undo removal of multiple columns (colHeaders: undefined)', () => {
           const HOT = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(2, 4)
+            data: Handsontable.helper.createSpreadsheetData(1, 15)
           });
 
-          expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toEqual('B1');
-          expect(getDataAtCell(0, 2)).toEqual('C1');
-          expect(getDataAtCell(0, 3)).toEqual('D1');
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('B2');
-          expect(getDataAtCell(1, 2)).toEqual('C2');
-          expect(getDataAtCell(1, 3)).toEqual('D2');
+          expect(countCols()).toEqual(15);
+          expect(getData()).toEqual([
+            ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
+          ]);
 
-          alter('remove_col', 1, 2);
+          alter('remove_col', 4, 7);
 
-          expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toEqual('D1');
-          expect(getDataAtCell(0, 2)).toBeNull();
-          expect(getDataAtCell(0, 3)).toBeNull();
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('D2');
-          expect(getDataAtCell(1, 2)).toBeNull();
-          expect(getDataAtCell(1, 3)).toBeNull();
+          expect(getData()).toEqual([
+            ['A1', 'B1', 'C1', 'D1', 'L1', 'M1', 'N1', 'O1']
+          ]);
 
           HOT.undo();
 
-          expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toEqual('B1');
-          expect(getDataAtCell(0, 2)).toEqual('C1');
-          expect(getDataAtCell(0, 3)).toEqual('D1');
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('B2');
-          expect(getDataAtCell(1, 2)).toEqual('C2');
-          expect(getDataAtCell(1, 3)).toEqual('D2');
+          expect(countCols()).toEqual(15);
+          expect(getData()).toEqual([
+            ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
+          ]);
         });
 
         it('should undo removal of multiple columns (colHeaders: true)', () => {
