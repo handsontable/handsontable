@@ -177,7 +177,7 @@ describe('MergeCells Selection', () => {
       expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
     });
 
-  it('should leave the selection on mergedCell after inserting row above mergedCell', () => {
+  it('should keep the selection on merged cells after inserting row above merged cells', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       mergeCells: [
@@ -186,18 +186,17 @@ describe('MergeCells Selection', () => {
     });
 
     selectCell(1, 1);
-    const $position = spec().$container.find('.wtBorder.current');
-    const $top_id0 = $position.eq(0).position().top;
-    const $top_id1 = $position.eq(1).position().top;
+
+    const $borderTop = spec().$container.find('.wtBorder.current').eq(1);
+    const topPositionBefore = $borderTop.position().top;
 
     alter('insert_row', 1);
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
-    expect($position.eq(0).position().top).toEqual($top_id0 + 23);
-    expect($position.eq(1).position().top).toEqual($top_id1 + 23);
+    expect($borderTop.position().top).toBe(topPositionBefore + 23); // adds default row height
   });
 
-  it('should leave the selection on mergedCell after inserting column to left to the mergedCell', () => {
+  it('should keep the selection on merged cells after inserting column to left to the merged cells', () => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       mergeCells: [
@@ -206,14 +205,14 @@ describe('MergeCells Selection', () => {
     });
 
     selectCell(1, 1);
-    const $position = spec().$container.find('.wtBorder.current');
-    const $left_id0 = $position.eq(0).position().left;
-    const $left_id1 = $position.eq(1).position().left;
+
+    const $borderLeft = spec().$container.find('.wtBorder.current').eq(1);
+    const leftPositionBefore = $borderLeft.position().left;
 
     alter('insert_col', 1);
 
     expect(getSelected()).toEqual([[1, 2, 2, 3]]);
-    expect($position.eq(0).position().left).toEqual($left_id0 + 50);
-    expect($position.eq(1).position().left).toEqual($left_id1 + 50);
+
+    expect($borderLeft.position().left).toEqual(leftPositionBefore + 50);
   });
 })
