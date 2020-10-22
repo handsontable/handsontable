@@ -176,4 +176,42 @@ describe('MergeCells Selection', () => {
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
+
+  it('should leave the selection on mergedCell after inserting row above mergedCell', () => {    
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3,3),
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 }
+      ],
+    });
+    selectCells([1, 1]);
+    alter('insert_row', 1);
+
+    $(getCell(2, 1)).simulate('mousedown');
+    $(getCell(2, 1)).simulate('focus');
+    $(getCell(2, 1)).simulate('mouseup');
+
+    expect(countRows()).toEqual(4);
+    expect(countCols()).toEqual(3);
+    expect(getSelected()).toEqual([[2, 1, 3, 2]]);
+    });
+
+    it('should leave the selection on mergedCell after inserting column to left to the mergedCell', () => {    
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3,3),
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 2, colspan: 2 }
+        ],
+      });
+      selectCells([1, 1]);
+      alter('insert_col', 1);
+  
+      $(getCell(1, 2)).simulate('mousedown');
+      $(getCell(1, 2)).simulate('focus');
+      $(getCell(1, 2)).simulate('mouseup');
+  
+      expect(countRows()).toEqual(3);
+      expect(countCols()).toEqual(4);
+      expect(getSelected()).toEqual([[1, 2, 2, 3]]);
+      });
 });
