@@ -184,16 +184,17 @@ describe('MergeCells Selection', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 }
       ],
     });
-    selectCells([1, 1]);
+
+    selectCell(1, 1);
+    const $position = spec().$container.find('.wtBorder.current');
+    const $top_id0 = $position.eq(0).position().top;
+    const $top_id1 = $position.eq(1).position().top;
+
     alter('insert_row', 1);
 
-    spec().$container.find('tr:eq(2) td:eq(1)').simulate('mousedown');
-    spec().$container.find('tr:eq(2) td:eq(1)').simulate('focus');
-    spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseup');
-
-    expect(countRows()).toEqual(4);
-    expect(countCols()).toEqual(3);
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
+    expect($position.eq(0).position().top).toEqual($top_id0 + 23);
+    expect($position.eq(1).position().top).toEqual($top_id1 + 23);
   });
 
   it('should leave the selection on mergedCell after inserting column to left to the mergedCell', () => {
@@ -203,15 +204,16 @@ describe('MergeCells Selection', () => {
         { row: 1, col: 1, rowspan: 2, colspan: 2 }
       ],
     });
-    selectCells([1, 1]);
+
+    selectCell(1, 1);
+    const $position = spec().$container.find('.wtBorder.current');
+    const $left_id0 = $position.eq(0).position().left;
+    const $left_id1 = $position.eq(1).position().left;
+
     alter('insert_col', 1);
 
-    spec().$container.find('tr:eq(1) td:eq(2)').simulate('mousedown');
-    spec().$container.find('tr:eq(1) td:eq(2)').simulate('focus');
-    spec().$container.find('tr:eq(1) td:eq(2)').simulate('mouseup');
-
-    expect(countRows()).toEqual(3);
-    expect(countCols()).toEqual(4);
     expect(getSelected()).toEqual([[1, 2, 2, 3]]);
+    expect($position.eq(0).position().left).toEqual($left_id0 + 50);
+    expect($position.eq(1).position().left).toEqual($left_id1 + 50);
   });
-});
+})
