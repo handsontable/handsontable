@@ -2914,6 +2914,52 @@ describe('UndoRedo', () => {
       expect(getSelectedLast()).toEqual([0, 1, 0, 1]);
     });
 
+    it('should restore row headers selection after undoing changes', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 5),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      selectRows(1);
+      emptySelectedCells();
+
+      undo();
+
+      expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should restore column headers selection after undoing changes', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      selectColumns(1);
+      emptySelectedCells();
+
+      undo();
+
+      expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+      expect(`
+        |   ║   : * :   |
+        |===:===:===:===|
+        | - ║   : A :   |
+        | - ║   : 0 :   |
+        | - ║   : 0 :   |
+        | - ║   : 0 :   |
+        | - ║   : 0 :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
     it('should keep saved selection state ater undoing non-contignous selected cells', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
