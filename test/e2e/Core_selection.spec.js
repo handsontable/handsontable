@@ -1670,6 +1670,21 @@ describe('Core_selection', () => {
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
+  it('should keep viewport when removing last column', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(20, 2),
+      width: 300,
+      height: 200,
+      colHeaders: true,
+    });
+
+    hot.selectColumns(1);
+    const scrollTopBefore = spec().$container.find('.wtHolder').scrollTop();
+
+    hot.alter('remove_col', 1); // remove last column
+    expect(spec().$container.find('.wtHolder').scrollTop()).toEqual(scrollTopBefore);
+  });
+
   describe('multiple selection mode', () => {
     it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
       handsontable({
