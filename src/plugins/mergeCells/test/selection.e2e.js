@@ -176,4 +176,27 @@ describe('MergeCells Selection', () => {
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
+
+  it('should keep headers\' selection after toggleMergeOnSelection call', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      mergeCells: true,
+    });
+
+    selectColumns(0, 2);
+    getPlugin('mergeCells').toggleMergeOnSelection();
+
+    expect(getSelected()).toEqual([[-1, 0, 4, 2]]);
+    expect(`
+    |   ║ * : * : * :   :   |
+    |===:===:===:===:===:===|
+    | - ║ A :   :   :   :   |
+    | - ║   :   :   :   :   |
+    | - ║   :   :   :   :   |
+    | - ║   :   :   :   :   |
+    | - ║   :   :   :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
 });
