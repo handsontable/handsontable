@@ -54,6 +54,7 @@ export function handsontableMethodFactory(method) {
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
 export const alter = handsontableMethodFactory('alter');
+export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
 export const countCols = handsontableMethodFactory('countCols');
 export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
@@ -96,6 +97,7 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const isListening = handsontableMethodFactory('isListening');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
