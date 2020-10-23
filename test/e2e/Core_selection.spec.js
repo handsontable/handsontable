@@ -1686,6 +1686,17 @@ describe('Core_selection', () => {
     expect($masterHolder.scrollTop()).toEqual(scrollTopBefore);
   });
 
+  it('should be able to select one column headers after select all cells', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      colHeaders: true,
+    });
+    hot.selectAll();
+    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "A"
+
+    expect(getSelected()).toEqual([[-1, 1, 1, 1]]);
+  });
+
   describe('multiple selection mode', () => {
     it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
       handsontable({
