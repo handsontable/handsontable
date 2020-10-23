@@ -55,11 +55,11 @@ describe('MergeCells compatibility with other plugins', () => {
         },
         contextMenu: ['mergeCells'],
         mergeCells: [
-          { row: 0, col: 0, rowspan: 3, colspan: 2 },
+          { row: 0, col: 1, rowspan: 3, colspan: 2 },
         ],
       });
 
-      selectCell(0, 0);
+      selectCell(0, 1);
       contextMenu();
 
       const $contextMenuItems = $('.htContextMenu .ht_master .htItemWrapper');
@@ -67,6 +67,7 @@ describe('MergeCells compatibility with other plugins', () => {
       const expectedMenuItems = dictionary[Handsontable.languages.dictionaryKeys.CONTEXTMENU_ITEMS_UNMERGE_CELLS];
 
       expect($contextMenuItems.text()).toBe(expectedMenuItems);
+      expect(getCell(1, 1)).toBeNull();
     });
   });
 });
