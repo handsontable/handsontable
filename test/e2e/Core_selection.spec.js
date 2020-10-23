@@ -1679,10 +1679,11 @@ describe('Core_selection', () => {
     });
 
     hot.selectColumns(1);
-    const scrollTopBefore = spec().$container.find('.wtHolder').scrollTop();
+    const $masterHolder = spec().$container.find('.ht_master .wtHolder');
+    const scrollTopBefore = $masterHolder.scrollTop();
 
     hot.alter('remove_col', 1); // remove last column
-    expect(spec().$container.find('.wtHolder').scrollTop()).toEqual(scrollTopBefore);
+    expect($masterHolder.scrollTop()).toEqual(scrollTopBefore);
   });
 
   describe('multiple selection mode', () => {
