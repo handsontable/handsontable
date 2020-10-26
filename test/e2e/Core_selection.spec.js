@@ -1670,6 +1670,38 @@ describe('Core_selection', () => {
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
+  it('selection should move down throughout the table when the last row is hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      hiddenRows: {
+        rows: [2]
+      }
+    });
+
+    selectCell(0, 0); // Select cell "A1"
+
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN); // Move selection down to the end of the table
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_DOWN); // Move selection to the next column, to the cell "B1"
+
+    expect(getSelected()).toEqual([[0, 1, 0, 1]]);
+  });
+
+  it('selection should move to the right throughout the table when the last column is hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      hiddenColumns: {
+        columns: [2]
+      }
+    });
+
+    selectCell(0, 0); // Select cell "A1"
+
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT); // Move selection to the right edge of the table
+    keyDownUp(Handsontable.helper.KEY_CODES.ARROW_RIGHT); // Move selection to first column, to the cell "A2"
+
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+  });
+
   it('should keep viewport when removing last column', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(20, 2),
