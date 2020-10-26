@@ -64,5 +64,24 @@ describe('ContextMenu', () => {
 
       expect(compatibleEntries.size()).toEqual(1);
     });
+
+    it('should show the entry for "Show column" if last column is hidden', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetObjectData(1, 3),
+        colHeaders: true,
+        contextMenu: ['hidden_columns_show'],
+        hiddenColumns: {
+          columns: [1],
+        },
+        columns: [{}, {}],
+      });
+
+      const { CONTEXTMENU_ITEMS_SHOW_COLUMN } = Handsontable.languages.dictionaryKeys;
+      const expectedText = Handsontable.languages.getTranslatedPhrase('en-US', CONTEXTMENU_ITEMS_SHOW_COLUMN);
+
+      contextMenu(getCell(-1, 0));
+
+      expect($('.htContextMenu tbody td').text()).toBe(expectedText);
+    });
   });
 });
