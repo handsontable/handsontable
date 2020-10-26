@@ -1422,5 +1422,23 @@ describe('manualRowMove', () => {
       hot.destroy();
       window.localStorage.clear();
     });
+
+    it('should load new dataset on loadData', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        manualRowMove: true,
+        minSpareRows: 1,
+      });
+
+      loadData(Handsontable.helper.createSpreadsheetData(4, 4));
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+        ['A3', 'B3', 'C3', 'D3'],
+        ['A4', 'B4', 'C4', 'D4'],
+        [null, null, null, null],
+      ]);
+    });
   });
 });
