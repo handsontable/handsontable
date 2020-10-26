@@ -199,4 +199,43 @@ describe('MergeCells Selection', () => {
     | - ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
+
+  it('should keep the selection on merged cells after inserting row above merged cells', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 }
+      ],
+    });
+
+    selectCell(1, 1);
+
+    const $borderTop = spec().$container.find('.wtBorder.current').eq(1);
+    const topPositionBefore = $borderTop.position().top;
+
+    alter('insert_row', 1);
+
+    expect(getSelected()).toEqual([[2, 1, 3, 2]]);
+    expect($borderTop.position().top).toBe(topPositionBefore + 23); // adds default row height
+  });
+
+  it('should keep the selection on merged cells after inserting column to left to the merged cells', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 2, colspan: 2 }
+      ],
+    });
+
+    selectCell(1, 1);
+
+    const $borderLeft = spec().$container.find('.wtBorder.current').eq(1);
+    const leftPositionBefore = $borderLeft.position().left;
+
+    alter('insert_col', 1);
+
+    expect(getSelected()).toEqual([[1, 2, 2, 3]]);
+
+    expect($borderLeft.position().left).toBe(leftPositionBefore + 50);
+  });
 });

@@ -322,7 +322,7 @@ describe('hiddenColumns', () => {
 
       selectCell(0, 0);
 
-      await sleep(500); // we have to wait for editor
+      await sleep(1000); // we have to wait for editor
 
       triggerPaste('Z1\tZ2');
 
