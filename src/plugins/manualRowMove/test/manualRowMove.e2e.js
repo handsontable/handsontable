@@ -1423,7 +1423,7 @@ describe('manualRowMove', () => {
       window.localStorage.clear();
     });
 
-    it('should load new dataset on loadData', () => {
+    it('should load new dataset on loadData if minSpareRows is set', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 1),
         manualRowMove: true,
