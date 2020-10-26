@@ -2688,6 +2688,7 @@ describe('ColumnSorting', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(1, 3),
         fixedColumnsLeft: 1,
+        columnSorting: true,
         manualColumnFreeze: true,
         contextMenu: true
       });
