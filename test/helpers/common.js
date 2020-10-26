@@ -119,6 +119,7 @@ export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
+export const toVisualRow = handsontableMethodFactory('toVisualRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const undo = handsontableMethodFactory('undo');
 
