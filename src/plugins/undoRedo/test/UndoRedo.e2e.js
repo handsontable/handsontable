@@ -369,6 +369,23 @@ describe('UndoRedo', () => {
           expect(getData()).toEqual([['A1', null, null]]);
         });
 
+        it('should unde removal of multiple columns with minSpareCols', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 2),
+            minSpareCols: 1,
+          });
+
+          selectColumns(0, 2);
+          alter('remove_col', 0, 3);
+          undo();
+
+          expect(getSelected()).toBeUndefined();
+          expect(countCols()).toBe(3);
+          expect(getData()).toEqual([
+            ['A1', 'B1', null],
+          ]);
+        });
+
         it('should undo removal of single column (colHeaders: undefined)', () => {
           const HOT = handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 3)
