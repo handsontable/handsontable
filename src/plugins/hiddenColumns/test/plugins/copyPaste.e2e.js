@@ -307,28 +307,5 @@ describe('hiddenColumns', () => {
         ['A1', 'B1'],
       ]);
     });
-
-    it('should skip column on paste action if columnSorting is enabled' +
-       'and skipColumnOnPaste is used', async() => {
-      handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 2),
-        columns: [
-          { skipColumnOnPaste: true },
-          {}
-        ],
-        hiddenColumns: true,
-        columnSorting: true,
-      });
-
-      selectCell(0, 0);
-
-      await sleep(1000); // we have to wait for editor
-
-      triggerPaste('Z1\tZ2');
-
-      expect(getData()).toEqual([
-        ['A1', 'Z1'],
-      ]);
-    });
   });
 });
