@@ -327,7 +327,7 @@ class Filters extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
    * @param {Array} args Condition arguments.
-   * @param {string} operationId `id` of operation which is performed on the column.
+   * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column, name, args, operationId = OPERATION_AND) {
@@ -613,18 +613,26 @@ class Filters extends BasePlugin {
 
       this.conditionUpdateObserver.groupChanges();
 
+      const filteredColumns = this.conditionCollection.getFilteredColumns();
+      const indexOfFilteredColumn = filteredColumns.indexOf(physicalIndex);
+      let positionForAdd;
+
+      if (indexOfFilteredColumn !== -1) {
+        positionForAdd = indexOfFilteredColumn;
+      }
+
       this.conditionCollection.removeConditions(physicalIndex);
 
       if (byConditionState1.command.key !== CONDITION_NONE) {
-        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation);
+        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation, positionForAdd);
 
         if (byConditionState2.command.key !== CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation);
+          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation, positionForAdd);
         }
       }
 
       if (byValueState.command.key !== CONDITION_NONE) {
-        this.conditionCollection.addCondition(physicalIndex, byValueState, operation);
+        this.conditionCollection.addCondition(physicalIndex, byValueState, operation, positionForAdd);
       }
 
       this.conditionUpdateObserver.flush();

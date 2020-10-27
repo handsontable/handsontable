@@ -2243,6 +2243,47 @@ describe('Filters UI', () => {
         done();
       }, 1500);
     });
+
+    it('should update conditions properly - execution queue for conditions should not be lost after using ' +
+      'UI of drop-down menu', async() => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted Right', address: 'A001' },
+          { id: 2, name: 'Frank Honest', address: 'A002' },
+          { id: 3, name: 'Joan Well', address: 'B001' },
+          { id: 4, name: 'Gail Polite', address: 'B002' },
+          { id: 5, name: 'Michael Fair', address: 'C001' },
+          { id: 6, name: 'Mark Malcovich', address: 'C002' },
+        ],
+        columns: [
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'address' }
+        ],
+        filters: true,
+        dropdownMenu: true,
+        colHeaders: true
+      });
+
+      const filtersPlugin = getPlugin('filters');
+
+      filtersPlugin.addCondition(1, 'by_value', [['Ted Right', 'Joan Well', 'Gail Polite', 'Michael Fair']]);
+      filtersPlugin.addCondition(0, 'by_value', [[3, 5]]);
+      filtersPlugin.addCondition(2, 'by_value', [['C001']]);
+      filtersPlugin.filter();
+
+      dropdownMenu(1);
+
+      $(byValueBoxRootElement()).find('tr:nth-child(4) :checkbox').simulate('click');
+      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+      await sleep(300);
+
+      dropdownMenu(0);
+      expect(byValueMultipleSelect().getItems().length).toBe(5);
+      expect(byValueMultipleSelect().getValue().length).toBe(2);
+      expect(byValueMultipleSelect().getItems()[4]).toEqual({ checked: false, value: 6, visualValue: 6 });
+    });
   });
 
   describe('Advanced filtering (conditions and operations combination #160)', () => {

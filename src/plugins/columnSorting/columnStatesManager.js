@@ -192,7 +192,7 @@ export class ColumnStatesManager {
     for (let i = 0; i < sortStates.length; i += 1) {
       this.sortingStates.setValueAtIndex(this.hot.toPhysicalColumn(sortStates[i].column), {
         sortOrder: sortStates[i].sortOrder
-      });
+      }, true);
     }
   }
 

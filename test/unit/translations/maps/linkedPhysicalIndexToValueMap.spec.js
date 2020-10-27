@@ -3,18 +3,18 @@ import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from 'handsontable/t
 it('should return proper length by the `getLength` method', () => {
   const indexToValueMap = new IndexToValueMap();
 
-  indexToValueMap.setValueAtIndex(0, 2);
-  indexToValueMap.setValueAtIndex(1, 1);
-  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(0, 2, true);
+  indexToValueMap.setValueAtIndex(1, 1, true);
+  indexToValueMap.setValueAtIndex(2, 0, true);
 
   expect(indexToValueMap.getValues()).toEqual([]);
   expect(indexToValueMap.getLength()).toBe(0);
 
   indexToValueMap.init(5);
 
-  indexToValueMap.setValueAtIndex(0, 2);
-  indexToValueMap.setValueAtIndex(1, 1);
-  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(0, 2, true);
+  indexToValueMap.setValueAtIndex(1, 1, true);
+  indexToValueMap.setValueAtIndex(2, 0, true);
 
   expect(indexToValueMap.getValues()).toEqual([2, 1, 0]);
   expect(indexToValueMap.getLength()).toBe(3);
@@ -31,9 +31,9 @@ it('should return proper length by the `getLength` method', () => {
 it('should work with get, and set functions properly', () => {
   const indexToValueMap = new IndexToValueMap();
 
-  indexToValueMap.setValueAtIndex(0, 2);
-  indexToValueMap.setValueAtIndex(1, 1);
-  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(0, 2, true);
+  indexToValueMap.setValueAtIndex(1, 1, true);
+  indexToValueMap.setValueAtIndex(2, 0, true);
 
   expect(indexToValueMap.getValues()).toEqual([]);
   expect(indexToValueMap.getLength()).toBe(0);
@@ -44,9 +44,9 @@ it('should work with get, and set functions properly', () => {
   expect(indexToValueMap.getValues()).toEqual([]);
   expect(indexToValueMap.getLength()).toBe(0);
 
-  indexToValueMap.setValueAtIndex(0, 2);
-  indexToValueMap.setValueAtIndex(1, 1);
-  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(0, 2, true);
+  indexToValueMap.setValueAtIndex(1, 1, true);
+  indexToValueMap.setValueAtIndex(2, 0, true);
 
   expect(indexToValueMap.indexedValues).toEqual([2, 1, 0]);
   expect(indexToValueMap.getValues()).toEqual([2, 1, 0]);
@@ -120,9 +120,9 @@ it('should handle `insert` method properly', () => {
 
   indexToValueMap.init(5);
 
-  indexToValueMap.setValueAtIndex(3, 0);
-  indexToValueMap.setValueAtIndex(2, 1);
-  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(3, 0, true);
+  indexToValueMap.setValueAtIndex(2, 1, true);
+  indexToValueMap.setValueAtIndex(0, 2, true);
 
   indexToValueMap.insert(0, [0]);
 
@@ -150,9 +150,9 @@ it('should handle `remove` method properly', () => {
 
   indexToValueMap.init(5);
 
-  indexToValueMap.setValueAtIndex(3, 0);
-  indexToValueMap.setValueAtIndex(2, 1);
-  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(3, 0, true);
+  indexToValueMap.setValueAtIndex(2, 1, true);
+  indexToValueMap.setValueAtIndex(0, 2, true);
 
   indexToValueMap.remove([0]);
 
@@ -195,9 +195,9 @@ it('should handle `setDefaultValues` method properly', () => {
 
   indexToValueMap.init(5);
 
-  indexToValueMap.setValueAtIndex(0, 2);
-  indexToValueMap.setValueAtIndex(1, 1);
-  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(0, 2, true);
+  indexToValueMap.setValueAtIndex(1, 1, true);
+  indexToValueMap.setValueAtIndex(2, 0, true);
 
   indexToValueMap.setDefaultValues();
 
@@ -210,9 +210,9 @@ it('should handle `setDefaultValues` method properly', () => {
 it('should return entries by `getEntries` method properly', () => {
   const indexToValueMap = new IndexToValueMap();
 
-  indexToValueMap.setValueAtIndex(0, 2);
-  indexToValueMap.setValueAtIndex(1, 1);
-  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(0, 2, true);
+  indexToValueMap.setValueAtIndex(1, 1, true);
+  indexToValueMap.setValueAtIndex(2, 0, true);
 
   expect(indexToValueMap.getEntries()).toEqual([]);
 
@@ -220,9 +220,9 @@ it('should return entries by `getEntries` method properly', () => {
 
   expect(indexToValueMap.getEntries()).toEqual([]);
 
-  indexToValueMap.setValueAtIndex(0, 2);
-  indexToValueMap.setValueAtIndex(1, 1);
-  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(0, 2, true);
+  indexToValueMap.setValueAtIndex(1, 1, true);
+  indexToValueMap.setValueAtIndex(2, 0, true);
 
   expect(indexToValueMap.getEntries()).toEqual([
     [0, 2],
@@ -280,13 +280,13 @@ describe('Triggering `change` hook', () => {
 
     expect(changeCallback.calls.count()).toEqual(0);
 
-    indexToValueMap.setValueAtIndex(0, true);
+    indexToValueMap.setValueAtIndex(0, true, true);
 
     // Triggered for index in range.
     expect(changeCallback.calls.count()).toEqual(1);
 
     // Not triggered for index out of range.
-    indexToValueMap.setValueAtIndex(10, true);
+    indexToValueMap.setValueAtIndex(10, true, true);
 
     expect(changeCallback.calls.count()).toEqual(1);
   });
@@ -299,7 +299,7 @@ describe('Triggering `change` hook', () => {
     indexToValueMap.addLocalHook('change', changeCallback);
 
     // Default value is `null`. No real change, but hook is called anyway.
-    indexToValueMap.setValueAtIndex(0, null);
+    indexToValueMap.setValueAtIndex(0, null, true);
 
     expect(changeCallback.calls.count()).toEqual(1);
   });
@@ -360,7 +360,7 @@ describe('Triggering `change` hook', () => {
     expect(length).toBe(3);
     expect(orderOfIndexes).toEqual([0, 1, 2]);
 
-    indexToValueMap.setValueAtIndex(1, { g: 'h' });
+    indexToValueMap.setValueAtIndex(1, { g: 'h' }, true);
 
     expect(indexedValues).toEqual([{ a: 'b' }, { g: 'h' }, { e: 'f' }]);
     expect(values).toEqual([{ a: 'b' }, { g: 'h' }, { e: 'f' }]);
@@ -374,8 +374,8 @@ describe('Triggering `change` hook', () => {
     expect(length).toBe(0);
     expect(orderOfIndexes).toEqual([]);
 
-    indexToValueMap.setValueAtIndex(1, { a: 'b' });
-    indexToValueMap.setValueAtIndex(0, { c: 'd' });
+    indexToValueMap.setValueAtIndex(1, { a: 'b' }, true);
+    indexToValueMap.setValueAtIndex(0, { c: 'd' }, true);
 
     expect(indexedValues).toEqual([{ c: 'd' }, { a: 'b' }, null]);
     expect(values).toEqual([{ a: 'b' }, { c: 'd' }]);

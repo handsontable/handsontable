@@ -70,10 +70,12 @@ class ConditionCollection {
    *  * `command` Object, Command object with condition name as `key` property.
    *  * `args` Array, Condition arguments.
    * @param {string} [operation='conjunction'] Type of conditions operation.
+   * @param {number|undefined} position Position to which condition will be added. When argument is undefined
+   * the condition will be processed as the last condition.
    * @fires ConditionCollection#beforeAdd
    * @fires ConditionCollection#afterAdd
    */
-  addCondition(column, conditionDefinition, operation = OPERATION_AND) {
+  addCondition(column, conditionDefinition, operation = OPERATION_AND, position) {
     const args = arrayMap(conditionDefinition.args, v => (typeof v === 'string' ? v.toLowerCase() : v));
     const name = conditionDefinition.name || conditionDefinition.command.key;
 
@@ -105,7 +107,7 @@ class ConditionCollection {
           args,
           func: getCondition(name, args),
         }]
-      });
+      }, true, position);
 
     } else {
       // Add next condition for particular column (by reference).
