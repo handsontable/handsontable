@@ -1333,7 +1333,7 @@ declare namespace Handsontable {
 
       checkIfColumnHeader(element: HTMLElement): boolean;
       clearManualSize(column: number): void;
-      getTHFromTargetElement(element: HTMLElement): HTMLElement;
+      getClosestTHParent(element: HTMLElement): HTMLElement;
       hideHandleAndGuide(): void;
       loadManualColumnWidths(): (number | null)[];
       refreshGuidePosition(): void;
@@ -1375,7 +1375,7 @@ declare namespace Handsontable {
 
       checkIfRowHeader(element: HTMLElement): boolean;
       clearManualSize(column: number): void;
-      getTHFromTargetElement(element: HTMLElement): HTMLElement;
+      getClosestTHParent(element: HTMLElement): HTMLElement;
       hideHandleAndGuide(): void;
       loadManualRowHeights(): (number|null)[];
       refreshGuidePosition(): void;
@@ -2261,6 +2261,7 @@ declare namespace Handsontable {
     innerHeight: (element: HTMLElement) => number;
     innerWidth: (element: HTMLElement) => number;
     isChildOf: (child: HTMLElement, parent: object | string) => boolean;
+    isDetached: (element: HTMLElement) => boolean;
     isImmediatePropagationStopped: (event: Event) => boolean;
     isInput: (element: HTMLElement) => boolean;
     isLeftClick: (event: Event) => boolean;
@@ -2277,6 +2278,7 @@ declare namespace Handsontable {
     removeTextNodes: (element: HTMLElement, parent: HTMLElement) => void;
     resetCssTransform: (element: HTMLElement) => void;
     setCaretPosition: (element: HTMLElement, pos: number, endPos: number) => void;
+    selectElementIfAllowed: (element: HTMLElement) => void;
     setOverlayPosition: (overlayElem: HTMLElement, left: number, top: number) => void;
     stopImmediatePropagation: (event: Event) => void;
   }
