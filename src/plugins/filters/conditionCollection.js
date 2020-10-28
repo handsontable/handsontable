@@ -122,7 +122,7 @@ class ConditionCollection {
           args,
           func: getCondition(name, args),
         }]
-      }, true, position);
+      }, position);
 
     } else {
       // Add next condition for particular column (by reference).

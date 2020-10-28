@@ -46,7 +46,7 @@ describe('IndexMapper', () => {
     trimmingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(1, true);
     pIndexToValueMap.setValueAtIndex(1, { a: 'b' });
-    lPIndexToValueMap.setValueAtIndex(1, { a: 'b' }, true);
+    lPIndexToValueMap.setValueAtIndex(1, { a: 'b' });
 
     indexMapper.initToLength(7);
 
@@ -684,9 +684,9 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, false, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, true, false, true, false, false, false, false, false, true]);
-      lPIndexToValueMap.setValueAtIndex(0, { a: 'b' }, true);
-      lPIndexToValueMap.setValueAtIndex(5, { c: 'd' }, true);
-      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' }, true);
+      lPIndexToValueMap.setValueAtIndex(0, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(5, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
 
       // renderable   |       0        1     2
       // visual       |    0  1  2     3     4     5
@@ -794,9 +794,9 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, false, false, true, false, false, false, true]);
-      lPIndexToValueMap.setValueAtIndex(3, { a: 'b' }, true);
-      lPIndexToValueMap.setValueAtIndex(4, { c: 'd' }, true);
-      lPIndexToValueMap.setValueAtIndex(0, { e: 'f' }, true);
+      lPIndexToValueMap.setValueAtIndex(3, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(4, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
       // renderable   |    0     1           2
       // visual       |    0     1     2     3     4
@@ -906,9 +906,9 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
-      lPIndexToValueMap.setValueAtIndex(9, { a: 'b' }, true);
-      lPIndexToValueMap.setValueAtIndex(8, { c: 'd' }, true);
-      lPIndexToValueMap.setValueAtIndex(0, { e: 'f' }, true);
+      lPIndexToValueMap.setValueAtIndex(9, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(8, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
       // renderable   |    0                 1
       // visual       |    0     1     2     3     4
@@ -1017,10 +1017,10 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, false, false, true, false, false]);
-      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' }, true);
-      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' }, true);
-      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' }, true);
+      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
 
       // renderable   |    0           1           2
       // visual       |    0     1     2     3     4
@@ -1119,10 +1119,10 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
-      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' }, true);
-      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' }, true);
-      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' }, true);
+      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
 
       // renderable   |    0                 1
       // visual       |    0     1     2     3     4
@@ -1221,10 +1221,10 @@ describe('IndexMapper', () => {
       indexMapper.initToLength(10);
       trimmingMap.setValues([true, false, true, false, true, false, true, false, true, false]);
       hidingMap.setValues([false, false, false, true, false, true, false, false, false, true]);
-      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' }, true);
-      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' }, true);
-      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' }, true);
+      lPIndexToValueMap.setValueAtIndex(5, { a: 'b' });
+      lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+      lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
+      lPIndexToValueMap.setValueAtIndex(2, { g: 'h' });
 
       // renderable   |    0                 1
       // visual       |    0     1     2     3     4
@@ -1321,9 +1321,9 @@ describe('IndexMapper', () => {
         indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        lPIndexToValueMap.setValueAtIndex(1, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(0, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(4, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(1, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(0, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
 
         indexMapper.insertIndexes(0, 3);
 
@@ -1353,9 +1353,9 @@ describe('IndexMapper', () => {
         indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(6, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(6, { e: 'f' });
 
         indexMapper.insertIndexes(4, 3);
 
@@ -1385,9 +1385,9 @@ describe('IndexMapper', () => {
         indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
 
         indexMapper.insertIndexes(9, 3);
 
@@ -1417,9 +1417,9 @@ describe('IndexMapper', () => {
         indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
 
         indexMapper.insertIndexes(10, 3);
 
@@ -1449,9 +1449,9 @@ describe('IndexMapper', () => {
         indexMapper.registerMap('lPIndexToValueMap', lPIndexToValueMap);
         indexMapper.initToLength(10);
 
-        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(9, { e: 'f' });
 
         indexMapper.insertIndexes(12, 3);
 
@@ -1506,9 +1506,9 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([false, false, false, true, false, false, false, false, false, false]);
-        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
 
         indexMapper.insertIndexes(3, 1);
 
@@ -1546,9 +1546,9 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([true, true, true, true, false, false, false, false, false, false]);
-        lPIndexToValueMap.setValueAtIndex(3, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(0, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(4, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(3, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(0, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(4, { e: 'f' });
 
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([4, 5, 6, 7, 8, 9]); // trimmed indexes: 0, 1, 2, 3 <----------------------
 
@@ -1587,9 +1587,9 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([false, false, false, false, false, false, true, true, true, true]);
-        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(0, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
         expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3, 4, 5]); // trimmed indexes: 6, 7, 8, 9 <----------------------
 
@@ -1628,9 +1628,9 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
 
         trimmingMap.setValues([true, true, true, true, true, true, true, true, true, true]);
-        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(0, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(2, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(1, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(0, { e: 'f' });
 
         indexMapper.insertIndexes(0, 3);
 
@@ -1669,9 +1669,9 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
 
         hidingMap.setValues([true, true, false, false, false, false, false, false, false, true]);
-        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
 
         indexMapper.insertIndexes(3, 3);
 
@@ -1708,9 +1708,9 @@ describe('IndexMapper', () => {
         indexMapper.initToLength(10);
 
         hidingMap.setValues([true, true, true, true, true, true, true, true, true, true]);
-        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' }, true);
-        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' }, true);
-        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' }, true);
+        lPIndexToValueMap.setValueAtIndex(4, { a: 'b' });
+        lPIndexToValueMap.setValueAtIndex(3, { c: 'd' });
+        lPIndexToValueMap.setValueAtIndex(2, { e: 'f' });
 
         indexMapper.insertIndexes(3, 3);
 

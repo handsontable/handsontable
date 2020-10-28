@@ -92,20 +92,6 @@ class IndexMap {
   }
 
   /**
-   * Clear value for particular index.
-   *
-   * @param {number} physicalIndex Physical index.
-   */
-  clearValue(physicalIndex) {
-    if (isFunction(this.initValueOrFn)) {
-      this.setValueAtIndex(physicalIndex, this.initValueOrFn(physicalIndex));
-
-    } else {
-      this.setValueAtIndex(physicalIndex, this.initValueOrFn);
-    }
-  }
-
-  /**
    * Get length of the index map.
    *
    * @returns {number}

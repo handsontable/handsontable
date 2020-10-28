@@ -27,7 +27,7 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       expect(conditionCollection.isEmpty()).toBe(false);
     });
@@ -247,21 +247,21 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(4, {
         operation: OPERATION_AND,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       expect(conditionCollection.getFilteredColumns()).toEqual([4]);
 
       conditionCollection.filteringStates.setValueAtIndex(1, {
         operation: OPERATION_AND,
         conditions: [conditionMock2]
-      }, true);
+      });
 
       expect(conditionCollection.getFilteredColumns()).toEqual([4, 1]);
 
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock3]
-      }, true);
+      });
 
       expect(conditionCollection.getFilteredColumns()).toEqual([4, 1, 3]);
     });
@@ -276,32 +276,32 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(4, {
         operation: OPERATION_AND,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(1, {
         operation: OPERATION_OR,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(2, {
         operation: OPERATION_AND,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(2, {
         operation: OPERATION_AND,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(0, {
         operation: OPERATION_OR,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(0, {
         operation: OPERATION_OR,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       expect(conditionCollection.getOperation(0)).toEqual(OPERATION_OR);
       expect(conditionCollection.getOperation(1)).toEqual(OPERATION_OR);
@@ -329,17 +329,17 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(4, {
         operation: OPERATION_AND,
         conditions: [conditionMock1]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(1, {
         operation: OPERATION_AND,
         conditions: [conditionMock2]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock3]
-      }, true);
+      });
 
       const exportedConditions = conditionCollection.exportAllConditions();
 
@@ -364,7 +364,7 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       expect(conditionCollection.getConditions(2)).toEqual([]);
       expect(conditionCollection.getConditions(3)).toEqual([conditionMock]);
@@ -379,7 +379,7 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');
@@ -399,7 +399,7 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       conditionCollection.removeConditions(3);
 
@@ -473,12 +473,12 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(4, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       conditionCollection.clean();
 
@@ -494,12 +494,12 @@ describe('ConditionCollection', () => {
       conditionCollection.filteringStates.setValueAtIndex(3, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       conditionCollection.filteringStates.setValueAtIndex(4, {
         operation: OPERATION_AND,
         conditions: [conditionMock]
-      }, true);
+      });
 
       conditionCollection.destroy();
 
