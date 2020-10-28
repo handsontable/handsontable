@@ -6,20 +6,35 @@ import { getCondition } from './conditionRegisterer';
 import { OPERATION_ID as OPERATION_AND } from './logicalOperations/conjunction';
 import { operations, getOperationFunc } from './logicalOperationRegisterer';
 import { isUndefined } from '../../helpers/mixed';
+import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+
+const MAP_NAME = 'ConditionCollection.filteringStates';
 
 /**
  * @class ConditionCollection
  * @plugin Filters
  */
 class ConditionCollection {
-  constructor(filteringStates) {
+  constructor(hot, shouldRegisterMap = true) {
+    /**
+     * Handsontable instance.
+     *
+     * @type {Core}
+     */
+    this.hot = hot;
     /**
      * Index map storing filtering states for every column. ConditionCollection write and read to/from this element.
      *
-     * @private
      * @type {LinkedPhysicalIndexToValueMap}
      */
-    this.filteringStates = filteringStates;
+    this.filteringStates = new IndexToValueMap();
+
+    if (shouldRegisterMap === true) {
+      this.hot.columnIndexMapper.registerMap(MAP_NAME, this.filteringStates);
+
+    } else {
+      this.filteringStates.init(this.hot.columnIndexMapper.getNumberOfIndexes());
+    }
   }
 
   /**
@@ -227,6 +242,7 @@ class ConditionCollection {
    * Destroy object.
    */
   destroy() {
+    this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
     this.filteringStates = null;
     this.clearLocalHooks();
   }

@@ -5,7 +5,6 @@ import localHooks from '../../mixins/localHooks';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import { createArrayAssertion } from './utils';
-import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 /**
  * Class which is designed for observing changes in condition collection. When condition is changed by user at specified
@@ -17,7 +16,7 @@ import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translat
  * @plugin Filters
  */
 class ConditionUpdateObserver {
-  constructor(conditionCollection, columnDataFactory = () => [], getNumberOfColumns) {
+  constructor(conditionCollection, columnDataFactory = () => [], hot) {
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *
@@ -57,11 +56,11 @@ class ConditionUpdateObserver {
      */
     this.latestOrderStack = [];
     /**
-     * Function which provide number of columns which may have conditions.
+     * Handsontable instance.
      *
-     * @type {Function}
+     * @type {Core}
      */
-    this.getNumberOfColumns = getNumberOfColumns;
+    this.hot = hot;
 
     this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
     this.conditionCollection.addLocalHook('afterRemove', column => this.updateStatesAtColumn(column));
@@ -136,7 +135,7 @@ class ConditionUpdateObserver {
     }
 
     const visibleDataFactory = curry((curriedConditionsBefore, curriedColumn, conditionsStack = []) => {
-      const splitConditionCollection = new ConditionCollection(new IndexToValueMap().init(this.getNumberOfColumns()));
+      const splitConditionCollection = new ConditionCollection(this.hot, false);
       const curriedConditionsBeforeArray = [].concat(curriedConditionsBefore, conditionsStack);
 
       // Create new condition collection to determine what rows should be visible in "filter by value" box

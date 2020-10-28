@@ -23,7 +23,7 @@ import {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
-import { TrimmingMap, LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { TrimmingMap } from '../../translations';
 
 import './filters.css';
 
@@ -139,8 +139,6 @@ class Filters extends BasePlugin {
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
-    this.filteringStates = this.hot.columnIndexMapper.registerMap(
-      `${this.pluginName}.filteringStates`, new IndexToValueMap());
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
@@ -197,13 +195,13 @@ class Filters extends BasePlugin {
       })));
     }
     if (!this.conditionCollection) {
-      this.conditionCollection = new ConditionCollection(this.filteringStates);
+      this.conditionCollection = new ConditionCollection(this.hot);
     }
     if (!this.conditionUpdateObserver) {
       this.conditionUpdateObserver = new ConditionUpdateObserver(
         this.conditionCollection,
         column => this.getDataMapAtColumn(column),
-        () => this.hot.columnIndexMapper.getNumberOfIndexes()
+        this.hot
       );
       this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
@@ -251,10 +249,9 @@ class Filters extends BasePlugin {
         component.hide();
       });
 
-      this.conditionCollection.clean();
+      this.conditionCollection.destroy();
 
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.filteringStates`);
     }
 
     super.disablePlugin();
@@ -914,7 +911,6 @@ class Filters extends BasePlugin {
       });
 
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-      this.hot.columnIndexMapper.unregisterMap(`${this.pluginName}.filteringStates`);
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
       this.hiddenRowsCache.clear();
