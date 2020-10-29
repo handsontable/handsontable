@@ -28,11 +28,7 @@ export default function clearColumnItem() {
         return true;
       }
 
-      const startColumn = selected[0][1];
-
-      return startColumn < 0
-        || this.countCols() >= this.getSettings().maxCols
-        || !this.selection.isEntireColumnSelected();
+      return !this.selection.isSelectedByColumnHeader();
     }
   };
 }
