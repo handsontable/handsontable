@@ -1735,7 +1735,7 @@ describe('MultiColumnSorting', () => {
 
   });
 
-  it('should add a sorting indicator to the column header after it\'s been sorted, if indicator property is set to true (by default)', () => {
+  it('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1745,77 +1745,49 @@ describe('MultiColumnSorting', () => {
         [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
-      multiColumnSorting: true
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR THE WHOLE TABLE
-    // ---------------------------------
-
-    updateSettings({
-      columns() {
-        return {
-          multiColumnSorting: {
-            indicator: true
-          }
-        };
-      },
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending (updateSettings doesn't reset sorting stack)
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR A SINGLE COLUMN
-    // ---------------------------------
-
-    updateSettings({
       columns(column) {
         if (column === 2) {
           return {
             multiColumnSorting: {
-              indicator: false
+              indicator: false,
+              headerAction: false,
             }
           };
         }
 
         return {};
-      }
+      },
+      multiColumnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(2);
 
-    sortedColumn = spec().$container.find('th span.columnSorting')[0];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    let sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // ascending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // descending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
@@ -2888,6 +2860,91 @@ describe('MultiColumnSorting', () => {
       updateSettings({ multiColumnSorting: { initialConfig: [] } });
 
       expect(hot.toVisualRow(0)).toEqual(0);
+    });
+  });
+
+  describe('cooperation with alter actions', () => {
+    it('should sort proper columns after removing column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        multiColumnSorting: {
+          initialConfig: [{
+            column: 1,
+            sortOrder: 'desc',
+          }, {
+            column: 2,
+            sortOrder: 'asc',
+          }],
+        },
+      });
+
+      alter('remove_col', 0);
+
+      expect(getData()).toEqual([
+        ['B3', 'C3'],
+        ['B2', 'C2'],
+        ['B1', 'C1'],
+      ]);
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+        { column: 0, sortOrder: 'desc' },
+        { column: 1, sortOrder: 'asc' },
+      ]);
+    });
+
+    it('should sort proper columns after inserting column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        multiColumnSorting: {
+          initialConfig: [{
+            column: 1,
+            sortOrder: 'desc',
+          }, {
+            column: 2,
+            sortOrder: 'asc',
+          }],
+        },
+      });
+
+      alter('insert_col', 1);
+
+      expect(getData()).toEqual([
+        ['A3', null, 'B3', 'C3'],
+        ['A2', null, 'B2', 'C2'],
+        ['A1', null, 'B1', 'C1'],
+      ]);
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+        { column: 2, sortOrder: 'desc' },
+        { column: 3, sortOrder: 'asc' },
+      ]);
+    });
+
+    // DIFF - MultiColumnSorting & ColumnSorting: extra test
+    it('should sort proper columns after removing already sorted one', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        multiColumnSorting: {
+          initialConfig: [{
+            column: 1,
+            sortOrder: 'asc'
+          }, {
+            column: 3,
+            sortOrder: 'desc'
+          }, {
+            column: 5,
+            sortOrder: 'desc'
+          }]
+        },
+      });
+
+      alter('remove_col', 3);
+
+      expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+        { column: 1, sortOrder: 'asc' },
+        { column: 4, sortOrder: 'desc' },
+      ]);
     });
   });
 
