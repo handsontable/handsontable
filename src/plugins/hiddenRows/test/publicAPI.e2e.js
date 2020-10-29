@@ -171,5 +171,22 @@ describe('HiddenRows', () => {
         expect(plugin.isValidConfig([3])).toBe(false);
       });
     });
+    describe('clear()', () => {
+      it('should clear the data from hidden row when hidden row is second last one', () => {
+        const row = 2;
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(row, 2),
+          hiddenRows: {
+            rows: [row - 1], // hide penultimate row
+          }
+        });
+
+        hot.clear();
+        const emptyData = hot.getData();
+        const empyDataComparision = [[null, null], [null, null]];
+
+        expect(emptyData).toEqual(empyDataComparision);
+      });
+    });
   });
 });

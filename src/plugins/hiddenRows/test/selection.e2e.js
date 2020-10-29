@@ -272,6 +272,39 @@ describe('HiddenRows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should properly render selection if mouse moved over hidden row', () => {
+      spec().$container.css({ margin: '35px' });
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 1),
+        colHeaders: true,
+        contextMenu: true,
+        hiddenRows: {
+          rows: [0],
+        },
+      });
+
+      const $cellA2 = $(getCell(1, 0));
+      const $headerA = $(getCell(-1, 0));
+
+      $cellA2.simulate('mousedown');
+      $headerA.simulate('mouseover');
+      $headerA.simulate('mouseup');
+
+      const $wtBorderAreas = spec().$container.find('.wtBorder.area');
+      const $topBorderArea = $wtBorderAreas.eq(0);
+      const $leftBorderArea = $wtBorderAreas.eq(1);
+
+      expect(getSelected()).toEqual([[1, 0, 0, 0]]);
+      expect(`
+      | - |
+      |===|
+      | A |
+      `).toBeMatchToSelectionPattern();
+      expect($leftBorderArea.height()).toBe(23);
+      expect($topBorderArea.width()).toBe(49);
+    });
+
     describe('should select entire table after the corner was clicked and', () => {
       it('just some rows were hidden', () => {
         handsontable({

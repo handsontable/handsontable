@@ -135,6 +135,28 @@ describe('manualColumnMove', () => {
     });
   });
 
+  describe('loadData', () => {
+    it('should reset column order if new dataset is loaded', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        manualColumnMove: true
+      });
+
+      getPlugin('manualColumnMove').moveColumn(4, 2);
+      render();
+
+      loadData(Handsontable.helper.createSpreadsheetData(1, 5));
+
+      const tdElements = spec().$container.find('tbody tr:eq(0) td');
+
+      expect(tdElements.eq(0).text()).toEqual('A1');
+      expect(tdElements.eq(1).text()).toEqual('B1');
+      expect(tdElements.eq(2).text()).toEqual('C1');
+      expect(tdElements.eq(3).text()).toEqual('D1');
+      expect(tdElements.eq(4).text()).toEqual('E1');
+    });
+  });
+
   describe('moving', () => {
     it('should keep cell meta created using cells function', () => {
       const hot = handsontable({

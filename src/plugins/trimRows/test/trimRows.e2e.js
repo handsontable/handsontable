@@ -869,6 +869,21 @@ describe('TrimRows', () => {
         done();
       }, 100);
     });
+
+    it('should correctly solve toVisualRow calculations after sort', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 1),
+        trimRows: [0],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({
+        column: 0,
+        sortOrder: 'desc'
+      });
+
+      expect(toVisualRow(1)).toBe(0);
+    });
   });
 
   describe('maxRows option set', () => {
