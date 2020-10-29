@@ -107,6 +107,16 @@ describe('htmlToGridSettings', () => {
     expect(config.data.toString()).toBe('A3,B3,C3,A4,B4,C4,A5,B5,C5,A6,B6,C6');
   });
 
+  it('should parse an empty HTML table to an empty config object', () => {
+    const tableInnerHTML = [
+      '<table><tbody>',
+      '</tbody></table>',
+    ].join('');
+    const config = htmlToGridSettings(tableInnerHTML);
+
+    expect(config).toEqual({});
+  });
+
   it('should parse data with special characters', () => {
     const tableInnerHTML = [
       '<table><tbody>',
