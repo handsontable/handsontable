@@ -274,42 +274,6 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
     });
 
-    it('should paste data in the correct place after hiding and un-hiding rows', () => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        hiddenRows: {
-          columns: [],
-          copyPasteEnabled: false,
-        },
-      });
-
-      const copyEvent = getClipboardEvent();
-      const hiddenColumns = getPlugin('hiddenRows');
-      const copyPastePlugin = getPlugin('copyPaste');
-
-      selectCell(1, 1, 1, 1);
-
-      copyPastePlugin.onCopy(copyEvent);
-
-      hiddenColumns.hideRow(1);
-
-      hot().render();
-
-      hiddenColumns.showRow(1);
-
-      selectCell(1, 0, 1, 0);
-
-      copyPastePlugin.onPaste(copyEvent);
-
-      expect(getData()).toEqual([
-        ['A1', 'B1', 'C1', 'D1', 'E1'],
-        ['B2', 'B2', 'C2', 'D2', 'E2'],
-        ['A3', 'B3', 'C3', 'D3', 'E3'],
-        ['A4', 'B4', 'C4', 'D4', 'E4'],
-        ['A5', 'B5', 'C5', 'D5', 'E5'],
-      ]);
-    });
-
     it('should keep same number of rows if all rows are hidden', () => {
       handsontable({
         data: createSpreadsheetData(2, 1),
