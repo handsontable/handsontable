@@ -58,6 +58,44 @@ describe('NestedRows', () => {
     });
   });
 
+  describe('integration', () => {
+    describe('formulas', () => {
+      it('should process formula in a child row', () => {
+        handsontable({
+          data: [
+            {
+              col1: null,
+              __children: [{ col1: '=SUM(2+2)' }],
+            },
+          ],
+          nestedRows: true,
+          formulas: true,
+        });
+
+        expect(getDataAtCell(1, 0)).toBe(4);
+      });
+    });
+
+    describe('undoRedo', () => {
+      it('should properly undo remove of the child row', () => {
+        handsontable({
+          data: [
+            {
+              col1: 'A1',
+              __children: [{ col1: 'A1.1' }],
+            },
+          ],
+          nestedRows: true,
+        });
+
+        alter('remove_row', 1);
+        undo();
+
+        expect(getDataAtCell(1, 0)).toBe('A1.1');
+      });
+    });
+  });
+
   describe('Cooperation with the `ManualRowMove` plugin', () => {
     it('should display the right amount of entries with the `manualRowMove` plugin enabled', () => {
       const hot = handsontable({

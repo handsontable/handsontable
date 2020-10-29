@@ -872,6 +872,30 @@ describe('manualRowResize', () => {
 
       expect($handle.css('z-index')).toBeGreaterThan(getLeftClone().css('z-index'));
     });
+
+    it('should call console.warn if the handler is not a part of proper overlay', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 1),
+        height: 280,
+        fixedRowsBottom: 2,
+        manualRowResize: true,
+        rowHeaders: true,
+      });
+
+      spyOn(console, 'warn');
+
+      const $masterRowHeader = getLeftClone().find('tbody tr:eq(3) th:eq(0)');
+
+      $masterRowHeader.simulate('mouseover');
+
+      const $handler = spec().$container.find('.manualRowResizer');
+
+      $handler.simulate('mouseover');
+
+      // eslint-disable-next-line no-console
+      expect(console.warn.calls.mostRecent().args)
+        .toEqual(['The provided element is not a child of the bottom_left_corner overlay']);
+    });
   });
 
   describe('hooks', () => {

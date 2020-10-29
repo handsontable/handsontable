@@ -2683,5 +2683,54 @@ describe('ColumnSorting', () => {
 
       expect(onErrorSpy).not.toHaveBeenCalled();
     });
+
+    it('should not break the ability to freeze column', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        fixedColumnsLeft: 1,
+        columnSorting: true,
+        manualColumnFreeze: true,
+        contextMenu: true
+      });
+
+      hot.selectCell(0, 2);
+      contextMenu();
+
+      const freezeColumn = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        return $(this).text() === 'Freeze column';
+      });
+      simulateClick(freezeColumn);
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.toPhysicalColumn(0)).toEqual(0);
+      expect(hot.toPhysicalColumn(1)).toEqual(2);
+      expect(hot.toPhysicalColumn(2)).toEqual(1);
+      expect(hot.getData()).toEqual([['A1', 'C1', 'B1']]);
+    });
+  });
+
+  describe('compatibility with options', () => {
+    it('should not break virtual rendering if preventOverflow is used', async() => {
+      spec().$container.css({
+        height: 'auto',
+        width: 'auto',
+        overflow: 'visible'
+      });
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(100, 1),
+        columnSorting: true,
+        preventOverflow: 'horizontal',
+      });
+
+      $(window).scrollTop(3000);
+
+      await sleep(500);
+
+      const wtSpreader = spec().$container.find('.ht_master .wtSpreader');
+      const cssTop = parseInt(wtSpreader.css('top'), 10);
+
+      expect(cssTop).toBeGreaterThan(0);
+    });
   });
 });

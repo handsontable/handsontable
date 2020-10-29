@@ -2366,4 +2366,31 @@ describe('NestedHeaders', () => {
       expect($rightBorder.height()).toEqual($tbody.height() + 1);
     });
   });
+
+  describe('onCellMouseDown', () => {
+    it('should correctly point cell coords for nested corners', () => {
+      const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
+
+      handsontable({
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          [''],
+          [''],
+          [''],
+          [''],
+        ],
+        afterOnCellMouseDown,
+      });
+
+      const corner = getCell(-4, -1);
+
+      $(corner).simulate('mousedown');
+
+      expect(afterOnCellMouseDown).toHaveBeenCalled();
+      expect(afterOnCellMouseDown.calls.argsFor(0)[0]).toBeInstanceOf(MouseEvent);
+      expect(afterOnCellMouseDown.calls.argsFor(0)[1]).toEqual(jasmine.objectContaining({ row: -4, col: -1 }));
+      expect(afterOnCellMouseDown.calls.argsFor(0)[2]).toBe(corner);
+    });
+  });
 });
