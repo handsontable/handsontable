@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.2.0] - 2020-11-05
+
 ### Added
 - Added new type of Index Map named `LinkedPhysicalIndexToValueMap` [#7276](https://github.com/handsontable/handsontable/pull/7276)
 - Added an external dependency, `DOMPurify`, to add HTML sanitization what should minimize the risk of inserting insecure code using Handsontable built-in functionalities. [#7292](https://github.com/handsontable/handsontable/issues/7292)
