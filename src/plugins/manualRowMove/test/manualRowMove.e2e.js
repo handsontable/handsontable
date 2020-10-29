@@ -1408,7 +1408,7 @@ describe('manualRowMove', () => {
 
       hot = new Handsontable(container, config);
 
-      await sleep(500);
+      await sleep(500); // @TODO: We can remove it at the same time as ObserveChanges
 
       expect(hot.getData()).toEqual([
         ['A2'],
