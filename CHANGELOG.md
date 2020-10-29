@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixes a bug, where tables' viewport was scrolled if a user opened editor when some columns on the left side of that cell were hidden. [#7322](https://github.com/handsontable/handsontable/issues/7322)
 - Fix a problem when `event.target`'s parent in the `mouseover` event was not defined, the table threw an error when hovering over row/column headers. [#6926](https://github.com/handsontable/handsontable/issues/6926)
 - Fixed an issue, where calling the validation-triggering methods on a `hiddenColumns`-enabled Handsontable instance rendered the validated cells improperly. [#7301](https://github.com/handsontable/handsontable/issues/7301)
+- Fixed an issue, where adding 0 rows to the table ended with doubled entries in indexMappers' collections. [#7326](https://github.com/handsontable/handsontable/issues/7326)
 - Fix a problem with the inconsistent behavior of the Context Menu's "Clear column" disabled status. [#7003](https://github.com/handsontable/handsontable/issues/7003)
 
 ## [8.1.0] - 2020-10-01
