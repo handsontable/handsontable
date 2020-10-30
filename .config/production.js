@@ -72,6 +72,12 @@ module.exports.create = function create(envArgs) {
             {
               from: 'node_modules/pikaday/css/pikaday.css', to: 'pikaday', flatten: true
             },
+            { // dompurify
+              from: 'node_modules/dompurify/@(LICENSE)', to: 'dompurify', flatten: true
+            },
+            {
+              from: 'node_modules/dompurify/dist/@(purify.js|purify.js.map)', to: 'dompurify', flatten: true
+            },
           ]
         })
       );
