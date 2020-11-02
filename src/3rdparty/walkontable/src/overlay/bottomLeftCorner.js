@@ -2,6 +2,7 @@ import {
   getScrollbarWidth,
   outerHeight,
   outerWidth,
+  setOverlayPosition,
   resetCssTransform
 } from './../../../../helpers/dom/element';
 import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
@@ -17,6 +18,7 @@ class BottomLeftCornerOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(Overlay.CLONE_BOTTOM_LEFT_CORNER);
+    this.overlayRoot = null;
   }
 
   /**
@@ -56,20 +58,21 @@ class BottomLeftCornerOverlay extends Overlay {
       return;
     }
 
-    const overlayRoot = this.clone.wtTable.holder.parentNode;
+    this.overlayRoot = this.clone.wtTable.holder.parentNode;
 
-    overlayRoot.style.top = '';
+    this.overlayRoot.style.top = '';
 
     if (this.trimmingContainer === wot.rootWindow) {
       const { rootDocument, wtTable } = this.wot;
       const hiderRect = wtTable.hider.getBoundingClientRect();
       const bottom = Math.ceil(hiderRect.bottom);
       const left = Math.ceil(hiderRect.left);
+      const right = Math.ceil(hiderRect.right);
       const bodyHeight = rootDocument.documentElement.clientHeight;
       let finalLeft;
       let finalBottom;
 
-      if (left < 0) {
+      if (left < 0 && (right - this.overlayRoot.offsetWidth) > 0) {
         finalLeft = -left;
       } else {
         finalLeft = 0;
@@ -83,12 +86,10 @@ class BottomLeftCornerOverlay extends Overlay {
 
       finalBottom += 'px';
       finalLeft += 'px';
-
-      overlayRoot.style.left = finalLeft;
-      overlayRoot.style.bottom = finalBottom;
-
+      this.overlayRoot.style.bottom = finalBottom;
+      setOverlayPosition(this.overlayRoot, finalLeft, finalBottom);
     } else {
-      resetCssTransform(overlayRoot);
+      resetCssTransform(this.overlayRoot);
       this.repositionOverlay();
     }
 
@@ -99,8 +100,8 @@ class BottomLeftCornerOverlay extends Overlay {
       tableHeight = 0;
     }
 
-    overlayRoot.style.height = `${tableHeight}px`;
-    overlayRoot.style.width = `${tableWidth}px`;
+    this.overlayRoot.style.height = `${tableHeight}px`;
+    this.overlayRoot.style.width = `${tableWidth}px`;
 
     return false;
   }
