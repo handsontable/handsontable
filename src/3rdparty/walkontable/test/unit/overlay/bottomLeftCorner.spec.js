@@ -11,7 +11,7 @@ describe('bottomLeftCornerOverlay', () => {
 
     holder.appendChild(wttable);
     div.appendChild(holder);
-    const tt = new Walkontable({
+    const walkontable = new Walkontable({
       data: {},
       table: wttable,
       totalRows: {},
@@ -19,7 +19,7 @@ describe('bottomLeftCornerOverlay', () => {
     });
     Overlay.registerOverlay('bottom_left_corner', BottomLeftCornerOverlay);
     Overlay.registerOverlay('top_left_corner', TopLeftCornerOverlay);
-    const bottomLeftCornerOverlay = new BottomLeftCornerOverlay(tt);
+    const bottomLeftCornerOverlay = new BottomLeftCornerOverlay(walkontable);
     bottomLeftCornerOverlay.resetFixedPosition();
 
     expect(bottomLeftCornerOverlay.overlayRoot.style.transform).toBe('translate3d(0px,0px,0)');
