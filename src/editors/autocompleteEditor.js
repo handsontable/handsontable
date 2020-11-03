@@ -122,12 +122,9 @@ class AutocompleteEditor extends HandsontableEditor {
             match = cellValue.substr(indexOfMatch, query.length);
             cellValue = cellValue.replace(match, `<strong>${match}</strong>`);
           }
-
-          TD.innerHTML = sanitize(cellValue);
-        } else {
-          TD.innerHTML = cellValue;
         }
 
+        TD.innerHTML = sanitize(cellValue);
       },
       autoColumnSize: true,
     });
