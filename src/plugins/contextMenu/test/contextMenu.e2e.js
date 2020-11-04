@@ -290,6 +290,32 @@ describe('ContextMenu', () => {
       expect(hot.selection.isInProgress()).toBe(false);
     });
 
+    it('should render context menu on the left and bottom with 1px offset', () => {
+      const hot = handsontable({
+        contextMenu: [],
+        startCols: 10,
+        colWidths: 150,
+      });
+
+      // We have to be sure we will have enough place on the right and below of { 0, 9 }
+      // to render there context menu
+      selectCell(4, 9);
+
+      const cell = getCell(0, 9);
+      const cellOffset = $(cell).offset();
+
+      $(cell).simulate('mousedown', { button: 2 });
+      $(cell).simulate('contextmenu', {
+        clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hot.rootWindow),
+        clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hot.rootWindow),
+      });
+
+      const $contextMenu = $(document.body).find('.htContextMenu:visible');
+
+      expect($contextMenu.length).toBe(1);
+      expect($contextMenu.offset().top).toBe(cellOffset.top + 1);
+    });
+
     it('should call every selection hooks after right click on table cell', () => {
       const hot = handsontable({
         contextMenu: true,
