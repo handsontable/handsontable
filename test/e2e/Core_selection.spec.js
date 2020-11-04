@@ -2545,5 +2545,39 @@ describe('Core_selection', () => {
         | - ║   :   :   : 0 : 0 : 0 :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should trim the selection to the table size after removing rows', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectAll();
+
+      expect(getSelected()).toEqual([[-1, -1, 9, 9]]);
+
+      alter('remove_row', 0, 5);
+
+      expect(getSelected()).toEqual([[-1, -1, 4, 9]]);
+    });
+
+    it('should trim the selection to the table size after removing columns', () => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 10,
+        startCols: 10
+      });
+
+      selectAll();
+
+      expect(getSelected()).toEqual([[-1, -1, 9, 9]]);
+
+      alter('remove_col', 0, 5);
+
+      expect(getSelected()).toEqual([[-1, -1, 9, 4]]);
+    });
   });
 });

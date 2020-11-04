@@ -338,8 +338,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
      */
     alter(action, index, amount = 1, source, keepEmptyRows) {
-      let delta;
+      const trimSelectionToTableSize = () => {
+        const currentSelectedRange = selection.selectedRange.current();
+        const currentRowCount = instance.countRows();
+        const currentColumnCount = instance.countCols();
 
+        selection.getSelectedRange().pop();
+
+        selection.setRangeStartOnly(
+          new CellCoords(currentSelectedRange.from.row, currentSelectedRange.from.col),
+          true
+        );
+
+        if (selection.isSelectedByCorner()) {
+          selection.selectedByRowHeader.add(selection.getLayerLevel());
+          selection.selectedByColumnHeader.add(selection.getLayerLevel());
+
+        } else if (selection.isSelectedByRowHeader()) {
+          selection.selectedByRowHeader.add(selection.getLayerLevel());
+
+        } else if (selection.isSelectedByColumnHeader()) {
+          selection.selectedByColumnHeader.add(selection.getLayerLevel());
+        }
+
+        selection.setRangeEnd(
+          new CellCoords(Math.min(currentSelectedRange.to.row, currentRowCount - 1),
+            Math.min(currentSelectedRange.to.col, currentColumnCount - 1))
+        );
+      };
       const normalizeIndexesGroup = (indexes) => {
         if (indexes.length === 0) {
           return [];
@@ -375,6 +401,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
         return normalizedIndexes;
       };
+      let delta;
+      let actionPerformed;
 
       /* eslint-disable no-case-declarations */
       switch (action) {
@@ -462,8 +490,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
           break;
 
         case 'remove_row':
-
           const removeRow = (indexes) => {
+            const wasAnythingRemoved = [];
             let offset = 0;
 
             // Normalize the {index, amount} groups into bigger groups.
@@ -480,6 +508,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeRow breaks the removing functionality.
               const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
+
+              wasAnythingRemoved.push(wasRemoved);
 
               if (!wasRemoved) {
                 return;
@@ -502,21 +532,38 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               offset += groupAmount;
             });
+
+            return wasAnythingRemoved.includes(true);
           };
 
+          actionPerformed = false;
+
           if (Array.isArray(index)) {
-            removeRow(normalizeIndexesGroup(index));
+            actionPerformed = removeRow(normalizeIndexesGroup(index));
+
           } else {
-            removeRow([[index, amount]]);
+            actionPerformed = removeRow([[index, amount]]);
           }
 
-          grid.adjustRowsAndCols();
-          instance._refreshBorders(); // it will call render and prepare methods
+          if (actionPerformed) {
+            grid.adjustRowsAndCols();
+
+            const currentSelectedRange = selection.selectedRange.current();
+            const currentRowCount = instance.countRows();
+
+            if (isDefined(currentSelectedRange) && currentSelectedRange.to.row >= currentRowCount) {
+              trimSelectionToTableSize();
+
+            } else {
+              instance._refreshBorders(); // it will call render and prepare methods
+            }
+          }
           break;
 
         case 'remove_col':
 
           const removeCol = (indexes) => {
+            const wasAnythingRemoved = [];
             let offset = 0;
 
             // Normalize the {index, amount} groups into bigger groups.
@@ -534,6 +581,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               // TODO: for datamap.removeCol index should be passed as it is (with undefined and null values). If not, the logic
               // inside the datamap.removeCol breaks the removing functionality.
               const wasRemoved = datamap.removeCol(groupIndex, groupAmount, source);
+
+              wasAnythingRemoved.push(wasRemoved);
 
               if (!wasRemoved) {
                 return;
@@ -556,16 +605,32 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               offset += groupAmount;
             });
+
+            return wasAnythingRemoved.includes(true);
           };
 
+          actionPerformed = false;
+
           if (Array.isArray(index)) {
-            removeCol(normalizeIndexesGroup(index));
+            actionPerformed = removeCol(normalizeIndexesGroup(index));
+
           } else {
-            removeCol([[index, amount]]);
+            actionPerformed = removeCol([[index, amount]]);
           }
 
-          grid.adjustRowsAndCols();
-          instance._refreshBorders(); // it will call render and prepare methods
+          if (actionPerformed) {
+            grid.adjustRowsAndCols();
+
+            const currentSelectedRange = selection.selectedRange.current();
+            const currentColumnCount = instance.countCols();
+
+            if (isDefined(currentSelectedRange) && currentSelectedRange.to.col >= currentColumnCount) {
+              trimSelectionToTableSize();
+
+            } else {
+              instance._refreshBorders(); // it will call render and prepare methods
+            }
+          }
 
           break;
         default:
