@@ -28,4 +28,25 @@ describe('HTMLRenderer', () => {
     expect($('.handsontable table tr:last-child td:eq(4)').html()).toEqual('');
     expect($('.handsontable table tr:last-child td:eq(5)').html()).toEqual('');
   });
+
+  it('should allow render the html without sanitizing the content', async() => {
+    const onErrorSpy = spyOn(window, 'onerror');
+
+    handsontable({
+      // target="_blank" - can cause vulnerabilities in access to the window object (filtered by DOMPurify)
+      data: [
+        ['<b>foo <span>zip</span></b>', '<i>bar</i><img src onerror="boom()">', '<a href="#" target="_blank">baz</a>']
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: 'html'
+    });
+
+    await sleep(100);
+
+    expect(onErrorSpy).toHaveBeenCalled();
+    expect($('.handsontable table tr:last-child td:eq(0)').html()).toEqual('<b>foo <span>zip</span></b>');
+    expect($('.handsontable table tr:last-child td:eq(1)').html()).toEqual('<i>bar</i><img src="" onerror="boom()">');
+    expect($('.handsontable table tr:last-child td:eq(2)').html()).toEqual('<a href="#" target="_blank">baz</a>');
+  });
 });
