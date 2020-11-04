@@ -417,12 +417,15 @@ describe('DropdownEditor', () => {
 
   describe('allow html mode', () => {
     it('should allow render the html items without sanitizing the content', async() => {
-      const onErrorSpy = spyOn(window, 'onerror');
       const hot = handsontable({
         columns: [
           {
             type: 'dropdown',
-            source: ['<b>foo <span>zip</span></b>', '<i>bar</i><img src onerror="boom()">', '<strong>baz</strong>'],
+            source: [
+              '<b>foo <span>zip</span></b>',
+              '<i>bar</i><img src onerror="__xssTestInjection = true">',
+              '<strong>baz</strong>'
+            ],
             allowHtml: true,
           }
         ]
@@ -436,23 +439,28 @@ describe('DropdownEditor', () => {
       const ac = hot.getActiveEditor();
       const innerHot = ac.htEditor;
 
-      expect(onErrorSpy).toHaveBeenCalled();
+      expect(window.__xssTestInjection).toBe(true);
       expect(innerHot.getData()).toEqual([
         ['<b>foo <span>zip</span></b>'],
-        ['<i>bar</i><img src onerror="boom()">'],
+        ['<i>bar</i><img src onerror="__xssTestInjection = true">'],
         ['<strong>baz</strong>'],
       ]);
+
+      delete window.__xssTestInjection;
     });
   });
 
   describe('disallow html mode', () => {
     it('should strip HTML content', async() => {
-      const onErrorSpy = spyOn(window, 'onerror');
       const hot = handsontable({
         columns: [
           {
             type: 'dropdown',
-            source: ['<b>foo <span>zip</span></b>', '<i>bar</i><img src onerror="boom()">', '<strong>baz</strong>'],
+            source: [
+              '<b>foo <span>zip</span></b>',
+              '<i>bar</i><img src onerror="__xssTestInjection = true">',
+              '<strong>baz</strong>'
+            ],
             allowHtml: false,
           }
         ]
@@ -466,12 +474,14 @@ describe('DropdownEditor', () => {
       const ac = hot.getActiveEditor();
       const innerHot = ac.htEditor;
 
-      expect(onErrorSpy).not.toHaveBeenCalled();
+      expect(window.__xssTestInjection).toBeUndefined();
       expect(innerHot.getData()).toEqual([
         ['foo zip'],
         ['bar'],
         ['baz'],
       ]);
+
+      delete window.__xssTestInjection;
     });
   });
 
