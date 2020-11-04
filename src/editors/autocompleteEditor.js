@@ -1,6 +1,6 @@
 import { KEY_CODES, isPrintableChar } from './../helpers/unicode';
 import { stringify, isDefined } from './../helpers/mixed';
-import { sanitize, stripTags } from './../helpers/string';
+import { stripTags } from './../helpers/string';
 import { pivot, arrayMap } from './../helpers/array';
 import { getRenderer } from '../renderers';
 import {
@@ -124,7 +124,7 @@ class AutocompleteEditor extends HandsontableEditor {
           }
         }
 
-        TD.innerHTML = sanitize(cellValue);
+        TD.innerHTML = cellValue;
       },
       autoColumnSize: true,
     });

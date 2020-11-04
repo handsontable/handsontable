@@ -2293,6 +2293,38 @@ describe('AutocompleteEditor', () => {
         done();
       }, 700);
     });
+
+    it('should allow render the html items without sanitizing the content', async () => {
+      const onErrorSpy = spyOn(window, 'onerror');
+      const hot = handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['<b>foo <span>zip</span></b>', '<i>bar</i><img src onerror="boom()">', '<strong>baz</strong>'],
+            allowHtml: true,
+          }
+        ]
+      });
+
+      selectCell(0, 0);
+      const editorInput = $('.handsontableInput');
+
+      expect(getDataAtCell(0, 0)).toBeNull();
+
+      keyDownUp('enter');
+
+      await sleep(200);
+
+      const ac = hot.getActiveEditor();
+      const innerHot = ac.htEditor;
+
+      expect(onErrorSpy).toHaveBeenCalled();
+      expect(innerHot.getData()).toEqual([
+        ['<b>foo <span>zip</span></b>'],
+        ['<i>bar</i><img src onerror="boom()">'],
+        ['<strong>baz</strong>'],
+      ]);
+    });
   });
 
   describe('disallow html mode', () => {
