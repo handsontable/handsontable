@@ -2294,7 +2294,7 @@ describe('AutocompleteEditor', () => {
       }, 700);
     });
 
-    it('should allow render the html items without sanitizing the content', async () => {
+    it('should allow render the html items without sanitizing the content', async() => {
       const onErrorSpy = spyOn(window, 'onerror');
       const hot = handsontable({
         columns: [
@@ -2307,10 +2307,6 @@ describe('AutocompleteEditor', () => {
       });
 
       selectCell(0, 0);
-      const editorInput = $('.handsontableInput');
-
-      expect(getDataAtCell(0, 0)).toBeNull();
-
       keyDownUp('enter');
 
       await sleep(200);

@@ -896,7 +896,6 @@ describe('CopyPaste', () => {
         '<table><tr></tr></table><img src onerror="boom()">'
       ].join('\r\n'));
 
-
       selectCell(0, 0);
 
       plugin.onPaste(clipboardEvent);
