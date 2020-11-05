@@ -46,11 +46,11 @@ describe('HTMLRenderer', () => {
 
     await sleep(100);
 
-    expect($('.handsontable table tr:last-child td:eq(0)').html())
+    expect(getMaster().find('table tr:last-child td:eq(0)').html())
       .toBe('<b>foo <span>zip</span></b>');
-    expect($('.handsontable table tr:last-child td:eq(1)').html())
+    expect(getMaster().find('table tr:last-child td:eq(1)').html())
       .toBe('<i>bar</i><img src="" onerror="">');
-    expect($('.handsontable table tr:last-child td:eq(2)').html())
+    expect(getMaster().find('table tr:last-child td:eq(2)').html())
       .toBe('<a href="#" target="_blank">baz</a>');
   });
 });
