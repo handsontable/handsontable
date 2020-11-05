@@ -1,6 +1,6 @@
 import { ColumnStatesManager } from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { DESC_SORT_STATE, ASC_SORT_STATE } from 'handsontable/plugins/columnSorting/utils';
-import { getClassesToAdd, getClassedToRemove } from 'handsontable/plugins/multiColumnSorting/domHelpers';
+import { getClassesToAdd, getClassesToRemove } from 'handsontable/plugins/multiColumnSorting/domHelpers';
 import { IndexMapper } from 'handsontable/translations';
 
 const hotMock = {
@@ -32,7 +32,7 @@ describe('MultiColumnSorting DOM helpers', () => {
     });
   });
 
-  describe('getClassedToRemove', () => {
+  describe('getClassesToRemove', () => {
     it('should return all calculated classes', () => {
       const columnStatesManager = new ColumnStatesManager(hotMock);
 
@@ -45,11 +45,11 @@ describe('MultiColumnSorting DOM helpers', () => {
 
       const htmlElementMock = { className: 'columnSorting sort-1 sort-2 sort-3 sort-4 sortAction' };
 
-      expect(getClassedToRemove(htmlElementMock).length).toEqual(4);
-      expect(getClassedToRemove(htmlElementMock).includes('sort-1')).toBeTruthy();
-      expect(getClassedToRemove(htmlElementMock).includes('sort-2')).toBeTruthy();
-      expect(getClassedToRemove(htmlElementMock).includes('sort-3')).toBeTruthy();
-      expect(getClassedToRemove(htmlElementMock).includes('sort-4')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).length).toEqual(4);
+      expect(getClassesToRemove(htmlElementMock).includes('sort-1')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).includes('sort-2')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).includes('sort-3')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).includes('sort-4')).toBeTruthy();
 
       columnStatesManager.destroy(); // Unregister already registered Index Map.
     });

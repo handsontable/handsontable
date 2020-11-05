@@ -30,7 +30,7 @@ export function getClassesToAdd(columnStatesManager, column, showSortIndicator) 
  * @param {HTMLElement} htmlElement An element to process.
  * @returns {Array} Array of CSS classes.
  */
-export function getClassedToRemove(htmlElement) {
+export function getClassesToRemove(htmlElement) {
   const cssClasses = htmlElement.className.split(' ');
   const sortSequenceRegExp = new RegExp(`^${COLUMN_ORDER_PREFIX}-[0-9]{1,2}$`);
 
