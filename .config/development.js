@@ -65,7 +65,8 @@ module.exports.create = function create(envArgs) {
 
   configFull.forEach(function(c) {
     c.output.filename = PACKAGE_FILENAME + '.full.js';
-    // Export these dependencies to the window object.
+    // Export these dependencies to the window object. So they can be custom configured
+    // before the Handsontable initializiation.
     c.module.rules.unshift({
       test: /numbro/,
       use: [
