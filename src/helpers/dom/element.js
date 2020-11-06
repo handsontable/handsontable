@@ -259,6 +259,7 @@ if (isClassListSupported()) {
   };
 
   _removeClass = function(element, classes) {
+    const rootDocument = element.ownerDocument;
     let className = classes;
 
     if (typeof className === 'string') {
@@ -268,7 +269,7 @@ if (isClassListSupported()) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         element.classList.remove(...className);
 
       } else {
@@ -407,10 +408,11 @@ export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
+ * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
  */
-export function fastInnerHTML(element, content) {
+export function fastInnerHTML(element, content, sanitizeContent = true) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = sanitize(content);
+    element.innerHTML = sanitizeContent ? sanitize(content) : content;
   } else {
     fastInnerText(element, content);
   }

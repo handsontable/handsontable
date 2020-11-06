@@ -1,6 +1,6 @@
 import { ColumnStatesManager } from 'handsontable/plugins/columnSorting/columnStatesManager';
 import { DESC_SORT_STATE, ASC_SORT_STATE } from 'handsontable/plugins/columnSorting/utils';
-import { getClassesToAdd, getClassedToRemove } from 'handsontable/plugins/columnSorting/domHelpers';
+import { getClassesToAdd, getClassesToRemove } from 'handsontable/plugins/columnSorting/domHelpers';
 import { IndexMapper } from 'handsontable/translations';
 
 const hotMock = {
@@ -70,7 +70,7 @@ describe('ColumnSorting DOM helpers', () => {
     });
   });
 
-  describe('getClassedToRemove', () => {
+  describe('getClassesToRemove', () => {
     it('should return all calculated classes', () => {
       const columnStatesManager = new ColumnStatesManager(hotMock);
 
@@ -80,12 +80,12 @@ describe('ColumnSorting DOM helpers', () => {
 
       const htmlElementMock = { className: 'columnSorting sortAction' };
 
-      expect(getClassedToRemove(htmlElementMock).length).toEqual(5);
-      expect(getClassedToRemove(htmlElementMock).includes('columnSorting')).toBeTruthy();
-      expect(getClassedToRemove(htmlElementMock).includes('indicatorDisabled')).toBeTruthy();
-      expect(getClassedToRemove(htmlElementMock).includes('sortAction')).toBeTruthy();
-      expect(getClassedToRemove(htmlElementMock).includes('ascending')).toBeTruthy();
-      expect(getClassedToRemove(htmlElementMock).includes('descending')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).length).toEqual(5);
+      expect(getClassesToRemove(htmlElementMock).includes('columnSorting')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).includes('indicatorDisabled')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).includes('sortAction')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).includes('ascending')).toBeTruthy();
+      expect(getClassesToRemove(htmlElementMock).includes('descending')).toBeTruthy();
 
       columnStatesManager.destroy(); // Unregister already registered Index Map.
     });
