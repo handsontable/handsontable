@@ -259,6 +259,7 @@ if (isClassListSupported()) {
   };
 
   _removeClass = function(element, classes) {
+    const rootDocument = element.ownerDocument;
     let className = classes;
 
     if (typeof className === 'string') {
@@ -268,7 +269,7 @@ if (isClassListSupported()) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         element.classList.remove(...className);
 
       } else {
