@@ -59,6 +59,25 @@ it('should work with get, and set functions properly', () => {
   expect(indexToValueMap.getLength()).toBe(3);
 });
 
+it('should work with set function properly (working with the "position" argument)', () => {
+  const indexToValueMap = new IndexToValueMap();
+
+  indexToValueMap.init(5);
+  indexToValueMap.setValueAtIndex(0, 2);
+  indexToValueMap.setValueAtIndex(2, 0);
+  indexToValueMap.setValueAtIndex(1, 1);
+
+  expect(indexToValueMap.orderOfIndexes).toEqual([0, 2, 1]);
+
+  indexToValueMap.setValueAtIndex(4, 3, 0);
+
+  expect(indexToValueMap.orderOfIndexes).toEqual([4, 0, 2, 1]);
+
+  indexToValueMap.setValueAtIndex(3, 4, 2);
+
+  expect(indexToValueMap.orderOfIndexes).toEqual([4, 0, 3, 2, 1]);
+});
+
 it('should init map properly when passing function as initialization property', () => {
   const indexToValueMap = new IndexToValueMap(index => ({ key: index }));
 
