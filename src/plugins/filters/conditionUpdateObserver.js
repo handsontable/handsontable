@@ -16,7 +16,13 @@ import { createArrayAssertion } from './utils';
  * @plugin Filters
  */
 class ConditionUpdateObserver {
-  constructor(conditionCollection, columnDataFactory = () => [], hot) {
+  constructor(hot, conditionCollection, columnDataFactory = () => []) {
+    /**
+     * Handsontable instance.
+     *
+     * @type {Core}
+     */
+    this.hot = hot;
     /**
      * Reference to the instance of {@link ConditionCollection}.
      *
@@ -55,12 +61,6 @@ class ConditionUpdateObserver {
      * @type {Array}
      */
     this.latestOrderStack = [];
-    /**
-     * Handsontable instance.
-     *
-     * @type {Core}
-     */
-    this.hot = hot;
 
     this.conditionCollection.addLocalHook('beforeRemove', column => this._onConditionBeforeModify(column));
     this.conditionCollection.addLocalHook('afterRemove', column => this.updateStatesAtColumn(column));

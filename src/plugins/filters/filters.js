@@ -199,9 +199,9 @@ class Filters extends BasePlugin {
     }
     if (!this.conditionUpdateObserver) {
       this.conditionUpdateObserver = new ConditionUpdateObserver(
+        this.hot,
         this.conditionCollection,
         column => this.getDataMapAtColumn(column),
-        this.hot
       );
       this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
