@@ -14,7 +14,7 @@ import { getRenderer } from './index';
 function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
   getRenderer('base').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
-  fastInnerHTML(TD, value === null || value === void 0 ? '' : value);
+  fastInnerHTML(TD, value === null || value === void 0 ? '' : value, false);
 }
 
 export default htmlRenderer;

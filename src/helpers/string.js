@@ -96,6 +96,6 @@ export function stripTags(string) {
  * @param {object} [options] DOMPurify's configuration object.
  * @returns {string}
  */
-export function sanitize(string, options = { PROFILES: { html: true } }) {
+export function sanitize(string, options) {
   return purifySanitize(string, options);
 }
