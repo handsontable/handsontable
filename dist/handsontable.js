@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.2.0
- * Release date: 05/11/2020 (built at 30/10/2020 14:58:53)
+ * Release date: 12/11/2020 (built at 06/11/2020 09:30:54)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -1553,6 +1553,7 @@ if ((0, _feature.isClassListSupported)()) {
   };
 
   _removeClass = function _removeClass(element, classes) {
+    var rootDocument = element.ownerDocument;
     var className = classes;
 
     if (typeof className === 'string') {
@@ -1562,7 +1563,7 @@ if ((0, _feature.isClassListSupported)()) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         var _element$classList2;
 
         (_element$classList2 = element.classList).remove.apply(_element$classList2, (0, _toConsumableArray2.default)(className));
@@ -1706,13 +1707,16 @@ var HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
+ * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
  */
 
 exports.HTML_CHARACTERS = HTML_CHARACTERS;
 
 function fastInnerHTML(element, content) {
+  var sanitizeContent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = (0, _string.sanitize)(content);
+    element.innerHTML = sanitizeContent ? (0, _string.sanitize)(content) : content;
   } else {
     fastInnerText(element, content);
   }
@@ -3366,7 +3370,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("05/11/2020", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("12/11/2020", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -9278,12 +9282,7 @@ function stripTags(string) {
  */
 
 
-function sanitize(string) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-    PROFILES: {
-      html: true
-    }
-  };
+function sanitize(string, options) {
   return (0, _dompurify.sanitize)(string, options);
 }
 
@@ -29652,11 +29651,9 @@ var AutocompleteEditor = /*#__PURE__*/function (_HandsontableEditor) {
               match = cellValue.substr(indexOfMatch, query.length);
               cellValue = cellValue.replace(match, "<strong>".concat(match, "</strong>"));
             }
-
-            TD.innerHTML = (0, _string.sanitize)(cellValue);
-          } else {
-            TD.innerHTML = cellValue;
           }
+
+          TD.innerHTML = cellValue;
         },
         autoColumnSize: true
       });
@@ -42848,7 +42845,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "30/10/2020 14:58:53";
+Handsontable.buildDate = "06/11/2020 09:30:54";
 Handsontable.version = "8.2.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
@@ -47952,7 +47949,7 @@ var _index = __webpack_require__(51);
  */
 function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
   (0, _index.getRenderer)('base').apply(this, [instance, TD, row, col, prop, value, cellProperties]);
-  (0, _element.fastInnerHTML)(TD, value === null || value === void 0 ? '' : value);
+  (0, _element.fastInnerHTML)(TD, value === null || value === void 0 ? '' : value, false);
 }
 
 var _default = htmlRenderer;
