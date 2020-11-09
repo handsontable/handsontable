@@ -284,6 +284,23 @@ describe('ConditionCollection', () => {
     });
   });
 
+  describe('getColumnStackPosition', () => {
+    it('should return column position in the stack', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionMock = { args: ['A'], command: { key: 'gt' } };
+
+      conditionCollection.addCondition(1, conditionMock, OPERATION_OR);
+      conditionCollection.addCondition(3, conditionMock, OPERATION_OR);
+      conditionCollection.addCondition(2, conditionMock, OPERATION_OR);
+
+      expect(conditionCollection.getColumnStackPosition(0)).toBeUndefined();
+      expect(conditionCollection.getColumnStackPosition(1)).toBe(0);
+      expect(conditionCollection.getColumnStackPosition(2)).toBe(2);
+      expect(conditionCollection.getColumnStackPosition(3)).toBe(1);
+      expect(conditionCollection.getColumnStackPosition(4)).toBeUndefined();
+    });
+  });
+
   describe('getOperation', () => {
     it('should return proper operation for particular column', () => {
       const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
