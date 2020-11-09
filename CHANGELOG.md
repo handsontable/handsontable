@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue, where calling the validation-triggering methods on a `hiddenColumns`-enabled Handsontable instance rendered the validated cells improperly. [#7301](https://github.com/handsontable/handsontable/issues/7301)
 - Fixed an issue, where adding 0 rows to the table ended with doubled entries in indexMappers' collections. [#7326](https://github.com/handsontable/handsontable/issues/7326)
 - Fix a problem with the inconsistent behavior of the Context Menu's "Clear column" disabled status. [#7003](https://github.com/handsontable/handsontable/issues/7003)
+- Fix a bug with parsing multiline cells on pasting `text/html` mime-type. [#7369](https://github.com/handsontable/handsontable/issues/7369)
 
 ## [8.1.0] - 2020-10-01
 
