@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.2.0
- * Release date: 12/11/2020 (built at 06/11/2020 09:30:54)
+ * Release date: 12/11/2020 (built at 09/11/2020 11:35:30)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -19411,8 +19411,6 @@ exports.htmlToGridSettings = htmlToGridSettings;
 
 var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(33));
 
-var _element = __webpack_require__(11);
-
 var _mixed = __webpack_require__(23);
 
 var ESCAPED_HTML_CHARS = {
@@ -19581,18 +19579,6 @@ function htmlToGridSettings(element) {
     return;
   }
 
-  var styleElem = tempElem.querySelector('style');
-  var styleSheet = null;
-  var styleSheetArr = [];
-
-  if (styleElem) {
-    rootDocument.body.appendChild(styleElem);
-    styleElem.disabled = true;
-    styleSheet = styleElem.sheet;
-    styleSheetArr = styleSheet ? Array.from(styleSheet.cssRules) : [];
-    rootDocument.body.removeChild(styleElem);
-  }
-
   var generator = tempElem.querySelector('meta[name$="enerator"]');
   var hasRowHeaders = checkElement.querySelector('tbody th') !== null;
   var trElement = checkElement.querySelector('tr');
@@ -19676,7 +19662,7 @@ function htmlToGridSettings(element) {
     var cells = Array.from(tr.cells);
     var cellsLen = cells.length;
 
-    var _loop = function _loop(cellId) {
+    for (var cellId = 0; cellId < cellsLen; cellId++) {
       var cell = cells[cellId];
       var nodeName = cell.nodeName,
           innerHTML = cell.innerHTML,
@@ -19709,22 +19695,9 @@ function htmlToGridSettings(element) {
           }
         }
 
-        var cellStyle = styleSheetArr.reduce(function (settings, cssRule) {
-          if ((0, _element.matchesCSSRules)(cell, cssRule)) {
-            var whiteSpace = cssRule.style.whiteSpace;
-
-            if (whiteSpace) {
-              settings.whiteSpace = whiteSpace;
-            }
-          }
-
-          return settings;
-        }, {});
         var cellValue = '';
 
-        if (cellStyle.whiteSpace === 'nowrap') {
-          cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/gim, '\x20').replace(/<br(\s*|\/)>/gim, '\r\n');
-        } else if (generator && /excel/gi.test(generator.content)) {
+        if (generator && /excel/gi.test(generator.content)) {
           cellValue = innerHTML.replace(/[\r\n][\x20]{0,2}/g, '\x20').replace(/<br(\s*|\/)>[\r\n]?[\x20]{0,3}/gim, '\r\n');
         } else {
           cellValue = innerHTML.replace(/<br(\s*|\/)>[\r\n]?/gim, '\r\n');
@@ -19736,10 +19709,6 @@ function htmlToGridSettings(element) {
       } else {
         rowHeaders.push(innerHTML);
       }
-    };
-
-    for (var cellId = 0; cellId < cellsLen; cellId++) {
-      _loop(cellId);
     }
   }
 
@@ -42845,7 +42814,7 @@ Handsontable._getListenersCounter = _eventManager.getListenersCounter; // For Me
 Handsontable._getRegisteredMapsCounter = _mapCollection.getRegisteredMapsCounter; // For MemoryLeak tests
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "06/11/2020 09:30:54";
+Handsontable.buildDate = "09/11/2020 11:35:30";
 Handsontable.version = "8.2.0"; // Export Hooks singleton
 
 Handsontable.hooks = _pluginHooks.default.getSingleton(); // TODO: Remove this exports after rewrite tests about this module
