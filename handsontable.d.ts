@@ -514,12 +514,13 @@ declare namespace Handsontable {
       }
 
       interface ConditionCollection {
-        addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType): void;
+        addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType, position?: number): void;
         clean(): void;
         destroy(): void;
         exportAllConditions(): ConditionId[];
         getConditions(column: number): Condition[];
         getFilteredColumns(): number[];
+        getColumnStackPosition(column: number): number | void;
         getOperation(column: number): void | OperationType;
         hasConditions(column: number, name: string): boolean;
         isEmpty(): boolean;
@@ -739,6 +740,7 @@ declare namespace Handsontable {
       callOnPluginsReady(callback: () => void): void;
       clearHooks(): void;
       destroy(): void;
+      isEnabled(): boolean;
       disablePlugin(): void;
       enablePlugin(): void;
       updatePlugin(): void;
@@ -1000,7 +1002,7 @@ declare namespace Handsontable {
       trimRowsPlugin: TrimRows | void;
       valueComponent: FiltersPlugin.ValueComponent | void;
 
-      addCondition(column: number, name: string, args: any[], operationId: FiltersPlugin.OperationType): void;
+      addCondition(column: number, name: string, args: any[], operationId?: FiltersPlugin.OperationType): void;
       clearColumnSelection(): void;
       clearConditions(column?: number | void): void;
       getDataMapAtColumn(column: number): FiltersPlugin.CellLikeData[];

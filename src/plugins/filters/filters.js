@@ -610,26 +610,20 @@ class Filters extends BasePlugin {
 
       this.conditionUpdateObserver.groupChanges();
 
-      const filteredColumns = this.conditionCollection.getFilteredColumns();
-      const indexOfFilteredColumn = filteredColumns.indexOf(physicalIndex);
-      let positionForAdd;
-
-      if (indexOfFilteredColumn !== -1) {
-        positionForAdd = indexOfFilteredColumn;
-      }
+      const columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
 
       this.conditionCollection.removeConditions(physicalIndex);
 
       if (byConditionState1.command.key !== CONDITION_NONE) {
-        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation, positionForAdd);
+        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation, columnStackPosition);
 
         if (byConditionState2.command.key !== CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation, positionForAdd);
+          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation, columnStackPosition);
         }
       }
 
       if (byValueState.command.key !== CONDITION_NONE) {
-        this.conditionCollection.addCondition(physicalIndex, byValueState, operation, positionForAdd);
+        this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
       this.conditionUpdateObserver.flush();

@@ -184,7 +184,6 @@ describe('ConditionCollection', () => {
 
     it('should add conditions to the collection at specified column index.', () => {
       const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
-
       const conditionMock = { args: [1], command: { key: 'eq' } };
 
       conditionCollection.addCondition(3, conditionMock);
@@ -192,6 +191,24 @@ describe('ConditionCollection', () => {
       expect(conditionCollection.filteringStates.getEntries().length).toBe(1);
       expect(conditionCollection.filteringStates.getValueAtIndex(3)).not.toBe(null);
       expect(conditionCollection.filteringStates.getValueAtIndex(0)).toBe(null);
+    });
+
+    it('should add conditions to the collection at specified column index and position.', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionMock = { args: [1], command: { key: 'eq' } };
+
+      conditionCollection.addCondition(1, conditionMock, OPERATION_AND);
+      conditionCollection.addCondition(2, conditionMock, OPERATION_AND);
+      conditionCollection.addCondition(3, conditionMock, OPERATION_AND, 1);
+      conditionCollection.addCondition(4, conditionMock, OPERATION_AND, 0);
+
+      const entries = conditionCollection.filteringStates.getEntries();
+
+      expect(entries.length).toBe(4);
+      expect(entries[0][0]).toBe(4);
+      expect(entries[1][0]).toBe(1);
+      expect(entries[2][0]).toBe(3);
+      expect(entries[3][0]).toBe(2);
     });
 
     it('should allow to add few condition under the same name and column index #160', () => {

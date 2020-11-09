@@ -85,7 +85,7 @@ class ConditionCollection {
    *  * `command` Object, Command object with condition name as `key` property.
    *  * `args` Array, Condition arguments.
    * @param {string} [operation='conjunction'] Type of conditions operation.
-   * @param {number|undefined} position Position to which condition will be added. When argument is undefined
+   * @param {number} [position] Position to which condition will be added. When argument is undefined
    * the condition will be processed as the last condition.
    * @fires ConditionCollection#beforeAdd
    * @fires ConditionCollection#afterAdd
@@ -153,6 +153,18 @@ class ConditionCollection {
    */
   getFilteredColumns() {
     return this.filteringStates.getEntries().map(([physicalColumn]) => physicalColumn);
+  }
+
+  /**
+   * Gets position in the filtering states stack for the specific column.
+   *
+   * @param {number} column The physical column index.
+   * @returns {number|undefined}
+   */
+  getColumnStackPosition(column) {
+    const position = this.getFilteredColumns().indexOf(column);
+
+    return position === -1 ? void 0 : position;
   }
 
   /**
