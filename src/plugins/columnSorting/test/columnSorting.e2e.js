@@ -1555,7 +1555,7 @@ describe('ColumnSorting', () => {
     spec().$container2.remove();
   });
 
-  it('should return updated data at specyfied row after sorted', () => {
+  it('should return updated data at specified row after sorted', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1585,7 +1585,7 @@ describe('ColumnSorting', () => {
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
   });
 
-  it('should return updated data at specyfied col after sorted', () => {
+  it('should return updated data at specified col after sorted', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],

@@ -1,6 +1,5 @@
 import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
 import EditorManager from './editorManager';
@@ -950,10 +949,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     let shouldBeCanceled = true;
 
-    if (isFunction(beforeChangeResult)) {
-      warn('Your beforeChange callback returns a function. It\'s not supported since Handsontable 0.12.1 (and the returned function will not be executed).');
-
-    } else if (beforeChangeResult === false) {
+    if (beforeChangeResult === false) {
 
       if (activeEditor) {
         activeEditor.cancelChanges();
@@ -2445,9 +2441,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {number} column Visual column index.
    * @param {string} key Property name.
    * @param {string} value Property value.
+   * @fires Hooks#beforeSetCellMeta
    * @fires Hooks#afterSetCellMeta
    */
   this.setCellMeta = function(row, column, key, value) {
+    const allowSetCellMeta = instance.runHooks('beforeSetCellMeta', row, column, key, value);
+
+    if (allowSetCellMeta === false) {
+      return;
+    }
+
     let physicalRow = row;
     let physicalColumn = column;
 
@@ -2532,7 +2535,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Returns an array of cell meta objects for specyfied physical row index.
+   * Returns an array of cell meta objects for specified physical row index.
    *
    * @memberof Core#
    * @function getCellMetaAtRow

@@ -17,11 +17,7 @@ function cellDecorator(instance, TD, row, col, prop, value, cellProperties) {
   const classesToRemove = [];
 
   if (cellProperties.className) {
-    if (TD.className) {
-      TD.className = `${TD.className} ${cellProperties.className}`;
-    } else {
-      TD.className = cellProperties.className;
-    }
+    addClass(TD, cellProperties.className);
   }
 
   if (cellProperties.readOnly) {

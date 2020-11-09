@@ -253,6 +253,35 @@ describe('Object helper', () => {
 
       expect(deepObjectSize(toCount)).toEqual(8);
     });
+
+    it('should ignore the `__children` key, when calculating the object size', () => {
+      const toCount = {
+        prop1: 1,
+        prop2: 2,
+        prop3: {
+          prop31: {
+            prop311: 311,
+            prop312: 312
+          },
+          prop32: 32,
+          prop33: 33
+        },
+        prop4: 4,
+        prop5: 5,
+        __children: [
+          {
+            prop1: 1,
+            prop2: 2,
+          },
+          {
+            prop1: 1,
+            prop2: 2,
+          }
+        ]
+      };
+
+      expect(deepObjectSize(toCount)).toEqual(8);
+    });
   });
 
   //

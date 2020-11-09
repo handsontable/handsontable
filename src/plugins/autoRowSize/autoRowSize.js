@@ -223,7 +223,7 @@ class AutoRowSize extends BasePlugin {
 
   /**
    * Calculate all rows heights. The calculated row will be cached in the {@link AutoRowSize#heights} property.
-   * To retrieve height for specyfied row use {@link AutoRowSize#getRowHeight} method.
+   * To retrieve height for specified row use {@link AutoRowSize#getRowHeight} method.
    *
    * @param {object|number} colRange Row index or an object with `from` and `to` properties which define row range.
    */

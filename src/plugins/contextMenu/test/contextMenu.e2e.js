@@ -177,6 +177,30 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
+    it('should not open context menu after right click on inner htCore', async() => {
+      handsontable({
+        contextMenu: true,
+        height: 100
+      });
+
+      contextMenu();
+
+      let eventPrevented = false;
+      const rewriteEventPrevention = (e) => {
+        eventPrevented = e.defaultPrevented;
+      };
+
+      document.addEventListener('contextmenu', rewriteEventPrevention);
+
+      const contextMenuHtCore = $('.htContextMenu .ht_master .htCore')[0];
+      const contextmenuEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+
+      contextMenuHtCore.dispatchEvent(contextmenuEvent);
+      document.removeEventListener('contextmenu', rewriteEventPrevention);
+
+      expect(eventPrevented).toBe(true);
+    });
+
     it('should be possible to define a custom container for ContextMenu\'s UI elements', () => {
       const uiContainer = $('<div/>').addClass('uiContainer');
       spec().$container.append(uiContainer);
