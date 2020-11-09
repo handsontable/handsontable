@@ -169,12 +169,10 @@ class ConditionCollection {
    * Gets position in the filtering states stack for the specific column.
    *
    * @param {number} column The physical column index.
-   * @returns {number|undefined}
+   * @returns {number} Returns -1 when the column doesn't exist in the stack.
    */
   getColumnStackPosition(column) {
-    const position = this.getFilteredColumns().indexOf(column);
-
-    return position === -1 ? void 0 : position;
+    return this.getFilteredColumns().indexOf(column);
   }
 
   /**

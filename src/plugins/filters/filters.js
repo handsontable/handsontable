@@ -610,7 +610,11 @@ class Filters extends BasePlugin {
 
       this.conditionUpdateObserver.groupChanges();
 
-      const columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
+      let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
+
+      if (columnStackPosition === -1) {
+        columnStackPosition = void 0;
+      }
 
       this.conditionCollection.removeConditions(physicalIndex);
 
