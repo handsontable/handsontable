@@ -17,7 +17,7 @@ import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
-import { SkipMap } from '../../translations';
+import { TrimmingMap } from '../../translations';
 
 import './filters.css';
 
@@ -104,7 +104,7 @@ class Filters extends BasePlugin {
      * Map of skipped rows by plugin.
      *
      * @private
-     * @type {null|SkipMap}
+     * @type {null|TrimmingMap}
      */
     this.filtersRowsMap = null;
 
@@ -131,7 +131,7 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap('filters', new SkipMap());
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap('filters', new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
@@ -670,7 +670,7 @@ class Filters extends BasePlugin {
     const th = closest(event.target, 'TH');
 
     if (th) {
-      const visualIndex = this.hot.getCoords(th).col;
+      const visualIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(this.hot.getCoords(th).col);
       const physicalIndex = this.hot.toPhysicalColumn(visualIndex);
 
       this.lastSelectedColumn = {

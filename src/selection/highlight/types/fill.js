@@ -1,4 +1,4 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import VisualSelection from '../visualSelection';
 
 /**
  * Default border style used for fill selection highlight. The instance of
@@ -20,9 +20,11 @@ export { defaultBorderStyle };
  * @param {object} options Options object.
  * @returns {Selection}
  */
-function createHighlight({ BorderStyle }) {
+function createHighlight({ BorderStyle, visualToRenderableCoords, renderableToVisualCoords }) {
   const borderStyle = new BorderStyle();
-  const s = new Selection({
+  const s = new VisualSelection({
+    visualToRenderableCoords,
+    renderableToVisualCoords,
     className: 'fill',
     border: borderStyle,
   });

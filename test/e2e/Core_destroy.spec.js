@@ -89,7 +89,7 @@ describe('Core_destroy', () => {
 
     destroy();
 
-    // There is at least one plugin registering map which can change cache by its own map.
+    // There is at least one plugin registering map which can update cache by change in its own map.
     expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
 
     // There is no plugin which can change cache by its own map.

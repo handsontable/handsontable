@@ -1183,6 +1183,14 @@ describe('Core_alter', () => {
       expect(selected[0][0]).toBe(3);
       expect(selected[0][2]).toBe(3);
       expect(selected.length).toBe(1);
+      expect(`
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   : # :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      |   :   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should shift the cell meta according to the new row layout', () => {

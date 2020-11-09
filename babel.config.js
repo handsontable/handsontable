@@ -8,6 +8,7 @@ const allowedE2EModules = [
   '@babel/runtime/*',
   './htmlNormalize',
   './common',
+  './mouseEvents',
   './../bootstrap',
   './helpers/custom-matchers',
   './asciiTable',

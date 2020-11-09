@@ -190,10 +190,16 @@ class DataMap {
   /**
    * Returns property name that corresponds with the given column index.
    *
-   * @param {number} column Visual column index.
+   * @param {string|number} column Visual column index or another passed argument.
    * @returns {string|number} Column property, physical column index or passed argument.
    */
   colToProp(column) {
+    // TODO: Should it work? Please, look at the test:
+    // "it should return the provided property name, when the user passes a property name as a column number".
+    if (Number.isInteger(column) === false) {
+      return column;
+    }
+
     const physicalColumn = this.instance.toPhysicalColumn(column);
 
     // Out of range, not visible column index.
@@ -435,7 +441,7 @@ class DataMap {
       const customDefinedColumns = isDefined(this.tableMeta.columns) || isDefined(this.tableMeta.dataSchema);
 
       // All rows have been removed. There shouldn't be any columns.
-      if (this.instance.rowIndexMapper.getNotSkippedIndexesLength() === 0 && customDefinedColumns === false) {
+      if (this.instance.rowIndexMapper.getNotTrimmedIndexesLength() === 0 && customDefinedColumns === false) {
         this.instance.columnIndexMapper.setIndexesSequence([]);
       }
     }
@@ -501,7 +507,7 @@ class DataMap {
       this.instance.columnIndexMapper.removeIndexes(logicColumns);
 
       // All columns have been removed. There shouldn't be any rows.
-      if (this.instance.columnIndexMapper.getNotSkippedIndexesLength() === 0) {
+      if (this.instance.columnIndexMapper.getNotTrimmedIndexesLength() === 0) {
         this.instance.rowIndexMapper.setIndexesSequence([]);
       }
     }
@@ -813,7 +819,7 @@ class DataMap {
       maxRows = maxRowsFromSettings || Infinity;
     }
 
-    const length = this.instance.rowIndexMapper.getNotSkippedIndexesLength();
+    const length = this.instance.rowIndexMapper.getNotTrimmedIndexesLength();
 
     return Math.min(length, maxRows);
   }
@@ -878,7 +884,8 @@ class DataMap {
 
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
       row = [];
-      const physicalRow = this.instance.toPhysicalRow(r);
+      // We just store indexes for rows without headers.
+      const physicalRow = r >= 0 ? this.instance.toPhysicalRow(r) : r;
 
       for (c = Math.min(start.col, end.col); c <= clen; c++) {
 

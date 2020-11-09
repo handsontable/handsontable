@@ -1706,15 +1706,6 @@ const REGISTERED_HOOKS = [
   'hiddenRow',
 
   /**
-   * Fired by {@link HiddenColumns} plugin to check whether the provided column index is hidden. This hook is fired when
-   * {@link Options#hiddenColumns} option is enabled.
-   *
-   * @event Hooks#hiddenColumn
-   * @param {number} column The visual column index in question.
-   */
-  'hiddenColumn',
-
-  /**
    * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
@@ -1911,6 +1902,7 @@ const REMOVED_HOOKS = new Map([
   ['unmodifyRow', '8.0.0'],
   ['unmodifyCol', '8.0.0'],
   ['skipLengthCache', '8.0.0'],
+  ['hiddenColumn', '8.0.0']
 ]);
 
 /**

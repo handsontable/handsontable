@@ -108,7 +108,7 @@ declare namespace _Handsontable {
     runHooks(key: keyof Handsontable.Hooks.Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
     // Requires TS 3.0:
     // runHooks<K extends keyof Handsontable.Events>(key: K, ...params: Parameters<Handsontable.Events[K]>): ReturnType<Handsontable.Events[K]>;
-    scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean): boolean;
+    scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
     selectAll(): void;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
     selectCellByProp(row: number, prop: string, endRow?: number, endProp?: string, scrollToCell?: boolean): boolean;
@@ -2029,16 +2029,25 @@ declare namespace Handsontable {
       executeBatchOperations: (wrappedOperations: () => any) => void;
       registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
       unregisterMap: (name: string) => void;
-      getPhysicalIndex: (visualIndex: number) => number | null;
-      getVisualIndex: (physicalIndex: number) => number | null;
+      getPhysicalFromVisualIndex: (visualIndex: number) => number | null;
+      getVisualFromPhysicalIndex: (physicalIndex: number) => number | null;
+      getPhysicalFromRenderableIndex: (renderableIndex: number) => number | null;
+      getVisualFromRenderableIndex: (renderableIndex: number) => number | null;
+      getRenderableFromVisualIndex: (visualIndex: number) => number | null;
+      getFirstNotHiddenIndex: (fromVisualIndex: number, incrementBy: number, searchAlsoOtherWayAround?: true, indexForNextSearch?: number) => number | null;
       initToLength: (length?: number) => void;
       getIndexesSequence: () => number[];
       setIndexesSequence: (indexes: number[]) => void;
-      getNotSkippedIndexes: (readFromCache?: boolean) => number[];
-      getNotSkippedIndexesLength: () => number;
+      getNotTrimmedIndexes: (readFromCache?: boolean) => number[];
+      getNotTrimmedIndexesLength: () => number;
+      getNotHiddenIndexes: (readFromCache?: boolean) => number[];
+      getNotHiddenIndexesLength: () => number;
+      getRenderableIndexes: (readFromCache?: boolean) => number[];
+      getRenderableIndexesLength: () => number;
       getNumberOfIndexes: () => number;
       moveIndexes: (movedIndexes: number | number[], finalIndex: number) => void;
-      isSkipped: (physicalIndex: number) => boolean;
+      isTrimmed: (physicalIndex: number) => boolean;
+      isHidden: (physicalIndex: number) => boolean;
     }
   }
 

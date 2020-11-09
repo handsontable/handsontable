@@ -1,4 +1,4 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import VisualSelection from '../visualSelection';
 
 /**
  * Creates the new instance of Selection responsible for highlighting currently selected cell. This type of selection
@@ -6,8 +6,12 @@ import { Selection } from './../../../3rdparty/walkontable/src';
  *
  * @returns {Selection}
  */
-function createHighlight({ border, cellRange }) {
-  const s = new Selection(border, cellRange);
+function createHighlight({ visualToRenderableCoords, renderableToVisualCoords, border, cellRange }) {
+  const s = new VisualSelection({
+    visualToRenderableCoords,
+    renderableToVisualCoords,
+    ...border,
+  }, cellRange);
 
   return s;
 }

@@ -127,10 +127,6 @@ describe('PasswordEditor', () => {
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters (#839)', async() => {
-    let blured = false;
-    const listener = () => {
-      blured = true;
-    };
     const hot = handsontable({
       data: [
         ['Joe'],
@@ -144,21 +140,35 @@ describe('PasswordEditor', () => {
     });
 
     selectCell(0, 0);
+
+    const activeElement = hot.getActiveEditor().TEXTAREA;
+
+    expect(activeElement).toBeDefined();
+    expect(activeElement).not.toBe(null);
+    expect(document.activeElement).toBe(activeElement);
+
     keyDownUp('enter');
-    hot.getActiveEditor().TEXTAREA.addEventListener('blur', listener);
+
+    expect(document.activeElement).toBe(activeElement);
 
     await sleep(200);
 
+    expect(document.activeElement).toBe(activeElement);
+
     hot.getActiveEditor().TEXTAREA.value = '1';
     keyDownUp('1'.charCodeAt(0));
+
+    expect(document.activeElement).toBe(activeElement);
+
     hot.getActiveEditor().TEXTAREA.value = '12';
     keyDownUp('2'.charCodeAt(0));
+
+    expect(document.activeElement).toBe(activeElement);
+
     hot.getActiveEditor().TEXTAREA.value = '123';
     keyDownUp('3'.charCodeAt(0));
 
-    expect(blured).toBeFalsy();
-
-    hot.getActiveEditor().TEXTAREA.removeEventListener('blur', listener);
+    expect(document.activeElement).toBe(activeElement);
   });
 
   describe('IME support', () => {

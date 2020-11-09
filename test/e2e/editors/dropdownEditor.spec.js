@@ -126,7 +126,6 @@ describe('DropdownEditor', () => {
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters (#839)', async() => {
-    const focusListener = jasmine.createSpy('focus');
     const hot = handsontable({
       data: [
         ['one', 'two'],
@@ -142,13 +141,16 @@ describe('DropdownEditor', () => {
     });
 
     selectCell(0, 0);
-    hot.getActiveEditor().TEXTAREA.addEventListener('focus', focusListener);
+
+    const activeElement = hot.getActiveEditor().TEXTAREA;
+
+    expect(activeElement).toBeDefined();
+    expect(activeElement).not.toBe(null);
+    expect(document.activeElement).toBe(activeElement);
 
     await sleep(50);
 
-    expect(focusListener).toHaveBeenCalled();
-
-    hot.getActiveEditor().TEXTAREA.removeEventListener('focus', focusListener);
+    expect(document.activeElement).toBe(activeElement);
   });
 
   describe('IME support', () => {

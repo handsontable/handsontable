@@ -155,6 +155,7 @@ class Master extends Core {
     if (column < 0) {
       return false;
     }
+
     return this.wtScroll.scrollViewportHorizontally(column, snapToRight, snapToLeft);
   }
 
@@ -170,6 +171,7 @@ class Master extends Core {
     if (row < 0) {
       return false;
     }
+
     return this.wtScroll.scrollViewportVertically(row, snapToTop, snapToBottom);
   }
 

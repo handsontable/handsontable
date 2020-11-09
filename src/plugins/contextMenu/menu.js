@@ -174,6 +174,7 @@ class Menu {
       readOnly: true,
       editor: false,
       copyPaste: false,
+      maxCols: 1,
       fillHandle: false,
       columns: [{
         data: 'name',

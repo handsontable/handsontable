@@ -1,4 +1,4 @@
-import { Selection } from './../../../3rdparty/walkontable/src';
+import VisualSelection from '../visualSelection';
 
 /**
  * Default border style used for area selection highlight. The instance of
@@ -19,12 +19,14 @@ export { defaultBorderStyle };
  * @param {object} options Options object.
  * @returns {Selection}
  */
-function createHighlight({ BorderStyle, layerLevel, areaCornerVisible }) {
+function createHighlight({ BorderStyle, visualToRenderableCoords, renderableToVisualCoords, layerLevel, areaCornerVisible }) {
   const borderStyle = new BorderStyle();
 
   borderStyle.cornerVisible = areaCornerVisible;
 
-  const s = new Selection({
+  const s = new VisualSelection({
+    visualToRenderableCoords,
+    renderableToVisualCoords,
     className: 'area',
     markIntersections: true,
     layerLevel: Math.min(layerLevel, 7),

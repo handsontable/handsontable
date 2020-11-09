@@ -160,6 +160,172 @@ describe('Core_view', () => {
     expect(hot.view.wt.wtScroll.getLastVisibleRow()).toEqual(119);
   });
 
+  it('should scroll viewport properly when there are hidden columns ' +
+    '(row argument for the `scrollViewportTo` is defined)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    hot.scrollViewportTo(0, 15);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements.
+  });
+
+  it('should scroll viewport properly when there are hidden columns ' +
+    '(row argument for the `scrollViewportTo` is not defined)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2]
+      }
+    });
+
+    hot.scrollViewportTo(void 0, 15);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll viewport to the right site of the destination index when the column is hidden (basing on visual indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2, 7, 15]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 7);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult2 = hot.scrollViewportTo(0, 15);
+    hot.render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
+
+    const scrollResult3 = hot.scrollViewportTo(0, 7);
+    hot.render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult4 = hot.scrollViewportTo(0, 0);
+    hot.render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(3 - 3); // 3 hidden, not rendered elements before.
+  });
+
+  it('should scroll viewport to the left site of the destination index when the column is hidden and there are ' +
+    'no visible indexes on the right (basing on visual indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2, 7, 15, 16, 17, 18, 19]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 15);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+
+    hot.scrollViewportTo(0, 19);
+    hot.render();
+
+    const scrollResult2 = hot.scrollViewportTo(0, 17);
+    hot.render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+
+    const scrollResult3 = hot.scrollViewportTo(0, 19);
+    hot.render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
+  });
+
+  it('should scroll viewport to the the destination index when there are some hidden indexes (handling renderable indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 20,
+      startCols: 20,
+      hiddenColumns: {
+        columns: [0, 1, 2, 7, 15]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 2, false, false, false);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
+
+    const scrollResult2 = hot.scrollViewportTo(0, 14, false, false, false);
+    hot.render();
+
+    expect(scrollResult2).toBe(true);
+    expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14);
+
+    const scrollResult3 = hot.scrollViewportTo(0, 2, false, false, false);
+    hot.render();
+
+    expect(scrollResult3).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
+
+    const scrollResult4 = hot.scrollViewportTo(0, 0, false, false, false);
+    hot.render();
+
+    expect(scrollResult4).toBe(true);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(0);
+  });
+
+  it('should not scroll viewport when all columns are hidden (basing on visual indexes)', () => {
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 10,
+      startCols: 10,
+      hiddenColumns: {
+        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+      }
+    });
+
+    const scrollResult1 = hot.scrollViewportTo(0, 0);
+    hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
+
+    expect(scrollResult1).toBe(false);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(-1);
+
+    const scrollResult2 = hot.scrollViewportTo(0, 5);
+    hot.render();
+
+    expect(scrollResult2).toBe(false);
+    expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(-1);
+  });
+
   it('should not throw error while scrolling viewport to 0, 0 (empty data)', () => {
     spec().$container[0].style.width = '400px';
 

@@ -6,7 +6,8 @@ import {
   deepExtend,
   deepObjectSize,
   createObjectPropListener,
-  setProperty
+  setProperty,
+  extend,
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -32,6 +33,33 @@ describe('Object helper', () => {
 
       expect(isObjectEqual([12], [33])).toBe(false);
       expect(isObjectEqual([{ test: 3 }], [{ test: 1 }])).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.helper.extend
+  //
+  describe('extend', () => {
+    it('should returns a target object reference', () => {
+      const target = {};
+      const extension = {};
+
+      expect(extend(target, extension)).toBe(target);
+    });
+
+    it('should extend a target object a overwrite existed values', () => {
+      expect(extend({})).toEqual({});
+      expect(extend({}, { a: 1, b: 2, 5: 5 })).toEqual({ a: 1, b: 2, 5: 5 });
+      expect(extend({ a: 'z', 5: 1 }, { a: 1, b: 2, 5: 5 })).toEqual({ a: 1, b: 2, 5: 5 });
+      expect(extend({ a: 'z', foo: 'bar' }, { a: 1, b: 2, 5: 5 })).toEqual({ a: 1, b: 2, 5: 5, foo: 'bar' });
+    });
+
+    it('should extend a target object only for keys which are declared as writable', () => {
+      expect(extend({}, { a: 1 }, ['a'])).toEqual({ a: 1 });
+      expect(extend({}, { a: 1, b: 2, c: 2 }, ['a'])).toEqual({ a: 1 });
+      expect(extend({ a: 'z' }, { a: 1, b: 2, c: 2 }, ['a'])).toEqual({ a: 1 });
+      expect(extend({ c: 'z' }, { a: 1, b: 2, c: 2 }, ['b', 'a', 'd'])).toEqual({ c: 'z', b: 2, a: 1 });
+      expect(extend({}, { a: 1, b: 2, c: 2 }, [])).toEqual({});
     });
   });
 
