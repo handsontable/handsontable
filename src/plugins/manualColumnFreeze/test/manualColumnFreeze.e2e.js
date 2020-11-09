@@ -36,6 +36,19 @@ describe('manualColumnFreeze', () => {
 
       expect(hot.toPhysicalColumn(0)).toEqual(5);
     });
+
+    it('should keep proper frozen column after updateSettings', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        manualColumnFreeze: true,
+      });
+
+      getPlugin('manualColumnFreeze').freezeColumn(4);
+
+      updateSettings({});
+
+      expect(getDataAtCell(0, 0)).toBe('E1');
+    });
   });
 
   describe('unfreezeColumn', () => {

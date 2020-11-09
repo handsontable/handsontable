@@ -885,9 +885,10 @@ describe('CopyPaste', () => {
       expect(getSelectedRangeLast().to.col).toBe(9);
     });
 
-    it('should sanitize pasted HTML', () => {
+    it('should sanitize pasted HTML', async() => {
       handsontable();
 
+      const onErrorSpy = spyOn(window, 'onerror');
       const clipboardEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
@@ -899,6 +900,9 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
+      await sleep(100);
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
       expect(getDataAtCell(0, 0)).toEqual(null);
     });
   });

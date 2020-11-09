@@ -702,6 +702,17 @@ describe('Core_alter', () => {
         expect($('.ht_master .htCore thead th').length).toBe(1);
         expect($('.ht_master .htCore .cornerHeader').length).toBe(1); // Corner visible.
       });
+
+      it('should remove all rows if removing all columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+        });
+
+        alter('remove_col', 0, 10);
+
+        expect(countCols()).toBe(0);
+        expect(countRows()).toBe(0);
+      });
     });
 
     it('should not remove column if amount is zero', () => {

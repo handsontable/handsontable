@@ -276,6 +276,10 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      *       a background of the first layer and `H` as the latest layer (most dark).
      * '#' - The hash symbol indicates the currently selected cell without changed background color.
      *
+     * The meaning of the symbol used to describe headers:
+     * '*' - The asterisk symbol indicates selected header.
+     * '-' - The single hyphen symbol indicates highlighted header.
+     *
      * The meaning of the symbol used to describe the table:
      * ':'   - Column separator (only for better visual looks).
      * '║'   - This symbol separates the row headers from the table content.

@@ -43,7 +43,13 @@ module.exports.create = function create(envArgs) {
         commonjs2: 'hot-formula-parser',
         commonjs: 'hot-formula-parser',
         amd: 'hot-formula-parser',
-      }
+      },
+      dompurify: {
+        root: 'DOMPurify',
+        commonjs2: 'dompurify',
+        commonjs: 'dompurify',
+        amd: 'dompurify',
+      },
     };
     c.module.rules.unshift({
       test: [
@@ -59,6 +65,8 @@ module.exports.create = function create(envArgs) {
 
   configFull.forEach(function(c) {
     c.output.filename = PACKAGE_FILENAME + '.full.js';
+    // Export these dependencies to the window object. So they can be custom configured
+    // before the Handsontable initializiation.
     c.module.rules.unshift({
       test: /numbro/,
       use: [
@@ -77,6 +85,17 @@ module.exports.create = function create(envArgs) {
           loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
           options: {
             moment: 'moment',
+          }
+        }
+      ]
+    });
+    c.module.rules.unshift({
+      test: /dompurify/,
+      use: [
+        {
+          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
+          options: {
+            DOMPurify: 'dompurify',
           }
         }
       ]

@@ -6,7 +6,8 @@ import {
   hasClass,
   isInput,
   removeClass,
-  selectElementIfAllowed
+  selectElementIfAllowed,
+  fastInnerHTML,
 } from 'handsontable/helpers/dom/element';
 
 describe('DomElement helper', () => {
@@ -436,6 +437,68 @@ describe('DomElement helper', () => {
       expect(spy).not.toHaveBeenCalled();
 
       document.body.removeChild(input);
+    });
+  });
+
+  //
+  // Handsontable.helper.sanitize
+  //
+  describe('fastInnerHTML', () => {
+    it('should be possible to sanitize the HTML (by default the content is sanitized)', () => {
+      const elementMock = {
+        innerHTML: '',
+      };
+
+      fastInnerHTML(elementMock, '<img src onerror=alert(1)>');
+
+      expect(elementMock.innerHTML).toBe('<img src="">');
+
+      fastInnerHTML(elementMock, '<script>alert()</script>');
+
+      expect(elementMock.innerHTML).toBe('');
+
+      fastInnerHTML(elementMock, '<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>');
+
+      expect(elementMock.innerHTML).toBe('<strong>Hello</strong> <span class="my">my <sup>world</sup></span>2');
+
+      fastInnerHTML(
+        elementMock,
+        '<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>'
+      );
+
+      expect(elementMock.innerHTML).toBe('This is my <a href="https://handsontable.com">link</a>');
+    });
+
+    it('should be possible to disable content sanitization', () => {
+      const elementMock = {
+        innerHTML: '',
+      };
+
+      fastInnerHTML(elementMock, '<img src onerror=alert(1)>', false);
+
+      expect(elementMock.innerHTML).toBe('<img src onerror=alert(1)>');
+
+      fastInnerHTML(elementMock, '<script>alert()</script>', false);
+
+      expect(elementMock.innerHTML).toBe('<script>alert()</script>');
+
+      fastInnerHTML(
+        elementMock,
+        '<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>',
+        false,
+      );
+
+      expect(elementMock.innerHTML)
+        .toBe('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>');
+
+      fastInnerHTML(
+        elementMock,
+        '<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>',
+        false,
+      );
+
+      expect(elementMock.innerHTML)
+        .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
     });
   });
 });

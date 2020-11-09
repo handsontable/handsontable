@@ -4454,4 +4454,26 @@ describe('CollapsibleColumns', () => {
         `);
     });
   });
+
+  describe('integration', () => {
+    describe('columnSorting', () => {
+      it('should collapse all columns', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(1, 4),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', { label: 'B', colspan: 2 }, 'C'],
+            ['N', 'O', 'P', 'Q']
+          ],
+          collapsibleColumns: true,
+          columnSorting: true,
+        });
+
+        getPlugin('collapsibleColumns').collapseAll();
+
+        expect(countVisibleCols()).toBe(3);
+        expect(getCell(-1, 2)).toBeNull();
+      });
+    });
+  });
 });

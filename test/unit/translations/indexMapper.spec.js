@@ -1489,6 +1489,28 @@ describe('IndexMapper', () => {
 
         expect(indexMapper.getIndexesSequence()).toEqual([5, 6, 3, 4, 2, 1, 0, 7]);
       });
+
+      it('should do nothing if there is nothing to insert', () => {
+        const indexMapper = new IndexMapper();
+        const indexesSequence = new IndexesSequence();
+        const hidingMap = new HidingMap();
+        const pIndexToValueMap = new PIndexToValueMap();
+        const trimmingMap = new TrimmingMap();
+
+        indexMapper.registerMap('indexesSequence', indexesSequence);
+        indexMapper.registerMap('hidingMap', hidingMap);
+        indexMapper.registerMap('pIndexToValueMap', pIndexToValueMap);
+        indexMapper.registerMap('trimmingMap', trimmingMap);
+        indexMapper.initToLength(5);
+
+        trimmingMap.setValues([false, false, false, false, false]);
+
+        indexMapper.insertIndexes(0, 0);
+
+        expect(trimmingMap.getValues()).toEqual([false, false, false, false, false]);
+        expect(hidingMap.getValues()).toEqual([false, false, false, false, false]);
+        expect(pIndexToValueMap.getValues()).toEqual([null, null, null, null, null]);
+      });
     });
 
     describe('with trimmed indexes', () => {
