@@ -2244,6 +2244,33 @@ describe('Filters UI', () => {
       }, 1500);
     });
 
+    // The test checks if the IndexMap isn't accidentally unregistered in the ConditionCollection
+    // class after opening the menu. It causes the column indication misalignment.
+    it('should update filtering state within column header after removing column on the left', async() => {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        filters: true,
+      });
+
+      dropdownMenu(1);
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'), 'LMB');
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'), 'LMB');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'), 'LMB');
+
+      await sleep(200);
+
+      alter('remove_col', 0);
+
+      expect(getData()).toEqual([
+        ['B2', 'C2'],
+        ['B3', 'C3'],
+      ]);
+      expect(spec().$container.find('th:eq(0)').hasClass('htFiltersActive')).toEqual(true);
+      expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
+    });
+
     it('should update conditions properly - execution queue for conditions should not be lost after using ' +
       'UI of drop-down menu', async() => {
       handsontable({

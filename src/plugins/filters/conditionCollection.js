@@ -15,7 +15,7 @@ const MAP_NAME = 'ConditionCollection.filteringStates';
  * @plugin Filters
  */
 class ConditionCollection {
-  constructor(hot, shouldRegisterMap = true) {
+  constructor(hot, isMapRegistrable = true) {
     /**
      * Handsontable instance.
      *
@@ -23,13 +23,21 @@ class ConditionCollection {
      */
     this.hot = hot;
     /**
+     * Indicates whether the internal IndexMap should be registered or not. Generally,
+     * registered Maps responds to the index changes. Within that collection, sometimes
+     * this is not necessary.
+     *
+     * @type {boolean}
+     */
+    this.isMapRegistrable = isMapRegistrable;
+    /**
      * Index map storing filtering states for every column. ConditionCollection write and read to/from this element.
      *
      * @type {LinkedPhysicalIndexToValueMap}
      */
     this.filteringStates = new IndexToValueMap();
 
-    if (shouldRegisterMap === true) {
+    if (this.isMapRegistrable === true) {
       this.hot.columnIndexMapper.registerMap(MAP_NAME, this.filteringStates);
 
     } else {
@@ -252,7 +260,10 @@ class ConditionCollection {
    * Destroy object.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
+    if (this.isMapRegistrable) {
+      this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
+    }
+
     this.filteringStates = null;
     this.clearLocalHooks();
   }
