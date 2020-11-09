@@ -147,6 +147,16 @@ class ConditionCollection {
   }
 
   /**
+   * Get operation for particular column.
+   *
+   * @param {number} column Column index.
+   * @returns {string|undefined}
+   */
+  getOperation(column) {
+    return this.filteringStates.getValueAtIndex(column)?.operation;
+  }
+
+  /**
    * Get all filtered columns in the order in which actions are performed.
    *
    * @returns {Array}
@@ -165,16 +175,6 @@ class ConditionCollection {
     const position = this.getFilteredColumns().indexOf(column);
 
     return position === -1 ? void 0 : position;
-  }
-
-  /**
-   * Get operation for particular column.
-   *
-   * @param {number} column Column index.
-   * @returns {string|undefined}
-   */
-  getOperation(column) {
-    return this.filteringStates.getValueAtIndex(column)?.operation;
   }
 
   /**

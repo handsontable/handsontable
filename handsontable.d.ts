@@ -531,13 +531,13 @@ declare namespace Handsontable {
       }
 
       interface ConditionUpdateObserver {
+        hot: _Handsontable.Core;
         changes: number[];
         columnDataFactory: (column: number) => object[];
         conditionCollection: ConditionCollection;
         grouping: boolean;
         latestEditedColumnPosition: number;
         latestOrderStack: number[];
-        getNumberOfColumns: () => number;
 
         destroy(): void;
         flush(): void;
