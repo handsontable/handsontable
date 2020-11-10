@@ -4474,7 +4474,7 @@ describe('HiddenColumns', () => {
 
       expect(hot.getColWidth(0)).toBe(0);
       // Rendered index: 0, visual index: 1
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(11);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(12);
       expect(hot.getColWidth(1)).toBe(11);
       expect(hot.getColWidth(2)).toBe(0);
       // Rendered index: 1, visual index: 3
@@ -4503,20 +4503,20 @@ describe('HiddenColumns', () => {
         ['A5', 'B5', 'C5', 'D5', 'E5'],
       ]);
 
-      expect($(getHtCore())[0].offsetWidth).toBe(200);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(201);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([1]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(250);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(150);
+      expect($(getHtCore())[0].offsetWidth).toBe(251);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(151);
 
       getPlugin('hiddenColumns').hideColumns([1]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(200);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(201);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
     });
 
     it('should display properly merged area containing hidden columns (start from visible cell, merging to visible cell)', () => {
@@ -4535,25 +4535,25 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['A1', 'B1', null, null, 'E1']]);
       expect($(getHtCore()).find('td')[0].innerText).toBe('B1');
       // Only two columns have been visible from the start.
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([2]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(150);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(150);
+      expect($(getHtCore())[0].offsetWidth).toBe(151);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(151);
 
       getPlugin('hiddenColumns').hideColumns([2]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([0, 2, 4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore())[0].offsetWidth).toBe(251);
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(150);
     });
 
@@ -4576,32 +4576,32 @@ describe('HiddenColumns', () => {
       // expect($(getHtCore()).find('td')[0].innerText).toBe('A1');
 
       // Only two columns have been visible from the start.
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([0]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(150);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(150);
+      expect($(getHtCore())[0].offsetWidth).toBe(151);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(151);
 
       getPlugin('hiddenColumns').showColumns([2]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(200);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
+      expect($(getHtCore())[0].offsetWidth).toBe(201);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(201);
 
       getPlugin('hiddenColumns').hideColumns([0, 2]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([0, 2, 4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(250);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
+      expect($(getHtCore())[0].offsetWidth).toBe(251);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(201);
     });
 
     it('should display properly merged area containing hidden columns (start from visible cell, merging to invisible cell)', () => {
@@ -4620,31 +4620,31 @@ describe('HiddenColumns', () => {
       expect(getData()).toEqual([['A1', 'B1', null, null, null]]);
       expect($(getHtCore()).find('td')[0].innerText).toBe('B1');
       // Only two columns have been visible from the start.
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([2]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(150);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(150);
+      expect($(getHtCore())[0].offsetWidth).toBe(151);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(151);
 
       getPlugin('hiddenColumns').showColumns([4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(200);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
+      expect($(getHtCore())[0].offsetWidth).toBe(201);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(201);
 
       getPlugin('hiddenColumns').hideColumns([2, 4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([0, 2, 4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore())[0].offsetWidth).toBe(251);
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(200);
     });
 
@@ -4667,38 +4667,38 @@ describe('HiddenColumns', () => {
       // expect($(getHtCore()).find('td')[0].innerText).toBe('A1');
 
       // Only two columns have been visible from the start.
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([0]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(150);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(150);
+      expect($(getHtCore())[0].offsetWidth).toBe(151);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(151);
 
       getPlugin('hiddenColumns').showColumns([2]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(200);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(200);
+      expect($(getHtCore())[0].offsetWidth).toBe(201);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(201);
 
       getPlugin('hiddenColumns').showColumns([4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(250);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(250);
+      expect($(getHtCore())[0].offsetWidth).toBe(251);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(251);
 
       getPlugin('hiddenColumns').hideColumns([0, 2, 4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(100);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(100);
+      expect($(getHtCore())[0].offsetWidth).toBe(101);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(101);
 
       getPlugin('hiddenColumns').showColumns([0, 2, 4]);
       render();
 
-      expect($(getHtCore())[0].offsetWidth).toBe(250);
-      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(250);
+      expect($(getHtCore())[0].offsetWidth).toBe(251);
+      expect($(getHtCore()).find('td')[0].offsetWidth).toBe(251);
     });
 
     it('should return proper values from the `getCell` function', () => {
@@ -4745,7 +4745,7 @@ describe('HiddenColumns', () => {
       // The same as at the start.
       expect($(getHtCore()).find('td').length).toBe(5);
       // Still the same width for the whole table.
-      expect($(getHtCore())[0].offsetWidth).toBe(250);
+      expect($(getHtCore())[0].offsetWidth).toBe(251);
       expect($(getHtCore()).find('td')[1].offsetWidth).toBe(150);
     });
 

@@ -1367,12 +1367,12 @@ describe('MergeCells', () => {
       spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
 
       // First merged cell.
-      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(101);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(47);
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Already populated merged cell.
-      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(101);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(46);
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
@@ -1385,12 +1385,12 @@ describe('MergeCells', () => {
       spec().$container.find('tr:eq(0) td:eq(2)').simulate('mouseup');
 
       // First merged cell.
-      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(101);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(47);
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Previously populated merged cell.
-      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(101);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(46);
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
@@ -1400,7 +1400,7 @@ describe('MergeCells', () => {
       expect(getCell(0, 3).innerText).toBe('A1');
       expect(getDataAtCell(0, 2)).toBe('A1');
 
-      expect($(getHtCore())[0].offsetWidth).toBe(5 * 50);
+      expect($(getHtCore())[0].offsetWidth).toBe((5 * 50) + 1);
       expect($(getHtCore())[0].offsetHeight).toBe(24 + (4 * 23)); // First row is 1px higher than others.
     });
   });
