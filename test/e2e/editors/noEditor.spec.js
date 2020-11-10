@@ -155,6 +155,23 @@ describe('noEditor', () => {
     expect(isEditorVisible()).toBe(false);
   });
 
+  it('should blur activeElement while preparing the editor to open', () => {
+    const externalInputElement = document.createElement('input');
+
+    document.body.appendChild(externalInputElement);
+
+    handsontable({
+      editor: false,
+    });
+
+    externalInputElement.select();
+    selectCell(2, 2);
+
+    expect(document.activeElement).not.toBe(externalInputElement);
+
+    document.body.removeChild(externalInputElement);
+  });
+
   describe('IME support', () => {
     it('should focus editable element (from copyPaste plugin) after selecting the cell', async() => {
       handsontable({
