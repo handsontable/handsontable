@@ -311,10 +311,10 @@ class CollapsingUI extends BaseUI {
    * Collapse all collapsable rows.
    */
   collapseAll() {
-    const sourceData = this.hot.getSourceData();
+    const data = this.dataManager.getData();
     const parentsToCollapse = [];
 
-    arrayEach(sourceData, (elem) => {
+    arrayEach(data, (elem) => {
       if (this.dataManager.hasChildren(elem)) {
         parentsToCollapse.push(elem);
       }
@@ -329,10 +329,10 @@ class CollapsingUI extends BaseUI {
    * Expand all collapsable rows.
    */
   expandAll() {
-    const sourceData = this.hot.getSourceData();
+    const data = this.dataManager.getData();
     const parentsToExpand = [];
 
-    arrayEach(sourceData, (elem) => {
+    arrayEach(data, (elem) => {
       if (this.dataManager.hasChildren(elem)) {
         parentsToExpand.push(elem);
       }
