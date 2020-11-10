@@ -140,6 +140,7 @@ class Master extends Core {
     if (coords.col < 0 || coords.row < 0) {
       return false;
     }
+
     return this.wtScroll.scrollViewport(coords, snapToTop, snapToRight, snapToBottom, snapToLeft);
   }
 

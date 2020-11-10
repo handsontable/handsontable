@@ -37,7 +37,7 @@ describe('Filters UI', () => {
 
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel').textContent).toBe('Filter by condition:');
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htUISelect')).not.toBeNull();
-      expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(4);
+      expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(2);
 
       await sleep(300);
 
@@ -45,7 +45,7 @@ describe('Filters UI', () => {
       // does not steal the components' element while recalculating column width (PR #5555).
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel').textContent).toBe('Filter by condition:');
       expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htUISelect')).not.toBeNull();
-      expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(4);
+      expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(2);
     });
 
     it('should appear conditional options menu after UISelect element click', () => {

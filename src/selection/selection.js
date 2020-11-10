@@ -87,7 +87,7 @@ class Selection {
      * @type {Transformation}
      */
     this.transformation = new Transformation(this.selectedRange, {
-      countRows: () => this.tableProps.countRows(),
+      countRows: () => this.tableProps.countRowsTranslated(),
       countCols: () => this.tableProps.countColsTranslated(),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
@@ -257,7 +257,11 @@ class Selection {
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
       const range = this.tableProps.expandCoordsToRangeIncludingSpans(this.selectedRange.current().highlight);
 
-      this.highlight.getCell().add(range.from).add(range.to).commit().adjustCoordinates(cellRange);
+      this.highlight.getCell()
+        .add(range.from)
+        .add(range.to)
+        .commit()
+        .adjustCoordinates(cellRange);
     }
 
     const layerLevel = this.getLayerLevel();

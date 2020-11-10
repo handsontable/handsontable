@@ -8,7 +8,6 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
-const ROW_HEIGHTS_MAP_NAME = 'manualRowResize';
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
 
@@ -82,7 +81,7 @@ class ManualRowResize extends BasePlugin {
 
     this.rowHeightsMap = new IndexToValueMap();
     this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
-    this.hot.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
+    this.hot.rowIndexMapper.registerMap(this.pluginName, this.rowHeightsMap);
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
@@ -108,7 +107,7 @@ class ManualRowResize extends BasePlugin {
     const priv = privatePool.get(this);
     priv.config = this.rowHeightsMap.getValues();
 
-    this.hot.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
   }
 
@@ -163,7 +162,8 @@ class ManualRowResize extends BasePlugin {
   setupHandlePosition(TH) {
     this.currentTH = TH;
 
-    const cellCoords = this.hot.getCoords(this.currentTH);
+    const cellCoords = this.hot.view.wt.wtTable.getCoords(this.currentTH);
+
     const row = cellCoords.row;
     const headerWidth = outerWidth(this.currentTH);
 
@@ -185,10 +185,13 @@ class ManualRowResize extends BasePlugin {
       // If the TH is not a child of the left/top-left/bottom-left overlay, recalculate using the top-most header
       if (!relativeHeaderPosition) {
         const topMostHeader = parentOverlay.clone.wtTable.TBODY.children[+!!this.hot.getSettings().colHeaders + row].firstChild;
+
         relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
       }
 
-      this.currentRow = row;
+      const rowIndexMapper = this.hot.rowIndexMapper;
+
+      this.currentRow = rowIndexMapper.getVisualFromRenderableIndex(row);
       this.selectedRows = [];
 
       if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByRowHeader()) {
@@ -536,7 +539,7 @@ class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
 
     super.destroy();
   }
