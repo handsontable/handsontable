@@ -136,6 +136,8 @@ class GhostTable {
     this.table = this.createTable(this.hot.table.className);
 
     if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
+      // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
+      // We render all columns.
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -297,6 +299,8 @@ class GhostTable {
 
         const th = rootDocument.createElement('th');
 
+        // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
+        // We render all columns.
         this.hot.view.appendColHeader(column, th);
         fragment.appendChild(th);
       });

@@ -18,10 +18,14 @@ class ContextMenuUI extends BaseUI {
 
     privatePool.set(this, {
       row_above: (key, selection) => {
-        this.dataManager.addSibling(selection.start.row, 'above');
+        const lastSelection = selection[selection.length - 1];
+
+        this.dataManager.addSibling(lastSelection.start.row, 'above');
       },
       row_below: (key, selection) => {
-        this.dataManager.addSibling(selection.start.row, 'below');
+        const lastSelection = selection[selection.length - 1];
+
+        this.dataManager.addSibling(lastSelection.start.row, 'below');
       }
     });
     /**

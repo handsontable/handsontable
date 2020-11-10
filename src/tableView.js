@@ -345,16 +345,12 @@ class TableView {
    * @returns {CellCoords}
    */
   translateFromRenderableToVisualCoords(renderableRow, renderableColumn) {
-    let visualRow = this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow);
-    let visualColumn = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn);
-
-    if (visualRow === null) {
-      visualRow = renderableRow;
-    }
-
-    if (visualColumn === null) {
-      visualColumn = renderableColumn;
-    }
+    // TODO: Some helper may be needed.
+    // We perform translation for indexes (without headers).
+    const visualRow = renderableRow >= 0 ?
+      this.instance.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow;
+    const visualColumn = renderableColumn >= 0 ?
+      this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn;
 
     return new CellCoords(visualRow, visualColumn);
   }
@@ -388,7 +384,17 @@ class TableView {
       },
       totalRows: () => this.instance.countRows(),
       totalColumns: () => this.countRenderableColumns(),
-      fixedColumnsLeft: () => this.settings.fixedColumnsLeft,
+      fixedColumnsLeft: () => {
+        const firstVisibleIndex =
+          this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.settings.fixedColumnsLeft - 1, -1);
+        const renderableIndex = this.instance.columnIndexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
+
+        if (Number.isInteger(renderableIndex)) { // We found renderable column index.
+          return renderableIndex + 1; // Zero-based numbering for renderable indexes. Index `0` is fixed for `fixedColumnsLeft: 1`
+        }
+
+        return 0;
+      },
       fixedRowsTop: () => this.settings.fixedRowsTop,
       fixedRowsBottom: () => this.settings.fixedRowsBottom,
       minSpareRows: () => this.settings.minSpareRows,
@@ -409,7 +415,12 @@ class TableView {
 
         if (this.instance.hasColHeaders()) {
           headerRenderers.push((renderedColumnIndex, TH) => {
-            this.appendColHeader(renderedColumnIndex, TH);
+            // TODO: Some helper may be needed.
+            // We perform translation for columns indexes (without column headers).
+            const visualColumnsIndex = renderedColumnIndex >= 0 ?
+              this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
+
+            this.appendColHeader(visualColumnsIndex, TH);
           });
         }
 
@@ -813,19 +824,19 @@ class TableView {
    * Append column header to a TH element.
    *
    * @private
-   * @param {number} renderedColumnIndex The rendered column index.
+   * @param {number} visualColumnIndex Visual column index.
    * @param {HTMLTableHeaderCellElement} TH The table header element.
    */
-  appendColHeader(renderedColumnIndex, TH) {
+  appendColHeader(visualColumnIndex, TH) {
     if (TH.firstChild) {
       const container = TH.firstChild;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader'), renderedColumnIndex, this.instance.getColHeader);
+        this.updateCellHeader(container.querySelector('.colHeader'), visualColumnIndex, this.instance.getColHeader);
 
       } else {
         empty(TH);
-        this.appendColHeader(renderedColumnIndex, TH);
+        this.appendColHeader(visualColumnIndex, TH);
       }
 
     } else {
@@ -835,19 +846,13 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'colHeader';
-      this.updateCellHeader(span, renderedColumnIndex, this.instance.getColHeader);
+      this.updateCellHeader(span, visualColumnIndex, this.instance.getColHeader);
 
       div.appendChild(span);
       TH.appendChild(div);
     }
 
-    let visualColumnsIndex = this.instance.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
-
-    if (visualColumnsIndex === null) {
-      visualColumnsIndex = renderedColumnIndex;
-    }
-
-    this.instance.runHooks('afterGetColHeader', visualColumnsIndex, TH);
+    this.instance.runHooks('afterGetColHeader', visualColumnIndex, TH);
   }
 
   /**
