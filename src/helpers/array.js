@@ -260,3 +260,69 @@ export function arrayUnique(array) {
 
   return unique;
 }
+
+/**
+ * Differences from two or more arrays.
+ *
+ * @param {...[]} arrays Array of strings or array of numbers.
+ * @returns {Array} Returns the difference between arrays.
+ */
+export function getDifferenceOfArrays(...arrays) {
+  const [first, ...rest] = [...arrays];
+  let filteredFirstArray = first;
+
+  arrayEach(rest, (array) => {
+    filteredFirstArray = filteredFirstArray.filter(value => !array.includes(value));
+  });
+
+  return filteredFirstArray;
+}
+
+/**
+ * Intersection of two or more arrays.
+ *
+ * @param {...[]} arrays Array of strings or array of numbers.
+ * @returns {Array} Returns elements that exists in every array.
+ */
+export function getIntersectionOfArrays(...arrays) {
+  const [first, ...rest] = [...arrays];
+  let filteredFirstArray = first;
+
+  arrayEach(rest, (array) => {
+    filteredFirstArray = filteredFirstArray.filter(value => array.includes(value));
+  });
+
+  return filteredFirstArray;
+}
+
+/**
+ * Union of two or more arrays.
+ *
+ * @param {...[]} arrays Array of strings or array of numbers.
+ * @returns {Array} Returns the elements that exist in any of the arrays, without duplicates.
+ */
+export function getUnionOfArrays(...arrays) {
+  const [first, ...rest] = [...arrays];
+  const set = new Set(first);
+
+  arrayEach(rest, (array) => {
+    arrayEach(array, (value) => {
+      if (!set.has(value)) {
+        set.add(value);
+      }
+    });
+  });
+
+  return Array.from(set);
+}
+
+/**
+ * Convert a separated strings to an array of strings.
+ *
+ * @param {string} value A string of class name(s).
+ * @param {string|RegExp} delimiter The pattern describing where each split should occur.
+ * @returns {string[]} Returns array of string or empty array.
+ */
+export function stringToArray(value, delimiter = ' ') {
+  return value.split(delimiter);
+}
