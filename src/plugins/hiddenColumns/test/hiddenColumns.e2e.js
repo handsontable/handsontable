@@ -5047,7 +5047,7 @@ describe('HiddenColumns', () => {
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 2);
-      expect(getLeftClone().width()).toBe((4 * 50) + (2 * 15)); // 4 fixed, visible columns, with space for indicators.
+      expect(getLeftClone().width()).toBe((4 * 50) + (2 * 15) + 1); // 4 fixed, visible columns, with space for indicators.
       expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
       expect($(getCell(-1, 1).querySelector('span')).text()).toBe('B');
       expect(getCell(-1, 2)).toBe(null);
@@ -5068,7 +5068,7 @@ describe('HiddenColumns', () => {
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(1);
-      expect(getLeftClone().width()).toBe(50 + 15); // 1 fixed, visible column, with space for indicator.
+      expect(getLeftClone().width()).toBe(50 + 15 + 1); // 1 fixed, visible column, with space for indicator.
       expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
       expect(getCell(-1, 1)).toBe(null);
       expect($(getCell(-1, 2).querySelector('span')).text()).toBe('C');
@@ -5086,7 +5086,7 @@ describe('HiddenColumns', () => {
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
-      expect(getLeftClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
+      expect(getLeftClone().width()).toBe((3 * 50) + 15 + 1); // 3 fixed, visible columns, with space for indicator.
       expect(getCell(-1, 0)).toBe(null);
       expect(getCell(-1, 1)).toBe(null);
       expect(getCell(-1, 2)).toBe(null);
@@ -5107,7 +5107,7 @@ describe('HiddenColumns', () => {
       });
 
       expect(getLeftClone().find('tbody tr:eq(0) td').length).toEqual(6 - 3);
-      expect(getLeftClone().width()).toBe((3 * 50) + 15); // 3 fixed, visible columns, with space for indicator.
+      expect(getLeftClone().width()).toBe((3 * 50) + 15 + 1); // 3 fixed, visible columns, with space for indicator.
       expect($(getCell(-1, 0).querySelector('span')).text()).toBe('A');
       expect($(getCell(-1, 1).querySelector('span')).text()).toBe('B');
       expect($(getCell(-1, 2).querySelector('span')).text()).toBe('C');
