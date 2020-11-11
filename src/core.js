@@ -2116,6 +2116,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.clear = function() {
     this.selectAll();
     this.emptySelectedCells();
+    this.deselectCell();
   };
 
   /**

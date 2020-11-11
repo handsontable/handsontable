@@ -950,4 +950,13 @@ describe('Core.selectCells', () => {
     expect(beforeSetRangeStartOnly.calls.argsFor(4)[0].row).toBe(2);
     expect(beforeSetRangeStartOnly.calls.argsFor(4)[0].col).toBe(4);
   });
+
+  it('should not keep all cells selected after calling the `clear()` method', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      colHeaders: true,
+    });
+    hot.clear();
+    expect(getSelected()).toBeUndefined();
+  });
 });
