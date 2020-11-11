@@ -49,7 +49,7 @@ describe('HiddenRows', () => {
       expect(hot.getRowHeight(3)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
-        <tbody>
+        <tbody class="afterEmptyThead">
           <tr>
             <th class="">1</th>
             <td class="">A3</td>
@@ -98,7 +98,7 @@ describe('HiddenRows', () => {
       expect(hot.getRowHeight(1)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
-        <tbody>
+        <tbody class="afterEmptyThead">
           <tr>
             <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
             <td class="">A4</td>
@@ -147,7 +147,7 @@ describe('HiddenRows', () => {
       expect(hot.getRowHeight(1)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
-        <tbody>
+        <tbody class="afterEmptyThead">
           <tr>
             <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
             <td class="">A1</td>
@@ -196,7 +196,7 @@ describe('HiddenRows', () => {
       expect(hot.getRowHeight(2)).toBe(0);
       expect(getPlugin('hiddenRows').isHidden(2)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
-        <tbody>
+        <tbody class="afterEmptyThead">
           <tr>
             <th class="">1</th>
             <td class="">A1</td>
@@ -249,7 +249,7 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(2)).toBeTruthy();
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
-        <tbody>
+        <tbody class="afterEmptyThead">
           <tr>
             <th class="${CSS_CLASS_BEFORE_HIDDEN}">1</th>
             <td class="">A1</td>
@@ -292,7 +292,7 @@ describe('HiddenRows', () => {
       expect(getPlugin('hiddenRows').isHidden(1)).toBeTruthy();
       expect(getPlugin('hiddenRows').isHidden(3)).toBeTruthy();
       expect(extractDOMStructure(getMaster())).toMatchHTML(`
-        <tbody>
+        <tbody class="afterEmptyThead">
           <tr>
             <th class="${CSS_CLASS_AFTER_HIDDEN} ${CSS_CLASS_BEFORE_HIDDEN}">3</th>
             <td class="${CSS_CLASS_AFTER_HIDDEN}">A1</td>

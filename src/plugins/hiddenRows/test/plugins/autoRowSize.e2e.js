@@ -25,7 +25,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).toBe(23);
     });
 
     it('should display proper row height (when indicator is enabled) #2', async() => {
@@ -40,7 +40,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).toBe(23);
     });
 
     it('should display proper row height (when indicator is enabled) #3', async() => {
@@ -55,7 +55,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).toBe(23);
     });
 
     it('should display proper row height (when indicator is disabled)', () => {
@@ -69,7 +69,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(24);
+      expect(rowHeight(spec().$container, 0)).toBe(23);
     });
 
     it('should return proper values from the `getRowHeight` function (when indicator is enabled)', async() => {
