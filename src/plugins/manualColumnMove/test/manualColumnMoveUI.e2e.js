@@ -130,7 +130,7 @@ describe('manualColumnMove', () => {
       header.simulate('mouseup');
       header.simulate('mousedown');
 
-      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(100);
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(101);
     });
 
     it('should set proper left position of the backlight element when colWidths is defined', () => {
@@ -148,7 +148,7 @@ describe('manualColumnMove', () => {
       header.simulate('mouseup');
       header.simulate('mousedown');
 
-      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(150);
+      expect(spec().$container.find('.ht__manualColumnMove--backlight')[0].offsetLeft).toBe(151);
     });
 
     it('should set proper z-index of the backlight and guideline element and be greater than top overlay z-index', () => {
@@ -232,7 +232,7 @@ describe('manualColumnMove', () => {
 
       const backlight = this.$container.find('.ht__manualColumnMove--backlight')[0];
 
-      expect(backlight.offsetLeft).toBe(100);
+      expect(backlight.offsetLeft).toBe(101);
       expect(backlight.offsetWidth).toBe(100);
     });
 

@@ -7,6 +7,7 @@ import EventManager from './../../eventManager';
 import { registerPlugin } from './../../plugins';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
+import { GRIDLINE_WIDTH } from './../../3rdparty/walkontable/src/utils/gridline';
 
 import './manualColumnMove.css';
 
@@ -485,8 +486,8 @@ class ManualColumnMove extends BasePlugin {
       guidelineLeft -= ((priv.rootElementOffset <= scrollableElement.scrollX) ? priv.rootElementOffset : 0);
     }
 
-    this.backlight.setPosition(null, backlightLeft);
-    this.guideline.setPosition(null, guidelineLeft);
+    this.backlight.setPosition(null, backlightLeft + GRIDLINE_WIDTH);
+    this.guideline.setPosition(null, guidelineLeft + GRIDLINE_WIDTH);
   }
 
   /**
@@ -568,7 +569,7 @@ class ManualColumnMove extends BasePlugin {
       const mouseOffset = event.layerX - (fixedColumns ? wrapperIsWindow : 0);
       const leftOffset = Math.abs(this.getColumnsWidth(start, coords.col - 1) + mouseOffset);
 
-      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start - 1) + leftOffset);
+      this.backlight.setPosition(topPos, this.getColumnsWidth(countColumnsFrom, start - 1) + leftOffset + GRIDLINE_WIDTH);
       this.backlight.setSize(this.getColumnsWidth(start, end), wtTable.hider.offsetHeight - topPos);
       this.backlight.setOffset(null, leftOffset * -1);
 
