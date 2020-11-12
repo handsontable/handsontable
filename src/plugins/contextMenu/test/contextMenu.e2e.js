@@ -2310,6 +2310,23 @@ describe('ContextMenu', () => {
       expect(customItem.callback.calls.count()).toEqual(1);
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
     });
+
+    it('should sanitize HTML for custom item', () => {
+      handsontable({
+        contextMenu: {
+          items: {
+            customItemKey: {
+              name: '<img src onerror="xss()"> XSS item',
+            }
+          }
+        },
+      });
+
+      contextMenu();
+
+      expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
+        .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
+    });
   });
 
   describe('keyboard navigation', () => {
@@ -3365,6 +3382,27 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
       expect(getSelected()).toEqual([[0, 0, 2, 2], [2, 2, 7, 2], [2, 4, 2, 4]]);
+    });
+
+    it('should properly change selection on right click on headers', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(2, 2),
+        contextMenu: true,
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      selectCell(0, 0);
+      contextMenu(getCell(-1, 0));
+
+      expect(getSelected()).toEqual([[-1, 0, 1, 0]]);
+      expect(hot.selection.isEntireColumnSelected()).toBe(true);
+
+      selectCell(1, 0);
+      contextMenu(getCell(1, -1));
+
+      expect(getSelected()).toEqual([[1, -1, 1, 1]]);
+      expect(hot.selection.isEntireRowSelected()).toBe(true);
     });
   });
 

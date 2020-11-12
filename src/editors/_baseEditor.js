@@ -218,7 +218,14 @@ class BaseEditor {
     if (this.state !== EditorState.VIRGIN) {
       return;
     }
-    this.hot.view.scrollViewport(new CellCoords(this.row, this.col));
+
+    const hotInstance = this.hot;
+    // We have to convert visual indexes into renderable indexes
+    // due to hidden columns don't participate in the rendering process
+    const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+    const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+
+    hotInstance.view.scrollViewport(new CellCoords(renderableRowIndex, renderableColumnIndex));
     this.state = EditorState.EDITING;
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
@@ -235,9 +242,9 @@ class BaseEditor {
     this.focus();
 
     // only rerender the selections (FillHandle should disappear when beginediting is triggered)
-    this.hot.view.render();
+    hotInstance.view.render();
 
-    this.hot.runHooks('afterBeginEditing', this.row, this.col);
+    hotInstance.runHooks('afterBeginEditing', this.row, this.col);
   }
 
   /**

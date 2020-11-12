@@ -869,6 +869,21 @@ describe('TrimRows', () => {
         done();
       }, 100);
     });
+
+    it('should correctly solve toVisualRow calculations after sort', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 1),
+        trimRows: [0],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({
+        column: 0,
+        sortOrder: 'desc'
+      });
+
+      expect(toVisualRow(1)).toBe(0);
+    });
   });
 
   describe('maxRows option set', () => {
@@ -1279,8 +1294,7 @@ describe('TrimRows', () => {
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * DEFAULT_ROW_HEIGHT));
     });
 
-    // This test don't pass on the actual code.
-    xit('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
+    it('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,

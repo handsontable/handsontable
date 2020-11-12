@@ -52,6 +52,7 @@ module.exports.create = function create(envArgs) {
           '../node_modules/moment/moment.js',
           '../node_modules/pikaday/pikaday.js',
           '../node_modules/hot-formula-parser/dist/formula-parser.js',
+          '../node_modules/dompurify/dist/purify.js',
           '../dist/handsontable.js',
           '../dist/languages/all.js',
         ],

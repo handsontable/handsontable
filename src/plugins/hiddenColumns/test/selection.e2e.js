@@ -353,6 +353,28 @@ describe('HiddenColumns', () => {
         `).toBeMatchToSelectionPattern();
       });
     });
+
+    it('should move selection to the next visible cell on left' +
+       'if column between is hidden even if afterSelection call updateSettings', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        hiddenColumns: {
+          columns: [1],
+        },
+        afterSelection() {
+          this.updateSettings({});
+        },
+      });
+
+      selectCell(0, 2);
+
+      keyDownUp('arrow_left');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(`
+      | # :   |
+        `).toBeMatchToSelectionPattern();
+    });
   });
 
   describe('cell selection (API)', () => {

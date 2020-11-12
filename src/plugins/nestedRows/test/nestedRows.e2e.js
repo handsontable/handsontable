@@ -58,6 +58,44 @@ describe('NestedRows', () => {
     });
   });
 
+  describe('integration', () => {
+    describe('formulas', () => {
+      it('should process formula in a child row', () => {
+        handsontable({
+          data: [
+            {
+              col1: null,
+              __children: [{ col1: '=SUM(2+2)' }],
+            },
+          ],
+          nestedRows: true,
+          formulas: true,
+        });
+
+        expect(getDataAtCell(1, 0)).toBe(4);
+      });
+    });
+
+    describe('undoRedo', () => {
+      it('should properly undo remove of the child row', () => {
+        handsontable({
+          data: [
+            {
+              col1: 'A1',
+              __children: [{ col1: 'A1.1' }],
+            },
+          ],
+          nestedRows: true,
+        });
+
+        alter('remove_row', 1);
+        undo();
+
+        expect(getDataAtCell(1, 0)).toBe('A1.1');
+      });
+    });
+  });
+
   describe('Cooperation with the `ManualRowMove` plugin', () => {
     it('should display the right amount of entries with the `manualRowMove` plugin enabled', () => {
       const hot = handsontable({
@@ -349,7 +387,7 @@ describe('NestedRows', () => {
         data: getSimplerNestedData(),
         nestedRows: true,
         manualRowMove: true,
-        rowHeaders: true
+        rowHeaders: true,
       });
 
       const $fromHeader = spec().$container.find('tbody tr:eq(7) th:eq(0)');
@@ -361,7 +399,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -395,7 +434,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -418,7 +458,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -460,7 +501,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 10
+        offsetX: 5,
+        offsetY: 10,
       });
 
       $targetHeader.simulate('mouseup');
@@ -538,7 +580,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -574,7 +617,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -688,7 +732,8 @@ describe('NestedRows', () => {
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top + 5
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');

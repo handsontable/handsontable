@@ -884,5 +884,26 @@ describe('CopyPaste', () => {
       expect(getSelectedRangeLast().to.row).toBe(9);
       expect(getSelectedRangeLast().to.col).toBe(9);
     });
+
+    it('should sanitize pasted HTML', async() => {
+      handsontable();
+
+      const onErrorSpy = spyOn(window, 'onerror');
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tr></tr></table><img src onerror="boom()">'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await sleep(100);
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
+      expect(getDataAtCell(0, 0)).toEqual(null);
+    });
   });
 });

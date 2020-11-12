@@ -1,5 +1,6 @@
 import {
   equalsIgnoreCase,
+  sanitize,
   substitute,
   stripTags,
 } from 'handsontable/helpers/string';
@@ -43,13 +44,48 @@ describe('String helper', () => {
   });
 
   //
+  // Handsontable.helper.sanitize
+  //
+  describe('sanitize', () => {
+    it('should sanitize HTML from insecure values', () => {
+      expect(sanitize('')).toBe('');
+      expect(sanitize('<i aria-label="bar">foo</i>')).toBe('<i aria-label="bar">foo</i>');
+      expect(sanitize('<img src onerror=alert(1)>')).toBe('<img src="">');
+      expect(sanitize('<script>alert()</script>')).toBe('');
+      expect(sanitize('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>'))
+        .toBe('<strong>Hello</strong> <span class="my">my <sup>world</sup></span>2');
+      expect(sanitize('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>'))
+        .toBe('This is my <a href="https://handsontable.com">link</a>');
+    });
+
+    it('should be possible to pass custom options configuration to sanitizer', () => {
+      expect(sanitize(
+        '<meta name="Generator" content="Handsontable"><table><tr><td>A1</td></tr></table>',
+        {
+          ADD_TAGS: ['meta'],
+          FORCE_BODY: true,
+        }))
+        .toBe('<meta name="Generator"><table><tbody><tr><td>A1</td></tr></tbody></table>');
+      expect(sanitize(
+        '<meta name="Generator" content="Handsontable"><table><tr><td>A1</td></tr></table>',
+        {
+          ADD_TAGS: ['meta'],
+          ADD_ATTR: ['content'],
+          FORCE_BODY: false,
+        }))
+        .toBe('<table><tbody><tr><td>A1</td></tr></tbody></table>');
+    });
+  });
+
+  //
   // Handsontable.helper.stripTags
   //
   describe('stripTags', () => {
     it('should strip any HTML tags from the string', () => {
       expect(stripTags('')).toBe('');
       expect(stripTags('<i>foo</i>')).toBe('foo');
-      expect(stripTags('<script>alert()</script>')).toBe('alert()');
+      expect(stripTags('<i<test>mg src onerror=alert(1)>test')).toBe('mg src onerror=alert(1)&gt;test');
+      expect(stripTags('<script>alert()</script>')).toBe('');
       expect(stripTags('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>')).toBe('Hello my world2');
       expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
     });

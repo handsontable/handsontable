@@ -369,6 +369,23 @@ describe('UndoRedo', () => {
           expect(getData()).toEqual([['A1', null, null]]);
         });
 
+        it('should unde removal of multiple columns with minSpareCols', () => {
+          handsontable({
+            data: Handsontable.helper.createSpreadsheetData(1, 2),
+            minSpareCols: 1,
+          });
+
+          selectColumns(0, 2);
+          alter('remove_col', 0, 3);
+          undo();
+
+          expect(getSelected()).toBeUndefined();
+          expect(countCols()).toBe(3);
+          expect(getData()).toEqual([
+            ['A1', 'B1', null],
+          ]);
+        });
+
         it('should undo removal of single column (colHeaders: undefined)', () => {
           const HOT = handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 3)
@@ -469,42 +486,26 @@ describe('UndoRedo', () => {
 
         it('should undo removal of multiple columns (colHeaders: undefined)', () => {
           const HOT = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(2, 4)
+            data: Handsontable.helper.createSpreadsheetData(1, 15)
           });
 
-          expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toEqual('B1');
-          expect(getDataAtCell(0, 2)).toEqual('C1');
-          expect(getDataAtCell(0, 3)).toEqual('D1');
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('B2');
-          expect(getDataAtCell(1, 2)).toEqual('C2');
-          expect(getDataAtCell(1, 3)).toEqual('D2');
+          expect(countCols()).toEqual(15);
+          expect(getData()).toEqual([
+            ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
+          ]);
 
-          alter('remove_col', 1, 2);
+          alter('remove_col', 4, 7);
 
-          expect(countCols()).toEqual(2);
-          expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toEqual('D1');
-          expect(getDataAtCell(0, 2)).toBeNull();
-          expect(getDataAtCell(0, 3)).toBeNull();
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('D2');
-          expect(getDataAtCell(1, 2)).toBeNull();
-          expect(getDataAtCell(1, 3)).toBeNull();
+          expect(getData()).toEqual([
+            ['A1', 'B1', 'C1', 'D1', 'L1', 'M1', 'N1', 'O1']
+          ]);
 
           HOT.undo();
 
-          expect(countCols()).toEqual(4);
-          expect(getDataAtCell(0, 0)).toEqual('A1');
-          expect(getDataAtCell(0, 1)).toEqual('B1');
-          expect(getDataAtCell(0, 2)).toEqual('C1');
-          expect(getDataAtCell(0, 3)).toEqual('D1');
-          expect(getDataAtCell(1, 0)).toEqual('A2');
-          expect(getDataAtCell(1, 1)).toEqual('B2');
-          expect(getDataAtCell(1, 2)).toEqual('C2');
-          expect(getDataAtCell(1, 3)).toEqual('D2');
+          expect(countCols()).toEqual(15);
+          expect(getData()).toEqual([
+            ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
+          ]);
         });
 
         it('should undo removal of multiple columns (colHeaders: true)', () => {
@@ -1714,6 +1715,8 @@ describe('UndoRedo', () => {
             colHeaders: true,
             rowHeaders: true,
             fixedRowsBottom: 1,
+            width: 500,
+            height: 400,
           });
 
           alter('remove_row', 0, 3);
@@ -2926,6 +2929,52 @@ describe('UndoRedo', () => {
       redo();
 
       expect(getSelectedLast()).toEqual([0, 1, 0, 1]);
+    });
+
+    it('should restore row headers selection after undoing changes', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(3, 5),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      selectRows(1);
+      emptySelectedCells();
+
+      undo();
+
+      expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should restore column headers selection after undoing changes', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 3),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      selectColumns(1);
+      emptySelectedCells();
+
+      undo();
+
+      expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+      expect(`
+        |   ║   : * :   |
+        |===:===:===:===|
+        | - ║   : A :   |
+        | - ║   : 0 :   |
+        | - ║   : 0 :   |
+        | - ║   : 0 :   |
+        | - ║   : 0 :   |
+      `).toBeMatchToSelectionPattern();
     });
 
     it('should keep saved selection state ater undoing non-contignous selected cells', () => {

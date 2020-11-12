@@ -1,5 +1,5 @@
 import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerWidth } from './../../helpers/dom/element';
+import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
@@ -292,17 +292,9 @@ class ManualRowResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfRowHeader(element) {
-    if (element !== this.hot.rootElement) {
-      const parent = element.parentNode;
+    const thElement = closest(element, ['TH'], this.hot.rootElement);
 
-      if (parent.tagName === 'TBODY') {
-        return true;
-      }
-
-      return this.checkIfRowHeader(parent);
-    }
-
-    return false;
+    return thElement && element.parentNode?.parentNode?.tagName === 'TBODY';
   }
 
   /**
@@ -312,12 +304,12 @@ class ManualRowResize extends BasePlugin {
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
-  getTHFromTargetElement(element) {
+  getClosestTHParent(element) {
     if (element.tagName !== 'TABLE') {
       if (element.tagName === 'TH') {
         return element;
       }
-      return this.getTHFromTargetElement(element.parentNode);
+      return this.getClosestTHParent(element.parentNode);
 
     }
 
@@ -349,8 +341,14 @@ class ManualRowResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
+    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+    // the next `onmouseover`.
+    if (isDetached(event.target)) {
+      return;
+    }
+
     if (this.checkIfRowHeader(event.target)) {
-      const th = this.getTHFromTargetElement(event.target);
+      const th = this.getClosestTHParent(event.target);
 
       if (th) {
         if (!this.pressed) {

@@ -472,16 +472,14 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
-      const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+    const spreader = this.wot.wtTable.spreader;
+    const width = spreader.clientWidth;
+    const height = spreader.clientHeight;
 
-      if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
-        this.spreaderLastSize.width = width;
-        this.spreaderLastSize.height = height;
-        this.adjustElementsSize();
-      }
+    if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
+      this.spreaderLastSize.width = width;
+      this.spreaderLastSize.height = height;
+      this.adjustElementsSize();
     }
 
     if (this.bottomOverlay.clone) {
@@ -549,10 +547,6 @@ class Overlays {
 
     if (!wtTable.isVisible()) {
       return;
-    }
-
-    if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
-      this.adjustElementsSize();
     }
 
     this.topOverlay.applyToDOM();

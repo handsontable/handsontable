@@ -493,13 +493,13 @@ class AutocompleteEditor extends HandsontableEditor {
  */
 AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   const choicesRelevance = [];
-  let currentItem;
-  const valueLength = value.length;
-  let valueIndex;
-  let charsLeft;
   const result = [];
-  let i;
+  const valueLength = value.length;
   let choicesCount = choices.length;
+  let charsLeft;
+  let currentItem;
+  let i;
+  let valueIndex;
 
   if (valueLength === 0) {
     for (i = 0; i < choicesCount; i++) {

@@ -248,5 +248,28 @@ describe('hiddenColumns', () => {
       expect(getSelectedRangeLast().to.row).toBe(0);
       expect(getSelectedRangeLast().to.col).toBe(2);
     });
+
+    it('should keep the same number of columns if all columns are hidden', () => {
+      handsontable({
+        data: createSpreadsheetData(1, 2),
+        colHeaders: true,
+        hiddenColumns: {
+          columns: [0, 1],
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const copyPastePlugin = getPlugin('copyPaste');
+
+      selectRows(0);
+      listen(); // unlike selectCell behaviour, selectRows will not call `listen` under the hood
+
+      copyPastePlugin.onCopy(copyEvent);
+      copyPastePlugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['A1', 'B1'],
+      ]);
+    });
   });
 });

@@ -193,5 +193,22 @@ describe('HiddenColumns', () => {
         expect(plugin.isValidConfig([3])).toBe(false);
       });
     });
+    describe('clear()', () => {
+      it('should clear the data from hidden column when hidden column is second last one', () => {
+        const col = 2;
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(2, col),
+          hiddenColumns: {
+            columns: [col - 1], // hide penultimate column
+          }
+        });
+
+        hot.clear();
+        const emptyData = hot.getData();
+        const empyDataComparision = [[null, null], [null, null]];
+
+        expect(emptyData).toEqual(empyDataComparision);
+      });
+    });
   });
 });
