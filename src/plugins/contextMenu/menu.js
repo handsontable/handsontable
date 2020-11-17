@@ -451,7 +451,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top;
+    let top = this.offset.below + cursor.top + 1;
 
     if (this.isSubMenu()) {
       top = cursor.top - 1;
