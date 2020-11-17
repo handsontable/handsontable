@@ -533,12 +533,6 @@ class Filters extends BasePlugin {
    * @param {Array} items DropdownMenu items created based on predefined items and settings provided by user.
    */
   onBeforeDropdownMenuSetItems(items) {
-    const menuKeys = arrayMap(items, item => item.key);
-
-    this.components.forEach((component) => {
-      component[menuKeys.indexOf(component.getMenuItemDescriptor().key) === -1 ? 'hide' : 'show']();
-    });
-
     this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
       this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
     });
