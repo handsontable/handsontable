@@ -442,9 +442,17 @@ declare namespace Handsontable {
       }
 
       interface BaseComponent {
-        elements: any[];
+        hot: _Handsontable.Core;
+        id: string;
         hidden: boolean;
+        stateId: string;
+        state: RecordTranslation.IndexMap;
+        elements: any[];
 
+        restoreState(): void;
+        setState(state: any): void;
+        saveState(physicalColumn: number): void;
+        getState(): any;
         destroy(): boolean;
         hide(): void;
         isHidden(): boolean;
