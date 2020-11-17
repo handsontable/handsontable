@@ -211,10 +211,10 @@ describe('HiddenColumns', () => {
       });
     });
 
-    describe('Data change', () => {
-      xit('should correctly render the changed values subjected to validation when there is a hidden column next to it', () => {
+    describe('Data change by setDataAtCell()', () => {
+      it('should correctly render the changed values subjected to validation when there is a hidden column next to it', () => {
         const hot = handsontable({
-          data: [1, 2, 'Smith'],
+          data: [[1, 2, 'Smith']],
           hiddenColumns: {
             columns: [0], // hide the first column
             indicators: true,
@@ -232,6 +232,7 @@ describe('HiddenColumns', () => {
 
         hot.setDataAtCell(0, 1, 'aa'); // set such data in the second column so that it does not pass validation
 
+        expect(hot.getDataAtCell(0, 1)).toBe(2);
         expect(hot.getCell(0, 1).textContent).toBe('2');
       });
     });
