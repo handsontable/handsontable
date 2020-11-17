@@ -1601,6 +1601,104 @@ describe('Filters UI', () => {
     expect(checkboxes.length).toBe(2);
   });
 
+  it('should restore correct components\' state after altering columns', async() => {
+    handsontable({
+      data: [
+        [1, 'Nannie Patel', 'Jenkinsville'],
+        [2, 'Leanne Ware', 'Gardiner'],
+        [3, 'Mathis Boone', 'Saranap'],
+        [4, 'Cruz Benjamin', 'Cascades'],
+        [5, 'Reese David', 'Soham'],
+        [6, 'Ernestine Wiggins', 'Needmore'],
+        [7, 'Chelsea Solomon', 'Alamo'],
+      ],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    dropdownMenu(0);
+    simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[0]);
+    // contains
+    simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(12) td'));
+
+    await sleep(200);
+
+    // Contains '2'
+    document.activeElement.value = '2';
+    $(document.activeElement).simulate('keyup');
+
+    simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[1]);
+    // contains
+    simulateClick(conditionMenuRootElements().second.querySelector('tbody :nth-child(12) td'));
+
+    await sleep(200);
+
+    // Contains '5'
+    document.activeElement.value = '5';
+    $(document.activeElement).simulate('keyup');
+
+    // Select "OR"
+    simulateClick(conditionRadioInput(1).element.querySelector('input'));
+    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+    dropdownMenu(2);
+
+    // uncheck the second record
+    simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
+    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+    hot().alter('insert_col', 0);
+    hot().alter('remove_col', 2);
+
+    {
+      dropdownMenu(0);
+
+      const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+
+      expect($(inputs[0]).is(':visible')).toBe(false);
+      expect(inputs[0].value).toBe('');
+      expect($(inputs[1]).is(':visible')).toBe(false);
+      expect(inputs[1].value).toBe('');
+      expect(conditionSelectRootElements().first.textContent).toBe('None');
+      expect(conditionSelectRootElements().second.textContent).toBe('None');
+      expect(byValueMultipleSelect().getItems().length).toBe(1);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
+    }
+    {
+      dropdownMenu(1);
+
+      const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+
+      expect($(inputs[0]).is(':visible')).toBe(true);
+      expect(inputs[0].value).toBe('2');
+      expect($(inputs[1]).is(':visible')).toBe(false);
+      expect(inputs[1].value).toBe('');
+      expect($(inputs[2]).is(':visible')).toBe(true);
+      expect(inputs[2].value).toBe('5');
+      expect(conditionSelectRootElements().first.textContent).toBe('Contains');
+      expect(conditionSelectRootElements().second.textContent).toBe('Contains');
+      expect(byValueMultipleSelect().getItems().length).toBe(1);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
+    }
+    {
+      dropdownMenu(2);
+
+      const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+
+      expect($(inputs[0]).is(':visible')).toBe(false);
+      expect(inputs[0].value).toBe('');
+      expect($(inputs[1]).is(':visible')).toBe(false);
+      expect(inputs[1].value).toBe('');
+      expect(conditionSelectRootElements().first.textContent).toBe('None');
+      expect(conditionSelectRootElements().second.textContent).toBe('None');
+      expect(byValueMultipleSelect().getItems().length).toBe(2);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
+    }
+  });
+
   describe('Simple filtering (one column)', () => {
     it('should select the first visible row after filtering', () => {
       handsontable({

@@ -530,9 +530,8 @@ class Filters extends BasePlugin {
    * Before dropdown menu set menu items listener.
    *
    * @private
-   * @param {Array} items DropdownMenu items created based on predefined items and settings provided by user.
    */
-  onBeforeDropdownMenuSetItems(items) {
+  onBeforeDropdownMenuSetItems() {
     this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
       this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
     });
