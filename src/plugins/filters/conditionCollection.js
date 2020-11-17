@@ -58,7 +58,7 @@ class ConditionCollection {
    * Check if value is matched to the criteria of conditions chain.
    *
    * @param {object} value Object with `value` and `meta` keys.
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @returns {boolean}
    */
   isMatch(value, column) {
@@ -88,7 +88,7 @@ class ConditionCollection {
   /**
    * Add condition to the collection.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @param {object} conditionDefinition Object with keys:
    *  * `command` Object, Command object with condition name as `key` property.
    *  * `args` Array, Condition arguments.
@@ -147,7 +147,7 @@ class ConditionCollection {
   /**
    * Get all added conditions from the collection at specified column index.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @returns {Array} Returns conditions collection as an array.
    */
   getConditions(column) {
@@ -157,7 +157,7 @@ class ConditionCollection {
   /**
    * Get operation for particular column.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @returns {string|undefined}
    */
   getOperation(column) {
@@ -165,7 +165,7 @@ class ConditionCollection {
   }
 
   /**
-   * Get all filtered columns in the order in which actions are performed.
+   * Get all filtered physical columns in the order in which actions are performed.
    *
    * @returns {Array}
    */
@@ -216,7 +216,7 @@ class ConditionCollection {
   /**
    * Remove conditions at given column index.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @fires ConditionCollection#beforeRemove
    * @fires ConditionCollection#afterRemove
    */
@@ -242,7 +242,7 @@ class ConditionCollection {
    * Check if at least one condition was added at specified column index. And if second parameter is passed then additionally
    * check if condition exists under its name.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @param {string} [name] Condition name.
    * @returns {boolean}
    */
