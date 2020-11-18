@@ -1721,6 +1721,7 @@ declare namespace Handsontable {
     selectionMode?: 'single' | 'range' | 'multiple';
     selectOptions?: string[];
     skipColumnOnPaste?: boolean;
+    skipRowOnPaste?: boolean;
     sortByRelevance?: boolean;
     source?: string[] | number[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
     startCols?: number;
