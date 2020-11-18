@@ -292,6 +292,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectOptions: ['A', 'B', 'C'],
   skipColumnOnPaste: true,
+  skipRowOnPaste: true,
   sortByRelevance: true,
   source: oneOf(['A', 'B', 'C', 'D'], (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])),
   startCols: 123,
