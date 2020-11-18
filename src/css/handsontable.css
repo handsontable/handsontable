@@ -300,44 +300,6 @@ TextRenderer placeholder value
   color: #999;
 }
 
-/*
-AutocompleteRenderer down arrow
-*/
-
-.handsontable .htAutocompleteArrow {
-  float: right;
-  font-size: 10px;
-  color: #EEE;
-  cursor: default;
-  width: 16px;
-  text-align: center;
-}
-
-.handsontable td .htAutocompleteArrow:hover {
-  color: #777;
-}
-
-.handsontable td.area .htAutocompleteArrow {
-  color: #d3d3d3;
-}
-
-/*
-CheckboxRenderer
-*/
-.handsontable .htCheckboxRendererInput {
-  display: inline-block;
-}
-.handsontable .htCheckboxRendererInput.noValue {
-  opacity: 0.5;
-}
-.handsontable .htCheckboxRendererLabel {
-  font-size: inherit;
-  vertical-align: middle;
-  cursor: pointer;
-  display: inline-block;
-  width: 100%;
-}
-
 /**
  * Handsontable listbox theme
  */

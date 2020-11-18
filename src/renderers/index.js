@@ -1,13 +1,5 @@
 import staticRegister from './../utils/staticRegister';
 
-import baseRenderer from './_cellDecorator';
-import autocompleteRenderer from './autocompleteRenderer';
-import checkboxRenderer from './checkboxRenderer';
-import htmlRenderer from './htmlRenderer';
-import numericRenderer from './numericRenderer';
-import passwordRenderer from './passwordRenderer';
-import textRenderer from './textRenderer';
-
 const {
   register,
   getItem,
@@ -15,14 +7,6 @@ const {
   getNames,
   getValues,
 } = staticRegister('renderers');
-
-register('base', baseRenderer);
-register('autocomplete', autocompleteRenderer);
-register('checkbox', checkboxRenderer);
-register('html', htmlRenderer);
-register('numeric', numericRenderer);
-register('password', passwordRenderer);
-register('text', textRenderer);
 
 /**
  * Retrieve renderer function.

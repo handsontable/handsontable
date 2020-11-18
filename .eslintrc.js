@@ -127,7 +127,7 @@ module.exports = {
   },
   "overrides": [
     {
-      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.e2e.js", "src/plugins/**/test/helpers/**"],
+      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.spec.js", "src/plugins/**/test/helpers/**"],
       "rules": {
         "import/extensions": "off",
         "import/no-unresolved": [
@@ -139,7 +139,7 @@ module.exports = {
       }
     },
     {
-      "files": ["*.unit.js", "*.e2e.js", "*.spec.js"],
+      "files": ["*.unit.js", "*.spec.js"],
       "rules": {
         "no-restricted-globals": "off",
         "no-undef": "off",

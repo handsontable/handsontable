@@ -8,6 +8,41 @@ import { getRegisteredRendererNames, getRenderer, registerRenderer } from './ren
 import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
 import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
 
+// Import built-in editors
+import './editors/baseEditor';
+import './editors/autocompleteEditor';
+import './editors/checkboxEditor';
+import './editors/dateEditor';
+import './editors/dropdownEditor';
+import './editors/handsontableEditor';
+import './editors/numericEditor';
+import './editors/passwordEditor';
+import './editors/selectEditor';
+import './editors/textEditor';
+// Import built-in renderers
+import './renderers/baseRenderer';
+import './renderers/autocompleteRenderer';
+import './renderers/checkboxRenderer';
+import './renderers/htmlRenderer';
+import './renderers/numericRenderer';
+import './renderers/passwordRenderer';
+import './renderers/textRenderer';
+// Import built-in validators
+import './validators/autocompleteValidator';
+import './validators/dateValidator';
+import './validators/numericValidator';
+import './validators/timeValidator';
+// Import built-in cell types
+import './cellTypes/autocompleteType';
+import './cellTypes/checkboxType';
+import './cellTypes/dateType';
+import './cellTypes/dropdownType';
+import './cellTypes/handsontableType';
+import './cellTypes/numericType';
+import './cellTypes/passwordType';
+import './cellTypes/textType';
+import './cellTypes/timeType';
+
 import Core from './core';
 import jQueryWrapper from './helpers/wrappers/jquery';
 import EventManager, { getListenersCounter } from './eventManager';
