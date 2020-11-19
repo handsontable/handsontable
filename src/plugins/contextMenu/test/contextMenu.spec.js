@@ -605,7 +605,7 @@ describe('ContextMenu', () => {
 
       const rect = $('.htContextMenu')[0].getBoundingClientRect();
       const x = parseInt(rect.left + (rect.width / 2), 10);
-      const y = parseInt(rect.top + rect.height + 1, 10); // we moved context menu 1px down
+      const y = parseInt(rect.top + rect.height, 10);
       mouseDown(document.elementFromPoint(x, y));
 
       expect($('.htContextMenu').is(':visible')).toBe(false);

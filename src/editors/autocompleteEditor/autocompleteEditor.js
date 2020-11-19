@@ -14,7 +14,6 @@ import {
   getTrimmingContainer,
   setCaretPosition,
 } from '../../helpers/dom/element';
-
 import HandsontableEditor from '../handsontableEditor';
 
 const privatePool = new WeakMap();

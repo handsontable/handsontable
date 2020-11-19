@@ -55,6 +55,21 @@ describe('TextRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
+  it('should add class name `htDimmed` to a read only cell', () => {
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable.Core(DIV, {});
+
+    const TD = document.createElement('TD');
+    TD.className = 'someClass';
+    Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {
+      readOnly: true,
+      readOnlyCellClassName: 'htDimmed',
+    });
+    expect(TD.className).toEqual('someClass htDimmed');
+
+    instance.destroy();
+  });
+
   it('should render a multiline string', () => {
     handsontable();
     setDataAtCell(1, 2, 'a b');

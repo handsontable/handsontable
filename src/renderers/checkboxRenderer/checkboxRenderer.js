@@ -5,7 +5,6 @@ import { isKey } from '../../helpers/unicode';
 import { partial } from '../../helpers/function';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { getRenderer } from '../index';
-
 import { RENDERER_TYPE as BASE_RENDERER_TYPE } from '../baseRenderer';
 
 import './checkboxRenderer.css';

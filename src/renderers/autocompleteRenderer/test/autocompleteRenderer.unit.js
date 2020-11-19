@@ -1,5 +1,4 @@
 import Core from 'handsontable/core';
-
 import {
   getRegisteredRendererNames,
   getRenderer,

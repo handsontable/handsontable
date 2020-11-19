@@ -1,7 +1,6 @@
 import numbro from 'numbro';
 import { getRenderer } from '../index';
 import { isNumeric } from '../../helpers/number';
-
 import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../textRenderer';
 
 /**

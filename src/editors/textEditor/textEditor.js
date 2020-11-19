@@ -19,7 +19,6 @@ import { isMobileBrowser, isIE, isEdge } from '../../helpers/browser';
 import EventManager from '../../eventManager';
 import { KEY_CODES } from '../../helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
-
 import BaseEditor, { EditorState } from '../baseEditor';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';

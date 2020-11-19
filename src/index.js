@@ -69,7 +69,6 @@ import { metaSchemaFactory } from './dataMap/index';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
-
 import {
   registerLanguageDictionary,
   getLanguagesDictionaries,

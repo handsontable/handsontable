@@ -1,6 +1,5 @@
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { getRenderer } from '../index';
-
 import { RENDERER_TYPE as BASE_RENDERER_TYPE } from '../baseRenderer';
 
 /**

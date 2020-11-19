@@ -1,7 +1,6 @@
 import { empty, fastInnerText } from '../../helpers/dom/element';
 import { stringify } from '../../helpers/mixed';
 import { getRenderer } from '../index';
-
 import { RENDERER_TYPE as BASE_RENDERER_TYPE } from '../baseRenderer';
 
 /**

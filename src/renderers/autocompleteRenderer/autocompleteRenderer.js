@@ -2,7 +2,6 @@ import { getRenderer } from '../index';
 import { addClass, hasClass } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { CellCoords } from '../../3rdparty/walkontable/src';
-
 import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../textRenderer';
 import { RENDERER_TYPE as HTML_RENDERER_TYPE } from '../htmlRenderer';
 

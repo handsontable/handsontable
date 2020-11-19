@@ -8,9 +8,12 @@ import { RENDERER_TYPE } from '../renderers/autocompleteRenderer';
 import { VALIDATOR_TYPE } from '../validators/autocompleteValidator';
 
 const CELL_TYPE = 'autocomplete';
-
-registerCellType(CELL_TYPE, {
+const DEFINITION = {
   editor: getEditor(EDITOR_TYPE),
   renderer: getRenderer(RENDERER_TYPE),
   validator: getValidator(VALIDATOR_TYPE),
-});
+};
+
+registerCellType(CELL_TYPE, DEFINITION);
+
+export default DEFINITION;

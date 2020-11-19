@@ -71,6 +71,48 @@ describe('NumericRenderer', () => {
     }, 100);
   });
 
+  it('should add class names `htNumeric` and `htRight` to the cell if it renders a number', () => {
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
+    TD.className = 'someClass';
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {});
+    expect(TD.className).toEqual('someClass htRight htNumeric');
+    instance.destroy();
+  });
+
+  it('should add class names `htNumeric` and `htRight` to the cell if it renders a numeric string', () => {
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
+    TD.className = 'someClass';
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, '123', {});
+    expect(TD.className).toEqual('someClass htRight htNumeric');
+    instance.destroy();
+  });
+
+  it('should not add class name `htNumeric` to the cell if it renders a text', () => {
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
+    TD.className = 'someClass';
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 'abc', {});
+    expect(TD.className).toEqual('someClass');
+    instance.destroy();
+  });
+
+  it('should add class name `htDimmed` to a read only cell', () => {
+    const DIV = document.createElement('DIV');
+    const instance = new Handsontable(DIV, {});
+    const TD = document.createElement('TD');
+    Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {
+      readOnly: true,
+      readOnlyCellClassName: 'htDimmed',
+    });
+    expect(TD.className).toContain('htDimmed');
+    instance.destroy();
+  });
+
   describe('NumericRenderer with ContextMenu', () => {
     it('should change class name from default `htRight` to `htLeft` after set align in contextMenu', (done) => {
       handsontable({

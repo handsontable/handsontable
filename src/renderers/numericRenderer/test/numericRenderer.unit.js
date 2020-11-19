@@ -1,7 +1,6 @@
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import Core from 'handsontable/core';
-
 import {
   getRegisteredRendererNames,
   getRenderer,
