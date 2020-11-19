@@ -1,4 +1,4 @@
-import { registerEditor } from '../index';
+import { registerEditor } from '../editors';
 import DateEditor from './dateEditor';
 
 export const EDITOR_TYPE = 'date';

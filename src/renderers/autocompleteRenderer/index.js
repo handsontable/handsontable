@@ -1,4 +1,4 @@
-import { registerRenderer } from '../index';
+import { registerRenderer } from '../renderers';
 import autocompleteRenderer from './autocompleteRenderer';
 
 export const RENDERER_TYPE = 'autocomplete';

@@ -1,4 +1,4 @@
-import { registerRenderer } from '../index';
+import { registerRenderer } from '../renderers';
 import textRenderer from './textRenderer';
 
 export const RENDERER_TYPE = 'text';

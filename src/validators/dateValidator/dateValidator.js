@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { getNormalizedDate } from '../../helpers/date';
-import { getEditorInstance } from '../../editors';
+import { getEditorInstance } from '../../editors/editors';
 
 import { EDITOR_TYPE as DATE_EDITOR_TYPE } from '../../editors/dateEditor';
 

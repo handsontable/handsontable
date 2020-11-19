@@ -1,7 +1,7 @@
-import { registerCellType } from './index';
-import { getEditor } from '../editors';
-import { getRenderer } from '../renderers';
-import { getValidator } from '../validators';
+import { registerCellType } from './cellTypes';
+import { getEditor } from '../editors/editors';
+import { getRenderer } from '../renderers/renderers';
+import { getValidator } from '../validators/validators';
 
 import { EDITOR_TYPE } from '../editors/autocompleteEditor';
 import { RENDERER_TYPE } from '../renderers/autocompleteRenderer';

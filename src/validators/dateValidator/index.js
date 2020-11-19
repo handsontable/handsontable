@@ -1,4 +1,4 @@
-import { registerValidator } from '../index';
+import { registerValidator } from '../validators';
 import dateValidator from './dateValidator';
 
 export const VALIDATOR_TYPE = 'date';

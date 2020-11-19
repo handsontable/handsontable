@@ -1,4 +1,4 @@
-import { registerValidator } from '../index';
+import { registerValidator } from '../validators';
 import numericValidator from './numericValidator';
 
 export const VALIDATOR_TYPE = 'numeric';

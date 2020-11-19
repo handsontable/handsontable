@@ -1,4 +1,4 @@
-import { registerEditor } from '../index';
+import { registerEditor } from '../editors';
 import SelectEditor from './selectEditor';
 
 export const EDITOR_TYPE = 'select';

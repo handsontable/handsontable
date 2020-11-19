@@ -1,4 +1,4 @@
-import { registerRenderer } from '../index';
+import { registerRenderer } from '../renderers';
 import htmlRenderer from './htmlRenderer';
 
 export const RENDERER_TYPE = 'html';

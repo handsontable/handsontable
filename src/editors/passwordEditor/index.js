@@ -1,4 +1,4 @@
-import { registerEditor } from '../index';
+import { registerEditor } from '../editors';
 import PasswordEditor from './passwordEditor';
 
 export const EDITOR_TYPE = 'password';

@@ -1,4 +1,4 @@
-import { registerEditor } from '../index';
+import { registerEditor } from '../editors';
 import HandsontableEditor from './handsontableEditor';
 
 export const EDITOR_TYPE = 'handsontable';

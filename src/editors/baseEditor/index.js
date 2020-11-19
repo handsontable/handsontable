@@ -1,4 +1,4 @@
-import { registerEditor } from '../index';
+import { registerEditor } from '../editors';
 import BaseEditor, { EditorState } from './baseEditor';
 
 export const EDITOR_TYPE = 'base';

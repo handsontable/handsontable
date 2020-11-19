@@ -1,4 +1,4 @@
-import { registerEditor } from '../index';
+import { registerEditor } from '../editors';
 import AutocompleteEditor from './autocompleteEditor';
 
 export const EDITOR_TYPE = 'autocomplete';

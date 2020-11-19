@@ -1,4 +1,4 @@
-import { getRenderer } from '../index';
+import { getRenderer } from '../renderers';
 import { addClass, hasClass } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { CellCoords } from '../../3rdparty/walkontable/src';

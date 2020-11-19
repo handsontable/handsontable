@@ -1,7 +1,7 @@
 import {
   getRegisteredRendererNames,
   getRenderer,
-} from '../../index';
+} from '../../renderers';
 import htmlRenderer from '../index';
 
 describe('textRenderer', () => {

@@ -1,8 +1,9 @@
+import HandsontableEditor from '../handsontableEditor';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { stringify, isDefined } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { pivot, arrayMap } from '../../helpers/array';
-import { getRenderer } from '../../renderers';
+import { getRenderer } from '../../renderers/renderers';
 import {
   addClass,
   getCaretPosition,
@@ -14,7 +15,7 @@ import {
   getTrimmingContainer,
   setCaretPosition,
 } from '../../helpers/dom/element';
-import HandsontableEditor from '../handsontableEditor';
+import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../../renderers/textRenderer';
 
 const privatePool = new WeakMap();
 
@@ -106,7 +107,7 @@ export default class AutocompleteEditor extends HandsontableEditor {
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
-        getRenderer('text')(instance, TD, row, col, prop, value, cellProperties);
+        getRenderer(TEXT_RENDERER_TYPE)(instance, TD, row, col, prop, value, cellProperties);
 
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
         const query = this.query;

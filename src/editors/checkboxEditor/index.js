@@ -1,4 +1,4 @@
-import { registerEditor } from '../index';
+import { registerEditor } from '../editors';
 import CheckboxEditor from './checkboxEditor';
 
 export const EDITOR_TYPE = 'checkbox';

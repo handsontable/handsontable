@@ -1,4 +1,4 @@
-import { registerValidator } from '../index';
+import { registerValidator } from '../validators';
 import timeValidator from './timeValidator';
 
 export const VALIDATOR_TYPE = 'time';

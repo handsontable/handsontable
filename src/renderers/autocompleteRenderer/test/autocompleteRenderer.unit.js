@@ -2,7 +2,7 @@ import Core from 'handsontable/core';
 import {
   getRegisteredRendererNames,
   getRenderer,
-} from '../../index';
+} from '../../renderers';
 import autocompleteRenderer from '../index';
 
 describe('autocompleteRenderer', () => {

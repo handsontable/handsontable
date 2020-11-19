@@ -1,5 +1,5 @@
 import { hasOwnProperty, isObject, objectEach, inherit } from '../../helpers/object';
-import { getCellType } from '../../cellTypes';
+import { getCellType } from '../../cellTypes/cellTypes';
 
 /**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets

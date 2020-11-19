@@ -1,4 +1,4 @@
-import { registerRenderer } from '../index';
+import { registerRenderer } from '../renderers';
 import checkboxRenderer from './checkboxRenderer';
 
 export const RENDERER_TYPE = 'checkbox';

@@ -4,7 +4,7 @@ import Core from 'handsontable/core';
 import {
   getRegisteredRendererNames,
   getRenderer,
-} from '../../index';
+} from '../../renderers';
 import numericRenderer from '../index';
 
 describe('numericRenderer', () => {
