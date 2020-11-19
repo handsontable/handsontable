@@ -41,11 +41,8 @@ describe('HiddenColumns', () => {
     it('should correctly render the changed values subjected to validation when there is a hidden column next to it', async() => {
       const hot = handsontable({
         data: [[1, 2, 'Smith']],
-        colHeaders: true,
         hiddenColumns: {
           columns: [0], // hide the first column
-          indicators: true,
-          copyPasteEnabled: false
         },
         columns: [
           {}, // the first empty column
@@ -58,13 +55,13 @@ describe('HiddenColumns', () => {
       });
 
       hot.selectCell(0, 1);
-      keyDown('enter'); // open the editor
+      keyDownUp('enter'); // open the editor
       await sleep(200);
 
       document.activeElement.value = 'aa'; // type incorect value
-      keyDown('enter'); // confirm change the value
+      keyDownUp('enter'); // confirm change the value
       await sleep(200);
-      keyDown(Handsontable.helper.KEY_CODES.ESCAPE); // close the editor
+      keyDownUp('esc'); // close the editor
       await sleep(200);
 
       expect(hot.getDataAtCell(0, 1)).toBe(2);
