@@ -125,7 +125,7 @@ describe('HiddenColumns', () => {
       });
 
       it('should return correct visual indexes when columns sequence is non-contiguous ' +
-        '(force desync between physical and visual indexes)', () => {
+         '(force desync between physical and visual indexes)', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(1, 10),
           colHeaders: true,
@@ -211,14 +211,12 @@ describe('HiddenColumns', () => {
       });
     });
 
-    describe('Data change by setDataAtCell()', () => {
+    describe('setDataAtCell()', () => {
       it('should correctly render the changed values subjected to validation when there is a hidden column next to it', () => {
         const hot = handsontable({
           data: [[1, 2, 'Smith']],
           hiddenColumns: {
             columns: [0], // hide the first column
-            indicators: true,
-            copyPasteEnabled: false
           },
           columns: [
             {}, // the first empty column
