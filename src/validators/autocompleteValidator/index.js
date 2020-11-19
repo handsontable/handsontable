@@ -1,8 +1,8 @@
 import { registerValidator } from '../validators';
-import autocompleteRenderer from './autocompleteValidator';
+import autocompleteValidator from './autocompleteValidator';
 
 export const VALIDATOR_TYPE = 'autocomplete';
 
-registerValidator(VALIDATOR_TYPE, autocompleteRenderer);
+registerValidator(VALIDATOR_TYPE, autocompleteValidator);
 
-export default autocompleteRenderer;
+export default autocompleteValidator;

@@ -5,7 +5,7 @@ import {
   assert,
   isNullish
 } from 'handsontable/dataMap/metaManager/utils';
-import 'handsontable/cellTypes/presetCellTypes';
+import 'handsontable/cellTypes';
 
 describe('MetaManager utils', () => {
   describe('expandMetaType', () => {
