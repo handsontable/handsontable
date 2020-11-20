@@ -522,6 +522,9 @@ declare namespace Handsontable {
       }
 
       interface ConditionCollection {
+        hot: _Handsontable.Core;
+        isMapRegistrable: boolean;
+        filteringStates: RecordTranslation.IndexMap;
         addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType, position?: number): void;
         clean(): void;
         destroy(): void;
