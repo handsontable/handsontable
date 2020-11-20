@@ -1919,6 +1919,7 @@ declare namespace Handsontable {
       getBucket(context?: Handsontable): Bucket;
       getRegistered(): (keyof Hooks.Events)[];
       has(key: keyof Hooks.Events, context?: Handsontable): boolean;
+      isDeprecated(key: keyof Hooks.Events): boolean;                                 
       isRegistered(key: keyof Hooks.Events): boolean;
       once<K extends keyof Hooks.Events>(key: K, callback: Hooks.Events[K] | Hooks.Events[K][], context?: Handsontable): void;
       register(key: string): void;
