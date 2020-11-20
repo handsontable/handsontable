@@ -112,10 +112,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {Window}
    */
   this.rootWindow = this.rootDocument.defaultView;
+  /**
+   * The flag determines if the Handsontable istance was destroyed.
+   *
+   * @type {boolean}
+   */
+  this.isDestroyed = false;
+  /**
+   * The flag determines rendering state of the table.
+   *
+   * @type {boolean}
+   */
+  this.renderSuspended = false;
 
   keyStateStartObserving(this.rootDocument);
-
-  this.isDestroyed = false;
 
   this.container = this.rootDocument.createElement('div');
   this.renderCall = false;
@@ -685,7 +695,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         });
       }
       if (instance.view) {
-        instance.view.wt.wtOverlays.adjustElementsSize();
+        instance.view.adjustElementsSize();
       }
     },
 
@@ -959,24 +969,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     globalMeta[className] = classSettings;
   }
 
-  /**
-   * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
-   * mapper's and column index mapper's cache at most once, even when there is more then one operation inside their
-   * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
-   * sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
-   *
-   * @memberof Core#
-   * @function batch
-   * @param {Function} wrappedOperations Batched operations wrapped in a function.
-   */
-  this.batch = function(wrappedOperations) {
-    this.columnIndexMapper.executeBatchOperations(() => {
-      this.rowIndexMapper.executeBatchOperations(() => {
-        wrappedOperations();
-      });
-    });
-  };
-
   this.init = function() {
     dataSource.setData(tableMeta.data);
 
@@ -1200,7 +1192,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     editorManager.lockEditor();
     instance._refreshBorders(null);
     editorManager.unlockEditor();
-    instance.view.wt.wtOverlays.adjustElementsSize();
+    instance.view.adjustElementsSize();
     instance.runHooks('afterChange', changes, source || 'edit');
 
     const activeEditor = instance.getActiveEditor();
@@ -1612,6 +1604,82 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Checks if the table rendering process was suspended. See explanation in {@link Core#suspendRender}.
+   *
+   * @memberof Core#
+   * @function isRenderSuspended
+   * @since 8.3.0
+   * @returns {boolean}
+   */
+  this.isRenderSuspended = function() {
+    return this.renderSuspended;
+  };
+
+  /**
+   * Suspends the rendering process. It's helpful to aggregate the table render
+   * cycles triggered by API calls or UI actions (or both) and call the "render"
+   * once in the end. As a result, it improves the performance of wrapped operations.
+   * When the table is in the suspend state, most operations will have no visual
+   * effect until the rendering state is resumed and the "render" method is invoked.
+   *
+   * The method is intended to be used by advanced users. Suspending the rendering
+   * process could cause visual glitches when wrongly implemented.
+   *
+   * @memberof Core#
+   * @function suspendRender
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.suspendRender();
+   * hot.alter('insert_row', 5, 45);
+   * hot.alter('insert_col', 10, 40);
+   * hot.setDataAtCell(1, 1, 'x');
+   * hot.setDataAtCell(2, 2, 'c');
+   * hot.setDataAtCell(3, 3, 'v');
+   * hot.setDataAtCell(4, 4, 'b');
+   * hot.setDataAtCell(5, 5, 'n');
+   * hot.selectCell(0, 0);
+   * hot.resumeRender();
+   * hot.render();
+   * ```
+   */
+  this.suspendRender = function() {
+    this.renderSuspended = true;
+  };
+
+  /**
+   * Resumes the rendering process. In conjunction with the {@link Core#suspendRender}
+   * method it allows aggregate the table render cycles triggered by API calls or UI
+   * actions (or both) and call the "render" once in the end. When the table is in
+   * the suspend state, most operations will have no visual effect until the rendering
+   * state is resumed and the "render" method is invoked.
+   *
+   * The method is intended to be used by advanced users. Suspending the rendering
+   * process could cause visual glitches when wrongly implemented.
+   *
+   * @memberof Core#
+   * @function resumeRender
+   * @since 8.3.0
+   * @example
+   * ```js
+   * hot.suspendRender();
+   * hot.alter('insert_row', 5, 45);
+   * hot.alter('insert_col', 10, 40);
+   * hot.setDataAtCell(1, 1, 'x');
+   * hot.setDataAtCell(2, 2, 'c');
+   * hot.setDataAtCell(3, 3, 'v');
+   * hot.setDataAtCell(4, 4, 'b');
+   * hot.setDataAtCell(5, 5, 'n');
+   * hot.selectCell(0, 0);
+   * hot.resumeRender();
+   * hot.render();
+   * ```
+   */
+  this.resumeRender = function() {
+    this.renderSuspended = false;
+  };
+
+  /**
    * Rerender the table. Calling this method starts the process of recalculating, redrawing and applying the changes
    * to the DOM. While rendering the table all cell renderers are recalled.
    *
@@ -1622,13 +1690,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function render
    */
   this.render = function() {
-    if (instance.view) {
+    if (instance.view && !this.isRenderSuspended()) {
       instance.renderCall = true;
       instance.forceFullRender = true; // used when data was changed
       editorManager.lockEditor();
       instance._refreshBorders(null);
       editorManager.unlockEditor();
     }
+  };
+
+  /**
+   * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
+   * mapper's and column index mapper's cache at most once, even when there is more then one operation inside their
+   * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
+   * sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
+   *
+   * @memberof Core#
+   * @function batch
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   */
+  this.batch = function(wrappedOperations) {
+    this.columnIndexMapper.executeBatchOperations(() => {
+      this.rowIndexMapper.executeBatchOperations(() => {
+        wrappedOperations();
+      });
+    });
   };
 
   /**

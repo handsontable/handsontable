@@ -188,7 +188,7 @@ class HiddenColumns extends BasePlugin {
     }
 
     // @TODO Should call once per render cycle, currently fired separately in different plugins
-    this.hot.view.wt.wtOverlays.adjustElementsSize();
+    this.hot.view.adjustElementsSize();
 
     this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
       isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);

@@ -369,7 +369,7 @@ class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -460,7 +460,7 @@ class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);

@@ -239,7 +239,10 @@ class ColumnSorting extends BasePlugin {
 
     if (sortPossible) {
       this.hot.render();
-      this.hot.view.wt.draw(true); // TODO: Workaround? One test won't pass after removal. It should be refactored / described.
+      // TODO: Workaround? This triggers fast redraw. One test won't pass after removal.
+      // It should be refactored / described.
+      this.hot.forceFullRender = false;
+      this.hot.view.render();
     }
   }
 
