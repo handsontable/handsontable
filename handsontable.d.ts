@@ -1820,9 +1820,9 @@ declare namespace Handsontable {
       afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
-      afterUnlisten?: () => void;
       afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+      afterUnlisten?: () => void;
       afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
       afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUpdateSettings?: (newSettings: GridSettings) => void;
@@ -1866,10 +1866,10 @@ declare namespace Handsontable {
       beforeOnCellMouseOver?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
       beforeOnCellMouseUp?: (event: MouseEvent, coords: wot.CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
       beforePaste?: (data: CellValue[][], coords: plugins.RangeType[]) => void | boolean;
-      beforeRemoveCellClassNames?: () => string[] | void;
-      beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       beforeRedo?: (action: plugins.UndoRedoAction) => void;
       beforeRefreshDimensions?: (previousDimensions: object, currentDimensions: object, actionPossible: boolean) => boolean | void;
+      beforeRemoveCellClassNames?: () => string[] | void;
+      beforeRemoveCellMeta?: (row: number, column: number, key: string, value: any) => void;
       beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
       beforeRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
