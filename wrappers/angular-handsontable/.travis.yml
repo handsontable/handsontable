@@ -1,0 +1,17 @@
+dist: xenial
+
+language: node_js
+
+sudo: false
+
+node_js:
+  - '12'
+
+before_script:
+  - 'export TZ=Europe/Warsaw'
+
+services:
+  - xvfb
+
+addons:
+  chrome: stable

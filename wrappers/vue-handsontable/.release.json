@@ -1,0 +1,12 @@
+{
+  "package_file_location": "./package.json",
+  "no_confirm": false,
+  "skip_git_pull": false,
+  "skip_git_push": true,
+  "release_message": true,
+  "remote": "origin",
+  "pre_commit_commands": [],
+  "post_commit_commands": [],
+  "post_complete_commands": [],
+  "files_to_commit": []
+}

@@ -1,7 +1,20 @@
 {
+  "buildCommand": "all build",
+  "packages": [
+    "./",
+    "wrappers/angular-handsontable",
+    "wrappers/react-handsontable",
+    "wrappers/vue-handsontable"
+  ],
+  "publishDirectory": {
+    "handsontable": "./",
+    "@handsontable/angular": "wrappers/angular-handsontable/dist/hot-table",
+    "@handsontable/react": "wrappers/react-handsontable",
+    "@handsontable/vue": "wrappers/vue-handsontable"
+  },
   "sandboxes": [
-    "github/handsontable/examples/tree/master/vanilla/pull-request", 
-    "github/handsontable/examples/tree/master/vue/pull-request", 
+    "github/handsontable/examples/tree/master/vanilla/pull-request",
+    "github/handsontable/examples/tree/master/vue/pull-request",
     "github/handsontable/examples/tree/master/react/pull-request",
     "github/handsontable/examples/tree/master/angular/pull-request"
   ]

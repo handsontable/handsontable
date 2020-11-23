@@ -1,0 +1,9 @@
+*
+
+!commonjs/*
+!dist/*
+!es/*
+!package.json
+!*.d.ts
+!README.md
+!LICENSE

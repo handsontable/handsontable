@@ -124,6 +124,23 @@ module.exports = {
     'jsdoc/require-returns-type': 'error',
     'jsdoc/require-returns': 'error',
     'jsdoc/valid-types': 'error',
+
+    // TODO: To be reviewed:
+    'operator-linebreak': 'off',
+    'object-curly-newline': 'off',
+    'prefer-destructuring': 'off',
+    'implicit-arrow-linebreak': 'off',
+    'function-paren-newline': 'off',
+    'max-classes-per-file': 'off',
+    'import/no-useless-path-segments': 'off',
+    'lines-between-class-members': 'off',
+    'semi-style': 'off',
+    'no-else-return': 'off',
+    'import/no-cycle': 'off',
+    'no-lone-blocks': 'off',
+    'getter-return': 'off',
+    'switch-colon-spacing': 'off',
+    'operator-assignment': 'off',
   },
   "overrides": [
     {

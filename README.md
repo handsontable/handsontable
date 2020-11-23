@@ -5,7 +5,7 @@
 **Handsontable** is a JavaScript/HTML5 data grid component with spreadsheet look & feel. <br>
 It provides easy data binding, data validation, filtering, sorting and CRUD operations.
 
-Handsontable works with [Vue](//github.com/handsontable/vue-handsontable-official), [React](//github.com/handsontable/react-handsontable) and [Angular](//github.com/handsontable/angular-handsontable).
+Handsontable works with [Vue](//github.com/handsontable/handsontable/wrappers/vue-handsontable), [React](//github.com/handsontable/handsontable/wrappers/react-handsontable) and [Angular](//github.com/handsontable/handsontable/wrappers/angular-handsontable).
 <br><br>
 [![npm](https://img.shields.io/npm/dt/handsontable.svg)](//npmjs.com/package/handsontable)
 [![npm](https://img.shields.io/npm/dm/handsontable.svg)](//npmjs.com/package/handsontable)
@@ -97,9 +97,9 @@ A list of some of the most popular features:
 
 Use one of the available wrappers to use Handsontable with your favorite framework:
 
-- [Handsontable for Vue](//github.com/handsontable/vue-handsontable-official)
-- [Handsontable for React](//github.com/handsontable/react-handsontable)
-- [Handsontable for Angular](//github.com/handsontable/angular-handsontable)
+- [Handsontable for Vue](//github.com/handsontable/handsontable/wrappers/vue-handsontable)
+- [Handsontable for React](//github.com/handsontable/handsontable/wrappers/react-handsontable)
+- [Handsontable for Angular](//github.com/handsontable/handsontable/wrappers/angular-handsontable)
 
 ## Documentation
 
