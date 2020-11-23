@@ -1,17 +1,10 @@
-import { registerCellType } from './cellTypes';
-import { getEditor } from '../editors/editors';
-import { getRenderer } from '../renderers/renderers';
+/**
+ * @deprecated This usage is deprecated and will be removed in the next major release.
+ */
+// @TODO Remove this deprecated reexport in the next major release (9.0.0).
+import passwordType, { CELL_TYPE } from './passwordType/index';
 
-import { EDITOR_TYPE } from '../editors/passwordEditor';
-import { RENDERER_TYPE } from '../renderers/passwordRenderer';
-
-const CELL_TYPE = 'password';
-const DEFINITION = {
-  editor: getEditor(EDITOR_TYPE),
-  renderer: getRenderer(RENDERER_TYPE),
-  copyable: false,
+export {
+  CELL_TYPE
 };
-
-registerCellType(CELL_TYPE, DEFINITION);
-
-export default DEFINITION;
+export default passwordType;

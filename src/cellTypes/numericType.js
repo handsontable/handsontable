@@ -1,20 +1,10 @@
-import { registerCellType } from './cellTypes';
-import { getEditor } from '../editors/editors';
-import { getRenderer } from '../renderers/renderers';
-import { getValidator } from '../validators/validators';
+/**
+ * @deprecated This usage is deprecated and will be removed in the next major release.
+ */
+// @TODO Remove this deprecated reexport in the next major release (9.0.0).
+import numericType, { CELL_TYPE } from './numericType/index';
 
-import { EDITOR_TYPE } from '../editors/numericEditor';
-import { RENDERER_TYPE } from '../renderers/numericRenderer';
-import { VALIDATOR_TYPE } from '../validators/numericValidator';
-
-const CELL_TYPE = 'numeric';
-const DEFINITION = {
-  editor: getEditor(EDITOR_TYPE),
-  renderer: getRenderer(RENDERER_TYPE),
-  validator: getValidator(VALIDATOR_TYPE),
-  dataType: 'number',
+export {
+  CELL_TYPE
 };
-
-registerCellType(CELL_TYPE, DEFINITION);
-
-export default DEFINITION;
+export default numericType;
