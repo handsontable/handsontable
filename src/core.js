@@ -119,11 +119,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.isDestroyed = false;
   /**
-   * The flag determines rendering state of the table.
+   * The flag determines the rendering (visual) state of the table.
    *
    * @type {boolean}
    */
-  this.renderSuspended = false;
+  this.renderSuspended = 0;
+  /**
+   * The flag determines the rendering (visual) state of the table.
+   *
+   * @type {boolean}
+   */
+  this.executionSuspended = 0;
 
   keyStateStartObserving(this.rootDocument);
 
@@ -1608,11 +1614,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isRenderSuspended
-   * @since 8.3.0
+   * @since 9.0.0
    * @returns {boolean}
    */
   this.isRenderSuspended = function() {
-    return this.renderSuspended;
+    return this.renderSuspended !== 0;
   };
 
   /**
@@ -1620,14 +1626,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * cycles triggered by API calls or UI actions (or both) and call the "render"
    * once in the end. As a result, it improves the performance of wrapped operations.
    * When the table is in the suspend state, most operations will have no visual
-   * effect until the rendering state is resumed and the "render" method is invoked.
+   * effect until the rendering state is resumed. Resuming the state automatically
+   * invokes the table rendering. To make sure that after executing all operations,
+   * the table will be rendered, it's highly recommended to use the {@link Core#batchRender}
+   * method or {@link Core#batch}, which additionally aggregates the logic that happens
+   * behind the table.
    *
    * The method is intended to be used by advanced users. Suspending the rendering
    * process could cause visual glitches when wrongly implemented.
    *
    * @memberof Core#
    * @function suspendRender
-   * @since 8.3.0
+   * @since 9.0.0
    * @example
    * ```js
    * hot.suspendRender();
@@ -1639,12 +1649,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.setDataAtCell(4, 4, 'b');
    * hot.setDataAtCell(5, 5, 'n');
    * hot.selectCell(0, 0);
-   * hot.resumeRender();
-   * hot.render();
+   * hot.resumeRender(); // It re-renders the table internally
    * ```
    */
   this.suspendRender = function() {
-    this.renderSuspended = true;
+    this.renderSuspended += 1;
   };
 
   /**
@@ -1652,14 +1661,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * method it allows aggregate the table render cycles triggered by API calls or UI
    * actions (or both) and call the "render" once in the end. When the table is in
    * the suspend state, most operations will have no visual effect until the rendering
-   * state is resumed and the "render" method is invoked.
+   * state is resumed. Resuming the state automatically invokes the table rendering.
    *
    * The method is intended to be used by advanced users. Suspending the rendering
    * process could cause visual glitches when wrongly implemented.
    *
    * @memberof Core#
    * @function resumeRender
-   * @since 8.3.0
+   * @since 9.0.0
    * @example
    * ```js
    * hot.suspendRender();
@@ -1671,12 +1680,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.setDataAtCell(4, 4, 'b');
    * hot.setDataAtCell(5, 5, 'n');
    * hot.selectCell(0, 0);
-   * hot.resumeRender();
-   * hot.render();
+   * hot.resumeRender(); // It re-renders the table internally
    * ```
    */
   this.resumeRender = function() {
-    this.renderSuspended = false;
+    this.renderSuspended = Math.max(this.renderSuspended - 1, 0);
+
+    if (!this.isRenderSuspended()) {
+      this.render();
+    }
   };
 
   /**
@@ -1700,21 +1712,182 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Execute batch of operations with updating cache only when necessary. Function is responsible for renewing row index
-   * mapper's and column index mapper's cache at most once, even when there is more then one operation inside their
-   * internal maps. If there is no operation which would reset the cache, it is preserved. Every action on indexes
-   * sequence or skipped indexes by default reset cache, thus batching some index maps actions is recommended.
+   * Batches the rendering process. The method aggregates multi-line API calls into a
+   * callback and postpones the table rendering process. After the execution of the
+   * operations, the table is rendered once. As a result, it improves the performance
+   * of wrapped operations. Without batching, a similar case could trigger multiple
+   * table render calls.
+   *
+   * @memberof Core#
+   * @function batchRender
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @since 9.0.0
+   * @example
+   * ```js
+   * hot.batchRender(() => {
+   *   hot.alter('insert_row', 5, 45);
+   *   hot.alter('insert_col', 10, 40);
+   *   hot.setDataAtCell(1, 1, 'x');
+   *   hot.setDataAtCell(2, 2, 'c');
+   *   hot.setDataAtCell(3, 3, 'v');
+   *   hot.setDataAtCell(4, 4, 'b');
+   *   hot.setDataAtCell(5, 5, 'n');
+   *   hot.selectCell(0, 0);
+   *   // The table will be rendered once after executing the callback
+   * });
+   * ```
+   */
+  this.batchRender = function(wrappedOperations) {
+    this.suspendRender();
+
+    wrappedOperations();
+
+    this.resumeRender();
+  };
+
+  /**
+   * Checks if the table indexes recalculation process was suspended. See explanation
+   * in {@link Core#suspendExecution}.
+   *
+   * @memberof Core#
+   * @function isExecutionSuspended
+   * @since 9.0.0
+   * @returns {boolean}
+   */
+  this.isExecutionSuspended = function() {
+    return this.executionSuspended !== 0;
+  };
+
+  /**
+   * Suspends the execution process. It's helpful to aggregate the table logic changes
+   * such as index changes into one call after which the cache is updated. As a result,
+   * it improves the performance of wrapped operations.
+   *
+   * The method is intended to be used by advanced users. Suspending the execution
+   * process could cause visual glitches caused by not updated the internal table cache.
+   *
+   * @memberof Core#
+   * @function suspendExecution
+   * @since 9.0.0
+   * @example
+   * ```js
+   * hot.suspendExecution();
+   * const filters = hot.getPlugin('filters');
+   *
+   * filters.addCondition(2, 'contains', ['3']);
+   * filters.filter();
+   * hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   * hot.resumeExecution(); // It updates the cache internally
+   * ```
+   */
+  this.suspendExecution = function() {
+    this.executionSuspended += 1;
+    this.columnIndexMapper.suspendOperations();
+    this.rowIndexMapper.suspendOperations();
+  };
+
+  /**
+   * Resumes the execution process. In conjunction with the {@link Core#suspendExecution}
+   * method it allows aggregate the table logic changes after which the cache is
+   * updated. Resuming the state automatically invokes the table cache updating process.
+   *
+   * The method is intended to be used by advanced users.
+   *
+   * @memberof Core#
+   * @function resumeExecution
+   * @since 9.0.0
+   * @example
+   * ```js
+   * hot.suspendExecution();
+   * const filters = hot.getPlugin('filters');
+   *
+   * filters.addCondition(2, 'contains', ['3']);
+   * filters.filter();
+   * hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   * hot.resumeExecution(); // It updates the cache internally
+   * ```
+   */
+  this.resumeExecution = function() {
+    this.executionSuspended = Math.max(this.executionSuspended - 1, 0);
+
+    if (!this.isExecutionSuspended()) {
+      this.columnIndexMapper.resumeOperations();
+      this.rowIndexMapper.resumeOperations();
+    }
+  };
+
+  /**
+   * Resumes the execution process. In conjunction with the {@link Core#suspendExecution}
+   * method it allows aggregate the table logic changes after which the cache is
+   * updated. Resuming the state automatically invokes the table cache updating process.
+   *
+   * The method is intended to be used by advanced users.
+   *
+   * @memberof Core#
+   * @function batchExecution
+   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @since 9.0.0
+   * @example
+   * ```js
+   * hot.batchExecution(() => {
+   *   const filters = hot.getPlugin('filters');
+   *
+   *   filters.addCondition(2, 'contains', ['3']);
+   *   filters.filter();
+   *   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   *   // The table cache will be recalculated once after executing the callback
+   * });
+   * ```
+   */
+  this.batchExecution = function(wrappedOperations) {
+    this.suspendExecution();
+
+    wrappedOperations();
+
+    this.resumeExecution();
+  };
+
+  /**
+   * It batches the rendering process and index recalculations. The method aggregates
+   * multi-line API calls into a callback and postpones the table rendering process
+   * as well aggregates the table logic changes such as index changes into one call
+   * after which the cache is updated. After the execution of the operations, the
+   * table is rendered, and the cache is updated once. As a result, it improves the
+   * performance of wrapped operations.
    *
    * @memberof Core#
    * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * @since 9.0.0
+   * @example
+   * ```js
+   * hot.batch(() => {
+   *   hot.alter('insert_row', 5, 45);
+   *   hot.alter('insert_col', 10, 40);
+   *   hot.setDataAtCell(1, 1, 'x');
+   *   hot.setDataAtCell(2, 2, 'c');
+   *   hot.setDataAtCell(3, 3, 'v');
+   *   hot.setDataAtCell(4, 4, 'b');
+   *   hot.setDataAtCell(5, 5, 'n');
+   *   hot.selectCell(0, 0);
+   *
+   *   const filters = hot.getPlugin('filters');
+   *
+   *   filters.addCondition(2, 'contains', ['3']);
+   *   filters.filter();
+   *   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+   *   // The table will be re-rendered and cache will be recalculated once after executing the callback
+   * });
+   * ```
    */
   this.batch = function(wrappedOperations) {
-    this.columnIndexMapper.executeBatchOperations(() => {
-      this.rowIndexMapper.executeBatchOperations(() => {
-        wrappedOperations();
-      });
-    });
+    this.suspendRender();
+    this.suspendExecution();
+
+    wrappedOperations();
+
+    this.resumeExecution();
+    this.resumeRender();
   };
 
   /**
@@ -3761,10 +3934,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.destroy();
     }
 
-    instance.batch(() => {
-      // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
-      instance.runHooks('afterDestroy');
-    });
+    // The plugin's `destroy` method is called as a consequence and it should handle
+    // unregistration of plugin's maps. Some unregistered maps reset the cache.
+    instance.suspendExecution();
+    instance.runHooks('afterDestroy');
+    instance.resumeExecution();
 
     Hooks.getSingleton().destroy(instance);
 

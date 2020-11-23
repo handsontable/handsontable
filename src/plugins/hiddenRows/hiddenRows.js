@@ -222,7 +222,7 @@ class HiddenRows extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(rows, (visualRow) => {
           this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });

@@ -176,14 +176,14 @@ class ManualColumnResize extends BasePlugin {
     const loadedManualColumnWidths = this.loadManualColumnWidths();
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         loadedManualColumnWidths.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
       });
 
     } else if (Array.isArray(initialSetting)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         initialSetting.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
@@ -192,7 +192,7 @@ class ManualColumnResize extends BasePlugin {
       priv.config = initialSetting;
 
     } else if (initialSetting === true && Array.isArray(priv.config)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         priv.config.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });

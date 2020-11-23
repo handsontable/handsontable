@@ -353,7 +353,7 @@ class CollapsingUI extends BaseUI {
    * @param {Array} rows Physical row indexes.
    */
   trimRows(rows) {
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, true);
       });
@@ -366,7 +366,7 @@ class CollapsingUI extends BaseUI {
    * @param {Array} rows Physical row indexes.
    */
   untrimRows(rows) {
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, false);
       });
