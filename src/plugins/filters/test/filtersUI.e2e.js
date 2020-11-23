@@ -1077,8 +1077,8 @@ describe('Filters UI', () => {
 
         dropdownMenu(2);
 
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+        simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+        simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
         setDataAtCell(0, 2, 'BBB City - modified');
 
         dropdownMenu(2);
@@ -1150,8 +1150,8 @@ describe('Filters UI', () => {
 
         dropdownMenu(2);
 
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+        simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+        simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
         setDataAtCell(0, 2, 'CCC City'); // BBB City -> CCC City
         dropdownMenu(2);
@@ -1205,8 +1205,8 @@ describe('Filters UI', () => {
 
         dropdownMenu(2);
 
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+        simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+        simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
         setDataAtCell(0, 2, 'AAA City'); // AAAA City -> AAA City
 
@@ -1255,8 +1255,8 @@ describe('Filters UI', () => {
 
         dropdownMenu(2);
 
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+        simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+        simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
         setDataAtCell(1, 2, 'CCC City');
         dropdownMenu(2);
@@ -1309,8 +1309,8 @@ describe('Filters UI', () => {
 
         dropdownMenu(2);
 
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+        simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+        simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
         setDataAtCell(0, 2, 'AAA City');
 
@@ -1390,25 +1390,22 @@ describe('Filters UI', () => {
       const manualColumnMove = hot.getPlugin('manualColumnMove');
 
       // filtering first value of column (deselecting checkbox)
-
       dropdownMenu(0);
 
-      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       // moving column
-
       manualColumnMove.moveColumn(0, 1);
       hot.render();
 
       // filtering first value of column (deselecting checkbox)
-
       dropdownMenu(2);
 
-      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      expect(getData().length).toEqual(2);
+      expect(getData().length).toBe(2);
     });
 
     it('should work as expected after actions sequence: filtering column by value -> moving the column -> ' +
@@ -1451,23 +1448,20 @@ describe('Filters UI', () => {
       const manualColumnMove = hot.getPlugin('manualColumnMove');
 
       // filtering first value of column (deselecting checkbox)
-
       dropdownMenu(0);
 
-      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       // moving column
-
       manualColumnMove.moveColumn(0, 1);
       hot.render();
 
       // filtering second value of column (deselecting checkbox)
-
       dropdownMenu(1);
 
-      $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       expect(getData().length).toEqual(2);
     });
@@ -1605,6 +1599,104 @@ describe('Filters UI', () => {
     expect(texts).toEqual(['Mcintyre Clarke', 'Nannie Patel']);
     expect(checkedArray).toEqual([true, true]);
     expect(checkboxes.length).toBe(2);
+  });
+
+  it('should restore correct components\' state after altering columns', async() => {
+    handsontable({
+      data: [
+        [1, 'Nannie Patel', 'Jenkinsville'],
+        [2, 'Leanne Ware', 'Gardiner'],
+        [3, 'Mathis Boone', 'Saranap'],
+        [4, 'Cruz Benjamin', 'Cascades'],
+        [5, 'Reese David', 'Soham'],
+        [6, 'Ernestine Wiggins', 'Needmore'],
+        [7, 'Chelsea Solomon', 'Alamo'],
+      ],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    dropdownMenu(0);
+    simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[0]);
+    // contains
+    simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(12) td'));
+
+    await sleep(200);
+
+    // Contains '2'
+    document.activeElement.value = '2';
+    $(document.activeElement).simulate('keyup');
+
+    simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[1]);
+    // contains
+    simulateClick(conditionMenuRootElements().second.querySelector('tbody :nth-child(12) td'));
+
+    await sleep(200);
+
+    // Contains '5'
+    document.activeElement.value = '5';
+    $(document.activeElement).simulate('keyup');
+
+    // Select "OR"
+    simulateClick(conditionRadioInput(1).element.querySelector('input'));
+    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+    dropdownMenu(2);
+
+    // uncheck the second record
+    simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
+    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+    hot().alter('insert_col', 0);
+    hot().alter('remove_col', 2);
+
+    {
+      dropdownMenu(0);
+
+      const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+
+      expect($(inputs[0]).is(':visible')).toBe(false);
+      expect(inputs[0].value).toBe('');
+      expect($(inputs[1]).is(':visible')).toBe(false);
+      expect(inputs[1].value).toBe('');
+      expect(conditionSelectRootElements().first.textContent).toBe('None');
+      expect(conditionSelectRootElements().second.textContent).toBe('None');
+      expect(byValueMultipleSelect().getItems().length).toBe(1);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
+    }
+    {
+      dropdownMenu(1);
+
+      const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+
+      expect($(inputs[0]).is(':visible')).toBe(true);
+      expect(inputs[0].value).toBe('2');
+      expect($(inputs[1]).is(':visible')).toBe(false);
+      expect(inputs[1].value).toBe('');
+      expect($(inputs[2]).is(':visible')).toBe(true);
+      expect(inputs[2].value).toBe('5');
+      expect(conditionSelectRootElements().first.textContent).toBe('Contains');
+      expect(conditionSelectRootElements().second.textContent).toBe('Contains');
+      expect(byValueMultipleSelect().getItems().length).toBe(1);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
+    }
+    {
+      dropdownMenu(2);
+
+      const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput input');
+
+      expect($(inputs[0]).is(':visible')).toBe(false);
+      expect(inputs[0].value).toBe('');
+      expect($(inputs[1]).is(':visible')).toBe(false);
+      expect(inputs[1].value).toBe('');
+      expect(conditionSelectRootElements().first.textContent).toBe('None');
+      expect(conditionSelectRootElements().second.textContent).toBe('None');
+      expect(byValueMultipleSelect().getItems().length).toBe(2);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
+    }
   });
 
   describe('Simple filtering (one column)', () => {
@@ -2043,38 +2135,35 @@ describe('Filters UI', () => {
       });
 
       dropdownMenu(0);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'));
+
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'));
 
       await sleep(200);
 
       // Greater than 12
       document.activeElement.value = '12';
       $(document.activeElement).simulate('keyup');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       dropdownMenu(2);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'));
       // begins_with
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'));
 
       await sleep(200);
 
       document.activeElement.value = 'b';
       $(document.activeElement).simulate('keyup');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       dropdownMenu(4);
       // uncheck first record
-      $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
 
       await sleep(200);
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await sleep(10);
 
@@ -2106,37 +2195,31 @@ describe('Filters UI', () => {
       });
 
       dropdownMenu(0);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'));
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'));
 
       await sleep(200);
       // Greater than 12
       document.activeElement.value = '12';
       $(document.activeElement).simulate('keyup');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       dropdownMenu(2);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'));
       // begins_with
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'));
 
       await sleep(200);
       document.activeElement.value = 'b';
       $(document.activeElement).simulate('keyup');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       // Change first added filter condition. First added condition is responsible for defining data root chain.
       dropdownMenu(0);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'));
       // between
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(13) td'))
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(13) td'));
 
       await sleep(200);
       const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition input');
@@ -2145,7 +2228,7 @@ describe('Filters UI', () => {
       inputs[1].value = '15';
       $(inputs[0]).simulate('keyup');
       $(inputs[1]).simulate('keyup');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await sleep(10);
 
@@ -2159,7 +2242,7 @@ describe('Filters UI', () => {
       expect(getData()[0][6]).toBe(true);
     });
 
-    it('should apply filtered values to the next "by value" component defined after edited conditions', (done) => {
+    it('should apply filtered values to the next "by value" component defined after edited conditions', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -2170,78 +2253,143 @@ describe('Filters UI', () => {
       });
 
       dropdownMenu(0);
-      $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'));
       // gt
-      $(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'))
-        .simulate('mousedown')
-        .simulate('mouseup');
+      simulateClick(conditionMenuRootElements().first.querySelector('tbody :nth-child(9) td'));
 
-      setTimeout(() => {
-        // Greater than 25
-        document.activeElement.value = '25';
-        $(document.activeElement).simulate('keyup');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        dropdownMenu(2);
-      }, 200);
+      // Greater than 25
+      document.activeElement.value = '25';
+      $(document.activeElement).simulate('keyup');
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      setTimeout(() => {
-        // uncheck
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(4) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      dropdownMenu(2);
 
-        dropdownMenu(1);
-      }, 400);
+      await sleep(200);
 
-      setTimeout(() => {
-        // uncheck
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      // uncheck
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(3) [type=checkbox]'));
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(4) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-        expect(byValueMultipleSelect().getItems().length).toBe(11);
-        expect(byValueMultipleSelect().getValue().length).toBe(9);
+      dropdownMenu(1);
 
-        dropdownMenu(4);
-      }, 600);
+      await sleep(200);
 
-      setTimeout(() => {
-        // uncheck
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(2) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      // uncheck
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-        expect(byValueMultipleSelect().getItems().length).toBe(3);
-        expect(byValueMultipleSelect().getValue().length).toBe(1);
+      expect(byValueMultipleSelect().getItems().length).toBe(11);
+      expect(byValueMultipleSelect().getValue().length).toBe(9);
 
-        dropdownMenu(2);
-      }, 800);
+      dropdownMenu(4);
 
-      setTimeout(() => {
-        // check again (disable filter)
-        $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(3) :checkbox').simulate('click');
-        $(byValueBoxRootElement()).find('tr:nth-child(4) :checkbox').simulate('click');
-        $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+      await sleep(200);
 
-        dropdownMenu(1);
-      }, 1000);
+      // uncheck
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      setTimeout(() => {
-        expect(byValueMultipleSelect().getItems().length).toBe(14);
-        expect(byValueMultipleSelect().getValue().length).toBe(9);
+      expect(byValueMultipleSelect().getItems().length).toBe(3);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
 
-        dropdownMenu(4);
-      }, 1200);
+      dropdownMenu(2);
 
-      setTimeout(() => {
-        // unchanged state for condition behind second condition
-        expect(byValueMultipleSelect().getItems().length).toBe(3);
-        expect(byValueMultipleSelect().getValue().length).toBe(1);
-        done();
-      }, 1500);
+      await sleep(200);
+
+      // check again (disable filter)
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(3) [type=checkbox]'));
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(4) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+      dropdownMenu(1);
+
+      await sleep(200);
+
+      expect(byValueMultipleSelect().getItems().length).toBe(14);
+      expect(byValueMultipleSelect().getValue().length).toBe(9);
+
+      dropdownMenu(4);
+
+      await sleep(200);
+
+      // unchanged state for condition behind second condition
+      expect(byValueMultipleSelect().getItems().length).toBe(3);
+      expect(byValueMultipleSelect().getValue().length).toBe(1);
+    });
+
+    // The test checks if the IndexMap isn't accidentally unregistered in the ConditionCollection
+    // class after opening the menu. It causes the column indication misalignment.
+    it('should update filtering state within column header after removing column on the left', async() => {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        filters: true,
+      });
+
+      dropdownMenu(1);
+      simulateClick(dropdownMenuRootElement().querySelector('.htUISelect'));
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+      await sleep(200);
+
+      alter('remove_col', 0);
+
+      expect(getData()).toEqual([
+        ['B2', 'C2'],
+        ['B3', 'C3'],
+      ]);
+      expect(spec().$container.find('th:eq(0)').hasClass('htFiltersActive')).toEqual(true);
+      expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
+    });
+
+    it('should update conditions properly - execution queue for conditions should not be lost after using ' +
+      'UI of drop-down menu', async() => {
+      handsontable({
+        data: [
+          { id: 1, name: 'Ted Right', address: 'A001' },
+          { id: 2, name: 'Frank Honest', address: 'A002' },
+          { id: 3, name: 'Joan Well', address: 'B001' },
+          { id: 4, name: 'Gail Polite', address: 'B002' },
+          { id: 5, name: 'Michael Fair', address: 'C001' },
+          { id: 6, name: 'Mark Malcovich', address: 'C002' },
+        ],
+        columns: [
+          { data: 'id' },
+          { data: 'name' },
+          { data: 'address' }
+        ],
+        filters: true,
+        dropdownMenu: true,
+        colHeaders: true
+      });
+
+      const filtersPlugin = getPlugin('filters');
+
+      filtersPlugin.addCondition(1, 'by_value', [['Ted Right', 'Joan Well', 'Gail Polite', 'Michael Fair']]);
+      filtersPlugin.addCondition(0, 'by_value', [[3, 5]]);
+      filtersPlugin.addCondition(2, 'by_value', [['C001']]);
+      filtersPlugin.filter();
+
+      dropdownMenu(1);
+
+      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(4) [type=checkbox]'));
+      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+      await sleep(300);
+
+      dropdownMenu(0);
+      expect(byValueMultipleSelect().getItems().length).toBe(5);
+      expect(byValueMultipleSelect().getValue().length).toBe(2);
+      expect(byValueMultipleSelect().getItems()[4]).toEqual({ checked: false, value: 6, visualValue: 6 });
     });
   });
 

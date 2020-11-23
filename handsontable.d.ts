@@ -442,9 +442,17 @@ declare namespace Handsontable {
       }
 
       interface BaseComponent {
-        elements: any[];
+        hot: _Handsontable.Core;
+        id: string;
         hidden: boolean;
+        stateId: string;
+        state: RecordTranslation.IndexMap;
+        elements: any[];
 
+        restoreState(): void;
+        setState(state: any): void;
+        saveState(physicalColumn: number): void;
+        getState(): any;
         destroy(): boolean;
         hide(): void;
         isHidden(): boolean;
@@ -514,15 +522,17 @@ declare namespace Handsontable {
       }
 
       interface ConditionCollection {
-        conditions: object;
-        orderStack: any[];
-
-        addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType): void;
+        hot: _Handsontable.Core;
+        isMapRegistrable: boolean;
+        filteringStates: RecordTranslation.IndexMap;
+        addCondition(column: number, conditionDefinition: ConditionId, operation?: OperationType, position?: number): void;
         clean(): void;
-        clearConditions(column: number): void;
         destroy(): void;
         exportAllConditions(): ConditionId[];
         getConditions(column: number): Condition[];
+        getFilteredColumns(): number[];
+        getColumnStackPosition(column: number): number | void;
+        getOperation(column: number): void | OperationType;
         hasConditions(column: number, name: string): boolean;
         isEmpty(): boolean;
         isMatch(value: CellLikeData, column: number): boolean;
@@ -532,6 +542,7 @@ declare namespace Handsontable {
       }
 
       interface ConditionUpdateObserver {
+        hot: _Handsontable.Core;
         changes: number[];
         columnDataFactory: (column: number) => object[];
         conditionCollection: ConditionCollection;
@@ -740,6 +751,7 @@ declare namespace Handsontable {
       callOnPluginsReady(callback: () => void): void;
       clearHooks(): void;
       destroy(): void;
+      isEnabled(): boolean;
       disablePlugin(): void;
       enablePlugin(): void;
       updatePlugin(): void;
@@ -1001,7 +1013,7 @@ declare namespace Handsontable {
       trimRowsPlugin: TrimRows | void;
       valueComponent: FiltersPlugin.ValueComponent | void;
 
-      addCondition(column: number, name: string, args: any[], operationId: FiltersPlugin.OperationType): void;
+      addCondition(column: number, name: string, args: any[], operationId?: FiltersPlugin.OperationType): void;
       clearColumnSelection(): void;
       clearConditions(column?: number | void): void;
       getDataMapAtColumn(column: number): FiltersPlugin.CellLikeData[];
