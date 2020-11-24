@@ -28,25 +28,23 @@ class DataFilter {
   filter() {
     let filteredData = [];
 
-    if (!this.conditionCollection.isEmpty()) {
-      arrayEach(this.conditionCollection.orderStack, (column, index) => {
-        let columnData = this.columnDataFactory(column);
+    arrayEach(this.conditionCollection.getFilteredColumns(), (physicalColumn, index) => {
+      let columnData = this.columnDataFactory(physicalColumn);
 
-        if (index) {
-          columnData = this._getIntersectData(columnData, filteredData);
-        }
+      if (index) {
+        columnData = this._getIntersectData(columnData, filteredData);
+      }
 
-        filteredData = this.filterByColumn(column, columnData);
-      });
-    }
+      filteredData = this.filterByColumn(physicalColumn, columnData);
+    });
 
     return filteredData;
   }
 
   /**
-   * Filter data based on specified column index.
+   * Filter data based on specified physical column index.
    *
-   * @param {number} column Column index.
+   * @param {number} column The physical column index.
    * @param {Array} [dataSource] Data source as array of objects with `value` and `meta` keys (e.g. `{value: 'foo', meta: {}}`).
    * @returns {Array} Returns filtered data.
    */

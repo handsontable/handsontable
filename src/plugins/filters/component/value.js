@@ -15,9 +15,11 @@ import { getConditionDescriptor } from '../conditionRegisterer';
  */
 class ValueComponent extends BaseComponent {
   constructor(hotInstance, options) {
-    super(hotInstance);
+    super(hotInstance, {
+      id: options.id,
+      stateless: false,
+    });
 
-    this.id = options.id;
     this.name = options.name;
 
     this.elements.push(new MultipleSelectUI(this.hot));
@@ -74,15 +76,21 @@ class ValueComponent extends BaseComponent {
    * `editedConditionStack`, `dependentConditionStacks`, `visibleDataFactory` and `conditionArgsChange`.
    */
   updateState(stateInfo) {
-    const updateColumnState = (column, conditions, conditionArgsChange, filteredRowsFactory, conditionsStack) => {
+    const updateColumnState = (
+      physicalColumn,
+      conditions,
+      conditionArgsChange,
+      filteredRowsFactory,
+      conditionsStack,
+    ) => {
       const [firstByValueCondition] = arrayFilter(conditions, condition => condition.name === CONDITION_BY_VALUE);
       const state = {};
       const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
       if (firstByValueCondition) {
-        let rowValues = arrayMap(filteredRowsFactory(column, conditionsStack), row => row.value);
-
-        rowValues = unifyColumnValues(rowValues);
+        const rowValues = unifyColumnValues(
+          arrayMap(filteredRowsFactory(physicalColumn, conditionsStack), row => row.value)
+        );
 
         if (conditionArgsChange) {
           firstByValueCondition.args[0] = conditionArgsChange;
@@ -109,7 +117,7 @@ class ValueComponent extends BaseComponent {
         state.command = getConditionDescriptor(CONDITION_NONE);
       }
 
-      this.setCachedState(column, state);
+      this.state.setValueAtIndex(physicalColumn, state);
     };
 
     updateColumnState(
@@ -119,7 +127,9 @@ class ValueComponent extends BaseComponent {
       stateInfo.filteredRowsFactory
     );
 
-    // Shallow deep update of component state
+    // Update the next "by_value" component (filter column conditions added after this condition).
+    // Its list of values has to be updated. As the new values by default are unchecked,
+    // the further component update is unnecessary.
     if (stateInfo.dependentConditionStacks.length) {
       updateColumnState(
         stateInfo.dependentConditionStacks[0].column,
