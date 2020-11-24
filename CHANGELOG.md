@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issue/7375)
+- All predefined cell types, editors, renderers and validators are modularized for ES and CommonJS bundles. [#7402](https://github.com/handsontable/handsontable/issue/7402)
 
 ### Fixed
 - Fix a bug with auto-execution of the first item in ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
