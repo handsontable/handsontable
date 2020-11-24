@@ -1,29 +1,33 @@
 import ConditionCollection from 'handsontable/plugins/filters/conditionCollection';
 import { conditions } from 'handsontable/plugins/filters/conditionRegisterer';
 import { OPERATION_AND, OPERATION_OR } from 'handsontable/plugins/filters/constants';
-import { operations } from 'handsontable/plugins/filters/logicalOperationRegisterer';
+import { IndexMapper } from 'handsontable/translations';
+
+const hotMock = {
+  toPhysicalColumn: column => column,
+  toVisualColumn: column => column,
+  columnIndexMapper: new IndexMapper()
+};
+
+// Mocking that table have 5 columns.
+hotMock.columnIndexMapper.initToLength(5);
 
 describe('ConditionCollection', () => {
   it('should be initialized and accessible from the plugin', () => {
     expect(ConditionCollection).toBeDefined();
   });
 
-  it('should create empty bucket for conditions, columnTypes and empty orderStack', () => {
-    const conditionCollection = new ConditionCollection();
-
-    expect(conditionCollection.conditions).toEqual(jasmine.any(Object));
-    expect(Object.keys(conditionCollection.conditions)).toEqual(Object.keys(operations));
-    expect(conditionCollection.orderStack).toEqual(jasmine.any(Array));
-    expect(conditionCollection.columnTypes).toEqual(jasmine.any(Object));
-  });
-
   describe('isEmpty', () => {
-    it('should return `true` when order stack is equal to 0', () => {
-      const conditionCollection = new ConditionCollection();
+    it('should return `true` when condition collection is empty', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionMock = {};
 
       expect(conditionCollection.isEmpty()).toBe(true);
 
-      conditionCollection.orderStack.push(1);
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
 
       expect(conditionCollection.isEmpty()).toBe(false);
     });
@@ -31,67 +35,27 @@ describe('ConditionCollection', () => {
 
   describe('isMatch', () => {
     it('should check is value is matched to the conditions at specified column index', () => {
-      const conditionCollection = new ConditionCollection();
-      conditionCollection.columnTypes = { 3: OPERATION_AND };
-      const conditionMock = {};
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionsMock = [{ a: 'b' }];
+      const stateForColumnMock = {
+        operation: OPERATION_AND,
+        conditions: conditionsMock,
+      };
 
       spyOn(conditionCollection, 'isMatchInConditions').and.returnValue(true);
-      spyOn(conditionCollection, 'getConditions').and.returnValue([conditionMock]);
+      spyOn(conditionCollection.filteringStates, 'getValueAtIndex').and.returnValue(stateForColumnMock);
 
       const result = conditionCollection.isMatch('foo', 3);
 
-      expect(conditionCollection.getConditions).toHaveBeenCalledWith(3);
-      expect(conditionCollection.isMatchInConditions).toHaveBeenCalledWith([conditionMock], 'foo', OPERATION_AND);
+      expect(conditionCollection.filteringStates.getValueAtIndex).toHaveBeenCalledWith(3);
+      expect(conditionCollection.isMatchInConditions).toHaveBeenCalledWith(conditionsMock, 'foo', OPERATION_AND);
       expect(result).toBe(true);
-    });
-
-    it('should check is value is matched to the conditions for all columns', () => {
-      const conditionCollection = new ConditionCollection();
-      conditionCollection.columnTypes = { 3: OPERATION_AND, 13: OPERATION_AND };
-      const conditionMock = {};
-      const conditionMock2 = {};
-
-      conditionCollection.conditions[OPERATION_AND]['3'] = [conditionMock];
-      conditionCollection.conditions[OPERATION_AND]['13'] = [conditionMock2];
-
-      spyOn(conditionCollection, 'isMatchInConditions').and.returnValue(true);
-      spyOn(conditionCollection, 'getConditions').and.returnValue([conditionMock]);
-
-      const result = conditionCollection.isMatch('foo');
-
-      expect(conditionCollection.getConditions).not.toHaveBeenCalled();
-      expect(conditionCollection.isMatchInConditions.calls.argsFor(0))
-        .toEqual([[conditionMock], 'foo', OPERATION_AND]);
-      expect(conditionCollection.isMatchInConditions.calls.argsFor(1))
-        .toEqual([[conditionMock2], 'foo', OPERATION_AND]);
-      expect(result).toBe(true);
-    });
-
-    it('should break checking value when current condition is not matched to the rules', () => {
-      const conditionCollection = new ConditionCollection();
-      conditionCollection.columnTypes = { 3: OPERATION_AND, 13: OPERATION_AND };
-      const conditionMock = {};
-      const conditionMock2 = {};
-
-      conditionCollection.conditions[OPERATION_AND]['3'] = [conditionMock];
-      conditionCollection.conditions[OPERATION_AND]['13'] = [conditionMock2];
-
-      spyOn(conditionCollection, 'isMatchInConditions').and.returnValue(false);
-      spyOn(conditionCollection, 'getConditions').and.returnValue(conditionMock);
-
-      const result = conditionCollection.isMatch('foo');
-
-      expect(conditionCollection.getConditions).not.toHaveBeenCalled();
-      expect(conditionCollection.isMatchInConditions.calls.count()).toBe(1);
-      expect(conditionCollection.isMatchInConditions.calls.argsFor(0))
-        .toEqual([[conditionMock], 'foo', OPERATION_AND]);
-      expect(result).toBe(false);
     });
   });
 
   describe('isMatchInConditions', () => {
     it('should returns `true` if passed conditions is empty', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
 
       const result = conditionCollection.isMatchInConditions([], 'foo');
 
@@ -100,7 +64,7 @@ describe('ConditionCollection', () => {
 
     describe('OPERATION_AND', () => {
       it('should check if array of conditions is matched to the value', () => {
-        const conditionCollection = new ConditionCollection();
+        const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
         const conditionMock = { func: () => true };
         const conditionMock2 = { func: () => true };
 
@@ -117,7 +81,7 @@ describe('ConditionCollection', () => {
       });
 
       it('should break checking value when condition is not matched to the value', () => {
-        const conditionCollection = new ConditionCollection();
+        const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
         const conditionMock = { func: () => false };
         const conditionMock2 = { func: () => true };
 
@@ -135,7 +99,7 @@ describe('ConditionCollection', () => {
 
     describe('OPERATION_OR', () => {
       it('should check if one of conditions is matched to the value #1', () => {
-        const conditionCollection = new ConditionCollection();
+        const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
         const conditionMock = { func: () => false };
         const conditionMock2 = { func: () => true };
 
@@ -152,7 +116,7 @@ describe('ConditionCollection', () => {
       });
 
       it('should check if one of conditions is matched to the value #2', () => {
-        const conditionCollection = new ConditionCollection();
+        const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
         const conditionMock = { func: () => false };
         const conditionMock2 = { func: () => false };
 
@@ -169,7 +133,7 @@ describe('ConditionCollection', () => {
       });
 
       it('should break checking value when condition is matched to the value', () => {
-        const conditionCollection = new ConditionCollection();
+        const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
         const conditionMock = { func: () => false };
         const conditionMock2 = { func: () => true };
         const conditionMock3 = { func: () => false };
@@ -205,7 +169,7 @@ describe('ConditionCollection', () => {
     });
 
     it('should trigger `beforeAdd` and `afterAdd` hook on adding condition', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionMock = { args: [], command: { key: 'eq' } };
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');
@@ -218,31 +182,38 @@ describe('ConditionCollection', () => {
       expect(hookAfterSpy).toHaveBeenCalledWith(3);
     });
 
-    it('should add column index to the orderStack without duplicate values', () => {
-      const conditionCollection = new ConditionCollection();
-      const conditionMock = { args: [], command: { key: 'eq' } };
-
-      conditionCollection.addCondition(3, conditionMock);
-      conditionCollection.addCondition(3, conditionMock);
-      conditionCollection.addCondition(3, conditionMock);
-
-      expect(conditionCollection.orderStack).toEqual([3]);
-    });
-
-    it('should add condition to the collection at specified column index.', () => {
-      const conditionCollection = new ConditionCollection();
+    it('should add conditions to the collection at specified column index.', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionMock = { args: [1], command: { key: 'eq' } };
 
       conditionCollection.addCondition(3, conditionMock);
 
-      expect(conditionCollection.conditions[OPERATION_AND]['3'].length).toBe(1);
-      expect(conditionCollection.conditions[OPERATION_AND]['3'][0].name).toBe('eq');
-      expect(conditionCollection.conditions[OPERATION_AND]['3'][0].args).toEqual([1]);
-      expect(conditionCollection.conditions[OPERATION_AND]['3'][0].func instanceof Function).toBe(true);
+      expect(conditionCollection.filteringStates.getEntries().length).toBe(1);
+      expect(conditionCollection.filteringStates.getValueAtIndex(3)).not.toBe(null);
+      expect(conditionCollection.filteringStates.getValueAtIndex(0)).toBe(null);
+    });
+
+    it('should add conditions to the collection at specified column index and position.', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionMock = { args: [1], command: { key: 'eq' } };
+
+      conditionCollection.addCondition(1, conditionMock, OPERATION_AND);
+      conditionCollection.addCondition(2, conditionMock, OPERATION_AND);
+      conditionCollection.addCondition(3, conditionMock, OPERATION_AND, 1);
+      conditionCollection.addCondition(4, conditionMock, OPERATION_AND, 0);
+
+      const entries = conditionCollection.filteringStates.getEntries();
+
+      expect(entries.length).toBe(4);
+      expect(entries[0][0]).toBe(4);
+      expect(entries[1][0]).toBe(1);
+      expect(entries[2][0]).toBe(3);
+      expect(entries[3][0]).toBe(2);
     });
 
     it('should allow to add few condition under the same name and column index #160', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+
       const conditionMock = { args: ['A'], command: { key: 'contains' } };
       const conditionMock2 = { args: ['B'], command: { key: 'contains' } };
       const conditionMock3 = { args: ['C'], command: { key: 'contains' } };
@@ -251,12 +222,14 @@ describe('ConditionCollection', () => {
       conditionCollection.addCondition(3, conditionMock2);
       conditionCollection.addCondition(3, conditionMock3);
 
-      expect(conditionCollection.conditions[OPERATION_AND]['3'].length).toBe(3);
+      expect(conditionCollection.filteringStates.getEntries().length).toBe(1);
+      expect(conditionCollection.filteringStates.getValueAtIndex(3).conditions.length).toBe(3);
     });
 
     it('should allow to add few condition under the same column index ' +
       'only when they are related to the same operation (throw exception otherwise) #160', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+
       const conditionMock = { args: ['A'], command: { key: 'contains' } };
       const conditionMock2 = { args: ['B'], command: { key: 'contains' } };
       const conditionMock3 = { args: ['C'], command: { key: 'contains' } };
@@ -270,7 +243,8 @@ describe('ConditionCollection', () => {
 
     it('should allow to add conditions only when they are related to the known operation ' +
       '(throw exception otherwise) #174', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+
       const conditionMock = { args: ['A'], command: { key: 'contains' } };
 
       expect(() => {
@@ -279,11 +253,101 @@ describe('ConditionCollection', () => {
     });
   });
 
+  describe('getFilteredColumns', () => {
+    it('should return list of filtered columns in proper order', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+
+      const conditionMock1 = { a: 'b' };
+      const conditionMock2 = { c: 'd' };
+      const conditionMock3 = { e: 'f' };
+
+      conditionCollection.filteringStates.setValueAtIndex(4, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      expect(conditionCollection.getFilteredColumns()).toEqual([4]);
+
+      conditionCollection.filteringStates.setValueAtIndex(1, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock2]
+      });
+
+      expect(conditionCollection.getFilteredColumns()).toEqual([4, 1]);
+
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock3]
+      });
+
+      expect(conditionCollection.getFilteredColumns()).toEqual([4, 1, 3]);
+    });
+  });
+
+  describe('getColumnStackPosition', () => {
+    it('should return column position in the stack', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionMock = { args: ['A'], command: { key: 'gt' } };
+
+      conditionCollection.addCondition(1, conditionMock, OPERATION_OR);
+      conditionCollection.addCondition(3, conditionMock, OPERATION_OR);
+      conditionCollection.addCondition(2, conditionMock, OPERATION_OR);
+
+      expect(conditionCollection.getColumnStackPosition(0)).toBe(-1);
+      expect(conditionCollection.getColumnStackPosition(1)).toBe(0);
+      expect(conditionCollection.getColumnStackPosition(2)).toBe(2);
+      expect(conditionCollection.getColumnStackPosition(3)).toBe(1);
+      expect(conditionCollection.getColumnStackPosition(4)).toBe(-1);
+    });
+  });
+
+  describe('getOperation', () => {
+    it('should return proper operation for particular column', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+
+      const conditionMock1 = { a: 'b' };
+
+      conditionCollection.filteringStates.setValueAtIndex(4, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(1, {
+        operation: OPERATION_OR,
+        conditions: [conditionMock1]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(2, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(2, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(0, {
+        operation: OPERATION_OR,
+        conditions: [conditionMock1]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(0, {
+        operation: OPERATION_OR,
+        conditions: [conditionMock1]
+      });
+
+      expect(conditionCollection.getOperation(0)).toEqual(OPERATION_OR);
+      expect(conditionCollection.getOperation(1)).toEqual(OPERATION_OR);
+      expect(conditionCollection.getOperation(2)).toEqual(OPERATION_AND);
+      expect(conditionCollection.getOperation(3)).not.toBeDefined();
+      expect(conditionCollection.getOperation(4)).toEqual(OPERATION_AND);
+    });
+  });
+
   describe('exportAllConditions', () => {
     it('should return an empty array when no conditions was added', () => {
-      const conditionCollection = new ConditionCollection();
-
-      conditionCollection.orderStack = [];
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
 
       const exportedConditions = conditionCollection.exportAllConditions();
 
@@ -291,21 +355,30 @@ describe('ConditionCollection', () => {
     });
 
     it('should return conditions as an array of objects for all column in the same order as it was added', () => {
-      const conditionCollection = new ConditionCollection();
-      const conditionMock = { name: 'begins_with', args: ['c'] };
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionMock1 = { name: 'date_tomorrow', args: [] };
       const conditionMock2 = { name: 'eq', args: ['z'] };
+      const conditionMock3 = { name: 'begins_with', args: ['c'] };
 
-      conditionCollection.orderStack = [6, 1, 3];
-      conditionCollection.columnTypes = { 1: OPERATION_AND, 3: OPERATION_AND, 6: OPERATION_AND };
-      conditionCollection.conditions[OPERATION_AND]['3'] = [conditionMock];
-      conditionCollection.conditions[OPERATION_AND]['6'] = [conditionMock1];
-      conditionCollection.conditions[OPERATION_AND]['1'] = [conditionMock2];
+      conditionCollection.filteringStates.setValueAtIndex(4, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock1]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(1, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock2]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock3]
+      });
 
       const exportedConditions = conditionCollection.exportAllConditions();
 
       expect(exportedConditions.length).toBe(3);
-      expect(exportedConditions[0].column).toBe(6);
+      expect(exportedConditions[0].column).toBe(4);
       expect(exportedConditions[0].conditions[0].name).toBe('date_tomorrow');
       expect(exportedConditions[0].conditions[0].args).toEqual([]);
       expect(exportedConditions[1].column).toBe(1);
@@ -319,11 +392,13 @@ describe('ConditionCollection', () => {
 
   describe('getConditions', () => {
     it('should return conditions at specified index otherwise should return empty array', () => {
-      const conditionCollection = new ConditionCollection();
-      conditionCollection.columnTypes = { 3: OPERATION_AND };
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionMock = {};
 
-      conditionCollection.conditions[OPERATION_AND]['3'] = [conditionMock];
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
 
       expect(conditionCollection.getConditions(2)).toEqual([]);
       expect(conditionCollection.getConditions(3)).toEqual([conditionMock]);
@@ -332,11 +407,13 @@ describe('ConditionCollection', () => {
 
   describe('removeConditions', () => {
     it('should trigger `beforeRemove` and `afterRemove` hook on removing conditions', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionMock = {};
 
-      conditionCollection.orderStack = [3];
-      conditionCollection.conditions['3'] = [conditionMock];
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
 
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');
@@ -349,53 +426,24 @@ describe('ConditionCollection', () => {
       expect(hookAfterSpy).toHaveBeenCalledWith(3);
     });
 
-    it('should remove condition from collection and column index from orderStack', () => {
-      const conditionCollection = new ConditionCollection();
+    it('should remove condition from collection', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionMock = {};
 
-      spyOn(conditionCollection, 'clearConditions');
-      conditionCollection.orderStack = [3];
-      conditionCollection.conditions['3'] = [conditionMock];
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
 
       conditionCollection.removeConditions(3);
 
-      expect(conditionCollection.orderStack).toEqual([]);
-      expect(conditionCollection.clearConditions).toHaveBeenCalledWith(3);
-    });
-  });
-
-  describe('clearConditions', () => {
-    it('should trigger `beforeClear` and `afterClear` hook on clearing conditions', () => {
-      const conditionCollection = new ConditionCollection();
-
-      const hookBeforeSpy = jasmine.createSpy('hookBefore');
-      const hookAfterSpy = jasmine.createSpy('hookAfter');
-
-      conditionCollection.addLocalHook('beforeClear', hookBeforeSpy);
-      conditionCollection.addLocalHook('afterClear', hookAfterSpy);
-      conditionCollection.clearConditions(3);
-
-      expect(hookBeforeSpy).toHaveBeenCalledWith(3);
-      expect(hookAfterSpy).toHaveBeenCalledWith(3);
-    });
-
-    it('should clear all conditions at specified column index', () => {
-      const conditionCollection = new ConditionCollection();
-      const conditionsMock = [{}, {}];
-
-      spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
-
-      conditionCollection.clearConditions(3);
-
-      expect(conditionCollection.getConditions).toHaveBeenCalledWith(3);
-      expect(conditionsMock.length).toBe(0);
+      expect(conditionCollection.filteringStates.getEntries().length).toBe(0);
     });
   });
 
   describe('hasConditions', () => {
     it('should return `true` if at specified column index condition were found', () => {
-      const conditionCollection = new ConditionCollection();
-      conditionCollection.columnTypes = { 3: OPERATION_AND };
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionsMock = [{}, {}];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
@@ -405,7 +453,7 @@ describe('ConditionCollection', () => {
     });
 
     it('should return `false` if at specified column index no conditions were found', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionsMock = [];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
@@ -415,8 +463,7 @@ describe('ConditionCollection', () => {
     });
 
     it('should return `true` if at specified column index condition were found under its name', () => {
-      const conditionCollection = new ConditionCollection();
-      conditionCollection.columnTypes = { 3: OPERATION_AND };
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionsMock = [{ name: 'lte' }, { name: 'eq' }];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
@@ -426,8 +473,7 @@ describe('ConditionCollection', () => {
     });
 
     it('should return `false` if at specified column index no conditions were found under its name', () => {
-      const conditionCollection = new ConditionCollection();
-      conditionCollection.columnTypes = { 3: OPERATION_AND };
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
       const conditionsMock = [{ name: 'lte' }, { name: 'eq' }];
 
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
@@ -441,10 +487,7 @@ describe('ConditionCollection', () => {
 
   describe('clean', () => {
     it('should trigger `beforeClean` and `afterClean` hook on cleaning conditions', () => {
-      const conditionCollection = new ConditionCollection();
-
-      conditionCollection.conditions = { 0: [] };
-      conditionCollection.conditions = [1, 2, 3, 4];
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
 
       const hookBeforeSpy = jasmine.createSpy('hookBefore');
       const hookAfterSpy = jasmine.createSpy('hookAfter');
@@ -457,33 +500,44 @@ describe('ConditionCollection', () => {
       expect(hookAfterSpy).toHaveBeenCalled();
     });
 
-    it('should clear condition collection and orderStack', () => {
-      const conditionCollection = new ConditionCollection();
+    it('should clear condition collection', () => {
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionMock = {};
 
-      conditionCollection.conditions = { 0: [] };
-      conditionCollection.conditions = [1, 2, 3, 4];
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(4, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
 
       conditionCollection.clean();
 
-      expect(conditionCollection.conditions).toEqual(jasmine.any(Object));
-      expect(Object.keys(conditionCollection.conditions)).toEqual(Object.keys(operations));
-      expect(conditionCollection.orderStack.length).toBe(0);
+      expect(conditionCollection.filteringStates.getEntries().length).toBe(0);
     });
   });
 
   describe('destroy', () => {
     it('should nullable all properties', () => {
-      const conditionCollection = new ConditionCollection();
+      const conditionCollection = new ConditionCollection(hotMock, false); // Second arguments is `false` - not registering map
+      const conditionMock = {};
 
-      conditionCollection.conditions[OPERATION_AND] = { 0: [], 2: [] };
-      conditionCollection.conditions[OPERATION_OR] = { 3: [], 4: [] };
-      conditionCollection.orderStack = [1, 2, 3, 4];
+      conditionCollection.filteringStates.setValueAtIndex(3, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
+
+      conditionCollection.filteringStates.setValueAtIndex(4, {
+        operation: OPERATION_AND,
+        conditions: [conditionMock]
+      });
 
       conditionCollection.destroy();
 
-      expect(conditionCollection.conditions).toBeNull();
-      expect(conditionCollection.orderStack).toBeNull();
-      expect(conditionCollection.columnTypes).toBeNull();
+      expect(conditionCollection.filteringStates).toBeNull();
     });
   });
 });

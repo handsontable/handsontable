@@ -182,6 +182,7 @@ describe('Filters', () => {
     'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
     const warnSpy = spyOn(console, 'warn');
     const hot = handsontable({
+      licenseKey: 'non-commercial-and-evaluation',
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -197,9 +198,17 @@ describe('Filters', () => {
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
-    expect(warnSpy).toHaveBeenCalledWith('The filter conditions have been applied properly, but couldn’t be ' +
-      'displayed visually. The overall amount of conditions exceed the capability of the dropdown menu. For ' +
-      'more details see the documentation.');
+    expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
+      'but couldn’t be displayed visually. The overall amount of conditions exceed the capability of the ' +
+      'dropdown menu. For more details see the documentation.']);
+
+    plugin.addCondition(0, 'contains', ['o']);
+    plugin.filter();
+
+    expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
+      'but couldn’t be displayed visually. The overall amount of conditions exceed the capability of the ' +
+      'dropdown menu. For more details see the documentation.']);
+    expect(warnSpy.calls.count()).toBe(2);
   });
 
   it('should not warn user by log at console when amount of conditions at specific column not exceed the capability of ' +
@@ -859,5 +868,117 @@ describe('Filters', () => {
       ['A4', 'B4', 'C4', 'D4', 'E4'],
       ['A5', 'B5', 'C5', 'D5', 'E5'],
     ]);
+  });
+
+  describe('cooperation with alter actions', () => {
+    it('should filter proper column after removing column right before the already filtered one', function() {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        filters: true,
+      });
+
+      const plugin = getPlugin('filters');
+
+      plugin.addCondition(1, 'contains', ['b']);
+      plugin.filter();
+
+      alter('remove_col', 0);
+      dropdownMenu(0);
+
+      expect(getData()).toEqual([
+        ['B1', 'C1'],
+        ['B2', 'C2'],
+        ['B3', 'C3'],
+      ]);
+      expect(this.$container.find('th:eq(0)').hasClass('htFiltersActive')).toEqual(true);
+      expect(this.$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
+      expect(plugin.components.get('filter_by_condition').getState()).toEqual({
+        args: ['b'],
+        command: {
+          inputsCount: 1,
+          key: 'contains',
+          name: 'Contains',
+          showOperators: true,
+        },
+      });
+      expect(plugin.components.get('filter_operators').getState()).toBe('conjunction');
+      expect(plugin.components.get('filter_by_condition2').getState()).toEqual({
+        args: [],
+        command: {
+          inputsCount: 0,
+          key: 'none',
+          name: 'None',
+          showOperators: false,
+        },
+      });
+      expect(plugin.components.get('filter_by_value').getState()).toEqual({
+        args: [['B1', 'B2', 'B3']],
+        command: {
+          key: 'none',
+        },
+        itemsSnapshot: [
+          { checked: true, value: 'B1', visualValue: 'B1' },
+          { checked: true, value: 'B2', visualValue: 'B2' },
+          { checked: true, value: 'B3', visualValue: 'B3' },
+        ],
+      });
+    });
+
+    it('should filter proper column after inserting column right before the already filtered one', function() {
+      handsontable({
+        colHeaders: true,
+        dropdownMenu: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        filters: true,
+      });
+
+      const plugin = getPlugin('filters');
+
+      plugin.addCondition(1, 'contains', ['b']);
+      plugin.filter();
+
+      alter('insert_col', 1);
+      dropdownMenu(2);
+
+      expect(getData()).toEqual([
+        ['A1', null, 'B1', 'C1'],
+        ['A2', null, 'B2', 'C2'],
+        ['A3', null, 'B3', 'C3'],
+      ]);
+      expect(this.$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
+      expect(this.$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
+      expect(plugin.components.get('filter_by_condition').getState()).toEqual({
+        args: ['b'],
+        command: {
+          inputsCount: 1,
+          key: 'contains',
+          name: 'Contains',
+          showOperators: true,
+        },
+      });
+      expect(plugin.components.get('filter_operators').getState()).toBe('conjunction');
+      expect(plugin.components.get('filter_by_condition2').getState()).toEqual({
+        args: [],
+        command: {
+          inputsCount: 0,
+          key: 'none',
+          name: 'None',
+          showOperators: false,
+        },
+      });
+      expect(plugin.components.get('filter_by_value').getState()).toEqual({
+        args: [['B1', 'B2', 'B3']],
+        command: {
+          key: 'none',
+        },
+        itemsSnapshot: [
+          { checked: true, value: 'B1', visualValue: 'B1' },
+          { checked: true, value: 'B2', visualValue: 'B2' },
+          { checked: true, value: 'B3', visualValue: 'B3' },
+        ],
+      });
+    });
   });
 });
