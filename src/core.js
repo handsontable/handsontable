@@ -1696,7 +1696,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.renderSuspendedCounter = Math.max(this.renderSuspendedCounter - 1, 0);
 
     if (!this.isRenderSuspended() || forceRender) {
-      this.render();
+      if (this.renderCall) {
+        this.render();
+      } else {
+        this._refreshBorders(null);
+      }
     }
   };
 
@@ -1711,12 +1715,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function render
    */
   this.render = function() {
-    if (instance.view && !this.isRenderSuspended()) {
-      instance.renderCall = true;
-      instance.forceFullRender = true; // used when data was changed
-      editorManager.lockEditor();
-      instance._refreshBorders(null);
-      editorManager.unlockEditor();
+    if (this.view) {
+      this.renderCall = true;
+      this.forceFullRender = true; // used when data was changed
+
+      if (!this.isRenderSuspended()) {
+        editorManager.lockEditor();
+        this._refreshBorders(null);
+        editorManager.unlockEditor();
+      }
     }
   };
 
@@ -1733,6 +1740,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [forceRender=false] If `true`, the table is rendered after the
    * execution of the batched operations. For nested calls, it can be a desire to render
    * the table after each batch.
+   * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
    * @example
    * ```js
@@ -1752,9 +1760,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.batchRender = function(wrappedOperations, forceRender = false) {
     this.suspendRender();
 
-    wrappedOperations();
+    const result = wrappedOperations();
 
     this.resumeRender(forceRender);
+
+    return result;
   };
 
   /**
@@ -1845,6 +1855,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
    * is recalculated after the execution of the batched operations. For nested calls,
    * it can be a desire to recalculate the table after each batch.
+   * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
    * @example
    * ```js
@@ -1861,9 +1872,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.batchExecution = function(wrappedOperations, forceFlushChanges = false) {
     this.suspendExecution();
 
-    wrappedOperations();
+    const result = wrappedOperations();
 
     this.resumeExecution(forceFlushChanges);
+
+    return result;
   };
 
   /**
@@ -1880,6 +1893,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {boolean} [forceFlushChanges=false] If `true`, the table is rendered and the
    * internal data cache is recalculated after the execution of the batched operations.
    * For nested calls, it can be a desire to recalculate the table after each batch.
+   * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
    * @example
    * ```js
@@ -1906,10 +1920,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.suspendRender();
     this.suspendExecution();
 
-    wrappedOperations();
+    const result = wrappedOperations();
 
     this.resumeExecution(forceFlushChanges);
     this.resumeRender(forceFlushChanges);
+
+    return result;
   };
 
   /**

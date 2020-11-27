@@ -805,7 +805,7 @@ function exposeUndoRedoMethods(instance) {
    * @returns {boolean}
    */
   instance.undo = function() {
-    return instance.undoRedo.undo();
+    return instance.batchRender(() => instance.undoRedo.undo());
   };
 
   /**
@@ -816,7 +816,7 @@ function exposeUndoRedoMethods(instance) {
    * @returns {boolean}
    */
   instance.redo = function() {
-    return instance.undoRedo.redo();
+    return instance.batchRender(() => instance.undoRedo.redo());
   };
 
   /**
