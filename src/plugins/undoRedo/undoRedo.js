@@ -501,7 +501,7 @@ UndoRedo.RemoveColumnAction.prototype.undo = function(instance, undoneCallback) 
     // row sequence is lost in that case.
     instance.rowIndexMapper.setIndexesSequence(this.rowPositions);
     instance.columnIndexMapper.setIndexesSequence(this.columnPositions);
-  });
+  }, true);
 
   instance.addHookOnce('afterRender', undoneCallback);
 

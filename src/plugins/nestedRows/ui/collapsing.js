@@ -357,7 +357,7 @@ class CollapsingUI extends BaseUI {
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, true);
       });
-    });
+    }, true);
   }
 
   /**
@@ -370,7 +370,7 @@ class CollapsingUI extends BaseUI {
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, false);
       });
-    });
+    }, true);
   }
 
   /**

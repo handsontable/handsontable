@@ -93,7 +93,7 @@ class TrimRows extends BasePlugin {
         arrayEach(trimmedRows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });
-      });
+      }, true);
     }
 
     super.updatePlugin();
@@ -145,7 +145,7 @@ class TrimRows extends BasePlugin {
         arrayEach(rows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });
-      });
+      }, true);
     }
 
     this.hot.runHooks('afterTrimRow', currentTrimConfig, destinationTrimConfig, isValidConfig,
@@ -258,7 +258,7 @@ class TrimRows extends BasePlugin {
         arrayEach(trimmedRows, (physicalRow) => {
           this.trimmedRowsMap.setValueAtIndex(physicalRow, true);
         });
-      });
+      }, true);
     }
   }
 

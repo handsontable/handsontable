@@ -180,14 +180,14 @@ class ManualColumnResize extends BasePlugin {
         loadedManualColumnWidths.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
 
     } else if (Array.isArray(initialSetting)) {
       this.hot.batchExecution(() => {
         initialSetting.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
 
       priv.config = initialSetting;
 
@@ -196,7 +196,7 @@ class ManualColumnResize extends BasePlugin {
         priv.config.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
     }
   }
 

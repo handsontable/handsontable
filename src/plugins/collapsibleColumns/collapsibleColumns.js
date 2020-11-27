@@ -352,7 +352,7 @@ class CollapsibleColumns extends BasePlugin {
         this.#collapsedColumnsMap
           .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
       });
-    });
+    }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
 

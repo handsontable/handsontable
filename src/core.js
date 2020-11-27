@@ -119,17 +119,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.isDestroyed = false;
   /**
-   * The flag determines the rendering (visual) state of the table.
+   * The counter determines how many times the render suspending was called.
+   * It allows tracking the nested suspending calls. After resuming the counter,
+   * the value is decremented. The value equal to 0 means the render suspending
+   * feature is disabled.
    *
-   * @type {boolean}
+   * @type {number}
    */
-  this.renderSuspended = 0;
+  this.renderSuspendedCounter = 0;
   /**
-   * The flag determines the rendering (visual) state of the table.
+   * The counter determines how many times the execution suspending was called.
+   * It allows tracking the nested suspending calls. After resuming the counter,
+   * the value is decremented. The value equal to 0 means the execution suspending
+   * feature is disabled.
    *
-   * @type {boolean}
+   * @type {number}
    */
-  this.executionSuspended = 0;
+  this.executionSuspendedCounter = 0;
 
   keyStateStartObserving(this.rootDocument);
 
@@ -1614,11 +1620,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isRenderSuspended
-   * @since 9.0.0
+   * @since 8.3.0
    * @returns {boolean}
    */
   this.isRenderSuspended = function() {
-    return this.renderSuspended !== 0;
+    return this.renderSuspendedCounter !== 0;
   };
 
   /**
@@ -1629,15 +1635,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * effect until the rendering state is resumed. Resuming the state automatically
    * invokes the table rendering. To make sure that after executing all operations,
    * the table will be rendered, it's highly recommended to use the {@link Core#batchRender}
-   * method or {@link Core#batch}, which additionally aggregates the logic that happens
-   * behind the table.
+   * method or {@link Core#batch}, which additionally aggregates the logic execution
+   * that happens behind the table.
    *
    * The method is intended to be used by advanced users. Suspending the rendering
    * process could cause visual glitches when wrongly implemented.
    *
    * @memberof Core#
    * @function suspendRender
-   * @since 9.0.0
+   * @since 8.3.0
    * @example
    * ```js
    * hot.suspendRender();
@@ -1653,7 +1659,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.suspendRender = function() {
-    this.renderSuspended += 1;
+    this.renderSuspendedCounter += 1;
   };
 
   /**
@@ -1668,7 +1674,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function resumeRender
-   * @since 9.0.0
+   * @param {boolean} [forceRender=false] If `true`, the table is rendered after the
+   * resuming the rendering. For nested {@link Core#batchRender} calls, it can be a
+   * desire to render the table after each batch.
+   * @since 8.3.0
    * @example
    * ```js
    * hot.suspendRender();
@@ -1683,10 +1692,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.resumeRender(); // It re-renders the table internally
    * ```
    */
-  this.resumeRender = function() {
-    this.renderSuspended = Math.max(this.renderSuspended - 1, 0);
+  this.resumeRender = function(forceRender = false) {
+    this.renderSuspendedCounter = Math.max(this.renderSuspendedCounter - 1, 0);
 
-    if (!this.isRenderSuspended()) {
+    if (!this.isRenderSuspended() || forceRender) {
       this.render();
     }
   };
@@ -1721,7 +1730,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function batchRender
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
-   * @since 9.0.0
+   * @param {boolean} [forceRender=false] If `true`, the table is rendered after the
+   * execution of the batched operations. For nested calls, it can be a desire to render
+   * the table after each batch.
+   * @since 8.3.0
    * @example
    * ```js
    * hot.batchRender(() => {
@@ -1737,12 +1749,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * });
    * ```
    */
-  this.batchRender = function(wrappedOperations) {
+  this.batchRender = function(wrappedOperations, forceRender = false) {
     this.suspendRender();
 
     wrappedOperations();
 
-    this.resumeRender();
+    this.resumeRender(forceRender);
   };
 
   /**
@@ -1751,11 +1763,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function isExecutionSuspended
-   * @since 9.0.0
+   * @since 8.3.0
    * @returns {boolean}
    */
   this.isExecutionSuspended = function() {
-    return this.executionSuspended !== 0;
+    return this.executionSuspendedCounter !== 0;
   };
 
   /**
@@ -1768,7 +1780,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function suspendExecution
-   * @since 9.0.0
+   * @since 8.3.0
    * @example
    * ```js
    * hot.suspendExecution();
@@ -1781,7 +1793,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.suspendExecution = function() {
-    this.executionSuspended += 1;
+    this.executionSuspendedCounter += 1;
     this.columnIndexMapper.suspendOperations();
     this.rowIndexMapper.suspendOperations();
   };
@@ -1795,7 +1807,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function resumeExecution
-   * @since 9.0.0
+   * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
+   * is recalculated after the execution of the batched operations. For nested
+   * {@link Core#batchExecution} calls, it can be a desire to recalculate the table
+   * after each batch.
+   * @since 8.3.0
    * @example
    * ```js
    * hot.suspendExecution();
@@ -1807,10 +1823,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.resumeExecution(); // It updates the cache internally
    * ```
    */
-  this.resumeExecution = function() {
-    this.executionSuspended = Math.max(this.executionSuspended - 1, 0);
+  this.resumeExecution = function(forceFlushChanges = false) {
+    this.executionSuspendedCounter = Math.max(this.executionSuspendedCounter - 1, 0);
 
-    if (!this.isExecutionSuspended()) {
+    if (!this.isExecutionSuspended() || forceFlushChanges) {
       this.columnIndexMapper.resumeOperations();
       this.rowIndexMapper.resumeOperations();
     }
@@ -1826,7 +1842,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
-   * @since 9.0.0
+   * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
+   * is recalculated after the execution of the batched operations. For nested calls,
+   * it can be a desire to recalculate the table after each batch.
+   * @since 8.3.0
    * @example
    * ```js
    * hot.batchExecution(() => {
@@ -1839,12 +1858,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * });
    * ```
    */
-  this.batchExecution = function(wrappedOperations) {
+  this.batchExecution = function(wrappedOperations, forceFlushChanges = false) {
     this.suspendExecution();
 
     wrappedOperations();
 
-    this.resumeExecution();
+    this.resumeExecution(forceFlushChanges);
   };
 
   /**
@@ -1858,7 +1877,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
-   * @since 9.0.0
+   * @param {boolean} [forceFlushChanges=false] If `true`, the table is rendered and the
+   * internal data cache is recalculated after the execution of the batched operations.
+   * For nested calls, it can be a desire to recalculate the table after each batch.
+   * @since 8.3.0
    * @example
    * ```js
    * hot.batch(() => {
@@ -1880,14 +1902,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * });
    * ```
    */
-  this.batch = function(wrappedOperations) {
+  this.batch = function(wrappedOperations, forceFlushChanges = false) {
     this.suspendRender();
     this.suspendExecution();
 
     wrappedOperations();
 
-    this.resumeExecution();
-    this.resumeRender();
+    this.resumeExecution(forceFlushChanges);
+    this.resumeRender(forceFlushChanges);
   };
 
   /**
@@ -2711,7 +2733,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {string} [source] Source of the change as a string.
    */
   /* eslint-enable jsdoc/require-param */
-  this.setSourceDataAtCell = function(row, column, value, source, silentMode = false) {
+  this.setSourceDataAtCell = function(row, column, value, source) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
     const changesForHook = [];
@@ -2735,9 +2757,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       this.runHooks('afterSetSourceDataAtCell', changesForHook, source);
     }
 
-    if (!silentMode) {
-      this.render();
-    }
+    this.render();
 
     const activeEditor = instance.getActiveEditor();
 

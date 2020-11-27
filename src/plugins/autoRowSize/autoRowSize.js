@@ -223,7 +223,7 @@ class AutoRowSize extends BasePlugin {
             this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
           }
         });
-      });
+      }, true);
 
       this.measuredRows = rowsRange.to + 1;
 
@@ -429,7 +429,7 @@ class AutoRowSize extends BasePlugin {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
       });
-    });
+    }, true);
   }
 
   /**

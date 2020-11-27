@@ -392,7 +392,7 @@ class Filters extends BasePlugin {
           arrayEach(trimmedRows, (physicalRow) => {
             this.filtersRowsMap.setValueAtIndex(physicalRow, true);
           });
-        });
+        }, true);
 
         if (!visibleVisualRows.length) {
           this.hot.deselectCell();

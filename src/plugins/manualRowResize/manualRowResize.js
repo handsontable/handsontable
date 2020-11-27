@@ -561,7 +561,7 @@ class ManualRowResize extends BasePlugin {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
       }
-    });
+    }, true);
   }
 
   /**

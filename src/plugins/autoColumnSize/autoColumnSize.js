@@ -266,7 +266,7 @@ class AutoColumnSize extends BasePlugin {
 
           this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
         });
-      });
+      }, true);
 
       this.measuredColumns = columnsRange.to + 1;
 
@@ -508,7 +508,7 @@ class AutoColumnSize extends BasePlugin {
         arrayEach(columns, (physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
-      });
+      }, true);
 
     } else {
       this.columnWidthsMap.clear();
