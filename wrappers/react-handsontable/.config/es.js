@@ -22,6 +22,8 @@ export const esConfig = {
         }
       },
       useTsconfigDeclarationDir: true,
+      objectHashIgnoreUnknownHack: true,
+      clean: true,
     }),
     plugins.babel,
     plugins.nodeResolve,

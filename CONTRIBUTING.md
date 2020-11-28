@@ -15,4 +15,5 @@ Thank you for your commitment!
 
 ## Team rules
 
-The Handsontable team utilizes Git-Flow. Read more - [How we use Git-Flow](https://github.com/handsontable/handsontable/wiki/How-we-use-Git-Flow)
+1. We're using `npm workspaces` - this requires you to use `npm@7+`.
+2. The Handsontable team utilizes Git-Flow. Read more - [How we use Git-Flow](https://github.com/handsontable/handsontable/wiki/How-we-use-Git-Flow)

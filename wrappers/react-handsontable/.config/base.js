@@ -5,7 +5,10 @@ import json from 'rollup-plugin-json';
 import commonjs from 'rollup-plugin-commonjs';
 
 export const plugins = {
-  typescript: typescript(),
+  typescript: typescript({
+    objectHashIgnoreUnknownHack: true,
+    clean: true
+  }),
   babel: babel({
     babelrc: false,
     exclude: ['/node_modules/', '**.json'],

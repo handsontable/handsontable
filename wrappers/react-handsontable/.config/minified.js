@@ -1,7 +1,7 @@
 import { baseConfig } from './base';
 import { addLicenseBanner } from './helpers/licenseBanner';
 import replace from 'rollup-plugin-replace';
-import { uglify } from 'rollup-plugin-uglify';
+import { terser } from 'rollup-plugin-terser';
 
 const minFilename = 'react-handsontable.min.js';
 
@@ -23,7 +23,7 @@ const minConfig = {
     replace({
       'process.env.NODE_ENV': JSON.stringify('production')
     }),
-    uglify({
+    terser({
       output: {
         comments: /^!/
       },
