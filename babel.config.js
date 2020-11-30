@@ -70,7 +70,7 @@ module.exports = {
       ignore: [
         '**/test/**',
         '**/dist/**',
-      ]
+      ],
     },
     // Environment for building E2E tests (UMD).
     commonjs_e2e: {

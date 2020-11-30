@@ -14,8 +14,7 @@ import {
 import { isDefined, stringify } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
-import { getRenderer } from '../../renderers';
-import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../../renderers/textRenderer';
+import { textRenderer } from '../../renderers/textRenderer';
 
 const privatePool = new WeakMap();
 
@@ -109,7 +108,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : void 0,
       width: trimDropdown ? outerWidth(this.TEXTAREA) + scrollbarWidth : void 0,
       renderer: (instance, TD, row, col, prop, value, cellProperties) => {
-        getRenderer(TEXT_RENDERER_TYPE)(instance, TD, row, col, prop, value, cellProperties);
+        textRenderer(instance, TD, row, col, prop, value, cellProperties);
 
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
         const query = this.query;

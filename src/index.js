@@ -1,4 +1,10 @@
 import Handsontable from './base';
+import EventManager, { getListenersCounter } from './eventManager';
+import { getRegisteredMapsCounter } from './translations/mapCollection';
+import Hooks from './pluginHooks';
+import { metaSchemaFactory } from './dataMap/index';
+
+import jQueryWrapper from './helpers/wrappers/jquery';
 
 import { getRegisteredEditorNames, getEditor, registerEditor } from './editors';
 import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
@@ -22,13 +28,6 @@ import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
 import { registerPlugin } from './plugins';
-import { getTranslatedPhrase } from './i18n';
-import * as constants from './i18n/constants';
-import {
-  registerLanguageDictionary,
-  getLanguagesDictionaries,
-  getLanguageDictionary
-} from './i18n/dictionariesManager';
 
 import { BaseEditor, EDITOR_TYPE as BASE_EDITOR } from './editors/baseEditor';
 import { AutocompleteEditor, EDITOR_TYPE as AUTOCOMPLETE_EDITOR } from './editors/autocompleteEditor';
@@ -63,6 +62,8 @@ import { NumericType, CELL_TYPE as NUMERIC_TYPE } from './cellTypes/numericType'
 import { PasswordType, CELL_TYPE as PASSWORD_TYPE } from './cellTypes/passwordType';
 import { TextType, CELL_TYPE as TEXT_TYPE } from './cellTypes/textType';
 import { TimeType, CELL_TYPE as TIME_TYPE } from './cellTypes/timeType';
+
+jQueryWrapper(Handsontable);
 
 registerEditor(BASE_EDITOR, BaseEditor);
 registerEditor(AUTOCOMPLETE_EDITOR, AutocompleteEditor);
@@ -100,7 +101,15 @@ registerCellType(TIME_TYPE, TimeType);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;
-//
+
+Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
+Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
+
+Handsontable.DefaultSettings = metaSchemaFactory();
+Handsontable.EventManager = EventManager;
+
+// Export Hooks singleton
+Handsontable.hooks = Hooks.getSingleton();
 
 // Export all helpers to the Handsontable object
 const HELPERS = [
@@ -202,14 +211,5 @@ arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
 });
 
 Handsontable.plugins.registerPlugin = registerPlugin;
-
-Handsontable.languages = {};
-Handsontable.languages.dictionaryKeys = constants;
-Handsontable.languages.getLanguageDictionary = getLanguageDictionary;
-Handsontable.languages.getLanguagesDictionaries = getLanguagesDictionaries;
-Handsontable.languages.registerLanguageDictionary = registerLanguageDictionary;
-
-// Alias to `getTranslatedPhrase` function, for more information check it API.
-Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);
 
 export default Handsontable;
