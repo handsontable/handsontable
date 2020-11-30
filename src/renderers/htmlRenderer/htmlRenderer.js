@@ -1,6 +1,7 @@
+import { baseRenderer } from '../baseRenderer';
 import { fastInnerHTML } from '../../helpers/dom/element';
-import { getRenderer } from '../renderers';
-import { RENDERER_TYPE as BASE_RENDERER_TYPE } from '../baseRenderer';
+
+export const RENDERER_TYPE = 'html';
 
 /**
  * @private
@@ -12,8 +13,8 @@ import { RENDERER_TYPE as BASE_RENDERER_TYPE } from '../baseRenderer';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export default function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
-  getRenderer(BASE_RENDERER_TYPE).apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+export function htmlRenderer(instance, TD, row, col, prop, value, cellProperties) {
+  baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   fastInnerHTML(TD, value === null || value === void 0 ? '' : value, false);
 }

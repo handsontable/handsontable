@@ -1,39 +1,63 @@
-import {
-  getEditor,
-  getRegisteredEditorNames,
-} from '../../../editors/editors';
-import {
-  getRegisteredRendererNames,
-  getRenderer,
-} from '../../../renderers/renderers';
-import {
-  getRegisteredValidatorNames,
-  getValidator,
-} from '../../../validators/validators';
+import { CELL_TYPE, DropdownType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
+  registerCellType,
 } from '../../cellTypes';
-import dropdownType from '../index';
+import {
+  getEditor,
+  getRegisteredEditorNames,
+} from '../../../editors';
+import {
+  getRegisteredRendererNames,
+  getRenderer,
+} from '../../../renderers';
+import {
+  getRegisteredValidatorNames,
+  getValidator,
+} from '../../../validators';
 
-describe('dropdownType', () => {
+describe('DropdownType', () => {
   describe('registering', () => {
-    it('should auto-register cell type after import', () => {
-      expect(getRegisteredEditorNames()).toEqual(['base', 'text', 'handsontable', 'autocomplete', 'dropdown']);
+    it('should not auto-register after import', () => {
+      expect(getRegisteredEditorNames()).toEqual([]);
+      expect(() => {
+        getEditor('dropdown');
+      }).toThrowError();
+
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer('dropdown');
+      }).toThrowError();
+
+      expect(getRegisteredValidatorNames()).toEqual([]);
+      expect(() => {
+        getValidator('dropdown');
+      }).toThrowError();
+
+      expect(getRegisteredCellTypeNames()).toEqual([]);
+      expect(() => {
+        getCellType('dropdown');
+      }).toThrowError();
+    });
+    it('should register cell type', () => {
+      registerCellType(CELL_TYPE, DropdownType);
+
+      expect(getRegisteredEditorNames()).toEqual(['dropdown']);
       expect(getEditor('dropdown')).toBeInstanceOf(Function);
 
-      expect(getRegisteredRendererNames()).toEqual(['base', 'text', 'html', 'autocomplete', 'dropdown']);
+      expect(getRegisteredRendererNames()).toEqual(['dropdown']);
       expect(getRenderer('dropdown')).toBeInstanceOf(Function);
 
-      expect(getRegisteredValidatorNames()).toEqual(['autocomplete', 'dropdown']);
+      expect(getRegisteredValidatorNames()).toEqual(['dropdown']);
       expect(getValidator('dropdown')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['dropdown']);
-      expect(getCellType('dropdown')).toEqual(dropdownType);
+      expect(getCellType('dropdown')).toEqual(DropdownType);
       expect(getCellType('dropdown')).toEqual({
         editor: getEditor('dropdown'),
         renderer: getRenderer('dropdown'),
-        validator: getValidator('dropdown')
+        validator: getValidator('dropdown'),
       });
     });
   });

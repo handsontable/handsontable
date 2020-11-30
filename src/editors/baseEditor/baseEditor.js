@@ -3,18 +3,19 @@ import { stringify } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 
-export const EditorState = {
+export const EDITOR_TYPE = 'base';
+export const EDITOR_STATE = Object.freeze({
   VIRGIN: 'STATE_VIRGIN', // before editing
   EDITING: 'STATE_EDITING',
   WAITING: 'STATE_WAITING', // waiting for async validation
   FINISHED: 'STATE_FINISHED'
-};
+});
 
 /**
  * @util
  * @class BaseEditor
  */
-export default class BaseEditor {
+export class BaseEditor {
   /**
    * @param {Handsontable} instance A reference to the source instance of the Handsontable.
    */
@@ -38,7 +39,7 @@ export default class BaseEditor {
      *
      * @type {string}
      */
-    this.state = EditorState.VIRGIN;
+    this.state = EDITOR_STATE.VIRGIN;
     /**
      * Flag to store information about editor's opening status.
      *
@@ -164,7 +165,7 @@ export default class BaseEditor {
     this.prop = prop;
     this.originalValue = value;
     this.cellProperties = cellProperties;
-    this.state = EditorState.VIRGIN;
+    this.state = EDITOR_STATE.VIRGIN;
   }
 
   /**
@@ -218,7 +219,7 @@ export default class BaseEditor {
    * @param {Event} event The keyboard event object.
    */
   beginEditing(newInitialValue, event) {
-    if (this.state !== EditorState.VIRGIN) {
+    if (this.state !== EDITOR_STATE.VIRGIN) {
       return;
     }
 
@@ -229,7 +230,7 @@ export default class BaseEditor {
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
     hotInstance.view.scrollViewport(new CellCoords(renderableRowIndex, renderableColumnIndex));
-    this.state = EditorState.EDITING;
+    this.state = EDITOR_STATE.EDITING;
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
@@ -277,7 +278,7 @@ export default class BaseEditor {
       return;
     }
 
-    if (this.state === EditorState.VIRGIN) {
+    if (this.state === EDITOR_STATE.VIRGIN) {
       this.hot._registerTimeout(() => {
         this._fireCallbacks(true);
       });
@@ -285,7 +286,7 @@ export default class BaseEditor {
       return;
     }
 
-    if (this.state === EditorState.EDITING) {
+    if (this.state === EDITOR_STATE.EDITING) {
       if (restoreOriginalValue) {
         this.cancelChanges();
         this.hot.view.render();
@@ -306,16 +307,16 @@ export default class BaseEditor {
         ];
       }
 
-      this.state = EditorState.WAITING;
+      this.state = EDITOR_STATE.WAITING;
       this.saveValue(val, ctrlDown);
 
       if (this.hot.getCellValidator(this.cellProperties)) {
         this.hot.addHookOnce('postAfterValidate', (result) => {
-          this.state = EditorState.FINISHED;
+          this.state = EDITOR_STATE.FINISHED;
           this.discardEditor(result);
         });
       } else {
-        this.state = EditorState.FINISHED;
+        this.state = EDITOR_STATE.FINISHED;
         this.discardEditor(true);
       }
     }
@@ -325,7 +326,7 @@ export default class BaseEditor {
    * Finishes editing without singout saving value.
    */
   cancelChanges() {
-    this.state = EditorState.FINISHED;
+    this.state = EDITOR_STATE.FINISHED;
     this.discardEditor();
   }
 
@@ -336,7 +337,7 @@ export default class BaseEditor {
    *                                   then an editor won't be closed until validation is passed.
    */
   discardEditor(result) {
-    if (this.state !== EditorState.FINISHED) {
+    if (this.state !== EDITOR_STATE.FINISHED) {
       return;
     }
 
@@ -344,14 +345,14 @@ export default class BaseEditor {
     if (result === false && this.cellProperties.allowInvalid !== true) {
       this.hot.selectCell(this.row, this.col);
       this.focus();
-      this.state = EditorState.EDITING;
+      this.state = EDITOR_STATE.EDITING;
       this._fireCallbacks(false);
 
     } else {
       this.close();
       this._opened = false;
       this._fullEditMode = false;
-      this.state = EditorState.VIRGIN;
+      this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
     }
   }
@@ -388,7 +389,7 @@ export default class BaseEditor {
    * @returns {boolean}
    */
   isWaiting() {
-    return this.state === EditorState.WAITING;
+    return this.state === EDITOR_STATE.WAITING;
   }
 
   /**

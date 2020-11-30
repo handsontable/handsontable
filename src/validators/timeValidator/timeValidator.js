@@ -7,6 +7,8 @@ const STRICT_FORMATS = [
   'x' // Unix ms timestamp
 ];
 
+export const VALIDATOR_TYPE = 'time';
+
 /**
  * The Time cell validator.
  *
@@ -14,7 +16,7 @@ const STRICT_FORMATS = [
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export default function timeValidator(value, callback) {
+export function timeValidator(value, callback) {
   const timeFormat = this.timeFormat || 'h:mm:ss a';
   let valid = true;
   let valueToValidate = value;

@@ -1,33 +1,57 @@
-import {
-  getEditor,
-  getRegisteredEditorNames,
-} from '../../../editors/editors';
-import {
-  getRegisteredRendererNames,
-  getRenderer,
-} from '../../../renderers/renderers';
-import {
-  getRegisteredValidatorNames,
-} from '../../../validators/validators';
+import { CELL_TYPE, PasswordType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
+  registerCellType,
 } from '../../cellTypes';
-import passwordType from '../index';
+import {
+  getEditor,
+  getRegisteredEditorNames,
+} from '../../../editors';
+import {
+  getRegisteredRendererNames,
+  getRenderer,
+} from '../../../renderers';
+import {
+  getRegisteredValidatorNames,
+} from '../../../validators';
 
-describe('passwordType', () => {
+describe('PasswordType', () => {
   describe('registering', () => {
-    it('should auto-register cell type after import', () => {
-      expect(getRegisteredEditorNames()).toEqual(['base', 'text', 'password']);
+    it('should not auto-register after import', () => {
+      expect(getRegisteredEditorNames()).toEqual([]);
+      expect(() => {
+        getEditor('password');
+      }).toThrowError();
+
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer('password');
+      }).toThrowError();
+
+      expect(getRegisteredValidatorNames()).toEqual([]);
+      expect(() => {
+        getValidator('password');
+      }).toThrowError();
+
+      expect(getRegisteredCellTypeNames()).toEqual([]);
+      expect(() => {
+        getCellType('password');
+      }).toThrowError();
+    });
+    it('should register cell type', () => {
+      registerCellType(CELL_TYPE, PasswordType);
+
+      expect(getRegisteredEditorNames()).toEqual(['password']);
       expect(getEditor('password')).toBeInstanceOf(Function);
 
-      expect(getRegisteredRendererNames()).toEqual(['base', 'text', 'password']);
+      expect(getRegisteredRendererNames()).toEqual(['password']);
       expect(getRenderer('password')).toBeInstanceOf(Function);
 
       expect(getRegisteredValidatorNames()).toEqual([]);
 
       expect(getRegisteredCellTypeNames()).toEqual(['password']);
-      expect(getCellType('password')).toEqual(passwordType);
+      expect(getCellType('password')).toEqual(PasswordType);
       expect(getCellType('password')).toEqual({
         editor: getEditor('password'),
         renderer: getRenderer('password'),

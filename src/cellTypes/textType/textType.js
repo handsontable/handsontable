@@ -1,10 +1,8 @@
-import { getEditor } from '../../editors/editors';
-import { getRenderer } from '../../renderers/renderers';
+import { TextEditor } from '../../editors/textEditor';
+import { textRenderer } from '../../renderers/textRenderer';
 
-import { EDITOR_TYPE } from '../../editors/textEditor';
-import { RENDERER_TYPE } from '../../renderers/textRenderer';
-
-export default {
-  editor: getEditor(EDITOR_TYPE),
-  renderer: getRenderer(RENDERER_TYPE),
+export const CELL_TYPE = 'text';
+export const TextType = {
+  editor: TextEditor,
+  renderer: textRenderer,
 };

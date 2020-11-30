@@ -1,7 +1,9 @@
-import TextEditor from '../textEditor';
+import { TextEditor } from '../textEditor';
+
+export const EDITOR_TYPE = 'numeric';
 
 /**
  * @private
  * @class NumericEditor
  */
-export default class NumericEditor extends TextEditor {}
+export class NumericEditor extends TextEditor {}

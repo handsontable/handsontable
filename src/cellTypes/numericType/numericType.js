@@ -1,14 +1,11 @@
-import { getEditor } from '../../editors/editors';
-import { getRenderer } from '../../renderers/renderers';
-import { getValidator } from '../../validators/validators';
+import { NumericEditor } from '../../editors/numericEditor';
+import { numericRenderer } from '../../renderers/numericRenderer';
+import { numericValidator } from '../../validators/numericValidator';
 
-import { EDITOR_TYPE } from '../../editors/numericEditor';
-import { RENDERER_TYPE } from '../../renderers/numericRenderer';
-import { VALIDATOR_TYPE } from '../../validators/numericValidator';
-
-export default {
-  editor: getEditor(EDITOR_TYPE),
-  renderer: getRenderer(RENDERER_TYPE),
-  validator: getValidator(VALIDATOR_TYPE),
+export const CELL_TYPE = 'numeric';
+export const NumericType = {
+  editor: NumericEditor,
+  renderer: numericRenderer,
+  validator: numericValidator,
   dataType: 'number',
 };

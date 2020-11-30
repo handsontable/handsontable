@@ -1,11 +1,13 @@
-import BaseEditor from '../baseEditor';
+import { BaseEditor } from '../baseEditor';
 import { hasClass } from '../../helpers/dom/element';
+
+export const EDITOR_TYPE = 'checkbox';
 
 /**
  * @private
  * @class CheckboxEditor
  */
-export default class CheckboxEditor extends BaseEditor {
+export class CheckboxEditor extends BaseEditor {
   beginEditing(initialValue, event) {
     // Just some events connected with checkbox editor are delegated here. Some `keydown` events like `enter` and `space` key press
     // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author

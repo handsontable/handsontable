@@ -1,17 +1,19 @@
 import moment from 'moment';
 import Pikaday from 'pikaday';
 import 'pikaday/css/pikaday.css';
+import { TextEditor } from '../textEditor';
+import EventManager from '../../eventManager';
 import { addClass, outerHeight } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
-import EventManager from '../../eventManager';
 import { isMetaKey } from '../../helpers/unicode';
-import TextEditor from '../textEditor';
+
+export const EDITOR_TYPE = 'date';
 
 /**
  * @private
  * @class DateEditor
  */
-export default class DateEditor extends TextEditor {
+export class DateEditor extends TextEditor {
   /**
    * @param {Core} hotInstance Handsontable instance.
    * @private

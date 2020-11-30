@@ -1,14 +1,27 @@
 import {
+  RENDERER_TYPE,
+  htmlRenderer,
+} from '../';
+import {
   getRegisteredRendererNames,
   getRenderer,
+  registerRenderer,
 } from '../../renderers';
-import htmlRenderer from '../index';
 
 describe('textRenderer', () => {
   describe('registering', () => {
-    it('should auto-register renderer after import', () => {
-      expect(getRegisteredRendererNames()).toEqual(['base', 'html']);
-      expect(getRenderer('html')).toBeInstanceOf(Function);
+    it('should throw an error if renderer is not registered', () => {
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer(RENDERER_TYPE);
+      }).toThrowError();
+    });
+
+    it('should register renderer', () => {
+      registerRenderer(RENDERER_TYPE, htmlRenderer);
+
+      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
 

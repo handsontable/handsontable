@@ -1,3 +1,4 @@
+import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import {
   addClass,
   empty,
@@ -12,17 +13,18 @@ import {
   resetCssTransform,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { KEY_CODES } from '../../helpers/unicode';
-import BaseEditor, { EditorState } from '../baseEditor';
 import { objectEach } from '../../helpers/object';
+import { KEY_CODES } from '../../helpers/unicode';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
+
+export const EDITOR_TYPE = 'select';
 
 /**
  * @private
  * @class SelectEditor
  */
-export default class SelectEditor extends BaseEditor {
+export class SelectEditor extends BaseEditor {
   /**
    * Initializes editor instance, DOM Element and mount hooks.
    */
@@ -169,7 +171,7 @@ export default class SelectEditor extends BaseEditor {
    * @private
    */
   refreshDimensions() {
-    if (this.state !== EditorState.EDITING) {
+    if (this.state !== EDITOR_STATE.EDITING) {
       return;
     }
 

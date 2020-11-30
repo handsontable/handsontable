@@ -1,17 +1,21 @@
-import { empty, addClass } from '../../helpers/dom/element';
-import { equalsIgnoreCase } from '../../helpers/string';
+import { baseRenderer } from '../baseRenderer';
 import EventManager from '../../eventManager';
-import { isKey } from '../../helpers/unicode';
+import { empty, addClass } from '../../helpers/dom/element';
+import {
+  stopImmediatePropagation,
+  isImmediatePropagationStopped,
+} from '../../helpers/dom/event';
 import { partial } from '../../helpers/function';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
-import { getRenderer } from '../renderers';
-import { RENDERER_TYPE as BASE_RENDERER_TYPE } from '../baseRenderer';
+import { equalsIgnoreCase } from '../../helpers/string';
+import { isKey } from '../../helpers/unicode';
 
 import './checkboxRenderer.css';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
+
+export const RENDERER_TYPE = 'checkbox';
 
 /**
  * Checkbox renderer.
@@ -25,9 +29,9 @@ const BAD_VALUE_CLASS = 'htBadValue';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export default function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
+export function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
-  getRenderer(BASE_RENDERER_TYPE).apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+  baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   registerEvents(instance);
 
   let input = createInput(rootDocument);

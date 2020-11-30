@@ -1,11 +1,9 @@
-import { getEditor } from '../../editors/editors';
-import { getRenderer } from '../../renderers/renderers';
+import { PasswordEditor } from '../../editors/passwordEditor';
+import { passwordRenderer } from '../../renderers/passwordRenderer';
 
-import { EDITOR_TYPE } from '../../editors/passwordEditor';
-import { RENDERER_TYPE } from '../../renderers/passwordRenderer';
-
-export default {
-  editor: getEditor(EDITOR_TYPE),
-  renderer: getRenderer(RENDERER_TYPE),
+export const CELL_TYPE = 'password';
+export const PasswordType = {
+  editor: PasswordEditor,
+  renderer: passwordRenderer,
   copyable: false,
 };

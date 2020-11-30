@@ -1,13 +1,10 @@
-import { getEditor } from '../../editors/editors';
-import { getRenderer } from '../../renderers/renderers';
-import { getValidator } from '../../validators/validators';
+import { AutocompleteEditor } from '../../editors/autocompleteEditor';
+import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
+import { autocompleteValidator } from '../../validators/autocompleteValidator';
 
-import { EDITOR_TYPE } from '../../editors/autocompleteEditor';
-import { RENDERER_TYPE } from '../../renderers/autocompleteRenderer';
-import { VALIDATOR_TYPE } from '../../validators/autocompleteValidator';
-
-export default {
-  editor: getEditor(EDITOR_TYPE),
-  renderer: getRenderer(RENDERER_TYPE),
-  validator: getValidator(VALIDATOR_TYPE),
+export const CELL_TYPE = 'autocomplete';
+export const AutocompleteType = {
+  editor: AutocompleteEditor,
+  renderer: autocompleteRenderer,
+  validator: autocompleteValidator,
 };

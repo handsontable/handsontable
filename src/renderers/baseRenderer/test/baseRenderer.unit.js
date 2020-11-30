@@ -1,14 +1,27 @@
 import {
+  RENDERER_TYPE,
+  baseRenderer,
+} from '../';
+import {
   getRegisteredRendererNames,
   getRenderer,
+  registerRenderer,
 } from '../../renderers';
-import baseRenderer from '../index';
 
 describe('baseRenderer', () => {
   describe('registering', () => {
-    it('should auto-register renderer after import', () => {
-      expect(getRegisteredRendererNames()).toEqual(['base']);
-      expect(getRenderer('base')).toBeInstanceOf(Function);
+    it('should throw an error if renderer is not registered', () => {
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer(RENDERER_TYPE);
+      }).toThrowError();
+    });
+
+    it('should register renderer', () => {
+      registerRenderer(RENDERER_TYPE, baseRenderer);
+
+      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
 

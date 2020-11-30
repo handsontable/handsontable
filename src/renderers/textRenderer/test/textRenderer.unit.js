@@ -1,15 +1,28 @@
 import Core from 'handsontable/core';
 import {
+  RENDERER_TYPE,
+  textRenderer,
+} from '../';
+import {
   getRegisteredRendererNames,
   getRenderer,
+  registerRenderer,
 } from '../../renderers';
-import textRenderer from '../index';
 
 describe('textRenderer', () => {
   describe('registering', () => {
-    it('should auto-register renderer after import', () => {
-      expect(getRegisteredRendererNames()).toEqual(['base', 'text']);
-      expect(getRenderer('text')).toBeInstanceOf(Function);
+    it('should throw an error if renderer is not registered', () => {
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer(RENDERER_TYPE);
+      }).toThrowError();
+    });
+
+    it('should register renderer', () => {
+      registerRenderer(RENDERER_TYPE, textRenderer);
+
+      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
 

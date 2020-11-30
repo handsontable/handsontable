@@ -1,14 +1,19 @@
+import { TextEditor } from '../textEditor';
+import { setCaretPosition } from '../../helpers/dom/element';
+import {
+  stopImmediatePropagation,
+  isImmediatePropagationStopped,
+} from '../../helpers/dom/event';
 import { KEY_CODES } from '../../helpers/unicode';
 import { extend } from '../../helpers/object';
-import { setCaretPosition } from '../../helpers/dom/element';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
-import TextEditor from '../textEditor';
+
+export const EDITOR_TYPE = 'handsontable';
 
 /**
  * @private
  * @class HandsontableEditor
  */
-export default class HandsontableEditor extends TextEditor {
+export class HandsontableEditor extends TextEditor {
   /**
    * Opens the editor and adjust its size.
    */

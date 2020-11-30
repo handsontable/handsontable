@@ -1,3 +1,5 @@
+export const VALIDATOR_TYPE = 'autocomplete';
+
 /**
  * The Autocomplete cell validator.
  *
@@ -5,7 +7,7 @@
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export default function autocompleteValidator(value, callback) {
+export function autocompleteValidator(value, callback) {
   let valueToValidate = value;
 
   if (valueToValidate === null || valueToValidate === void 0) {

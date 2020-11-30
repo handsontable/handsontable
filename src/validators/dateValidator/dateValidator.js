@@ -1,8 +1,9 @@
 import moment from 'moment';
-import { getNormalizedDate } from '../../helpers/date';
-import { getEditorInstance } from '../../editors/editors';
-
+import { getEditorInstance } from '../../editors';
 import { EDITOR_TYPE as DATE_EDITOR_TYPE } from '../../editors/dateEditor';
+import { getNormalizedDate } from '../../helpers/date';
+
+export const VALIDATOR_TYPE = 'date';
 
 /**
  * The Date cell validator.
@@ -11,7 +12,7 @@ import { EDITOR_TYPE as DATE_EDITOR_TYPE } from '../../editors/dateEditor';
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export default function dateValidator(value, callback) {
+export function dateValidator(value, callback) {
   const dateEditor = getEditorInstance(DATE_EDITOR_TYPE, this.instance);
   let valueToValidate = value;
   let valid = true;

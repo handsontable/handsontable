@@ -1,14 +1,11 @@
-import { getEditor } from '../../editors/editors';
-import { getRenderer } from '../../renderers/renderers';
-import { getValidator } from '../../validators/validators';
+import { DateEditor } from '../../editors/dateEditor';
+import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
+import { dateValidator } from '../../validators/dateValidator';
 
-import { EDITOR_TYPE } from '../../editors/dateEditor';
-import { RENDERER_TYPE } from '../../renderers/autocompleteRenderer';
-import { VALIDATOR_TYPE } from '../../validators/dateValidator';
-
-export default {
-  editor: getEditor(EDITOR_TYPE),
+export const CELL_TYPE = 'date';
+export const DateType = {
+  editor: DateEditor,
   // displays small gray arrow on right side of the cell
-  renderer: getRenderer(RENDERER_TYPE),
-  validator: getValidator(VALIDATOR_TYPE),
+  renderer: autocompleteRenderer,
+  validator: dateValidator,
 };

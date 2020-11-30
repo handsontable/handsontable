@@ -1,18 +1,10 @@
-import './css/bootstrap.css';
-import './3rdparty/walkontable/css/walkontable.css';
-import './css/handsontable.css';
-import './css/mobile.handsontable.css';
+import Handsontable from './base';
 
-import { getRegisteredEditorNames, registerEditor, getEditor } from './editors';
+import { getRegisteredEditorNames, getEditor, registerEditor } from './editors';
 import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
 import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
 import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
 
-import Core from './core';
-import jQueryWrapper from './helpers/wrappers/jquery';
-import EventManager, { getListenersCounter } from './eventManager';
-import { getRegisteredMapsCounter } from './translations/mapCollection';
-import Hooks from './pluginHooks';
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
@@ -30,8 +22,6 @@ import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
 import { registerPlugin } from './plugins';
-import { metaSchemaFactory } from './dataMap/index';
-import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
 import {
@@ -40,35 +30,73 @@ import {
   getLanguageDictionary
 } from './i18n/dictionariesManager';
 
-/**
- * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
- * @param {object} userSettings The user defined options.
- * @returns {Core}
- */
-function Handsontable(rootElement, userSettings) {
-  const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
+import { BaseEditor, EDITOR_TYPE as BASE_EDITOR } from './editors/baseEditor';
+import { AutocompleteEditor, EDITOR_TYPE as AUTOCOMPLETE_EDITOR } from './editors/autocompleteEditor';
+import { CheckboxEditor, EDITOR_TYPE as CHECKBOX_EDITOR } from './editors/checkboxEditor';
+import { DateEditor, EDITOR_TYPE as DATE_EDITOR } from './editors/dateEditor';
+import { DropdownEditor, EDITOR_TYPE as DROPDOWN_EDITOR } from './editors/dropdownEditor';
+import { HandsontableEditor, EDITOR_TYPE as HANDSONTABLE_EDITOR } from './editors/handsontableEditor';
+import { NumericEditor, EDITOR_TYPE as NUMERIC_EDITOR } from './editors/numericEditor';
+import { PasswordEditor, EDITOR_TYPE as PASSWORD_EDITOR } from './editors/passwordEditor';
+import { SelectEditor, EDITOR_TYPE as SELECT_EDITOR } from './editors/selectEditor';
+import { TextEditor, EDITOR_TYPE as TEXT_EDITOR } from './editors/textEditor';
 
-  instance.init();
+import { baseRenderer, RENDERER_TYPE as BASE_RENDERER } from './renderers/baseRenderer';
+import { autocompleteRenderer, RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './renderers/autocompleteRenderer';
+import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './renderers/checkboxRenderer';
+import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './renderers/htmlRenderer';
+import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './renderers/numericRenderer';
+import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './renderers/passwordRenderer';
+import { textRenderer, RENDERER_TYPE as TEXT_RENDERER } from './renderers/textRenderer';
 
-  return instance;
-}
+import { autocompleteValidator, VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './validators/autocompleteValidator';
+import { dateValidator, VALIDATOR_TYPE as DATE_VALIDATOR } from './validators/dateValidator';
+import { numericValidator, VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './validators/numericValidator';
+import { timeValidator, VALIDATOR_TYPE as TIME_VALIDATOR } from './validators/timeValidator';
 
-jQueryWrapper(Handsontable);
+import { AutocompleteType, CELL_TYPE as AUTOCOMPLETE_TYPE } from './cellTypes/autocompleteType';
+import { CheckboxType, CELL_TYPE as CHECKBOX_TYPE } from './cellTypes/checkboxType';
+import { DateType, CELL_TYPE as DATE_TYPE } from './cellTypes/dateType';
+import { DropdownType, CELL_TYPE as DROPDOWN_TYPE } from './cellTypes/dropdownType';
+import { HandsontableType, CELL_TYPE as HANDSONTABLE_TYPE } from './cellTypes/handsontableType';
+import { NumericType, CELL_TYPE as NUMERIC_TYPE } from './cellTypes/numericType';
+import { PasswordType, CELL_TYPE as PASSWORD_TYPE } from './cellTypes/passwordType';
+import { TextType, CELL_TYPE as TEXT_TYPE } from './cellTypes/textType';
+import { TimeType, CELL_TYPE as TIME_TYPE } from './cellTypes/timeType';
 
-Handsontable.Core = function(rootElement, userSettings = {}) {
-  return new Core(rootElement, userSettings, rootInstanceSymbol);
-};
-Handsontable.DefaultSettings = metaSchemaFactory();
-Handsontable.EventManager = EventManager;
-Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
-Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
+registerEditor(BASE_EDITOR, BaseEditor);
+registerEditor(AUTOCOMPLETE_EDITOR, AutocompleteEditor);
+registerEditor(CHECKBOX_EDITOR, CheckboxEditor);
+registerEditor(DATE_EDITOR, DateEditor);
+registerEditor(DROPDOWN_EDITOR, DropdownEditor);
+registerEditor(HANDSONTABLE_EDITOR, HandsontableEditor);
+registerEditor(NUMERIC_EDITOR, NumericEditor);
+registerEditor(PASSWORD_EDITOR, PasswordEditor);
+registerEditor(SELECT_EDITOR, SelectEditor);
+registerEditor(TEXT_EDITOR, TextEditor);
 
-Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = process.env.HOT_BUILD_DATE;
-Handsontable.version = process.env.HOT_VERSION;
+registerRenderer(BASE_RENDERER, baseRenderer);
+registerRenderer(AUTOCOMPLETE_RENDERER, autocompleteRenderer);
+registerRenderer(CHECKBOX_RENDERER, checkboxRenderer);
+registerRenderer(HTML_RENDERER, htmlRenderer);
+registerRenderer(NUMERIC_RENDERER, numericRenderer);
+registerRenderer(PASSWORD_RENDERER, passwordRenderer);
+registerRenderer(TEXT_RENDERER, textRenderer);
 
-// Export Hooks singleton
-Handsontable.hooks = Hooks.getSingleton();
+registerValidator(AUTOCOMPLETE_VALIDATOR, autocompleteValidator);
+registerValidator(DATE_VALIDATOR, dateValidator);
+registerValidator(NUMERIC_VALIDATOR, numericValidator);
+registerValidator(TIME_VALIDATOR, timeValidator);
+
+registerCellType(AUTOCOMPLETE_TYPE, AutocompleteType);
+registerCellType(CHECKBOX_TYPE, CheckboxType);
+registerCellType(DATE_TYPE, DateType);
+registerCellType(DROPDOWN_TYPE, DropdownType);
+registerCellType(HANDSONTABLE_TYPE, HandsontableType);
+registerCellType(NUMERIC_TYPE, NumericType);
+registerCellType(PASSWORD_TYPE, PasswordType);
+registerCellType(TEXT_TYPE, TextType);
+registerCellType(TIME_TYPE, TimeType);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;

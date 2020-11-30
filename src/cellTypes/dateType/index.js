@@ -1,8 +1,4 @@
-import { registerCellType } from '../cellTypes';
-import dateType from './dateType';
-
-export const CELL_TYPE = 'date';
-
-registerCellType(CELL_TYPE, dateType);
-
-export default dateType;
+export {
+  CELL_TYPE,
+  DateType,
+} from './dateType';

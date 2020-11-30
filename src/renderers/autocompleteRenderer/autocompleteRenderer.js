@@ -1,11 +1,12 @@
-import { getRenderer } from '../renderers';
-import { addClass, hasClass } from '../../helpers/dom/element';
-import EventManager from '../../eventManager';
+import { htmlRenderer } from '../htmlRenderer';
+import { textRenderer } from '../textRenderer';
 import { CellCoords } from '../../3rdparty/walkontable/src';
-import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../textRenderer';
-import { RENDERER_TYPE as HTML_RENDERER_TYPE } from '../htmlRenderer';
+import EventManager from '../../eventManager';
+import { addClass, hasClass } from '../../helpers/dom/element';
 
 import './autocompleteRenderer.css';
+
+export const RENDERER_TYPE = 'autocomplete';
 
 /**
  * Autocomplete renderer.
@@ -19,15 +20,15 @@ import './autocompleteRenderer.css';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export default function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
+export function autocompleteRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
-  const rendererType = cellProperties.allowHtml ? HTML_RENDERER_TYPE : TEXT_RENDERER_TYPE;
+  const rendererFunc = cellProperties.allowHtml ? htmlRenderer : textRenderer;
   const ARROW = rootDocument.createElement('DIV');
 
   ARROW.className = 'htAutocompleteArrow';
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
 
-  getRenderer(rendererType).apply(this, [instance, TD, row, col, prop, value, cellProperties]);
+  rendererFunc.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
 
   if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)

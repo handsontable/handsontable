@@ -1,35 +1,59 @@
-import {
-  getEditor,
-  getRegisteredEditorNames,
-} from '../../../editors/editors';
-import {
-  getRegisteredRendererNames,
-  getRenderer,
-} from '../../../renderers/renderers';
-import {
-  getRegisteredValidatorNames,
-  getValidator,
-} from '../../../validators/validators';
+import { CELL_TYPE, TimeType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
+  registerCellType,
 } from '../../cellTypes';
-import timeType from '../index';
+import {
+  getEditor,
+  getRegisteredEditorNames,
+} from '../../../editors';
+import {
+  getRegisteredRendererNames,
+  getRenderer,
+} from '../../../renderers';
+import {
+  getRegisteredValidatorNames,
+  getValidator,
+} from '../../../validators';
 
-describe('timeType', () => {
+describe('TimeType', () => {
   describe('registering', () => {
-    it('should auto-register cell type after import', () => {
-      expect(getRegisteredEditorNames()).toEqual(['base', 'text', 'time']);
+    it('should not auto-register after import', () => {
+      expect(getRegisteredEditorNames()).toEqual([]);
+      expect(() => {
+        getEditor('time');
+      }).toThrowError();
+
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer('time');
+      }).toThrowError();
+
+      expect(getRegisteredValidatorNames()).toEqual([]);
+      expect(() => {
+        getValidator('time');
+      }).toThrowError();
+
+      expect(getRegisteredCellTypeNames()).toEqual([]);
+      expect(() => {
+        getCellType('time');
+      }).toThrowError();
+    });
+    it('should register cell type', () => {
+      registerCellType(CELL_TYPE, TimeType);
+
+      expect(getRegisteredEditorNames()).toEqual(['time']);
       expect(getEditor('time')).toBeInstanceOf(Function);
 
-      expect(getRegisteredRendererNames()).toEqual(['base', 'text', 'time']);
+      expect(getRegisteredRendererNames()).toEqual(['time']);
       expect(getRenderer('time')).toBeInstanceOf(Function);
 
       expect(getRegisteredValidatorNames()).toEqual(['time']);
       expect(getValidator('time')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['time']);
-      expect(getCellType('time')).toEqual(timeType);
+      expect(getCellType('time')).toEqual(TimeType);
       expect(getCellType('time')).toEqual({
         editor: getEditor('time'),
         renderer: getRenderer('time'),

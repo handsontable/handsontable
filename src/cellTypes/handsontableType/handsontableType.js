@@ -1,11 +1,9 @@
-import { getEditor } from '../../editors/editors';
-import { getRenderer } from '../../renderers/renderers';
+import { HandsontableEditor } from '../../editors/handsontableEditor';
+import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
 
-import { EDITOR_TYPE } from '../../editors/handsontableEditor';
-import { RENDERER_TYPE } from '../../renderers/autocompleteRenderer';
-
-export default {
-  editor: getEditor(EDITOR_TYPE),
+export const CELL_TYPE = 'handsontable';
+export const HandsontableType = {
+  editor: HandsontableEditor,
   // displays small gray arrow on right side of the cell
-  renderer: getRenderer(RENDERER_TYPE),
+  renderer: autocompleteRenderer,
 };

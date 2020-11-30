@@ -1,29 +1,31 @@
-import HandsontableEditor from '../handsontableEditor';
-import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
-import { stringify, isDefined } from '../../helpers/mixed';
-import { stripTags } from '../../helpers/string';
-import { pivot, arrayMap } from '../../helpers/array';
-import { getRenderer } from '../../renderers/renderers';
+import { HandsontableEditor } from '../handsontableEditor';
+import { arrayMap, pivot } from '../../helpers/array';
 import {
   addClass,
   getCaretPosition,
   getScrollbarWidth,
   getSelectionEndPosition,
-  outerWidth,
-  outerHeight,
-  offset,
   getTrimmingContainer,
+  offset,
+  outerHeight,
+  outerWidth,
   setCaretPosition,
 } from '../../helpers/dom/element';
+import { isDefined, stringify } from '../../helpers/mixed';
+import { stripTags } from '../../helpers/string';
+import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
+import { getRenderer } from '../../renderers';
 import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../../renderers/textRenderer';
 
 const privatePool = new WeakMap();
+
+export const EDITOR_TYPE = 'autocomplete';
 
 /**
  * @private
  * @class AutocompleteEditor
  */
-export default class AutocompleteEditor extends HandsontableEditor {
+export class AutocompleteEditor extends HandsontableEditor {
   constructor(instance) {
     super(instance);
     /**

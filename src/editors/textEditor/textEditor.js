@@ -1,3 +1,6 @@
+import { BaseEditor, EDITOR_STATE } from '../baseEditor';
+import EventManager from '../../eventManager';
+import { isMobileBrowser, isIE, isEdge } from '../../helpers/browser';
 import {
   addClass,
   getCaretPosition,
@@ -13,22 +16,21 @@ import {
   hasClass,
   removeClass
 } from '../../helpers/dom/element';
-import { rangeEach } from '../../helpers/number';
-import autoResize from '../../../lib/autoResize/autoResize';
-import { isMobileBrowser, isIE, isEdge } from '../../helpers/browser';
-import EventManager from '../../eventManager';
-import { KEY_CODES } from '../../helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
-import BaseEditor, { EditorState } from '../baseEditor';
+import { rangeEach } from '../../helpers/number';
+import { KEY_CODES } from '../../helpers/unicode';
+import autoResize from '../../../lib/autoResize/autoResize';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';
+
+export const EDITOR_TYPE = 'text';
 
 /**
  * @private
  * @class TextEditor
  */
-export default class TextEditor extends BaseEditor {
+export class TextEditor extends BaseEditor {
   /**
    * @param {Core} instance The Handsontable instance.
    */
@@ -161,7 +163,7 @@ export default class TextEditor extends BaseEditor {
         this.TEXTAREA.value = '';
       }
 
-      if (previousState !== EditorState.FINISHED) {
+      if (previousState !== EDITOR_STATE.FINISHED) {
         this.hideEditableElement();
       }
 
@@ -182,7 +184,7 @@ export default class TextEditor extends BaseEditor {
    * @param {Event} event The keyboard event object.
    */
   beginEditing(newInitialValue, event) {
-    if (this.state !== EditorState.VIRGIN) {
+    if (this.state !== EDITOR_STATE.VIRGIN) {
       return;
     }
 
@@ -320,7 +322,7 @@ export default class TextEditor extends BaseEditor {
    * @param {boolean} force Indicates if the refreshing editor dimensions should be triggered.
    */
   refreshDimensions(force = false) {
-    if (this.state !== EditorState.EDITING && !force) {
+    if (this.state !== EDITOR_STATE.EDITING && !force) {
       return;
     }
     this.TD = this.getEditedCell();

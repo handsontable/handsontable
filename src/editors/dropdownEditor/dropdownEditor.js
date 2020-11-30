@@ -1,11 +1,13 @@
-import AutocompleteEditor from '../autocompleteEditor';
+import { AutocompleteEditor } from '../autocompleteEditor';
 import Hooks from '../../pluginHooks';
+
+export const EDITOR_TYPE = 'dropdown';
 
 /**
  * @private
  * @class DropdownEditor
  */
-export default class DropdownEditor extends AutocompleteEditor {
+export class DropdownEditor extends AutocompleteEditor {
   /**
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.

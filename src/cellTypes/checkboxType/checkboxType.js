@@ -1,10 +1,8 @@
-import { getEditor } from '../../editors/editors';
-import { getRenderer } from '../../renderers/renderers';
+import { CheckboxEditor } from '../../editors/checkboxEditor';
+import { checkboxRenderer } from '../../renderers/checkboxRenderer';
 
-import { EDITOR_TYPE } from '../../editors/checkboxEditor';
-import { RENDERER_TYPE } from '../../renderers/checkboxRenderer';
-
-export default {
-  editor: getEditor(EDITOR_TYPE),
-  renderer: getRenderer(RENDERER_TYPE),
+export const CELL_TYPE = 'checkbox';
+export const CheckboxType = {
+  editor: CheckboxEditor,
+  renderer: checkboxRenderer,
 };

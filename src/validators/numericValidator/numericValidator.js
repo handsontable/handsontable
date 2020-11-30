@@ -1,5 +1,7 @@
 import { isNumeric } from '../../helpers/number';
 
+export const VALIDATOR_TYPE = 'numeric';
+
 /**
  * The Numeric cell validator.
  *
@@ -7,7 +9,7 @@ import { isNumeric } from '../../helpers/number';
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export default function numericValidator(value, callback) {
+export function numericValidator(value, callback) {
   let valueToValidate = value;
 
   if (valueToValidate === null || valueToValidate === void 0) {

@@ -2,16 +2,29 @@ import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import Core from 'handsontable/core';
 import {
+  RENDERER_TYPE,
+  numericRenderer,
+} from '../';
+import {
   getRegisteredRendererNames,
   getRenderer,
+  registerRenderer,
 } from '../../renderers';
-import numericRenderer from '../index';
 
 describe('numericRenderer', () => {
   describe('registering', () => {
-    it('should auto-register renderer after import', () => {
-      expect(getRegisteredRendererNames()).toEqual(['base', 'text', 'numeric']);
-      expect(getRenderer('numeric')).toBeInstanceOf(Function);
+    it('should throw an error if renderer is not registered', () => {
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer(RENDERER_TYPE);
+      }).toThrowError();
+    });
+
+    it('should register renderer', () => {
+      registerRenderer(RENDERER_TYPE, numericRenderer);
+
+      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
 

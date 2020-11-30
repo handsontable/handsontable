@@ -1,15 +1,28 @@
 import Core from 'handsontable/core';
 import {
+  RENDERER_TYPE,
+  checkboxRenderer,
+} from '../';
+import {
   getRegisteredRendererNames,
   getRenderer,
+  registerRenderer,
 } from '../../renderers';
-import checkboxRenderer from '../index';
 
 describe('checkboxRenderer', () => {
   describe('registering', () => {
-    it('should auto-register renderer after import', () => {
-      expect(getRegisteredRendererNames()).toEqual(['base', 'checkbox']);
-      expect(getRenderer('checkbox')).toBeInstanceOf(Function);
+    it('should throw an error if renderer is not registered', () => {
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer(RENDERER_TYPE);
+      }).toThrowError();
+    });
+
+    it('should register renderer', () => {
+      registerRenderer(RENDERER_TYPE, checkboxRenderer);
+
+      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
 

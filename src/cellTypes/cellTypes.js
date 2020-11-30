@@ -1,7 +1,7 @@
 import staticRegister from '../utils/staticRegister';
-import { registerEditor } from '../editors/editors';
-import { registerRenderer } from '../renderers/renderers';
-import { registerValidator } from '../validators/validators';
+import { registerEditor } from '../editors';
+import { registerRenderer } from '../renderers';
+import { registerValidator } from '../validators';
 
 const {
   register,

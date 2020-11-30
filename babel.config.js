@@ -58,7 +58,8 @@ module.exports = {
         ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
       ],
       ignore: [
-        'src/plugins/**/test/**'
+        '**/test/**',
+        '**/dist/**',
       ]
     },
     // Environment for transpiling files to be compatible with ES Modules.
@@ -67,7 +68,8 @@ module.exports = {
         ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
       ],
       ignore: [
-        'src/plugins/**/test/**'
+        '**/test/**',
+        '**/dist/**',
       ]
     },
     // Environment for building E2E tests (UMD).

@@ -1,15 +1,28 @@
 import Core from 'handsontable/core';
 import {
+  RENDERER_TYPE,
+  autocompleteRenderer,
+} from '../';
+import {
   getRegisteredRendererNames,
   getRenderer,
-} from '../../renderers';
-import autocompleteRenderer from '../index';
+  registerRenderer,
+} from '../../';
 
 describe('autocompleteRenderer', () => {
   describe('registering', () => {
-    it('should auto-register renderer after import', () => {
-      expect(getRegisteredRendererNames()).toEqual(['base', 'text', 'html', 'autocomplete']);
-      expect(getRenderer('autocomplete')).toBeInstanceOf(Function);
+    it('should throw an error if renderer is not registered', () => {
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer(RENDERER_TYPE);
+      }).toThrowError();
+    });
+
+    it('should register renderer', () => {
+      registerRenderer(RENDERER_TYPE, autocompleteRenderer);
+
+      expect(getRegisteredRendererNames()).toEqual([RENDERER_TYPE]);
+      expect(getRenderer(RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
 

@@ -1,40 +1,64 @@
-import {
-  getEditor,
-  getRegisteredEditorNames,
-} from '../../../editors/editors';
-import {
-  getRegisteredRendererNames,
-  getRenderer,
-} from '../../../renderers/renderers';
-import {
-  getRegisteredValidatorNames,
-  getValidator,
-} from '../../../validators/validators';
+import { CELL_TYPE, NumericType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
+  registerCellType,
 } from '../../cellTypes';
-import numericType from '../index';
+import {
+  getEditor,
+  getRegisteredEditorNames,
+} from '../../../editors';
+import {
+  getRegisteredRendererNames,
+  getRenderer,
+} from '../../../renderers';
+import {
+  getRegisteredValidatorNames,
+  getValidator,
+} from '../../../validators';
 
-describe('numericType', () => {
+describe('NumericType', () => {
   describe('registering', () => {
-    it('should auto-register cell type after import', () => {
-      expect(getRegisteredEditorNames()).toEqual(['base', 'text', 'numeric']);
+    it('should not auto-register after import', () => {
+      expect(getRegisteredEditorNames()).toEqual([]);
+      expect(() => {
+        getEditor('numeric');
+      }).toThrowError();
+
+      expect(getRegisteredRendererNames()).toEqual([]);
+      expect(() => {
+        getRenderer('numeric');
+      }).toThrowError();
+
+      expect(getRegisteredValidatorNames()).toEqual([]);
+      expect(() => {
+        getValidator('numeric');
+      }).toThrowError();
+
+      expect(getRegisteredCellTypeNames()).toEqual([]);
+      expect(() => {
+        getCellType('numeric');
+      }).toThrowError();
+    });
+    it('should register cell type', () => {
+      registerCellType(CELL_TYPE, NumericType);
+
+      expect(getRegisteredEditorNames()).toEqual(['numeric']);
       expect(getEditor('numeric')).toBeInstanceOf(Function);
 
-      expect(getRegisteredRendererNames()).toEqual(['base', 'text', 'numeric']);
+      expect(getRegisteredRendererNames()).toEqual(['numeric']);
       expect(getRenderer('numeric')).toBeInstanceOf(Function);
 
       expect(getRegisteredValidatorNames()).toEqual(['numeric']);
       expect(getValidator('numeric')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['numeric']);
-      expect(getCellType('numeric')).toEqual(numericType);
+      expect(getCellType('numeric')).toEqual(NumericType);
       expect(getCellType('numeric')).toEqual({
         editor: getEditor('numeric'),
         renderer: getRenderer('numeric'),
         validator: getValidator('numeric'),
-        dataType: 'number',
+        dataType: 'number'
       });
     });
   });

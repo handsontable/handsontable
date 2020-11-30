@@ -1,7 +1,8 @@
 import numbro from 'numbro';
-import { getRenderer } from '../renderers';
+import { textRenderer } from '../textRenderer';
 import { isNumeric } from '../../helpers/number';
-import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../textRenderer';
+
+export const RENDERER_TYPE = 'numeric';
 
 /**
  * Numeric cell renderer.
@@ -15,7 +16,7 @@ import { RENDERER_TYPE as TEXT_RENDERER_TYPE } from '../textRenderer';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export default function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
+export function numericRenderer(instance, TD, row, col, prop, value, cellProperties) {
   let newValue = value;
 
   if (isNumeric(newValue)) {
@@ -50,5 +51,5 @@ export default function numericRenderer(instance, TD, row, col, prop, value, cel
     cellProperties.className = classArr.join(' ');
   }
 
-  getRenderer(TEXT_RENDERER_TYPE)(instance, TD, row, col, prop, newValue, cellProperties);
+  textRenderer(instance, TD, row, col, prop, newValue, cellProperties);
 }

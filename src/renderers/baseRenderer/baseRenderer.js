@@ -3,6 +3,8 @@
  */
 import { addClass, removeClass } from '../../helpers/dom/element';
 
+export const RENDERER_TYPE = 'base';
+
 /**
  * @param {Core} instance The Handsontable instance.
  * @param {HTMLTableCellElement} TD The rendered cell element.
@@ -12,7 +14,7 @@ import { addClass, removeClass } from '../../helpers/dom/element';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
  */
-export default function baseRenderer(instance, TD, row, col, prop, value, cellProperties) {
+export function baseRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const classesToAdd = [];
   const classesToRemove = [];
 

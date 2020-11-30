@@ -5,7 +5,26 @@ import {
   assert,
   isNullish
 } from 'handsontable/dataMap/metaManager/utils';
-import 'handsontable/cellTypes';
+import { registerCellType } from 'handsontable/cellTypes';
+import { CELL_TYPE as AUTOCOMPLETE, AutocompleteType } from 'handsontable/cellTypes/autocompleteType';
+import { CELL_TYPE as CHECKBOX, CheckboxType } from 'handsontable/cellTypes/checkboxType';
+import { CELL_TYPE as DATE, DateType } from 'handsontable/cellTypes/dateType';
+import { CELL_TYPE as DROPDOWN, DropdownType } from 'handsontable/cellTypes/dropdownType';
+import { CELL_TYPE as HANDSONTABLE, HandsontableType } from 'handsontable/cellTypes/handsontableType';
+import { CELL_TYPE as NUMERIC, NumericType } from 'handsontable/cellTypes/numericType';
+import { CELL_TYPE as PASSWORD, PasswordType } from 'handsontable/cellTypes/passwordType';
+import { CELL_TYPE as TEXT, TextType } from 'handsontable/cellTypes/textType';
+import { CELL_TYPE as TIME, TimeType } from 'handsontable/cellTypes/timeType';
+
+registerCellType(AUTOCOMPLETE, AutocompleteType);
+registerCellType(CHECKBOX, CheckboxType);
+registerCellType(DATE, DateType);
+registerCellType(DROPDOWN, DropdownType);
+registerCellType(HANDSONTABLE, HandsontableType);
+registerCellType(NUMERIC, NumericType);
+registerCellType(PASSWORD, PasswordType);
+registerCellType(TEXT, TextType);
+registerCellType(TIME, TimeType);
 
 describe('MetaManager utils', () => {
   describe('expandMetaType', () => {

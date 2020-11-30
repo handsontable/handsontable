@@ -1,11 +1,13 @@
+import { TextEditor } from '../textEditor';
 import { empty } from '../../helpers/dom/element';
-import TextEditor from '../textEditor';
+
+export const EDITOR_TYPE = 'password';
 
 /**
  * @private
  * @class PasswordEditor
  */
-export default class PasswordEditor extends TextEditor {
+export class PasswordEditor extends TextEditor {
   createElements() {
     super.createElements();
 
