@@ -1,4 +1,4 @@
 export {
   CELL_TYPE,
-  TimeType,
+  TimeCellType,
 } from './timeType';

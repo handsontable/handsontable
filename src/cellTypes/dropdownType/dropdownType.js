@@ -3,7 +3,7 @@ import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
 import { autocompleteValidator } from '../../validators/autocompleteValidator';
 
 export const CELL_TYPE = 'dropdown';
-export const DropdownType = {
+export const DropdownCellType = {
   editor: DropdownEditor,
   // displays small gray arrow on right side of the cell
   renderer: autocompleteRenderer,

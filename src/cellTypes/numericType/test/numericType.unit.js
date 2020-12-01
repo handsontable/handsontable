@@ -1,4 +1,4 @@
-import { CELL_TYPE, NumericType } from '../';
+import { CELL_TYPE, NumericCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -17,7 +17,7 @@ import {
   getValidator,
 } from '../../../validators';
 
-describe('NumericType', () => {
+describe('NumericCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -41,7 +41,7 @@ describe('NumericType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, NumericType);
+      registerCellType(CELL_TYPE, NumericCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['numeric']);
       expect(getEditor('numeric')).toBeInstanceOf(Function);
@@ -53,7 +53,7 @@ describe('NumericType', () => {
       expect(getValidator('numeric')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['numeric']);
-      expect(getCellType('numeric')).toEqual(NumericType);
+      expect(getCellType('numeric')).toEqual(NumericCellType);
       expect(getCellType('numeric')).toEqual({
         editor: getEditor('numeric'),
         renderer: getRenderer('numeric'),

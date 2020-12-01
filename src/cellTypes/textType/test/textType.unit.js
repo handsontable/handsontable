@@ -1,6 +1,6 @@
 import {
   CELL_TYPE,
-  TextType,
+  TextCellType,
 } from '../';
 import {
   getCellType,
@@ -19,7 +19,7 @@ import {
   getRegisteredValidatorNames,
 } from '../../../validators';
 
-describe('TextType', () => {
+describe('TextCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -43,7 +43,7 @@ describe('TextType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, TextType);
+      registerCellType(CELL_TYPE, TextCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['text']);
       expect(getEditor('text')).toBeInstanceOf(Function);
@@ -54,7 +54,7 @@ describe('TextType', () => {
       expect(getRegisteredValidatorNames()).toEqual([]);
 
       expect(getRegisteredCellTypeNames()).toEqual(['text']);
-      expect(getCellType('text')).toEqual(TextType);
+      expect(getCellType('text')).toEqual(TextCellType);
       expect(getCellType('text')).toEqual({
         editor: getEditor('text'),
         renderer: getRenderer('text'),

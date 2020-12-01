@@ -1,7 +1,7 @@
 import { CellCoords } from './3rdparty/walkontable/src';
 import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
-import { getEditorInstance } from './editors/editors';
+import { getEditorInstance } from './editors';
 import EventManager from './eventManager';
 import { EDITOR_STATE } from './editors/baseEditor';
 import { getParentWindow } from './helpers/dom/element';

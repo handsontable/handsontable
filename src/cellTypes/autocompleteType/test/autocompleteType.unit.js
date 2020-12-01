@@ -1,4 +1,4 @@
-import { CELL_TYPE, AutocompleteType } from '../';
+import { CELL_TYPE, AutocompleteCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -17,7 +17,7 @@ import {
   getValidator,
 } from '../../../validators';
 
-describe('AutocompleteType', () => {
+describe('AutocompleteCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -41,7 +41,7 @@ describe('AutocompleteType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, AutocompleteType);
+      registerCellType(CELL_TYPE, AutocompleteCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['autocomplete']);
       expect(getEditor('autocomplete')).toBeInstanceOf(Function);
@@ -53,7 +53,7 @@ describe('AutocompleteType', () => {
       expect(getValidator('autocomplete')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['autocomplete']);
-      expect(getCellType('autocomplete')).toEqual(AutocompleteType);
+      expect(getCellType('autocomplete')).toEqual(AutocompleteCellType);
       expect(getCellType('autocomplete')).toEqual({
         editor: getEditor('autocomplete'),
         renderer: getRenderer('autocomplete'),

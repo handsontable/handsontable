@@ -1,4 +1,4 @@
-import { CELL_TYPE, DateType } from '../';
+import { CELL_TYPE, DateCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -17,7 +17,7 @@ import {
   getValidator,
 } from '../../../validators';
 
-describe('DateType', () => {
+describe('DateCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -41,7 +41,7 @@ describe('DateType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, DateType);
+      registerCellType(CELL_TYPE, DateCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['date']);
       expect(getEditor('date')).toBeInstanceOf(Function);
@@ -53,7 +53,7 @@ describe('DateType', () => {
       expect(getValidator('date')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['date']);
-      expect(getCellType('date')).toEqual(DateType);
+      expect(getCellType('date')).toEqual(DateCellType);
       expect(getCellType('date')).toEqual({
         editor: getEditor('date'),
         renderer: getRenderer('date'),

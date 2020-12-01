@@ -3,7 +3,7 @@ import { textRenderer } from '../../renderers/textRenderer';
 import { timeValidator } from '../../validators/timeValidator';
 
 export const CELL_TYPE = 'time';
-export const TimeType = {
+export const TimeCellType = {
   editor: TextEditor,
   // displays small gray arrow on right side of the cell
   renderer: textRenderer,

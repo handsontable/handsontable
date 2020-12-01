@@ -1,4 +1,4 @@
 export {
   CELL_TYPE,
-  HandsontableType,
+  HandsontableCellType,
 } from './handsontableType';

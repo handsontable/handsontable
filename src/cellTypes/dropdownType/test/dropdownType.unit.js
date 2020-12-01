@@ -1,4 +1,4 @@
-import { CELL_TYPE, DropdownType } from '../';
+import { CELL_TYPE, DropdownCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -17,7 +17,7 @@ import {
   getValidator,
 } from '../../../validators';
 
-describe('DropdownType', () => {
+describe('DropdownCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -41,7 +41,7 @@ describe('DropdownType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, DropdownType);
+      registerCellType(CELL_TYPE, DropdownCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['dropdown']);
       expect(getEditor('dropdown')).toBeInstanceOf(Function);
@@ -53,7 +53,7 @@ describe('DropdownType', () => {
       expect(getValidator('dropdown')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['dropdown']);
-      expect(getCellType('dropdown')).toEqual(DropdownType);
+      expect(getCellType('dropdown')).toEqual(DropdownCellType);
       expect(getCellType('dropdown')).toEqual({
         editor: getEditor('dropdown'),
         renderer: getRenderer('dropdown'),

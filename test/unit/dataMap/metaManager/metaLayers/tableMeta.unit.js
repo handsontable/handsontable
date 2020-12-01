@@ -1,9 +1,9 @@
 import GlobalMeta from 'handsontable/dataMap/metaManager/metaLayers/globalMeta';
 import TableMeta from 'handsontable/dataMap/metaManager/metaLayers/tableMeta';
 import { registerCellType } from 'handsontable/cellTypes';
-import { CELL_TYPE, TextType } from 'handsontable/cellTypes/textType';
+import { CELL_TYPE, TextCellType } from 'handsontable/cellTypes/textType';
 
-registerCellType(CELL_TYPE, TextType);
+registerCellType(CELL_TYPE, TextCellType);
 
 describe('TableMeta', () => {
   it('should construct class with prepared meta object', () => {

@@ -3,7 +3,7 @@ import { numericRenderer } from '../../renderers/numericRenderer';
 import { numericValidator } from '../../validators/numericValidator';
 
 export const CELL_TYPE = 'numeric';
-export const NumericType = {
+export const NumericCellType = {
   editor: NumericEditor,
   renderer: numericRenderer,
   validator: numericValidator,

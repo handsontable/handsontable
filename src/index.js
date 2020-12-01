@@ -53,15 +53,15 @@ import { dateValidator, VALIDATOR_TYPE as DATE_VALIDATOR } from './validators/da
 import { numericValidator, VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './validators/numericValidator';
 import { timeValidator, VALIDATOR_TYPE as TIME_VALIDATOR } from './validators/timeValidator';
 
-import { AutocompleteType, CELL_TYPE as AUTOCOMPLETE_TYPE } from './cellTypes/autocompleteType';
-import { CheckboxType, CELL_TYPE as CHECKBOX_TYPE } from './cellTypes/checkboxType';
-import { DateType, CELL_TYPE as DATE_TYPE } from './cellTypes/dateType';
-import { DropdownType, CELL_TYPE as DROPDOWN_TYPE } from './cellTypes/dropdownType';
-import { HandsontableType, CELL_TYPE as HANDSONTABLE_TYPE } from './cellTypes/handsontableType';
-import { NumericType, CELL_TYPE as NUMERIC_TYPE } from './cellTypes/numericType';
-import { PasswordType, CELL_TYPE as PASSWORD_TYPE } from './cellTypes/passwordType';
-import { TextType, CELL_TYPE as TEXT_TYPE } from './cellTypes/textType';
-import { TimeType, CELL_TYPE as TIME_TYPE } from './cellTypes/timeType';
+import { AutocompleteCellType, CELL_TYPE as AUTOCOMPLETE_TYPE } from './cellTypes/autocompleteType';
+import { CheckboxCellType, CELL_TYPE as CHECKBOX_TYPE } from './cellTypes/checkboxType';
+import { DateCellType, CELL_TYPE as DATE_TYPE } from './cellTypes/dateType';
+import { DropdownCellType, CELL_TYPE as DROPDOWN_TYPE } from './cellTypes/dropdownType';
+import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './cellTypes/handsontableType';
+import { NumericCellType, CELL_TYPE as NUMERIC_TYPE } from './cellTypes/numericType';
+import { PasswordCellType, CELL_TYPE as PASSWORD_TYPE } from './cellTypes/passwordType';
+import { TextCellType, CELL_TYPE as TEXT_TYPE } from './cellTypes/textType';
+import { TimeCellType, CELL_TYPE as TIME_TYPE } from './cellTypes/timeType';
 
 jQueryWrapper(Handsontable);
 
@@ -89,15 +89,15 @@ registerValidator(DATE_VALIDATOR, dateValidator);
 registerValidator(NUMERIC_VALIDATOR, numericValidator);
 registerValidator(TIME_VALIDATOR, timeValidator);
 
-registerCellType(AUTOCOMPLETE_TYPE, AutocompleteType);
-registerCellType(CHECKBOX_TYPE, CheckboxType);
-registerCellType(DATE_TYPE, DateType);
-registerCellType(DROPDOWN_TYPE, DropdownType);
-registerCellType(HANDSONTABLE_TYPE, HandsontableType);
-registerCellType(NUMERIC_TYPE, NumericType);
-registerCellType(PASSWORD_TYPE, PasswordType);
-registerCellType(TEXT_TYPE, TextType);
-registerCellType(TIME_TYPE, TimeType);
+registerCellType(AUTOCOMPLETE_TYPE, AutocompleteCellType);
+registerCellType(CHECKBOX_TYPE, CheckboxCellType);
+registerCellType(DATE_TYPE, DateCellType);
+registerCellType(DROPDOWN_TYPE, DropdownCellType);
+registerCellType(HANDSONTABLE_TYPE, HandsontableCellType);
+registerCellType(NUMERIC_TYPE, NumericCellType);
+registerCellType(PASSWORD_TYPE, PasswordCellType);
+registerCellType(TEXT_TYPE, TextCellType);
+registerCellType(TIME_TYPE, TimeCellType);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;

@@ -16,8 +16,8 @@ import {
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { getPlugin } from './plugins';
-import { getRenderer } from './renderers/renderers';
-import { getValidator } from './validators/validators';
+import { getRenderer } from './renderers';
+import { getValidator } from './validators';
 import { randomString } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';

@@ -1,4 +1,4 @@
 export {
   CELL_TYPE,
-  CheckboxType,
+  CheckboxCellType,
 } from './checkboxType';

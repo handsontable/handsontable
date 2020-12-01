@@ -1,4 +1,4 @@
-import { CELL_TYPE, PasswordType } from '../';
+import { CELL_TYPE, PasswordCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -16,7 +16,7 @@ import {
   getRegisteredValidatorNames,
 } from '../../../validators';
 
-describe('PasswordType', () => {
+describe('PasswordCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -40,7 +40,7 @@ describe('PasswordType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, PasswordType);
+      registerCellType(CELL_TYPE, PasswordCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['password']);
       expect(getEditor('password')).toBeInstanceOf(Function);
@@ -51,7 +51,7 @@ describe('PasswordType', () => {
       expect(getRegisteredValidatorNames()).toEqual([]);
 
       expect(getRegisteredCellTypeNames()).toEqual(['password']);
-      expect(getCellType('password')).toEqual(PasswordType);
+      expect(getCellType('password')).toEqual(PasswordCellType);
       expect(getCellType('password')).toEqual({
         editor: getEditor('password'),
         renderer: getRenderer('password'),

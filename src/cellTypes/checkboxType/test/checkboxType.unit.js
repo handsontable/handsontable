@@ -1,4 +1,4 @@
-import { CELL_TYPE, CheckboxType } from '../';
+import { CELL_TYPE, CheckboxCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -16,7 +16,7 @@ import {
   getRegisteredValidatorNames,
 } from '../../../validators';
 
-describe('CheckboxType', () => {
+describe('CheckboxCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -40,7 +40,7 @@ describe('CheckboxType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, CheckboxType);
+      registerCellType(CELL_TYPE, CheckboxCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['checkbox']);
       expect(getEditor('checkbox')).toBeInstanceOf(Function);
@@ -51,7 +51,7 @@ describe('CheckboxType', () => {
       expect(getRegisteredValidatorNames()).toEqual([]);
 
       expect(getRegisteredCellTypeNames()).toEqual(['checkbox']);
-      expect(getCellType('checkbox')).toEqual(CheckboxType);
+      expect(getCellType('checkbox')).toEqual(CheckboxCellType);
       expect(getCellType('checkbox')).toEqual({
         editor: getEditor('checkbox'),
         renderer: getRenderer('checkbox'),

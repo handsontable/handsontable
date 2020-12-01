@@ -3,7 +3,7 @@ import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
 import { autocompleteValidator } from '../../validators/autocompleteValidator';
 
 export const CELL_TYPE = 'autocomplete';
-export const AutocompleteType = {
+export const AutocompleteCellType = {
   editor: AutocompleteEditor,
   renderer: autocompleteRenderer,
   validator: autocompleteValidator,

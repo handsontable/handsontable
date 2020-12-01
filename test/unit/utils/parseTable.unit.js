@@ -1,9 +1,9 @@
 import { instanceToHTML, _dataToHTML, htmlToGridSettings } from 'handsontable/utils/parseTable';
 import Handsontable from 'handsontable';
 import { registerCellType } from 'handsontable/cellTypes';
-import { CELL_TYPE, TextType } from 'handsontable/cellTypes/textType';
+import { CELL_TYPE, TextCellType } from 'handsontable/cellTypes/textType';
 
-registerCellType(CELL_TYPE, TextType);
+registerCellType(CELL_TYPE, TextCellType);
 
 describe('instanceToHTML', () => {
   it('should convert clear instance into HTML table', () => {

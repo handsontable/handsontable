@@ -1,4 +1,4 @@
 export {
   CELL_TYPE,
-  TextType,
+  TextCellType,
 } from './textType';

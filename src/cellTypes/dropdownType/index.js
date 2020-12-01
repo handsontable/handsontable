@@ -1,4 +1,4 @@
 export {
   CELL_TYPE,
-  DropdownType,
+  DropdownCellType,
 } from './dropdownType';

@@ -1,5 +1,5 @@
 export {
   CELL_TYPE,
-  NumericType,
+  NumericCellType,
 } from './numericType';
 

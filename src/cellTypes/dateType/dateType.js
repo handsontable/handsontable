@@ -3,7 +3,7 @@ import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
 import { dateValidator } from '../../validators/dateValidator';
 
 export const CELL_TYPE = 'date';
-export const DateType = {
+export const DateCellType = {
   editor: DateEditor,
   // displays small gray arrow on right side of the cell
   renderer: autocompleteRenderer,

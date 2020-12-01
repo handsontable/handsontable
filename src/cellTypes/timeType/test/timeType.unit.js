@@ -1,4 +1,4 @@
-import { CELL_TYPE, TimeType } from '../';
+import { CELL_TYPE, TimeCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -17,7 +17,7 @@ import {
   getValidator,
 } from '../../../validators';
 
-describe('TimeType', () => {
+describe('TimeCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -41,7 +41,7 @@ describe('TimeType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, TimeType);
+      registerCellType(CELL_TYPE, TimeCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['time']);
       expect(getEditor('time')).toBeInstanceOf(Function);
@@ -53,7 +53,7 @@ describe('TimeType', () => {
       expect(getValidator('time')).toBeInstanceOf(Function);
 
       expect(getRegisteredCellTypeNames()).toEqual(['time']);
-      expect(getCellType('time')).toEqual(TimeType);
+      expect(getCellType('time')).toEqual(TimeCellType);
       expect(getCellType('time')).toEqual({
         editor: getEditor('time'),
         renderer: getRenderer('time'),

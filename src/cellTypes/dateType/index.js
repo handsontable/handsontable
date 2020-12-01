@@ -1,4 +1,4 @@
 export {
   CELL_TYPE,
-  DateType,
+  DateCellType,
 } from './dateType';

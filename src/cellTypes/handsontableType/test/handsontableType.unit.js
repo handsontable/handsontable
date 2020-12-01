@@ -1,4 +1,4 @@
-import { CELL_TYPE, HandsontableType } from '../';
+import { CELL_TYPE, HandsontableCellType } from '../';
 import {
   getCellType,
   getRegisteredCellTypeNames,
@@ -16,7 +16,7 @@ import {
   getRegisteredValidatorNames,
 } from '../../../validators';
 
-describe('HandsontableType', () => {
+describe('HandsontableCellType', () => {
   describe('registering', () => {
     it('should not auto-register after import', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
@@ -40,7 +40,7 @@ describe('HandsontableType', () => {
       }).toThrowError();
     });
     it('should register cell type', () => {
-      registerCellType(CELL_TYPE, HandsontableType);
+      registerCellType(CELL_TYPE, HandsontableCellType);
 
       expect(getRegisteredEditorNames()).toEqual(['handsontable']);
       expect(getEditor('handsontable')).toBeInstanceOf(Function);
@@ -51,7 +51,7 @@ describe('HandsontableType', () => {
       expect(getRegisteredValidatorNames()).toEqual([]);
 
       expect(getRegisteredCellTypeNames()).toEqual(['handsontable']);
-      expect(getCellType('handsontable')).toEqual(HandsontableType);
+      expect(getCellType('handsontable')).toEqual(HandsontableCellType);
       expect(getCellType('handsontable')).toEqual({
         editor: getEditor('handsontable'),
         renderer: getRenderer('handsontable'),

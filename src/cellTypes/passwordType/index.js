@@ -1,4 +1,4 @@
 export {
   CELL_TYPE,
-  PasswordType,
+  PasswordCellType,
 } from './passwordType';
