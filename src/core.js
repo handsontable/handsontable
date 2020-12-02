@@ -1624,7 +1624,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean}
    */
   this.isRenderSuspended = function() {
-    return this.renderSuspendedCounter !== 0;
+    return this.renderSuspendedCounter > 0;
   };
 
   /**
@@ -1674,9 +1674,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *
    * @memberof Core#
    * @function resumeRender
-   * @param {boolean} [forceRender=false] If `true`, the table is rendered after the
-   * resuming the rendering. For nested {@link Core#batchRender} calls, it can be a
-   * desire to render the table after each batch.
    * @since 8.3.0
    * @example
    * ```js
@@ -1692,10 +1689,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.resumeRender(); // It re-renders the table internally
    * ```
    */
-  this.resumeRender = function(forceRender = false) {
-    this.renderSuspendedCounter = Math.max(this.renderSuspendedCounter - 1, 0);
+  this.resumeRender = function() {
+    const nextValue = this.renderSuspendedCounter - 1;
 
-    if (!this.isRenderSuspended() || forceRender) {
+    this.renderSuspendedCounter = Math.max(nextValue, 0);
+
+    if (!this.isRenderSuspended() && nextValue === this.renderSuspendedCounter) {
       if (this.renderCall) {
         this.render();
       } else {
@@ -1737,9 +1736,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function batchRender
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
-   * @param {boolean} [forceRender=false] If `true`, the table is rendered after the
-   * execution of the batched operations. For nested calls, it can be a desire to render
-   * the table after each batch.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
    * @example
@@ -1757,12 +1753,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * });
    * ```
    */
-  this.batchRender = function(wrappedOperations, forceRender = false) {
+  this.batchRender = function(wrappedOperations) {
     this.suspendRender();
 
     const result = wrappedOperations();
 
-    this.resumeRender(forceRender);
+    this.resumeRender();
 
     return result;
   };
@@ -1777,7 +1773,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {boolean}
    */
   this.isExecutionSuspended = function() {
-    return this.executionSuspendedCounter !== 0;
+    return this.executionSuspendedCounter > 0;
   };
 
   /**
@@ -1834,9 +1830,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * ```
    */
   this.resumeExecution = function(forceFlushChanges = false) {
-    this.executionSuspendedCounter = Math.max(this.executionSuspendedCounter - 1, 0);
+    const nextValue = this.executionSuspendedCounter - 1;
 
-    if (!this.isExecutionSuspended() || forceFlushChanges) {
+    this.executionSuspendedCounter = Math.max(nextValue, 0);
+
+    if ((!this.isExecutionSuspended() && nextValue === this.executionSuspendedCounter) || forceFlushChanges) {
       this.columnIndexMapper.resumeOperations();
       this.rowIndexMapper.resumeOperations();
     }
@@ -1890,9 +1888,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
-   * @param {boolean} [forceFlushChanges=false] If `true`, the table is rendered and the
-   * internal data cache is recalculated after the execution of the batched operations.
-   * For nested calls, it can be a desire to recalculate the table after each batch.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
    * @example
@@ -1916,14 +1911,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * });
    * ```
    */
-  this.batch = function(wrappedOperations, forceFlushChanges = false) {
+  this.batch = function(wrappedOperations) {
     this.suspendRender();
     this.suspendExecution();
 
     const result = wrappedOperations();
 
-    this.resumeExecution(forceFlushChanges);
-    this.resumeRender(forceFlushChanges);
+    this.resumeExecution();
+    this.resumeRender();
 
     return result;
   };
