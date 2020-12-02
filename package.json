@@ -54,7 +54,7 @@
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
     "postbuild": "node ./scripts/prepare-package",
-    "release": "npm run clean && npm run build && npm publish"
+    "release": "npm run clean && npm run build && npm publish tmp"
   },
   "keywords": [
     "data",
