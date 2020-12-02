@@ -12,8 +12,8 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "version": "8.2.0",
   "main": "commonjs/index.js",
-  "module": "es/index.js",
-  "jsnext:main": "es/index.js",
+  "module": "index.js",
+  "jsnext:main": "index.js",
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
@@ -46,13 +46,14 @@
     "test:types": "tsc -p ./test/types",
     "watch": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ./hot.config.js webpack --hide-modules --watch src/index.js",
     "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.min",
-    "build:commonjs": "rimraf ./commonjs && cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ./hot.config.js babel src --out-dir commonjs",
-    "build:es": "rimraf ./es && cross-env-shell BABEL_ENV=es env-cmd -f ./hot.config.js babel src --out-dir es",
+    "build:commonjs": "rimraf ./commonjs && cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ./hot.config.js babel src --out-dir tmp/commonjs",
+    "build:es": "rimraf ./es && cross-env-shell BABEL_ENV=es env-cmd -f ./hot.config.js babel src --out-dir tmp",
     "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
+    "postbuild": "node ./scripts/prepare-package",
     "release": "npm run clean && npm run build && npm publish"
   },
   "keywords": [

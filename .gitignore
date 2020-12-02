@@ -19,3 +19,4 @@ node_modules/
 commonjs/
 es/
 coverage/
+tmp/

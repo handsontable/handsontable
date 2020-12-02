@@ -12,6 +12,10 @@ import {
   getLanguagesDictionaries,
   getLanguageDictionary
 } from './i18n/dictionariesManager';
+import { registerCellType } from './cellTypes';
+import { TextCellType, CELL_TYPE as TEXT_TYPE } from './cellTypes/textType';
+
+registerCellType(TEXT_TYPE, TextCellType);
 
 /**
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.

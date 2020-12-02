@@ -1,4 +1,4 @@
-import SheetClip from './../lib/SheetClip/SheetClip';
+import SheetClip from './3rdparty/SheetClip/SheetClip';
 import {
   cellMethodLookupFactory,
   countFirstRowKeys

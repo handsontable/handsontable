@@ -1,6 +1,6 @@
 import BasePlugin from './../_base';
 import Hooks from './../../pluginHooks';
-import SheetClip from './../../../lib/SheetClip/SheetClip';
+import SheetClip from './../../3rdparty/SheetClip/SheetClip';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { sanitize } from './../../helpers/string';

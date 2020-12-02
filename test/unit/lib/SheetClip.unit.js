@@ -1,4 +1,4 @@
-import SheetClip from 'handsontable/../lib/SheetClip/SheetClip';
+import SheetClip from 'handsontable/3rdparty/SheetClip/SheetClip';
 
 describe('SheetClip', () => {
   describe('parse', () => {

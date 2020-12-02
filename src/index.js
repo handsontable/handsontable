@@ -60,7 +60,6 @@ import { DropdownCellType, CELL_TYPE as DROPDOWN_TYPE } from './cellTypes/dropdo
 import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './cellTypes/handsontableType';
 import { NumericCellType, CELL_TYPE as NUMERIC_TYPE } from './cellTypes/numericType';
 import { PasswordCellType, CELL_TYPE as PASSWORD_TYPE } from './cellTypes/passwordType';
-import { TextCellType, CELL_TYPE as TEXT_TYPE } from './cellTypes/textType';
 import { TimeCellType, CELL_TYPE as TIME_TYPE } from './cellTypes/timeType';
 
 jQueryWrapper(Handsontable);
@@ -96,7 +95,6 @@ registerCellType(DROPDOWN_TYPE, DropdownCellType);
 registerCellType(HANDSONTABLE_TYPE, HandsontableCellType);
 registerCellType(NUMERIC_TYPE, NumericCellType);
 registerCellType(PASSWORD_TYPE, PasswordCellType);
-registerCellType(TEXT_TYPE, TextCellType);
 registerCellType(TIME_TYPE, TimeCellType);
 
 // TODO: Remove this exports after rewrite tests about this module
