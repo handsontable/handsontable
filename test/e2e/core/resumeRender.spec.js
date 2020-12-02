@@ -75,7 +75,9 @@ describe('Core.resumeRender', () => {
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 
-    hot.renderSuspendedCounter = 3;
+    hot.suspendRender();
+    hot.suspendRender();
+    hot.suspendRender();
 
     // fast render
     hot.selectCell(1, 1);
