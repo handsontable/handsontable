@@ -1,7 +1,7 @@
 {
   "packages": ["tmp"],
   "publishDirectory": {
-    "handsontable": "build/node_modules/handsontable"
+    "handsontable": "tmp"
   },
   "sandboxes": [
     "github/handsontable/examples/tree/master/vanilla/pull-request", 
