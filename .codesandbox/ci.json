@@ -1,5 +1,5 @@
 {
-  "packages": ["tmp/handsontable"],
+  "packages": ["tmp"],
   "publishDirectory": {
     "handsontable": "build/node_modules/handsontable"
   },
