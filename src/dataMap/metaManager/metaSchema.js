@@ -1019,6 +1019,8 @@ export default () => {
 
     /**
      * Class name for the Handsontable container element.
+     * It can also be used to assign class names for table cells,
+     * for example, if it is provided in `cells` or `columns` options.
      *
      * @memberof Options#
      * @type {string|string[]}
