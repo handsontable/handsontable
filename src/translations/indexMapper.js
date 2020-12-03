@@ -164,7 +164,7 @@ class IndexMapper {
   /**
    * Suspends the cache update for this map. The method is helpful to group multiple
    * operations, which affects the cache. In this case, the cache will be updated once after
-   * calling the "resumeOperations" method.
+   * calling the `resumeOperations` method.
    */
   suspendOperations() {
     this.isBatched = true;

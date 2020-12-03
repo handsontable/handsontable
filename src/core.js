@@ -113,7 +113,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.rootWindow = this.rootDocument.defaultView;
   /**
-   * Takes the `true` value if the Handsontable instance was destroyed.
+   * A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
+   * after `afterDestroy` hook is called.
    *
    * @memberof Core#
    * @member isDestroyed
