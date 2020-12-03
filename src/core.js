@@ -113,26 +113,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.rootWindow = this.rootDocument.defaultView;
   /**
-   * The flag determines if the Handsontable istance was destroyed.
+   * Takes the `true` value if the Handsontable instance was destroyed.
    *
+   * @memberof Core#
+   * @member isDestroyed
    * @type {boolean}
    */
   this.isDestroyed = false;
   /**
-   * The counter determines how many times the render suspending was called.
-   * It allows tracking the nested suspending calls. After resuming the counter,
-   * the value is decremented. The value equal to 0 means the render suspending
-   * feature is disabled.
+   * The counter determines how many times the render suspending was called. It allows
+   * tracking the nested suspending calls. For each render suspend resuming call the
+   * counter is decremented. The value equal to 0 means the render suspending feature
+   * is disabled.
    *
+   * @private
    * @type {number}
    */
   this.renderSuspendedCounter = 0;
   /**
-   * The counter determines how many times the execution suspending was called.
-   * It allows tracking the nested suspending calls. After resuming the counter,
-   * the value is decremented. The value equal to 0 means the execution suspending
-   * feature is disabled.
+   * The counter determines how many times the execution suspending was called. It allows
+   * tracking the nested suspending calls. For each execution suspend resuming call the
+   * counter is decremented. The value equal to 0 means the execution suspending feature
+   * is disabled.
    *
+   * @private
    * @type {number}
    */
   this.executionSuspendedCounter = 0;
@@ -1649,11 +1653,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.suspendRender();
    * hot.alter('insert_row', 5, 45);
    * hot.alter('insert_col', 10, 40);
-   * hot.setDataAtCell(1, 1, 'x');
-   * hot.setDataAtCell(2, 2, 'c');
-   * hot.setDataAtCell(3, 3, 'v');
-   * hot.setDataAtCell(4, 4, 'b');
-   * hot.setDataAtCell(5, 5, 'n');
+   * hot.setDataAtCell(1, 1, 'John');
+   * hot.setDataAtCell(2, 2, 'Mark');
+   * hot.setDataAtCell(3, 3, 'Ann');
+   * hot.setDataAtCell(4, 4, 'Sophia');
+   * hot.setDataAtCell(5, 5, 'Mia');
    * hot.selectCell(0, 0);
    * hot.resumeRender(); // It re-renders the table internally
    * ```
@@ -1680,11 +1684,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.suspendRender();
    * hot.alter('insert_row', 5, 45);
    * hot.alter('insert_col', 10, 40);
-   * hot.setDataAtCell(1, 1, 'x');
-   * hot.setDataAtCell(2, 2, 'c');
-   * hot.setDataAtCell(3, 3, 'v');
-   * hot.setDataAtCell(4, 4, 'b');
-   * hot.setDataAtCell(5, 5, 'n');
+   * hot.setDataAtCell(1, 1, 'John');
+   * hot.setDataAtCell(2, 2, 'Mark');
+   * hot.setDataAtCell(3, 3, 'Ann');
+   * hot.setDataAtCell(4, 4, 'Sophia');
+   * hot.setDataAtCell(5, 5, 'Mia');
    * hot.selectCell(0, 0);
    * hot.resumeRender(); // It re-renders the table internally
    * ```
@@ -1727,11 +1731,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Batches the rendering process. The method aggregates multi-line API calls into a
-   * callback and postpones the table rendering process. After the execution of the
-   * operations, the table is rendered once. As a result, it improves the performance
-   * of wrapped operations. Without batching, a similar case could trigger multiple
-   * table render calls.
+   * The method aggregates multi-line API calls into a callback and postpones the
+   * table rendering process. After the execution of the operations, the table is
+   * rendered once. As a result, it improves the performance of wrapped operations.
+   * Without batching, a similar case could trigger multiple table render calls.
    *
    * @memberof Core#
    * @function batchRender
@@ -1743,11 +1746,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * hot.batchRender(() => {
    *   hot.alter('insert_row', 5, 45);
    *   hot.alter('insert_col', 10, 40);
-   *   hot.setDataAtCell(1, 1, 'x');
-   *   hot.setDataAtCell(2, 2, 'c');
-   *   hot.setDataAtCell(3, 3, 'v');
-   *   hot.setDataAtCell(4, 4, 'b');
-   *   hot.setDataAtCell(5, 5, 'n');
+   *   hot.setDataAtCell(1, 1, 'John');
+   *   hot.setDataAtCell(2, 2, 'Mark');
+   *   hot.setDataAtCell(3, 3, 'Ann');
+   *   hot.setDataAtCell(4, 4, 'Sophia');
+   *   hot.setDataAtCell(5, 5, 'Mia');
    *   hot.selectCell(0, 0);
    *   // The table will be rendered once after executing the callback
    * });
@@ -1809,13 +1812,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * method it allows aggregate the table logic changes after which the cache is
    * updated. Resuming the state automatically invokes the table cache updating process.
    *
-   * The method is intended to be used by advanced users.
+   * The method is intended to be used by advanced users. Suspending the execution
+   * process could cause visual glitches caused by not updated the internal table cache.
    *
    * @memberof Core#
    * @function resumeExecution
    * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
    * is recalculated after the execution of the batched operations. For nested
-   * {@link Core#batchExecution} calls, it can be a desire to recalculate the table
+   * {@link Core#batchExecution} calls, it can be desire to recalculate the table
    * after each batch.
    * @since 8.3.0
    * @example
@@ -1841,11 +1845,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Resumes the execution process. In conjunction with the {@link Core#suspendExecution}
-   * method it allows aggregate the table logic changes after which the cache is
-   * updated. Resuming the state automatically invokes the table cache updating process.
-   *
-   * The method is intended to be used by advanced users.
+   * The method aggregates multi-line API calls into a callback and postpones the
+   * table execution process. After the execution of the operations, the internal table
+   * cache is recalculated once. As a result, it improves the performance of wrapped
+   * operations. Without batching, a similar case could trigger multiple table cache rebuilds.
    *
    * @memberof Core#
    * @function batchExecution
@@ -3967,9 +3970,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
-    instance.suspendExecution();
-    instance.runHooks('afterDestroy');
-    instance.resumeExecution();
+    instance.batchExecution(() => {
+      instance.runHooks('afterDestroy');
+    }, true);
 
     Hooks.getSingleton().destroy(instance);
 
