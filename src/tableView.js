@@ -73,7 +73,7 @@ class TableView {
      */
     this.activeWt = void 0;
     /**
-     * The flag determines if the "adjustElementsSize" method call was made during
+     * The flag determines if the `adjustElementsSize` method call was made during
      * the render suspending. If true, the method has to be triggered once after render
      * resuming.
      *
