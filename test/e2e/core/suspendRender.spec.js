@@ -53,7 +53,7 @@ describe('Core.suspendRender', () => {
     expect(hot.view.wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
   });
 
-  it('should aggregate multiple calls of the table suspend rendering', () => {
+  it('should wrap multiple calls of the table suspend rendering', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
