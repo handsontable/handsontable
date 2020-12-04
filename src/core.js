@@ -1633,7 +1633,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Suspends the rendering process. It's helpful to aggregate the table render
+   * Suspends the rendering process. It's helpful to wrap the table render
    * cycles triggered by API calls or UI actions (or both) and call the "render"
    * once in the end. As a result, it improves the performance of wrapped operations.
    * When the table is in the suspend state, most operations will have no visual
@@ -1781,7 +1781,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Suspends the execution process. It's helpful to aggregate the table logic changes
+   * Suspends the execution process. It's helpful to wrap the table logic changes
    * such as index changes into one call after which the cache is updated. As a result,
    * it improves the performance of wrapped operations.
    *
