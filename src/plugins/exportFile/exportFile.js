@@ -1,7 +1,8 @@
-import BasePlugin from '../_base';
-import { registerPlugin } from '../../plugins';
+import { BasePlugin } from '../base';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
+
+export const PLUGIN_KEY = 'exportFile';
 
 /**
  * @plugin ExportFile
@@ -42,7 +43,7 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
  * });
  * ```
  */
-class ExportFile extends BasePlugin {
+export class ExportFile extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
@@ -156,7 +157,3 @@ class ExportFile extends BasePlugin {
     return formatter;
   }
 }
-
-registerPlugin('exportFile', ExportFile);
-
-export default ExportFile;

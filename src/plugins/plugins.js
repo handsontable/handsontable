@@ -1,9 +1,9 @@
 /**
  * Utility to register plugins and common namespace for keeping reference to all plugins classes.
  */
-import Hooks from './pluginHooks';
-import { objectEach } from './helpers/object';
-import { toUpperCaseFirst } from './helpers/string';
+import Hooks from '../pluginHooks';
+import { objectEach } from '../helpers/object';
+import { toUpperCaseFirst } from '../helpers/string';
 
 const registeredPlugins = new WeakMap();
 
@@ -13,7 +13,7 @@ const registeredPlugins = new WeakMap();
  * @param {string} pluginName The plugin name.
  * @param {Function} PluginClass The plugin class.
  */
-function registerPlugin(pluginName, PluginClass) {
+export function registerPlugin(pluginName, PluginClass) {
   const correctedPluginName = toUpperCaseFirst(pluginName);
 
   Hooks.getSingleton().add('construct', function() {
@@ -42,7 +42,7 @@ function registerPlugin(pluginName, PluginClass) {
  * @param {string} pluginName The plugin name.
  * @returns {Function} PluginClass Returns plugin instance if exists or `undefined` if not exists.
  */
-function getPlugin(instance, pluginName) {
+export function getPlugin(instance, pluginName) {
   if (typeof pluginName !== 'string') {
     throw Error('Only strings can be passed as "plugin" parameter');
   }
@@ -61,7 +61,7 @@ function getPlugin(instance, pluginName) {
  * @param {Core} hotInstance The Handsontable instance.
  * @returns {Array}
  */
-function getRegistredPluginNames(hotInstance) {
+export function getRegistredPluginNames(hotInstance) {
   return registeredPlugins.has(hotInstance) ? Object.keys(registeredPlugins.get(hotInstance)) : [];
 }
 
@@ -72,7 +72,7 @@ function getRegistredPluginNames(hotInstance) {
  * @param {BasePlugin} plugin The plugin instance.
  * @returns {string|null}
  */
-function getPluginName(hotInstance, plugin) {
+export function getPluginName(hotInstance, plugin) {
   let pluginName = null;
 
   if (registeredPlugins.has(hotInstance)) {
@@ -85,5 +85,3 @@ function getPluginName(hotInstance, plugin) {
 
   return pluginName;
 }
-
-export { registerPlugin, getPlugin, getRegistredPluginNames, getPluginName };

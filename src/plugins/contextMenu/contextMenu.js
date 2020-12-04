@@ -1,12 +1,11 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { arrayEach } from './../../helpers/array';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { arrayEach } from '../../helpers/array';
 import CommandExecutor from './commandExecutor';
-import EventManager from './../../eventManager';
+import EventManager from '../../eventManager';
 import ItemsFactory from './itemsFactory';
 import Menu from './menu';
-import { registerPlugin } from './../../plugins';
-import { getWindowScrollLeft, getWindowScrollTop, hasClass } from './../../helpers/dom/element';
+import { getWindowScrollLeft, getWindowScrollTop, hasClass } from '../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -22,6 +21,8 @@ import {
 } from './predefinedItems';
 
 import './contextMenu.css';
+
+export const PLUGIN_KEY = 'contextMenu';
 
 Hooks.getSingleton().register('afterContextMenuDefaultOptions');
 Hooks.getSingleton().register('beforeContextMenuShow');
@@ -69,7 +70,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  * @plugin ContextMenu
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-class ContextMenu extends BasePlugin {
+export class ContextMenu extends BasePlugin {
   /**
    * Context menu default items order when `contextMenu` options is set as `true`.
    *
@@ -130,7 +131,7 @@ class ContextMenu extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().contextMenu;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -141,7 +142,7 @@ class ContextMenu extends BasePlugin {
       return;
     }
 
-    const settings = this.hot.getSettings().contextMenu;
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (typeof settings.callback === 'function') {
       this.commandExecutor.setCommonCallback(settings.callback);
@@ -280,7 +281,7 @@ class ContextMenu extends BasePlugin {
   prepareMenuItems() {
     this.itemsFactory = new ItemsFactory(this.hot, ContextMenu.DEFAULT_ITEMS);
 
-    const settings = this.hot.getSettings().contextMenu;
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
@@ -379,7 +380,3 @@ class ContextMenu extends BasePlugin {
 ContextMenu.SEPARATOR = {
   name: SEPARATOR
 };
-
-registerPlugin('contextMenu', ContextMenu);
-
-export default ContextMenu;

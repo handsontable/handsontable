@@ -1,11 +1,10 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import { addClass, removeClass, closest } from '../../helpers/dom/element';
-import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import ConditionComponent from './component/condition';
@@ -27,6 +26,8 @@ import { TrimmingMap } from '../../translations';
 
 import './filters.css';
 
+export const PLUGIN_KEY = 'filters';
+
 /**
  * @plugin Filters
  *
@@ -47,7 +48,7 @@ import './filters.css';
  * });
  * ```
  */
-class Filters extends BasePlugin {
+export class Filters extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -119,7 +120,7 @@ class Filters extends BasePlugin {
    */
   isEnabled() {
     /* eslint-disable no-unneeded-ternary */
-    return this.hot.getSettings().filters ? true : false;
+    return this.hot.getSettings()[PLUGIN_KEY] ? true : false;
   }
 
   /**
@@ -852,7 +853,3 @@ class Filters extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('filters', Filters);
-
-export default Filters;

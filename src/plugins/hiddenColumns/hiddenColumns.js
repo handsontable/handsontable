@@ -1,10 +1,9 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
-import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
@@ -17,6 +16,8 @@ Hooks.getSingleton().register('beforeHideColumns');
 Hooks.getSingleton().register('afterHideColumns');
 Hooks.getSingleton().register('beforeUnhideColumns');
 Hooks.getSingleton().register('afterUnhideColumns');
+
+export const PLUGIN_KEY = 'hiddenColumns';
 
 /**
  * @plugin HiddenColumns
@@ -68,7 +69,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * hot.render();
  * ```
  */
-class HiddenColumns extends BasePlugin {
+export class HiddenColumns extends BasePlugin {
   /**
    * Cached plugin settings.
    *
@@ -91,7 +92,7 @@ class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().hiddenColumns;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -102,7 +103,7 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    const pluginSettings = this.hot.getSettings().hiddenColumns;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(pluginSettings)) {
       this.#settings = pluginSettings;
@@ -466,7 +467,3 @@ class HiddenColumns extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('hiddenColumns', HiddenColumns);
-
-export default HiddenColumns;

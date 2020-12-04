@@ -1,10 +1,9 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
-import { hasOwnProperty, objectEach } from './../../helpers/object';
-import { rangeEach } from './../../helpers/number';
-import { arrayEach, arrayReduce, arrayMap } from './../../helpers/array';
-import { CellRange, CellCoords } from './../../3rdparty/walkontable/src';
-import * as C from './../../i18n/constants';
+import { BasePlugin } from '../base';
+import { hasOwnProperty, objectEach } from '../../helpers/object';
+import { rangeEach } from '../../helpers/number';
+import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
+import { CellRange, CellCoords } from '../../3rdparty/walkontable/src';
+import * as C from '../../i18n/constants';
 import { bottom, left, noBorders, right, top } from './contextMenuItem';
 import {
   createId,
@@ -13,7 +12,9 @@ import {
   createEmptyBorders,
   extendDefaultBorder
 } from './utils';
-import { detectSelectionType, normalizeSelectionFactory } from './../../selection';
+import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
+
+export const PLUGIN_KEY = 'customBorders';
 
 /**
  * @class CustomBorders
@@ -67,7 +68,7 @@ import { detectSelectionType, normalizeSelectionFactory } from './../../selectio
  * ],
  * ```
  */
-class CustomBorders extends BasePlugin {
+export class CustomBorders extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -87,7 +88,7 @@ class CustomBorders extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().customBorders;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -695,7 +696,7 @@ class CustomBorders extends BasePlugin {
    * @private
    */
   changeBorderSettings() {
-    const customBorders = this.hot.getSettings().customBorders;
+    const customBorders = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(customBorders)) {
       if (!customBorders.length) {
@@ -716,7 +717,7 @@ class CustomBorders extends BasePlugin {
    * @param {object} defaultOptions Context menu items.
    */
   onAfterContextMenuDefaultOptions(defaultOptions) {
-    if (!this.hot.getSettings().customBorders) {
+    if (!this.hot.getSettings()[PLUGIN_KEY]) {
       return;
     }
 
@@ -758,7 +759,3 @@ class CustomBorders extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('customBorders', CustomBorders);
-
-export default CustomBorders;

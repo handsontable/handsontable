@@ -1,9 +1,11 @@
-import Hooks from './../../pluginHooks';
-import { arrayMap, arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
-import { inherit, deepClone } from './../../helpers/object';
-import { stopImmediatePropagation, isImmediatePropagationStopped } from './../../helpers/dom/event';
-import { align } from './../contextMenu/utils';
+import Hooks from '../../pluginHooks';
+import { arrayMap, arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { inherit, deepClone } from '../../helpers/object';
+import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
+import { align } from '../contextMenu/utils';
+
+export const PLUGIN_KEY = 'undo';
 
 /**
  * @description
@@ -713,7 +715,8 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
  */
 function init() {
   const instance = this;
-  const pluginEnabled = typeof instance.getSettings().undo === 'undefined' || instance.getSettings().undo;
+  const settings = instance.getSettings()[PLUGIN_KEY];
+  const pluginEnabled = typeof settings === 'undefined' || settings;
 
   if (pluginEnabled) {
     if (!instance.undoRedo) {

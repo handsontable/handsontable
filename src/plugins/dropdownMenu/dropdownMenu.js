@@ -1,11 +1,10 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import EventManager from '../../eventManager';
 import { hasClass } from '../../helpers/dom/element';
 import ItemsFactory from '../contextMenu/itemsFactory';
 import Menu from '../contextMenu/menu';
-import { registerPlugin } from '../../plugins';
 import Hooks from '../../pluginHooks';
 import {
   COLUMN_LEFT,
@@ -25,6 +24,7 @@ Hooks.getSingleton().register('afterDropdownMenuShow');
 Hooks.getSingleton().register('afterDropdownMenuHide');
 Hooks.getSingleton().register('afterDropdownMenuExecute');
 
+export const PLUGIN_KEY = 'dropdownMenu';
 const BUTTON_CLASS_NAME = 'changeType';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -65,7 +65,7 @@ const BUTTON_CLASS_NAME = 'changeType';
  * ```
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-class DropdownMenu extends BasePlugin {
+export class DropdownMenu extends BasePlugin {
   /**
    * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
    *
@@ -128,7 +128,7 @@ class DropdownMenu extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().dropdownMenu;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -143,7 +143,7 @@ class DropdownMenu extends BasePlugin {
     }
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
-    const settings = this.hot.getSettings().dropdownMenu;
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
@@ -418,7 +418,3 @@ class DropdownMenu extends BasePlugin {
 DropdownMenu.SEPARATOR = {
   name: SEPARATOR
 };
-
-registerPlugin('dropdownMenu', DropdownMenu);
-
-export default DropdownMenu;

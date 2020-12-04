@@ -1,14 +1,15 @@
-import { defineGetter, objectEach } from './../helpers/object';
-import { arrayEach } from './../helpers/array';
-import { getRegistredPluginNames, getPluginName } from './../plugins';
+import { defineGetter, objectEach } from '../../helpers/object';
+import { arrayEach } from '../../helpers/array';
+import { getRegistredPluginNames, getPluginName } from '../../plugins';
 
+export const PLUGIN_KEY = 'base';
 const privatePool = new WeakMap();
 let initializedPlugins = null;
 
 /**
  * @util
  */
-class BasePlugin {
+export class BasePlugin {
   /**
    * @param {object} hotInstance Handsontable instance.
    */
@@ -179,5 +180,3 @@ class BasePlugin {
     delete this.hot;
   }
 }
-
-export default BasePlugin;

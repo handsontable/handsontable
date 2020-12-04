@@ -1,4 +1,4 @@
-import * as C from './../../../i18n/constants';
+import * as C from '../../../i18n/constants';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.

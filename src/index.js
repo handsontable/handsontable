@@ -10,6 +10,7 @@ import { getRegisteredEditorNames, getEditor, registerEditor } from './editors';
 import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
 import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
 import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
+import { registerPlugin } from './plugins';
 
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
@@ -26,8 +27,6 @@ import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
-import * as plugins from './plugins/index';
-import { registerPlugin } from './plugins';
 
 import { BaseEditor, EDITOR_TYPE as BASE_EDITOR } from './editors/baseEditor';
 import { AutocompleteEditor, EDITOR_TYPE as AUTOCOMPLETE_EDITOR } from './editors/autocompleteEditor';
@@ -61,6 +60,47 @@ import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './cellType
 import { NumericCellType, CELL_TYPE as NUMERIC_TYPE } from './cellTypes/numericType';
 import { PasswordCellType, CELL_TYPE as PASSWORD_TYPE } from './cellTypes/passwordType';
 import { TimeCellType, CELL_TYPE as TIME_TYPE } from './cellTypes/timeType';
+
+// 'PersistentState' has to be initialized as first module to have priority in listening hooks
+import { PLUGIN_KEY as PERSISTENTSTATE_KEY, PersistentState } from './plugins/persistentState';
+import { PLUGIN_KEY as AUTOCOLUMNSIZE_KEY, AutoColumnSize } from './plugins/autoColumnSize';
+import { PLUGIN_KEY as AUTOFILL_KEY, Autofill } from './plugins/autofill';
+import { PLUGIN_KEY as MANUALROWRESIZE_KEY, ManualRowResize } from './plugins/manualRowResize';
+import { PLUGIN_KEY as AUTOROWSIZE_KEY, AutoRowSize } from './plugins/autoRowSize';
+import { PLUGIN_KEY as COLUMNSORTING_KEY, ColumnSorting } from './plugins/columnSorting';
+import { PLUGIN_KEY as COMMENTS_KEY, Comments } from './plugins/comments';
+import { PLUGIN_KEY as CONTEXTMENU_KEY, ContextMenu } from './plugins/contextMenu';
+import { PLUGIN_KEY as COPYPASTE_KEY, CopyPaste } from './plugins/copyPaste';
+import { PLUGIN_KEY as CUSTOMBORDERS_KEY, CustomBorders } from './plugins/customBorders';
+import { PLUGIN_KEY as DRAGTOSCROLL_KEY, DragToScroll } from './plugins/dragToScroll';
+import { PLUGIN_KEY as MANUALCOLUMNFREEZE_KEY, ManualColumnFreeze } from './plugins/manualColumnFreeze';
+import { PLUGIN_KEY as MANUALCOLUMNMOVE_KEY, ManualColumnMove } from './plugins/manualColumnMove';
+import { PLUGIN_KEY as MANUALCOLUMNRESIZE_KEY, ManualColumnResize } from './plugins/manualColumnResize';
+import { PLUGIN_KEY as MANUALROWMOVE_KEY, ManualRowMove } from './plugins/manualRowMove';
+import { PLUGIN_KEY as MERGECELLS_KEY, MergeCells } from './plugins/mergeCells';
+import {
+  PLUGIN_KEY as MULTIPLESELECTIONHANDLES_KEY,
+  MultipleSelectionHandles,
+} from './plugins/multipleSelectionHandles';
+import { PLUGIN_KEY as MULTICOLUMNSORTING_KEY, MultiColumnSorting } from './plugins/multiColumnSorting';
+import { PLUGIN_KEY as OBSERVECHANGES_KEY, ObserveChanges } from './plugins/observeChanges';
+import { PLUGIN_KEY as SEARCH_KEY, Search } from './plugins/search';
+import { PLUGIN_KEY as TOUCHSCROLL_KEY, TouchScroll } from './plugins/touchScroll';
+import { PLUGIN_KEY as UNDOREDO_KEY, UndoRedo } from './plugins/undoRedo';
+import { PLUGIN_KEY as BASE_KEY, BasePlugin } from './plugins/base';
+import { PLUGIN_KEY as BINDROWSWITHHEADERS_KEY, BindRowsWithHeaders } from './plugins/bindRowsWithHeaders';
+import { PLUGIN_KEY as COLUMNSUMMARY_KEY, ColumnSummary } from './plugins/columnSummary';
+import { PLUGIN_KEY as DROPDOWNMENU_KEY, DropdownMenu } from './plugins/dropdownMenu';
+import { PLUGIN_KEY as EXPORTFILE_KEY, ExportFile } from './plugins/exportFile';
+import { PLUGIN_KEY as FILTERS_KEY, Filters } from './plugins/filters';
+import { PLUGIN_KEY as FORMULAS_KEY, Formulas } from './plugins/formulas';
+import { PLUGIN_KEY as HEADERTOOLTIPS_KEY, HeaderTooltips } from './plugins/headerTooltips';
+import { PLUGIN_KEY as NESTEDHEADERS_KEY, NestedHeaders } from './plugins/nestedHeaders';
+import { PLUGIN_KEY as COLLAPSIBLECOLUMNS_KEY, CollapsibleColumns } from './plugins/collapsibleColumns';
+import { PLUGIN_KEY as NESTEDROWS_KEY, NestedRows } from './plugins/nestedRows';
+import { PLUGIN_KEY as HIDDENCOLUMNS_KEY, HiddenColumns } from './plugins/hiddenColumns';
+import { PLUGIN_KEY as HIDDENROWS_KEY, HiddenRows } from './plugins/hiddenRows';
+import { PLUGIN_KEY as TRIMROWS_KEY, TrimRows } from './plugins/trimRows';
 
 jQueryWrapper(Handsontable);
 
@@ -96,6 +136,43 @@ registerCellType(HANDSONTABLE_TYPE, HandsontableCellType);
 registerCellType(NUMERIC_TYPE, NumericCellType);
 registerCellType(PASSWORD_TYPE, PasswordCellType);
 registerCellType(TIME_TYPE, TimeCellType);
+
+const PLUGINS = new Map([
+  [PERSISTENTSTATE_KEY, PersistentState],
+  [AUTOCOLUMNSIZE_KEY, AutoColumnSize],
+  [AUTOFILL_KEY, Autofill],
+  [MANUALROWRESIZE_KEY, ManualRowResize],
+  [AUTOROWSIZE_KEY, AutoRowSize],
+  [COLUMNSORTING_KEY, ColumnSorting],
+  [COMMENTS_KEY, Comments],
+  [CONTEXTMENU_KEY, ContextMenu],
+  [COPYPASTE_KEY, CopyPaste],
+  [CUSTOMBORDERS_KEY, CustomBorders],
+  [DRAGTOSCROLL_KEY, DragToScroll],
+  [MANUALCOLUMNFREEZE_KEY, ManualColumnFreeze],
+  [MANUALCOLUMNMOVE_KEY, ManualColumnMove],
+  [MANUALCOLUMNRESIZE_KEY, ManualColumnResize],
+  [MANUALROWMOVE_KEY, ManualRowMove],
+  [MERGECELLS_KEY, MergeCells],
+  [MULTIPLESELECTIONHANDLES_KEY, MultipleSelectionHandles],
+  [MULTICOLUMNSORTING_KEY, MultiColumnSorting],
+  [OBSERVECHANGES_KEY, ObserveChanges],
+  [SEARCH_KEY, Search],
+  [TOUCHSCROLL_KEY, TouchScroll],
+  [BINDROWSWITHHEADERS_KEY, BindRowsWithHeaders],
+  [COLUMNSUMMARY_KEY, ColumnSummary],
+  [DROPDOWNMENU_KEY, DropdownMenu],
+  [EXPORTFILE_KEY, ExportFile],
+  [FILTERS_KEY, Filters],
+  [FORMULAS_KEY, Formulas],
+  [HEADERTOOLTIPS_KEY, HeaderTooltips],
+  [NESTEDHEADERS_KEY, NestedHeaders],
+  [COLLAPSIBLECOLUMNS_KEY, CollapsibleColumns],
+  [NESTEDROWS_KEY, NestedRows],
+  [HIDDENCOLUMNS_KEY, HiddenColumns],
+  [HIDDENROWS_KEY, HiddenRows],
+  [TRIMROWS_KEY, TrimRows],
+]);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;
@@ -196,16 +273,16 @@ Handsontable.validators.registerValidator = registerValidator;
 Handsontable.validators.getValidator = getValidator;
 
 // Export all registered plugins from the Handsontable.
-Handsontable.plugins = {};
+Handsontable.plugins = {
+  [`${stringHelpers.toUpperCaseFirst(BASE_KEY)}Plugin`]: BasePlugin,
+  [`${stringHelpers.toUpperCaseFirst(UNDOREDO_KEY)}Redo`]: UndoRedo,
+};
 
-arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
-  const plugin = plugins[pluginName];
+PLUGINS.forEach((classRef, pluginName) => {
+  registerPlugin(pluginName, classRef);
 
-  if (pluginName === 'Base') {
-    Handsontable.plugins[`${pluginName}Plugin`] = plugin;
-  } else {
-    Handsontable.plugins[pluginName] = plugin;
-  }
+  const correctedPluginName = stringHelpers.toUpperCaseFirst(pluginName);
+  Handsontable.plugins[correctedPluginName] = classRef;
 });
 
 Handsontable.plugins.registerPlugin = registerPlugin;

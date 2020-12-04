@@ -1,14 +1,14 @@
-import BasePlugin from './../_base';
-import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from './../../helpers/dom/element';
-import EventManager from './../../eventManager';
-import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from '../../helpers/dom/element';
+import EventManager from '../../eventManager';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
+export const PLUGIN_KEY = 'manualRowResize';
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
 
@@ -23,7 +23,7 @@ const privatePool = new WeakMap();
  *
  * @plugin ManualRowResize
  */
-class ManualRowResize extends BasePlugin {
+export class ManualRowResize extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -69,7 +69,7 @@ class ManualRowResize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().manualRowResize;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -524,7 +524,7 @@ class ManualRowResize extends BasePlugin {
       const physicalRow = this.hot.toPhysicalRow(row);
       const rowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-      if (this.hot.getSettings().manualRowResize && rowHeight) {
+      if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
         newHeight = rowHeight;
       }
     }
@@ -539,7 +539,7 @@ class ManualRowResize extends BasePlugin {
    */
   onMapInit() {
     const priv = privatePool.get(this);
-    const initialSetting = this.hot.getSettings().manualRowResize;
+    const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
     const loadedManualRowHeights = this.loadManualRowHeights();
 
     this.hot.batch(() => {
@@ -573,7 +573,3 @@ class ManualRowResize extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('manualRowResize', ManualRowResize);
-
-export default ManualRowResize;

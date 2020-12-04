@@ -7,10 +7,11 @@ import {
   fastInnerText
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
-import { registerPlugin } from '../../plugins';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { HidingMap } from '../../translations';
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
+
+export const PLUGIN_KEY = 'collapsibleColumns';
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -65,7 +66,7 @@ const actionDictionary = new Map([
  * });
  * ```
  */
-class CollapsibleColumns extends BasePlugin {
+export class CollapsibleColumns extends BasePlugin {
   /**
    * Cached reference to the NestedHeaders plugin.
    *
@@ -101,7 +102,7 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().collapsibleColumns;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -480,7 +481,3 @@ class CollapsibleColumns extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('collapsibleColumns', CollapsibleColumns);
-
-export default CollapsibleColumns;

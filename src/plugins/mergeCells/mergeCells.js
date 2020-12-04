@@ -1,8 +1,7 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { registerPlugin } from './../../plugins';
-import { stopImmediatePropagation } from './../../helpers/dom/event';
-import { CellCoords, CellRange } from './../../3rdparty/walkontable/src';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { stopImmediatePropagation } from '../../helpers/dom/event';
+import { CellCoords, CellRange } from '../../3rdparty/walkontable/src';
 import MergedCellsCollection from './cellsCollection';
 import MergedCellCoords from './cellCoords';
 import AutofillCalculations from './calculations/autofill';
@@ -20,6 +19,7 @@ Hooks.getSingleton().register('afterMergeCells');
 Hooks.getSingleton().register('beforeUnmergeCells');
 Hooks.getSingleton().register('afterUnmergeCells');
 
+export const PLUGIN_KEY = 'mergeCells';
 const privatePool = new WeakMap();
 
 /**
@@ -40,7 +40,7 @@ const privatePool = new WeakMap();
  *  ],
  * ```
  */
-class MergeCells extends BasePlugin {
+export class MergeCells extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -78,7 +78,7 @@ class MergeCells extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().mergeCells;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -136,7 +136,7 @@ class MergeCells extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const settings = this.hot.getSettings().mergeCells;
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
 
     this.disablePlugin();
     this.enablePlugin();
@@ -506,7 +506,7 @@ class MergeCells extends BasePlugin {
    * @private
    */
   onAfterInit() {
-    this.generateFromSettings(this.hot.getSettings().mergeCells);
+    this.generateFromSettings(this.hot.getSettings()[PLUGIN_KEY]);
     this.hot.render();
   }
 
@@ -1198,7 +1198,3 @@ class MergeCells extends BasePlugin {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
   }
 }
-
-registerPlugin('mergeCells', MergeCells);
-
-export default MergeCells;

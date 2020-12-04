@@ -1,9 +1,9 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
-import { isObject } from './../../helpers/object';
-import { rangeEach } from './../../helpers/number';
-import { isUndefined } from './../../helpers/mixed';
+import { BasePlugin } from '../base';
+import { isObject } from '../../helpers/object';
+import { rangeEach } from '../../helpers/number';
+import { isUndefined } from '../../helpers/mixed';
 
+export const PLUGIN_KEY = 'search';
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
 const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
@@ -51,7 +51,7 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
  * searchPlugin.setSearchResultClass(customClass);
  * ```
  */
-class Search extends BasePlugin {
+export class Search extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -84,7 +84,7 @@ class Search extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().search;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -95,7 +95,7 @@ class Search extends BasePlugin {
       return;
     }
 
-    const searchSettings = this.hot.getSettings().search;
+    const searchSettings = this.hot.getSettings()[PLUGIN_KEY];
     this.updatePluginSettings(searchSettings);
 
     this.addHook('beforeRenderer', (...args) => this.onBeforeRenderer(...args));
@@ -286,7 +286,3 @@ class Search extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('search', Search);
-
-export default Search;

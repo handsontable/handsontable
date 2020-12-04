@@ -1,7 +1,8 @@
-import BasePlugin from '../../plugins/_base';
-import { registerPlugin } from '../../plugins';
+import { BasePlugin } from '../base';
 import LooseBindsMap from './maps/looseBindsMap';
 import StrictBindsMap from './maps/strictBindsMap';
+
+export const PLUGIN_KEY = 'bindRowsWithHeaders';
 
 const DEFAULT_BIND = 'loose';
 
@@ -29,7 +30,7 @@ const bindTypeToMapStrategy = new Map([
  * });
  * ```
  */
-class BindRowsWithHeaders extends BasePlugin {
+export class BindRowsWithHeaders extends BasePlugin {
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -48,7 +49,7 @@ class BindRowsWithHeaders extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().bindRowsWithHeaders;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -59,7 +60,7 @@ class BindRowsWithHeaders extends BasePlugin {
       return;
     }
 
-    let bindType = this.hot.getSettings().bindRowsWithHeaders;
+    let bindType = this.hot.getSettings()[PLUGIN_KEY];
 
     if (typeof bindType !== 'string') {
       bindType = DEFAULT_BIND;
@@ -103,7 +104,3 @@ class BindRowsWithHeaders extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('bindRowsWithHeaders', BindRowsWithHeaders);
-
-export default BindRowsWithHeaders;

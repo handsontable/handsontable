@@ -1,15 +1,15 @@
-import BasePlugin from './../_base';
-import { arrayEach, arrayFilter } from './../../helpers/array';
-import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible } from './../../helpers/dom/element';
-import GhostTable from './../../utils/ghostTable';
-import { isObject, hasOwnProperty } from './../../helpers/object';
-import { valueAccordingPercent, rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import SamplesGenerator from './../../utils/samplesGenerator';
-import { isPercentValue } from './../../helpers/string';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { arrayEach, arrayFilter } from '../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
+import { isVisible } from '../../helpers/dom/element';
+import GhostTable from '../../utils/ghostTable';
+import { isObject, hasOwnProperty } from '../../helpers/object';
+import { valueAccordingPercent, rangeEach } from '../../helpers/number';
+import SamplesGenerator from '../../utils/samplesGenerator';
+import { isPercentValue } from '../../helpers/string';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
+export const PLUGIN_KEY = 'autoRowSize';
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
 /**
@@ -61,7 +61,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  */
-class AutoRowSize extends BasePlugin {
+export class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;
   }
@@ -151,7 +151,9 @@ class AutoRowSize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().autoRowSize === true || isObject(this.hot.getSettings().autoRowSize);
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return settings === true || isObject(settings);
   }
 
   /**
@@ -296,11 +298,11 @@ class AutoRowSize extends BasePlugin {
    * @private
    */
   setSamplingOptions() {
-    const setting = this.hot.getSettings().autoRowSize;
+    const setting = this.hot.getSettings()[PLUGIN_KEY];
     const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      this.hot.getSettings().autoRowSize.samplingRatio : void 0;
+      setting.samplingRatio : void 0;
     const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+      setting.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -328,12 +330,13 @@ class AutoRowSize extends BasePlugin {
    * @returns {number}
    */
   getSyncCalculationLimit() {
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
     /* eslint-disable no-bitwise */
     let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
     const rowsLimit = this.hot.countRows() - 1;
 
-    if (isObject(this.hot.getSettings().autoRowSize)) {
-      limit = this.hot.getSettings().autoRowSize.syncLimit;
+    if (isObject(settings)) {
+      limit = settings.syncLimit;
 
       if (isPercentValue(limit)) {
         limit = valueAccordingPercent(rowsLimit, limit);
@@ -551,7 +554,3 @@ class AutoRowSize extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('autoRowSize', AutoRowSize);
-
-export default AutoRowSize;
