@@ -1668,7 +1668,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Resumes the rendering process. In conjunction with the {@link Core#suspendRender}
+   * Resumes the rendering process. In combination with the {@link Core#suspendRender}
    * method it allows aggregating the table render cycles triggered by API calls or UI
    * actions (or both) and calls the "render" once in the end. When the table is in
    * the suspend state, most operations will have no visual effect until the rendering
@@ -1809,7 +1809,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
-   * Resumes the execution process. In conjunction with the {@link Core#suspendExecution}
+   * Resumes the execution process. In combination with the {@link Core#suspendExecution}
    * method it allows aggregating the table logic changes after which the cache is
    * updated. Resuming the state automatically invokes the table cache updating process.
    *
