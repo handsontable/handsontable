@@ -1,4 +1,4 @@
-import { parse } from 'handsontable/3rdparty/SheetClip';
+import { parse } from '../';
 
 describe('SheetClip', () => {
   describe('parse', () => {
