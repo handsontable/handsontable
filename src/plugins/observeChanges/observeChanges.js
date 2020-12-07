@@ -54,7 +54,7 @@ class ObserveChanges extends BasePlugin {
     }
     if (!this.observer) {
       warn('The Observe Changes plugin is deprecated and will be removed in the next major release');
-      this.observer = new DataObserver(this.hot.getSettings().data);
+      this.observer = new DataObserver(this.hot.getSourceData().data);
       this._exposePublicApi();
     }
 

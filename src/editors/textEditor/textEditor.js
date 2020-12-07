@@ -19,7 +19,7 @@ import {
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import { KEY_CODES } from '../../helpers/unicode';
-import autoResize from '../../3rdparty/autoResize/autoResize';
+import { autoResize } from '../../3rdparty/autoResize';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 const EDITOR_HIDDEN_CLASS_NAME = 'ht_editor_hidden';

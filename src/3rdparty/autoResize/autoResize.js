@@ -5,8 +5,7 @@
  * Licensed under the MIT license
  */
 
-
-function autoResize() {
+export function autoResize() {
   var defaults = {
       minHeight: 200,
       maxHeight: 300,
@@ -174,8 +173,4 @@ function autoResize() {
     },
     resize: resize
   };
-}
-
-if (typeof exports !== 'undefined') {
-  module.exports = autoResize;
 }
