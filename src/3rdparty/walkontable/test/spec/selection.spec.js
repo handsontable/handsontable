@@ -135,8 +135,10 @@ describe('Walkontable.Selection', () => {
     });
     wt.draw();
 
-    wt.selections.getCell().add([20, 0]);
-    expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(0, 0));
+    wt.selections.getCell().add(new Walkontable.CellCoords(20, 0));
+
+    expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:first')[0]))
+      .toEqual(new Walkontable.CellCoords(0, 0));
   });
 
   it('should not scroll the viewport after selection is cleared', () => {
@@ -281,7 +283,8 @@ describe('Walkontable.Selection', () => {
       selections: createSelectionController({
         current: new Walkontable.Selection({
           highlightRowClassName: 'highlightRow',
-          highlightColumnClassName: 'highlightColumn'
+          highlightColumnClassName: 'highlightColumn',
+          border: {},
         }),
       }),
     });
@@ -298,8 +301,10 @@ describe('Walkontable.Selection', () => {
     // *2 -> because there are 2 columns selected
     // +2 -> because there are the headers
     // -4 -> because 4 cells are selected = there are overlapping highlightRow class
-    expect(spec().$table.find('.highlightRow').length).toEqual((wt.wtViewport.columnsVisibleCalculator.count * 2) + 2 - 4);
-    expect(spec().$table.find('.highlightColumn').length - 2).toEqual((wt.wtViewport.rowsVisibleCalculator.count * 2) + 2 - 4);
+    expect(spec().$table.find('.highlightRow').length)
+      .toEqual((wt.wtViewport.columnsVisibleCalculator.count * 2) + 2 - 4);
+    expect(spec().$table.find('.highlightColumn').length - 2)
+      .toEqual((wt.wtViewport.rowsVisibleCalculator.count * 2) + 2 - 4);
     expect(spec().$table.find('.highlightColumn').length).toEqual(14);
     expect(getTableTopClone().find('.highlightColumn').length).toEqual(2);
     expect(getTableTopClone().find('.highlightRow').length).toEqual(0);
@@ -336,7 +341,9 @@ describe('Walkontable.Selection', () => {
       });
       wt.selections.getCell().add(new Walkontable.CellCoords(1, 1));
       wt.selections.getCell().add(new Walkontable.CellCoords(3, 3));
-      const result = wt.selections.getCell().replace(new Walkontable.CellCoords(3, 3), new Walkontable.CellCoords(4, 4));
+
+      const result = wt.selections.getCell()
+        .replace(new Walkontable.CellCoords(3, 3), new Walkontable.CellCoords(4, 4));
 
       expect(result).toBe(true);
       expect(wt.selections.getCell().getCorners()).toEqual([1, 1, 4, 4]);

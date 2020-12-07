@@ -35,8 +35,6 @@ const COLUMNS_PROPS_CONFLICTS = ['data', 'width'];
  *                    │  CellMeta   │
  *                    │ (instance)  │
  *                    +-------------+.
- *
- * @class {ColumnMeta}
  */
 export default class ColumnMeta {
   constructor(globalMeta) {

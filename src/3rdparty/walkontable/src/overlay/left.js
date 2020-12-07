@@ -41,26 +41,30 @@ class LeftOverlay extends Overlay {
    * @returns {boolean}
    */
   shouldBeRendered() {
-    return !!(this.wot.getSetting('fixedColumnsLeft') || this.wot.getSetting('rowHeaders').length);
+    return this.wot.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
    * Updates the left overlay position.
+   *
+   * @returns {boolean}
    */
   resetFixedPosition() {
     const { wtTable } = this.wot;
+
     if (!this.needFullRender || !wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
+
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     let headerPosition = 0;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      const box = wtTable.hider.getBoundingClientRect();
-      const left = Math.ceil(box.left);
-      const right = Math.ceil(box.right);
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const left = Math.ceil(hiderRect.left);
+      const right = Math.ceil(hiderRect.right);
       let finalLeft;
       let finalTop;
 
@@ -72,6 +76,7 @@ class LeftOverlay extends Overlay {
       } else {
         finalLeft = 0;
       }
+
       headerPosition = finalLeft;
       finalLeft += 'px';
 
@@ -81,8 +86,12 @@ class LeftOverlay extends Overlay {
       headerPosition = this.getScrollPosition();
       resetCssTransform(overlayRoot);
     }
-    this.adjustHeaderBordersPosition(headerPosition);
+
+    const positionChanged = this.adjustHeaderBordersPosition(headerPosition);
+
     this.adjustElementsSize();
+
+    return positionChanged;
   }
 
   /**
@@ -145,10 +154,6 @@ class LeftOverlay extends Overlay {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
     }
   }
 
@@ -188,10 +193,14 @@ class LeftOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
+    const { selections } = this.wot;
+    const selectionCornerOffset = Math.abs(selections?.getCell().getBorder(this.wot).cornerCenterPointOffset ?? 0);
 
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     holder.style.height = holder.parentNode.style.height;
-    holder.style.width = holder.parentNode.style.width;
+    // Add selection corner protruding part to the holder total width to make sure that
+    // borders' corner won't be cut after horizontal scroll (#6937).
+    holder.style.width = `${parseInt(holder.parentNode.style.width, 10) + selectionCornerOffset}px`;
   }
 
   /**
@@ -200,9 +209,6 @@ class LeftOverlay extends Overlay {
   applyToDOM() {
     const total = this.wot.getSetting('totalColumns');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
       this.spreader.style.left = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
@@ -235,7 +241,8 @@ class LeftOverlay extends Overlay {
    * Scrolls horizontally to a column at the left edge of the viewport.
    *
    * @param {number} sourceCol  Column index which you want to scroll to.
-   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the bottom edge (top edge is by default).
+   * @param {boolean} [beyondRendered]  If `true`, scrolls according to the bottom
+   *                                    edge (top edge is by default).
    * @returns {boolean}
    */
   scrollTo(sourceCol, beyondRendered) {
@@ -289,6 +296,7 @@ class LeftOverlay extends Overlay {
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
    * @param {number} position Header X position if trimming container is window or scroll top if not.
+   * @returns {boolean}
    */
   adjustHeaderBordersPosition(position) {
     const masterParent = this.wot.wtTable.holder.parentNode;
@@ -302,6 +310,8 @@ class LeftOverlay extends Overlay {
       addClass(masterParent, 'emptyRows');
     }
 
+    let positionChanged = false;
+
     if (fixedColumnsLeft && !rowHeaders.length) {
       addClass(masterParent, 'innerBorderLeft');
 
@@ -310,13 +320,14 @@ class LeftOverlay extends Overlay {
 
       if (position) {
         addClass(masterParent, 'innerBorderLeft');
+        positionChanged = !previousState;
       } else {
         removeClass(masterParent, 'innerBorderLeft');
-      }
-      if (!previousState && position || previousState && !position) {
-        this.wot.wtOverlays.adjustElementsSize();
+        positionChanged = previousState;
       }
     }
+
+    return positionChanged;
   }
 }
 

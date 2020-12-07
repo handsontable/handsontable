@@ -57,7 +57,6 @@ export {
   ExportFile,
   Filters,
   Formulas,
-  GanttChart,
   HeaderTooltips,
   HiddenColumns,
   HiddenRows,

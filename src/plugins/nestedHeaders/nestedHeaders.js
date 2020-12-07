@@ -30,7 +30,7 @@ import './nestedHeaders.css';
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   nestedHeaders: [
  *     ['A', {label: 'B', colspan: 8}, 'C'],
  *     ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
@@ -105,7 +105,8 @@ class NestedHeaders extends BasePlugin {
     this.addHook('init', () => this.onInit());
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('afterOnCellMouseDown', (event, coords) => this.onAfterOnCellMouseDown(event, coords));
-    this.addHook('beforeOnCellMouseOver', (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseOver',
+      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (width, column) => this.onModifyColWidth(width, column));
     this.addHook('afterViewportColumnCalculatorOverride', calc => this.onAfterViewportColumnCalculatorOverride(calc));
@@ -288,7 +289,8 @@ class NestedHeaders extends BasePlugin {
         const isLeftOverlay = view.wt.wtOverlays.leftOverlay?.clone.wtTable.THEAD.contains(TH);
 
         // Check if there is a fixed column enabled, if so then reduce colspan to fixed column width.
-        const correctedColspan = isTopLeftOverlay || isLeftOverlay ? Math.min(colspan, fixedColumnsLeft - visualColumnsIndex) : colspan;
+        const correctedColspan = isTopLeftOverlay || isLeftOverlay ?
+          Math.min(colspan, fixedColumnsLeft - visualColumnsIndex) : colspan;
 
         if (correctedColspan > 1) {
           TH.setAttribute('colspan', correctedColspan);
@@ -329,7 +331,7 @@ class NestedHeaders extends BasePlugin {
     const highlightHeader = classNameModifier(hotSettings.currentHeaderClassName);
     const activeHeader = classNameModifier(hotSettings.activeHeaderClassName);
 
-    const selectionByHeader = hot.selection.isSelectedByColumnHeader();
+    const selectionByHeader = hot.selection.isSelectedByColumnHeader() || hot.selection.isSelectedByCorner();
     const layersCount = this.#stateManager.getLayersCount();
     const activeHeaderChanges = new Map();
     const highlightHeaderChanges = new Map();
@@ -449,7 +451,10 @@ class NestedHeaders extends BasePlugin {
         if (lastColIndex <= from.col && coords.col < from.col) {
           columnRange.push(to.col, coords.col);
         } else {
-          columnRange.push(coords.col < from.col ? coords.col : from.col, lastColIndex > to.col ? lastColIndex : to.col);
+          columnRange.push(
+            coords.col < from.col ? coords.col : from.col,
+            lastColIndex > to.col ? lastColIndex : to.col
+          );
         }
       }
       if (from.col < to.col) {

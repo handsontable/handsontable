@@ -1,4 +1,8 @@
-import { operations, registerOperation, getOperationFunc } from 'handsontable/plugins/filters/logicalOperationRegisterer';
+import {
+  operations,
+  registerOperation,
+  getOperationFunc
+} from 'handsontable/plugins/filters/logicalOperationRegisterer';
 
 describe('registerOperation', () => {
   it('should register operation function under its name', () => {

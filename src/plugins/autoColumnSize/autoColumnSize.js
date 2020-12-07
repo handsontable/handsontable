@@ -42,7 +42,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * @example
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
+ *   data: getData(),
  *   autoColumnSize: true
  * });
  * // Access to plugin instance:
@@ -104,7 +104,8 @@ class AutoColumnSize extends BasePlugin {
         let labelText = '';
 
         if (labelValue) {
-          labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
+          labelText = typeof labelValue === 'function' ?
+            labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
 
         } else if (labelProperty) {
           const labelData = this.hot.getDataAtRowProp(row, labelProperty);
@@ -142,10 +143,12 @@ class AutoColumnSize extends BasePlugin {
      * @type {PhysicalIndexToValueMap}
      */
     this.columnWidthsMap = new IndexToValueMap();
-
-    // moved to constructor to allow auto-sizing the columns when the plugin is disabled
-    this.addHook('beforeColumnResize', (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
     this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
+
+    // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    this.addHook('beforeColumnResize',
+      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
   }
 
   /**
@@ -190,8 +193,44 @@ class AutoColumnSize extends BasePlugin {
 
     if (changedColumns.length) {
       this.clearCache(changedColumns);
+      this.calculateVisibleColumnsWidth();
     }
+
     super.updatePlugin();
+  }
+
+  /**
+   * Disables the plugin functionality for this Handsontable instance.
+   */
+  disablePlugin() {
+    super.disablePlugin();
+
+    // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
+    // This is necesseary for width recalculation for resize handler doubleclick (ManualColumnResize).
+    this.addHook('beforeColumnResize',
+      (size, column, isDblClick) => this.onBeforeColumnResize(size, column, isDblClick));
+  }
+
+  /**
+   * Calculates visible columns width.
+   */
+  calculateVisibleColumnsWidth() {
+    const rowsCount = this.hot.countRows();
+
+    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
+    if (!rowsCount) {
+      return;
+    }
+
+    const force = this.hot.renderCall;
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+
+    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
+      return;
+    }
+
+    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
   }
 
   /**
@@ -201,7 +240,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {number|object} rowRange Visual row index or an object with `from` and `to` visual indexes as a range.
    * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) {
+  calculateColumnsWidth(colRange = { from: 0, to: this.hot.countCols() - 1 }, rowRange = { from: 0, to: this.hot.countRows() - 1 }, force = false) { // eslint-disable-line max-len
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
 
@@ -212,7 +251,8 @@ class AutoColumnSize extends BasePlugin {
         physicalColumn = visualColumn;
       }
 
-      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null && !this.hot._getColWidthFromSettings(physicalColumn))) {
+      if (force || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
+          !this.hot._getColWidthFromSettings(physicalColumn))) {
         const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
         arrayEach(samples, ([column, sample]) => this.ghostTable.addColumn(column, sample));
@@ -220,7 +260,7 @@ class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         this.ghostTable.getWidths((visualColumn, width) => {
           const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
@@ -298,8 +338,10 @@ class AutoColumnSize extends BasePlugin {
    */
   setSamplingOptions() {
     const setting = this.hot.getSettings().autoColumnSize;
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
+      this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
+      this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -462,7 +504,7 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(columns, (physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
@@ -479,7 +521,8 @@ class AutoColumnSize extends BasePlugin {
    * @returns {boolean}
    */
   isNeedRecalculate() {
-    return !!arrayFilter(this.columnWidthsMap.getValues().slice(0, this.measuredColumns), item => (item === null)).length;
+    return !!arrayFilter(this.columnWidthsMap.getValues()
+      .slice(0, this.measuredColumns), item => (item === null)).length;
   }
 
   /**
@@ -488,21 +531,7 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   onBeforeRender() {
-    const force = this.hot.renderCall;
-    const rowsCount = this.hot.countRows();
-    const firstVisibleColumn = this.getFirstVisibleColumn();
-    const lastVisibleColumn = this.getLastVisibleColumn();
-
-    if (firstVisibleColumn === -1 || lastVisibleColumn === -1) {
-      return;
-    }
-
-    // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
-    if (!rowsCount) {
-      return;
-    }
-
-    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, void 0, force);
+    this.calculateVisibleColumnsWidth();
 
     if (this.isNeedRecalculate() && !this.inProgress) {
       this.calculateAllColumnsWidth();
@@ -534,7 +563,8 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([, columnProperty]) => this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
+    const changedColumns = arrayMap(changes, ([, columnProperty]) =>
+      this.hot.toPhysicalColumn(this.hot.propToCol(columnProperty)));
 
     this.clearCache(Array.from(new Set(changedColumns)));
   }
@@ -567,13 +597,6 @@ class AutoColumnSize extends BasePlugin {
    */
   onAfterInit() {
     privatePool.get(this).cachedColumnHeaders = this.hot.getColHeader();
-  }
-
-  /**
-   * Disables the plugin functionality for this Handsontable instance.
-   */
-  disablePlugin() {
-    super.disablePlugin();
   }
 
   /**

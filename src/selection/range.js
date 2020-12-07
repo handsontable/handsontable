@@ -53,6 +53,17 @@ class SelectionRange {
   }
 
   /**
+   * Removes from the stack the last added coordinates.
+   *
+   * @returns {SelectionRange}
+   */
+  pop() {
+    this.ranges.pop();
+
+    return this;
+  }
+
+  /**
    * Get last added coordinates from ranges, it returns a CellRange instance.
    *
    * @returns {CellRange|undefined}

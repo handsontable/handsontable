@@ -19,15 +19,15 @@ describe('Core.setSourceDataAtCell', () => {
 
     setSourceDataAtCell(0, 0, 'foo');
 
-    expect(getSourceData()[0][0]).toEqual('foo');
+    expect(getSourceData()[0][0]).toBe('foo');
 
     loadData([{ foo: 'bar' }]);
 
-    expect(getSourceData()[0].foo).toEqual('bar');
+    expect(getSourceData()[0].foo).toBe('bar');
 
     setSourceDataAtCell(0, 'foo', 'foo');
 
-    expect(getSourceData()[0].foo).toEqual('foo');
+    expect(getSourceData()[0].foo).toBe('foo');
   });
 
   it('should set the provided value in the source data set, using the physical coordinates', () => {
@@ -44,9 +44,36 @@ describe('Core.setSourceDataAtCell', () => {
 
     setSourceDataAtCell(0, 'lorem', 'foo');
 
-    expect(getSourceData()[0].lorem).toEqual('foo');
-    expect(getSourceData()[1].lorem).toEqual('sit');
-    expect(getSourceData()[2].lorem).toEqual('amet');
+    expect(getSourceData()[0].lorem).toBe('foo');
+    expect(getSourceData()[1].lorem).toBe('sit');
+    expect(getSourceData()[2].lorem).toBe('amet');
+  });
+
+  it('should trigger table render cycle after changing the data', () => {
+    const hot = handsontable({
+      data: [[1, 2, 3], ['a', 'b', 'c']],
+    });
+
+    spyOn(hot, 'render').and.callThrough();
+
+    setSourceDataAtCell(0, 1, 'foo');
+
+    expect(hot.render).toHaveBeenCalled();
+  });
+
+  it('should call "refreshValue" method of the active editor when new data is set', () => {
+    const hot = handsontable({
+      data: [[1, 2, 3], ['a', 'b', 'c']],
+    });
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    spyOn(hot.getActiveEditor(), 'refreshValue').and.callThrough();
+
+    setSourceDataAtCell(0, 1, 'foo');
+
+    expect(hot.getActiveEditor().refreshValue).toHaveBeenCalled();
   });
 
   it('should throw the `modifySourceData` hook (with the `set` argument) when calling the `setSourceDataAtCell` method', () => {
@@ -102,10 +129,11 @@ describe('Core.setSourceDataAtCell', () => {
       afterSetSourceDataAtCell: afterSetSourceDataAtCellSpy
     });
 
-    setSourceDataAtCell(0, 'foo', 'foo2');
+    setSourceDataAtCell(0, 'foo', 'foo2', 'caller-custom-source');
 
     let hookArguments = new Array(6).fill(void 0);
     hookArguments[0] = [[0, 'foo', 'bar', 'foo2']];
+    hookArguments[1] = 'caller-custom-source';
 
     expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith(...hookArguments);
 

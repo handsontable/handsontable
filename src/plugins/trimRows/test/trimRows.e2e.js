@@ -330,13 +330,13 @@ describe('TrimRows', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          trimRows: true,
+          trimRows: [0],
           beforeTrimRow: beforeTrimRowHookCallback
         });
 
         getPlugin('trimRows').trimRow(2);
 
-        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [2], true, void 0, void 0, void 0);
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2], true, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeTrimRow` hook before hiding multiple rows by plugin API', () => {
@@ -344,13 +344,13 @@ describe('TrimRows', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          trimRows: true,
+          trimRows: [0],
           beforeTrimRow: beforeTrimRowHookCallback
         });
 
         getPlugin('trimRows').trimRows([2, 3, 4]);
 
-        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([], [2, 3, 4], true, void 0, void 0, void 0);
+        expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2, 3, 4], true, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the trimming action by returning `false` from the `beforeTrimRow` hook', () => {
@@ -521,13 +521,13 @@ describe('TrimRows', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          trimRows: [2],
+          trimRows: [0, 2],
           beforeUntrimRow: beforeUntrimRowHookCallback
         });
 
         getPlugin('trimRows').untrimRow(2);
 
-        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([2], [], true, void 0, void 0, void 0);
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2], [0], true, void 0, void 0, void 0);
       });
 
       it('should fire the `beforeUntrimRow` hook before untrimming the multiple, previously trimmed rows ', () => {
@@ -535,13 +535,13 @@ describe('TrimRows', () => {
 
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 10),
-          trimRows: [2, 3, 4],
+          trimRows: [0, 2, 3, 4],
           beforeUntrimRow: beforeUntrimRowHookCallback
         });
 
         getPlugin('trimRows').untrimRows([2, 3, 4]);
 
-        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([2, 3, 4], [], true, void 0, void 0, void 0);
+        expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2, 3, 4], [0], true, void 0, void 0, void 0);
       });
 
       it('should be possible to cancel the untrimming action by returning `false` from the `beforeUntrimRow` hook', () => {
@@ -868,6 +868,21 @@ describe('TrimRows', () => {
         expect(getDataAtCell(3, 0)).toBe(null);
         done();
       }, 100);
+    });
+
+    it('should correctly solve toVisualRow calculations after sort', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 1),
+        trimRows: [0],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({
+        column: 0,
+        sortOrder: 'desc'
+      });
+
+      expect(toVisualRow(1)).toBe(0);
     });
   });
 
@@ -1279,8 +1294,7 @@ describe('TrimRows', () => {
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * DEFAULT_ROW_HEIGHT));
     });
 
-    // This test don't pass on the actual code.
-    xit('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
+    it('should resize container for headers properly after untrimming row (pixel perfect) #6276', () => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,

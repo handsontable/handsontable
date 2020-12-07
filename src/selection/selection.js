@@ -47,13 +47,15 @@ class Selection {
      */
     this.selectedByCorner = false;
     /**
-     * The collection of the selection layer levels where the whole row was selected using the row header.
+     * The collection of the selection layer levels where the whole row was selected using the row header or
+     * the corner header.
      *
      * @type {Set.<number>}
      */
     this.selectedByRowHeader = new Set();
     /**
-     * The collection of the selection layer levels where the whole column was selected using the column header.
+     * The collection of the selection layer levels where the whole column was selected using the column header or
+     * the corner header.
      *
      * @type {Set.<number>}
      */
@@ -86,7 +88,7 @@ class Selection {
      * @type {Transformation}
      */
     this.transformation = new Transformation(this.selectedRange, {
-      countRows: () => this.tableProps.countRows(),
+      countRows: () => this.tableProps.countRowsTranslated(),
       countCols: () => this.tableProps.countColsTranslated(),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
@@ -97,12 +99,18 @@ class Selection {
       autoWrapCol: () => settings.autoWrapCol,
     });
 
-    this.transformation.addLocalHook('beforeTransformStart', (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
-    this.transformation.addLocalHook('afterTransformStart', (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.transformation.addLocalHook('beforeTransformEnd', (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('afterTransformEnd', (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
-    this.transformation.addLocalHook('insertRowRequire', (...args) => this.runLocalHooks('insertRowRequire', ...args));
-    this.transformation.addLocalHook('insertColRequire', (...args) => this.runLocalHooks('insertColRequire', ...args));
+    this.transformation.addLocalHook('beforeTransformStart',
+      (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
+    this.transformation.addLocalHook('afterTransformStart',
+      (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
+    this.transformation.addLocalHook('beforeTransformEnd',
+      (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
+    this.transformation.addLocalHook('afterTransformEnd',
+      (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
+    this.transformation.addLocalHook('insertRowRequire',
+      (...args) => this.runLocalHooks('insertRowRequire', ...args));
+    this.transformation.addLocalHook('insertColRequire',
+      (...args) => this.runLocalHooks('insertColRequire', ...args));
   }
 
   /**
@@ -154,14 +162,6 @@ class Selection {
     const isRowNegative = coords.row < 0;
     const isColumnNegative = coords.col < 0;
     const selectedByCorner = isRowNegative && isColumnNegative;
-
-    // We change coordinates of selection to start from 0 (we don't include headers in a selection).
-    if (isRowNegative) {
-      coords.row = 0;
-    }
-    if (isColumnNegative) {
-      coords.col = 0;
-    }
 
     this.selectedByCorner = selectedByCorner;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coords);
@@ -224,7 +224,10 @@ class Selection {
     this.highlight.getCell().clear();
 
     if (this.highlight.isEnabledFor(CELL_TYPE)) {
-      this.highlight.getCell().add(this.selectedRange.current().highlight).commit().adjustCoordinates(cellRange);
+      this.highlight.getCell()
+        .add(this.selectedRange.current().highlight)
+        .commit()
+        .adjustCoordinates(cellRange);
     }
 
     const layerLevel = this.getLayerLevel();
@@ -257,29 +260,57 @@ class Selection {
         // For single cell selection in the same layer, we do not create area selection to prevent blue background.
         // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
         // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
+        const previousRange = this.selectedRange.previous();
+
         this.highlight
           .useLayerLevel(layerLevel - 1)
           .createOrGetArea()
-          .add(this.selectedRange.previous().from)
-          .commit();
+          .add(previousRange.from)
+          .commit()
+          // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
+          .adjustCoordinates(previousRange);
 
         this.highlight.useLayerLevel(layerLevel);
       }
     }
 
     if (this.highlight.isEnabledFor(HEADER_TYPE)) {
+      // The header selection generally contains cell selection. In a case when all rows (or columns)
+      // are hidden that visual coordinates are translated to renderable coordinates that do not exist.
+      // Hence no header highlight is generated. In that case, to make a column (or a row) header
+      // highlight, the row and column index has to point to the header (the negative value). See #7052.
+      const areAnyRowsRendered = this.tableProps.countRowsTranslated() === 0;
+      const areAnyColumnsRendered = this.tableProps.countColsTranslated() === 0;
+      let headerCellRange = cellRange;
+
+      if (areAnyRowsRendered || areAnyColumnsRendered) {
+        headerCellRange = cellRange.clone();
+      }
+
+      if (areAnyRowsRendered) {
+        headerCellRange.from.row = -1;
+      }
+
+      if (areAnyColumnsRendered) {
+        headerCellRange.from.col = -1;
+      }
+
       if (this.settings.selectionMode === 'single') {
-        headerHighlight.add(cellRange.highlight).commit();
+        if (this.isSelectedByAnyHeader()) {
+          headerCellRange.from.normalize();
+        }
+
+        headerHighlight.add(headerCellRange.from).commit();
 
       } else {
         headerHighlight
-          .add(cellRange.from)
-          .add(cellRange.to)
+          .add(headerCellRange.from)
+          .add(headerCellRange.to)
           .commit();
       }
     }
 
-    if (this.isSelectedByRowHeader()) {
+    if (this.isEntireRowSelected()) {
       const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
       // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
@@ -291,7 +322,7 @@ class Selection {
       }
     }
 
-    if (this.isSelectedByColumnHeader()) {
+    if (this.isEntireColumnSelected()) {
       const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
       // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
@@ -378,6 +409,17 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByRowHeader(layerLevel = this.getLayerLevel()) {
+    return !this.isSelectedByCorner(layerLevel) && this.isEntireRowSelected(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection consists of entire rows (including their headers). If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
+   *
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
+   */
+  isEntireRowSelected(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByRowHeader.size > 0 : this.selectedByRowHeader.has(layerLevel);
   }
 
@@ -390,6 +432,17 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByColumnHeader(layerLevel = this.getLayerLevel()) {
+    return !this.isSelectedByCorner() && this.isEntireColumnSelected(layerLevel);
+  }
+
+  /**
+   * Returns `true` if the selection consists of entire columns (including their headers). If the `layerLevel`
+   * argument is passed then only that layer will be checked. Otherwise, it checks the selection for all layers.
+   *
+   * @param {number} [layerLevel=this.getLayerLevel()] Selection layer level to check.
+   * @returns {boolean}
+   */
+  isEntireColumnSelected(layerLevel = this.getLayerLevel()) {
     return layerLevel === -1 ? this.selectedByColumnHeader.size > 0 : this.selectedByColumnHeader.has(layerLevel);
   }
 
@@ -399,7 +452,9 @@ class Selection {
    * @returns {boolean}
    */
   isSelectedByAnyHeader() {
-    return this.isSelectedByRowHeader(-1) || this.isSelectedByColumnHeader(-1);
+    return this.isSelectedByRowHeader(-1) ||
+      this.isSelectedByColumnHeader(-1) ||
+      this.isSelectedByCorner();
   }
 
   /**
@@ -450,6 +505,7 @@ class Selection {
    * Clear the selection by resetting the collected ranges and highlights.
    */
   clear() {
+    // TODO: collections selectedByColumnHeader and selectedByRowHeader should be clear too.
     this.selectedRange.clear();
     this.highlight.clear();
   }
@@ -469,18 +525,25 @@ class Selection {
 
   /**
    * Select all cells.
+   *
+   * @param {boolean} [includeRowHeaders=false] `true` If the selection should include the row headers, `false`
+   * otherwise.
+   * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column headers, `false`
+   * otherwise.
    */
-  selectAll() {
+  selectAll(includeRowHeaders = false, includeColumnHeaders = false) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
 
     // We can't select cells when there is no data.
-    if (nrOfRows === 0 || nrOfColumns === 0) {
+    if (!includeRowHeaders && !includeColumnHeaders && (nrOfRows === 0 || nrOfColumns === 0)) {
       return;
     }
 
+    const startCoords = new CellCoords(includeColumnHeaders ? -1 : 0, includeRowHeaders ? -1 : 0);
+
     this.clear();
-    this.setRangeStartOnly(new CellCoords(-1, -1));
+    this.setRangeStartOnly(startCoords);
     this.selectedByRowHeader.add(this.getLayerLevel());
     this.selectedByColumnHeader.add(this.getLayerLevel());
     this.setRangeEnd(new CellCoords(nrOfRows - 1, nrOfColumns - 1));
@@ -504,8 +567,8 @@ class Selection {
 
     } else if (selectionType === SELECTION_TYPE_UNRECOGNIZED) {
       throw new Error(toSingleLine`Unsupported format of the selection ranges was passed. To select cells pass\x20
-        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, columnEnd/columnPropEnd]])\x20
-        or as an array of CellRange objects.`);
+        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd,\x20
+        columnEnd/columnPropEnd]]) or as an array of CellRange objects.`);
     }
 
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
@@ -542,7 +605,8 @@ class Selection {
   }
 
   /**
-   * Select column specified by `startColumn` visual index or column property or a range of columns finishing at `endColumn`.
+   * Select column specified by `startColumn` visual index or column property or a range of columns finishing at
+   * `endColumn`.
    *
    * @param {number|string} startColumn Visual column index or column property from which the selection starts.
    * @param {number|string} [endColumn] Visual column index or column property from to the selection finishes.
@@ -554,7 +618,7 @@ class Selection {
 
     const nrOfColumns = this.tableProps.countCols();
     const nrOfRows = this.tableProps.countRows();
-    const isValid = nrOfRows > 0 && isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
+    const isValid = isValidCoord(start, nrOfColumns) && isValidCoord(end, nrOfColumns);
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(-1, start));
@@ -579,8 +643,7 @@ class Selection {
 
     if (isValid) {
       this.setRangeStartOnly(new CellCoords(startRow, -1));
-      // Ternary operator placed below handle situation when there are rows, but there are no columns (#6733).
-      this.setRangeEnd(new CellCoords(endRow, nrOfColumns > 0 ? nrOfColumns - 1 : 0));
+      this.setRangeEnd(new CellCoords(endRow, nrOfColumns - 1));
       this.finish();
     }
 
@@ -591,6 +654,12 @@ class Selection {
    * Rewrite the rendered state of the selection as visual selection may have a new representation in the DOM.
    */
   refresh() {
+    const customSelections = this.highlight.getCustomSelections();
+
+    customSelections.forEach((customSelection) => {
+      customSelection.commit();
+    });
+
     if (!this.isSelected()) {
       return;
     }

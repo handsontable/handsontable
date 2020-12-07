@@ -261,7 +261,7 @@ describe('Core.selectRows', () => {
 
     const wasSelected = selectRows(1, 1);
 
-    expect(getSelected()).toEqual([[1, 0, 1, 3]]);
+    expect(getSelected()).toEqual([[1, -1, 1, 3]]);
     expect(wasSelected).toBe(true);
   });
 
@@ -272,7 +272,7 @@ describe('Core.selectRows', () => {
 
     const wasSelected = selectRows(2, 1);
 
-    expect(getSelected()).toEqual([[2, 0, 1, 3]]);
+    expect(getSelected()).toEqual([[2, -1, 1, 3]]);
     expect(wasSelected).toBe(true);
   });
 
@@ -368,22 +368,22 @@ describe('Core.selectRows', () => {
     selectRows(1);
 
     expect(afterSelection.calls.count()).toBe(1);
-    expect(afterSelection.calls.argsFor(0)).toEqual([1, 0, 1, 19, jasmine.any(Object), 0]);
+    expect(afterSelection.calls.argsFor(0)).toEqual([1, -1, 1, 19, jasmine.any(Object), 0]);
 
     expect(afterSelectionByProp.calls.count()).toBe(1);
-    expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, 'prop0', 1, 'prop19', jasmine.any(Object), 0]);
+    expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, -1, 1, 'prop19', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 0, 1, 19, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, -1, 1, 19, 0, void 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop0', 1, 'prop19', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, -1, 1, 'prop19', 0, void 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 
     expect(beforeSetRangeStartOnly.calls.count()).toBe(1);
     expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].row).toBe(1);
-    expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].col).toBe(0);
+    expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].col).toBe(-1);
   });
 
   it('should fire hooks with proper arguments when range of the columns are selected', () => {
@@ -421,21 +421,21 @@ describe('Core.selectRows', () => {
     selectRows(1, 2);
 
     expect(afterSelection.calls.count()).toBe(1);
-    expect(afterSelection.calls.argsFor(0)).toEqual([1, 0, 2, 19, jasmine.any(Object), 0]);
+    expect(afterSelection.calls.argsFor(0)).toEqual([1, -1, 2, 19, jasmine.any(Object), 0]);
 
     expect(afterSelectionByProp.calls.count()).toBe(1);
-    expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, 'prop0', 2, 'prop19', jasmine.any(Object), 0]);
+    expect(afterSelectionByProp.calls.argsFor(0)).toEqual([1, -1, 2, 'prop19', jasmine.any(Object), 0]);
 
     expect(afterSelectionEnd.calls.count()).toBe(1);
-    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, 0, 2, 19, 0, void 0]);
+    expect(afterSelectionEnd.calls.argsFor(0)).toEqual([1, -1, 2, 19, 0, void 0]);
 
     expect(afterSelectionEndByProp.calls.count()).toBe(1);
-    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, 'prop0', 2, 'prop19', 0, void 0]);
+    expect(afterSelectionEndByProp.calls.argsFor(0)).toEqual([1, -1, 2, 'prop19', 0, void 0]);
 
     expect(beforeSetRangeStart.calls.count()).toBe(0);
 
     expect(beforeSetRangeStartOnly.calls.count()).toBe(1);
     expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].row).toBe(1);
-    expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].col).toBe(0);
+    expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].col).toBe(-1);
   });
 });

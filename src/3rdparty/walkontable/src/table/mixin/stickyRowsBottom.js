@@ -21,9 +21,14 @@ const stickyRowsBottom = {
     const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
     const index = totalRows - fixedRowsBottom;
 
-    if (index < 0) {
+    if (totalRows === 0 || fixedRowsBottom === 0) {
       return -1;
     }
+
+    if (index < 0) {
+      return 0;
+    }
+
     return index;
   },
 

@@ -10,6 +10,7 @@ const privatePool = new WeakMap();
  *
  * @class ContextMenuUI
  * @util
+ * @private
  * @augments BaseUI
  */
 class ContextMenuUI extends BaseUI {
@@ -18,10 +19,14 @@ class ContextMenuUI extends BaseUI {
 
     privatePool.set(this, {
       row_above: (key, selection) => {
-        this.dataManager.addSibling(selection.start.row, 'above');
+        const lastSelection = selection[selection.length - 1];
+
+        this.dataManager.addSibling(lastSelection.start.row, 'above');
       },
       row_below: (key, selection) => {
-        this.dataManager.addSibling(selection.start.row, 'below');
+        const lastSelection = selection[selection.length - 1];
+
+        this.dataManager.addSibling(lastSelection.start.row, 'below');
       }
     });
     /**
@@ -50,13 +55,13 @@ class ContextMenuUI extends BaseUI {
           const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedLast()[0]);
           const parent = this.dataManager.getDataObject(translatedRowIndex);
 
-          this.hot.rowIndexMapper.insertIndexes(translatedRowIndex, 1);
           this.dataManager.addChild(parent);
         },
         disabled: () => {
           const selected = this.hot.getSelectedLast();
 
-          return !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() || this.hot.countRows() >= this.hot.getSettings().maxRows;
+          return !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() ||
+            this.hot.countRows() >= this.hot.getSettings().maxRows;
         }
       },
       {
@@ -72,7 +77,8 @@ class ContextMenuUI extends BaseUI {
           const translatedRowIndex = this.dataManager.translateTrimmedRow(selected[0]);
           const parent = this.dataManager.getRowParent(translatedRowIndex);
 
-          return !parent || !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() || this.hot.countRows() >= this.hot.getSettings().maxRows;
+          return !parent || !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() ||
+            this.hot.countRows() >= this.hot.getSettings().maxRows;
         }
       },
       {

@@ -2,7 +2,8 @@ describe('TextEditor', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -10,6 +11,277 @@ describe('TextEditor', () => {
       destroy();
       this.$container.remove();
     }
+  });
+
+  it('should render an editor in specified position at cell 0, 0', () => {
+    handsontable({
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDown('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+  });
+
+  it('should render an editor in specified position at cell 0, 0 when all headers are selected', () => {
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true,
+      columns: [
+        {
+          type: 'text',
+        }
+      ],
+    });
+
+    selectAll();
+    listen();
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDown('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from top to bottom when ' +
+     'top and bottom overlays are enabled', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      columns: [
+        {
+          type: 'text',
+        },
+        {},
+      ],
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDown('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from left to right when ' +
+     'left overlay is enabled', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedColumnsLeft: 3,
+      type: 'text',
+    });
+
+    selectCell(0, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDown('enter');
+
+    expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
+
+    selectCell(0, 1);
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional left border.
+    const editorOffset = () => ({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
+
+    selectCell(0, 2);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
+
+    selectCell(0, 3);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
+
+    selectCell(0, 4);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from top to bottom when ' +
+       'top and bottom overlays are enabled and the first row of the both overlays are hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedRowsTop: 3,
+      fixedRowsBottom: 3,
+      hiddenRows: {
+        indicators: true,
+        rows: [0, 5],
+      },
+      columns: [
+        {
+          type: 'text',
+        },
+        {},
+      ],
+    });
+
+    selectCell(1, 0);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDown('enter');
+
+    // First renderable row index.
+    expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional top border.
+    const editorOffset = () => ({
+      top: editor.offset().top + 1,
+      left: editor.offset().left,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+    expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
+
+    keyDown('enter');
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+  });
+
+  it('should render an editor in specified position while opening an editor from left to right when ' +
+     'left overlay is enabled and the first column of the overlay is hidden', () => {
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      fixedColumnsLeft: 3,
+      hiddenColumns: {
+        indicators: true,
+        columns: [0],
+      },
+      type: 'text',
+    });
+
+    selectCell(0, 1);
+
+    const editor = $(getActiveEditor().TEXTAREA_PARENT);
+
+    keyDown('enter');
+
+    // First renderable column index.
+    expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
+
+    selectCell(0, 2);
+    keyDown('enter');
+
+    // Cells that do not touch the edges of the table have an additional left border.
+    const editorOffset = () => ({
+      top: editor.offset().top,
+      left: editor.offset().left + 1,
+    });
+
+    expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
+
+    selectCell(0, 3);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
+
+    selectCell(0, 4);
+    keyDown('enter');
+
+    expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
+  });
+
+  it('should not highlight the input element by browsers native selection', () => {
+    handsontable({
+      editor: 'text'
+    });
+
+    selectCell(0, 0);
+    keyDown('enter');
+
+    const editor = getActiveEditor().TEXTAREA;
+
+    expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
   });
 
   it('should begin editing when enterBeginsEditing equals true', () => {
@@ -198,52 +470,61 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.getAttribute('tabindex')).toBe('-1');
   });
 
-  it('should render textarea editor in specified size at cell 0, 0 without headers', (done) => {
+  it('should render textarea editor in specified size at cell 0, 0 without headers', async() => {
     const hot = handsontable();
 
     selectCell(0, 0);
-
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
   });
 
-  it('should render textarea editor in specified size at cell 1, 0 without headers', (done) => {
+  it('should render textarea editor in specified size at cell 1, 0 without headers', async() => {
     const hot = handsontable();
 
     selectCell(1, 1);
-
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
   });
 
-  it('should render textarea editor in specified size at cell 0, 0 with headers', (done) => {
-    const hot = handsontable({
+  it('should render textarea editor in specified size at cell 0, 0 with headers', async() => {
+    handsontable({
       rowHeaders: true,
       colHeaders: true
     });
 
     selectCell(0, 0);
-
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(hot.getActiveEditor().TEXTAREA.style.width).toBe('40px');
-      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
   });
 
-  it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', (done) => {
+  it('should render textarea editor in specified size at cell 0, 0 when headers are selected', async() => {
+    handsontable({
+      rowHeaders: true,
+      colHeaders: true
+    });
+
+    selectAll();
+    listen();
+    keyDown('enter');
+
+    await sleep(200);
+
+    expect(getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('40px');
+  });
+
+  it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       columns: [{
@@ -262,15 +543,13 @@ describe('TextEditor', () => {
     });
 
     selectCell(0, 0);
-
     keyDown('enter');
 
-    setTimeout(() => {
-      expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
-      expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(50, 4);
-      expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(parseInt(hot.getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(41, 1);
+    expect(hot.getActiveEditor().TEXTAREA.style.height).toBe('23px');
+    expect(hot.getActiveEditor().textareaParentStyle.top).toBe('26px');
   });
 
   it('should hide whole editor when it is higher then header and TD is not rendered anymore', async() => {
@@ -683,16 +962,14 @@ describe('TextEditor', () => {
     cell
       .simulate('mousedown')
       .simulate('mouseup')
-      .simulate('click')
-    ;
+      .simulate('click');
 
     await sleep(100);
 
     cell
       .simulate('mousedown')
       .simulate('mouseup')
-      .simulate('click')
-    ;
+      .simulate('click');
 
     await sleep(100);
 
@@ -772,6 +1049,7 @@ describe('TextEditor', () => {
 
   it('should call editor focus() method after opening an editor', () => {
     const hot = handsontable();
+
     selectCell(2, 2);
 
     const editor = hot.getActiveEditor();
@@ -798,14 +1076,17 @@ describe('TextEditor', () => {
 
     expect(isEditorVisible()).toEqual(true);
 
-    document.activeElement.value = 'Very very very very very very very very very very very very very very very very very long text';
+    document.activeElement.value = 'Very very very very very very very very very very very very very ' +
+      'very very very very long text';
     keyDownUp(32); // space - trigger textarea resize
 
     const $textarea = $(document.activeElement);
     const $wtHider = spec().$container.find('.wtHider');
 
-    expect($textarea.offset().left + $textarea.outerWidth()).not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
-    expect($textarea.offset().top + $textarea.outerHeight()).not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
+    expect($textarea.offset().left + $textarea.outerWidth())
+      .not.toBeGreaterThan($wtHider.offset().left + spec().$container.outerWidth());
+    expect($textarea.offset().top + $textarea.outerHeight())
+      .not.toBeGreaterThan($wtHider.offset().top + $wtHider.outerHeight());
   });
 
   it('should open editor after selecting cell in another table and hitting enter', function() {
@@ -1282,7 +1563,8 @@ describe('TextEditor', () => {
     selectCell(0, 7);
     keyDown(Handsontable.helper.KEY_CODES.ENTER);
 
-    expect(Handsontable.dom.outerWidth(hot.getActiveEditor().TEXTAREA)).toBeAroundValue(Handsontable.dom.outerWidth(hot.getCell(0, 7)));
+    expect(Handsontable.dom.outerWidth(hot.getActiveEditor().TEXTAREA))
+      .toBeAroundValue(Handsontable.dom.outerWidth(hot.getCell(0, 7)));
   });
 
   it('should display editor with the proper size, when editing a last row after the table is scrolled to the bottom', () => {
@@ -1381,7 +1663,8 @@ describe('TextEditor', () => {
   it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
     const data = [
       ['', '', '', '', ''],
-      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. It\'s good knowin\' he\'s out there. The ' +
+      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
+            'It\'s good knowin\' he\'s out there. The ' +
            'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
       ['', '', '', '', '']
     ];
@@ -1401,12 +1684,14 @@ describe('TextEditor', () => {
     const $editorInput = $('.handsontableInput');
     const $editedCell = $(hot.getCell(1, 1));
 
-    expect($editorInput.outerWidth()).toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
+    expect($editorInput.outerWidth())
+      .toEqual(hot.view.wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
     hot.scrollViewportTo(void 0, 3);
     hot.render();
 
-    expect($editorInput.width() + $editorInput.offset().left).toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
+    expect($editorInput.width() + $editorInput.offset().left)
+      .toBeLessThan(hot.view.wt.wtTable.holder.clientWidth);
   });
 
   it('should resize editor to properly size after focus', (done) => {
@@ -1583,7 +1868,7 @@ describe('TextEditor', () => {
 
       await sleep(100);
 
-      expect($(textarea).width()).toBe(201);
+      expect($(textarea).width()).toBe(175);
       expect($(textarea).height()).toBe(23);
     });
   });

@@ -42,7 +42,7 @@ const defaultCompareFunction = function(a, b) {
  * @param {number} endIndex Right side of the subarray.
  * @returns {Array} Array with sorted subarray.
  */
-export default function mergeSort(array, compareFunction = defaultCompareFunction, startIndex = 0, endIndex = array.length) {
+export default function mergeSort(array, compareFunction = defaultCompareFunction, startIndex = 0, endIndex = array.length) { // eslint-disable-line max-len
   if (Math.abs(endIndex - startIndex) <= 1) {
     return [];
   }

@@ -166,7 +166,8 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('A2');
       expect(copyEvent.clipboardData.getData('text/html')).toBe([
-        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table>',
         '<tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
     });
 
@@ -188,9 +189,11 @@ describe('CopyPaste', () => {
       plugin.onCopy(copyEvent);
 
       expect(beforeCopySpy.calls.count()).toEqual(1);
-      expect(beforeCopySpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+      expect(beforeCopySpy).toHaveBeenCalledWith(
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
       expect(afterCopySpy.calls.count()).toEqual(1);
-      expect(afterCopySpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+      expect(afterCopySpy).toHaveBeenCalledWith(
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
     });
 
     it('should be possible to block copying', () => {
@@ -233,7 +236,8 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('A2');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table>',
         '<tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
     });
 
@@ -253,7 +257,9 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('"A\nB"\tC');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style><table><tbody><tr><td>A<br>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+          '<table><tbody><tr><td>A<br>',
         'B</td><td>C</td></tr></tbody></table>'
       ].join('\r\n'));
     });
@@ -274,7 +280,8 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('!@#$%^&*()_+-={[\t]};:\'"\\|,<.>/?~');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td>!@#$%^&*()_+-={[</td>',
         '<td>]};:\'"\\|,&lt;.&gt;/?~</td></tr></tbody></table>'
       ].join(''));
@@ -296,9 +303,11 @@ describe('CopyPaste', () => {
 
       plugin.onCopy(copyEvent);
 
-      expect(copyEvent.clipboardData.getData('text/plain')).toEqual('{"test": "value"}\n{"test2": {"testtest": ""}}\n{"test3": ""}');
+      expect(copyEvent.clipboardData.getData('text/plain'))
+        .toEqual('{"test": "value"}\n{"test2": {"testtest": ""}}\n{"test3": ""}');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td>{"test":&nbsp;"value"}</td></tr><tr><td>{"test2":&nbsp;{"testtest":&nbsp;""}}</td>',
         '</tr><tr><td>{"test3":&nbsp;""}</td></tr></tbody></table>'
       ].join(''));
@@ -324,7 +333,8 @@ describe('CopyPaste', () => {
 
       expect(copyEvent.clipboardData.getData('text/plain')).toEqual('\n0\nfalse\n\n');
       expect(copyEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td></td></tr><tr><td>0</td></tr><tr><td>false</td></tr>',
         '<tr><td></td></tr><tr><td></td></tr></tbody></table>'
       ].join(''));
@@ -353,7 +363,8 @@ describe('CopyPaste', () => {
 
       expect(cutEvent.clipboardData.getData('text/plain')).toBe('A2');
       expect(cutEvent.clipboardData.getData('text/html')).toEqual([
-        '<meta name="generator" content="Handsontable"/><style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
+        '<meta name="generator" content="Handsontable"/>' +
+          '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
 
       expect(hot.getDataAtCell(1, 0)).toBe(null);
@@ -376,9 +387,11 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent);
 
       expect(beforeCutSpy.calls.count()).toEqual(1);
-      expect(beforeCutSpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+      expect(beforeCutSpy).toHaveBeenCalledWith(
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
       expect(afterCutSpy.calls.count()).toEqual(1);
-      expect(afterCutSpy).toHaveBeenCalledWith([['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+      expect(afterCutSpy).toHaveBeenCalledWith(
+        [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
     });
   });
 
@@ -418,7 +431,11 @@ describe('CopyPaste', () => {
       await sleep(60);
 
       expect(getData().length).toEqual(4);
-      expect(getData(0, 0, 2, 4)).toEqual([['', 'Kia', 'Nissan', 'Toyota', 'Honda'], ['Kia', 'Nissan', 'Toyota', 12, 13], ['2008', 10, 11, 14, 13]]);
+      expect(getData(0, 0, 2, 4)).toEqual([
+        ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+        ['Kia', 'Nissan', 'Toyota', 12, 13],
+        ['2008', 10, 11, 14, 13]
+      ]);
     });
 
     it('should shift data down instead of overwrite when paste (minSpareRows > 0)', async() => {
@@ -436,7 +453,11 @@ describe('CopyPaste', () => {
       await sleep(60);
 
       expect(getData().length).toEqual(6);
-      expect(getData(0, 0, 2, 4)).toEqual([['', 'Kia', 'Nissan', 'Toyota', 'Honda'], ['Kia', 'Nissan', 'Toyota', 12, 13], ['2008', 10, 11, 14, 13]]);
+      expect(getData(0, 0, 2, 4)).toEqual([
+        ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
+        ['Kia', 'Nissan', 'Toyota', 12, 13],
+        ['2008', 10, 11, 14, 13]
+      ]);
     });
 
     it('should shift right insert instead of overwrite when paste', async() => {
@@ -499,6 +520,21 @@ describe('CopyPaste', () => {
       await sleep(60);
 
       expect(errors).toEqual(0);
+    });
+
+    it('should not throw an error while pasting when headers are selected by corner click', () => {
+      const hot = handsontable({
+        data: arrayOfArrays(),
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectAll();
+      hot.listen();
+
+      expect(() => {
+        triggerPaste('Kia\tNissan\tToyota');
+      }).not.toThrowError();
     });
 
     it('should not paste any data, if no cell is selected', async() => {
@@ -577,10 +613,12 @@ describe('CopyPaste', () => {
       await sleep(60);
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
-      expect(beforePasteSpy).toHaveBeenCalledWith([['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+      expect(beforePasteSpy).toHaveBeenCalledWith(
+        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
 
       expect(afterPasteSpy.calls.count()).toEqual(1);
-      expect(afterPasteSpy).toHaveBeenCalledWith([['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
+      expect(afterPasteSpy).toHaveBeenCalledWith(
+        [['Kia']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }], void 0, void 0, void 0, void 0);
     });
 
     it('should be possible to block pasting', async() => {
@@ -702,8 +740,11 @@ describe('CopyPaste', () => {
 
       triggerPaste('Kia\r\nNissan\r\nToyota');
 
-      expect(afterChangeSpy)
-        .toHaveBeenCalledWith([[0, 0, null, 'Kia'], [1, 0, null, 'Nissan'], [2, 0, null, 'Toyota']], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
+      expect(afterChangeSpy).toHaveBeenCalledWith([
+        [0, 0, null, 'Kia'],
+        [1, 0, null, 'Nissan'],
+        [2, 0, null, 'Toyota']
+      ], 'CopyPaste.paste', void 0, void 0, void 0, void 0);
     });
 
     it('should properly paste data with multiline text', async() => {
@@ -794,6 +835,75 @@ describe('CopyPaste', () => {
       expect(getDataAtCell(1, 0)).toEqual(null);
       expect(getDataAtCell(1, 1)).toEqual(null);
       expect(getDataAtCell(1, 2)).toEqual('C2');
+    });
+
+    it('should populate data just within selection - there was bug #5961', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenRows: {
+          copyPasteEnabled: false,
+          rows: [1, 2]
+        },
+        hiddenColumns: {
+          copyPasteEnabled: false,
+          columns: [4, 5]
+        },
+      });
+
+      const copyEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      selectCell(0, 0, 9, 0);
+
+      plugin.onCopy(copyEvent);
+
+      selectColumns(1, 9);
+
+      plugin.onPaste(copyEvent);
+
+      expect(getData()).toEqual([
+        ['A1', 'A1', 'A1', 'A1', 'E1', 'F1', 'A1', 'A1', 'A1', 'A1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+        ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+        ['A4', 'A4', 'A4', 'A4', 'E4', 'F4', 'A4', 'A4', 'A4', 'A4'],
+        ['A5', 'A5', 'A5', 'A5', 'E5', 'F5', 'A5', 'A5', 'A5', 'A5'],
+        ['A6', 'A6', 'A6', 'A6', 'E6', 'F6', 'A6', 'A6', 'A6', 'A6'],
+        ['A7', 'A7', 'A7', 'A7', 'E7', 'F7', 'A7', 'A7', 'A7', 'A7'],
+        ['A8', 'A8', 'A8', 'A8', 'E8', 'F8', 'A8', 'A8', 'A8', 'A8'],
+        ['A9', 'A9', 'A9', 'A9', 'E9', 'F9', 'A9', 'A9', 'A9', 'A9'],
+        ['A10', 'A10', 'A10', 'A10', 'E10', 'F10', 'A10', 'A10', 'A10', 'A10'],
+      ]);
+
+      expect(getSelected()).toEqual([[0, 1, 9, 9]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(0);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRangeLast().from.row).toBe(0);
+      expect(getSelectedRangeLast().from.col).toBe(1);
+      expect(getSelectedRangeLast().to.row).toBe(9);
+      expect(getSelectedRangeLast().to.col).toBe(9);
+    });
+
+    it('should sanitize pasted HTML', async() => {
+      handsontable();
+
+      const onErrorSpy = spyOn(window, 'onerror');
+      const clipboardEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      clipboardEvent.clipboardData.setData('text/html', [
+        '<table><tr></tr></table><img src onerror="boom()">'
+      ].join('\r\n'));
+
+      selectCell(0, 0);
+
+      plugin.onPaste(clipboardEvent);
+
+      await sleep(100);
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
+      expect(getDataAtCell(0, 0)).toEqual(null);
     });
   });
 });

@@ -13,49 +13,267 @@ describe('ContextMenu', () => {
   });
 
   describe('remove columns', () => {
-    it('should execute action when single cell is selected', () => {
+    it('should remove column of the clicked column header', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
         contextMenu: true,
       });
 
-      selectCell(2, 2);
-      contextMenu();
+      contextMenu(getCell(-1, 1, true));
 
-      // "Remove column" item
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
         .not('.htSeparator')
-        .eq(5)
-        .simulate('mousedown')
-        .simulate('mouseup');
+        .eq(5); // "Remove column"
 
-      expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'D1', 'E1']);
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
+      expect(`
+        |   ║   : * :   :   |
+        |===:===:===:===:===|
+        | - ║   : A :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        | - ║   : 0 :   :   |
+        `).toBeMatchToSelectionPattern();
     });
 
-    it('should execute action when range of the cells are selected', () => {
+    it('should not remove column when the menu is triggered by row header', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(5); // "Remove column"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove all columns when the menu is triggered by corner (dataset as an array of arrays)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(5); // "Remove column"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getData()).toEqual([]);
+      expect(`
+        |   |
+        |===|
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not remove all columns when the menu is triggered by corner (dataset as an array of objects)', () => {
+      handsontable({
+        data: createSpreadsheetObjectData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(5); // "Remove column"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(`
+        |   ║ * : * : * : * : * |
+        |===:===:===:===:===:===|
+        | * ║ A : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove all columns when the menu is triggered by corner and all rows are trimmed', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        trimRows: [0, 1, 2, 3, 4],
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(5); // "Remove column"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getData()).toEqual([]);
+      expect(`
+        |   |
+        |===|
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not remove columns when the menu is triggered by corner and all columns are trimmed', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 0),
+        dataSchema: [], // Unlocks adding new rows through the context menu.
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(5); // "Remove column"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(`
+        |   |
+        |===|
+        | - |
+        | - |
+        | - |
+        | - |
+        | - |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not remove columns when the menu is triggered by corner and dataset is empty', () => {
+      handsontable({
+        data: createSpreadsheetData(0, 0),
+        dataSchema: [], // Unlocks adding new rows through the context menu.
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(5); // "Remove column"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(`
+        |   |
+        |===|
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove column from the single cell', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(1, 1));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(5); // "Remove column"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
+      expect(`
+        |   ║   : - :   :   |
+        |===:===:===:===:===|
+        |   ║   :   :   :   |
+        | - ║   : # :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        |   ║   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove rows from the multiple selection range', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
         contextMenu: true,
       });
 
       selectCell(2, 2, 4, 4);
-      contextMenu();
+      contextMenu(getCell(2, 2));
 
-      // "Remove column" item
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
         .not('.htSeparator')
-        .eq(5)
-        .simulate('mousedown')
-        .simulate('mouseup');
+        .eq(5); // "Remove column"
 
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1']);
+      expect(`
+        |   ║   : - |
+        |===:===:===|
+        |   ║   :   |
+        |   ║   :   |
+        | - ║   : A |
+        | - ║   : 0 |
+        | - ║   : 0 |
+        `).toBeMatchToSelectionPattern();
     });
 
-    it('should execute action when multiple cells are selected', () => {
+    it('should remove columns from the non-contiques selection range', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(8, 5),
+        data: createSpreadsheetData(8, 8),
+        colHeaders: true,
+        rowHeaders: true,
         contextMenu: true,
       });
 
@@ -73,21 +291,50 @@ describe('ContextMenu', () => {
       $(getCell(5, 3)).simulate('mouseover');
       $(getCell(5, 3)).simulate('mouseup');
 
+      $(getCell(5, 0)).simulate('mousedown');
+      $(getCell(5, 4)).simulate('mouseover');
+      $(getCell(5, 4)).simulate('mouseup');
+
       $(getCell(7, 4)).simulate('mousedown');
       $(getCell(7, 4)).simulate('mouseover');
       $(getCell(7, 4)).simulate('mouseup');
 
+      expect(`
+        |   ║ - : - : - : - : - :   :   :   |
+        |===:===:===:===:===:===:===:===:===|
+        | - ║ 0 :   :   : 0 :   :   :   :   |
+        | - ║ 0 :   :   : 0 :   :   :   :   |
+        | - ║   : 0 :   : 0 :   :   :   :   |
+        | - ║   :   :   : 0 :   :   :   :   |
+        | - ║   :   :   : 0 :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 1 : 0 :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
+        | - ║   :   :   :   : A :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
       contextMenu();
 
-      // "Remove column" item
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
         .not('.htSeparator')
-        .eq(5)
-        .simulate('mousedown')
-        .simulate('mouseup');
+        .eq(5); // "Remove column"
 
-      expect(getDataAtRow(0)).toEqual(['C1']);
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtRow(0)).toEqual(['F1', 'G1', 'H1']);
+      expect(`
+        |   ║   :   : - |
+        |===:===:===:===|
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        |   ║   :   :   |
+        | - ║   :   : # |
+        `).toBeMatchToSelectionPattern();
     });
   });
 });

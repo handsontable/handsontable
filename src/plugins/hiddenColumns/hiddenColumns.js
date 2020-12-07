@@ -1,7 +1,7 @@
 import BasePlugin from '../_base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
 import { registerPlugin } from '../../plugins';
@@ -9,6 +9,7 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
+import { HidingMap } from '../../translations';
 
 import { HidingMap } from '../../translations';
 
@@ -38,7 +39,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   hiddenColumns: {
  *     copyPasteEnabled: true,
  *     indicators: true,
@@ -49,7 +50,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // access to hiddenColumns plugin instance:
  * const hiddenColumnsPlugin = hot.getPlugin('hiddenColumns');
  *
- * // show single row
+ * // show single column
  * hiddenColumnsPlugin.showColumn(1);
  *
  * // show multiple columns
@@ -58,7 +59,7 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * // or as an array
  * hiddenColumnsPlugin.showColumns([1, 2, 9]);
  *
- * // hide single row
+ * // hide single column
  * hiddenColumnsPlugin.hideColumn(1);
  *
  * // hide multiple columns
@@ -72,23 +73,20 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * ```
  */
 class HiddenColumns extends BasePlugin {
-  constructor(hotInstance) {
-    super(hotInstance);
-    /**
-     * Cached plugin settings.
-     *
-     * @private
-     * @type {object}
-     */
-    this.settings = {};
-    /**
-     * Map of hidden columns by the plugin.
-     *
-     * @private
-     * @type {null|HidingMap}
-     */
-    this.hiddenColumnsMap = null;
-  }
+  /**
+   * Cached plugin settings.
+   *
+   * @private
+   * @type {object}
+   */
+  #settings = {};
+  /**
+   * Map of hidden columns by the plugin.
+   *
+   * @private
+   * @type {null|HidingMap}
+   */
+  #hiddenColumnsMap = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -108,9 +106,19 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    this.hiddenColumnsMap = new HidingMap();
-    this.hiddenColumnsMap.addLocalHook('init', () => this.onMapInit());
-    this.hot.columnIndexMapper.registerMap(PLUGIN_NAME, this.hiddenColumnsMap);
+    const pluginSettings = this.hot.getSettings().hiddenColumns;
+
+    if (isObject(pluginSettings)) {
+      this.#settings = pluginSettings;
+
+      if (isUndefined(pluginSettings.copyPasteEnabled)) {
+        pluginSettings.copyPasteEnabled = true;
+      }
+    }
+
+    this.#hiddenColumnsMap = new HidingMap();
+    this.#hiddenColumnsMap.addLocalHook('init', () => this.onMapInit());
+    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#hiddenColumnsMap);
 
     this.addHook('afterContextMenuDefaultOptions', (...args) => this.onAfterContextMenuDefaultOptions(...args));
     this.addHook('afterGetCellMeta', (row, col, cellProperties) => this.onAfterGetCellMeta(row, col, cellProperties));
@@ -135,8 +143,8 @@ class HiddenColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.columnIndexMapper.unregisterMap(PLUGIN_NAME);
-    this.settings = {};
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    this.#settings = {};
 
     super.disablePlugin();
     this.resetCellsMeta();
@@ -149,29 +157,45 @@ class HiddenColumns extends BasePlugin {
    */
   showColumns(columns) {
     const currentHideConfig = this.getHiddenColumns();
-    const isConfigValid = this.isValidConfig(columns);
+    const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
+    const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
+    const isAnyColumnShowed = columns.length > 0;
 
-    if (isConfigValid) {
-      destinationHideConfig = currentHideConfig.filter(column => columns.includes(column) === false);
+    if (isValidConfig && isAnyColumnShowed) {
+      const physicalColumns = columns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
+
+      // Preparing new values for hiding map.
+      arrayEach(physicalColumns, (physicalColumn) => {
+        hidingMapValues[physicalColumn] = false;
+      });
+
+      // Preparing new hiding config.
+      destinationHideConfig = arrayReduce(hidingMapValues, (hiddenIndexes, isHidden, physicalIndex) => {
+        if (isHidden) {
+          hiddenIndexes.push(this.hot.toVisualColumn(physicalIndex));
+        }
+
+        return hiddenIndexes;
+      }, []);
     }
 
-    const continueHiding = this.hot.runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
+    const continueHiding = this.hot
+      .runHooks('beforeUnhideColumns', currentHideConfig, destinationHideConfig, isValidConfig && isAnyColumnShowed);
 
     if (continueHiding === false) {
       return;
     }
 
-    if (isConfigValid) {
-      this.hot.executeBatchOperations(() => {
-        arrayEach(columns, (visualColumn) => {
-          this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), false);
-        });
-      });
+    if (isValidConfig && isAnyColumnShowed) {
+      this.#hiddenColumnsMap.setValues(hidingMapValues);
     }
 
-    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
-      isConfigValid && destinationHideConfig.length < currentHideConfig.length);
+    // @TODO Should call once per render cycle, currently fired separately in different plugins
+    this.hot.view.wt.wtOverlays.adjustElementsSize();
+
+    this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
+      isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
   }
 
   /**
@@ -197,16 +221,17 @@ class HiddenColumns extends BasePlugin {
       destinationHideConfig = Array.from(new Set(currentHideConfig.concat(columns)));
     }
 
-    const continueHiding = this.hot.runHooks('beforeHideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
+    const continueHiding = this.hot
+      .runHooks('beforeHideColumns', currentHideConfig, destinationHideConfig, isConfigValid);
 
     if (continueHiding === false) {
       return;
     }
 
     if (isConfigValid) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batch(() => {
         arrayEach(columns, (visualColumn) => {
-          this.hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
+          this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });
       });
     }
@@ -225,12 +250,14 @@ class HiddenColumns extends BasePlugin {
   }
 
   /**
-   * Returns an array of physical indexes of hidden columns.
+   * Returns an array of visual indexes of hidden columns.
    *
    * @returns {number[]}
    */
   getHiddenColumns() {
-    return this.hiddenColumnsMap.getHiddenIndexes();
+    return arrayMap(this.#hiddenColumnsMap.getHiddenIndexes(), (physicalColumnIndex) => {
+      return this.hot.toVisualColumn(physicalColumnIndex);
+    });
   }
 
   /**
@@ -240,19 +267,24 @@ class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(column) {
-    return this.hiddenColumnsMap.getValueAtIndex(this.hot.toPhysicalColumn(column)) || false;
+    return this.#hiddenColumnsMap.getValueAtIndex(this.hot.toPhysicalColumn(column)) || false;
   }
 
   /**
    * Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
    *
-   * @param {Array} hiddenColumns List of hidden row indexes.
+   * @param {Array} hiddenColumns List of hidden column indexes.
    * @returns {boolean}
    */
   isValidConfig(hiddenColumns) {
     const nrOfColumns = this.hot.countCols();
 
-    return hiddenColumns.every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfColumns);
+    if (Array.isArray(hiddenColumns) && hiddenColumns.length > 0) {
+      return hiddenColumns
+        .every(visualColumn => Number.isInteger(visualColumn) && visualColumn >= 0 && visualColumn < nrOfColumns);
+    }
+
+    return false;
   }
 
   /**
@@ -272,7 +304,7 @@ class HiddenColumns extends BasePlugin {
    * Adds the additional column width for the hidden column indicators.
    *
    * @private
-   * @param {number} width Column width.
+   * @param {number|undefined} width Column width.
    * @param {number} column Visual column index.
    * @returns {number}
    */
@@ -283,10 +315,10 @@ class HiddenColumns extends BasePlugin {
       return 0;
     }
 
-    if (this.settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
+    if (this.#settings.indicators && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
 
       // Add additional space for hidden column indicator.
-      if (this.hot.hasColHeaders()) {
+      if (typeof width === 'number' && this.hot.hasColHeaders()) {
         return width + 15;
       }
     }
@@ -301,12 +333,12 @@ class HiddenColumns extends BasePlugin {
    * @param {object} cellProperties Object containing the cell properties.
    */
   onAfterGetCellMeta(row, column, cellProperties) {
-    if (this.settings.copyPasteEnabled === false && this.isHidden(column)) {
+    if (this.#settings.copyPasteEnabled === false && this.isHidden(column)) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipColumnOnPaste = true;
     }
 
-    if (this.isHidden(cellProperties.visualCol - 1)) {
+    if (this.isHidden(column - 1)) {
       cellProperties.className = cellProperties.className || '';
 
       if (cellProperties.className.indexOf('afterHiddenColumn') === -1) {
@@ -335,10 +367,8 @@ class HiddenColumns extends BasePlugin {
    * @returns {Array}
    */
   onModifyCopyableRange(ranges) {
-    const pluginSettings = this.hot.getSettings().hiddenColumns;
-
     // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
-    if (!isObject(pluginSettings) || pluginSettings.copyPasteEnabled) {
+    if (this.#settings.copyPasteEnabled) {
       return ranges;
     }
 
@@ -385,7 +415,7 @@ class HiddenColumns extends BasePlugin {
    * @param {HTMLElement} TH Header's TH element.
    */
   onAfterGetColHeader(column, TH) {
-    if (!this.settings.indicators || column === -1) {
+    if (!this.#settings.indicators || column < 0) {
       return;
     }
 
@@ -424,18 +454,8 @@ class HiddenColumns extends BasePlugin {
    * @private
    */
   onMapInit() {
-    const pluginSettings = this.hot.getSettings().hiddenColumns;
-
-    if (isObject(pluginSettings)) {
-      this.settings = pluginSettings;
-
-      if (isUndefined(pluginSettings.copyPasteEnabled)) {
-        pluginSettings.copyPasteEnabled = true;
-      }
-
-      if (Array.isArray(pluginSettings.columns)) {
-        this.hideColumns(pluginSettings.columns);
-      }
+    if (Array.isArray(this.#settings.columns)) {
+      this.hideColumns(this.#settings.columns);
     }
   }
 
@@ -443,7 +463,9 @@ class HiddenColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(PLUGIN_NAME);
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    this.#settings = null;
+    this.#hiddenColumnsMap = null;
 
     super.destroy();
   }

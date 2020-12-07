@@ -6,7 +6,7 @@ import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
-import { getClassesToAdd, getClassedToRemove } from './domHelpers';
+import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 
 import './multiColumnSorting.css';
 
@@ -217,7 +217,7 @@ class MultiColumnSorting extends ColumnSorting {
   updateHeaderClasses(headerSpanElement, ...args) {
     super.updateHeaderClasses(headerSpanElement, ...args);
 
-    removeClass(headerSpanElement, getClassedToRemove(headerSpanElement));
+    removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));

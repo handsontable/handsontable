@@ -14,14 +14,31 @@ export default function columnRightItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
     },
     callback(key, normalizedSelection) {
-      const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
-      const selectedColumn = latestSelection?.end?.col;
-      // If there is no selection we have clicked on the corner and there is no data.
-      const columnsRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
+      const isSelectedByCorner = this.selection.isSelectedByCorner();
+      let columnRight = 0;
 
-      this.alter('insert_col', columnsRight, 1, 'ContextMenu.columnRight');
+      if (isSelectedByCorner) {
+        columnRight = this.countCols();
+
+      } else {
+        const latestSelection = normalizedSelection[Math.max(normalizedSelection.length - 1, 0)];
+        const selectedColumn = latestSelection?.end?.col;
+
+        // If there is no selection we have clicked on the corner and there is no data.
+        columnRight = isDefined(selectedColumn) ? selectedColumn + 1 : 0;
+      }
+
+      this.alter('insert_col', columnRight, 1, 'ContextMenu.columnRight');
+
+      if (isSelectedByCorner) {
+        this.selectAll();
+      }
     },
     disabled() {
+      if (!this.isColumnModificationAllowed()) {
+        return true;
+      }
+
       const selected = getValidSelection(this);
       const anyCellVisible = this.countRows() > 0 && this.countCols() > 0;
 
@@ -29,22 +46,13 @@ export default function columnRightItem() {
         return true;
       }
 
-      // There is no selection, because we have clicked on the corner and there is no data (click on the corner by default
-      // select all cells, but there are no cells).
-      if (!anyCellVisible) {
+      if (this.selection.isSelectedByCorner()) {
+        // Enable "Insert column right" always when the menu is triggered by corner click.
         return false;
       }
 
-      if (!selected) {
-        return true;
-      }
-
-      const [startRow, startColumn, endRow] = selected[0];
-      const entireRowSelection = [startRow, 0, endRow, this.countCols() - 1];
-      const rowSelected = entireRowSelection.join(',') === selected.join(',');
-      const onlyOneColumn = this.countCols() === 1;
-
-      return startColumn < 0 || this.countCols() >= this.getSettings().maxCols || (!onlyOneColumn && rowSelected);
+      return this.selection.isSelectedByRowHeader() ||
+        this.countCols() >= this.getSettings().maxCols;
     },
     hidden() {
       return !this.getSettings().allowInsertColumn;

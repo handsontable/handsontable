@@ -41,8 +41,9 @@ class MergedCellsCollection {
    * @returns {string}
    */
   static IS_OVERLAPPING_WARNING(newMergedCell) {
-    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps with the other declared merged\x20
-    cell. The overlapping merged cell was not added to the table, please fix your setup.`;
+    return toSingleLine`The merged cell declared at [${newMergedCell.row}, ${newMergedCell.col}], overlaps\x20
+      with the other declared merged cell. The overlapping merged cell was not added to the table, please\x20
+      fix your setup.`;
   }
 
   /**
@@ -113,7 +114,10 @@ class MergedCellsCollection {
 
     arrayEach(mergedCells, (mergedCell) => {
       const mergedCellTopLeft = new CellCoords(mergedCell.row, mergedCell.col);
-      const mergedCellBottomRight = new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1);
+      const mergedCellBottomRight = new CellCoords(
+        mergedCell.row + mergedCell.rowspan - 1,
+        mergedCell.col + mergedCell.colspan - 1
+      );
       const mergedCellRange = new CellRange(mergedCellTopLeft, mergedCellTopLeft, mergedCellBottomRight);
 
       if (countPartials) {
@@ -231,12 +235,18 @@ class MergedCellsCollection {
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
   isOverlapping(mergedCell) {
-    const mergedCellRange = new CellRange(null, new CellCoords(mergedCell.row, mergedCell.col),
+    const mergedCellRange = new CellRange(
+      new CellCoords(0, 0),
+      new CellCoords(mergedCell.row, mergedCell.col),
       new CellCoords(mergedCell.row + mergedCell.rowspan - 1, mergedCell.col + mergedCell.colspan - 1));
     let result = false;
 
     arrayEach(this.mergedCells, (col) => {
-      const currentRange = new CellRange(null, new CellCoords(col.row, col.col), new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1));
+      const currentRange = new CellRange(
+        new CellCoords(0, 0),
+        new CellCoords(col.row, col.col),
+        new CellCoords(col.row + col.rowspan - 1, col.col + col.colspan - 1)
+      );
 
       if (currentRange.overlaps(mergedCellRange)) {
         result = true;
@@ -250,26 +260,39 @@ class MergedCellsCollection {
   }
 
   /**
-   * Check whether the provided row/col coordinates direct to a merged parent.
+   * Check whether the provided row/col coordinates direct to a first not hidden cell within merge area.
    *
-   * @param {number} row Row index.
-   * @param {number} column Column index.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
    * @returns {boolean}
    */
-  isMergedParent(row, column) {
-    const mergedCells = this.mergedCells;
-    let result = false;
+  isFirstRenderableMergedCell(row, column) {
+    const mergeParent = this.get(row, column);
 
-    arrayEach(mergedCells, (mergedCell) => {
-      if (mergedCell.row === row && mergedCell.col === column) {
-        result = true;
-        return false;
-      }
+    // Return if row and column indexes are within merge area and if they are first rendered indexes within the area.
+    return mergeParent && this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1) === row &&
+        this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1) === column;
+  }
 
-      return true;
-    });
+  /**
+   * Get the first renderable coords of the merged cell at the provided coordinates.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {CellCoords} A `CellCoords` object with the coordinates to the first renderable cell within the
+   *                        merged cell.
+   */
+  getFirstRenderableCoords(row, column) {
+    const mergeParent = this.get(row, column);
 
-    return result;
+    if (!mergeParent || this.isFirstRenderableMergedCell(row, column)) {
+      return new CellCoords(row, column);
+    }
+
+    const firstRenderableRow = this.hot.rowIndexMapper.getFirstNotHiddenIndex(mergeParent.row, 1);
+    const firstRenderableColumn = this.hot.columnIndexMapper.getFirstNotHiddenIndex(mergeParent.col, 1);
+
+    return new CellCoords(firstRenderableRow, firstRenderableColumn);
   }
 
   /**

@@ -1753,7 +1753,7 @@ describe('ColumnSorting', () => {
 
   });
 
-  it('should add a sorting indicator to the column header after it\'s been sorted, if indicator property is set to true (by default)', () => {
+  it('should add a sorting indicator to the column header after it\'s been sorted, if `indicator` property is set to `true` (by default)', () => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1763,77 +1763,49 @@ describe('ColumnSorting', () => {
         [5, 'Jane', 'Neat'],
       ],
       colHeaders: true,
-      columnSorting: true
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR THE WHOLE TABLE
-    // ---------------------------------
-
-    updateSettings({
-      columns() {
-        return {
-          columnSorting: {
-            indicator: true
-          }
-        };
-      },
-    });
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending (updateSettings doesn't reset sorting stack)
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    // ---------------------------------
-    // INDICATOR SET FOR A SINGLE COLUMN
-    // ---------------------------------
-
-    updateSettings({
       columns(column) {
         if (column === 2) {
           return {
             columnSorting: {
-              indicator: false
+              indicator: false,
+              headerAction: false,
             }
           };
         }
 
         return {};
-      }
+      },
+      columnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    spec().sortByClickOnColumnHeader(2);
 
-    sortedColumn = spec().$container.find('th span.columnSorting')[0];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
-
-    spec().sortByClickOnColumnHeader(1);
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    let sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
     spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
+    // not sorted
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // ascending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // descending
+    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn = spec().$container.find('th span.columnSorting')[1];
+    // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
@@ -1940,17 +1912,21 @@ describe('ColumnSorting', () => {
   it('should properly sort the table, when it\'s scrolled to the far right', () => {
     const data = [
       ['Jasmine Ferguson', 'Britney Carey', 'Kelly Decker', 'Lacey Mcleod', 'Leona Shaffer', 'Kelli Ochoa',
-        'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale', 'Dorthy Hale',
-        'Munoz Randall', 'Fields Morse', 'Hubbard Nichols', 'Chang Yang', 'Osborn Anthony', 'Owens Warner', 'Gloria Hampton'],
-      ['Lane Hill', 'Belinda Mathews', 'York Gray', 'Celina Stone', 'Victoria Mays', 'Angelina Lott', 'Joyce Mason', 'Shawn Rodriguez',
-        'Susanna Mayo', 'Wolf Fuller', 'Long Hester', 'Dudley Doyle', 'Wilder Sutton', 'Oneal Avery', 'James Mclaughlin',
-        'Lenora Guzman', 'Mcmahon Sullivan', 'Abby Weeks', 'Beverly Joseph', 'Rosalind Church'],
-      ['Myrtle Landry', 'Hays Huff', 'Hernandez Benjamin', 'Mclaughlin Garza', 'Franklin Barton', 'Lara Buchanan', 'Ratliff Beck',
-        'Rosario Munoz', 'Isabelle Dalton', 'Smith Woodard', 'Marjorie Marshall', 'Spears Stein', 'Brianna Bowman',
-        'Marci Clay', 'Palmer Harrell', 'Ball Levy', 'Shelley Mendoza', 'Morrow Glass', 'Baker Knox', 'Adrian Holman'],
+        'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale',
+        'Dorthy Hale', 'Munoz Randall', 'Fields Morse', 'Hubbard Nichols', 'Chang Yang', 'Osborn Anthony',
+        'Owens Warner', 'Gloria Hampton'],
+      ['Lane Hill', 'Belinda Mathews', 'York Gray', 'Celina Stone', 'Victoria Mays', 'Angelina Lott',
+        'Joyce Mason', 'Shawn Rodriguez', 'Susanna Mayo', 'Wolf Fuller', 'Long Hester', 'Dudley Doyle',
+        'Wilder Sutton', 'Oneal Avery', 'James Mclaughlin', 'Lenora Guzman', 'Mcmahon Sullivan', 'Abby Weeks',
+        'Beverly Joseph', 'Rosalind Church'],
+      ['Myrtle Landry', 'Hays Huff', 'Hernandez Benjamin', 'Mclaughlin Garza', 'Franklin Barton',
+        'Lara Buchanan', 'Ratliff Beck', 'Rosario Munoz', 'Isabelle Dalton', 'Smith Woodard',
+        'Marjorie Marshall', 'Spears Stein', 'Brianna Bowman', 'Marci Clay', 'Palmer Harrell', 'Ball Levy',
+        'Shelley Mendoza', 'Morrow Glass', 'Baker Knox', 'Adrian Holman'],
       ['Trisha Howell', 'Brooke Harrison', 'Anthony Watkins', 'Ellis Cobb', 'Sheppard Dillon', 'Mathis Bray',
-        'Foreman Burns', 'Lina Glenn', 'Giles Pollard', 'Weiss Ballard', 'Lynnette Smith', 'Flores Kline', 'Graciela Singleton',
-        'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
+        'Foreman Burns', 'Lina Glenn', 'Giles Pollard', 'Weiss Ballard', 'Lynnette Smith', 'Flores Kline',
+        'Graciela Singleton', 'Santiago Mcclure', 'Claudette Battle', 'Nita Holloway', 'Eula Wolfe',
+        'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
     ];
 
     const hot = handsontable({
@@ -2614,6 +2590,52 @@ describe('ColumnSorting', () => {
     ]);
   });
 
+  describe('cooperation with alter actions', () => {
+    it('should sort proper column after removing column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: {
+          initialConfig: {
+            column: 1,
+            sortOrder: 'desc',
+          }
+        },
+      });
+
+      alter('remove_col', 0);
+
+      expect(getData()).toEqual([
+        ['B3', 'C3'],
+        ['B2', 'C2'],
+        ['B1', 'C1'],
+      ]);
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+    });
+
+    it('should sort proper column after inserting column right before the already sorted one', () => {
+      handsontable({
+        colHeaders: true,
+        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        columnSorting: {
+          initialConfig: {
+            column: 1,
+            sortOrder: 'desc',
+          }
+        },
+      });
+
+      alter('insert_col', 1);
+
+      expect(getData()).toEqual([
+        ['A3', null, 'B3', 'C3'],
+        ['A2', null, 'B2', 'C2'],
+        ['A1', null, 'B1', 'C1'],
+      ]);
+      expect(getPlugin('columnSorting').getSortConfig()).toEqual([{ column: 2, sortOrder: 'desc' }]);
+    });
+  });
+
   // TODO: Remove tests when workaround will be removed.
   describe('workaround regression check', () => {
     it('should not break the dataset when inserted new row', () => {
@@ -2646,6 +2668,69 @@ describe('ColumnSorting', () => {
       alter('insert_col', 2, 5);
 
       expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
+    });
+
+    it('should not break sorting with UI after `updateSettings` call #7228', () => {
+      const onErrorSpy = spyOn(window, 'onerror');
+
+      handsontable({
+        columns: [{}, {}, {}, {}, {}, {}],
+        columnSorting: true,
+        colHeaders: true
+      });
+
+      updateSettings({});
+
+      expect(onErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not break the ability to freeze column', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        fixedColumnsLeft: 1,
+        columnSorting: true,
+        manualColumnFreeze: true,
+        contextMenu: true
+      });
+
+      hot.selectCell(0, 2);
+      contextMenu();
+
+      const freezeColumn = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+        return $(this).text() === 'Freeze column';
+      });
+      simulateClick(freezeColumn);
+
+      expect(hot.getSettings().fixedColumnsLeft).toEqual(2);
+      expect(hot.toPhysicalColumn(0)).toEqual(0);
+      expect(hot.toPhysicalColumn(1)).toEqual(2);
+      expect(hot.toPhysicalColumn(2)).toEqual(1);
+      expect(hot.getData()).toEqual([['A1', 'C1', 'B1']]);
+    });
+  });
+
+  describe('compatibility with options', () => {
+    it('should not break virtual rendering if preventOverflow is used', async() => {
+      spec().$container.css({
+        height: 'auto',
+        width: 'auto',
+        overflow: 'visible'
+      });
+
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(100, 1),
+        columnSorting: true,
+        preventOverflow: 'horizontal',
+      });
+
+      $(window).scrollTop(3000);
+
+      await sleep(500);
+
+      const wtSpreader = spec().$container.find('.ht_master .wtSpreader');
+      const cssTop = parseInt(wtSpreader.css('top'), 10);
+
+      expect(cssTop).toBeGreaterThan(0);
     });
   });
 });

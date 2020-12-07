@@ -70,7 +70,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await sleep(300);
+      await sleep(400);
 
       expect(editor.parentNode.style.display).toEqual('block');
     });
@@ -89,6 +89,21 @@ describe('Comments', () => {
 
       expect(getCell(1, 1).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
       expect(getCell(2, 2).className.indexOf('htCommentCell')).toBeGreaterThan(-1);
+    });
+
+    it('should display the comment editor in the correct place', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        comments: true,
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      plugin.showAtCell(0, 1);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(0, 2)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(0, 2)).offset().left, 0);
     });
   });
 
@@ -245,7 +260,8 @@ describe('Comments', () => {
       const plugin = hot.getPlugin('comments');
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
+      expect(afterSetCellMetaCallback)
+        .toHaveBeenCalledWith(1, 1, 'comment', { value: 'Added comment' }, undefined, undefined);
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', () => {
@@ -440,21 +456,19 @@ describe('Comments', () => {
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
     });
 
-    it('should remove comments from a selected group of cells after clicking the "Delete comment" entry', () => {
+    it('should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from top-left to bottom-right)', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
         cell: [
-          { row: 1, col: 1, comment: { value: 'Test comment' } },
-          { row: 2, col: 2, comment: { value: 'Test comment 2' } }
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
         ]
       });
 
-      expect(getCellMeta(1, 1).comment.value).toEqual('Test comment');
-      expect(getCellMeta(2, 2).comment.value).toEqual('Test comment 2');
-
-      selectCell(1, 1, 2, 2);
+      selectCell(1, 1, 3, 3);
       contextMenu();
 
       const deleteCommentButton = $('.htItemWrapper').filter(function() {
@@ -465,6 +479,33 @@ describe('Comments', () => {
 
       expect(getCellMeta(1, 1).comment).toEqual(void 0);
       expect(getCellMeta(2, 2).comment).toEqual(void 0);
+      expect(getCellMeta(3, 3).comment).toEqual(void 0);
+    });
+
+    it('Should remove the comments from multiple cells after clicking the "Delete comment" entry (selection from bottom-right to top-left)', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
+        ]
+      });
+
+      selectCell(3, 3, 1, 1);
+      contextMenu();
+
+      const deleteCommentButton = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Delete comment';
+      })[0];
+
+      $(deleteCommentButton).simulate('mousedown').simulate('mouseup');
+
+      expect(getCellMeta(1, 1).comment).toEqual(void 0);
+      expect(getCellMeta(2, 2).comment).toEqual(void 0);
+      expect(getCellMeta(3, 3).comment).toEqual(void 0);
     });
 
     it('should make the comment editor\'s textarea read-only after clicking the "Read-only comment" entry', (done) => {
@@ -500,6 +541,68 @@ describe('Comments', () => {
         expect($(editor)[0].readOnly).toBe(true);
         done();
       }, 550);
+    });
+
+    it('should make multiple comment editor\'s textarea read-only after clicking the "Read-only comment" ' +
+       'entry  (selection from top-left to bottom-right)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
+        ]
+      });
+
+      selectCell(1, 1, 3, 3);
+      contextMenu();
+
+      const editor = hot.getPlugin('comments').editor.getInputElement();
+
+      expect($(editor)[0].readOnly).toBe(false);
+
+      const readOnlyComment = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Read-only comment';
+      })[0];
+
+      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
+
+      expect(getCellMeta(1, 1).comment.readOnly).toBe(true);
+      expect(getCellMeta(2, 2).comment.readOnly).toBe(true);
+      expect(getCellMeta(3, 3).comment.readOnly).toBe(true);
+    });
+
+    it('should make multiple comment editor\'s textarea read-only after clicking the "Read-only comment" ' +
+       'entry  (selection from bottom-right to top-left)', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        contextMenu: true,
+        comments: true,
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Test comment 1' } },
+          { row: 2, col: 2, comment: { value: 'Test comment 2' } },
+          { row: 3, col: 3, comment: { value: 'Test comment 3' } },
+        ]
+      });
+
+      selectCell(3, 3, 1, 1);
+      contextMenu();
+
+      const editor = hot.getPlugin('comments').editor.getInputElement();
+
+      expect($(editor)[0].readOnly).toBe(false);
+
+      const readOnlyComment = $('.htItemWrapper').filter(function() {
+        return $(this).text() === 'Read-only comment';
+      })[0];
+
+      $(readOnlyComment).simulate('mousedown').simulate('mouseup');
+
+      expect(getCellMeta(1, 1).comment.readOnly).toBe(true);
+      expect(getCellMeta(2, 2).comment.readOnly).toBe(true);
+      expect(getCellMeta(3, 3).comment.readOnly).toBe(true);
     });
   });
 
@@ -601,15 +704,16 @@ describe('Comments', () => {
       textarea.focus();
       textarea.value = 'Edited comment';
 
-      await sleep(100);
+      await sleep(300);
 
       $('body').simulate('mousedown');
       $('body').simulate('mouseup');
       textarea.blur();
 
-      await sleep(400);
+      await sleep(1000);
 
-      expect(afterSetCellMetaCallback).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
+      expect(afterSetCellMetaCallback)
+        .toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' }, undefined, undefined);
     });
 
     it('should not editing comment by context menu if `beforeSetCellMeta` returned false', async() => {
@@ -652,6 +756,112 @@ describe('Comments', () => {
       await sleep(400);
 
       expect(getCellMeta(0, 0).comment.value).toEqual('test');
+    });
+  });
+
+  describe('hidden row an column integration', () => {
+    it('should display the comment editor in the correct place, when the active cell is past hidden rows/columns', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        comments: true,
+        hiddenColumns: {
+          columns: [0, 1, 4, 8, 9],
+          indicators: true
+        },
+        hiddenRows: {
+          rows: [0, 1, 4, 8, 9],
+          indicators: true
+        },
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      plugin.showAtCell(0, 0);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(hot.rootElement).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(hot.rootElement).offset().left, 0);
+
+      plugin.showAtCell(1, 1);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(hot.rootElement).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(hot.rootElement).offset().left, 0);
+
+      plugin.showAtCell(2, 2);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(2, 3)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(2, 3)).offset().left, 0);
+
+      plugin.showAtCell(3, 3);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(3, 5)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(3, 5)).offset().left, 0);
+
+      plugin.showAtCell(4, 4);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(5, 5)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(5, 5)).offset().left, 0);
+
+      plugin.showAtCell(5, 5);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(5, 6)).offset().top, 0);
+      expect($(editor.parentNode).offset().left).toBeCloseTo($(getCell(5, 6)).offset().left, 0);
+
+      plugin.showAtCell(7, 7);
+
+      expect($(editor.parentNode).offset().top).toBeCloseTo($(getCell(7, 7)).offset().top, 0);
+      expect($(editor.parentNode).offset().left)
+        .toBeCloseTo($(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth(), 0);
+
+      plugin.showAtCell(8, 8);
+
+      expect($(editor.parentNode).offset().top)
+        .toBeCloseTo($(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(), 0);
+      expect($(editor.parentNode).offset().left)
+        .toBeCloseTo($(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth(), 0);
+
+      plugin.showAtCell(9, 9);
+
+      expect($(editor.parentNode).offset().top)
+        .toBeCloseTo($(getCell(7, 7)).offset().top + $(getCell(7, 7)).outerHeight(), 0);
+      expect($(editor.parentNode).offset().left)
+        .toBeCloseTo($(getCell(7, 7)).offset().left + $(getCell(7, 7)).outerWidth(), 0);
+    });
+
+    it('should display the correct values in the comment editor, for cells placed past hidden rows/columns', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        comments: true,
+        hiddenColumns: {
+          columns: [0, 1, 4],
+          indicators: true
+        },
+        hiddenRows: {
+          rows: [0, 1, 4],
+          indicators: true
+        },
+        cell: [
+          { row: 2, col: 2, comment: { value: 'Foo' } },
+          { row: 5, col: 5, comment: { value: 'Bar' } },
+        ],
+      });
+
+      const plugin = hot.getPlugin('comments');
+      const editor = plugin.editor.getInputElement();
+
+      plugin.showAtCell(2, 2);
+      expect($(editor).val()).toEqual('Foo');
+      expect(plugin.getCommentMeta(2, 2, 'value')).toEqual('Foo');
+      expect(plugin.getCommentAtCell(2, 2)).toEqual('Foo');
+      selectCell(2, 2);
+      expect(plugin.getComment()).toEqual('Foo');
+
+      plugin.showAtCell(5, 5);
+      expect($(editor).val()).toEqual('Bar');
+      expect(plugin.getCommentMeta(5, 5, 'value')).toEqual('Bar');
+      expect(plugin.getCommentAtCell(5, 5)).toEqual('Bar');
+      selectCell(5, 5);
+      expect(plugin.getComment()).toEqual('Bar');
     });
   });
 });

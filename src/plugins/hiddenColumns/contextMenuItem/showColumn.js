@@ -1,3 +1,4 @@
+import { arrayEach, arrayMap } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -15,78 +16,94 @@ export default function showColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
     },
     callback() {
-      const [, startVisualColumn, , endVisualColumn] = this.getSelectedLast();
-      const noVisibleIndexesBefore =
-        this.columnIndexMapper.getFirstNotHiddenIndex(startVisualColumn - 1, -1) === -1;
-      const onlyFirstVisibleColumnSelected = noVisibleIndexesBefore && startVisualColumn === endVisualColumn;
-      const noVisibleIndexesAfter =
-        this.columnIndexMapper.getFirstNotHiddenIndex(endVisualColumn + 1, 1) === null;
-      const onlyLastVisibleColumnSelected = noVisibleIndexesAfter && startVisualColumn === endVisualColumn;
-
-      let startPhysicalColumn = this.toPhysicalColumn(startVisualColumn);
-      let endPhysicalColumn = this.toPhysicalColumn(endVisualColumn);
-
-      if (onlyFirstVisibleColumnSelected) {
-        startPhysicalColumn = 0;
+      if (columns.length === 0) {
+        return;
       }
 
-      if (onlyLastVisibleColumnSelected) {
-        endPhysicalColumn = this.countSourceCols() - 1; // All columns after the selected column will be shown.
-      }
+      let startVisualColumn = columns[0];
+      let endVisualColumn = columns[columns.length - 1];
+
+      // Add to the selection one more visual column on the left.
+      startVisualColumn = this.columnIndexMapper
+        .getFirstNotHiddenIndex(startVisualColumn - 1, -1) ?? 0;
+      // Add to the selection one more visual column on the right.
+      endVisualColumn = this.columnIndexMapper
+        .getFirstNotHiddenIndex(endVisualColumn + 1, 1) ?? this.countCols() - 1;
 
       hiddenColumnsPlugin.showColumns(columns);
 
-      const startVisualColumnAfterAction = this.toVisualColumn(startPhysicalColumn);
-      const endVisualColumnAfterAction = this.toVisualColumn(endPhysicalColumn);
-
-      // Selection start and selection end coordinates might be changed after showing some items.
-      this.selectColumns(startVisualColumnAfterAction, endVisualColumnAfterAction);
+      // We render columns at first. It was needed for getting fixed columns.
+      // Please take a look at #6864 for broader description.
       this.render();
       this.view.wt.wtOverlays.adjustElementsSize(true);
+
+      const allColumnsSelected = endVisualColumn - startVisualColumn + 1 === this.countCols();
+
+      // When all headers needs to be selected then do nothing. The header selection is
+      // automatically handled by corner click.
+      if (!allColumnsSelected) {
+        this.selectColumns(startVisualColumn, endVisualColumn);
+      }
     },
     disabled: false,
     hidden() {
-      if (!this.selection.isSelectedByColumnHeader() || hiddenColumnsPlugin.getHiddenColumns().length < 1) {
+      const hiddenPhysicalColumns = arrayMap(hiddenColumnsPlugin.getHiddenColumns(), (visualColumnIndex) => {
+        return this.toPhysicalColumn(visualColumnIndex);
+      });
+
+      if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner()) ||
+          hiddenPhysicalColumns.length < 1) {
         return true;
       }
 
       columns.length = 0;
 
-      const [, startColumn, , endColumn] = this.getSelectedLast();
-      const visualStartColumn = Math.min(startColumn, endColumn);
-      const visualEndColumn = Math.max(startColumn, endColumn);
-      const renderableStartColumn = this.columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
-      const renderableEndColumn = this.columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
+      const selectedRangeLast = this.getSelectedRangeLast();
+      const visualStartColumn = selectedRangeLast.getTopLeftCorner().col;
+      const visualEndColumn = selectedRangeLast.getBottomRightCorner().col;
+      const columnIndexMapper = this.columnIndexMapper;
+      const renderableStartColumn = columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
+      const renderableEndColumn = columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
+      const notTrimmedColumnIndexes = columnIndexMapper.getNotTrimmedIndexes();
+      const physicalColumnIndexes = [];
 
-      if (visualStartColumn === visualEndColumn) {
-        // Handled column is the first rendered index and there are some visual indexes before it.
-        if (renderableStartColumn === 0 && renderableStartColumn < visualStartColumn) {
-          // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
-          columns.push(...this.columnIndexMapper.getNotTrimmedIndexes().slice(0, visualStartColumn)); // physical indexes
+      if (visualStartColumn !== visualEndColumn) {
+        const visualColumnsInRange = visualEndColumn - visualStartColumn + 1;
+        const renderedColumnsInRange = renderableEndColumn - renderableStartColumn + 1;
 
-          return false;
+        // Collect not trimmed columns if there are some hidden columns in the selection range.
+        if (visualColumnsInRange > renderedColumnsInRange) {
+          const physicalIndexesInRange = notTrimmedColumnIndexes.slice(visualStartColumn, visualEndColumn + 1);
+
+          physicalColumnIndexes.push(...physicalIndexesInRange
+            .filter(physicalIndex => hiddenPhysicalColumns.includes(physicalIndex)));
         }
 
+      // Handled column is the first rendered index and there are some visual indexes before it.
+      } else if (renderableStartColumn === 0 && renderableStartColumn < visualStartColumn) {
+        // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
+        physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(0, visualStartColumn)); // physical indexes
+
+      // When all columns are hidden and the context menu is triggered using top-left corner.
+      } else if (renderableStartColumn === null) {
+        // Show all hidden columns.
+        physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(0, this.countCols()));
+
+      } else {
         const lastVisualIndex = this.countCols() - 1;
-        const lastRenderableIndex = this.columnIndexMapper.getRenderableFromVisualIndex(
-          this.columnIndexMapper.getFirstNotHiddenIndex(lastVisualIndex, -1)
+        const lastRenderableIndex = columnIndexMapper.getRenderableFromVisualIndex(
+          columnIndexMapper.getFirstNotHiddenIndex(lastVisualIndex, -1)
         );
 
         // Handled column is the last rendered index and there are some visual indexes after it.
         if (renderableEndColumn === lastRenderableIndex && lastVisualIndex > visualEndColumn) {
-          columns.push(...this.columnIndexMapper.getNotTrimmedIndexes().slice(visualEndColumn + 1));
-        }
-      } else {
-        const visualColumnsInRange = visualEndColumn - visualStartColumn + 1;
-        const renderedColumnsInRange = renderableEndColumn - renderableStartColumn + 1;
-
-        if (visualColumnsInRange > renderedColumnsInRange) {
-          const hiddenColumns = hiddenColumnsPlugin.getHiddenColumns();
-          const physicalIndexesInRange = this.columnIndexMapper.getNotTrimmedIndexes().slice(visualStartColumn + 1, visualEndColumn);
-
-          columns.push(...physicalIndexesInRange.filter(physicalIndex => hiddenColumns.includes(physicalIndex)));
+          physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(visualEndColumn + 1));
         }
       }
+
+      arrayEach(physicalColumnIndexes, (physicalColumnIndex) => {
+        columns.push(this.toVisualColumn(physicalColumnIndex));
+      });
 
       return columns.length === 0;
     }

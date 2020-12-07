@@ -223,6 +223,10 @@
   /*overwrite styles potentionally made by a framework*/
 }
 
+.handsontableInput:focus {
+  outline: none;
+}
+
 .handsontableInputHolder {
   position: absolute;
   top: 0;
@@ -233,6 +237,10 @@
   -webkit-appearance: menulist-button !important;
   position: absolute;
   width: auto;
+}
+
+.htSelectEditor:focus {
+  outline: none;
 }
 
 /*

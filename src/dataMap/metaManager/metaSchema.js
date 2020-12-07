@@ -4,7 +4,7 @@ import { isObjectEqual } from '../../helpers/object';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
- * @class
+ * @class Options
  * @description
  *
  * ## Constructor options.
@@ -94,7 +94,7 @@ export default () => {
     /**
      * @description
      * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
-     * Can be declared as an array of arrays, array of objects or a function.
+     * Can be declared as an array of arrays or an array of objects.
      *
      * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
      *
@@ -394,8 +394,8 @@ export default () => {
      * operations based on the __visual__ representation of Handsontable.
      *
      * Possible values of `prop`:
-     * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
-     * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array).
+     * - property name for column's data source object, when dataset is an [array of objects](https://handsontable.com/docs/tutorial-data-sources.html#page-object)
+     * - the same number as `col`, when dataset is an [array of arrays](https://handsontable.com/docs/tutorial-data-sources.html#page-array).
      *
      * @memberof Options#
      * @type {Function}
@@ -404,7 +404,7 @@ export default () => {
      * @example
      * ```js
      * cells: function(row, column, prop) {
-     *   const cellProperties = {};
+     *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
      *   const visualColIndex = this.instance.toVisualColumn(column);
      *
@@ -468,7 +468,7 @@ export default () => {
      * // or
      * // enable comments plugin and add predefined comments
      * const hot = new Handsontable(document.getElementById('example'), {
-     *   date: getData(),
+     *   data: getData(),
      *   comments: true,
      *   cell: [
      *     { row: 1, col: 1, comment: { value: 'Foo' } },
@@ -848,19 +848,19 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|Function}
-     * @default {row: 1, col: 0}
+     * @default {col: 0, row: 1}
      *
      * @example
      * ```js
      * // move selection diagonal by 1 cell in x and y axis
-     * enterMoves: {row: 1, col: 1},
+     * enterMoves: {col: 1, row: 1},
      * // or as a function
      * enterMoves: function(event) {
-     *   return {row: 1, col: 1};
+     *   return {col: 1, row: 1};
      * },
      * ```
      */
-    enterMoves: { row: 1, col: 0 },
+    enterMoves: { col: 0, row: 1 },
 
     /**
      * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
@@ -1355,7 +1355,7 @@ export default () => {
 
     /**
      * @description
-     * Makes cell [read only](https://docs.handsontable.com/demo-read-only.html).
+     * Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
      *
      * @memberof Options#
      * @type {boolean}
@@ -1363,7 +1363,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set cell as read only
+     * // set as read only
      * readOnly: true,
      * ```
      */
@@ -1643,6 +1643,10 @@ export default () => {
      * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
      * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom).
      *
+     * If the value is an object, you can also customize the options with:
+     * * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
+     * * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
+     *
      * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
      *
      * @memberof Options#
@@ -1688,19 +1692,29 @@ export default () => {
      * Disables or enables the copy/paste functionality.
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {object|boolean}
      * @default true
      *
      * @example
      * ```js
      * // disable copy and paste
      * copyPaste: false,
+     *
+     * // enable copy and paste with custom configuration
+     * copyPaste: {
+     *   columnsLimit: 25,
+     *   rowsLimit: 50,
+     *   pasteMode: 'shift_down',
+     *   uiContainer: document.body,
+     * },
      * ```
      */
     copyPaste: true,
 
     /**
      * If `true`, undo/redo functionality is enabled.
+     * Note: `undefined` by default but it acts as enabled.
+     * You need to switch it to `false` to disable it completely.
      *
      * @memberof Options#
      * @type {boolean}
@@ -1870,7 +1884,7 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Multi-column sorting](https://docs.handsontable.com/pro/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+     * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
      * * `initialConfig` - Array containing objects, every with predefined keys:
      *   * `column` - sorted column
      *   * `sortOrder` - order in which column will be sorted
@@ -2253,7 +2267,8 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`.
+     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`,
+     * meaning, the `syncLimit` is set to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
      *
      * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
@@ -2286,6 +2301,8 @@ export default () => {
      * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
      * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
      *
+     * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
+     *
      * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
      * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
      * operations don't block the browser UI.
@@ -2294,7 +2311,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|boolean}
-     * @default {syncLimit: 500}
+     * @default undefined
      *
      * @example
      * ```js
@@ -2528,7 +2545,7 @@ export default () => {
      *  * `'average'`
      *  * `'custom'` - add `customFunction`.
      *
-     * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
+     * [See the demo for more information](https://docs.handsontable.com/demo-summary-calculations.html).
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -2615,17 +2632,6 @@ export default () => {
 
     /**
      * @description
-     * The {@link GanttChart} plugin enables a possibility to create a Gantt chart using a Handsontable instance. In this
-     * case, the whole table becomes read-only.
-     *
-     * @memberof Options#
-     * @type {object}
-     * @default undefined
-     */
-    ganttChart: void 0,
-
-    /**
-     * @description
      * Allows adding a tooltip to the table headers.
      *
      * Available options:
@@ -2636,6 +2642,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js
@@ -2799,6 +2806,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js
@@ -2899,7 +2907,7 @@ export default () => {
      * @description
      * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
      *
-     * See [quick setup of the Nested rows](https://docs.handsontable.kbudnik/pro/next/demo-nested-rows.html).
+     * See [quick setup of the Nested rows](https://handsontable.com/docs/demo-nested-rows.html).
      * @example
      * ```js
      * nestedRows: true,

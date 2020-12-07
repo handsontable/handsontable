@@ -230,6 +230,7 @@ describe('MergeCells', () => {
 
     });
 
+    // TODO: After some changes please take a look at #7010.
     it('should select cells in the correct direction when changing selections around a merged range', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
@@ -240,15 +241,25 @@ describe('MergeCells', () => {
 
       hot.selectCell(5, 5, 5, 2);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('SE-NW');
+      // Rectangular area from the marginal cell to the cell on the opposite.
+      expect(hot.getSelected()).toEqual([[5, 5, 4, 2]]);
+
+      // What about, for example: hot.selectCell(5, 4, 5, 2);
+      // Is it specified properly?
 
       hot.selectCell(4, 4, 2, 5);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('SW-NE');
+      // It flips the selection direction vertically.
+      expect(hot.getSelected()).toEqual([[5, 4, 2, 5]]);
 
       hot.selectCell(4, 4, 5, 7);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('NW-SE');
+      expect(hot.getSelected()).toEqual([[4, 4, 5, 7]]);
 
       hot.selectCell(4, 5, 7, 5);
       expect(hot.getSelectedRangeLast().getDirection()).toEqual('NE-SW');
+      // It flips the selection direction horizontally.
+      expect(hot.getSelected()).toEqual([[4, 5, 7, 4]]);
     });
 
     it('should not add an area class to the selected cell if a single merged cell is selected', () => {
@@ -434,7 +445,180 @@ describe('MergeCells', () => {
       keyDownUp('shift+enter');
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('I1');
-      keyDownUp('shift+enter');
+    });
+
+    describe('compatibility with other plugins', () => {
+      it('should be possible to traverse through columns using the DOWN ARROW or ENTER, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenColumns: {
+            columns: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(0, 2);
+
+        keyDownUp('enter');
+        keyDownUp('enter');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('enter');
+        keyDownUp('enter');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(3, 2));
+
+        selectCell(0, 2);
+
+        keyDownUp('arrow_down');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_down');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(3, 2));
+      });
+
+      it('should be possible to traverse through columns using the UP ARROW or SHIFT+ENTER, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenColumns: {
+            columns: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(3, 2);
+
+        keyDownUp('shift+enter');
+        keyDownUp('shift+enter');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('shift+enter');
+        keyDownUp('shift+enter');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(0, 2));
+
+        selectCell(3, 2);
+
+        keyDownUp('arrow_up');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_up');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(0, 2));
+      });
+
+      it('should be possible to traverse through columns using the RIGHT ARROW or TAB, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenRows: {
+            rows: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(2, 0);
+
+        keyDownUp('tab');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('tab');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 3));
+
+        selectCell(2, 0);
+
+        keyDownUp('arrow_right');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_right');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 3));
+      });
+
+      it('should be possible to traverse through columns using the LEFT ARROW or SHIFT+TAB, when there\'s a' +
+        ' partially-hidden merged cell in the way', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          hiddenRows: {
+            rows: [1],
+            indicators: true
+          },
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 2, colspan: 2 }
+          ]
+        });
+
+        selectCell(2, 3);
+
+        keyDownUp('shift+tab');
+
+        let lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('shift+tab');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 0));
+
+        selectCell(2, 3);
+
+        keyDownUp('arrow_left');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 2));
+
+        keyDownUp('arrow_left');
+
+        lastSelectedRange = getSelectedRangeLast();
+
+        expect(getCell(lastSelectedRange.highlight.row, lastSelectedRange.highlight.col)).toEqual(getCell(2, 0));
+      });
     });
   });
 
@@ -821,14 +1005,18 @@ describe('MergeCells', () => {
         mergeCells: newMergedCells
       });
 
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: -5, col: 8, rowspan: 3, colspan: 4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: 20, col: -21, rowspan: 3, colspan: 4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: 200, col: 210, rowspan: -3, colspan: 4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
-      expect(warnSpy).toHaveBeenCalledWith('The merged cell declared with {row: 220, col: 220, rowspan: 3, colspan: -4} ' +
-        'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: -5, col: 8, rowspan: 3, colspan: 4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: 20, col: -21, rowspan: 3, colspan: 4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: 200, col: 210, rowspan: -3, colspan: 4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
+      expect(warnSpy)
+        .toHaveBeenCalledWith('The merged cell declared with {row: 220, col: 220, rowspan: 3, colspan: -4} ' +
+          'contains negative values, which is not supported. It will not be added to the collection.');
 
       expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
     });
@@ -1176,7 +1364,6 @@ describe('MergeCells', () => {
         'Insert row below',
         'Insert column left',
         'Insert column right',
-        'Remove rows',
         'Remove columns',
         'Undo',
         'Redo',
@@ -1232,11 +1419,13 @@ describe('MergeCells', () => {
       });
 
       hot.selectColumns(5);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[0,5,9,5]');
+
+      expect(hot.getSelectedLast()).toEqual([-1, 5, 9, 5]);
 
       // it should work only for selecting the entire column
       hot.selectCell(4, 5, 7, 5);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[4,4,7,8]');
+
+      expect(hot.getSelectedLast()).toEqual([4, 4, 7, 8]);
     });
 
     it('should be possible to select a single entire row, when there\'s a merged cell in it', () => {
@@ -1248,11 +1437,13 @@ describe('MergeCells', () => {
       });
 
       hot.selectRows(5);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[5,0,5,9]');
+
+      expect(hot.getSelectedLast()).toEqual([5, -1, 5, 9]);
 
       // it should work only for selecting the entire row
       hot.selectCell(6, 3, 6, 7);
-      expect(JSON.stringify(hot.getSelectedLast())).toEqual('[5,3,9,7]');
+
+      expect(hot.getSelectedLast()).toEqual([5, 3, 9, 7]);
     });
   });
 

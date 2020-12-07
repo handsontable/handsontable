@@ -17,5 +17,6 @@ Handsontable.plugins;
 Handsontable.renderers;
 Handsontable.validators;
 new Handsontable.Core(elem, {});
-const defaultSettings: Handsontable.GridSettings = new Handsontable.DefaultSettings();
+
+const defaultSettings: Handsontable.GridSettings = Handsontable.DefaultSettings;
 new Handsontable.EventManager({});

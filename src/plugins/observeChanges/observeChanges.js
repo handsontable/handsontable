@@ -1,6 +1,7 @@
 import BasePlugin from './../_base';
 import DataObserver from './dataObserver';
 import { arrayEach } from './../../helpers/array';
+import { warn } from '../../helpers/console';
 import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
@@ -8,15 +9,17 @@ import { registerPlugin } from './../../plugins';
 /**
  * @plugin ObserveChanges
  *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
  * disabled. Enabling this plugin switches the table into one-way data binding where changes are applied into the data
  * source (outside from the table) will be automatically reflected in the table.
  *
+ * @example
  * ```js
  * // as a boolean
  * observeChanges: true,
- * ```.
+ * ```
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */
@@ -50,6 +53,7 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
+      warn('The Observe Changes plugin is deprecated and will be removed in the next major release');
       this.observer = new DataObserver(this.hot.getSettings().data);
       this._exposePublicApi();
     }

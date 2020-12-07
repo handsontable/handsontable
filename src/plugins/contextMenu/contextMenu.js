@@ -31,6 +31,7 @@ Hooks.getSingleton().register('afterContextMenuExecute');
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class ContextMenu
  * @description
  * This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
  * grid among [other features](https://handsontable.com/docs/demo-context-menu.html).

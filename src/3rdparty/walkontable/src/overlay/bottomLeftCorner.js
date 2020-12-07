@@ -37,49 +37,37 @@ class BottomLeftCornerOverlay extends Overlay {
    */
   shouldBeRendered() {
     const { wot } = this;
-    /* eslint-disable no-unneeded-ternary */
-    return wot.getSetting('fixedRowsBottom') &&
-      (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length) ? true : false;
-  }
 
-  /**
-   * Reposition the overlay.
-   */
-  repositionOverlay() {
-    const { wtTable, rootDocument } = this.wot;
-    const cloneRoot = this.clone.wtTable.holder.parentNode;
-    let scrollbarWidth = getScrollbarWidth(rootDocument);
-
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
-      scrollbarWidth = 0;
-    }
-
-    cloneRoot.style.top = '';
-    cloneRoot.style.bottom = `${scrollbarWidth}px`;
+    return wot.getSetting('shouldRenderBottomOverlay') && wot.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
    * Updates the corner overlay position.
+   *
+   * @returns {boolean}
    */
   resetFixedPosition() {
     const { wot } = this;
+
     this.updateTrimmingContainer();
 
     if (!wot.wtTable.holder.parentNode) {
       // removed from DOM
       return;
     }
+
     const overlayRoot = this.clone.wtTable.holder.parentNode;
 
     overlayRoot.style.top = '';
 
     if (this.trimmingContainer === wot.rootWindow) {
-      const box = wot.wtTable.hider.getBoundingClientRect();
-      const bottom = Math.ceil(box.bottom);
-      const left = Math.ceil(box.left);
+      const { rootDocument, wtTable } = this.wot;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const bottom = Math.ceil(hiderRect.bottom);
+      const left = Math.ceil(hiderRect.left);
+      const bodyHeight = rootDocument.documentElement.clientHeight;
       let finalLeft;
       let finalBottom;
-      const bodyHeight = wot.rootDocument.body.offsetHeight;
 
       if (left < 0) {
         finalLeft = -left;
@@ -92,10 +80,10 @@ class BottomLeftCornerOverlay extends Overlay {
       } else {
         finalBottom = 0;
       }
+
       finalBottom += 'px';
       finalLeft += 'px';
 
-      overlayRoot.style.top = '';
       overlayRoot.style.left = finalLeft;
       overlayRoot.style.bottom = finalBottom;
 
@@ -113,6 +101,23 @@ class BottomLeftCornerOverlay extends Overlay {
 
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;
+
+    return false;
+  }
+
+  /**
+   * Reposition the overlay.
+   */
+  repositionOverlay() {
+    const { wtTable, rootDocument } = this.wot;
+    const cloneRoot = this.clone.wtTable.holder.parentNode;
+    let scrollbarWidth = getScrollbarWidth(rootDocument);
+
+    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+      scrollbarWidth = 0;
+    }
+
+    cloneRoot.style.bottom = `${scrollbarWidth}px`;
   }
 }
 

@@ -47,13 +47,52 @@ describe('NestedRows', () => {
       expect(hot.countRows()).toEqual(18);
     });
 
-    it('should display all nested structure elements in correct order (parent, its children, its children children, next parent etc)', () => {
+    it('should display all nested structure elements in correct order (parent, its children, ' +
+      'its children children, next parent etc)', () => {
       const hot = handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
       });
 
       expect(hot.getData()).toEqual(dataInOrder);
+    });
+  });
+
+  describe('integration', () => {
+    describe('formulas', () => {
+      it('should process formula in a child row', () => {
+        handsontable({
+          data: [
+            {
+              col1: null,
+              __children: [{ col1: '=SUM(2+2)' }],
+            },
+          ],
+          nestedRows: true,
+          formulas: true,
+        });
+
+        expect(getDataAtCell(1, 0)).toBe(4);
+      });
+    });
+
+    describe('undoRedo', () => {
+      it('should properly undo remove of the child row', () => {
+        handsontable({
+          data: [
+            {
+              col1: 'A1',
+              __children: [{ col1: 'A1.1' }],
+            },
+          ],
+          nestedRows: true,
+        });
+
+        alter('remove_row', 1);
+        undo();
+
+        expect(getDataAtCell(1, 0)).toBe('A1.1');
+      });
     });
   });
 
@@ -87,7 +126,8 @@ describe('NestedRows', () => {
       expect(getDataAtCell(2, 0)).toEqual('a0-a1');
     });
 
-    it('should not move rows when any of them is a parent', () => {
+    it('should not move rows when any of them is a parent, regardless of if it\'s collapsed or not (and not throw any' +
+      ' errors in the process)', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true,
@@ -95,13 +135,84 @@ describe('NestedRows', () => {
         rowHeaders: true
       });
 
-      getPlugin('manualRowMove').dragRows([0, 1], 2);
+      let errorCount = 0;
+
+      try {
+        getPlugin('manualRowMove').dragRows([0, 1], 2);
+
+        expect(getData()).toEqual(dataInOrder);
+
+        getPlugin('manualRowMove').dragRows([1, 0], 2);
+
+        expect(getData()).toEqual(dataInOrder);
+
+      } catch (err) {
+        errorCount += 1;
+      }
+
+      hot().getPlugin('nestedRows').collapsingUI.collapseChildren(0);
+      hot().getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+
+      try {
+        getPlugin('manualRowMove').dragRows([1], 2);
+
+      } catch (err) {
+        errorCount += 1;
+      }
+
+      hot().getPlugin('nestedRows').collapsingUI.expandChildren(0);
+      hot().getPlugin('nestedRows').collapsingUI.expandChildren(8);
 
       expect(getData()).toEqual(dataInOrder);
 
-      getPlugin('manualRowMove').dragRows([1, 0], 2);
+      expect(errorCount).toEqual(0);
+    });
 
-      expect(getData()).toEqual(dataInOrder);
+    it('should not move rows when they are on the highest level of nesting (don\'t have a parent)', () => {
+      handsontable({
+        data: [
+          {
+            category: 'Best Metal Performance',
+            __children: [
+              {
+                artist: 'Ghost',
+              },
+              {
+                artist: 'Slipknot',
+              }
+            ]
+          },
+          {
+            category: 'Best Rock Song'
+          },
+          {
+            category: 'test',
+            __children: []
+          }
+        ],
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        columns: [
+          {
+            data: 'category'
+          },
+          {
+            data: 'artist'
+          }
+        ]
+      });
+
+      getPlugin('manualRowMove').dragRows([3], 1);
+      getPlugin('manualRowMove').dragRows([4], 1);
+
+      expect(getData()).toEqual([
+        ['Best Metal Performance', null],
+        [null, 'Ghost'],
+        [null, 'Slipknot'],
+        ['Best Rock Song', null],
+        ['test', null],
+      ]);
     });
 
     // Another work than the `ManualRowMove` plugin.
@@ -130,7 +241,8 @@ describe('NestedRows', () => {
       expect(getData()).toEqual(dataInOrder);
     });
 
-    it('should move row to the first parent of destination row whether there was a try of moving it on the row being a parent #1', () => {
+    it('should move row to the first parent of destination row when there was a try ' +
+      'of moving it on the row being a parent #1', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true,
@@ -147,14 +259,17 @@ describe('NestedRows', () => {
       expect(getDataAtCell(3, 0)).toEqual('a0-a2');
       expect(getPlugin('nestedRows').dataManager.isParent(3)).toBeTruthy();
 
-      expect(getDataAtCell(4, 0)).toEqual('a0-a2-a0');
-      expect(getPlugin('nestedRows').dataManager.isParent(4)).toBeTruthy();
+      expect(getDataAtCell(4, 0)).toEqual('a2-a1-a1');
+      expect(getPlugin('nestedRows').dataManager.isParent(4)).toBeFalsy();
 
-      expect(getDataAtCell(5, 0)).toEqual('a0-a2-a0-a0');
-      expect(getPlugin('nestedRows').dataManager.isParent(5)).toBeFalsy();
+      expect(getDataAtCell(5, 0)).toEqual('a0-a2-a0');
+      expect(getPlugin('nestedRows').dataManager.isParent(5)).toBeTruthy();
+
+      expect(getDataAtCell(6, 0)).toEqual('a0-a2-a0-a0');
+      expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeFalsy();
 
       // Moved row.
-      expect(getDataAtCell(6, 0)).toEqual('a2-a1-a1');
+      expect(getDataAtCell(4, 0)).toEqual('a2-a1-a1');
 
       // Previous parent of moved row.
       expect(getDataAtCell(11, 0)).toEqual('a2-a1');
@@ -162,7 +277,8 @@ describe('NestedRows', () => {
       expect(getPlugin('nestedRows').dataManager.countChildren(firstParent)).toBe(1);
     });
 
-    it('should move row to the first parent of destination row whether there was a try of moving it on the row being a parent #2', () => {
+    it('should move row to the first parent of destination row when there was a try ' +
+      'of moving it on the row being a parent #2', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true,
@@ -180,24 +296,21 @@ describe('NestedRows', () => {
       expect(getPlugin('nestedRows').dataManager.isParent(8)).toBeTruthy();
 
       expect(getDataAtCell(9, 0)).toEqual('a2-a0');
-      // expect(getPlugin('nestedRows').dataManager.isParent(9)).toBeFalsy(); // TODO: Bug? Element has empty array under the `__children` key.
+      expect(getPlugin('nestedRows').dataManager.isParent(9)).toBeFalsy();
+
+      expect(getDataAtCell(10, 0)).toEqual('a2-a1-a1');
+      expect(getPlugin('nestedRows').dataManager.isParent(10)).toBeFalsy();
 
       // Previous parent of moved row.
-      expect(getDataAtCell(10, 0)).toEqual('a2-a1');
-
-      expect(getPlugin('nestedRows').dataManager.isParent(10)).toBeTruthy();
+      expect(getDataAtCell(11, 0)).toEqual('a2-a1');
+      expect(getPlugin('nestedRows').dataManager.isParent(11)).toBeTruthy();
       expect(getPlugin('nestedRows').dataManager.countChildren(firstParent)).toBe(1);
 
-      expect(getDataAtCell(11, 0)).toEqual('a2-a1-a0');
-      // expect(getPlugin('nestedRows').dataManager.isParent(11)).toBeFalsy(); // TODO: Bug? Element has empty array under the `__children` key.
-
-      // Moved row.
-      expect(getDataAtCell(12, 0)).toEqual('a2-a1-a1');
-
+      expect(getDataAtCell(12, 0)).toEqual('a2-a1-a0');
       expect(getPlugin('nestedRows').dataManager.isParent(12)).toBeFalsy();
     });
 
-    it('should add row to element as child whether there is no parent of final destination row', () => {
+    it('should add row to element as child when there is no parent of final destination row', () => {
       const hot = handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true,
@@ -223,7 +336,8 @@ describe('NestedRows', () => {
       expect(getDataAtCell(7, 0)).toEqual('a0-a0');
     });
 
-    it('should not move row whether there was a try of moving it on the row being a parent and it has no rows above', () => {
+    it('should not move any rows, when trying to move a row above a parent, when the parent is the first row in the' +
+      ' table', () => {
       handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true,
@@ -273,18 +387,20 @@ describe('NestedRows', () => {
         data: getSimplerNestedData(),
         nestedRows: true,
         manualRowMove: true,
-        rowHeaders: true
+        rowHeaders: true,
       });
 
+      const $fromHeader = spec().$container.find('tbody tr:eq(7) th:eq(0)');
       const $targetHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
 
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mouseup');
-      spec().$container.find('tbody tr:eq(7) th:eq(0)').simulate('mousedown');
+      $fromHeader.simulate('mousedown');
+      $fromHeader.simulate('mouseup');
+      $fromHeader.simulate('mousedown');
 
       $targetHeader.simulate('mouseover');
       $targetHeader.simulate('mousemove', {
-        clientY: $targetHeader.offset().top
+        offsetX: 5,
+        offsetY: 5,
       });
 
       $targetHeader.simulate('mouseup');
@@ -294,6 +410,436 @@ describe('NestedRows', () => {
       expect(getDataAtCell(7, 0)).toEqual('Best Metal Performance');
       expect(getDataAtCell(8, 1)).toEqual('August Burns Red');
       expect(getSelectedLast()).toEqual([1, 0, 1, 3]);
+    });
+
+    it('should be possible to move multiple rows within one parent and between two parents', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 1000
+      });
+
+      let firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+      let secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(3) th:eq(0)');
+      let $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(5) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        offsetX: 5,
+        offsetY: 5,
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getDataAtCell(1, 1)).toEqual('Alabama Shakes');
+      expect(getDataAtCell(2, 1)).toEqual('Elle King');
+      expect(getDataAtCell(3, 1)).toEqual('Florence & The Machine');
+      expect(getDataAtCell(4, 1)).toEqual('Foo Fighters');
+      expect(getDataAtCell(5, 1)).toEqual('Wolf Alice');
+
+      firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(7) th:eq(0)');
+      secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(9) th:eq(0)');
+      $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(5) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        offsetX: 5,
+        offsetY: 5,
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getDataAtCell(1, 1)).toEqual('Alabama Shakes');
+      expect(getDataAtCell(2, 1)).toEqual('Elle King');
+      expect(getDataAtCell(3, 1)).toEqual('Florence & The Machine');
+      expect(getDataAtCell(4, 1)).toEqual('Foo Fighters');
+      expect(getDataAtCell(5, 1)).toEqual('Ghost');
+      expect(getDataAtCell(6, 1)).toEqual('August Burns Red');
+      expect(getDataAtCell(7, 1)).toEqual('Lamb Of God');
+      expect(getDataAtCell(8, 1)).toEqual('Wolf Alice');
+
+      const dataManager = getPlugin('nestedRows').dataManager;
+
+      expect(dataManager.countChildren(0)).toEqual(8);
+      expect(dataManager.countChildren(9)).toEqual(2);
+    });
+
+    it('should be possible to move multiple rows between two parents on different levels', () => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 1000
+      });
+
+      const firstBaseHeader = spec().$container.find('tbody tr:eq(11) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('tbody tr:eq(12) th:eq(0)');
+      const $targetHeader = spec().$container.find('tbody tr:eq(5) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        offsetX: 5,
+        offsetY: 10,
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getDataAtCell(4, 0)).toEqual('a0-a2-a0');
+      expect(getDataAtCell(5, 0)).toEqual('a2-a1-a0');
+      expect(getDataAtCell(6, 0)).toEqual('a2-a1-a1');
+      expect(getDataAtCell(7, 0)).toEqual('a0-a2-a0-a0');
+
+      const dataManager = getPlugin('nestedRows').dataManager;
+
+      expect(dataManager.countChildren(4)).toEqual(3);
+      expect(dataManager.countChildren(12)).toEqual(0);
+    });
+
+    it('should be possible to move rows to the last row of the table', () => {
+      handsontable({
+        data: getMoreComplexNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 500
+      });
+
+      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(12) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        clientY: $targetHeader.offset().top + 15
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getDataAtCell(0, 0)).toEqual('a0');
+      expect(getDataAtCell(1, 0)).toEqual('a0-a2');
+      expect(getDataAtCell(11, 0)).toEqual('a0-a0');
+      expect(getDataAtCell(12, 0)).toEqual('a0-a1');
+
+      const dataManager = getPlugin('nestedRows').dataManager;
+
+      expect(dataManager.countChildren(0)).toEqual(4);
+      expect(dataManager.countChildren(8)).toEqual(4);
+    });
+
+    it('should be possible to move rows after the last child of a parent', () => {
+      const hot = handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 500
+      });
+
+      hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+
+      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(10) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(11) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(6) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        offsetX: 5,
+        offsetY: 5,
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getDataAtCell(6, 1)).toEqual('James Bay');
+      expect(getDataAtCell(7, 1)).toEqual('Highly Suspect');
+      expect(getDataAtCell(11, 1)).toEqual('Elle King');
+      expect(getDataAtCell(12, 1)).toEqual('Florence & The Machine');
+    });
+
+    it('should be possible to move rows after the last child of a parent along with its meta data', () => {
+      const hot = handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 500
+      });
+
+      hot.setCellMeta(1, 0, 'className', 'htSearchResult');
+      hot.setCellMeta(2, 0, 'className', 'htSearchResult');
+
+      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(6) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        offsetX: 5,
+        offsetY: 5,
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(hot.getCellMeta(4, 0).className.includes('htSearchResult')).toBe(true);
+      expect(hot.getCellMeta(5, 0).className.includes('htSearchResult')).toBe(true);
+    });
+
+    it('should be possible to move rows into a collapsed parent (they should be placed as their last child)', () => {
+      const hot = handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 500
+      });
+
+      hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+
+      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(11) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(12) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(6) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        clientY: $targetHeader.offset().top + 15
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getDataAtCell(9, 1)).toEqual('Elle King');
+      expect(getDataAtCell(10, 1)).toEqual('James Bay');
+
+      const dataManager = getPlugin('nestedRows').dataManager;
+
+      expect(dataManager.countChildren(6)).toEqual(7);
+      expect(dataManager.countChildren(14)).toEqual(3);
+
+      expect(dataManager.getDataObject(6).__children.pop().artist).toEqual('Florence & The Machine');
+      expect(dataManager.getDataObject(6).__children.pop().artist).toEqual('Highly Suspect');
+    });
+
+    it('should not expand and parents, if they were collapsed at the time of moving rows', () => {
+      const hot = handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 500
+      });
+
+      hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+      hot.getPlugin('nestedRows').collapsingUI.collapseChildren(12);
+
+      const firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
+      const secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+      const $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(7) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        clientY: $targetHeader.offset().top + 5
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getDataAtCell(4, 0)).toEqual('Best Metal Performance');
+      expect(getDataAtCell(5, 0)).toEqual('Best Rock Song');
+
+      const collapsingUI = getPlugin('nestedRows').collapsingUI;
+
+      expect(collapsingUI.areChildrenCollapsed(4)).toBe(true);
+      expect(collapsingUI.areChildrenCollapsed(12)).toBe(true);
+    });
+
+    it('should select the collapsed parent after rows were moved inside of it', () => {
+      const hot = handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        manualRowMove: true,
+        rowHeaders: true,
+        width: 500,
+        height: 500
+      });
+
+      hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+      hot.getPlugin('nestedRows').collapsingUI.collapseChildren(12);
+
+      let firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
+      let secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+      let $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(7) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        offsetX: 5,
+        offsetY: 5,
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getSelected()[0]).toEqual([4, 0, 4, 3]);
+
+      firstBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(1) th:eq(0)');
+      secondBaseHeader = spec().$container.find('.ht_clone_left tbody tr:eq(2) th:eq(0)');
+      $targetHeader = spec().$container.find('.ht_clone_left tbody tr:eq(5) th:eq(0)');
+
+      firstBaseHeader.simulate('mousedown');
+      secondBaseHeader.simulate('mouseover');
+      secondBaseHeader.simulate('mousemove');
+      secondBaseHeader.simulate('mouseup');
+      secondBaseHeader.simulate('mousedown');
+
+      $targetHeader.simulate('mouseover');
+      $targetHeader.simulate('mousemove', {
+        clientY: $targetHeader.offset().top + 15
+      });
+
+      $targetHeader.simulate('mouseup');
+
+      expect(getSelected()[0]).toEqual([3, 0, 3, 3]);
+    });
+  });
+
+  it('should remove collapsed indexes properly', async() => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true
+    });
+
+    const plugin = getPlugin('nestedRows');
+
+    plugin.collapsingUI.collapseChildren(0);
+    plugin.collapsingUI.collapseChildren(6);
+    plugin.collapsingUI.collapseChildren(12);
+
+    alter('remove_row', 2);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([
+      ['Best Rock Performance', null, null, null],
+      ['Best Metal Performance', null, null, null],
+    ]);
+
+    alter('remove_row', 1);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([['Best Rock Performance', null, null, null]]);
+
+    alter('remove_row', 0);
+
+    await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
+
+    expect(getData()).toEqual([]);
+  });
+
+  describe('API', () => {
+    describe('disableCoreAPIModifiers and enableCoreAPIModifiers', () => {
+      it('should kill the runtime of the core API modifying hook callbacks - ' +
+        'onModifyRowData, onModifySourceLength and onBeforeDataSplice', () => {
+        handsontable({
+          data: getSimplerNestedData(),
+          nestedRows: true,
+          manualRowMove: true,
+          rowHeaders: true
+        });
+
+        const nrPlugin = getPlugin('nestedRows');
+
+        nrPlugin.disableCoreAPIModifiers();
+
+        expect(nrPlugin.onModifyRowData()).toEqual(void 0);
+        expect(nrPlugin.onModifySourceLength()).toEqual(void 0);
+        expect(nrPlugin.onBeforeDataSplice(1)).toEqual(true);
+
+        nrPlugin.enableCoreAPIModifiers();
+
+        expect(nrPlugin.onModifyRowData()).not.toEqual(void 0);
+        expect(nrPlugin.onModifySourceLength()).not.toEqual(void 0);
+        expect(nrPlugin.onBeforeDataSplice(1)).toEqual(false);
+      });
+    });
+  });
+
+  describe('Core HOT API', () => {
+    it('should recreate the nested structure when updating the data with the `updateSettings` method', () => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: true
+      });
+
+      updateSettings({
+        data: getMoreComplexNestedData()
+      });
+
+      const nrPlugin = getPlugin('nestedRows');
+
+      expect(nrPlugin.dataManager.countAllRows()).toEqual(13);
+      expect(nrPlugin.dataManager.getRowLevel(5)).toEqual(3);
+      expect(nrPlugin.dataManager.getRowParent(5).a).toEqual('a0-a2-a0');
     });
   });
 
@@ -309,7 +855,8 @@ describe('NestedRows', () => {
     selectCell(0, 0);
     contextMenu();
 
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown').simulate('mouseup'); // Insert child row.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+      .simulate('mousedown').simulate('mouseup'); // Insert child row.
 
     expect(countRows()).toEqual(19);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -321,12 +868,13 @@ describe('NestedRows', () => {
     expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy();
 
     // Added child.
-    // expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeFalsy(); // TODO: Bug? Element has null under the `__children` key.
+    expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeFalsy();
 
     selectCell(1, 0);
     contextMenu();
 
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown').simulate('mouseup'); // Insert child row.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+      .simulate('mousedown').simulate('mouseup'); // Insert child row.
 
     expect(countRows()).toEqual(20);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -339,10 +887,10 @@ describe('NestedRows', () => {
     expect(getPlugin('nestedRows').dataManager.isParent(3)).toBeFalsy();
 
     // Added child.
-    // expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy(); // TODO: Bug? Element has null under the `__children` key.
+    expect(getPlugin('nestedRows').dataManager.isParent(2)).toBeFalsy();
 
     // Previously added child.
-    // expect(getPlugin('nestedRows').dataManager.isParent(7)).toBeTruthy(); // TODO: Bug? Element has null under the `__children` key.
+    expect(getPlugin('nestedRows').dataManager.isParent(7)).toBeFalsy();
   });
 
   it('should allow user to detach already added child', () => {
@@ -354,17 +902,49 @@ describe('NestedRows', () => {
 
     selectCell(0, 0);
     contextMenu();
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0).simulate('mousedown').simulate('mouseup'); // Insert child row.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
+      .simulate('mousedown').simulate('mouseup'); // Insert child row.
 
     selectCell(6, 0);
     contextMenu();
-    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1).simulate('mousedown').simulate('mouseup'); // Detach from parent.
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
+      .simulate('mousedown').simulate('mouseup'); // Detach from parent.
 
     expect(getDataAtCell(6, 0)).toEqual('Best Metal Performance');
     expect(getDataAtCell(18, 1)).toEqual(null);
 
     // Added and then detached child.
-    // expect(getPlugin('nestedRows').dataManager.isParent(18)).toBeFalsy(); // TODO: Bug? Element has null under the `__children` key.
+    expect(getPlugin('nestedRows').dataManager.isParent(18)).toBeFalsy();
+  });
+
+  it('should allow user to insert row below and above the parent', () => {
+    handsontable({
+      data: getSimplerNestedData(),
+      nestedRows: true,
+      contextMenu: true
+    });
+
+    selectCell(0, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
+      .simulate('mousedown').simulate('mouseup'); // Insert row above.
+    expect(getDataAtRow(0)).toEqual([null, null, null, null]);
+    expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
+    expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
+    expect(getDataAtRow(7)).toEqual(['Best Metal Performance', null, null, null]);
+
+    selectCell(1, 0);
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
+      .simulate('mousedown').simulate('mouseup'); // Insert row below.
+
+    expect(getDataAtRow(0)).toEqual([null, null, null, null]);
+    expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
+    expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
+    expect(getDataAtRow(7)).toEqual([null, null, null, null]);
+    expect(getDataAtRow(8)).toEqual(['Best Metal Performance', null, null, null]);
   });
 
   it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', () => {
@@ -409,7 +989,8 @@ describe('NestedRows', () => {
     expect(getData()).toEqual(dataAtStart);
   });
 
-  it('should display the right amount of entries when calling loadData after being initialized with empty data', (done) => {
+  it('should display the right amount of entries when calling loadData ' +
+    'after being initialized with empty data', (done) => {
     const hot = handsontable({
       data: [],
       nestedRows: true
@@ -435,7 +1016,8 @@ describe('NestedRows', () => {
     }, 100);
   });
 
-  it('should display proper row headers after collapsing one parent - cooperation with the `BindRowsWithHeaders` plugin #5874', () => {
+  it('should display proper row headers after collapsing one parent - ' +
+    'cooperation with the `BindRowsWithHeaders` plugin #5874', () => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
@@ -446,7 +1028,8 @@ describe('NestedRows', () => {
     // Test with the `getColHeader` passed, but rendered headers weren't proper.
     let rowHeaders = $('.ht_clone_left').find('span.rowHeader').toArray().map(element => $(element).text());
 
-    expect(rowHeaders).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
+    expect(rowHeaders).toEqual([
+      'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
 
     $('.ht_nestingButton').eq(0).simulate('mousedown');
     $('.ht_nestingButton').eq(0).simulate('click');

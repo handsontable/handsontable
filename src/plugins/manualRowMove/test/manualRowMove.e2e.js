@@ -593,7 +593,8 @@ describe('manualRowMove', () => {
     });
 
     describe('by drag', () => {
-      describe('should trigger the `beforeRowMove` and `afterRowMove` hooks with proper parameters (moving single row)', () => {
+      describe('should trigger the `beforeRowMove` and `afterRowMove` hooks with proper ' +
+               'parameters (moving single row)', () => {
         it('visual indexes as parameters', () => {
           const beforeRowMoveCallback = jasmine.createSpy('beforeRowMoveCallback');
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
@@ -1384,6 +1385,60 @@ describe('manualRowMove', () => {
 
         expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A1', 'A2', 'A9', 'A5', 'A8', 'A6', 'A7', 'A10']);
       });
+    });
+  });
+
+  describe('integration', () => {
+    it('should properly render saved order if columnSorting and persistentState are enabled', async() => {
+      const config = {
+        data: Handsontable.helper.createSpreadsheetData(5, 1),
+        persistentState: true,
+        manualRowMove: true,
+        columnSorting: true,
+      };
+      const container = spec().$container[0];
+      let hot = new Handsontable(container, config);
+
+      const plugin = hot.getPlugin('manualRowMove');
+
+      plugin.moveRow(0, 4);
+      plugin.persistentStateSave();
+
+      hot.destroy();
+
+      hot = new Handsontable(container, config);
+
+      await sleep(500); // @TODO: We can remove it at the same time as ObserveChanges
+
+      expect(hot.getData()).toEqual([
+        ['A2'],
+        ['A3'],
+        ['A4'],
+        ['A5'],
+        ['A1'],
+      ]);
+
+      // cleanup
+      hot.destroy();
+      window.localStorage.clear();
+    });
+
+    it('should load new dataset on loadData if minSpareRows is set', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        manualRowMove: true,
+        minSpareRows: 1,
+      });
+
+      loadData(Handsontable.helper.createSpreadsheetData(4, 4));
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1'],
+        ['A2', 'B2', 'C2', 'D2'],
+        ['A3', 'B3', 'C3', 'D3'],
+        ['A4', 'B4', 'C4', 'D4'],
+        [null, null, null, null],
+      ]);
     });
   });
 });

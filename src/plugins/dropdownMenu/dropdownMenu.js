@@ -29,6 +29,7 @@ const BUTTON_CLASS_NAME = 'changeType';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class DropdownMenu
  * @plugin DropdownMenu
  *
  * @description

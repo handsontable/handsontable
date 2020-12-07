@@ -3,6 +3,7 @@ import Hooks from './../../pluginHooks';
 import SheetClip from './../../../lib/SheetClip/SheetClip';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
+import { sanitize } from './../../helpers/string';
 import { getSelectionText } from './../../helpers/dom/element';
 import { registerPlugin } from './../../plugins';
 import copyItem from './contextMenuItem/copy';
@@ -339,7 +340,8 @@ class CopyPaste extends BasePlugin {
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
     if (endRow !== finalEndRow || endCol !== finalEndCol) {
-      this.hot.runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
+      this.hot
+        .runHooks('afterCopyLimit', endRow - startRow + 1, endCol - startCol + 1, this.rowsLimit, this.columnsLimit);
     }
   }
 
@@ -379,37 +381,64 @@ class CopyPaste extends BasePlugin {
    * @param {Array} [selection] The selection which indicates from what position the data will be populated.
    * @returns {Array} Range coordinates after populate data.
    */
-  populateValues(inputArray, selection = this.hot.getSelectedLast()) {
+  populateValues(inputArray, selection = this.hot.getSelectedRangeLast()) {
     if (!inputArray.length) {
       return;
     }
 
-    const newValuesMaxRow = inputArray.length - 1;
-    const newValuesMaxColumn = inputArray[0].length - 1;
+    const populatedRowsLength = inputArray.length;
+    const populatedColumnsLength = inputArray[0].length;
+    const newRows = [];
 
-    const startRow = Math.min(selection[0], selection[2]);
-    const endRow = Math.max(selection[0], selection[2], newValuesMaxRow + startRow);
-    const startColumn = Math.min(selection[1], selection[3]);
-    const endColumn = Math.max(selection[1], selection[3], newValuesMaxColumn + startColumn);
-    const newValues = [];
+    const { row: startRow, col: startColumn } = selection.getTopLeftCorner();
+    const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomRightCorner();
 
-    for (let row = startRow, valuesRow = 0; row <= endRow; row += 1) {
-      const newRow = [];
+    let visualRowForPopulatedData = startRow;
+    let visualColumnForPopulatedData = startColumn;
+    let lastVisualRow = startRow;
+    let lastVisualColumn = startColumn;
 
-      for (let column = startColumn, valuesColumn = 0; column <= endColumn; column += 1) {
-        newRow.push(inputArray[valuesRow][valuesColumn]);
+    // We try to populate just all copied data or repeat copied data within a selection. Please keep in mind that we
+    // don't know whether populated data is bigger than selection on start as there are some cells for which values
+    // should be not inserted (it's known right after getting cell meta).
+    while (newRows.length < populatedRowsLength || visualRowForPopulatedData <= endRowFromSelection) {
+      const { skipRowOnPaste, visualRow } = this.hot.getCellMeta(visualRowForPopulatedData, startColumn);
 
-        valuesColumn = valuesColumn === newValuesMaxColumn ? 0 : valuesColumn += 1;
+      visualRowForPopulatedData = visualRow + 1;
+
+      if (skipRowOnPaste === true) {
+        /* eslint-disable no-continue */
+        continue;
       }
 
-      newValues.push(newRow);
+      lastVisualRow = visualRow;
+      visualColumnForPopulatedData = startColumn;
 
-      valuesRow = valuesRow === newValuesMaxRow ? 0 : valuesRow += 1;
+      const newRow = [];
+      const insertedRow = newRows.length % populatedRowsLength;
+
+      while (newRow.length < populatedColumnsLength || visualColumnForPopulatedData <= endColumnFromSelection) {
+        const { skipColumnOnPaste, visualCol } = this.hot.getCellMeta(startRow, visualColumnForPopulatedData);
+
+        visualColumnForPopulatedData = visualCol + 1;
+
+        if (skipColumnOnPaste === true) {
+          /* eslint-disable no-continue */
+          continue;
+        }
+
+        lastVisualColumn = visualCol;
+        const insertedColumn = newRow.length % populatedColumnsLength;
+
+        newRow.push(inputArray[insertedRow][insertedColumn]);
+      }
+
+      newRows.push(newRow);
     }
 
-    this.hot.populateFromArray(startRow, startColumn, newValues, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
+    this.hot.populateFromArray(startRow, startColumn, newRows, void 0, void 0, 'CopyPaste.paste', this.pasteMode);
 
-    return [startRow, startColumn, endRow, endColumn];
+    return [startRow, startColumn, lastVisualRow, lastVisualColumn];
   }
 
   /**
@@ -507,7 +536,11 @@ class CopyPaste extends BasePlugin {
     let pastedData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      const textHTML = event.clipboardData.getData('text/html');
+      const textHTML = sanitize(event.clipboardData.getData('text/html'), {
+        ADD_TAGS: ['meta'],
+        ADD_ATTR: ['content'],
+        FORCE_BODY: true,
+      });
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
@@ -588,7 +621,8 @@ class CopyPaste extends BasePlugin {
 
     this.getOrCreateFocusableElement();
 
-    if (isFragmentSelectionEnabled && this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
+    if (isFragmentSelectionEnabled &&
+        this.focusableElement.getFocusableElement() !== this.hot.rootDocument.activeElement && getSelectionText()) {
       return;
     }
 
@@ -608,7 +642,8 @@ class CopyPaste extends BasePlugin {
     const activeElement = this.hot.rootDocument.activeElement;
     const activeEditor = this.hot.getActiveEditor();
 
-    if (!activeEditor || (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {
+    if (!activeEditor ||
+        (activeElement !== this.focusableElement.getFocusableElement() && activeElement !== activeEditor.select)) {
       return;
     }
 

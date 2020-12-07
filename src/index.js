@@ -35,7 +35,11 @@ import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
 
-import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
+import {
+  registerLanguageDictionary,
+  getLanguagesDictionaries,
+  getLanguageDictionary
+} from './i18n/dictionariesManager';
 
 /**
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.

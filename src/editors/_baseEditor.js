@@ -180,28 +180,32 @@ class BaseEditor {
    * @param {boolean} ctrlDown If `true`, applies value to each cell in the last selected range.
    */
   saveValue(value, ctrlDown) {
-    let selection;
-    let tmp;
+    let visualRowFrom;
+    let visualColumnFrom;
+    let visualRowTo;
+    let visualColumnTo;
 
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      selection = this.hot.getSelectedLast();
+      const selectedLast = this.hot.getSelectedLast();
 
-      if (selection[0] > selection[2]) {
-        tmp = selection[0];
-        selection[0] = selection[2];
-        selection[2] = tmp;
-      }
-      if (selection[1] > selection[3]) {
-        tmp = selection[1];
-        selection[1] = selection[3];
-        selection[3] = tmp;
-      }
+      visualRowFrom = Math.min(selectedLast[0], selectedLast[2]);
+      visualColumnFrom = Math.min(selectedLast[1], selectedLast[3]);
+      visualRowTo = Math.max(selectedLast[0], selectedLast[2]);
+      visualColumnTo = Math.max(selectedLast[1], selectedLast[3]);
+
     } else {
-      selection = [this.row, this.col, null, null];
+      [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
     }
 
-    this.hot.populateFromArray(selection[0], selection[1], value, selection[2], selection[3], 'edit');
+    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom);
+
+    if (Array.isArray(modifiedCellCoords)) {
+      [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
+    }
+
+    // Saving values using the modified coordinates.
+    this.hot.populateFromArray(visualRowFrom, visualColumnFrom, value, visualRowTo, visualColumnTo, 'edit');
   }
 
   /**
@@ -214,13 +218,21 @@ class BaseEditor {
     if (this.state !== EditorState.VIRGIN) {
       return;
     }
-    this.hot.view.scrollViewport(new CellCoords(this.row, this.col));
+
+    const hotInstance = this.hot;
+    // We have to convert visual indexes into renderable indexes
+    // due to hidden columns don't participate in the rendering process
+    const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
+    const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+
+    hotInstance.view.scrollViewport(new CellCoords(renderableRowIndex, renderableColumnIndex));
     this.state = EditorState.EDITING;
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
     if (this.isInFullEditMode()) {
-      const stringifiedInitialValue = typeof newInitialValue === 'string' ? newInitialValue : stringify(this.originalValue);
+      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
+        newInitialValue : stringify(this.originalValue);
 
       this.setValue(stringifiedInitialValue);
     }
@@ -230,9 +242,9 @@ class BaseEditor {
     this.focus();
 
     // only rerender the selections (FillHandle should disappear when beginediting is triggered)
-    this.hot.view.render();
+    hotInstance.view.render();
 
-    this.hot.runHooks('afterBeginEditing', this.row, this.col);
+    hotInstance.runHooks('afterBeginEditing', this.row, this.col);
   }
 
   /**
@@ -431,7 +443,8 @@ class BaseEditor {
       } else {
         section = 'top';
       }
-    } else if (this.hot.getSettings().fixedRowsBottom && this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
+    } else if (this.hot.getSettings().fixedRowsBottom &&
+               this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
       if (this.col < this.hot.getSettings().fixedColumnsLeft) {
         section = 'bottom-left-corner';
       } else {

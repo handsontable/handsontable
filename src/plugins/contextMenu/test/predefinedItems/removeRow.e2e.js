@@ -13,49 +13,217 @@ describe('ContextMenu', () => {
   });
 
   describe('remove rows', () => {
-    it('should execute action when single cell is selected', () => {
+    it('should not remove row when the menu is triggered by column header', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
         contextMenu: true,
       });
 
-      selectCell(2, 2);
-      contextMenu();
+      contextMenu(getCell(-1, 1, true));
 
-      // "Remove row" item
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
         .not('.htSeparator')
-        .eq(4)
-        .simulate('mousedown')
-        .simulate('mouseup');
+        .eq(4); // "Remove row"
 
-      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A4', 'A5']);
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should execute action when range of the cells are selected', () => {
+    it('should remove row of the clicked row header', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove all rows when the menu is triggered by corner', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getData()).toEqual([]);
+      expect(`
+        |   |
+        |===|
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not remove rows when the menu is triggered by corner and all rows are trimmed', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+        trimRows: [0, 1, 2, 3, 4],
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove all rows when the menu is triggered by corner and all columns are trimmed', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 0),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getData()).toEqual([]);
+      expect(`
+        |   |
+        |===|
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not remove rows when the menu is triggered by corner and dataset is empty', () => {
+      handsontable({
+        data: createSpreadsheetData(0, 0),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(-1, -1, true));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(true);
+      expect(`
+        |   |
+        |===|
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove row from the single cell', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      contextMenu(getCell(1, 1));
+
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
+        .not('.htSeparator')
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
+      expect(`
+        |   ║   : - :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : # :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should remove rows from the multiple selection range', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
         contextMenu: true,
       });
 
       selectCell(2, 2, 4, 4);
-      contextMenu();
+      contextMenu(getCell(2, 2));
 
-      // "Remove row" item
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
         .not('.htSeparator')
-        .eq(4)
-        .simulate('mousedown')
-        .simulate('mouseup');
+        .eq(4); // "Remove row"
 
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2']);
+      expect(`
+        |   ║   :   : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   :   : A : 0 : 0 |
+        `).toBeMatchToSelectionPattern();
     });
 
-    it('should execute action when multiple cells are selected', () => {
+    it('should remove rows from the non-contiques selection range', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(8, 5),
+        data: createSpreadsheetData(8, 8),
+        colHeaders: true,
+        rowHeaders: true,
         contextMenu: true,
       });
 
@@ -81,17 +249,35 @@ describe('ContextMenu', () => {
       $(getCell(7, 4)).simulate('mouseover');
       $(getCell(7, 4)).simulate('mouseup');
 
+      expect(`
+        |   ║ - : - : - : - : - :   :   :   |
+        |===:===:===:===:===:===:===:===:===|
+        | - ║ 0 :   :   : 0 :   :   :   :   |
+        | - ║ 0 :   :   : 0 :   :   :   :   |
+        | - ║   : 0 :   : 0 :   :   :   :   |
+        | - ║   :   :   : 0 :   :   :   :   |
+        | - ║   :   :   : 0 :   :   :   :   |
+        | - ║ 0 : 0 : 0 : 1 : 0 :   :   :   |
+        |   ║   :   :   :   :   :   :   :   |
+        | - ║   :   :   :   : A :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
       contextMenu();
 
-      // "Remove row" item
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
         .not('.htSeparator')
-        .eq(4)
-        .simulate('mousedown')
-        .simulate('mouseup');
+        .eq(4); // "Remove row"
 
+      simulateClick(item);
+
+      expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A7']);
+      expect(`
+        |   ║   :   :   :   : - :   :   :   |
+        |===:===:===:===:===:===:===:===:===|
+        | - ║   :   :   :   : # :   :   :   |
+        `).toBeMatchToSelectionPattern();
     });
 
     it('should not shift invalid row when removing a single row', async() => {
@@ -123,13 +309,12 @@ describe('ContextMenu', () => {
       selectCell(1, 1);
       contextMenu();
 
-      // "Remove row" item
-      $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
+      const item = $('.htContextMenu .ht_master .htCore tbody')
+        .find('td')
         .not('.htSeparator')
-        .eq(4)
-        .simulate('mousedown')
-        .simulate('mouseup');
+        .eq(4); // "Remove row"
+
+      simulateClick(item);
 
       expect($(hot.getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
     });

@@ -115,7 +115,8 @@ class AutocompleteEditor extends HandsontableEditor {
         let match;
 
         if (cellValue && !allowHtml) {
-          indexOfMatch = filteringCaseSensitive === true ? cellValue.indexOf(query) : cellValue.toLowerCase().indexOf(query.toLowerCase());
+          indexOfMatch = filteringCaseSensitive === true ?
+            cellValue.indexOf(query) : cellValue.toLowerCase().indexOf(query.toLowerCase());
 
           if (indexOfMatch !== -1) {
             match = cellValue.substr(indexOfMatch, query.length);
@@ -239,7 +240,7 @@ class AutocompleteEditor extends HandsontableEditor {
       this.highlightBestMatchingChoice(highlightIndex);
     }
 
-    this.hot.listen(false);
+    this.hot.listen();
 
     setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? void 0 : endPos));
   }
@@ -304,7 +305,7 @@ class AutocompleteEditor extends HandsontableEditor {
       height = tempHeight - lastRowHeight;
 
       if (this.htEditor.flipped) {
-        this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
+        this.htEditor.rootElement.style.top = `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`; // eslint-disable-line max-len
       }
 
       this.setDropdownHeight(tempHeight - lastRowHeight);
@@ -395,7 +396,7 @@ class AutocompleteEditor extends HandsontableEditor {
     const firstRowHeight = this.htEditor.getInstance().getRowHeight(0) || 23;
     const visibleRows = this.cellProperties.visibleRows;
 
-    return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8;
+    return this.strippedChoices.length >= visibleRows ? (visibleRows * firstRowHeight) : (this.strippedChoices.length * firstRowHeight) + 8; // eslint-disable-line max-len
   }
 
   /**
@@ -492,13 +493,13 @@ class AutocompleteEditor extends HandsontableEditor {
  */
 AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
   const choicesRelevance = [];
-  let currentItem;
-  const valueLength = value.length;
-  let valueIndex;
-  let charsLeft;
   const result = [];
-  let i;
+  const valueLength = value.length;
   let choicesCount = choices.length;
+  let charsLeft;
+  let currentItem;
+  let i;
+  let valueIndex;
 
   if (valueLength === 0) {
     for (i = 0; i < choicesCount; i++) {

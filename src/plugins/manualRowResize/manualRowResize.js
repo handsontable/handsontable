@@ -1,14 +1,14 @@
 import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerWidth } from './../../helpers/dom/element';
+import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from './../../helpers/dom/element';
 import EventManager from './../../eventManager';
 import { arrayEach } from './../../helpers/array';
 import { rangeEach } from './../../helpers/number';
 import { registerPlugin } from './../../plugins';
 import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
 
-// Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
+// Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
-const ROW_HEIGHTS_MAP_NAME = 'manualRowResize';
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
 
@@ -82,7 +82,7 @@ class ManualRowResize extends BasePlugin {
 
     this.rowHeightsMap = new IndexToValueMap();
     this.rowHeightsMap.addLocalHook('init', () => this.onMapInit());
-    this.hot.rowIndexMapper.registerMap(ROW_HEIGHTS_MAP_NAME, this.rowHeightsMap);
+    this.hot.rowIndexMapper.registerMap(this.pluginName, this.rowHeightsMap);
 
     this.addHook('modifyRowHeight', (height, row) => this.onModifyRowHeight(height, row));
 
@@ -108,12 +108,13 @@ class ManualRowResize extends BasePlugin {
     const priv = privatePool.get(this);
     priv.config = this.rowHeightsMap.getValues();
 
-    this.hot.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
+   * enabled).
    *
    * @fires Hooks#persistentStateSave
    */
@@ -122,7 +123,8 @@ class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
+   * has be enabled).
    *
    * @returns {Array}
    * @fires Hooks#persistentStateLoad
@@ -144,14 +146,11 @@ class ManualRowResize extends BasePlugin {
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
+    const newHeight = Math.max(height, ViewportRowsCalculator.DEFAULT_HEIGHT);
 
-    if (height < 0) {
-      height = null; // Do not change default size.
-    }
+    this.rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
 
-    this.rowHeightsMap.setValueAtIndex(physicalRow, height);
-
-    return height;
+    return newHeight;
   }
 
   /**
@@ -163,64 +162,80 @@ class ManualRowResize extends BasePlugin {
   setupHandlePosition(TH) {
     this.currentTH = TH;
 
-    const cellCoords = this.hot.getCoords(this.currentTH);
+    const { view } = this.hot;
+    const { wt } = view;
+    const cellCoords = view.wt.wtTable.getCoords(this.currentTH);
     const row = cellCoords.row;
-    const headerWidth = outerWidth(this.currentTH);
 
-    if (row >= 0) { // if not col header
-      const box = this.currentTH.getBoundingClientRect();
-      const fixedRowTop = row < this.hot.getSettings().fixedRowsTop;
-      const fixedRowBottom = row >= this.hot.countRows() - this.hot.getSettings().fixedRowsBottom;
-      let parentOverlay = this.hot.view.wt.wtOverlays.leftOverlay;
-
-      if (fixedRowTop) {
-        parentOverlay = this.hot.view.wt.wtOverlays.topLeftCornerOverlay;
-
-      } else if (fixedRowBottom) {
-        parentOverlay = this.hot.view.wt.wtOverlays.bottomLeftCornerOverlay;
-      }
-
-      let relativeHeaderPosition = parentOverlay.getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
-
-      // If the TH is not a child of the left/top-left/bottom-left overlay, recalculate using the top-most header
-      if (!relativeHeaderPosition) {
-        const topMostHeader = parentOverlay.clone.wtTable.TBODY.children[+!!this.hot.getSettings().colHeaders + row].firstChild;
-        relativeHeaderPosition = parentOverlay.getRelativeCellPosition(topMostHeader, cellCoords.row, cellCoords.col);
-      }
-
-      this.currentRow = row;
-      this.selectedRows = [];
-
-      if (this.hot.selection.isSelected() && this.hot.selection.isSelectedByRowHeader()) {
-        const { from, to } = this.hot.getSelectedRangeLast();
-        let start = from.row;
-        let end = to.row;
-
-        if (start >= end) {
-          start = to.row;
-          end = from.row;
-        }
-
-        if (this.currentRow >= start && this.currentRow <= end) {
-          rangeEach(start, end, i => this.selectedRows.push(i));
-
-        } else {
-          this.selectedRows.push(this.currentRow);
-        }
-
-      } else {
-        this.selectedRows.push(this.currentRow);
-      }
-
-      this.startOffset = relativeHeaderPosition.top - 6;
-      this.startHeight = parseInt(box.height, 10);
-
-      this.handle.style.top = `${this.startOffset + this.startHeight}px`;
-      this.handle.style.left = `${relativeHeaderPosition.left}px`;
-
-      this.handle.style.width = `${headerWidth}px`;
-      this.hot.rootElement.appendChild(this.handle);
+    // Ignore row headers.
+    if (row < 0) {
+      return;
     }
+
+    const headerWidth = outerWidth(this.currentTH);
+    const box = this.currentTH.getBoundingClientRect();
+    // Read "fixedRowsTop" and "fixedRowsBottom" through the Walkontable as in that context, the fixed
+    // rows are modified (reduced by the number of hidden rows) by TableView module.
+    const fixedRowTop = row < wt.getSetting('fixedRowsTop');
+    const fixedRowBottom = row >= view.countNotHiddenRowIndexes(0, 1) - wt.getSetting('fixedRowsBottom');
+    let relativeHeaderPosition;
+
+    if (fixedRowTop) {
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .topLeftCornerOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+
+    } else if (fixedRowBottom) {
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .bottomLeftCornerOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    }
+
+    // If the TH is not a child of the top-left/bottom-left overlay, recalculate using
+    // the left overlay - as this overlay contains the rest of the headers.
+    if (!relativeHeaderPosition) {
+      relativeHeaderPosition = wt
+        .wtOverlays
+        .leftOverlay
+        .getRelativeCellPosition(this.currentTH, cellCoords.row, cellCoords.col);
+    }
+
+    this.currentRow = this.hot.rowIndexMapper.getVisualFromRenderableIndex(row);
+    this.selectedRows = [];
+
+    const isFullRowSelected = this.hot.selection.isSelectedByCorner() || this.hot.selection.isSelectedByRowHeader();
+
+    if (this.hot.selection.isSelected() && isFullRowSelected) {
+      const selectionRanges = this.hot.getSelectedRange();
+
+      arrayEach(selectionRanges, (selectionRange) => {
+        const fromRow = selectionRange.getTopLeftCorner().row;
+        const toRow = selectionRange.getBottomLeftCorner().row;
+
+        // Add every selected row for resize action.
+        rangeEach(fromRow, toRow, (rowIndex) => {
+          if (!this.selectedRows.includes(rowIndex)) {
+            this.selectedRows.push(rowIndex);
+          }
+        });
+      });
+    }
+
+    // Resizing element beyond the current selection (also when there is no selection).
+    if (!this.selectedRows.includes(this.currentRow)) {
+      this.selectedRows = [this.currentRow];
+    }
+
+    this.startOffset = relativeHeaderPosition.top - 6;
+    this.startHeight = parseInt(box.height, 10);
+
+    this.handle.style.top = `${this.startOffset + this.startHeight}px`;
+    this.handle.style.left = `${relativeHeaderPosition.left}px`;
+
+    this.handle.style.width = `${headerWidth}px`;
+    this.hot.rootElement.appendChild(this.handle);
   }
 
   /**
@@ -277,17 +292,9 @@ class ManualRowResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfRowHeader(element) {
-    if (element !== this.hot.rootElement) {
-      const parent = element.parentNode;
+    const thElement = closest(element, ['TH'], this.hot.rootElement);
 
-      if (parent.tagName === 'TBODY') {
-        return true;
-      }
-
-      return this.checkIfRowHeader(parent);
-    }
-
-    return false;
+    return thElement && element.parentNode?.parentNode?.tagName === 'TBODY';
   }
 
   /**
@@ -297,16 +304,34 @@ class ManualRowResize extends BasePlugin {
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
-  getTHFromTargetElement(element) {
+  getClosestTHParent(element) {
     if (element.tagName !== 'TABLE') {
       if (element.tagName === 'TH') {
         return element;
       }
-      return this.getTHFromTargetElement(element.parentNode);
+      return this.getClosestTHParent(element.parentNode);
 
     }
 
     return null;
+  }
+
+  /**
+   * Returns the actual height for the provided row index.
+   *
+   * @private
+   * @param {number} row Visual row index.
+   * @returns {number} Actual row height.
+   */
+  getActualRowHeight(row) {
+    // TODO: this should utilize `this.hot.getRowHeight` after it's fixed and working properly.
+    const walkontableHeight = this.hot.view.wt.wtTable.getRowHeight(row);
+
+    if (walkontableHeight !== void 0 && this.newSize < walkontableHeight) {
+      return walkontableHeight;
+    }
+
+    return this.newSize;
   }
 
   /**
@@ -316,8 +341,14 @@ class ManualRowResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
+    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+    // the next `onmouseover`.
+    if (isDetached(event.target)) {
+      return;
+    }
+
     if (this.checkIfRowHeader(event.target)) {
-      const th = this.getTHFromTargetElement(event.target);
+      const th = this.getClosestTHParent(event.target);
 
       if (th) {
         if (!this.pressed) {
@@ -341,7 +372,7 @@ class ManualRowResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const resize = (row, forceRender) => {
-      const hookNewSize = this.hot.runHooks('beforeRowResize', this.newSize, row, true);
+      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
 
       if (hookNewSize !== void 0) {
         this.newSize = hookNewSize;
@@ -349,7 +380,7 @@ class ManualRowResize extends BasePlugin {
 
       this.setManualSize(row, this.newSize); // double click sets auto row size
 
-      this.hot.runHooks('afterRowResize', this.newSize, row, true);
+      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, true);
 
       if (forceRender) {
         render();
@@ -382,8 +413,9 @@ class ManualRowResize extends BasePlugin {
    */
   onMouseDown(event) {
     if (hasClass(event.target, 'manualRowResizer')) {
+      this.setupHandlePosition(this.currentTH);
       this.setupGuidePosition();
-      this.pressed = this.hot;
+      this.pressed = true;
 
       if (this.autoresizeTimeout === null) {
         this.autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
@@ -431,7 +463,7 @@ class ManualRowResize extends BasePlugin {
       this.hot.view.wt.wtOverlays.adjustElementsSize(true);
     };
     const runHooks = (row, forceRender) => {
-      this.hot.runHooks('beforeRowResize', this.newSize, row, false);
+      this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
 
       if (forceRender) {
         render();
@@ -439,7 +471,7 @@ class ManualRowResize extends BasePlugin {
 
       this.saveManualRowHeights();
 
-      this.hot.runHooks('afterRowResize', this.newSize, row, false);
+      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
     };
     if (this.pressed) {
       this.hideHandleAndGuide();
@@ -510,7 +542,7 @@ class ManualRowResize extends BasePlugin {
     const initialSetting = this.hot.getSettings().manualRowResize;
     const loadedManualRowHeights = this.loadManualRowHeights();
 
-    this.hot.executeBatchOperations(() => {
+    this.hot.batch(() => {
       if (typeof loadedManualRowHeights !== 'undefined') {
         loadedManualRowHeights.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
@@ -536,7 +568,7 @@ class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(ROW_HEIGHTS_MAP_NAME);
+    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
 
     super.destroy();
   }

@@ -1386,7 +1386,8 @@ describe('NestedHeaders', () => {
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
           ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -1879,7 +1880,8 @@ describe('NestedHeaders', () => {
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
           ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -1941,7 +1943,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 2]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 2]]);
 
       $(getCell(-3, 1)) // Header "E"
         .simulate('mousedown')
@@ -2000,7 +2002,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 4]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 4]]);
 
       $(getCell(-4, 1)) // Header "B"
         .simulate('mousedown')
@@ -2059,7 +2061,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 8]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 8]]);
     });
 
     it('should active highlight column header for non-contiguous header selection', () => {
@@ -2131,7 +2133,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[0, 1, 9, 1]]);
+      expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
 
       keyDown('ctrl');
 
@@ -2193,8 +2195,8 @@ describe('NestedHeaders', () => {
         `);
 
       expect(getSelected()).toEqual([
-        [0, 1, 9, 1],
-        [0, 5, 9, 5],
+        [-1, 1, 9, 1],
+        [-1, 5, 9, 5],
       ]);
 
       $(getCell(-3, 1)) // Header "B2"
@@ -2255,10 +2257,10 @@ describe('NestedHeaders', () => {
         `);
 
       expect(getSelected()).toEqual([
-        [0, 1, 9, 1],
-        [0, 5, 9, 5],
-        [0, 1, 9, 1], // <- This coords shouldn't be here (known issue)
-        [0, 1, 9, 3],
+        [-1, 1, 9, 1],
+        [-1, 5, 9, 5],
+        [-1, 1, 9, 1], // <- This coords shouldn't be here (known issue)
+        [-1, 1, 9, 3],
       ]);
     });
 
@@ -2269,7 +2271,8 @@ describe('NestedHeaders', () => {
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
           ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -2280,7 +2283,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[0, 3, hot.countRows() - 1, 6]]);
+      expect(hot.getSelected()).toEqual([[-1, 3, hot.countRows() - 1, 6]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)')
         .simulate('mousedown');
@@ -2288,7 +2291,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[0, 4, hot.countRows() - 1, 1]]);
+      expect(hot.getSelected()).toEqual([[-1, 4, hot.countRows() - 1, 1]]);
 
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mousedown');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseover');
@@ -2296,7 +2299,33 @@ describe('NestedHeaders', () => {
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseover');
       this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[0, 3, hot.countRows() - 1, 6]]);
+      expect(hot.getSelected()).toEqual([[-1, 3, hot.countRows() - 1, 6]]);
+    });
+
+    it('should select all column headers (on all levels) after clicking the corner header', function() {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+          ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+        ]
+      });
+
+      const $cornerHeader = this.$container.find('.ht_clone_top_left_corner thead tr:eq(0) th:eq(0)');
+
+      $cornerHeader.simulate('mousedown');
+      $cornerHeader.simulate('mouseup');
+
+      expect(
+        $('.ht_clone_top thead tr th:not(:first-child)').filter(function() {
+          return !$(this).hasClass('hiddenHeader') && !$(this).hasClass('ht__active_highlight');
+        }).size()
+      ).toEqual(0);
     });
 
     it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
@@ -2306,7 +2335,8 @@ describe('NestedHeaders', () => {
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],
           ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
-          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
           ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
         ]
       });
@@ -2334,6 +2364,33 @@ describe('NestedHeaders', () => {
       expect($rightBorder.offset().left).toEqual($headerLvl3.offset().left + $headerLvl3.width());
       expect($leftBorder.height()).toEqual($tbody.height());
       expect($rightBorder.height()).toEqual($tbody.height() + 1);
+    });
+  });
+
+  describe('onCellMouseDown', () => {
+    it('should correctly point cell coords for nested corners', () => {
+      const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
+
+      handsontable({
+        colHeaders: true,
+        rowHeaders: true,
+        nestedHeaders: [
+          [''],
+          [''],
+          [''],
+          [''],
+        ],
+        afterOnCellMouseDown,
+      });
+
+      const corner = getCell(-4, -1);
+
+      $(corner).simulate('mousedown');
+
+      expect(afterOnCellMouseDown).toHaveBeenCalled();
+      expect(afterOnCellMouseDown.calls.argsFor(0)[0]).toBeInstanceOf(MouseEvent);
+      expect(afterOnCellMouseDown.calls.argsFor(0)[1]).toEqual(jasmine.objectContaining({ row: -4, col: -1 }));
+      expect(afterOnCellMouseDown.calls.argsFor(0)[2]).toBe(corner);
     });
   });
 });

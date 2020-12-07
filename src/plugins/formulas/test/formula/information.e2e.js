@@ -33,7 +33,9 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISBLANK', () => {
-    const data = getDataForFormulas(0, 'name', ['=ISBLANK(A1)', '=ISBLANK(A2)', '=ISBLANK(A3)', '=ISBLANK(A4)', '=ISBLANK(A5)', '=ISBLANK(A6)']);
+    const data = getDataForFormulas(0, 'name', [
+      '=ISBLANK(A1)', '=ISBLANK(A2)', '=ISBLANK(A3)', '=ISBLANK(A4)', '=ISBLANK(A5)', '=ISBLANK(A6)'
+    ]);
 
     data[0].id = null;
     data[1].id = void 0;
@@ -79,7 +81,9 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISLOGICAL', () => {
-    const data = getDataForFormulas(0, 'name', ['=ISLOGICAL(A1)', '=ISLOGICAL(A2)', '=ISLOGICAL(A3)', '=ISLOGICAL(A4)', '=ISLOGICAL(A5)']);
+    const data = getDataForFormulas(0, 'name', [
+      '=ISLOGICAL(A1)', '=ISLOGICAL(A2)', '=ISLOGICAL(A3)', '=ISLOGICAL(A4)', '=ISLOGICAL(A5)'
+    ]);
 
     data[0].id = 1;
     data[1].id = false;
@@ -103,7 +107,9 @@ describe('Formulas -> information functions', () => {
   });
 
   it('ISNONTEXT', () => {
-    const data = getDataForFormulas(0, 'name', ['=ISNONTEXT(A1)', '=ISNONTEXT(A2)', '=ISNONTEXT(A3)', '=ISNONTEXT(A4)']);
+    const data = getDataForFormulas(0, 'name', [
+      '=ISNONTEXT(A1)', '=ISNONTEXT(A2)', '=ISNONTEXT(A3)', '=ISNONTEXT(A4)'
+    ]);
 
     data[0].id = 1;
     data[1].id = true;
