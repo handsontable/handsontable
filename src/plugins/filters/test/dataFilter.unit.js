@@ -23,18 +23,21 @@ describe('DataFilter', () => {
 
   describe('filter', () => {
     it('should not filter input data when condition collection is empty', () => {
-      const conditionCollectionMock = { isEmpty: jasmine.createSpy('isEmpty').and.returnValue(true) };
+      const conditionCollectionMock = {
+        filterByColumn: jasmine.createSpy('filterByColumn'),
+        getFilteredColumns: jasmine.createSpy('getFilteredColumns').and.returnValue([]),
+      };
       const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
       dataFilter.filter();
 
-      expect(conditionCollectionMock.isEmpty).toHaveBeenCalled();
+      expect(conditionCollectionMock.filterByColumn).not.toHaveBeenCalled();
     });
 
     it('should filter input data based on condition collection (shallow filtering)', () => {
       const conditionCollectionMock = {
-        isEmpty: jasmine.createSpy('isEmpty').and.returnValue(false),
-        orderStack: [0] // filtering applied to column index 0
+        // filtering applied to column index 0),
+        getFilteredColumns: jasmine.createSpy('getFilteredColumns').and.returnValue([0]),
       };
       const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
@@ -52,8 +55,8 @@ describe('DataFilter', () => {
 
     it('should filter input data based on condition collection (deep filtering)', () => {
       const conditionCollectionMock = {
-        isEmpty: jasmine.createSpy('isEmpty').and.returnValue(false),
-        orderStack: [1, 0] // filtering applied first to column at index 1 and later at index 0
+        // filtering applied first to column at index 1 and later at index 0
+        getFilteredColumns: jasmine.createSpy('getFilteredColumns').and.returnValue([1, 0]),
       };
       const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 

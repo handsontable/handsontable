@@ -17,9 +17,11 @@ class ActionBarComponent extends BaseComponent {
   }
 
   constructor(hotInstance, options) {
-    super(hotInstance);
+    super(hotInstance, {
+      id: options.id,
+      stateless: true,
+    });
 
-    this.id = options.id;
     this.name = options.name;
 
     this.elements.push(

@@ -36,4 +36,36 @@ describe('HiddenColumns', () => {
       expect($mainHolder.scrollLeft()).toBe(startScrollLeft);
     });
   });
+
+  describe('Data change by typing with hiddenColumns', () => {
+    it('should correctly render the changed values subjected to validation when there is a hidden column next to it', async() => {
+      const hot = handsontable({
+        data: [[1, 2, 'Smith']],
+        hiddenColumns: {
+          columns: [0], // hide the first column
+        },
+        columns: [
+          {}, // the first empty column
+          { // the second numeric column
+            type: 'numeric',
+            allowInvalid: false,
+          },
+          {}, // the last column without validation
+        ]
+      });
+
+      hot.selectCell(0, 1);
+      keyDownUp('enter'); // open the editor
+      await sleep(200);
+
+      document.activeElement.value = 'aa'; // type incorect value
+      keyDownUp('enter'); // confirm change the value
+      await sleep(200);
+      keyDownUp('esc'); // close the editor
+      await sleep(200);
+
+      expect(hot.getDataAtCell(0, 1)).toBe(2);
+      expect(hot.getCell(0, 1).textContent).toBe('2');
+    });
+  });
 });
