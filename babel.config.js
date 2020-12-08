@@ -65,7 +65,8 @@ module.exports = {
     // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }]
       ],
       ignore: [
         '**/test/**',
@@ -88,9 +89,8 @@ module.exports = {
       ],
     },
   },
-
   ignore: [
     'src/3rdparty/walkontable/dist/',
-    'src/3rdparty/walkontable/test/dist/'
-  ]
+    'src/3rdparty/walkontable/test/dist/',
+  ],
 };

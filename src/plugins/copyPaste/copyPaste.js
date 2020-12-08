@@ -1,6 +1,6 @@
-import { BasePlugin } from '../base';
+import BasePlugin from '../base';
 import Hooks from '../../pluginHooks';
-import SheetClip from '../../3rdparty/SheetClip/SheetClip';
+import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { sanitize } from '../../helpers/string';
@@ -244,7 +244,7 @@ export class CopyPaste extends BasePlugin {
       dataSet.push(rowSet);
     });
 
-    return SheetClip.stringify(dataSet);
+    return stringify(dataSet);
   }
 
   /**
@@ -461,7 +461,7 @@ export class CopyPaste extends BasePlugin {
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges);
 
     if (allowCopying) {
-      const textPlain = SheetClip.stringify(rangedData);
+      const textPlain = stringify(rangedData);
 
       if (event && event.clipboardData) {
         const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
@@ -499,7 +499,7 @@ export class CopyPaste extends BasePlugin {
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
 
     if (allowCuttingOut) {
-      const textPlain = SheetClip.stringify(rangedData);
+      const textPlain = stringify(rangedData);
 
       if (event && event.clipboardData) {
         const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
@@ -554,7 +554,7 @@ export class CopyPaste extends BasePlugin {
     }
 
     if (typeof pastedData === 'string') {
-      pastedData = SheetClip.parse(pastedData);
+      pastedData = parse(pastedData);
     }
 
     if (pastedData && pastedData.length === 0) {

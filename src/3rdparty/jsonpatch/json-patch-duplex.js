@@ -618,14 +618,5 @@ var jsonpatch;
     }
     jsonpatch.validate = validate;
 })(jsonpatch || (jsonpatch = {}));
-if (typeof exports !== "undefined") {
-    exports.apply = jsonpatch.apply;
-    exports.observe = jsonpatch.observe;
-    exports.unobserve = jsonpatch.unobserve;
-    exports.generate = jsonpatch.generate;
-    exports.compare = jsonpatch.compare;
-    exports.validate = jsonpatch.validate;
-    exports.validator = jsonpatch.validator;
-    exports.JsonPatchError = jsonpatch.JsonPatchError;
-    exports.Error = jsonpatch.Error;
-}
+
+export default jsonpatch;
