@@ -16,9 +16,9 @@
   "jsnext:main": "es/index.js",
   "exports": {
     ".": {
-      "require": "./indes.js",
-      "import": "./es/indes.mjs",
-      "default": "./es/indes.mjs"
+      "require": "./index.js",
+      "import": "./es/index.mjs",
+      "default": "./es/index.mjs"
     },
     "./base": {
       "require": "./base.js",
