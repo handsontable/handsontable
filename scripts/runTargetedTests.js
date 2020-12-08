@@ -1,8 +1,21 @@
+const WRAPPERS = [
+  'angular-handsontable',
+  'react-handsontable',
+  'vue-handsontable',
+];
+const FULL_TEST_BRANCHES = [
+  'master',
+  'develop',
+  'release/',
+];
+
 const { spawnSync, execSync } = require('child_process');
+
 const currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).replace(/(\n)/gm, '');
-const filesModifiedInLastCommit = execSync('git log --name-only --oneline HEAD^..HEAD', { encoding: 'utf8' }).split('\n');
-const wrapperList = ['angular-handsontable', 'react-handsontable', 'vue-handsontable'];
-const fullTestBranches = ['master', 'develop', 'release/'];
+const filesModifiedInLastCommit = execSync('git log --name-only --oneline HEAD^..HEAD', { encoding: 'utf8' })
+  .split('\n');
+let hasErrors = false;
+
 const spawnCommand = (command) => {
   if (hasErrors) {
     return;
@@ -17,13 +30,12 @@ const spawnCommand = (command) => {
 
   return !hasErrors;
 };
-let hasErrors = false;
 
 filesModifiedInLastCommit.shift();
 filesModifiedInLastCommit.pop();
 
 const fullTestBranchMatch = currentBranch.match(
-  `(${fullTestBranches.join('|').replace('/', '\\\\/')}).*`
+  `(${FULL_TEST_BRANCHES.join('|').replace('/', '\\\\/')}).*`
 );
 
 if (fullTestBranchMatch !== null && fullTestBranchMatch.index === 0) {
@@ -44,20 +56,19 @@ filesModifiedInLastCommit.forEach((fileUrl) => {
   }
 
   const wrappersMatch = fileUrl.match('(wrappers\/)([^\/]*)(\/)');
+
   if (wrappersMatch) {
     const projectName = wrappersMatch[2];
 
     if (
-      wrapperList.includes(projectName) &&
+      WRAPPERS.includes(projectName) &&
       !touchedProjects.includes(projectName)
     ) {
       touchedProjects.push(projectName);
     }
 
-  } else {
-    if (!touchedProjects.includes('handsontable')) {
-      touchedProjects.push('handsontable');
-    }
+  } else if (!touchedProjects.includes('handsontable')) {
+    touchedProjects.push('handsontable');
   }
 });
 
