@@ -15,10 +15,10 @@ import {
 } from './helpers/object';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
-import { getPlugin } from './plugins';
+import { getPlugin, getPluginsNames } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
-import { randomString } from './helpers/string';
+import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
@@ -85,6 +85,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const metaManager = new MetaManager(userSettings);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
+  const pluginsRegistry = new Map();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -978,6 +979,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   this.init = function() {
+    getPluginsNames().forEach((pluginName) => {
+      const PluginClass = getPlugin(pluginName);
+
+      pluginsRegistry.set(pluginName, new PluginClass(this));
+    });
     dataSource.setData(tableMeta.data);
 
     instance.runHooks('beforeInit');
@@ -3677,6 +3683,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.batch(() => {
       // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
+      [...pluginsRegistry].forEach(([, plugin]) => {
+        plugin.destroy();
+      });
+
       instance.runHooks('afterDestroy');
     });
 
@@ -3744,7 +3754,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {BasePlugin} The plugin instance.
    */
   this.getPlugin = function(pluginName) {
-    return getPlugin(this, pluginName);
+    const unifiedPluginName = toUpperCaseFirst(pluginName);
+
+    return pluginsRegistry.get(unifiedPluginName);
+    // return getPlugin(this, pluginName);
+  };
+
+  this.getPluginName = function(pluginInstance) {
+    let name = null;
+
+    [...pluginsRegistry].find(([pluginName, pluginClass]) => {
+      if (pluginInstance === pluginClass) {
+        name = pluginName;
+
+        return true;
+      }
+
+      return false;
+    });
+
+    return name;
   };
 
   /**

@@ -1,6 +1,6 @@
 import { defineGetter, objectEach } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
-import { getRegistredPluginNames, getPluginName } from '../../plugins';
+import { getPluginsNames } from '../../plugins';
 
 export const PLUGIN_KEY = 'base';
 const privatePool = new WeakMap();
@@ -38,13 +38,13 @@ export class BasePlugin {
   }
 
   init() {
-    this.pluginName = getPluginName(this.hot, this);
+    this.pluginName = this.hot.getPluginName(this);
 
     if (this.isEnabled && this.isEnabled()) {
       this.enablePlugin();
     }
     if (!initializedPlugins) {
-      initializedPlugins = getRegistredPluginNames(this.hot);
+      initializedPlugins = getPluginsNames();
     }
     if (initializedPlugins.indexOf(this.pluginName) >= 0) {
       initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);

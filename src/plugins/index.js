@@ -78,7 +78,8 @@
 
 export {
   getPlugin,
+  getPlugins,
+  getPluginsNames,
   getPluginName,
-  getRegistredPluginNames,
   registerPlugin,
 } from './plugins';

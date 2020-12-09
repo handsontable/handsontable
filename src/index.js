@@ -10,7 +10,7 @@ import { getRegisteredEditorNames, getEditor, registerEditor } from './editors';
 import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
 import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
 import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
-import { registerPlugin } from './plugins';
+import { getPlugin, registerPlugin } from './plugins';
 
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
@@ -286,5 +286,6 @@ PLUGINS.forEach((classRef, pluginName) => {
 });
 
 Handsontable.plugins.registerPlugin = registerPlugin;
+Handsontable.plugins.getPlugin = getPlugin;
 
 export default Handsontable;

@@ -1,4 +1,4 @@
-import BasePlugin from '../base';
+import { BasePlugin } from '../base';
 import Hooks from '../../pluginHooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
