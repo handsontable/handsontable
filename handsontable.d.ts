@@ -1830,7 +1830,7 @@ declare namespace Handsontable {
       afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
-      afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void | boolean;
+      afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
       afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
