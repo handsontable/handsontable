@@ -8,6 +8,7 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
 export const PLUGIN_KEY = 'manualColumnResize';
+export const PLUGIN_PRIORITY = 130;
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
 /**

@@ -15,6 +15,7 @@ import {
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 
 export const PLUGIN_KEY = 'customBorders';
+export const PLUGIN_PRIORITY = 90;
 
 /**
  * @class CustomBorders

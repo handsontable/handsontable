@@ -14,6 +14,7 @@ import UndoRedoSnapshot from './undoRedoSnapshot';
 import CellValue from './cell/value';
 
 export const PLUGIN_KEY = 'formulas';
+export const PLUGIN_PRIORITY = 260;
 
 /**
  * The formulas plugin.

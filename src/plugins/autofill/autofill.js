@@ -11,6 +11,7 @@ Hooks.getSingleton().register('beforeAutofill');
 Hooks.getSingleton().register('afterAutofill');
 
 export const PLUGIN_KEY = 'autofill';
+export const PLUGIN_PRIORITY = 20;
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
 

@@ -7,6 +7,7 @@ Hooks.getSingleton().register('persistentStateLoad');
 Hooks.getSingleton().register('persistentStateReset');
 
 export const PLUGIN_KEY = 'persistentState';
+export const PLUGIN_PRIORITY = 0;
 
 /**
  * @plugin PersistentState

@@ -23,6 +23,7 @@ Hooks.getSingleton().register('beforeCopy');
 Hooks.getSingleton().register('afterCopy');
 
 export const PLUGIN_KEY = 'copyPaste';
+export const PLUGIN_PRIORITY = 80;
 const ROWS_LIMIT = 1000;
 const COLUMNS_LIMIT = 1000;
 const privatePool = new WeakMap();

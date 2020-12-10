@@ -3,6 +3,7 @@ import LooseBindsMap from './maps/looseBindsMap';
 import StrictBindsMap from './maps/strictBindsMap';
 
 export const PLUGIN_KEY = 'bindRowsWithHeaders';
+export const PLUGIN_PRIORITY = 210;
 
 const DEFAULT_BIND = 'loose';
 

@@ -9,6 +9,7 @@ import { TrimmingMap } from '../../translations';
 import RowMoveController from './utils/rowMoveController';
 
 export const PLUGIN_KEY = 'nestedRows';
+export const PLUGIN_PRIORITY = 300;
 const privatePool = new WeakMap();
 
 /**

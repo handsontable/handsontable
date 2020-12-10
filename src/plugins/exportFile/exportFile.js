@@ -3,6 +3,7 @@ import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 
 export const PLUGIN_KEY = 'exportFile';
+export const PLUGIN_PRIORITY = 240;
 
 /**
  * @plugin ExportFile

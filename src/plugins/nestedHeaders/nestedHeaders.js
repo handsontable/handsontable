@@ -14,6 +14,7 @@ import GhostTable from './utils/ghostTable';
 import './nestedHeaders.css';
 
 export const PLUGIN_KEY = 'nestedHeaders';
+export const PLUGIN_PRIORITY = 280;
 
 /**
  * @plugin NestedHeaders

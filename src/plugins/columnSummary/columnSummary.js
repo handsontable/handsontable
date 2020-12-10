@@ -4,6 +4,7 @@ import Endpoints from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 export const PLUGIN_KEY = 'columnSummary';
+export const PLUGIN_PRIORITY = 220;
 
 /**
  * @plugin ColumnSummary

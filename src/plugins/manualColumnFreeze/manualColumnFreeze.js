@@ -5,6 +5,7 @@ import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 import './manualColumnFreeze.css';
 
 export const PLUGIN_KEY = 'manualColumnFreeze';
+export const PLUGIN_PRIORITY = 110;
 const privatePool = new WeakMap();
 /**
  * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.

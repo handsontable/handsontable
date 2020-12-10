@@ -8,6 +8,20 @@ const unorderedPluginsRegistry = new Set();
 const pluginsRegistry = new Map();
 
 /**
+ * Binds plugin name with its plugin class reference.
+ *
+ * @param {string} pluginName The plugin name.
+ * @param {BasePlugin} pluginClass The plugin class.
+ * @throws Will throw an error if there is already registered plugin on the passed name.
+ */
+function addToPluginsRegistry(pluginName, pluginClass) {
+  if (pluginsRegistry.has(pluginName)) {
+    throw Error(`There is already registered ${pluginName} plugin`);
+  }
+
+  pluginsRegistry.set(pluginName, pluginClass);
+}
+/**
  * Register plugin in unordered registry.
  *
  * @param {string} pluginName Plugin's name.
@@ -42,7 +56,6 @@ function registerOrderedPlugin(pluginName, priority) {
 
   orderedPluginsRegistry.set(priority, pluginName);
 }
-
 /**
  * Gets plugins' names registered in ordered registry.
  *
@@ -70,20 +83,6 @@ export function getPluginsNames() {
     ...getUnorderedPluginsNames(),
   ];
 }
-
-/**
- * Gets registered plugins' classes with appropiated order.
- * First ordered plugins by their ascending priority.
- * Then plugins from the unordered registry in order of registration.
- *
- * @returns {BasePlugin[]}
- */
-export function getPlugins() {
-  const pluginsNames = getPluginsNames();
-
-  return pluginsNames.map(pluginName => pluginsRegistry.get(pluginName));
-}
-
 /**
  * Gets registered plugin's class by passed name.
  *
@@ -100,70 +99,21 @@ export function getPlugin(pluginName) {
 
   return pluginsRegistry.get(correctedPluginName);
 }
-
 /**
  * Registers plugin under given name.
  *
  * @param {string} pluginName The plugin name.
- * @param {Function} PluginClass The plugin class.
+ * @param {Function} pluginClass The plugin class.
  * @param {number} [priority] The plugin priority.
  */
-export function registerPlugin(pluginName, PluginClass, priority) {
+export function registerPlugin(pluginName, pluginClass, priority) {
   const correctedPluginName = toUpperCaseFirst(pluginName);
+
+  addToPluginsRegistry(correctedPluginName, pluginClass);
 
   if (priority === void 0) {
     registerUnorderedPlugin(correctedPluginName);
   } else {
     registerOrderedPlugin(correctedPluginName, priority);
   }
-
-  pluginsRegistry.set(correctedPluginName, PluginClass);
-
-  // Hooks.getSingleton().add('contruct', function() {
-  //   if (!registeredPlugins.has(tshis)) {
-  //     registeredPlugins.set(this, {});
-  //   }
-
-  //   const holder = registeredPlugins.get(this);
-
-  //   if (!holder[correctedPluginName]) {
-  //     holder[correctedPluginName] = new PluginClass(this);
-  //   }
-  // });
-  // Hooks.getSingleton().add('afterDestroy', function() {
-  //   if (registeredPlugins.has(this)) {
-  //     const pluginsHolder = registeredPlugins.get(this);
-
-  //     objectEach(pluginsHolder, plugin => plugin.destroy());
-  //     registeredPlugins.delete(this);
-  //   }
-  // });
 }
-
-// /**
-//  * @param {Core} instance The Handsontable instance.
-//  * @param {string} pluginName The plugin name.
-//  * @returns {Function} PluginClass Returns plugin instance if exists or `undefined` if not exists.
-//  */
-// export function getPlugin(instance, pluginName) {
-//   if (typeof pluginName !== 'string') {
-//     throw Error('Only strings can be passed as "plugin" parameter');
-//   }
-//   const _pluginName = toUpperCaseFirst(pluginName);
-
-//   if (!registeredPlugins.has(instance) || !registeredPlugins.get(instance)[_pluginName]) {
-//     return void 0;
-//   }
-
-//   return registeredPlugins.get(instance)[_pluginName];
-// }
-
-// /**
-//  * Get all registred plugins names for concrete Handsontable instance.
-//  *
-//  * @param {Core} hotInstance The Handsontable instance.
-//  * @returns {Array}
-//  */
-// export function getRegistredPluginNames(hotInstance) {
-//   return registeredPlugins.has(hotInstance) ? Object.keys(registeredPlugins.get(hotInstance)) : [];
-// }

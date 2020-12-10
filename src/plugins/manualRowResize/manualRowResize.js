@@ -9,6 +9,7 @@ import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
 export const PLUGIN_KEY = 'manualRowResize';
+export const PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
 

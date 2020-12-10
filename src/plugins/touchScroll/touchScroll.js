@@ -4,6 +4,7 @@ import { BasePlugin } from '../base';
 import { isTouchSupported } from '../../helpers/feature';
 
 export const PLUGIN_KEY = 'touchScroll';
+export const PLUGIN_PRIORITY = 200;
 
 /**
  * @private

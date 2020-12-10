@@ -13,6 +13,7 @@ Hooks.getSingleton().register('beforeColumnMove');
 Hooks.getSingleton().register('afterColumnMove');
 
 export const PLUGIN_KEY = 'manualColumnMove';
+export const PLUGIN_PRIORITY = 120;
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';

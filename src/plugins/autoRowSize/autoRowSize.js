@@ -10,6 +10,7 @@ import { isPercentValue } from '../../helpers/string';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 export const PLUGIN_KEY = 'autoRowSize';
+export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
 /**

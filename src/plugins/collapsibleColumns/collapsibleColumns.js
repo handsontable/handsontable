@@ -12,6 +12,7 @@ import { HidingMap } from '../../translations';
 import { BasePlugin } from '../base';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
+export const PLUGIN_PRIORITY = 290;
 
 const actionDictionary = new Map([
   ['collapse', {

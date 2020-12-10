@@ -6,6 +6,7 @@ import { rangeEach } from '../../helpers/number';
 import { BasePlugin } from '../base';
 
 export const PLUGIN_KEY = 'headerTooltips';
+export const PLUGIN_PRIORITY = 270;
 let isDeprecationMessageShowed = false;
 
 /**

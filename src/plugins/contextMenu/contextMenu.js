@@ -23,6 +23,7 @@ import {
 import './contextMenu.css';
 
 export const PLUGIN_KEY = 'contextMenu';
+export const PLUGIN_PRIORITY = 70;
 
 Hooks.getSingleton().register('afterContextMenuDefaultOptions');
 Hooks.getSingleton().register('beforeContextMenuShow');

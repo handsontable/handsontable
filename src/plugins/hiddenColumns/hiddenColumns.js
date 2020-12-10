@@ -18,6 +18,7 @@ Hooks.getSingleton().register('beforeUnhideColumns');
 Hooks.getSingleton().register('afterUnhideColumns');
 
 export const PLUGIN_KEY = 'hiddenColumns';
+export const PLUGIN_PRIORITY = 310;
 
 /**
  * @plugin HiddenColumns

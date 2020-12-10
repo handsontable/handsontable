@@ -4,6 +4,7 @@ import { rangeEach } from '../../helpers/number';
 import { isUndefined } from '../../helpers/mixed';
 
 export const PLUGIN_KEY = 'search';
+export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
 const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {

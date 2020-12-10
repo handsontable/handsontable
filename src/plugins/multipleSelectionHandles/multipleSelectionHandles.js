@@ -5,6 +5,7 @@ import EventManager from '../../eventManager';
 import { CellCoords } from '../../3rdparty/walkontable/src';
 
 export const PLUGIN_KEY = 'multipleSelectionHandles';
+export const PLUGIN_PRIORITY = 160;
 
 /**
  * @private

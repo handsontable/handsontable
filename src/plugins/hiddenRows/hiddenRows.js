@@ -18,6 +18,7 @@ Hooks.getSingleton().register('beforeUnhideRows');
 Hooks.getSingleton().register('afterUnhideRows');
 
 export const PLUGIN_KEY = 'hiddenRows';
+export const PLUGIN_PRIORITY = 320;
 
 /**
  * @plugin HiddenRows

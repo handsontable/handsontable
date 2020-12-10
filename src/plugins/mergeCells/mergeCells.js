@@ -20,6 +20,7 @@ Hooks.getSingleton().register('beforeUnmergeCells');
 Hooks.getSingleton().register('afterUnmergeCells');
 
 export const PLUGIN_KEY = 'mergeCells';
+export const PLUGIN_PRIORITY = 150;
 const privatePool = new WeakMap();
 
 /**

@@ -6,6 +6,7 @@ import { warn } from '../../helpers/console';
 // Handsontable.hooks.register('afterChangesObserved');
 
 export const PLUGIN_KEY = 'observeChanges';
+export const PLUGIN_PRIORITY = 180;
 
 /**
  * @plugin ObserveChanges

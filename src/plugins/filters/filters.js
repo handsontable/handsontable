@@ -27,6 +27,7 @@ import { TrimmingMap } from '../../translations';
 import './filters.css';
 
 export const PLUGIN_KEY = 'filters';
+export const PLUGIN_PRIORITY = 250;
 
 /**
  * @plugin Filters

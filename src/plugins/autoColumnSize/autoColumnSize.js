@@ -10,9 +10,9 @@ import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 export const PLUGIN_KEY = 'autoColumnSize';
+export const PLUGIN_PRIORITY = 10;
 const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
-
 /**
  * @plugin AutoColumnSize
  *

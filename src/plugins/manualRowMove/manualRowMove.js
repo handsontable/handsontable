@@ -13,6 +13,7 @@ Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
 
 export const PLUGIN_KEY = 'manualRowMove';
+export const PLUGIN_PRIORITY = 140;
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualRowMove';
 const CSS_SHOW_UI = 'show-ui';

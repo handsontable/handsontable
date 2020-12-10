@@ -23,6 +23,7 @@ import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 
 export const PLUGIN_KEY = 'columnSorting';
+export const PLUGIN_PRIORITY = 50;
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 

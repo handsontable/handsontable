@@ -3,6 +3,7 @@ import { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 
 export const PLUGIN_KEY = 'trimRows';
+export const PLUGIN_PRIORITY = 330;
 
 /**
  * @plugin TrimRows

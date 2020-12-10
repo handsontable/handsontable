@@ -19,6 +19,7 @@ import * as C from '../../i18n/constants';
 import './comments.css';
 
 export const PLUGIN_KEY = 'comments';
+export const PLUGIN_PRIORITY = 60;
 const privatePool = new WeakMap();
 const META_COMMENT = 'comment';
 const META_COMMENT_VALUE = 'value';

@@ -25,6 +25,7 @@ Hooks.getSingleton().register('afterDropdownMenuHide');
 Hooks.getSingleton().register('afterDropdownMenuExecute');
 
 export const PLUGIN_KEY = 'dropdownMenu';
+export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */

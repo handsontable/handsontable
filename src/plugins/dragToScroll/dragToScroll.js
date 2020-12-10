@@ -4,6 +4,7 @@ import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'dragToScroll';
+export const PLUGIN_PRIORITY = 100;
 /**
  * @description
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.

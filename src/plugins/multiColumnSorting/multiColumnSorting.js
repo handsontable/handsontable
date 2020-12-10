@@ -10,6 +10,7 @@ import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 import './multiColumnSorting.css';
 
 export const PLUGIN_KEY = 'multiColumnSorting';
+export const PLUGIN_PRIORITY = 170;
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const CONFLICTED_PLUGIN_KEY = 'columnSorting';
 
