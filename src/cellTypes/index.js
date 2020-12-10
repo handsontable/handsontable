@@ -3,15 +3,15 @@ import { registerEditor } from './../editors';
 import { registerRenderer } from './../renderers';
 import { registerValidator } from './../validators';
 
-import autocompleteCellType from './autocompleteType';
-import checkboxCellType from './checkboxType';
-import dateCellType from './dateType';
-import dropdownCellType from './dropdownType';
-import handsontableCellType from './handsontableType';
-import numericCellType from './numericType';
-import passwordCellType from './passwordType';
-import textCellType from './textType';
-import timeCellType from './timeType';
+// import autocompleteCellType from './autocompleteType';
+// import checkboxCellType from './checkboxType';
+// import dateCellType from './dateType';
+// import dropdownCellType from './dropdownType';
+// import handsontableCellType from './handsontableType';
+// import numericCellType from './numericType';
+// import passwordCellType from './passwordType';
+// import textCellType from './textType';
+// import timeCellType from './timeType';
 
 const {
   register,
@@ -21,15 +21,15 @@ const {
   getValues,
 } = staticRegister('cellTypes');
 
-_register('autocomplete', autocompleteCellType);
-_register('checkbox', checkboxCellType);
-_register('date', dateCellType);
-_register('dropdown', dropdownCellType);
-_register('handsontable', handsontableCellType);
-_register('numeric', numericCellType);
-_register('password', passwordCellType);
-_register('text', textCellType);
-_register('time', timeCellType);
+// _register('autocomplete', autocompleteCellType);
+// _register('checkbox', checkboxCellType);
+// _register('date', dateCellType);
+// _register('dropdown', dropdownCellType);
+// _register('handsontable', handsontableCellType);
+// _register('numeric', numericCellType);
+// _register('password', passwordCellType);
+// _register('text', textCellType);
+// _register('time', timeCellType);
 
 /**
  * Retrieve cell type object.

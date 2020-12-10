@@ -4,16 +4,16 @@
 import staticRegister from './../utils/staticRegister';
 import Hooks from './../pluginHooks';
 
-import BaseEditor from './_baseEditor';
-import AutocompleteEditor from './autocompleteEditor';
-import CheckboxEditor from './checkboxEditor';
-import DateEditor from './dateEditor';
-import DropdownEditor from './dropdownEditor';
-import HandsontableEditor from './handsontableEditor';
-import NumericEditor from './numericEditor';
-import PasswordEditor from './passwordEditor';
-import SelectEditor from './selectEditor';
-import TextEditor from './textEditor';
+// import BaseEditor from './_baseEditor';
+// import AutocompleteEditor from './autocompleteEditor';
+// import CheckboxEditor from './checkboxEditor';
+// import DateEditor from './dateEditor';
+// import DropdownEditor from './dropdownEditor';
+// import HandsontableEditor from './handsontableEditor';
+// import NumericEditor from './numericEditor';
+// import PasswordEditor from './passwordEditor';
+// import SelectEditor from './selectEditor';
+// import TextEditor from './textEditor';
 
 const registeredEditorClasses = new WeakMap();
 
@@ -25,16 +25,16 @@ const {
   getValues,
 } = staticRegister('editors');
 
-_register('base', BaseEditor);
-_register('autocomplete', AutocompleteEditor);
-_register('checkbox', CheckboxEditor);
-_register('date', DateEditor);
-_register('dropdown', DropdownEditor);
-_register('handsontable', HandsontableEditor);
-_register('numeric', NumericEditor);
-_register('password', PasswordEditor);
-_register('select', SelectEditor);
-_register('text', TextEditor);
+// _register('base', BaseEditor);
+// _register('autocomplete', AutocompleteEditor);
+// _register('checkbox', CheckboxEditor);
+// _register('date', DateEditor);
+// _register('dropdown', DropdownEditor);
+// _register('handsontable', HandsontableEditor);
+// _register('numeric', NumericEditor);
+// _register('password', PasswordEditor);
+// _register('select', SelectEditor);
+// _register('text', TextEditor);
 
 /**
  * @param {BaseEditor} editorClass The editor constructor.
