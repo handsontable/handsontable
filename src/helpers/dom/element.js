@@ -495,7 +495,7 @@ export function offset(element) {
   if (hasCaptionProblem() && elementToCheck.firstChild && elementToCheck.firstChild.nodeName === 'CAPTION') {
     // fixes problem with Firefox ignoring <caption> in TABLE offset (see also export outerHeight)
     // http://jsperf.com/offset-vs-getboundingclientrect/8
-    box = elementToCheck.getBoundingClientRect();
+    box = getBoundingClientRect(elementToCheck);
 
     return {
       top: box.top + (rootWindow.pageYOffset || documentElement.scrollTop) - (documentElement.clientTop || 0),
@@ -1102,6 +1102,10 @@ export function selectElementIfAllowed(element) {
   if (!isOutsideInput(activeElement)) {
     element.select();
   }
+}
+
+export const getBoundingClientRect = (element) => {
+  return element.getBoundingClientRect();
 }
 
 const memoizedFunctionsToClearBeforeRender = [

@@ -1,4 +1,4 @@
-import { addClass, empty, removeClass } from './helpers/dom/element';
+import { addClass, empty, removeClass, getBoundingClientRect } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
@@ -1616,7 +1616,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     const { width: lastWidth, height: lastHeight } = instance.view.getLastSize();
-    const { width, height } = instance.rootElement.getBoundingClientRect();
+    const { width, height } = getBoundingClientRect(instance.rootElement);
     const isSizeChanged = width !== lastWidth || height !== lastHeight;
     const isResizeBlocked = instance.runHooks('beforeRefreshDimensions', { width: lastWidth, height: lastHeight }, { width, height }, isSizeChanged) === false;
 

@@ -3,7 +3,8 @@ import {
   outerHeight,
   outerWidth,
   setOverlayPosition,
-  resetCssTransform
+  resetCssTransform,
+  getBoundingClientRect,
 } from './../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import Overlay from './_base';
@@ -57,7 +58,7 @@ class TopLeftCornerOverlay extends Overlay {
     const preventOverflow = master.getSetting('preventOverflow');
 
     if (master.wtTable.trimmingContainer === master.rootWindow) {
-      const box = master.wtTable.hider.getBoundingClientRect();
+      const box = getBoundingClientRect(master.wtTable.hider);
       const top = Math.ceil(box.top);
       const left = Math.ceil(box.left);
       const bottom = Math.ceil(box.bottom);

@@ -7,6 +7,7 @@ import {
   removeClass,
   setOverlayPosition,
   resetCssTransform,
+  getBoundingClientRect,
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
@@ -80,7 +81,7 @@ class LeftOverlay extends Overlay {
     const preventOverflow = master.getSetting('preventOverflow');
 
     if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'horizontal')) {
-      const box = master.wtTable.hider.getBoundingClientRect();
+      const box = getBoundingClientRect(master.wtTable.hider);
       const left = Math.ceil(box.left);
       const right = Math.ceil(box.right);
       let finalLeft;

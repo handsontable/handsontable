@@ -3,6 +3,7 @@ import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
 import SvgElement from './svg/svgElement';
 import { GRIDLINE_WIDTH } from '../utils/gridline';
+import { getBoundingClientRect } from '../../../../helpers/dom/element';
 
 const offsetToOverLapPrecedingGridline = -GRIDLINE_WIDTH;
 
@@ -105,11 +106,12 @@ export default class BorderRenderer {
    * @param {object[]} borderEdgesDescriptors Array of border edge descriptors.
    */
   render(table, padding, borderEdgesDescriptors) {
-    this.containerBoundingRect = table.getBoundingClientRect();
+    this.containerBoundingRect = getBoundingClientRect(table);
     this.pathGroups.forEach(pathGroup => pathGroup.stylesAndLines.clear());
 
     // batch all DOM reads
-    const firstTdInTbodyBoundingRect = table.querySelector('tbody td')?.getBoundingClientRect();
+    const firstTd = table.querySelector('tbody td');
+    const firstTdInTbodyBoundingRect = firstTd ? getBoundingClientRect(firstTd) : null;
 
     for (let i = 0; i < borderEdgesDescriptors.length; i++) {
       this.convertBorderEdgesDescriptorToLines(borderEdgesDescriptors[i]);
@@ -369,8 +371,8 @@ export default class BorderRenderer {
       return;
     }
 
-    const firstTdBoundingRect = firstTd.getBoundingClientRect();
-    const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : lastTd.getBoundingClientRect();
+    const firstTdBoundingRect = getBoundingClientRect(firstTd);
+    const lastTdBoundingRect = (firstTd === lastTd) ? firstTdBoundingRect : getBoundingClientRect(lastTd);
 
     // initial coordinates are termined by the position of the top-left and bottom-right cell
     let x1 = firstTdBoundingRect.left;

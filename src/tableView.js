@@ -9,6 +9,7 @@ import {
   isChildOf,
   isInput,
   isOutsideInput,
+  getBoundingClientRect,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
@@ -766,7 +767,7 @@ class TableView {
 
     const spreader = this.wt.wtTable.spreader;
     // We have to cache width and height after Walkontable initialization.
-    const { width, height } = this.instance.rootElement.getBoundingClientRect();
+    const { width, height } = getBoundingClientRect(this.instance.rootElement);
 
     this.setLastSize(width, height);
 

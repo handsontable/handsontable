@@ -1,5 +1,6 @@
 import {
   getScrollableElement,
+  getBoundingClientRect,
 } from './../../../../helpers/dom/element';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
@@ -194,7 +195,7 @@ class Overlay {
    * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinWindow(onFixedRowTop, onFixedColumn, elementOffset, spreaderOffset) {
-    const absoluteRootElementPosition = this.master.wtTable.wtRootElement.getBoundingClientRect();
+    const absoluteRootElementPosition = getBoundingClientRect(this.master.wtTable.wtRootElement);
     let horizontalOffset = 0;
     let verticalOffset = 0;
 
@@ -206,7 +207,7 @@ class Overlay {
     }
 
     if (onFixedRowTop) {
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      const absoluteOverlayPosition = getBoundingClientRect(this.clone.wtTable.TABLE);
 
       verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
 
@@ -245,8 +246,8 @@ class Overlay {
     }
 
     if (onFixedRowBottom) {
-      const absoluteRootElementPosition = this.master.wtTable.wtRootElement.getBoundingClientRect();
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      const absoluteRootElementPosition = getBoundingClientRect(this.master.wtTable.wtRootElement);
+      const absoluteOverlayPosition = getBoundingClientRect(this.clone.wtTable.TABLE);
       verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
 
     } else if (!onFixedRowTop) {

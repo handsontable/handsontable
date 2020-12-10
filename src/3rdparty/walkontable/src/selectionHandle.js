@@ -4,6 +4,7 @@ import {
   offset,
   outerHeight,
   outerWidth,
+  getBoundingClientRect,
 } from '../../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { objectEach } from '../../../helpers/object';
@@ -91,7 +92,7 @@ class SelectionHandle {
 
     const _this = this;
     const documentBody = this.wot.rootDocument.body;
-    const bounds = parentElement.getBoundingClientRect();
+    const bounds = getBoundingClientRect(parentElement);
 
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
@@ -451,7 +452,7 @@ class SelectionHandle {
       }
 
       if (toColumn === this.wot.getSetting('totalColumns') - 1) {
-        const toTdOffsetLeft = trimToWindow ? toTD.getBoundingClientRect().left : toTD.offsetLeft;
+        const toTdOffsetLeft = trimToWindow ? getBoundingClientRect(toTD).left : toTD.offsetLeft;
         const cornerRightEdge = toTdOffsetLeft + outerWidth(toTD) + (parseInt(this.cornerDefaultStyle.width, 10) / 2);
         const columnUtils = this.wot.overlay ? this.wot.overlay.master.columnUtils : this.wot.columnUtils;
         const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer) - columnUtils.scrollbarCompensation;
@@ -463,7 +464,7 @@ class SelectionHandle {
       }
 
       if (toRow === this.wot.getSetting('totalRows') - 1) {
-        const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
+        const toTdOffsetTop = trimToWindow ? getBoundingClientRect(toTD).top : toTD.offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 

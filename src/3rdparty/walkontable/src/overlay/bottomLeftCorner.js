@@ -2,7 +2,8 @@ import {
   getScrollbarWidth,
   outerHeight,
   outerWidth,
-  resetCssTransform
+  resetCssTransform,
+  getBoundingClientRect,
 } from './../../../../helpers/dom/element';
 import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
 import Overlay from './_base';
@@ -58,7 +59,7 @@ class BottomLeftCornerOverlay extends Overlay {
     overlayRootElement.style.top = '';
 
     if (master.wtTable.trimmingContainer === master.rootWindow) {
-      const box = master.wtTable.hider.getBoundingClientRect();
+      const box = getBoundingClientRect(master.wtTable.hider);
       const bottom = Math.ceil(box.bottom);
       const left = Math.ceil(box.left);
       let finalLeft;

@@ -5,6 +5,7 @@ import {
   outerHeight,
   setOverlayPosition,
   resetCssTransform,
+  getBoundingClientRect,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
 import TopOverlayTable from './../table/top';
@@ -80,7 +81,7 @@ class TopOverlay extends Overlay {
     const preventOverflow = master.getSetting('preventOverflow');
 
     if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const box = master.wtTable.hider.getBoundingClientRect();
+      const box = getBoundingClientRect(master.wtTable.hider);
       const top = Math.ceil(box.top);
       const bottom = Math.ceil(box.bottom);
       let finalLeft;

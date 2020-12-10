@@ -3,7 +3,8 @@ import {
   getScrollTop,
   getWindowScrollLeft,
   outerHeight,
-  resetCssTransform
+  resetCssTransform,
+  getBoundingClientRect,
 } from './../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
@@ -81,7 +82,7 @@ class BottomOverlay extends Overlay {
     overlayRootElement.style.top = '';
 
     if (master.wtTable.trimmingContainer === master.rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const box = master.wtTable.hider.getBoundingClientRect();
+      const box = getBoundingClientRect(master.wtTable.hider);
       const bottom = Math.ceil(box.bottom);
       let finalLeft;
       let finalBottom;
