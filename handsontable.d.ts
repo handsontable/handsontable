@@ -1830,13 +1830,13 @@ declare namespace Handsontable {
       afterSetDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetDataAtRowProp?: (changes: CellChange[], source?: ChangeSource) => void;
       afterSetSourceDataAtCell?: (changes: CellChange[], source?: ChangeSource) => void;
-      afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void | bolean;
+      afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void | boolean;
       afterUndo?: (action: plugins.UndoRedoAction) => void;
       afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUnlisten?: () => void;
       afterUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;
-      afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void | boolean;
+      afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
       afterUpdateSettings?: (newSettings: GridSettings) => void;
       afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
       afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
