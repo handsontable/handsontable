@@ -4,6 +4,7 @@ import {
   outerWidth,
   resetCssTransform,
   getBoundingClientRect,
+  clientHeight,
 } from './../../../../helpers/dom/element';
 import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
 import Overlay from './_base';
@@ -89,7 +90,7 @@ class BottomLeftCornerOverlay extends Overlay {
 
       let scrollbarWidth = getScrollbarWidth(master.rootDocument);
 
-      if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
+      if (clientHeight(master.wtTable.holder) === master.wtTable.holder.offsetHeight) {
         scrollbarWidth = 0;
       }
 

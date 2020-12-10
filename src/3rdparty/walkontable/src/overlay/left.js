@@ -8,6 +8,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
   getBoundingClientRect,
+  clientWidth
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
@@ -217,7 +218,7 @@ class LeftOverlay extends Overlay {
     const mainHolder = master.wtTable.holder;
     let scrollbarCompensation = 0;
 
-    if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
+    if (beyondRendered && mainHolder.offsetWidth !== clientWidth(mainHolder)) {
       scrollbarCompensation = getScrollbarWidth(master.rootDocument);
     }
     if (beyondRendered) {

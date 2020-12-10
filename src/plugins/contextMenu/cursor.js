@@ -1,4 +1,4 @@
-import { getWindowScrollLeft, getWindowScrollTop } from './../../helpers/dom/element';
+import { getWindowScrollLeft, getWindowScrollTop, clientWidth, clientHeight } from './../../helpers/dom/element';
 
 /**
  * Helper class for checking if element will fit at the desired side of cursor.
@@ -33,8 +33,8 @@ class Cursor {
     } else if (this.type === 'event') {
       top = parseInt(object.pageY, 10);
       left = parseInt(object.pageX, 10);
-      cellHeight = object.target.clientHeight;
-      cellWidth = object.target.clientWidth;
+      cellHeight = clientHeight(object.target);
+      cellWidth = clientWidth(object.target);
       topRelative = top - windowScrollTop;
       leftRelative = left - windowScrollLeft;
     }

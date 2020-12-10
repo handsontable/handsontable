@@ -5,6 +5,7 @@ import {
   outerHeight,
   resetCssTransform,
   getBoundingClientRect,
+  clientHeight,
 } from './../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
@@ -107,7 +108,7 @@ class BottomOverlay extends Overlay {
 
       let scrollbarWidth = getScrollbarWidth(master.rootDocument);
 
-      if (master.wtTable.holder.clientHeight === master.wtTable.holder.offsetHeight) {
+      if (clientHeight(master.wtTable.holder) === master.wtTable.holder.offsetHeight) {
         scrollbarWidth = 0;
       }
 
@@ -226,7 +227,7 @@ class BottomOverlay extends Overlay {
     const mainHolder = master.wtTable.holder;
     let scrollbarCompensation = 0;
 
-    if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
+    if (bottomEdge && mainHolder.offsetHeight !== clientHeight(mainHolder)) {
       scrollbarCompensation = getScrollbarWidth(master.rootDocument);
     }
 

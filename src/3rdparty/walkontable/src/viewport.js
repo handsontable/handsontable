@@ -4,6 +4,8 @@ import {
   offset,
   outerHeight,
   outerWidth,
+  clientWidth,
+  clientHeight,
 } from './../../../helpers/dom/element';
 import EventManager from './../../../eventManager';
 import {
@@ -52,12 +54,12 @@ class Viewport {
     let height = 0;
 
     if (trimmingContainer === this.wot.rootWindow) {
-      height = currentDocument.documentElement.clientHeight;
+      height = clientHeight(currentDocument.documentElement);
 
     } else {
       const elemHeight = outerHeight(trimmingContainer);
       // returns height without DIV scrollbar
-      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
+      height = (elemHeight > 0 && clientHeight(trimmingContainer) > 0) ? clientHeight(trimmingContainer) : Infinity;
     }
 
     return height;
@@ -90,7 +92,7 @@ class Viewport {
       // otherwise continue below, which will allow stretching
       // this is used in `scroll_window.html`
       // TODO test me
-      return rootDocument.documentElement.clientWidth;
+      return clientWidth(rootDocument.documentElement);
     }
 
     if (trimmingContainer !== rootWindow) {
@@ -99,7 +101,7 @@ class Viewport {
       if (overflow === 'scroll' || overflow === 'hidden' || overflow === 'auto') {
         // this is used in `scroll.html`
         // TODO test me
-        return Math.max(width, trimmingContainer.clientWidth);
+        return Math.max(width, clientWidth(trimmingContainer));
       }
     }
 
@@ -349,7 +351,7 @@ class Viewport {
       height -= fixedRowsHeight;
     }
 
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+    if (clientHeight(wtTable.holder) === wtTable.holder.offsetHeight) {
       scrollbarHeight = 0;
     } else {
       scrollbarHeight = getScrollbarWidth(rootDocument);
@@ -394,7 +396,7 @@ class Viewport {
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
-    if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
+    if (clientWidth(wtTable.holder) !== wtTable.holder.offsetWidth) {
       width -= getScrollbarWidth(rootDocument);
     }
 

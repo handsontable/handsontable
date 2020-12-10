@@ -6,6 +6,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
   getBoundingClientRect,
+  clientHeight,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
 import TopOverlayTable from './../table/top';
@@ -214,7 +215,7 @@ class TopOverlay extends Overlay {
     let newY = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
-    if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
+    if (bottomEdge && mainHolder.offsetHeight !== clientHeight(mainHolder)) {
       scrollbarCompensation = getScrollbarWidth(master.rootDocument);
     }
 

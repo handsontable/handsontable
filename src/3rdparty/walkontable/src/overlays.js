@@ -1,6 +1,8 @@
 import {
   getScrollableElement,
   getScrollbarWidth,
+  clientWidth,
+  clientHeight
 } from './../../../helpers/dom/element';
 import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
@@ -449,8 +451,8 @@ class Overlays {
 
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
       const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+      const width = clientWidth(container);
+      const height = clientHeight(container);
 
       if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
         this.spreaderLastSize.width = width;

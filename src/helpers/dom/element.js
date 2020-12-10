@@ -596,6 +596,14 @@ export function getScrollLeft(element, rootWindow = window) {
   return element.scrollLeft;
 }
 
+export const clientWidth = (element) => {
+  return element.clientWidth;
+}
+
+export const clientHeight = (element) => {
+  return element.clientHeight;
+}
+
 /**
  * Returns a DOM element responsible for scrolling of the provided element.
  *
@@ -630,10 +638,10 @@ export function getScrollableElement(element) {
     }
 
     // The '+ 1' after the scrollHeight/scrollWidth is to prevent problems with zoomed out Chrome.
-    if (el.clientHeight <= el.scrollHeight + 1 && (props.includes(overflowY) || props.includes(overflow))) {
+    if (clientHeight(el) <= el.scrollHeight + 1 && (props.includes(overflowY) || props.includes(overflow))) {
       return el;
     }
-    if (el.clientWidth <= el.scrollWidth + 1 && (props.includes(overflowX) || props.includes(overflow))) {
+    if (clientWidth(el) <= el.scrollWidth + 1 && (props.includes(overflowX) || props.includes(overflow))) {
       return el;
     }
 
@@ -786,7 +794,7 @@ export function outerHeight(element) {
  * @returns {number} Element's inner height.
  */
 export function innerHeight(element) {
-  return element.clientHeight || element.innerHeight;
+  return clientHeight(element) || element.innerHeight;
 }
 
 /**
@@ -796,7 +804,7 @@ export function innerHeight(element) {
  * @returns {number} Element's inner width.
  */
 export function innerWidth(element) {
-  return element.clientWidth || element.innerWidth;
+  return clientWidth(element) || element.innerWidth;
 }
 
 /**
@@ -977,7 +985,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   let w2 = inner.offsetWidth;
 
   if (w1 === w2) {
-    w2 = outer.clientWidth;
+    w2 = clientWidth(outer);
   }
   (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
@@ -1006,7 +1014,7 @@ export function getScrollbarWidth(rootDocument = document) {
  * @returns {boolean}
  */
 export function hasVerticalScrollbar(element) {
-  return element.offsetWidth !== element.clientWidth;
+  return element.offsetWidth !== clientWidth(element);
 }
 
 /**
@@ -1016,7 +1024,7 @@ export function hasVerticalScrollbar(element) {
  * @returns {boolean}
  */
 export function hasHorizontalScrollbar(element) {
-  return element.offsetHeight !== element.clientHeight;
+  return element.offsetHeight !== clientHeight(element);
 }
 
 /**
