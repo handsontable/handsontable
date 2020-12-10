@@ -200,11 +200,15 @@ class Viewport {
    * @returns {number}
    */
   getColumnHeaderHeight() {
+    if (this.columnHeaderHeight) {
+      return this.columnHeaderHeight;
+    }
+
     const columnHeaders = this.wot.getSetting('columnHeaders');
 
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
-    } else if (isNaN(this.columnHeaderHeight)) {
+    } else if (!this.columnHeaderHeight) {
       this.columnHeaderHeight = outerHeight(this.wot.wtTable.THEAD);
     }
 
@@ -377,7 +381,7 @@ class Viewport {
     let width = this.getViewportWidth();
     let pos = wtOverlays.leftOverlay.getScrollPosition() - wtOverlays.leftOverlay.getTableParentOffset();
 
-    this.columnHeaderHeight = NaN;
+    // this.columnHeaderHeight = NaN;
 
     if (pos < 0) {
       pos = 0;
