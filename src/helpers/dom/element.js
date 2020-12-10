@@ -596,13 +596,13 @@ export function getScrollLeft(element, rootWindow = window) {
   return element.scrollLeft;
 }
 
-export const clientWidth = (element) => {
+export const clientWidth = memoize((element) => {
   return element.clientWidth;
-}
+})
 
-export const clientHeight = (element) => {
+export const clientHeight = memoize((element) => {
   return element.clientHeight;
-}
+})
 
 /**
  * Returns a DOM element responsible for scrolling of the provided element.
@@ -1119,6 +1119,8 @@ export const getBoundingClientRect = memoize((element) => {
 const memoizedFunctionsToClearBeforeRender = [
   getScrollTop,
   getBoundingClientRect,
+  clientWidth,
+  clientHeight
 ];
 
 export const clearMemoizedFunctionsBeforeRender = () => {
