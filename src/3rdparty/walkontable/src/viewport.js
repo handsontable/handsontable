@@ -27,7 +27,7 @@ class Viewport {
     this.oversizedRows = [];
     this.oversizedColumnHeaders = [];
     this.hasOversizedColumnHeadersMarked = false;
-    this.clientHeight = 0;
+    this.clientHeight = this._getWorkspaceHeight();
     this.containerWidth = NaN;
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
@@ -35,14 +35,18 @@ class Viewport {
 
     this.eventManager = new EventManager(this.wot);
     this.eventManager.addEventListener(this.wot.rootWindow, 'resize', () => {
-      this.clientHeight = this.getWorkspaceHeight();
+      this.clientHeight = this._getWorkspaceHeight();
     });
+  }
+
+  getWorkspaceHeight() {
+    return this.clientHeight;
   }
 
   /**
    * @returns {number}
    */
-  getWorkspaceHeight() {
+  _getWorkspaceHeight() {
     const currentDocument = this.wot.rootDocument;
     const trimmingContainer = this.wot.wtTable.trimmingContainer;
     let height = 0;
