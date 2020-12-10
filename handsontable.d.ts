@@ -1862,7 +1862,7 @@ declare namespace Handsontable {
       beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
       beforeDropdownMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
       beforeDropdownMenuShow?: (instance: plugins.DropdownMenu) => void;
-      beforeFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => boolean;
+      beforeFilter?: (conditionsStack: plugins.FiltersPlugin.ColumnConditions[]) => void | boolean;
       beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
       beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
       beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
