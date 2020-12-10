@@ -572,13 +572,13 @@ export function getWindowScrollLeft(rootWindow = window) {
  * @returns {number}
  */
 // eslint-disable-next-line no-restricted-globals
-export function getScrollTop(element, rootWindow = window) {
+export const getScrollTop = memoize((element, rootWindow = window) => {
   if (element === rootWindow) {
     return getWindowScrollTop(rootWindow);
   }
 
   return element.scrollTop;
-}
+})
 
 /**
  * Returns the provided element's scrollLeft property.
@@ -1105,6 +1105,7 @@ export function selectElementIfAllowed(element) {
 }
 
 const memoizedFunctionsToClearBeforeRender = [
+  getScrollTop,
 ];
 
 export const clearMemoizedFunctionsBeforeRender = () => {
