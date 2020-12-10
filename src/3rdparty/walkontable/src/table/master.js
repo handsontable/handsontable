@@ -55,7 +55,7 @@ class MasterTable extends Table {
       let { width, height } = trimmingElement.getBoundingClientRect();
       const overflow = ['auto', 'hidden', 'scroll'];
 
-      if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
+      if (false && trimmingElementParent && overflow.includes(trimmingOverflow)) {
         const cloneNode = trimmingElement.cloneNode(false);
 
         // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
