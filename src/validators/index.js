@@ -1,9 +1,9 @@
 import staticRegister from './../utils/staticRegister';
 
-import autocompleteValidator from './autocompleteValidator';
-import dateValidator from './dateValidator';
-import numericValidator from './numericValidator';
-import timeValidator from './timeValidator';
+// import autocompleteValidator from './autocompleteValidator';
+// import dateValidator from './dateValidator';
+// import numericValidator from './numericValidator';
+// import timeValidator from './timeValidator';
 
 const {
   register,
@@ -13,10 +13,10 @@ const {
   getValues,
 } = staticRegister('validators');
 
-register('autocomplete', autocompleteValidator);
-register('date', dateValidator);
-register('numeric', numericValidator);
-register('time', timeValidator);
+// register('autocomplete', autocompleteValidator);
+// register('date', dateValidator);
+// register('numeric', numericValidator);
+// register('time', timeValidator);
 
 /**
  * Retrieve validator function.
