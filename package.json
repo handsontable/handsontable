@@ -74,6 +74,7 @@
     "@types/pikaday": "1.7.4",
     "core-js": "^3.0.0",
     "hot-formula-parser": "^3.0.1",
+    "micro-memoize": "^4.0.9",
     "moment": "2.24.0",
     "numbro": "2.1.2",
     "pikaday": "1.8.0"

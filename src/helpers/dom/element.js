@@ -5,6 +5,7 @@ import {
   isGetComputedStyleSupported,
 } from '../feature';
 import { isSafari, isIE9 } from '../browser';
+import memoize from "micro-memoize";
 
 /**
  * Get the parent of the specified node in the DOM tree.
