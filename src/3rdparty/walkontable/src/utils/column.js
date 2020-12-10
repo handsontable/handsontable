@@ -13,7 +13,7 @@ export default class ColumnUtils {
   constructor(wot) {
     this.wot = wot;
     this.headerWidths = new Map();
-    this.scrollbarCompensation = NaN;
+    // this.scrollbarCompensation = NaN;
   }
 
   /**
@@ -89,14 +89,14 @@ export default class ColumnUtils {
    */
   calculateWidths() {
     const { wot } = this;
-    const { wtTable, wtViewport, overlay } = wot;
-    const mainHolder = overlay ? overlay.master.wtTable.holder : wtTable.holder;
+    // const { wtTable, wtViewport, overlay } = wot;
+    // const mainHolder = overlay ? overlay.master.wtTable.holder : wtTable.holder;
 
-    this.scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
+    // this.scrollbarCompensation = mainHolder.offsetHeight < mainHolder.scrollHeight ? getScrollbarWidth() : 0;
 
     let rowHeaderWidthSetting = wot.getSetting('rowHeaderWidth');
 
-    wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - this.scrollbarCompensation);
+    // wtViewport.columnsRenderCalculator.refreshStretching(wtViewport.getViewportWidth() - this.scrollbarCompensation);
 
     rowHeaderWidthSetting = wot.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
