@@ -1104,12 +1104,13 @@ export function selectElementIfAllowed(element) {
   }
 }
 
-export const getBoundingClientRect = (element) => {
+export const getBoundingClientRect = memoize((element) => {
   return element.getBoundingClientRect();
-}
+})
 
 const memoizedFunctionsToClearBeforeRender = [
   getScrollTop,
+  getBoundingClientRect,
 ];
 
 export const clearMemoizedFunctionsBeforeRender = () => {
