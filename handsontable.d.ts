@@ -1767,7 +1767,7 @@ declare namespace Handsontable {
       afterChangesObserved?: () => void;
       afterColumnCollapse?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[], collapsePossible: boolean, successfullyCollapsed: boolean) => void;
       afterColumnExpand?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[], expandPossible: boolean, successfullyExpanded: boolean) => void;
-      afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex?: number, movePossible: boolean, orderChanged: boolean) => void;
+      afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
       afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
       afterColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void;
       afterContextMenuDefaultOptions?: (predefinedItems: (contextMenu.PredefinedMenuItemKey | contextMenu.MenuItemConfig)[]) => void;
@@ -1849,7 +1849,7 @@ declare namespace Handsontable {
       beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
       beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
       beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
-      beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex?: number, movePossible: boolean) => void | boolean;
+      beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
       beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
       beforeColumnSort?: (currentSortConfig: columnSorting.Config[], destinationSortConfigs: columnSorting.Config[]) => void | boolean;
       beforeContextMenuSetItems?: (menuItems: contextMenu.MenuItemConfig[]) => void;
