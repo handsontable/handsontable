@@ -60,10 +60,11 @@ class Viewport {
   }
 
   getWorkspaceWidth() {
+    return window.innerWidth;
+    
     const { wot } = this;
     const { rootDocument, rootWindow } = wot;
     const trimmingContainer = this.wot.wtTable.trimmingContainer;
-    return trimmingContainer.clientWidth;
     const docOffsetWidth = rootDocument.documentElement.offsetWidth;
     const totalColumns = wot.getSetting('totalColumns');
     const preventOverflow = wot.getSetting('preventOverflow');
