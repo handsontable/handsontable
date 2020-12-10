@@ -1,5 +1,5 @@
 import Core from './_base';
-import { addClass, fastInnerText, removeClass } from '../../../../helpers/dom/element';
+import { addClass, fastInnerText, removeClass, clearMemoizedFunctionsBeforeRender } from '../../../../helpers/dom/element';
 import { objectEach } from '../../../../helpers/object';
 import Event from '../event';
 import Overlays from '../overlays';
@@ -60,6 +60,7 @@ class Master extends Core {
    * @returns {Master}
    */
   draw(fastDraw = false) {
+    clearMemoizedFunctionsBeforeRender();
     this.drawInterrupted = false;
 
     if (!fastDraw && !this.wtTable.isVisible()) {

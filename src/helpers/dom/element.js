@@ -1103,3 +1103,13 @@ export function selectElementIfAllowed(element) {
     element.select();
   }
 }
+
+const memoizedFunctionsToClearBeforeRender = [
+];
+
+export const clearMemoizedFunctionsBeforeRender = () => {
+  memoizedFunctionsToClearBeforeRender.forEach(memoized => {
+    memoized.cache.keys.length = 0;
+    memoized.cache.values.length = 0;
+  });
+}
