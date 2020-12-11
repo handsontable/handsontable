@@ -809,9 +809,9 @@ export function outerHeight(element) {
  * @param {HTMLElement} element An element to get the height from.
  * @returns {number} Element's inner height.
  */
-export function innerHeight(element) {
+export const innerHeight = memoize((element) => {
   return clientHeight(element) || element.innerHeight;
-}
+})
 
 /**
  * Returns the element's inner width.
@@ -819,9 +819,9 @@ export function innerHeight(element) {
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's inner width.
  */
-export function innerWidth(element) {
+export const innerWidth = memoize((element) => {
   return clientWidth(element) || element.innerWidth;
-}
+})
 
 /**
  * @param {HTMLElement} element An element to which the event is added.
@@ -1142,6 +1142,8 @@ const memoizedFunctionsToClearBeforeRender = [
   scrollWidth,
   scrollHeight,
   getComputedStyle,
+  innerWidth,
+  innerHeight,
 ];
 
 export const clearMemoizedFunctionsBeforeRender = () => {
