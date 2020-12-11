@@ -578,7 +578,7 @@ export const getScrollTop = memoize((element, rootWindow = window) => {
   }
 
   return element.scrollTop;
-})
+}, { maxSize: Infinity })
 
 /**
  * Returns the provided element's scrollLeft property.
@@ -598,27 +598,27 @@ export function getScrollLeft(element, rootWindow = window) {
 
 export const clientWidth = memoize((element) => {
   return element.clientWidth;
-})
+}, { maxSize: Infinity })
 
 export const clientHeight = memoize((element) => {
   return element.clientHeight;
-})
+}, { maxSize: Infinity })
 
 export const offsetWidth = memoize((element) => {
   return element.offsetWidth;
-})
+}, { maxSize: Infinity })
 
 export const offsetHeight = memoize((element) => {
   return element.offsetHeight;
-})
+}, { maxSize: Infinity })
 
 export const scrollWidth = memoize((element) => {
   return element.scrollWidth;
-})
+}, { maxSize: Infinity })
 
 export const scrollHeight = memoize((element) => {
   return element.scrollHeight;
-})
+}, { maxSize: Infinity })
 
 /**
  * Returns a DOM element responsible for scrolling of the provided element.
@@ -770,7 +770,7 @@ export function matchesCSSRules(element, rule) {
 // eslint-disable-next-line no-restricted-globals
 export const getComputedStyle = memoize((element, rootWindow = window) => {
   return element.currentStyle || rootWindow.getComputedStyle(element);
-})
+}, { maxSize: Infinity })
 
 /**
  * Returns the element's outer width.
@@ -811,7 +811,7 @@ export function outerHeight(element) {
  */
 export const innerHeight = memoize((element) => {
   return clientHeight(element) || element.innerHeight;
-})
+}, { maxSize: Infinity })
 
 /**
  * Returns the element's inner width.
@@ -821,7 +821,7 @@ export const innerHeight = memoize((element) => {
  */
 export const innerWidth = memoize((element) => {
   return clientWidth(element) || element.innerWidth;
-})
+}, { maxSize: Infinity })
 
 /**
  * @param {HTMLElement} element An element to which the event is added.
@@ -1130,7 +1130,7 @@ export function selectElementIfAllowed(element) {
 
 export const getBoundingClientRect = memoize((element) => {
   return element.getBoundingClientRect();
-})
+}, { maxSize: Infinity })
 
 const memoizedFunctionsToClearBeforeRender = [
   getScrollTop,
