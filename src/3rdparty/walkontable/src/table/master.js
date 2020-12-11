@@ -5,6 +5,8 @@ import {
   offset,
   outerWidth,
   getBoundingClientRect,
+  scrollWidth,
+  scrollHeight,
 } from './../../../../helpers/dom/element';
 import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
@@ -52,7 +54,6 @@ class MasterTable extends Table {
       const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
       const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
       const holderStyle = this.holder.style;
-      const { scrollWidth, scrollHeight } = trimmingElement;
       let { width, height } = getBoundingClientRect(trimmingElement);
       const overflow = ['auto', 'hidden', 'scroll'];
 
@@ -79,10 +80,10 @@ class MasterTable extends Table {
         }
       }
 
-      height = Math.min(height, scrollHeight);
+      height = Math.min(height, scrollHeight(trimmingElement));
       holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
 
-      width = Math.min(width, scrollWidth);
+      width = Math.min(width, scrollWidth(trimmingElement));
       holderStyle.width = `${width}px`;
 
       holderStyle.overflow = '';

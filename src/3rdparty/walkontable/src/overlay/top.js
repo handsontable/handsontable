@@ -8,6 +8,7 @@ import {
   getBoundingClientRect,
   clientHeight,
   offsetHeight,
+  scrollWidth,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
 import TopOverlayTable from './../table/top';
@@ -179,7 +180,7 @@ class TopOverlay extends Overlay {
         width -= getScrollbarWidth(master.rootDocument);
       }
 
-      width = Math.min(width, master.wtTable.wtRootElement.scrollWidth);
+      width = Math.min(width, scrollWidth(master.wtTable.wtRootElement));
       overlayRootElementStyle.width = `${width}px`;
 
     } else {

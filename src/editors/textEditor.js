@@ -11,7 +11,8 @@ import {
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   hasClass,
-  removeClass
+  removeClass,
+  scrollHeight
 } from './../helpers/dom/element';
 import { rangeEach } from './../helpers/number';
 import autoResize from './../../lib/autoResize/autoResize';
@@ -410,7 +411,7 @@ class TextEditor extends BaseEditor {
     const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
     const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellLeftOffset) - 9 - actualVerticalScrollbarWidth;
-    const height = this.TD.scrollHeight + 1;
+    const height = scrollHeight(this.TD) + 1;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) - actualHorizontalScrollbarWidth, 23);
 
     const cellComputedStyle = getComputedStyle(this.TD, this.hot.rootWindow);

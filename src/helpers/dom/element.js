@@ -612,6 +612,14 @@ export const offsetHeight = memoize((element) => {
   return element.offsetHeight;
 })
 
+export const scrollWidth = (element) => {
+  return element.scrollWidth;
+}
+
+export const scrollHeight = (element) => {
+  return element.scrollHeight;
+}
+
 /**
  * Returns a DOM element responsible for scrolling of the provided element.
  *
@@ -646,10 +654,10 @@ export function getScrollableElement(element) {
     }
 
     // The '+ 1' after the scrollHeight/scrollWidth is to prevent problems with zoomed out Chrome.
-    if (clientHeight(el) <= el.scrollHeight + 1 && (props.includes(overflowY) || props.includes(overflow))) {
+    if (clientHeight(el) <= scrollHeight(el) + 1 && (props.includes(overflowY) || props.includes(overflow))) {
       return el;
     }
-    if (clientWidth(el) <= el.scrollWidth + 1 && (props.includes(overflowX) || props.includes(overflow))) {
+    if (clientWidth(el) <= scrollWidth(el) + 1 && (props.includes(overflowX) || props.includes(overflow))) {
       return el;
     }
 

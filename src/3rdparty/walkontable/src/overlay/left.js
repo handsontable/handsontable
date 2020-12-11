@@ -10,6 +10,7 @@ import {
   getBoundingClientRect,
   clientWidth,
   offsetWidth,
+  scrollHeight,
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
@@ -186,7 +187,7 @@ class LeftOverlay extends Overlay {
         height -= getScrollbarWidth(master.rootDocument);
       }
 
-      height = Math.min(height, master.wtTable.wtRootElement.scrollHeight);
+      height = Math.min(height, scrollHeight(master.wtTable.wtRootElement));
       overlayRootElementStyle.height = `${height}px`;
 
     } else {

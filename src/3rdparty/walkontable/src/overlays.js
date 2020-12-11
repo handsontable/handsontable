@@ -2,7 +2,9 @@ import {
   getScrollableElement,
   getScrollbarWidth,
   clientWidth,
-  clientHeight
+  clientHeight,
+  scrollWidth,
+  scrollHeight,
 } from './../../../helpers/dom/element';
 import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
@@ -496,9 +498,9 @@ class Overlays {
       this.hasScrollbarRight = rootElemScrollHeight < holderScrollHeight;
       this.hasScrollbarBottom = rootElemScrollWidth < holderScrollWidth;
 
-      if (this.hasScrollbarRight && wtTable.hider.scrollWidth + this.scrollbarSize > rootElemScrollWidth) {
+      if (this.hasScrollbarRight && scrollWidth(wtTable.hider) + this.scrollbarSize > rootElemScrollWidth) {
         this.hasScrollbarBottom = true;
-      } else if (this.hasScrollbarBottom && wtTable.hider.scrollHeight + this.scrollbarSize > rootElemScrollHeight) {
+      } else if (this.hasScrollbarBottom && scrollHeight(wtTable.hider) + this.scrollbarSize > rootElemScrollHeight) {
         this.hasScrollbarRight = true;
       }
     }
