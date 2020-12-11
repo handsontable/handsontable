@@ -612,13 +612,13 @@ export const offsetHeight = memoize((element) => {
   return element.offsetHeight;
 })
 
-export const scrollWidth = (element) => {
+export const scrollWidth = memoize((element) => {
   return element.scrollWidth;
-}
+})
 
-export const scrollHeight = (element) => {
+export const scrollHeight = memoize((element) => {
   return element.scrollHeight;
-}
+})
 
 /**
  * Returns a DOM element responsible for scrolling of the provided element.
@@ -1139,6 +1139,8 @@ const memoizedFunctionsToClearBeforeRender = [
   clientHeight,
   offsetWidth,
   offsetHeight,
+  scrollWidth,
+  scrollHeight,
 ];
 
 export const clearMemoizedFunctionsBeforeRender = () => {
