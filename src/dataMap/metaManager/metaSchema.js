@@ -558,6 +558,8 @@ export default () => {
 
     /**
      * Minimum number of columns. At least that number of columns will be created during initialization.
+     * Works only with an array data source. When data source in an object, you can only have as many columns
+     * as defined in the first data row, data schema, or the `columns` setting.
      *
      * @memberof Options#
      * @type {number}
