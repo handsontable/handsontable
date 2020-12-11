@@ -5,7 +5,7 @@ import {
   isGetComputedStyleSupported,
 } from '../feature';
 import { isSafari, isIE9 } from '../browser';
-import { memoize } from '../memoize';
+import { memoize, unmemoize } from '../memoize';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -600,23 +600,23 @@ export const clientWidth = memoize((element) => {
   return element.clientWidth;
 })
 
-export const clientHeight = memoize((element) => {
+export const clientHeight = unmemoize((element) => {
   return element.clientHeight;
 })
 
-export const offsetWidth = memoize((element) => {
+export const offsetWidth = unmemoize((element) => { // unmemoized because fixed left overlay was wrong
   return element.offsetWidth;
 })
 
-export const offsetHeight = memoize((element) => {
+export const offsetHeight = unmemoize((element) => { // unmemoized because fixed top overlay was wrong
   return element.offsetHeight;
 })
 
-export const scrollWidth = memoize((element) => {
+export const scrollWidth = unmemoize((element) => { // unmemoized because row headers did not fully render in multi-line-merged-cells.xlsx
   return element.scrollWidth;
 })
 
-export const scrollHeight = memoize((element) => {
+export const scrollHeight = unmemoize((element) => {
   return element.scrollHeight;
 })
 
@@ -768,7 +768,7 @@ export function matchesCSSRules(element, rule) {
  * @returns {IEElementStyle|CssStyle} Elements computed style object.
  */
 // eslint-disable-next-line no-restricted-globals
-export const getComputedStyle = memoize((element, rootWindow = window) => {
+export const getComputedStyle = unmemoize((element, rootWindow = window) => {
   return element.currentStyle || rootWindow.getComputedStyle(element);
 })
 
@@ -1128,7 +1128,7 @@ export function selectElementIfAllowed(element) {
   }
 }
 
-export const getBoundingClientRect = memoize((element) => {
+export const getBoundingClientRect = unmemoize((element) => {
   return element.getBoundingClientRect();
 })
 
