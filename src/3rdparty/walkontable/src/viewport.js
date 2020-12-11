@@ -6,6 +6,8 @@ import {
   outerWidth,
   clientWidth,
   clientHeight,
+  offsetWidth,
+  offsetHeight,
 } from './../../../helpers/dom/element';
 import EventManager from './../../../eventManager';
 import {
@@ -71,7 +73,7 @@ class Viewport {
     const { wot } = this;
     const { rootDocument, rootWindow } = wot;
     const trimmingContainer = this.wot.wtTable.trimmingContainer;
-    const docOffsetWidth = rootDocument.documentElement.offsetWidth;
+    const docOffsetWidth = offsetWidth(rootDocument.documentElement);
     const totalColumns = wot.getSetting('totalColumns');
     const preventOverflow = wot.getSetting('preventOverflow');
     let width;
@@ -166,7 +168,7 @@ class Viewport {
     dummyElement.style.height = '1px';
     mainContainer.appendChild(dummyElement);
 
-    const fillWidth = dummyElement.offsetWidth;
+    const fillWidth = offsetWidth(dummyElement);
 
     this.containerWidth = fillWidth;
     mainContainer.removeChild(dummyElement);
@@ -351,7 +353,7 @@ class Viewport {
       height -= fixedRowsHeight;
     }
 
-    if (clientHeight(wtTable.holder) === wtTable.holder.offsetHeight) {
+    if (clientHeight(wtTable.holder) === offsetHeight(wtTable.holder)) {
       scrollbarHeight = 0;
     } else {
       scrollbarHeight = getScrollbarWidth(rootDocument);
@@ -396,7 +398,7 @@ class Viewport {
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
-    if (clientWidth(wtTable.holder) !== wtTable.holder.offsetWidth) {
+    if (clientWidth(wtTable.holder) !== offsetWidth(wtTable.holder)) {
       width -= getScrollbarWidth(rootDocument);
     }
 

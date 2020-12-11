@@ -8,7 +8,8 @@ import {
   setOverlayPosition,
   resetCssTransform,
   getBoundingClientRect,
-  clientWidth
+  clientWidth,
+  offsetWidth,
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
@@ -91,7 +92,7 @@ class LeftOverlay extends Overlay {
       finalTop = master.wtTable.hider.style.top;
       finalTop = finalTop === '' ? 0 : finalTop;
 
-      if (left < 0 && (right - overlayRootElement.offsetWidth) > 0) {
+      if (left < 0 && (right - offsetWidth(overlayRootElement)) > 0) {
         finalLeft = -left;
       } else {
         finalLeft = 0;
@@ -218,7 +219,7 @@ class LeftOverlay extends Overlay {
     const mainHolder = master.wtTable.holder;
     let scrollbarCompensation = 0;
 
-    if (beyondRendered && mainHolder.offsetWidth !== clientWidth(mainHolder)) {
+    if (beyondRendered && offsetWidth(mainHolder) !== clientWidth(mainHolder)) {
       scrollbarCompensation = getScrollbarWidth(master.rootDocument);
     }
     if (beyondRendered) {

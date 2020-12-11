@@ -5,6 +5,7 @@ import {
   resetCssTransform,
   getBoundingClientRect,
   clientHeight,
+  offsetHeight,
 } from './../../../../helpers/dom/element';
 import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
 import Overlay from './_base';
@@ -65,7 +66,7 @@ class BottomLeftCornerOverlay extends Overlay {
       const left = Math.ceil(box.left);
       let finalLeft;
       let finalBottom;
-      const bodyHeight = master.rootDocument.body.offsetHeight;
+      const bodyHeight = offsetHeight(master.rootDocument.body);
 
       if (left < 0) {
         finalLeft = -left;
@@ -90,7 +91,7 @@ class BottomLeftCornerOverlay extends Overlay {
 
       let scrollbarWidth = getScrollbarWidth(master.rootDocument);
 
-      if (clientHeight(master.wtTable.holder) === master.wtTable.holder.offsetHeight) {
+      if (clientHeight(master.wtTable.holder) === offsetHeight(master.wtTable.holder)) {
         scrollbarWidth = 0;
       }
 

@@ -5,6 +5,8 @@ import {
   setOverlayPosition,
   resetCssTransform,
   getBoundingClientRect,
+  offsetWidth,
+  offsetHeight,
 } from './../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import Overlay from './_base';
@@ -67,13 +69,13 @@ class TopLeftCornerOverlay extends Overlay {
       let finalTop = '0';
 
       if (!preventOverflow || preventOverflow === 'vertical') {
-        if (left < 0 && (right - overlayRootElement.offsetWidth) > 0) {
+        if (left < 0 && (right - offsetWidth(overlayRootElement)) > 0) {
           finalLeft = `${-left}px`;
         }
       }
 
       if (!preventOverflow || preventOverflow === 'horizontal') {
-        if (top < 0 && (bottom - overlayRootElement.offsetHeight) > 0) {
+        if (top < 0 && (bottom - offsetHeight(overlayRootElement)) > 0) {
           finalTop = `${-top}px`;
         }
       }

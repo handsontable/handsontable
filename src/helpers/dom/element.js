@@ -604,6 +604,14 @@ export const clientHeight = memoize((element) => {
   return element.clientHeight;
 })
 
+export const offsetWidth = (element) => {
+  return element.offsetWidth;
+}
+
+export const offsetHeight = (element) => {
+  return element.offsetHeight;
+}
+
 /**
  * Returns a DOM element responsible for scrolling of the provided element.
  *
@@ -763,7 +771,7 @@ export function getComputedStyle(element, rootWindow = window) {
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
-  return element.offsetWidth;
+  return offsetWidth(element);
 }
 
 /**
@@ -781,10 +789,10 @@ export function outerHeight(element) {
     // http://lists.w3.org/Archives/Public/www-style/2009Oct/0089.html
     // http://bugs.jquery.com/ticket/2196
     // http://lists.w3.org/Archives/Public/www-style/2009Oct/0140.html#start140
-    return element.offsetHeight + element.firstChild.offsetHeight;
+    return offsetHeight(element) + offsetHeight(element.firstChild);
   }
 
-  return element.offsetHeight;
+  return offsetHeight(element);
 }
 
 /**
@@ -980,9 +988,9 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   outer.appendChild(inner);
 
   (rootDocument.body || rootDocument.documentElement).appendChild(outer);
-  const w1 = inner.offsetWidth;
+  const w1 = offsetWidth(inner);
   outer.style.overflow = 'scroll';
-  let w2 = inner.offsetWidth;
+  let w2 = offsetWidth(inner);
 
   if (w1 === w2) {
     w2 = clientWidth(outer);
@@ -1014,7 +1022,7 @@ export function getScrollbarWidth(rootDocument = document) {
  * @returns {boolean}
  */
 export function hasVerticalScrollbar(element) {
-  return element.offsetWidth !== clientWidth(element);
+  return offsetWidth(element) !== clientWidth(element);
 }
 
 /**
@@ -1024,7 +1032,7 @@ export function hasVerticalScrollbar(element) {
  * @returns {boolean}
  */
 export function hasHorizontalScrollbar(element) {
-  return element.offsetHeight !== clientHeight(element);
+  return offsetHeight(element) !== clientHeight(element);
 }
 
 /**

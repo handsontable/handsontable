@@ -1,3 +1,5 @@
+import { offsetHeight } from './dom/element';
+
 // https://gist.github.com/paulirish/1579671
 /* eslint-disable no-restricted-globals */
 let lastTime = 0;
@@ -98,7 +100,7 @@ function detectCaptionProblem() {
   TABLE.insertBefore(CAPTION, TBODY);
 
   document.body.appendChild(TABLE);
-  _hasCaptionProblem = (TABLE.offsetHeight < 2 * TABLE.lastChild.offsetHeight); // boolean
+  _hasCaptionProblem = (offsetHeight(TABLE) < 2 * offsetHeight(TABLE.lastChild)); // boolean
   document.body.removeChild(TABLE);
 }
 

@@ -7,6 +7,7 @@ import {
   resetCssTransform,
   getBoundingClientRect,
   clientHeight,
+  offsetHeight,
 } from './../../../../helpers/dom/element';
 import { arrayEach } from './../../../../helpers/array';
 import TopOverlayTable from './../table/top';
@@ -91,7 +92,7 @@ class TopOverlay extends Overlay {
       finalLeft = master.wtTable.hider.style.left;
       finalLeft = finalLeft === '' ? 0 : finalLeft;
 
-      if (top < 0 && (bottom - overlayRootElement.offsetHeight) > 0) {
+      if (top < 0 && (bottom - offsetHeight(overlayRootElement)) > 0) {
         finalTop = -top;
       } else {
         finalTop = 0;
@@ -215,7 +216,7 @@ class TopOverlay extends Overlay {
     let newY = this.getTableParentOffset();
     let scrollbarCompensation = 0;
 
-    if (bottomEdge && mainHolder.offsetHeight !== clientHeight(mainHolder)) {
+    if (bottomEdge && offsetHeight(mainHolder) !== clientHeight(mainHolder)) {
       scrollbarCompensation = getScrollbarWidth(master.rootDocument);
     }
 
