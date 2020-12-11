@@ -768,9 +768,9 @@ export function matchesCSSRules(element, rule) {
  * @returns {IEElementStyle|CssStyle} Elements computed style object.
  */
 // eslint-disable-next-line no-restricted-globals
-export function getComputedStyle(element, rootWindow = window) {
+export const getComputedStyle = memoize((element, rootWindow = window) => {
   return element.currentStyle || rootWindow.getComputedStyle(element);
-}
+})
 
 /**
  * Returns the element's outer width.
@@ -1141,6 +1141,7 @@ const memoizedFunctionsToClearBeforeRender = [
   offsetHeight,
   scrollWidth,
   scrollHeight,
+  getComputedStyle,
 ];
 
 export const clearMemoizedFunctionsBeforeRender = () => {
