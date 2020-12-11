@@ -646,7 +646,7 @@ export function getScrollableElement(element) {
       return el;
 
     } else if (supportedGetComputedStyle) {
-      ({ overflow, overflowX, overflowY } = rootWindow.getComputedStyle(el));
+      ({ overflow, overflowX, overflowY } = getComputedStyle(el, rootWindow));
 
       if (props.includes(overflow) || props.includes(overflowX) || props.includes(overflowY)) {
         return el;

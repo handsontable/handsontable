@@ -5,6 +5,7 @@ import {
   clientHeight,
   scrollWidth,
   scrollHeight,
+  getComputedStyle,
 } from './../../../helpers/dom/element';
 import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
@@ -34,8 +35,8 @@ class Overlays {
      * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
      * Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
      */
-    const BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).lineHeight, 10);
-    const FALLBACK_BODY_LINE_HEIGHT = parseInt(rootWindow.getComputedStyle(rootDocument.body).fontSize, 10) * 1.2;
+    const BODY_LINE_HEIGHT = parseInt(getComputedStyle(rootDocument.body, rootWindow).lineHeight, 10);
+    const FALLBACK_BODY_LINE_HEIGHT = parseInt(getComputedStyle(rootDocument.body, rootWindow).fontSize, 10) * 1.2;
 
     this.eventManager = new EventManager(this.wot);
 
@@ -43,7 +44,7 @@ class Overlays {
     this.wot.update('scrollbarWidth', this.scrollbarSize);
     this.wot.update('scrollbarHeight', this.scrollbarSize);
 
-    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden';
+    const isOverflowHidden = getComputedStyle(wtTable.wtRootElement.parentNode, rootWindow).getPropertyValue('overflow') === 'hidden';
 
     this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
@@ -392,7 +393,7 @@ class Overlays {
     }
     const { rootWindow, wtTable } = this.wot;
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (getComputedStyle(wtTable.wtRootElement.parentNode, rootWindow).getPropertyValue('overflow') === 'hidden') {
       this.scrollableElement = wtTable.holder;
     } else {
       this.scrollableElement = getScrollableElement(wtTable.TABLE);

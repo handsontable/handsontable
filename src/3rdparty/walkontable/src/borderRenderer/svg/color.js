@@ -1,3 +1,5 @@
+import { getComputedStyle } from '../../../../../helpers/dom/element';
+
 let helperSpanForColorPicking;
 /**
  * Matches any numbers within string, including negative numbers and decimal fractions.
@@ -33,7 +35,7 @@ export function convertCssColorToRGBA(cssColor) {
   helperSpanForColorPicking.style.color = cssColor;
 
   const window = helperSpanForColorPicking.ownerDocument.defaultView; // needed because our linting rules prohibit to use globals like `window`
-  const colorInRgb = window.getComputedStyle(helperSpanForColorPicking).color; // returns format rgb(255, 255, 255) or rgba(255, 255, 255, 1)
+  const colorInRgb = getComputedStyle(helperSpanForColorPicking, window).color; // returns format rgb(255, 255, 255) or rgba(255, 255, 255, 1)
   const colorParsed = colorInRgb.match(numericRegexp);
 
   helperSpanForColorPicking.ownerDocument.body.removeChild(helperSpanForColorPicking);

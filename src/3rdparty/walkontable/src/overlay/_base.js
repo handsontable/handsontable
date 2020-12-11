@@ -1,6 +1,7 @@
 import {
   getScrollableElement,
   getBoundingClientRect,
+  getComputedStyle,
 } from './../../../../helpers/dom/element';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
@@ -137,7 +138,7 @@ class Overlay {
   updateMainScrollableElement() {
     const { master } = this;
 
-    if (master.rootWindow.getComputedStyle(master.wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (getComputedStyle(master.wtTable.wtRootElement.parentNode, master.rootWindow).getPropertyValue('overflow') === 'hidden') {
       this.mainTableScrollableElement = master.wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(master.wtTable.TABLE);
@@ -294,7 +295,7 @@ class Overlay {
       preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
       this.mainTableScrollableElement = master.rootWindow;
 
-    } else if (master.rootWindow.getComputedStyle(master.wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    } else if (getComputedStyle(master.wtTable.wtRootElement.parentNode, master.rootWindow).getPropertyValue('overflow') === 'hidden') {
       this.mainTableScrollableElement = master.wtTable.holder;
     } else {
       this.mainTableScrollableElement = getScrollableElement(master.wtTable.TABLE);
