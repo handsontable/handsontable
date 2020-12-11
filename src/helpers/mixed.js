@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { toSingleLine } from './templateLiteralTag';
 
 /**
@@ -116,86 +115,6 @@ const domMessages = {
 };
 
 export function _injectProductInfo(key, element) {
-  const hasValidType = !isEmpty(key);
-  const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  const hotVersion = process.env.HOT_VERSION;
-  let keyValidityDate;
-  let consoleMessageState = 'invalid';
-  let domMessageState = 'invalid';
-
-  key = _norm(key || '');
-
-  const schemaValidity = _checkKeySchema(key);
-
-  if (hasValidType || isNonCommercial || schemaValidity) {
-    if (schemaValidity) {
-      const releaseDate = moment(process.env.HOT_RELEASE_DATE, 'DD/MM/YYYY');
-      const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
-      const keyValidityDays = _extractTime(key);
-
-      keyValidityDate = moment((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
-
-      if (releaseDays > keyValidityDays) {
-        const daysAfterRelease = moment().diff(releaseDate, 'days');
-
-        consoleMessageState = daysAfterRelease <= 1 ? 'valid' : 'expired';
-        domMessageState = daysAfterRelease <= 15 ? 'valid' : 'expired';
-      } else {
-        consoleMessageState = 'valid';
-        domMessageState = 'valid';
-      }
-
-    } else if (isNonCommercial) {
-      consoleMessageState = 'non_commercial';
-      domMessageState = 'valid';
-
-    } else {
-      consoleMessageState = 'invalid';
-      domMessageState = 'invalid';
-    }
-
-  } else {
-    consoleMessageState = 'missing';
-    domMessageState = 'missing';
-  }
-
-  if (_ignored()) {
-    consoleMessageState = 'valid';
-    domMessageState = 'valid';
-  }
-
-  if (!_notified && consoleMessageState !== 'valid') {
-    const message = consoleMessages[consoleMessageState]({
-      keyValidityDate,
-      hotVersion,
-    });
-
-    if (message) {
-      console[consoleMessageState === 'non_commercial' ? 'info' : 'warn'](consoleMessages[consoleMessageState]({
-        keyValidityDate,
-        hotVersion,
-      }));
-    }
-    _notified = true;
-  }
-
-  if (domMessageState !== 'valid' && element.parentNode) {
-    const message = domMessages[domMessageState]({
-      keyValidityDate,
-      hotVersion,
-    });
-
-    if (message) {
-      const messageNode = document.createElement('div');
-
-      messageNode.id = 'hot-display-license-info';
-      messageNode.innerHTML = domMessages[domMessageState]({
-        keyValidityDate,
-        hotVersion,
-      });
-      element.parentNode.insertBefore(messageNode, element.nextSibling);
-    }
-  }
 }
 
 function _checkKeySchema(v) {
