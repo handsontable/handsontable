@@ -356,11 +356,12 @@ class Viewport {
       height -= fixedRowsHeight;
     }
 
-    if (clientHeight(wtTable.holder) === offsetHeight(wtTable.holder)) {
-      scrollbarHeight = 0;
-    } else {
-      scrollbarHeight = getScrollbarWidth(rootDocument);
-    }
+    // if (clientHeight(wtTable.holder) === offsetHeight(wtTable.holder)) {
+    //   scrollbarHeight = 0;
+    // } else {
+    //   scrollbarHeight = getScrollbarWidth(rootDocument);
+    // }
+    scrollbarHeight = 0;
 
     return new ViewportRowsCalculator({
       viewportSize: height,
@@ -401,9 +402,9 @@ class Viewport {
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
-    if (clientWidth(wtTable.holder) !== offsetWidth(wtTable.holder)) {
-      width -= getScrollbarWidth(rootDocument);
-    }
+    // if (clientWidth(wtTable.holder) !== offsetWidth(wtTable.holder)) {
+    //   width -= getScrollbarWidth(rootDocument);
+    // }
 
     return new ViewportColumnsCalculator({
       viewportSize: width,

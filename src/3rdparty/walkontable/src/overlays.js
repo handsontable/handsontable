@@ -453,6 +453,8 @@ class Overlays {
     }
 
     if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
+      return;
+
       const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
       const width = clientWidth(container);
       const height = clientHeight(container);

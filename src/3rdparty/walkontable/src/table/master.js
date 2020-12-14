@@ -175,21 +175,21 @@ class MasterTable extends Table {
 
         wtViewport.createVisibleCalculators();
 
-        const hiderWidth = outerWidth(this.hider);
-        const tableWidth = outerWidth(this.TABLE);
+        // const hiderWidth = outerWidth(this.hider);
+        // const tableWidth = outerWidth(this.TABLE);
 
-        if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
-          // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
-          this.wot.columnUtils.calculateWidths();
-          this.tableRenderer.renderer.colGroup.render();
-        }
+        // if (hiderWidth !== 0 && (tableWidth !== hiderWidth)) {
+        //   // Recalculate the column widths, if width changes made in the overlays removed the scrollbar, thus changing the viewport width.
+        //   this.wot.columnUtils.calculateWidths();
+        //   this.tableRenderer.renderer.colGroup.render();
+        // }
 
-        if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
-          // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
-          wtViewport.containerWidth = null;
-          this.wot.columnUtils.calculateWidths();
-          this.tableRenderer.renderer.colGroup.render();
-        }
+        // if (workspaceWidth !== wtViewport.getWorkspaceWidth()) {
+        //   // workspace width changed though to shown/hidden vertical scrollbar. Let's reapply stretching
+        //   wtViewport.containerWidth = null;
+        //   this.wot.columnUtils.calculateWidths();
+        //   this.tableRenderer.renderer.colGroup.render();
+        // }
 
         wtOverlays.refreshClones(false);
         this.refreshSelections(false);
