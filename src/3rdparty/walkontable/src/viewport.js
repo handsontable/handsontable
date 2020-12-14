@@ -244,6 +244,9 @@ class Viewport {
    * @returns {number}
    */
   getRowHeaderWidth() {
+    this.rowHeaderWidth = 50;
+    return this.rowHeaderWidth;
+
     // TODO simply sum this.headerWidths instead of this logic
 
     const rowHeadersWidthSetting = this.wot.getSetting('rowHeaderWidth');
