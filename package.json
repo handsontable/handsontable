@@ -12,20 +12,37 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "version": "8.2.0",
   "main": "index.js",
-  "module": "es/index.js",
-  "jsnext:main": "es/index.js",
+  "module": "es/index.mjs",
+  "jsnext:main": "es/index.mjs",
   "exports": {
     ".": {
-      "require": "./index.js",
       "import": "./es/index.mjs",
-      "default": "./es/index.mjs"
+      "require": "./index.js"
     },
     "./base": {
-      "require": "./base.js",
       "import": "./es/base.mjs",
-      "default": "./es/base.mjs"
+      "require": "./base.js"
     },
-    "./": "./es/"
+    "./cellTypes": {
+      "import": "./es/cellTypes/index.mjs",
+      "require": "./cellTypes/index.js"
+    },
+    "./editors": {
+      "import": "./es/editors/index.mjs",
+      "require": "./editors/index.js"
+    },
+    "./plugins": {
+      "import": "./es/plugins/index.mjs",
+      "require": "./plugins/index.js"
+    },
+    "./renderers": {
+      "import": "./es/renderers/index.mjs",
+      "require": "./renderers/index.js"
+    },
+    "./validators": {
+      "import": "./es/validators/index.mjs",
+      "require": "./validators/index.js"
+    }
   },
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",

@@ -56,6 +56,14 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * ```
  */
 export class AutoColumnSize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }

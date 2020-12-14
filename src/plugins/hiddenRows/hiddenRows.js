@@ -72,6 +72,14 @@ export const PLUGIN_PRIORITY = 320;
  * ```
  */
 export class HiddenRows extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Cached settings from Handsontable settings.
    *

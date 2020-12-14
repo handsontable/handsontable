@@ -25,6 +25,14 @@ const privatePool = new WeakMap();
  * @plugin ManualRowResize
  */
 export class ManualRowResize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 

@@ -26,6 +26,14 @@ export const PLUGIN_PRIORITY = 0;
  * with table will be cleared.
  */
 export class PersistentState extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

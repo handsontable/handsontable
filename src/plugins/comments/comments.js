@@ -79,6 +79,14 @@ const META_READONLY = 'readOnly';
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class Comments extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

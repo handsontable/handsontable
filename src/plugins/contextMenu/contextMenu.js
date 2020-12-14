@@ -72,6 +72,14 @@ Hooks.getSingleton().register('afterContextMenuExecute');
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class ContextMenu extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Context menu default items order when `contextMenu` options is set as `true`.
    *

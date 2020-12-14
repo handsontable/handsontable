@@ -26,6 +26,14 @@ export const PLUGIN_PRIORITY = 180;
  * To configure this plugin see {@link Options#observeChanges}.
  */
 export class ObserveChanges extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

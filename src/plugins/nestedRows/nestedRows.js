@@ -19,6 +19,14 @@ const privatePool = new WeakMap();
  * Plugin responsible for displaying and operating on data sources with nested structures.
  */
 export class NestedRows extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

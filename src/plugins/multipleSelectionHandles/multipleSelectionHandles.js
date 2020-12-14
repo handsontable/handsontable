@@ -12,6 +12,14 @@ export const PLUGIN_PRIORITY = 160;
  * @plugin MultipleSelectionHandles
  */
 export class MultipleSelectionHandles extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * @param {object} hotInstance The handsontable instance.
    */

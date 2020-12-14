@@ -29,6 +29,14 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  */
 
 export class Autofill extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

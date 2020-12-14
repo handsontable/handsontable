@@ -71,6 +71,14 @@ export const PLUGIN_PRIORITY = 310;
  * ```
  */
 export class HiddenColumns extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Cached plugin settings.
    *

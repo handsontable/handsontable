@@ -66,6 +66,14 @@ const META_HEAD = [
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class CopyPaste extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

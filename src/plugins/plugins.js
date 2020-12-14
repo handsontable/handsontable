@@ -102,12 +102,20 @@ export function getPlugin(pluginName) {
 /**
  * Registers plugin under given name.
  *
- * @param {string} pluginName The plugin name.
- * @param {Function} pluginClass The plugin class.
+ * @param {string|Function} pluginName The plugin name or plugin class.
+ * @param {Function} [pluginClass] The plugin class.
  * @param {number} [priority] The plugin priority.
  */
 export function registerPlugin(pluginName, pluginClass, priority) {
-  const correctedPluginName = toUpperCaseFirst(pluginName);
+  let name = pluginName;
+
+  if (typeof pluginName === 'function') {
+    pluginClass = pluginName;
+    name = pluginClass.PLUGIN_KEY;
+    priority = pluginClass.PLUGIN_PRIORITY;
+  }
+
+  const correctedPluginName = toUpperCaseFirst(name);
 
   addToPluginsRegistry(correctedPluginName, pluginClass);
 

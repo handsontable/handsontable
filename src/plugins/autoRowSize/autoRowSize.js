@@ -63,6 +63,14 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * ```
  */
 export class AutoRowSize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }

@@ -45,6 +45,14 @@ export const PLUGIN_PRIORITY = 240;
  * ```
  */
 export class ExportFile extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.

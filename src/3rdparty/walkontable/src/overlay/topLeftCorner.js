@@ -7,6 +7,10 @@ import {
 } from './../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import Overlay from './_base';
+import { registerOverlay } from './registerer';
+import {
+  CLONE_TOP_LEFT_CORNER,
+} from './constants';
 
 /**
  * @class TopLeftCornerOverlay
@@ -17,7 +21,7 @@ class TopLeftCornerOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
+    this.clone = this.makeClone(CLONE_TOP_LEFT_CORNER);
   }
 
   /**
@@ -98,6 +102,6 @@ class TopLeftCornerOverlay extends Overlay {
   }
 }
 
-Overlay.registerOverlay(Overlay.CLONE_TOP_LEFT_CORNER, TopLeftCornerOverlay);
+registerOverlay(CLONE_TOP_LEFT_CORNER, TopLeftCornerOverlay);
 
 export default TopLeftCornerOverlay;

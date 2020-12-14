@@ -67,6 +67,14 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  * }]```
  */
 export class MultiColumnSorting extends ColumnSorting {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

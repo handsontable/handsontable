@@ -53,6 +53,14 @@ const DEFAULT_QUERY_METHOD = function(query, value) {
  * ```
  */
 export class Search extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**

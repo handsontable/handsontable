@@ -67,6 +67,14 @@ const BUTTON_CLASS_NAME = 'changeType';
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class DropdownMenu extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
    *

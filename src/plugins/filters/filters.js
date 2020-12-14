@@ -50,6 +50,14 @@ export const PLUGIN_PRIORITY = 250;
  * ```
  */
 export class Filters extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
