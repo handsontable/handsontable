@@ -6,11 +6,6 @@ import { metaSchemaFactory } from './dataMap/index';
 
 import jQueryWrapper from './helpers/wrappers/jquery';
 
-import { getRegisteredEditorNames, getEditor, registerEditor } from './editors';
-import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
-import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
-import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
-
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
@@ -29,40 +24,86 @@ import * as domEventHelpers from './helpers/dom/event';
 import * as plugins from './plugins/index';
 import { registerPlugin } from './plugins';
 
-import { BaseEditor, EDITOR_TYPE as BASE_EDITOR } from './editors/baseEditor';
-import { AutocompleteEditor, EDITOR_TYPE as AUTOCOMPLETE_EDITOR } from './editors/autocompleteEditor';
-import { CheckboxEditor, EDITOR_TYPE as CHECKBOX_EDITOR } from './editors/checkboxEditor';
-import { DateEditor, EDITOR_TYPE as DATE_EDITOR } from './editors/dateEditor';
-import { DropdownEditor, EDITOR_TYPE as DROPDOWN_EDITOR } from './editors/dropdownEditor';
-import { HandsontableEditor, EDITOR_TYPE as HANDSONTABLE_EDITOR } from './editors/handsontableEditor';
-import { NumericEditor, EDITOR_TYPE as NUMERIC_EDITOR } from './editors/numericEditor';
-import { PasswordEditor, EDITOR_TYPE as PASSWORD_EDITOR } from './editors/passwordEditor';
-import { SelectEditor, EDITOR_TYPE as SELECT_EDITOR } from './editors/selectEditor';
-import { TextEditor, EDITOR_TYPE as TEXT_EDITOR } from './editors/textEditor';
-
-import { baseRenderer, RENDERER_TYPE as BASE_RENDERER } from './renderers/baseRenderer';
-import { autocompleteRenderer, RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './renderers/autocompleteRenderer';
-import { checkboxRenderer, RENDERER_TYPE as CHECKBOX_RENDERER } from './renderers/checkboxRenderer';
-import { htmlRenderer, RENDERER_TYPE as HTML_RENDERER } from './renderers/htmlRenderer';
-import { numericRenderer, RENDERER_TYPE as NUMERIC_RENDERER } from './renderers/numericRenderer';
-import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './renderers/passwordRenderer';
-import { textRenderer, RENDERER_TYPE as TEXT_RENDERER } from './renderers/textRenderer';
-
-import { autocompleteValidator, VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './validators/autocompleteValidator';
-import { dateValidator, VALIDATOR_TYPE as DATE_VALIDATOR } from './validators/dateValidator';
-import { numericValidator, VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './validators/numericValidator';
-import { timeValidator, VALIDATOR_TYPE as TIME_VALIDATOR } from './validators/timeValidator';
-
-import { AutocompleteCellType, CELL_TYPE as AUTOCOMPLETE_TYPE } from './cellTypes/autocompleteType';
-import { CheckboxCellType, CELL_TYPE as CHECKBOX_TYPE } from './cellTypes/checkboxType';
-import { DateCellType, CELL_TYPE as DATE_TYPE } from './cellTypes/dateType';
-import { DropdownCellType, CELL_TYPE as DROPDOWN_TYPE } from './cellTypes/dropdownType';
-import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './cellTypes/handsontableType';
-import { NumericCellType, CELL_TYPE as NUMERIC_TYPE } from './cellTypes/numericType';
-import { PasswordCellType, CELL_TYPE as PASSWORD_TYPE } from './cellTypes/passwordType';
-import { TimeCellType, CELL_TYPE as TIME_TYPE } from './cellTypes/timeType';
-
-jQueryWrapper(Handsontable);
+import {
+  getRegisteredEditorNames,
+  getEditor,
+  registerEditor,
+  AutocompleteEditor,
+  AUTOCOMPLETE_EDITOR,
+  BaseEditor,
+  BASE_EDITOR,
+  CheckboxEditor,
+  CHECKBOX_EDITOR,
+  DateEditor,
+  DATE_EDITOR,
+  DropdownEditor,
+  DROPDOWN_EDITOR,
+  HandsontableEditor,
+  HANDSONTABLE_EDITOR,
+  NumericEditor,
+  NUMERIC_EDITOR,
+  PasswordEditor,
+  PASSWORD_EDITOR,
+  SelectEditor,
+  SELECT_EDITOR,
+  TextEditor,
+  TEXT_EDITOR,
+} from './editors';
+import {
+  getRegisteredRendererNames,
+  getRenderer,
+  registerRenderer,
+  baseRenderer,
+  BASE_RENDERER,
+  autocompleteRenderer,
+  AUTOCOMPLETE_RENDERER,
+  checkboxRenderer,
+  CHECKBOX_RENDERER,
+  htmlRenderer,
+  HTML_RENDERER,
+  numericRenderer,
+  NUMERIC_RENDERER,
+  passwordRenderer,
+  PASSWORD_RENDERER,
+  textRenderer,
+  TEXT_RENDERER,
+} from './renderers';
+import {
+  getRegisteredValidatorNames,
+  getValidator,
+  registerValidator,
+  autocompleteValidator,
+  AUTOCOMPLETE_VALIDATOR,
+  dateValidator,
+  DATE_VALIDATOR,
+  numericValidator,
+  NUMERIC_VALIDATOR,
+  timeValidator,
+  TIME_VALIDATOR,
+} from './validators';
+import {
+  getRegisteredCellTypeNames,
+  getCellType,
+  registerCellType,
+  AutocompleteCellType,
+  AUTOCOMPLETE_TYPE,
+  CheckboxCellType,
+  CHECKBOX_TYPE,
+  DateCellType,
+  DATE_TYPE,
+  DropdownCellType,
+  DROPDOWN_TYPE,
+  HandsontableCellType,
+  HANDSONTABLE_TYPE,
+  NumericCellType,
+  NUMERIC_TYPE,
+  PasswordCellType,
+  PASSWORD_TYPE,
+  TextCellType,
+  TEXT_TYPE,
+  TimeCellType,
+  TIME_TYPE,
+} from './cellTypes';
 
 registerEditor(BASE_EDITOR, BaseEditor);
 registerEditor(AUTOCOMPLETE_EDITOR, AutocompleteEditor);
@@ -96,6 +137,9 @@ registerCellType(HANDSONTABLE_TYPE, HandsontableCellType);
 registerCellType(NUMERIC_TYPE, NumericCellType);
 registerCellType(PASSWORD_TYPE, PasswordCellType);
 registerCellType(TIME_TYPE, TimeCellType);
+registerCellType(TEXT_TYPE, TextCellType);
+
+jQueryWrapper(Handsontable);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;

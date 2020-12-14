@@ -15,9 +15,16 @@ import CellCoords from './cell/coords';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
-import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
+import { isOverlayTypeOf } from './overlay/registerer';
+import {
+  CLONE_TOP,
+  CLONE_BOTTOM,
+  CLONE_LEFT,
+  CLONE_TOP_LEFT_CORNER,
+  CLONE_BOTTOM_LEFT_CORNER,
+} from './overlay/constants';
 
 /**
  *
@@ -107,7 +114,7 @@ class Table {
    * @returns {boolean}
    */
   is(overlayTypeName) {
-    return Overlay.isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
+    return isOverlayTypeOf(this.wot.cloneOverlay, overlayTypeName);
   }
 
   /**
@@ -282,8 +289,8 @@ class Table {
       if (performRedraw) {
         this.tableRenderer.setHeaderContentRenderers(rowHeaders, columnHeaders);
 
-        if (this.is(Overlay.CLONE_BOTTOM) ||
-            this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+        if (this.is(CLONE_BOTTOM) ||
+            this.is(CLONE_BOTTOM_LEFT_CORNER)) {
           // do NOT render headers on the bottom or bottom-left corner overlay
           this.tableRenderer.setHeaderContentRenderers(rowHeaders, []);
         }
@@ -305,7 +312,7 @@ class Table {
 
         this.adjustColumnHeaderHeights();
 
-        if (this.isMaster || this.is(Overlay.CLONE_BOTTOM)) {
+        if (this.isMaster || this.is(CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
 
@@ -332,7 +339,7 @@ class Table {
 
           this.wot.getSetting('onDraw', true);
 
-        } else if (this.is(Overlay.CLONE_BOTTOM)) {
+        } else if (this.is(CLONE_BOTTOM)) {
           this.wot.cloneSource.wtOverlays.adjustElementsSize();
         }
       }
@@ -445,7 +452,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
-    if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
+    if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
     }
 
@@ -658,14 +665,14 @@ class Table {
     let row = index(TR);
     let col = cellElement.cellIndex;
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_TOP, cellElement, this.wtRootElement)) {
+    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
       if (CONTAINER.nodeName === 'THEAD') {
         row -= CONTAINER.childNodes.length;
       }
 
-    } else if (overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_BOTTOM, cellElement, this.wtRootElement)) {
+    } else if (overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
       const totalRows = this.wot.getSetting('totalRows');
 
       row = totalRows - CONTAINER.childNodes.length + row;
@@ -677,9 +684,9 @@ class Table {
       row = this.rowFilter.renderedToSource(row);
     }
 
-    if (overlayContainsElement(Overlay.CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_LEFT, cellElement, this.wtRootElement)
-      || overlayContainsElement(Overlay.CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)) {
+    if (overlayContainsElement(CLONE_TOP_LEFT_CORNER, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_LEFT, cellElement, this.wtRootElement)
+      || overlayContainsElement(CLONE_BOTTOM_LEFT_CORNER, cellElement, this.wtRootElement)) {
       col = this.columnFilter.offsettedTH(col);
 
     } else {

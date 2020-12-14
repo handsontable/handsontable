@@ -11,6 +11,10 @@ import {
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
+import { registerOverlay } from './registerer';
+import {
+  CLONE_LEFT,
+} from './constants';
 
 /**
  * @class LeftOverlay
@@ -21,7 +25,7 @@ class LeftOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_LEFT);
+    this.clone = this.makeClone(CLONE_LEFT);
   }
 
   /**
@@ -331,6 +335,6 @@ class LeftOverlay extends Overlay {
   }
 }
 
-Overlay.registerOverlay(Overlay.CLONE_LEFT, LeftOverlay);
+registerOverlay(CLONE_LEFT, LeftOverlay);
 
 export default LeftOverlay;

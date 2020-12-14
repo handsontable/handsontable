@@ -9,6 +9,10 @@ import {
 } from './../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
 import Overlay from './_base';
+import { registerOverlay } from './registerer';
+import {
+  CLONE_BOTTOM,
+} from './constants';
 
 /**
  * @class BottomOverlay
@@ -27,7 +31,7 @@ class BottomOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_BOTTOM);
+    this.clone = this.makeClone(CLONE_BOTTOM);
   }
 
   /**
@@ -349,6 +353,6 @@ class BottomOverlay extends Overlay {
   }
 }
 
-Overlay.registerOverlay(Overlay.CLONE_BOTTOM, BottomOverlay);
+registerOverlay(CLONE_BOTTOM, BottomOverlay);
 
 export default BottomOverlay;
