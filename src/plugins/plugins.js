@@ -2,76 +2,38 @@
  * Utility to register plugins and common namespace for keeping reference to all plugins classes.
  */
 import { toUpperCaseFirst } from '../helpers/string';
+import { createPriorityQueue } from '../utils/dataStructures/priorityQueue';
+import { createUniqueList } from '../utils/dataStructures/uniqueList';
+import { createUniqueQueue } from '../utils/dataStructures/uniqueQueue';
 
-const orderedPluginsRegistry = new Map();
-const unorderedPluginsRegistry = new Set();
-const pluginsRegistry = new Map();
+const ERROR_PLUGIN_REGISTERED = pluginName => `There is already registered '${pluginName}' plugin.`;
+const ERROR_PRIORITY_REGISTERED = priority => `There is already registered plugin on priority '${priority}'.`;
+const ERROR_PRIORITY_NAN = priority => `'${priority}' is not a numeric priority.`;
+const ERROR_NO_PLUGIN = pluginName => `There is no registered '${pluginName}' plugin.`;
 
 /**
- * Binds plugin name with its plugin class reference.
- *
- * @param {string} pluginName The plugin name.
- * @param {BasePlugin} pluginClass The plugin class.
- * @throws Will throw an error if there is already registered plugin on the passed name.
+ * Stores plugins names' queue with they priorities.
  */
-function addToPluginsRegistry(pluginName, pluginClass) {
-  if (pluginsRegistry.has(pluginName)) {
-    throw Error(`There is already registered ${pluginName} plugin`);
-  }
-
-  pluginsRegistry.set(pluginName, pluginClass);
-}
+const priorityPluginsQueue = createPriorityQueue({
+  existingError: ERROR_PRIORITY_REGISTERED,
+  nanPriorityError: ERROR_PRIORITY_NAN,
+});
 /**
- * Register plugin in unordered registry.
- *
- * @param {string} pluginName Plugin's name.
- * @throws Will throw an error if passed pluginName is already taken.
+ * Stores plugins names' queue by registration order.
  */
-function registerUnorderedPlugin(pluginName) {
-  if (unorderedPluginsRegistry.has(pluginName)) {
-    throw Error(`There is already registered ${pluginName} plugin`);
-  }
-
-  unorderedPluginsRegistry.add(pluginName);
-}
+const uniquePluginsQueue = createUniqueQueue({
+  existingError: ERROR_PLUGIN_REGISTERED,
+});
 /**
- * Gets plugins' names registered in unordered registry.
- *
- * @returns {string[]}
+ * Stores plugins references between theirs' name and class.
  */
-function getUnorderedPluginsNames() {
-  return [...unorderedPluginsRegistry];
-}
-/**
- * Register plugin in ordered registry.
- *
- * @param {string} pluginName Plugin's name.
- * @param {number} priority Plugin's priority.
- * @throws Will throw an error if passed priority is already taken.
- */
-function registerOrderedPlugin(pluginName, priority) {
-  if (orderedPluginsRegistry.has(priority)) {
-    throw Error(`There is already registered plugin on priority ${priority}`);
-  }
-
-  orderedPluginsRegistry.set(priority, pluginName);
-}
-/**
- * Gets plugins' names registered in ordered registry.
- *
- * @returns {string[]}
- */
-function getOrderedPluginsNames() {
-  return [...orderedPluginsRegistry]
-    // we want to be sure we sort over a priority key
-    // if we are sure we can remove custom compare function
-    // then we should replace next line with a default `.sort()`
-    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
-    .map(item => item[1]);
-}
+const uniquePluginsList = createUniqueList({
+  existingError: ERROR_PLUGIN_REGISTERED,
+  nonexistingError: ERROR_NO_PLUGIN,
+});
 
 /**
- * Gets registered plugins' names with appropriated order.
+ * Gets registered plugins' names with an appropriate order.
  * First ordered plugins by their ascending priority.
  * Then plugins from the unordered registry in order of registration.
  *
@@ -79,8 +41,8 @@ function getOrderedPluginsNames() {
  */
 export function getPluginsNames() {
   return [
-    ...getOrderedPluginsNames(),
-    ...getUnorderedPluginsNames(),
+    ...priorityPluginsQueue.getItems(),
+    ...uniquePluginsQueue.getItems(),
   ];
 }
 /**
@@ -91,13 +53,9 @@ export function getPluginsNames() {
  * @throws Will throw an error if there is no registered plugin on a passed name.
  */
 export function getPlugin(pluginName) {
-  const correctedPluginName = toUpperCaseFirst(pluginName);
+  const unifiedPluginName = toUpperCaseFirst(pluginName);
 
-  if (!pluginsRegistry.has(correctedPluginName)) {
-    throw Error(`There is no registered ${correctedPluginName} plugin`);
-  }
-
-  return pluginsRegistry.get(correctedPluginName);
+  return uniquePluginsList.getItem(unifiedPluginName);
 }
 /**
  * Registers plugin under given name.
@@ -115,13 +73,13 @@ export function registerPlugin(pluginName, pluginClass, priority) {
     priority = pluginClass.PLUGIN_PRIORITY;
   }
 
-  const correctedPluginName = toUpperCaseFirst(name);
+  const unifiedPluginName = toUpperCaseFirst(name);
 
-  addToPluginsRegistry(correctedPluginName, pluginClass);
+  uniquePluginsList.addItem(unifiedPluginName, pluginClass);
 
   if (priority === void 0) {
-    registerUnorderedPlugin(correctedPluginName);
+    uniquePluginsQueue.addItem(unifiedPluginName);
   } else {
-    registerOrderedPlugin(correctedPluginName, priority);
+    priorityPluginsQueue.addItem(priority, unifiedPluginName);
   }
 }

@@ -1,4 +1,4 @@
-import Interval from 'handsontable/utils/interval';
+import Interval from '../interval';
 
 describe('Interval', () => {
 

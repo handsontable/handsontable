@@ -1,4 +1,4 @@
-import SamplesGenerator from 'handsontable/utils/samplesGenerator';
+import SamplesGenerator from '../samplesGenerator';
 
 describe('SamplesGenerator', () => {
   it('should internally call `generateSamples` when calling `generateRowSamples`', () => {
