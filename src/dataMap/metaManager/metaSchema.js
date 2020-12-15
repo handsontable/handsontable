@@ -1018,9 +1018,10 @@ export default () => {
     activeHeaderClassName: 'ht__active_highlight',
 
     /**
-     * Class name for the Handsontable container element.
-     * It can also be used to assign class names for table cells,
-     * for example, if it is provided in `cells` or `columns` options.
+     * Class name for the current element.
+     * The interpretation depends on the level on which this option is provided in the [cascading configuration](https://handsontable.com/docs/Options.html).
+     * If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
+     * If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
      *
      * @memberof Options#
      * @type {string|string[]}
@@ -1028,10 +1029,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for table container
+     * // can be set as a string
      * className: 'your__class--name',
      *
-     * // or
+     * // or as an array of strings
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
