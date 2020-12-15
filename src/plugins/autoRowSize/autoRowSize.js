@@ -37,7 +37,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
- * ```.
+ * ```
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.

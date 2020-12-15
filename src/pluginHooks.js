@@ -1394,7 +1394,7 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```.
+   * ```
    * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
    */
   'beforeFilter',
@@ -1423,7 +1423,7 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```.
+   * ```
    */
   'afterFilter',
 
@@ -1939,13 +1939,13 @@ const REMOVED_HOOKS = new Map([
  * printed out when the hook is used.
  *
  * Usage:
- * ```.
+ * ```js
  * ...
  * New Map([
  *   ['beforeColumnExpand', 'The plugin hook "beforeColumnExpand" is deprecated. Use "beforeColumnExpand2" instead.'],
  * ])
  * ...
- * ```.
+ * ```
  *
  *
  * @type {Map<string, string>}

@@ -46,7 +46,7 @@ import { isObjectEqual } from '../../helpers/object';
  *     return cellProperties;
  *   }
  * });
- * ```.
+ * ```
  *
  * The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
  *
@@ -1281,7 +1281,7 @@ export default () => {
      * If a function is provided, it will receive the following arguments:
      * ```js
      * function(instance, TD, row, col, prop, value, cellProperties) {}
-     * ```.
+     * ```
      *
      * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
      *

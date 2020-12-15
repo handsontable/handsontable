@@ -58,7 +58,7 @@ let activeGuid = null;
  *
  * // now, to use setDataAtCell method, you can either:
  * hot.setDataAtCell(0, 0, 'new value');
- * ```.
+ * ```
  *
  * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
  * ```js
