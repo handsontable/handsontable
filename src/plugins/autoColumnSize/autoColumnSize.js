@@ -56,6 +56,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * }
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class AutoColumnSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;

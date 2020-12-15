@@ -1318,6 +1318,7 @@ export default () => {
      * ],
      * ```
      */
+    /* eslint-enable jsdoc/require-description-complete-sentence */
     renderer: void 0,
 
     /**

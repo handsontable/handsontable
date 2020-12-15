@@ -62,6 +62,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;

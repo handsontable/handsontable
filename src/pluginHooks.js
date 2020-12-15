@@ -1398,6 +1398,7 @@ const REGISTERED_HOOKS = [
    * ```
    * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   'beforeFilter',
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -1427,6 +1428,7 @@ const REGISTERED_HOOKS = [
    * ]
    * ```
    */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   'afterFilter',
 
   /**
@@ -1953,6 +1955,7 @@ const REMOVED_HOOKS = new Map([
  *
  * @type {Map<string, string>}
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 const DEPRECATED_HOOKS = new Map([]);
 
 class Hooks {
