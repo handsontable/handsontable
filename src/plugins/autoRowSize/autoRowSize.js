@@ -12,6 +12,7 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations
 
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoRowSize
  *

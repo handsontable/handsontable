@@ -1370,6 +1370,7 @@ const REGISTERED_HOOKS = [
    */
   'beforeStretchingColumnWidth',
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin before applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
@@ -1399,6 +1400,7 @@ const REGISTERED_HOOKS = [
    */
   'beforeFilter',
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin after applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
@@ -1931,6 +1933,7 @@ const REMOVED_HOOKS = new Map([
   ['hiddenRow', '8.0.0'],
 ]);
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The list of the hooks which are deprecated. The warning message is printed out in
  * the developer console when the hook is used.

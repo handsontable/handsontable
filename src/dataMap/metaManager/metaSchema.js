@@ -1265,6 +1265,7 @@ export default () => {
      */
     readOnlyCellClassName: 'htDimmed',
 
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
      * If a string is provided, it may be one of the following predefined values:

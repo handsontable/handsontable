@@ -13,6 +13,7 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations
 const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoColumnSize
  *
