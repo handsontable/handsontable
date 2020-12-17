@@ -76,5 +76,18 @@ describe('createUniqueList', () => {
         ['D', 'ItemD'],
       ]);
     });
+
+    it('should be possible to clear saved items', () => {
+      const list = createUniqueList();
+
+      list.addItem('A', 'ItemA');
+      list.addItem('C', 'ItemC');
+      list.addItem('B', 'ItemB');
+      list.addItem('D', 'ItemD');
+
+      list.clear();
+
+      expect(list.getItems()).toEqual([]);
+    });
   });
 });

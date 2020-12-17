@@ -6,6 +6,7 @@ const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a l
 /**
  * @typedef {object} UniqueList
  * @property {Function} addItem Adds a new item to the unique list.
+ * @property {Function} clear Clears the list.
  * @property {Function} getId Returns ID for the passed item.
  * @property {Function} getItem Gets item from the passed ID.
  * @property {Function} getItems Gets all items from the list.
@@ -36,6 +37,13 @@ export function createUniqueList({ errorIdExists } = {}) {
     }
 
     list.set(id, item);
+  }
+
+  /**
+   * Clears the list.
+   */
+  function clear() {
+    list.clear();
   }
 
   /**
@@ -87,6 +95,7 @@ export function createUniqueList({ errorIdExists } = {}) {
 
   return {
     addItem,
+    clear,
     getId,
     getItem,
     getItems,
