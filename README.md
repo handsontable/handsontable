@@ -51,3 +51,5 @@ Stop services:
 ```console
 docker-compose stop
 ```
+
+Visit page: [http://localhost:8080](http://localhost:8080)
