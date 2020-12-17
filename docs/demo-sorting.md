@@ -127,4 +127,3 @@ List of methods exposed by the plugin:
 *   `[setSortConfig](/docs/8.2.0/ColumnSorting.html#setSortConfig)`
 *   `[sort](/docs/8.2.0/ColumnSorting.html#sort)`
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/sorting.html)

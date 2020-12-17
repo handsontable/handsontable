@@ -247,4 +247,3 @@ Edit Log to console
 
 var container = document.getElementById('example-round'); var hot6 = new Handsontable(container, { data: \[ \[0.5, 0.5\], \[0.5, 0.5\], \[1, 1\], \[\],\[\] \], colHeaders: true, rowHeaders: true, columnSummary: \[ { destinationRow: 0, destinationColumn: 0, reversedRowCoords: true, type: 'average' }, { destinationRow: 0, destinationColumn: 1, reversedRowCoords: true, type: 'average', roundFloat: 2 } \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/summary-calculations.html)

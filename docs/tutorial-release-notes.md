@@ -1447,8 +1447,6 @@ An example on how to add a custom editor/renderer/validator:
 
 The corresponding Handsontable CE version is `0.32.0`.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/release-notes.html)
-
 ### 1.11.0-beta2
 
 Released on 24th of May, 2017
@@ -2007,4 +2005,3 @@ Released on 8th of January, 2016
 *   Fixed wrong position issues in the Filters plugin.
 *   Fixed column selection issues in the `nestedHeaders` plugin.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/release-notes.html)

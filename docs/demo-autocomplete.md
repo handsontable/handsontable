@@ -47,4 +47,3 @@ Log to console
 
 var container3 = document.getElementById('example3'), hot3; hot3 = new Handsontable(container3, { data: getCarData(), colHeaders: \['Car', 'Year', 'Chassis color', 'Bumper color'\], columns: \[ { type: 'autocomplete', source: function (query, process) { $.ajax({ //url: 'php/cars.php', // commented out because our website is hosted as a set of static pages url: 'scripts/json/autocomplete.json', dataType: 'json', data: { query: query }, success: function (response) { console.log("response", response); //process(JSON.parse(response.data)); // JSON.parse takes string as a argument process(response.data); } }); }, strict: true }, {}, // Year is a default text column {}, // Chassis color is a default text column {} // Bumper color is a default text column \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/autocomplete.html)

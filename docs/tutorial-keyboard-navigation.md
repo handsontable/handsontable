@@ -60,4 +60,3 @@ slug: /tutorial-keyboard-navigation
 
 *   Ctrl + M – merge/unmerge selected cells
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/keyboard-navigation.html)

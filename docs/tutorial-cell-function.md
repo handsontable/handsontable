@@ -211,4 +211,3 @@ To get the actual cell function use appropriate _cell function getter_:
 
 Those functions will always return an appropriate value, regardless of whether cell functions have been defined directly or using a cell type.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/cell-function.html)

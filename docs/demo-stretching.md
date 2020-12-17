@@ -35,4 +35,3 @@ Edit Log to console
 
 var container3 = document.getElementById('example3'), hot3; hot3 = new Handsontable(container3, { data: Handsontable.helper.createSpreadsheetData(40, 6), colWidths: \[47, 47, 47, 47, 47, 47, 47\], // can also be a number or a function rowHeaders: true, colHeaders: true, stretchH: 'none', // actually you don't have to declare it because it is default contextMenu: true });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/stretching.html)

@@ -41,4 +41,3 @@ var example1 = document.getElementById('example1'); var hot = new Handsontable(e
 
 The maximum number for `colspan` value of nested headers is 1000. This constraint is based on [_HTML table specification_](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) which sets the limit of `colspan` to 1000.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/nested-headers.html)

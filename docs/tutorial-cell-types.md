@@ -172,4 +172,3 @@ Equals:
 
 This mapping is defined by files [src/cellTypes/](https://github.com/handsontable/handsontable/blob/master/src/cellTypes)
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/cell-types.html)

@@ -117,4 +117,3 @@ In their descriptions, you can find examples of how to use them.
 4.  Internet Explorer supports only `Text` mime-type - what is an equivalent of `text/plain`.
 5.  Internet Explorer prompts a confirm window to allow/disallow at the first time user tries to call `document.execCommand`. Unfortunately, if user disallows access to the system clipboard, no exceptions will be thrown and `copy` and `cut` actions will be disabled for end-user. You can read more about this behavior of the browser [here](https://github.com/zenorocha/clipboard.js/issues/77)
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/copy-paste.html)

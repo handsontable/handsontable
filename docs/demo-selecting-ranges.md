@@ -63,4 +63,3 @@ For non-contiguous selection, there are multiple classes making each level a bit
 
 Unfortunately, there is no easy way to change the border color of selection.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/selecting-ranges.html)

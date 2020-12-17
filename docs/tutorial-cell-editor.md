@@ -773,4 +773,3 @@ From now on, you can use `CustomEditor` like so:
       ]
     }); 
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/cell-editor.html)

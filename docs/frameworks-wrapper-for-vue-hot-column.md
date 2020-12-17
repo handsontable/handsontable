@@ -199,4 +199,3 @@ Let's use `v-for` to declare the second and third column in a loop. Obviously, y
 
 As you can see in our first editor/renderer component, we're already commiting all of the changes into the applications `$store`. This way, we can easily bind the state of our new component (based on a star-rating component dependency) to the data in the second and third column.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/wrapper-for-vue-hot-column.html)

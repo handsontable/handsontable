@@ -26,4 +26,3 @@ There are several way to get help if you stumble across any issues.
 *   Ask on [Developers Forum](https://forum.handsontable.com)
 *   Contact our [Support Team](https://handsontable.com/contact?category=technical_support)
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/introduction.html)

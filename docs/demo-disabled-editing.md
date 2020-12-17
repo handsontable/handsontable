@@ -32,4 +32,3 @@ Edit Log to console
 
 var container2 = document.getElementById('example2'), hot2; hot2 = new Handsontable(container2, { data: getCarData(), colHeaders: \['Car', 'Year', 'Chassis color', 'Bumper color'\] }); hot2.updateSettings({ cells: function (row, col, prop) { var cellProperties = {}; if (hot2.getDataAtRowProp(row, prop) === 'Nissan') { cellProperties.editor = false; } else { cellProperties.editor = 'text'; } return cellProperties; } })
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/disabled-editing.html)

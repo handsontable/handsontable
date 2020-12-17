@@ -30,4 +30,3 @@ Edit in jsFiddle Log to console
 
 var example2 = document.getElementById('example2'); var hot2 = new Handsontable(example2, { data: Handsontable.helper.createSpreadsheetData(3, 7), colHeaders: true, dropdownMenu: \[ 'remove\_col', '---------', 'make\_read\_only', '---------', 'alignment' \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/dropdown-menu.html)

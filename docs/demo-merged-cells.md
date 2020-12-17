@@ -11,4 +11,3 @@ Edit Log to console
 
 var container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: Handsontable.helper.createSpreadsheetData(100, 18), colWidths: \[47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47, 47\], rowHeaders: true, colHeaders: true, contextMenu: true, mergeCells: \[ {row: 1, col: 1, rowspan: 3, colspan: 3}, {row: 3, col: 4, rowspan: 2, colspan: 2}, {row: 5, col: 6, rowspan: 3, colspan: 3} \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/merged-cells.html)

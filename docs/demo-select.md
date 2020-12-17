@@ -11,4 +11,3 @@ Edit Log to console
 
 var container = document.getElementById("example1"), hot; hot = new Handsontable(container, { data: \[ \['2017', 'Honda', 10\], \['2018', 'Toyota', 20\], \['2019', 'Nissan', 30\] \], colWidths: \[50, 70, 50\], colHeaders: true, columns: \[ {}, { editor: 'select', selectOptions: \['Kia', 'Nissan', 'Toyota', 'Honda'\] }, {} \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/select.html)

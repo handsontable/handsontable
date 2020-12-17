@@ -191,4 +191,3 @@ Description
 
 Use formulas in cells to perform calculations.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/features.html)

@@ -65,4 +65,3 @@ The context menu has been extended with a few Nested Rows-related options, such 
 
 Moreover, the “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/nested-rows.html)

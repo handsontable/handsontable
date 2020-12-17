@@ -168,4 +168,3 @@ Edit in jsFiddle Log to console
 
 var container3 = document.getElementById('example3'); var hot3 = new Handsontable(container3, { data: Handsontable.helper.createSpreadsheetData(7, 7), colHeaders: true, rowHeaders: true, hiddenRows: { rows: \[1, 3, 5\], indicators: true }, hiddenColumns: { columns: \[1, 3, 5\], indicators: true } }); var button3 = document.getElementById('export-string'); var exportPlugin3 = hot3.getPlugin('exportFile'); button3.addEventListener('click', function() { var exportedString = exportPlugin3.exportAsString('csv', { bom: false, columnDelimiter: ',', columnHeaders: false, exportHiddenColumns: true, exportHiddenRows: true, rowDelimiter: '\\r\\n', rowHeaders: true }); console.log(exportedString); });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/export-file.html)

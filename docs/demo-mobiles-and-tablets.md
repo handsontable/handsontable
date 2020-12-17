@@ -13,4 +13,3 @@ Edit Log to console
 
 var container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: Handsontable.helper.createSpreadsheetData(50, 26), rowHeaders: true, colHeaders: true, colWidths: 100, fixedRowsTop: 2, fixedColumnsLeft: 2 });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/mobiles-and-tablets.html)

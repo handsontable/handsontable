@@ -49,4 +49,3 @@ Vue Component
 
 Handsontable for Vue wrapper is released under [the MIT license](https://github.com/handsontable/vue-handsontable-official/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](/docs/tutorial-licensing.html). You can either use it for free in all your non-commercial projects or purchase a commercial license.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/wrapper-for-vue-installation.html)

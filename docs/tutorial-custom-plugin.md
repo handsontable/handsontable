@@ -13,4 +13,3 @@ Note that creating a plugin for personal needs is usually easier than writing an
 
 We support **ECMAScript 6** and follow [code style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js) (inspired by [Airbnb JavaScript Style](https://github.com/airbnb/javascript)), so those standards are required for the new plugins.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/custom-plugin.html)

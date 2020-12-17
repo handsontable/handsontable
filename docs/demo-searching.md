@@ -66,8 +66,6 @@ Find the following examples below:
 *   [Custom query method](#page-custom-query-method)
 *   [Custom callback](#page-custom-callback)
 
-[Edit this page](https://github.com/handsontable/-pro/edit/8.2.0/tutorials/searching.html)
-
 ### Simplest use case
 
 Edit Log to console
@@ -94,4 +92,3 @@ Edit Log to console
 
 var data = \[ \["Tesla", 2017, "black", "black"\], \["Nissan", 2018, "blue", "blue"\], \["Chrysler", 2019, "yellow", "black"\], \["Volvo", 2020, "white", "gray"\] \], example4 = document.getElementById("example4"), hot4, searchFiled4, resultCount, searchResultCount = 0; function searchResultCounter(instance, row, col, value, result) { const DEFAULT\_CALLBACK = function(instance, row, col, data, testResult) { instance.getCellMeta(row, col).isSearchResult = testResult; }; DEFAULT\_CALLBACK.apply(this, arguments); if (result) { searchResultCount++; } } hot4 = new Handsontable(example4,{ data: data, colHeaders: true, search: { callback: searchResultCounter } }); searchFiled4 = document.getElementById('search\_field4'); resultCount = document.getElementById('resultCount'); Handsontable.dom.addEvent(searchFiled4, 'keyup', function(event) { searchResultCount = 0; var search = hot4.getPlugin('search'); var queryResult = search.query(this.value); console.log(queryResult); resultCount.innerText = searchResultCount.toString(); hot4.render(); });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/searching.html)

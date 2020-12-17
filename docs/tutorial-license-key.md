@@ -68,4 +68,4 @@ If you have any questions or concerns, feel free to contact our [Support Team.](
 
 [](https://handsontable.com/contact?category=technical_support)
 
-[](https://handsontable.com/contact?category=technical_support)[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/license-key.html)
+[](https://handsontable.com/contact?category=technical_support)

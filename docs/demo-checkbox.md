@@ -39,4 +39,3 @@ Edit Log to console
 
 var example3 = document.getElementById('example3'); var hot3 = new Handsontable(example3, { data: getCarData(), colHeaders: \['Car model', 'Accepted', 'Comes in black'\], columns: \[ { data: 'car' }, { data: 'available', type: 'checkbox', label: { position: 'after', property: 'car' // Read value from row object }, }, { data: 'comesInBlack', type: 'checkbox', checkedTemplate: 'yes', uncheckedTemplate: 'no', label: { position: 'before', value: 'In black? ' }, }, \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/checkbox.html)

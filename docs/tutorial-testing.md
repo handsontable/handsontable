@@ -36,4 +36,3 @@ To run Jasmine tests in your command line (using Puppeteer), first install all n
 *   The browser window running the test should be on top. Some tests will not pass while running in the background.
 *   Focus should be on the browser window and the mouse should be still. Moving the mouse or losing focus on the window can interfere with the tests, causing them not to pass.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/testing.html)

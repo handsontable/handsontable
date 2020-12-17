@@ -15,4 +15,3 @@ Edit Log to console
 
 var container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: getCarData(), colHeaders: \['Car', 'Year', 'Chassis color', 'Bumper color'\], columns: \[ {}, {type: 'numeric'}, { type: 'dropdown', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'\] }, { type: 'dropdown', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'\] } \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/dropdown.html)

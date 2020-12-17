@@ -13,4 +13,3 @@ Edit Log to console
 
 .currentRow { background-color: #F9F9FB !important; } .currentCol { background-color: #E7E8EF !important; } var data = \[ \['', 'Tesla', 'Nissan', 'Toyota', 'Honda'\], \['2017', 10, 11, 12, 13\], \['2018', 20, 11, 14, 13\], \['2019', 30, 15, 12, 13\] \], container = document.getElementById('example1'), hot; hot = Handsontable(container, { data: data, minRows: 5, minCols: 6, currentRowClassName: 'currentRow', currentColClassName: 'currentCol', rowHeaders: true, colHeaders: true }); hot.selectCell(2,2);
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/highlighting-selection.html)

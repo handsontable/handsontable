@@ -39,4 +39,3 @@ Edit Log to console
 
 function getData() { return \[ \['', 'Tesla', 'Toyota', 'Honda', 'Ford'\], \['2018', 10, 11, 12, 13, 15, 16\], \['2019', 10, 11, 12, 13, 15, 16\], \['2020', 10, 11, 12, 13, 15, 16\], \]; } var container3 = document.getElementById('example3'), hot3; hot3 = new Handsontable(container3, { data: getData(), rowHeaders: true, colHeaders: true, contextMenu: true, comments: true, cell: \[ {row: 0, col: 1, comment: {value: 'A read-only comment.', readOnly: true}}, {row: 0, col: 3, comment: {value: 'You can edit this comment!'}} \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/read-only.html)

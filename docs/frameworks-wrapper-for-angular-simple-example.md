@@ -17,4 +17,3 @@ Edit
 
 The same example you can find [here](https://stackblitz.com/edit/handsontable-angular).
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/wrapper-for-angular-examples.html)

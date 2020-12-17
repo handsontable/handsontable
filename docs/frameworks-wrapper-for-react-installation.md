@@ -51,4 +51,3 @@ class App extends React.Component {
 
 Handsontable for React wrapper is released under [the MIT license](https://github.com/handsontable/react-handsontable/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](/docs/tutorial-licensing.html). You can either use it for free in all your non-commercial projects or purchase a commercial license.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/wrapper-for-react-installation.html)

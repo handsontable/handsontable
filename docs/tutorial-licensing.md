@@ -73,4 +73,3 @@ All other trademarks belong to their respective owners.
 
 **Copyright (c) 2015- Handsoncode sp. z o.o. All rights reserved.**
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/licensing.html)

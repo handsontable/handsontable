@@ -94,4 +94,3 @@ The Cascading Configuration model is based on prototypal inheritance. It is much
         });
     
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/setting-options.html)

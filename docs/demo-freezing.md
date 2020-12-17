@@ -17,4 +17,3 @@ Edit Log to console
 
 var myData = Handsontable.helper.createSpreadsheetData(100, 26), container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: myData, rowHeaders: true, colHeaders: true, colWidths: 100, fixedColumnsLeft: 2, contextMenu: true, manualColumnFreeze: true });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/freezing.html)

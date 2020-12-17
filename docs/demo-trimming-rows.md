@@ -61,4 +61,3 @@ To restore the trimmed row(s), use the following methods:
 
 To see the changes you made, call `hot.render();` to re-render the table.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/trimming-rows.html)

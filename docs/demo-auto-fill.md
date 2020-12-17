@@ -24,4 +24,3 @@ Edit Log to console
 
 var data = \[ \['', 'Tesla', 'Nissan', 'Toyota', 'Honda'\], \['2017', 10, 11, 12, 13\], \['2018', 20, 11, 14, 13\], \['2019', 30, 15, 12, 13\], \['2020', '', '', '', ''\], \['2021', '', '', '', ''\] \], container = document.getElementById('example2'), hot2; hot2 = new Handsontable(container, { data: data, rowHeaders: true, colHeaders: true, fillHandle: { direction: 'vertical', autoInsertRow: true } });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/auto-fill.html)

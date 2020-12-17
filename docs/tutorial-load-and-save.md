@@ -37,4 +37,3 @@ The main reason behind using `persistentState` hooks rather than a regular Local
 
 **In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.**
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/load-and-save.html)

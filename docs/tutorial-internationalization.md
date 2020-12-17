@@ -266,4 +266,3 @@ Dictionary constants.
 
 Contains: `Object`
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/internationalization.html)

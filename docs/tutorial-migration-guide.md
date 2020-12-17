@@ -482,4 +482,3 @@ Also, an **experimental** feature: `ganttChart` plugin was removed and is no lon
 
 If you use these features in your project and need backward compatibility, please contact the support (at [support@handsontable.com](mailto:support@handsontable.com)) for further information.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/introduction.html)

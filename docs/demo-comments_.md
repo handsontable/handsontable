@@ -55,4 +55,3 @@ Edit Log to console
 
 var container = document.getElementById('example1'), hot1; hot1 = new Handsontable(container, { data: getData(), rowHeaders: true, colHeaders: true, contextMenu: true, comments: true, cell: \[ {row: 1, col: 1, comment: {value: 'Some comment'}}, {row: 2, col: 2, comment: {value: 'More comments'}} \] });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/comments.html)

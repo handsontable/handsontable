@@ -24,4 +24,3 @@ Edit in jsFiddle Log to console
 
 var generateDataObj = function(rows, columns) { var data = \[\]; var number = 0; if (!rows) { rows = 3; } if (!columns) { columns = 7; } for (var i = 0; i < rows; i++) { data\[i\] = \[\]; for (var j = 0; j < columns; j++) { data\[i\]\[j\] = number++; } } for (i = 0; i < 2; i++) { data.push(\[\]); } return data; }; var example1 = document.getElementById('example1'); var hot = new Handsontable(example1, { data: generateDataObj(), colHeaders: true, rowHeaders: true, contextMenu: true, manualRowMove: true, bindRowsWithHeaders: 'strict' });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/bind-rows-headers.html)

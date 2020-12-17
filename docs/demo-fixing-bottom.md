@@ -13,4 +13,3 @@ Edit Log to console
 
 var myData = Handsontable.helper.createSpreadsheetData(100, 50), container = document.getElementById('example'), hot; hot = new Handsontable(container, { data: myData, rowHeaders: true, colHeaders: true, fixedRowsBottom: 2 });
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/fixing.html)

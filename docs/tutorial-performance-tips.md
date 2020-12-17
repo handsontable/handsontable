@@ -38,4 +38,3 @@ For more information, see our documentation for [rows](/docs/8.2.0/Options.html#
 
 Changing your background, font colors etc. shouldn't lower the performance, however adding too many CSS animations, transitions and other calculation-consuming attributes may impact the performance, so keep them at a reasonable level.
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/performance-tips.html)

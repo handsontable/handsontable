@@ -21,4 +21,3 @@ Edit Log to console
 
 var container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: getCarData(), startRows: 7, startCols: 4, colHeaders: \['Car', 'Model', 'Registration time', 'Price'\], columnSorting: true, contextMenu: true, minSpareRows: 1, columns: \[ { type: 'autocomplete', source: \['Audi', 'BMW', 'Chrysler', 'Citroen', 'Mercedes', 'Nissan', 'Opel', 'Suzuki', 'Toyota', 'Volvo'\], strict: false }, { // 2nd cell is simple text, no special options here }, { type: 'time', timeFormat: 'h:mm:ss a', correctFormat: true }, { type: 'numeric', numericFormat: { pattern: '$ 0,0.00' } } \] }); hot.validateCells();
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/time.html)

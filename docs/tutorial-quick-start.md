@@ -73,4 +73,3 @@ Find all the available installation options on the [Download Handsontable](//han
 *   [How to create a custom HTML inside a cell or header?](/docs/8.2.0/demo-custom-renderers.html)
 *   [How to validate data?](/docs/8.2.0/demo-data-validation.html)
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/quick-start.html)

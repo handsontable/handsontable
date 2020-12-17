@@ -49,4 +49,3 @@ To run your own build, follow the below steps:
 3.  Run `npm install` to download all the dependencies defined in `package.json`. The dependencies will be downloaded into a new directory `node_modules`, that is ignored by Git.
 4.  **Run `npm run build` to make your first build!**
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/custom-build.html)

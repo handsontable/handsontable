@@ -39,4 +39,3 @@ latest
 
 **Note: Support for Internet Explorer is deprecated in 8.0.0 version.**
 
-[Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/compatibility.html)
