@@ -2,14 +2,14 @@ import { isFunction } from '../../helpers/function';
 
 /* eslint-disable import/prefer-default-export */
 const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a list.`;
-const DEFAULT_ERROR_ID_NOT_EXISTS = id => `The id '${id}' is not declared in a list.`;
 
 /**
  * @typedef {object} UniqueList
- * @property {(id: *, item: *) => void} addItem Adds a new item to the unique list.
- * @property {(item: *) => *} getId Returns ID for the passed item.
- * @property {(id: *) => *} getItem Gets item from the passed ID.
- * @property {() => *[]} getItems Gets all items from the list.
+ * @property {Function} addItem Adds a new item to the unique list.
+ * @property {Function} getId Returns ID for the passed item.
+ * @property {Function} getItem Gets item from the passed ID.
+ * @property {Function} getItems Gets all items from the list.
+ * @property {Function} hasItem Verifies if the passed ID exists in a list.
  */
 /**
  * Creates a new unique list.
@@ -19,11 +19,10 @@ const DEFAULT_ERROR_ID_NOT_EXISTS = id => `The id '${id}' is not declared in a l
  * @param {(id: *) => string} config.errorItemNotExists The function to generate custom message.
  * @returns {UniqueList}
  */
-export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
+export function createUniqueList({ errorIdExists } = {}) {
   const list = new Map();
 
   errorIdExists = isFunction(errorIdExists) ? errorIdExists : DEFAULT_ERROR_ID_EXISTS;
-  errorIdNotExists = isFunction(errorIdNotExists) ? errorIdNotExists : DEFAULT_ERROR_ID_NOT_EXISTS;
 
   /**
    * Adds a new item to the unique list.
@@ -32,7 +31,7 @@ export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
    * @param {*} item The adding item.
    */
   function addItem(id, item) {
-    if (list.has(id)) {
+    if (hasItem(id)) {
       throw new Error(errorIdExists(id));
     }
 
@@ -64,10 +63,6 @@ export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
    * @returns {*}
    */
   function getItem(id) {
-    if (!list.has(id)) {
-      throw new Error(errorIdNotExists(id));
-    }
-
     return list.get(id);
   }
 
@@ -80,10 +75,21 @@ export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
     return [...list];
   }
 
+  /**
+   * Verifies if the passed ID exists in a list.
+   *
+   * @param {*} id The ID to check if registered.
+   * @returns {boolean}
+   */
+  function hasItem(id) {
+    return list.has(id);
+  }
+
   return {
     addItem,
     getId,
     getItem,
     getItems,
+    hasItem,
   };
 }

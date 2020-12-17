@@ -30,7 +30,7 @@ describe('createPriorityQueue', () => {
 
     it('should be possible to throw a custom error message if priority is not a number', () => {
       const queue = createPriorityQueue({
-        errorPriorityNan: priority => `"${priority}" is not a valid priority key.`,
+        errorPriorityNaN: priority => `"${priority}" is not a valid priority key.`,
       });
 
       expect(() => {

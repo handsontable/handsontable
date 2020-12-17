@@ -6,30 +6,28 @@ import { createPriorityQueue } from '../utils/dataStructures/priorityQueue';
 import { createUniqueList } from '../utils/dataStructures/uniqueList';
 import { createUniqueQueue } from '../utils/dataStructures/uniqueQueue';
 
-const ERROR_PLUGIN_REGISTERED = pluginName => `There is already registered '${pluginName}' plugin.`;
-const ERROR_PRIORITY_REGISTERED = priority => `There is already registered plugin on priority '${priority}'.`;
-const ERROR_PRIORITY_NAN = priority => `'${priority}' is not a numeric priority.`;
-const ERROR_NO_PLUGIN = pluginName => `There is no registered '${pluginName}' plugin.`;
+const ERROR_PLUGIN_REGISTERED = pluginName => `There is already registered "${pluginName}" plugin.`;
+const ERROR_PRIORITY_REGISTERED = priority => `There is already registered plugin on priority "${priority}".`;
+const ERROR_PRIORITY_NAN = priority => `The priority "${priority}" is not a number.`;
 
 /**
  * Stores plugins names' queue with they priorities.
  */
 const priorityPluginsQueue = createPriorityQueue({
-  existingError: ERROR_PRIORITY_REGISTERED,
-  nanPriorityError: ERROR_PRIORITY_NAN,
+  errorPriorityExists: ERROR_PRIORITY_REGISTERED,
+  errorPriorityNaN: ERROR_PRIORITY_NAN,
 });
 /**
  * Stores plugins names' queue by registration order.
  */
 const uniquePluginsQueue = createUniqueQueue({
-  existingError: ERROR_PLUGIN_REGISTERED,
+  errorItemExists: ERROR_PLUGIN_REGISTERED,
 });
 /**
  * Stores plugins references between theirs' name and class.
  */
 const uniquePluginsList = createUniqueList({
-  existingError: ERROR_PLUGIN_REGISTERED,
-  nonexistingError: ERROR_NO_PLUGIN,
+  errorIdExists: ERROR_PLUGIN_REGISTERED,
 });
 
 /**
@@ -75,11 +73,15 @@ export function registerPlugin(pluginName, pluginClass, priority) {
 
   const unifiedPluginName = toUpperCaseFirst(name);
 
-  uniquePluginsList.addItem(unifiedPluginName, pluginClass);
+  if (uniquePluginsList.hasItem(unifiedPluginName)) {
+    throw new Error(ERROR_PLUGIN_REGISTERED(unifiedPluginName));
+  }
 
   if (priority === void 0) {
     uniquePluginsQueue.addItem(unifiedPluginName);
   } else {
     priorityPluginsQueue.addItem(priority, unifiedPluginName);
   }
+
+  uniquePluginsList.addItem(unifiedPluginName, pluginClass);
 }

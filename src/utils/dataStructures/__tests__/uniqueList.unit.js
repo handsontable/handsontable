@@ -55,22 +55,10 @@ describe('createUniqueList', () => {
       }).toThrowError('"A" is already registered');
     });
 
-    it('should throw error if the getting item is not registered in list', () => {
+    it('should return "null" if the getting item is not registered in list', () => {
       const list = createUniqueList();
 
-      expect(() => {
-        list.getItem('A');
-      }).toThrowError('The id \'A\' is not declared in a list.');
-    });
-
-    it('should throw the custom error message if item is already in list', () => {
-      const list = createUniqueList({
-        errorIdNotExists: item => `"${item}" is not registered`,
-      });
-
-      expect(() => {
-        list.getItem('A');
-      }).toThrowError('"A" is not registered');
+      expect(list.getItem('A')).toBeUndefined();
     });
 
     it('should be possible to get all items from the list', () => {

@@ -3750,7 +3750,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getPlugin
    * @param {string} pluginName The plugin name.
-   * @returns {BasePlugin} The plugin instance.
+   * @returns {BasePlugin|undefined} The plugin instance or undefined if there is no plugin.
    */
   this.getPlugin = function(pluginName) {
     const unifiedPluginName = toUpperCaseFirst(pluginName);

@@ -49,7 +49,23 @@ describe('plugins', () => {
 
       expect(() => {
         registerPlugin('pluginH', pluginRef, 0);
-      }).toThrowError();
+      }).toThrowError('There is already registered plugin on priority "0"');
+      expect(() => {
+        registerPlugin('pluginI', pluginRef, 0);
+      }).toThrowError('There is already registered plugin on priority "0"');
+    });
+
+    it('should throw an error if there is already registered plugin at the same name but different priority', () => {
+      const pluginRef = jest.fn();
+
+      registerPlugin('pluginJ', pluginRef, 40);
+
+      expect(() => {
+        registerPlugin('pluginJ', pluginRef, 41);
+      }).toThrowError('There is already registered "PluginJ" plugin.');
+      expect(() => {
+        registerPlugin('pluginK', pluginRef, 41);
+      }).not.toThrowError();
     });
   });
 });

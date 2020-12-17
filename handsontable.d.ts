@@ -61,7 +61,7 @@ declare namespace _Handsontable {
     getDataAtRowProp(row: number, prop: string): Handsontable.CellValue;
     getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): Handsontable.CellType | 'mixed';
     getInstance(): Handsontable;
-    getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T];
+    getPlugin<T extends keyof Handsontable.PluginsCollection>(pluginName: T): Handsontable.PluginsCollection[T] | undefined;
     getRowHeader(): (string | number)[];
     getRowHeader(row: number): string | number;
     getRowHeight(row: number): number;
