@@ -1319,8 +1319,9 @@ export default () => {
      * ],
      * ```
      */
-    /* eslint-enable jsdoc/require-description-complete-sentence */
     renderer: void 0,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * CSS class name added to the commented cells.

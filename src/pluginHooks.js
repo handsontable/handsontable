@@ -1398,8 +1398,9 @@ const REGISTERED_HOOKS = [
    * ```
    * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   'beforeFilter',
+
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
@@ -1428,8 +1429,9 @@ const REGISTERED_HOOKS = [
    * ]
    * ```
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   'afterFilter',
+
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Fired while retrieving the column header height.

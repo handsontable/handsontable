@@ -97,8 +97,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {HTMLElement}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   this.rootElement = rootElement;
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   /**
    * The nearest document over container.
    *

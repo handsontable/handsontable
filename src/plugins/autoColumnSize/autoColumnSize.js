@@ -16,6 +16,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoColumnSize
+ * @class AutoColumnSize
  *
  * @description
  * This plugin allows to set column widths based on their widest cells.
