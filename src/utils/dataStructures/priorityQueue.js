@@ -13,22 +13,22 @@ const DEFAULT_ERROR_PRIORITY_NAN = priority => `The priority '${priority}' is no
 
 /**
  * @typedef {object} PriorityQueue
- * @property {(priority: number, item: *) => void} addItem Adds items to the priority queue.
- * @property {() => *[]} getItems Gets items from the passed queue in a ASC or DESC order of priorities.
+ * @property {Function} addItem Adds items to the priority queue.
+ * @property {Function} getItems Gets items from the passed queue in a ASC or DESC order of priorities.
  */
 /**
  * Creates a new priority queue.
  *
  * @param {object} config The config for priority queue.
- * @param {(priority: number) => string} config.errorPriorityExists The function to generate a custom error message if priority is already taken.
- * @param {(priority: number) => string} config.errorPriorityNan The function to generate a custom error message if priority is not a number.
+ * @param {Function} config.errorPriorityExists The function to generate a custom error message if priority is already taken.
+ * @param {Function} config.errorPriorityNan The function to generate a custom error message if priority is not a number.
  * @returns {PriorityQueue}
  */
-export function createPriorityQueue({ errorPriorityExists, errorPriorityNan } = {}) {
+export function createPriorityQueue({ errorPriorityExists, errorPriorityNaN } = {}) {
   const queue = new Map();
 
   errorPriorityExists = isFunction(errorPriorityExists) ? errorPriorityExists : DEFAULT_ERROR_PRIORITY_EXISTS;
-  errorPriorityNan = isFunction(errorPriorityNan) ? errorPriorityNan : DEFAULT_ERROR_PRIORITY_NAN;
+  errorPriorityNaN = isFunction(errorPriorityNaN) ? errorPriorityNaN : DEFAULT_ERROR_PRIORITY_NAN;
 
   /**
    * Adds items to priority queue.
@@ -38,7 +38,7 @@ export function createPriorityQueue({ errorPriorityExists, errorPriorityNan } = 
    */
   function addItem(priority, item) {
     if (!isNumeric(priority)) {
-      throw Error(errorPriorityNan(priority));
+      throw Error(errorPriorityNaN(priority));
     }
     if (queue.has(priority)) {
       throw Error(errorPriorityExists(priority));
@@ -51,7 +51,7 @@ export function createPriorityQueue({ errorPriorityExists, errorPriorityNan } = 
    * Gets items from the passed queue in a ASC or DESC order of priorities.
    *
    * @param {string} [order] The order for getting items. ASC is an default.
-   * @returns {*[]}
+   * @returns {*}
    */
   function getItems(order = ASC) {
     const [left, right] = ORDER_MAP.get(order) || ORDER_MAP.get(ASC);

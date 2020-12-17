@@ -5,14 +5,14 @@ const DEFAULT_ERROR_ITEM_EXISTS = item => `'${item}' value is already declared i
 
 /**
  * @typedef {object} UniqueQueue
- * @property {(item: *) => void} addItem Adds items to the priority queue.
- * @property {() => *[]} getItems Gets items from the queue in order of addition.
+ * @property {Function} addItem Adds items to the priority queue.
+ * @property {Function} getItems Gets items from the queue in order of addition.
  */
 /**
  * Creates a new unique queue.
  *
  * @param {object} config The config for priority queue.
- * @param {(item: *) => string} config.errorItemExists The function to generate custom error message if item is already in the queue.
+ * @param {Function} config.errorItemExists The function to generate custom error message if item is already in the queue.
  * @returns {UniqueQueue}
  */
 export function createUniqueQueue({ errorItemExists } = {}) {
@@ -36,7 +36,7 @@ export function createUniqueQueue({ errorItemExists } = {}) {
   /**
    * Gets items from the queue in order of addition.
    *
-   * @returns {*[]}
+   * @returns {*}
    */
   function getItems() {
     return [...queue];

@@ -1,4 +1,4 @@
-import mergeSort from '../mergeSort';
+import mergeSort from 'handsontable/utils/sortingAlgorithms/mergeSort';
 
 /**
  * Refactored implementation of megeSort tests by Github user mgechev

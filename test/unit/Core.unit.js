@@ -1,4 +1,4 @@
-import Core from '../core';
+import Core from 'handsontable/core';
 import {
   registerPlugin,
   AutoColumnSize,
@@ -11,7 +11,7 @@ import {
   ManualRowResize,
   NestedRows,
   TrimRows,
-} from '../plugins';
+} from 'handsontable/plugins';
 
 registerPlugin(AutoColumnSize);
 registerPlugin(AutoRowSize);

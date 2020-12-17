@@ -3684,6 +3684,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         .forEach(([, plugin]) => {
           plugin.destroy();
         });
+      pluginsRegistry.clear();
 
       instance.runHooks('afterDestroy');
     });

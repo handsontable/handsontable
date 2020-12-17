@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable';
 import { registerCellType } from 'handsontable/cellTypes';
 import { CELL_TYPE, TextCellType } from 'handsontable/cellTypes/textType';
-import { instanceToHTML, _dataToHTML, htmlToGridSettings } from '../parseTable';
+import { instanceToHTML, _dataToHTML, htmlToGridSettings } from 'handsontable/utils/parseTable';
 
 registerCellType(CELL_TYPE, TextCellType);
 

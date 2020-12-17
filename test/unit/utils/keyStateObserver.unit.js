@@ -5,7 +5,7 @@ import {
   isPressedCtrlKey,
   startObserving,
   stopObserving,
-} from '../keyStateObserver';
+} from 'handsontable/utils/keyStateObserver';
 
 describe('keyStateObserver', () => {
   afterEach(() => {
