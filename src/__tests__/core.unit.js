@@ -1,4 +1,28 @@
-import Core from 'handsontable/core';
+import Core from '../core';
+import {
+  registerPlugin,
+  AutoColumnSize,
+  AutoRowSize,
+  BindRowsWithHeaders,
+  ColumnSorting,
+  DropdownMenu,
+  Filters,
+  ManualColumnResize,
+  ManualRowResize,
+  NestedRows,
+  TrimRows,
+} from '../plugins';
+
+registerPlugin(AutoColumnSize);
+registerPlugin(AutoRowSize);
+registerPlugin(BindRowsWithHeaders);
+registerPlugin(ColumnSorting);
+registerPlugin(DropdownMenu);
+registerPlugin(Filters);
+registerPlugin(ManualColumnResize);
+registerPlugin(ManualRowResize);
+registerPlugin(NestedRows);
+registerPlugin(TrimRows);
 
 describe('Core', () => {
   let container;

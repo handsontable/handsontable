@@ -17,6 +17,7 @@ describe('createUniqueQueue', () => {
 
       expect(queue.getItems()).toEqual(['A', 'B']);
     });
+
     it('should throw error if item is already in queue', () => {
       const queue = createUniqueQueue();
 
@@ -26,6 +27,7 @@ describe('createUniqueQueue', () => {
         queue.addItem('A');
       }).toThrowError('\'A\' value is already declared in a unique queue.');
     });
+
     it('should throw the custom error message if item is already in queue', () => {
       const queue = createUniqueQueue({
         errorItemExists: item => `"${item}" is already registered`,
@@ -37,6 +39,7 @@ describe('createUniqueQueue', () => {
         queue.addItem('A');
       }).toThrowError('"A" is already registered');
     });
+
     it('should get items in the registering order', () => {
       const queue = createUniqueQueue();
 

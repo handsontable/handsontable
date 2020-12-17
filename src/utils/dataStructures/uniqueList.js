@@ -7,7 +7,9 @@ const DEFAULT_ERROR_ID_NOT_EXISTS = id => `The id '${id}' is not declared in a l
 /**
  * @typedef {object} UniqueList
  * @property {(id: *, item: *) => void} addItem Adds a new item to the unique list.
+ * @property {(item: *) => *} getId Returns ID for the passed item.
  * @property {(id: *) => *} getItem Gets item from the passed ID.
+ * @property {() => *[]} getItems Gets all items from the list.
  */
 /**
  * Creates a new unique list.
@@ -38,7 +40,25 @@ export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
   }
 
   /**
-   * Gets item from the passed ID.
+   * Returns ID for the passed item.
+   *
+   * @param {*} item The item of the getting ID.
+   * @returns {*}
+   */
+  function getId(item) {
+    const [itemId] = getItems().find(([id, element]) => {
+      if (item === element) {
+        return id;
+      }
+
+      return false;
+    }) || [null];
+
+    return itemId;
+  }
+
+  /**
+   * Returns item from the passed ID.
    *
    * @param {*} id The ID of the getting item.
    * @returns {*}
@@ -51,8 +71,19 @@ export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
     return list.get(id);
   }
 
+  /**
+   * Gets all items from the list.
+   *
+   * @returns {*[]}
+   */
+  function getItems() {
+    return [...list];
+  }
+
   return {
     addItem,
+    getId,
     getItem,
+    getItems,
   };
 }

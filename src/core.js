@@ -36,6 +36,7 @@ import {
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DataMap } from './dataMap/index';
+import { createUniqueList } from './utils/dataStructures/uniqueList';
 
 let activeGuid = null;
 
@@ -85,7 +86,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const metaManager = new MetaManager(userSettings);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
-  const pluginsRegistry = new Map();
+  const pluginsRegistry = createUniqueList();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -979,11 +980,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   this.init = function() {
-    getPluginsNames().forEach((pluginName) => {
-      const PluginClass = getPlugin(pluginName);
-
-      pluginsRegistry.set(pluginName, new PluginClass(this));
-    });
     dataSource.setData(tableMeta.data);
 
     instance.runHooks('beforeInit');
@@ -3683,9 +3679,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.batch(() => {
       // The plugin's `destroy` method is called as a consequence and it should handle unregistration of plugin's maps. Some unregistered maps reset the cache.
-      [...pluginsRegistry].forEach(([, plugin]) => {
-        plugin.destroy();
-      });
+      pluginsRegistry
+        .getItems()
+        .forEach(([, plugin]) => {
+          plugin.destroy();
+        });
 
       instance.runHooks('afterDestroy');
     });
@@ -3756,24 +3754,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getPlugin = function(pluginName) {
     const unifiedPluginName = toUpperCaseFirst(pluginName);
 
-    return pluginsRegistry.get(unifiedPluginName);
-    // return getPlugin(this, pluginName);
+    return pluginsRegistry.getItem(unifiedPluginName);
   };
 
-  this.getPluginName = function(pluginInstance) {
-    let name = null;
-
-    [...pluginsRegistry].find(([pluginName, pluginClass]) => {
-      if (pluginInstance === pluginClass) {
-        name = pluginName;
-
-        return true;
-      }
-
-      return false;
-    });
-
-    return name;
+  /**
+   * Returns name of the passed plugin.
+   *
+   * @private
+   * @memberof Core#
+   * @param {BasePlugin} plugin The plugin instance.
+   * @returns {string}
+   */
+  this.getPluginName = function(plugin) {
+    return pluginsRegistry.getId(plugin);
   };
 
   /**
@@ -3994,6 +3987,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.prepareEditor();
     }
   };
+
+  getPluginsNames().forEach((pluginName) => {
+    const PluginClass = getPlugin(pluginName);
+
+    pluginsRegistry.addItem(pluginName, new PluginClass(this));
+  });
 
   Hooks.getSingleton().run(instance, 'construct');
 }
