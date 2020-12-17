@@ -22,6 +22,7 @@ Import the Handsontable styles to your project
 
 Then use Handsontable for React component in your codebase
 
+```
         `import React from 'react';
 import { HotTable } from '@handsontable/react';
 
@@ -44,7 +45,7 @@ class App extends React.Component {
     );
   }
 }`
-        
+```
 
 ### License
 

@@ -37,7 +37,7 @@ In strict mode, the **allowInvalid** option determines the behaviour in case of 
 
 Edit Log to console
 
-var container2 = document.getElementById('example2'), hot2; hot2 = new Handsontable(container2, { data: getCarData(), colHeaders: \['Car<br>(allowInvalid true)', 'Year', 'Chassis color<br>(allowInvalid false)', 'Bumper color<br>(allowInvalid true)'\], columns: \[ { type: 'autocomplete', source: \['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'\], strict: true // allowInvalid: true // true is default }, {}, { type: 'autocomplete', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'\], strict: true, allowInvalid: false }, { type: 'autocomplete', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'\], strict: true, allowInvalid: true //true is default } \] });
+var container2 = document.getElementById('example2'), hot2; hot2 = new Handsontable(container2, { data: getCarData(), colHeaders: \['Car<br/>(allowInvalid true)', 'Year', 'Chassis color<br/>(allowInvalid false)', 'Bumper color<br/>(allowInvalid true)'\], columns: \[ { type: 'autocomplete', source: \['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'\], strict: true // allowInvalid: true // true is default }, {}, { type: 'autocomplete', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'\], strict: true, allowInvalid: false }, { type: 'autocomplete', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'\], strict: true, allowInvalid: true //true is default } \] });
 
 ### Autocomplete strict mode (Ajax)
 

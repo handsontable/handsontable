@@ -280,11 +280,11 @@ Methods `moveColumn`, `moveColumns`, `moveRow`, and `moveRows` have their argume
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
-![drag_action](images/drag_action.svg)
+![drag_action](https://handsontable.com/docs/8.2.0/images/drag_action.svg)
 
 The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
 
-![move_action](images/move_action.svg)
+![move_action](https://handsontable.com/docs/8.2.0/images/move_action.svg)
 
 Please note that in case of "move" methods some move actions are limited. For example, if you initiate a move of **more than one element** to the **last position** (visual index = the number of items - 1) the operation will be canceled. The first element in the collection you would like to move will try to reach the last position (`finalIndex`) which is feasible. However, the next ones will attempt to reach the position exceeding the number of all items.
 
@@ -308,11 +308,11 @@ Check the following code example:
 
 The results before:
 
-![before_8](images/spare_before_8.svg)
+![before_8](https://handsontable.com/docs/8.2.0/images/spare_before_8.svg)
 
 The results after:
 
-![after_8](images/spare_after_8.svg)
+![after_8](https://handsontable.com/docs/8.2.0/images/spare_after_8.svg)
 
 To ensure your application works as expected you should review it and search the use cases of `minSpareRows` or `minRows`, if the application relied on this mechanism you may need to adapt it. For example, in prior versions the following code:
 
@@ -398,11 +398,11 @@ After the change:
 
 It used to select just one cell:
 
-![LMB_was](images/LMB_was.gif)
+![LMB_was](https://handsontable.com/docs/8.2.0/images/LMB_was.gif)
 
 Now the expected behavior is to select all cells:
 
-![LMB_is](images/LMB_is.gif)
+![LMB_is](https://handsontable.com/docs/8.2.0/images/LMB_is.gif)
 
 To keep the previous behavior you need to use the following workaround:
 

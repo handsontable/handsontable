@@ -26,11 +26,11 @@ There are significant differences between the plugin's `dragRows` and `moveRows`
 
 1\. The `[dragRows](/docs/8.2.0/ManualRowMove.html#dragRows)` method with the `dropIndex` parameter. This argument points to where we are going to drop the moved elements.
 
-![dragRows method](images/drag_action.svg)
+![dragRows method](https://handsontable.com/docs/8.2.0/images/drag_action.svg)
 
 2\. The `[moveRows](/docs/8.2.0/ManualRowMove.html#moveRows)` method with the `finalIndex` parameter. The argument points to where the elements will be placed after the _moving_ action (`finalIndex` being the index of the first moved element).
 
-![moveRows method](images/move_action.svg)
+![moveRows method](https://handsontable.com/docs/8.2.0/images/move_action.svg)
 
 Some of actions to be performed by `moveRows` function aren't possible, i.e. we can't move more than one element to the last position. In this case, the move will be cancelled. The Plugin's `[isMovePossible](/docs/8.2.0/ManualRowMove.html#isMovePossible)` API method and the `movePossible` parameter of `beforeRowMove` and `afterRowMove` hooks may be helpful in determining such situations.
 

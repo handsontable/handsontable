@@ -2,7 +2,7 @@
 id: tutorial-introduction
 title: Introduction
 sidebar_label: Introduction
-slug: /tutorial-introduction
+slug: /
 ---
 
 ### About Handsontable

@@ -11,7 +11,9 @@ slug: /frameworks-wrapper-for-react-simple-examples
 
 Edit
 
+```
 import React from 'react'; import ReactDOM from 'react-dom'; import { HotTable } from '@handsontable/react'; import Handsontable from 'handsontable'; class App extends React.Component { constructor(props) { super(props); this.handsontableData = Handsontable.helper.createSpreadsheetData(6, 10); } render() { return ( <div> <HotTable id="hot" data={this.handsontableData} colHeaders={true} rowHeaders={true} /> </div> ); } } ReactDOM.render(<App />, document.getElementById('example1'));
+```
 
 ### An implementation of the component using a single-property (`settings`) configuration.
 
@@ -19,7 +21,9 @@ import React from 'react'; import ReactDOM from 'react-dom'; import { HotTable }
 
 Edit
 
+```
 import React from 'react'; import ReactDOM from 'react-dom'; import { HotTable } from '@handsontable/react'; import Handsontable from 'handsontable'; class App extends React.Component { constructor(props) { super(props); this.handsontableData = Handsontable.helper.createSpreadsheetData(6, 10); } render() { return ( <div> <HotTable settings={{ data: this.handsontableData, colHeaders: true, rowHeaders: true }}/> </div> ); } } ReactDOM.render(<App />, document.getElementById('example2'));
+```
 
 ### An interactive implementation using external checkboxes which control the table behavior.
 
@@ -29,6 +33,8 @@ import React from 'react'; import ReactDOM from 'react-dom'; import { HotTable }
 
 Edit
 
+```
 import React from 'react'; import ReactDOM from 'react-dom'; import { HotTable } from '@handsontable/react'; import Handsontable from 'handsontable'; class MyComponent extends React.Component { constructor(props) { super(props); this.state = { settings: { data: Handsontable.helper.createSpreadsheetData(15, 20), width: 570, height: 220, } } } handleChange = (setting, states) => { return (event) => { this.setState({ settings: { \[setting\]: states\[event.target.checked ? 1 : 0\], } }); } }; render() { return ( <div> <div className="controllers"> <label><input onChange={this.handleChange('fixedRowsTop', \[0, 2\])} type="checkbox" />Add fixed rows</label><br/> <label><input onChange={this.handleChange('fixedColumnsLeft', \[0, 2\])} type="checkbox" />Add fixed columns</label><br/> <label><input onChange={this.handleChange('rowHeaders', \[false, true\])} type="checkbox" />Enable row headers</label><br/> <label><input onChange={this.handleChange('colHeaders', \[false, true\])} type="checkbox" />Enable column headers</label><br/> </div> <HotTable root="hot" settings={this.state.settings}/> </div> ); } } ReactDOM.render(<MyComponent />, document.getElementById('example3'));
+```
 
 [Edit this page](https://github.com/handsontable/docs/edit/8.2.0/tutorials/wrapper-for-react-simple-example.html)

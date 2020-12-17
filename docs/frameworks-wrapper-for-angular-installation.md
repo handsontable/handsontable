@@ -10,18 +10,20 @@ slug: /frameworks-wrapper-for-angular-installation
 ### Installation
 
 This component needs the Handsontable library to work. We suggest using [npm](https://www.npmjs.com/package/@handsontable/angular) to install the package.
-
+```
     npm install handsontable @handsontable/angular
+```
 
 ### Basic usage
 
 Import the Handsontable styles to your project
 
+```
           `@import '~handsontable/dist/handsontable.full.css';`
-        
+```     
 
 Import the Handsontable component in your module
-
+```
         `import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
@@ -40,14 +42,15 @@ import { HotTableModule } from '@handsontable/angular';
 })
 export class AppModule { }`
         
+```
 
 Now, you can use the Handsontable component in your HTML files
-
+```
         `<hot-table
   [colHeaders]="true"
   [rowHeaders]="true"
   [data]="dataset"></hot-table>`
-        
+```   
 
 ### License
 

@@ -17,6 +17,7 @@ This component needs the Handsontable library to work. We suggest using [npm](ht
 
 Vue Component
 
+```
         `<template>
   <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
 </template>
@@ -42,7 +43,7 @@ Vue Component
 </script>
 
 <style src="../node_modules/handsontable/dist/handsontable.full.css"></style>`
-        
+```  
 
 ### License
 
