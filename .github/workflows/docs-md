@@ -1,0 +1,41 @@
+name: docs-md
+
+env:
+  GHA_DOCKER_TAG: docker.pkg.github.com/${{ github.repository }}/handsontable-docs
+  GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-docs:${{ github.sha }}
+
+on:
+  push:
+    branches: [ master ]
+    
+defaults:
+  run:
+    working-directory: ./ # todo change this when merging into monorepo
+
+jobs:
+  docker:
+    name: Docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@5a4ac90 # v2
+
+      - name: Docker login into GDR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+
+      - name: Docker build
+        run: |
+          docker build -t docs-md .
+      
+      - name: Docker tags
+        run: 
+          docker tag docs-md $GHA_DOCKER_TAG
+          docker tag docs-md $GHA_DOCKER_TAG_SHA
+          
+      - name: Docker push  latest into GDR
+        run: |
+          docker push $GHA_DOCKER_TAG
+          
+      - name: Docker push SHA tagged into GDR
+        run: |
+          docker push $GHA_DOCKER_TAG_SHA        
