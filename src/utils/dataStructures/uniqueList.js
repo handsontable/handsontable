@@ -33,7 +33,7 @@ export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
    */
   function addItem(id, item) {
     if (list.has(id)) {
-      throw Error(errorIdExists(id));
+      throw new Error(errorIdExists(id));
     }
 
     list.set(id, item);
@@ -65,7 +65,7 @@ export function createUniqueList({ errorIdExists, errorIdNotExists } = {}) {
    */
   function getItem(id) {
     if (!list.has(id)) {
-      throw Error(errorIdNotExists(id));
+      throw new Error(errorIdNotExists(id));
     }
 
     return list.get(id);

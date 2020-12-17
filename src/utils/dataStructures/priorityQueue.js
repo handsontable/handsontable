@@ -38,10 +38,10 @@ export function createPriorityQueue({ errorPriorityExists, errorPriorityNan } = 
    */
   function addItem(priority, item) {
     if (!isNumeric(priority)) {
-      throw Error(errorPriorityNan(priority));
+      throw new Error(errorPriorityNan(priority));
     }
     if (queue.has(priority)) {
-      throw Error(errorPriorityExists(priority));
+      throw new Error(errorPriorityExists(priority));
     }
 
     queue.set(priority, item);

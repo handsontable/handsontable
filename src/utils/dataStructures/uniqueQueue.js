@@ -27,7 +27,7 @@ export function createUniqueQueue({ errorItemExists } = {}) {
    */
   function addItem(item) {
     if (queue.has(item)) {
-      throw Error(errorItemExists(item));
+      throw new Error(errorItemExists(item));
     }
 
     queue.add(item);
