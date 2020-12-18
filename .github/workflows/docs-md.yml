@@ -28,9 +28,9 @@ jobs:
           docker build -t docs-md .
       
       - name: Docker tags
-        run: 
-          docker tag docs-md ${GHA_DOCKER_TAG}
-          docker tag docs-md ${GHA_DOCKER_TAG_SHA}
+        run: |
+          docker tag docs-md $GHA_DOCKER_TAG
+          docker tag docs-md $GHA_DOCKER_TAG_SHA
 
       - name: Docker push  latest into GDR
         run: |
