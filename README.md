@@ -56,19 +56,19 @@ Stop services:
 docker-compose stop
 ```
 
-### Auto refresh from GitHub Docker Registry:
+### Auto refresh from GitHub Container Registry:
 
 
-Login into GDR, as a password should be used [Personal Access Token](https://github.com/settings/tokens)
+Login into GHCR, as a password should be used [Personal Access Token](https://github.com/settings/tokens)
 
 ```console
 docker login --registry docker.pkg.github.com
 ```
 
-Run services: (it might require changing volume path in docker-compose.gdr.yml because it dependent on a username)
+Run services: (it might require changing volume path in docker-compose.ghcr.yml because it dependent on a username)
 
 ```console
-docker-compose -f docker-compose.gdr.yml up -d &&  docker-compose logs -f --tail=100
+docker-compose -f docker-compose.ghcr.yml up -d &&  docker-compose logs -f --tail=100
 ```
 
 Visit page: [http://localhost:8080](http://localhost:8080)
@@ -85,6 +85,6 @@ Update service from GH Action: each push into master will build&push new version
 Stop services:
 
 ```console
-docker-compose -f docker-compose.gdr.yml
+docker-compose -f docker-compose.ghcr.yml
 ```
 

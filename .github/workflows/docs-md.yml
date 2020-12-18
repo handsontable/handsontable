@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@5a4ac90 # v2
 
-      - name: Docker login into GDR
+      - name: Docker login into GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
@@ -32,10 +32,10 @@ jobs:
           docker tag docs-md $GHA_DOCKER_TAG
           docker tag docs-md $GHA_DOCKER_TAG_SHA
 
-      - name: Docker push  latest into GDR
+      - name: Docker push  latest into GHCR
         run: |
           docker push ${GHA_DOCKER_TAG}
           
-      - name: Docker push SHA tagged into GDR
+      - name: Docker push SHA tagged into GHCR
         run: |
           docker push ${GHA_DOCKER_TAG_SHA}
