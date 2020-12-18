@@ -2996,4 +2996,33 @@ describe('MultiColumnSorting', () => {
       expect(onErrorSpy).not.toHaveBeenCalled();
     });
   });
+
+  it('cooperation with the ColumnSorting plugin extra warn and just one plugin works', () => {
+    const warnSpy = spyOn(console, 'warn');
+
+    handsontable({
+      columnSorting: true,
+      multiColumnSorting: true,
+      colHeaders: true
+    });
+
+    spec().sortByClickOnColumnHeader(2);
+
+    keyDown('ctrl');
+
+    spec().sortByClickOnColumnHeader(3);
+
+    expect(warnSpy).toHaveBeenCalled();
+    expect(getPlugin('columnSorting').enabled).toBe(false);
+
+    const sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
+    const sortedColumn2 = spec().$container.find('th span.columnSorting')[3];
+
+    expect(window.getComputedStyle(sortedColumn1, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn2, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+      { column: 2, sortOrder: 'asc' },
+      { column: 3, sortOrder: 'asc' },
+    ]);
+  });
 });

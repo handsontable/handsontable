@@ -94,6 +94,8 @@ class MultiColumnSorting extends ColumnSorting {
   enablePlugin() {
     if (!this.enabled && this.hot.getSettings()[this.pluginKey] && this.hot.getSettings()[CONFLICTED_PLUGIN_KEY]) {
       warnAboutPluginsConflict();
+      // Just the MultiColumnSorting plugin will be enabled.
+      this.hot.getPlugin(CONFLICTED_PLUGIN_KEY).disablePlugin();
     }
 
     super.enablePlugin();
