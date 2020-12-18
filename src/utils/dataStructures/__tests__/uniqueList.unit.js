@@ -5,7 +5,11 @@ describe('createUniqueList', () => {
     const list = createUniqueList();
 
     expect(list.addItem).toBeInstanceOf(Function);
+    expect(list.clear).toBeInstanceOf(Function);
+    expect(list.getId).toBeInstanceOf(Function);
     expect(list.getItem).toBeInstanceOf(Function);
+    expect(list.getItems).toBeInstanceOf(Function);
+    expect(list.hasItem).toBeInstanceOf(Function);
   });
 
   describe('operations', () => {
@@ -88,6 +92,17 @@ describe('createUniqueList', () => {
       list.clear();
 
       expect(list.getItems()).toEqual([]);
+    });
+
+    it('should be possible to check if ID is registered', () => {
+      const list = createUniqueList();
+
+      list.addItem('A', 'ItemA');
+      list.addItem('C', 'ItemC');
+
+      expect(list.hasItem('A')).toBe(true);
+      expect(list.hasItem('B')).toBe(false);
+      expect(list.hasItem('C')).toBe(true);
     });
   });
 });
