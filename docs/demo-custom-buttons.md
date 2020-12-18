@@ -5,7 +5,7 @@ sidebar_label: Custom buttons
 slug: /demo-custom-buttons
 ---
 
-The **[alter](/docs/8.2.0/Core.html#alter)** method can be used if you want to insert or remove rows and columns using external buttons. You can programmatically select a cell using the **[selectCell](/docs/8.2.0/Core.html#selectCell)** and load new data by **[loadData](/docs/8.2.0/Core.html#loadData)** function. The below button implements it.
+The **[alter](https://handsontable.com/docs/8.2.0/Core.html#alter)** method can be used if you want to insert or remove rows and columns using external buttons. You can programmatically select a cell using the **[selectCell](https://handsontable.com/docs/8.2.0/Core.html#selectCell)** and load new data by **[loadData](https://handsontable.com/docs/8.2.0/Core.html#loadData)** function. The below button implements it.
 
 Select first cell Remove first column Remove first row Reset state
 

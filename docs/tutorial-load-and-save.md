@@ -27,9 +27,9 @@ You can save any sort of data in local storage to preserve the table state after
 
 When `persistentState` is enabled it exposes 3 hooks listed below:
 
-*   [persistentStateSave](./Hooks.html#event:persistentStateSave)
-*   [persistentStateLoad](./Hooks.html#event:persistentStateLoad)
-*   [persistentStateReset](./Hooks.html#event:persistentStateReset)
+*   [persistentStateSave](https://handsontable.com/docs/8.2.0/./Hooks.html#event:persistentStateSave)
+*   [persistentStateLoad](https://handsontable.com/docs/8.2.0/./Hooks.html#event:persistentStateLoad)
+*   [persistentStateReset](https://handsontable.com/docs/8.2.0/./Hooks.html#event:persistentStateReset)
 
 ### Why should I use persistentState rather than regular LocalStorage API?
 

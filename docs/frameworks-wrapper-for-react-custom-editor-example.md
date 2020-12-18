@@ -8,7 +8,7 @@ slug: /frameworks-wrapper-for-react-custom-editor-example
 You can declare a custom editor for the `HotTable` component either by declaring it as a class and passing it to the Handsontable options, or create an editor component.
 
 *   [Declaring a renderer as a function](#classEditor)
-*   [Declaring an editor as a component](frameworks-wrapper-for-react-hot-column.html#custom-editor)
+*   [Declaring an editor as a component](https://handsontable.com/docs/8.2.0/frameworks-wrapper-for-react-hot-column.html#custom-editor)
 
 ### Declaring an editor as a class
 

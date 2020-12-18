@@ -60,7 +60,7 @@ That's it, now your Handsontable is up and ready to use:
 
 var data = \[ \['', 'Ford', 'Tesla', 'Toyota', 'Honda'\], \['2017', 10, 11, 12, 13\], \['2018', 20, 11, 14, 13\], \['2019', 30, 15, 12, 13\] \]; var container = document.getElementById('example'); var hot = new Handsontable(container, { data: data, rowHeaders: true, colHeaders: true, filters: true, dropdownMenu: true });
 
-You are probably wondering how to not only bind the data source but also save the changes made in Handsontable? Head to [Binding data](/docs/8.2.0/tutorial-data-binding.html) page to learn more about it.
+You are probably wondering how to not only bind the data source but also save the changes made in Handsontable? Head to [Binding data](https://handsontable.com/docs/8.2.0/tutorial-data-binding.html) page to learn more about it.
 
 ### Alternative installation
 
@@ -68,8 +68,8 @@ Find all the available installation options on the [Download Handsontable](//han
 
 ### Next steps
 
-*   [How to connect the data source?](/docs/8.2.0/tutorial-data-sources.html)
-*   [How to load and save data?](/docs/8.2.0/tutorial-load-and-save.html)
-*   [How to create a custom HTML inside a cell or header?](/docs/8.2.0/demo-custom-renderers.html)
-*   [How to validate data?](/docs/8.2.0/demo-data-validation.html)
+*   [How to connect the data source?](https://handsontable.com/docs/8.2.0/tutorial-data-sources.html)
+*   [How to load and save data?](https://handsontable.com/docs/8.2.0/tutorial-load-and-save.html)
+*   [How to create a custom HTML inside a cell or header?](https://handsontable.com/docs/8.2.0/demo-custom-renderers.html)
+*   [How to validate data?](https://handsontable.com/docs/8.2.0/demo-data-validation.html)
 

@@ -55,17 +55,17 @@ It's worth to mention that some of the hooks are triggered from the inside of th
 
 List of callback that operates on `source` parameter:
 
-*   [afterChange](/docs/8.2.0/Hooks.html#event:afterChange)
-*   [afterCreateCol](/docs/8.2.0/Hooks.html#event:afterCreateCol)
-*   [afterCreateRow](/docs/8.2.0/Hooks.html#event:afterCreateRow)
-*   [afterSetDataAtCell](/docs/8.2.0/Hooks.html#event:afterSetDataAtCell)
-*   [afterSetDataAtRowProp](/docs/8.2.0/Hooks.html#event:afterSetDataAtRowProp)
-*   [afterValidate](/docs/8.2.0/Hooks.html#event:afterValidate)
-*   [beforeChange](/docs/8.2.0/Hooks.html#event:beforeChange)
-*   [beforeChangeRender](/docs/8.2.0/Hooks.html#event:beforeChangeRender)
-*   [beforeCreateCol](/docs/8.2.0/Hooks.html#event:beforeCreateCol)
-*   [beforeCreateRow](/docs/8.2.0/Hooks.html#event:beforeCreateRow)
-*   [beforeValidate](/docs/8.2.0/Hooks.html#event:beforeValidate)
+*   [afterChange](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterChange)
+*   [afterCreateCol](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterCreateCol)
+*   [afterCreateRow](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterCreateRow)
+*   [afterSetDataAtCell](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterSetDataAtCell)
+*   [afterSetDataAtRowProp](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterSetDataAtRowProp)
+*   [afterValidate](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterValidate)
+*   [beforeChange](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeChange)
+*   [beforeChangeRender](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeChangeRender)
+*   [beforeCreateCol](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeCreateCol)
+*   [beforeCreateRow](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeCreateRow)
+*   [beforeValidate](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeValidate)
 
 ### `beforeKeyDown` use case
 

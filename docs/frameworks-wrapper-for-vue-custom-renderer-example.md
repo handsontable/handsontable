@@ -8,7 +8,7 @@ slug: /frameworks-wrapper-for-vue-custom-renderer-example
 You can declare a custom renderer for the `HotTable` component either by declaring it as a function in the Handsontable options, or create a rendering component.
 
 *   [Declaring a renderer as a function](#functionRenderer)
-*   [Declaring a renderer as a component](frameworks-wrapper-for-vue-hot-column.html#custom-renderer)
+*   [Declaring a renderer as a component](https://handsontable.com/docs/8.2.0/frameworks-wrapper-for-vue-hot-column.html#custom-renderer)
 
 ### Declaring a renderer as a function
 

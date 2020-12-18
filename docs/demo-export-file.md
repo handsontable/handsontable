@@ -28,9 +28,9 @@ For the list of methods you can use to accomplish this, see [available methods](
 
 The plugin exposes the following methods to export data.
 
-*   [**downloadFile(format, options)**](/docs/8.2.0/ExportFile.html#downloadFile) - allows you to generate a downloadable file, directly in your browser.
-*   [**exportAsBlob(format, options)**](/docs/8.2.0/ExportFile.html#exportAsBlob) - allows you to export a JavaScript Blob object.
-*   [**exportAsString(format, options)**](/docs/8.2.0/ExportFile.html#exportAsString) - allows you to export data as a string.
+*   [**downloadFile(format, options)**](https://handsontable.com/docs/8.2.0/ExportFile.html#downloadFile) - allows you to generate a downloadable file, directly in your browser.
+*   [**exportAsBlob(format, options)**](https://handsontable.com/docs/8.2.0/ExportFile.html#exportAsBlob) - allows you to export a JavaScript Blob object.
+*   [**exportAsString(format, options)**](https://handsontable.com/docs/8.2.0/ExportFile.html#exportAsString) - allows you to export data as a string.
 
 All of them accept the same arguments:
 

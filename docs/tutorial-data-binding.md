@@ -10,11 +10,11 @@ slug: /tutorial-data-binding
 
 ### Understand binding as a reference
 
-Handsontable binds to your [data source](/docs/8.2.0/tutorial-data-sources.html) (list of arrays or list of objects) by reference (not by values, we don't copy input dataset; we rely on the way how JavaScript handle objects). Therefore, all the data entered in the grid will alter the original data source.
+Handsontable binds to your [data source](https://handsontable.com/docs/8.2.0/tutorial-data-sources.html) (list of arrays or list of objects) by reference (not by values, we don't copy input dataset; we rely on the way how JavaScript handle objects). Therefore, all the data entered in the grid will alter the original data source.
 
 **Note:** You should know the fact that Handsontable initialize source data for the table using a reference, but you shouldn't rely on it. For example, you shouldn't change values in source data using the reference to input dataset. Some mechanisms for handling data aren't prepared for changes from the outside, done in this way.
 
-If you have to avoid that, [copy the data](#page-copy) before you pass it to the grid. To change the data from outside Handsontable you can use our API methods, f.e. a change being made will be displayed immediately on the screen after calling [setDataAtCell](/docs/8.2.0/Core.html#setDataAtCell) method.
+If you have to avoid that, [copy the data](#page-copy) before you pass it to the grid. To change the data from outside Handsontable you can use our API methods, f.e. a change being made will be displayed immediately on the screen after calling [setDataAtCell](https://handsontable.com/docs/8.2.0/Core.html#setDataAtCell) method.
 
 Edit Log to console
 

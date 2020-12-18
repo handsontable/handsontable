@@ -14,11 +14,11 @@ slug: /demo-filtering
 
 The _Filters_ plugin allows filtering the data in the table's columns using a range of pre-defined conditions.
 
-**Note:** Please keep in mind that filtered rows **are** excluded from a `DataMap` (gets by the [getData](/docs/8.2.0/Core.html#getData) method) and they **aren't** rendered.
+**Note:** Please keep in mind that filtered rows **are** excluded from a `DataMap` (gets by the [getData](https://handsontable.com/docs/8.2.0/Core.html#getData) method) and they **aren't** rendered.
 
 ### Quick setup
 
-To enable the plugin you need to set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](/docs/8.2.0/demo-dropdown-menu.html) plugin.
+To enable the plugin you need to set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](https://handsontable.com/docs/8.2.0/demo-dropdown-menu.html) plugin.
 
 Edit in jsFiddle Log to console
 

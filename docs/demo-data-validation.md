@@ -77,11 +77,11 @@ From now on, you can use `customValidator` like so:
 
 ### Full featured example
 
-Use the **validator** (see [options page](/docs/8.2.0/Options.html#validator)) method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available (see [hooks page](/docs/8.2.0/Hooks.html#event:beforeValidate)). In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
+Use the **validator** (see [options page](https://handsontable.com/docs/8.2.0/Options.html#validator)) method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available (see [hooks page](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeValidate)). In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
 
-Use the **allowInvalid** option (see [options page](/docs/8.2.0/Options.html#allowInvalid)) to define if the grid should accept input that does not validate. If you need to modify the input (e.g. censor bad words, uppercase first letter), use the plugin hook **beforeChange** (see [hooks page](/docs/8.2.0/Hooks.html#event:beforeChange)).
+Use the **allowInvalid** option (see [options page](https://handsontable.com/docs/8.2.0/Options.html#allowInvalid)) to define if the grid should accept input that does not validate. If you need to modify the input (e.g. censor bad words, uppercase first letter), use the plugin hook **beforeChange** (see [hooks page](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeChange)).
 
-By default all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the [invalidCellClassName](/docs/8.2.0/Options.html#invalidCellClassName) option to Handsontable settings. For example:
+By default all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the [invalidCellClassName](https://handsontable.com/docs/8.2.0/Options.html#invalidCellClassName) option to Handsontable settings. For example:
 
     // For whole table
     ...

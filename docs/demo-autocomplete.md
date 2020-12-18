@@ -15,7 +15,7 @@ function getCarData() { return \[ \["BMW", 2017, "black", "black"\], \["Nissan",
 
 This example shows the usage of the Autocomplete feature in the default **lazy mode**. In this mode, user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
-In this mode, the mouse and keyboard bindings are identical as in [Handsontable cell type.](/docs/8.2.0/demo-handsontable.html) The options are rendered from the `source` property which can be an array, or a function that returns an array.
+In this mode, the mouse and keyboard bindings are identical as in [Handsontable cell type.](https://handsontable.com/docs/8.2.0/demo-handsontable.html) The options are rendered from the `source` property which can be an array, or a function that returns an array.
 
 Edit Log to console
 
@@ -23,7 +23,7 @@ var example1 = document.getElementById('example1'), hot1; hot1 = new Handsontabl
 
 ### Autocomplete strict mode
 
-This is the same example as above with a difference that autocomplete now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical as in [Handsontable cell type](/docs/8.2.0/demo-handsontable.html) with the below differences:
+This is the same example as above with a difference that autocomplete now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical as in [Handsontable cell type](https://handsontable.com/docs/8.2.0/demo-handsontable.html) with the below differences:
 
 *   If there is at least one option visible, there always is a selection in HOT-in-HOT.
 *   When the first row is selected, pressing ARROW UP does not deselect HOT-in-HOT. Instead behaves as the ENTER key but moves the selection in the main HOT upwards.

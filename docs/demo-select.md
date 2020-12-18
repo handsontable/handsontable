@@ -5,7 +5,7 @@ sidebar_label: Select
 slug: /demo-select
 ---
 
-Select editor should be considered an example how to write editors rather than used as a fully featured editor. It is a much simpler form of the [Dropdown editor](/docs/8.2.0/demo-dropdown.html). It is suggested to use the latter in your projects.
+Select editor should be considered an example how to write editors rather than used as a fully featured editor. It is a much simpler form of the [Dropdown editor](https://handsontable.com/docs/8.2.0/demo-dropdown.html). It is suggested to use the latter in your projects.
 
 Edit Log to console
 

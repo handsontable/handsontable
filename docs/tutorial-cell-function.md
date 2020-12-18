@@ -41,7 +41,7 @@ This is because Handsontable:
 *   calls `renderer` functions multiple times per cell - this can lead to having multiple copies of the same event listener attached to a cell
 *   reuses table cell nodes during table scrolling and adding/removing new rows/columns - this can lead to having event listeners attached to the wrong cell
 
-Before deciding to attach an event listener in cell renderer make sure, that there is no [Handsontable event](/docs/8.2.0/Hooks.html) that suits your needs. Using _Handsontable events_ system is the safest way to respond to user actions.
+Before deciding to attach an event listener in cell renderer make sure, that there is no [Handsontable event](https://handsontable.com/docs/8.2.0/Hooks.html) that suits your needs. Using _Handsontable events_ system is the safest way to respond to user actions.
 
 If you did't find a suitable _Handsontable event_ put the cell content into a wrapping `<div>`, attach the event listener to the wrapper and then put it into the table cell.
 
@@ -153,7 +153,7 @@ There is one more way you can define the configuration using types:
       ]
     });
 
-We take advantage of the [cascade configuration](/docs/8.2.0/tutorial-setting-options.html#page-config) and define a table with two columns, with `validator` set to `customValidator` function. We also set `type` of the first column to `password`. `Password` cell type does not define a validator function:
+We take advantage of the [cascade configuration](https://handsontable.com/docs/8.2.0/tutorial-setting-options.html#page-config) and define a table with two columns, with `validator` set to `customValidator` function. We also set `type` of the first column to `password`. `Password` cell type does not define a validator function:
 
     renderer: Handsontable.renderers.PasswordRenderer,
     editor: Handsontable.editors.PasswordEditor,

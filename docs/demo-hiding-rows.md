@@ -15,9 +15,9 @@ slug: /demo-hiding-rows
 
 ### Overview
 
-The _Hidden Rows_ plugin allows hiding specific rows from the table. Rows being hidden **are included** in a `DataMap` (gets by the [getData](/docs/8.2.0/Core.html#getData) method), but they **aren't rendered**.
+The _Hidden Rows_ plugin allows hiding specific rows from the table. Rows being hidden **are included** in a `DataMap` (gets by the [getData](https://handsontable.com/docs/8.2.0/Core.html#getData) method), but they **aren't rendered**.
 
-**Note:** If you need to exclude some rows from both rendering and a `DataMap` use the [TrimRows](/docs/8.2.0/demo-trimming-rows.html) plugin.
+**Note:** If you need to exclude some rows from both rendering and a `DataMap` use the [TrimRows](https://handsontable.com/docs/8.2.0/demo-trimming-rows.html) plugin.
 
 ### Quick setup
 
@@ -34,7 +34,7 @@ See [the examples section](#examples) for more details.
 
 You can change the selection area of copy/paste range by setting `copyPasteEnabled` property to `true` or `false`. By default this property is set to `true`. If set to `false`, then hidden rows are being skipped for copy/paste actions.
 
-You can show/hide certain rows straight from the [Context menu](/docs/8.2.0/demo-context-menu.html) using the following keys: `hidden_rows_show` and `hidden_rows_hide`.  
+You can show/hide certain rows straight from the [Context menu](https://handsontable.com/docs/8.2.0/demo-context-menu.html) using the following keys: `hidden_rows_show` and `hidden_rows_hide`.  
   
 See [the examples section](#examples) for more details.
 

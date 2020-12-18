@@ -9,175 +9,175 @@ Name
 
 Description
 
-[Binding rows with headers](/docs/8.2.0/demo-bind-rows-headers.html)
+[Binding rows with headers](https://handsontable.com/docs/8.2.0/demo-bind-rows-headers.html)
 
 Bind rows with headers to lock the row number and always display one beside the other.
 
-[Collapsing columns](/docs/8.2.0/demo-collapsing-columns.html)
+[Collapsing columns](https://handsontable.com/docs/8.2.0/demo-collapsing-columns.html)
 
 Expand and collapse columns to better fit the content.
 
-[Column summary](/docs/8.2.0/demo-summary-calculations.html)
+[Column summary](https://handsontable.com/docs/8.2.0/demo-summary-calculations.html)
 
 Make pre-defined calculations and display the results in Handsontable.
 
-[Dropdown menu](/docs/8.2.0/demo-dropdown-menu.html)
+[Dropdown menu](https://handsontable.com/docs/8.2.0/demo-dropdown-menu.html)
 
 Add a menu to the heading to enable additional operations for the columns.
 
-[Export to file](/docs/8.2.0/demo-export-file.html)
+[Export to file](https://handsontable.com/docs/8.2.0/demo-export-file.html)
 
 Export data to a flat file like CSV or a string.
 
-[Filtering](/docs/8.2.0/demo-filtering.html)
+[Filtering](https://handsontable.com/docs/8.2.0/demo-filtering.html)
 
 Display rows that meet your criteria and hide the rest.
 
-[Header tooltips](/docs/8.2.0/demo-header-tooltips.html)
+[Header tooltips](https://handsontable.com/docs/8.2.0/demo-header-tooltips.html)
 
 Display the header label in a tooltip.
 
-[Hiding columns](/docs/8.2.0/demo-hiding-columns.html)
+[Hiding columns](https://handsontable.com/docs/8.2.0/demo-hiding-columns.html)
 
 Hide specific columns and show the rest.
 
-[Hiding rows](/docs/8.2.0/demo-hiding-rows.html)
+[Hiding rows](https://handsontable.com/docs/8.2.0/demo-hiding-rows.html)
 
 Hide specific rows and show the rest.
 
-[Multiple column sorting](/docs/8.2.0/demo-multicolumn-sorting.html)
+[Multiple column sorting](https://handsontable.com/docs/8.2.0/demo-multicolumn-sorting.html)
 
 Sort data in ascending or descending order throughout multiple columns.
 
-[Nested headers](/docs/8.2.0/demo-nested-headers.html)
+[Nested headers](https://handsontable.com/docs/8.2.0/demo-nested-headers.html)
 
 Create a nested, hierarchical structure of headers to get your data into groups.
 
-[Trimming rows](/docs/8.2.0/demo-trimming-rows.html)
+[Trimming rows](https://handsontable.com/docs/8.2.0/demo-trimming-rows.html)
 
 Exclude specific rows from the rendering process so they won't be displayed.
 
-[Alignment](/docs/8.2.0/demo-alignment.html)
+[Alignment](https://handsontable.com/docs/8.2.0/demo-alignment.html)
 
 Decide where the content is placed within the cell or a range of cells.
 
-[Autocomplete](/docs/8.2.0/demo-autocomplete.html)
+[Autocomplete](https://handsontable.com/docs/8.2.0/demo-autocomplete.html)
 
 Choose one of the suggested options while typing or entering a custom value.
 
-[Checkbox](/docs/8.2.0/demo-checkbox.html)
+[Checkbox](https://handsontable.com/docs/8.2.0/demo-checkbox.html)
 
 Add a checkbox to a cell to indicate binary choices.
 
-[Comments](/docs/8.2.0/demo-comments_.html)
+[Comments](https://handsontable.com/docs/8.2.0/demo-comments_.html)
 
 Provide an additional note about the cell to help better understand its content.
 
-[Conditional formatting](/docs/8.2.0/demo-conditional-formatting.html)
+[Conditional formatting](https://handsontable.com/docs/8.2.0/demo-conditional-formatting.html)
 
 Define how specific cells are formatted depending on their values.
 
-[Context menu](/docs/8.2.0/demo-context-menu.html)
+[Context menu](https://handsontable.com/docs/8.2.0/demo-context-menu.html)
 
 Invoke a shortcut menu to choose an action related to the selected object.
 
-[Custom borders](/docs/8.2.0/demo-customizing-borders.html)
+[Custom borders](https://handsontable.com/docs/8.2.0/demo-customizing-borders.html)
 
 Apply custom border style around cells or range of cells.
 
-[Custom buttons](/docs/8.2.0/demo-custom-buttons.html)
+[Custom buttons](https://handsontable.com/docs/8.2.0/demo-custom-buttons.html)
 
 Insert and remove column or row using custom action buttons.
 
-[Custom HTML](/docs/8.2.0/demo-custom-renderers.html#cell)
+[Custom HTML](https://handsontable.com/docs/8.2.0/demo-custom-renderers.html#cell)
 
 Display HTML content in a cell or header.
 
-[Data validation](/docs/8.2.0/demo-data-validation.html)
+[Data validation](https://handsontable.com/docs/8.2.0/demo-data-validation.html)
 
 Control what values can be entered into a cell.
 
-[Date](/docs/8.2.0/demo-date.html)
+[Date](https://handsontable.com/docs/8.2.0/demo-date.html)
 
 Use a date picker to select a date.
 
-[Disable cell editing](/docs/8.2.0/demo-disabled-editing.html)
+[Disable cell editing](https://handsontable.com/docs/8.2.0/demo-disabled-editing.html)
 
 Make cell non-editable without changing its appearance and behaviour.
 
-[Auto fill](/docs/8.2.0/demo-auto-fill.html)
+[Auto fill](https://handsontable.com/docs/8.2.0/demo-auto-fill.html)
 
 Drag the fill handle (a square in the bottom right corner of the cell) to fill cells with data series.
 
-[Dropdown](/docs/8.2.0/demo-dropdown.html)
+[Dropdown](https://handsontable.com/docs/8.2.0/demo-dropdown.html)
 
 Create an advanced dropdown list of choices in a cell.
 
-[Fixed rows and columns](/docs/8.2.0/demo-fixing.html)
+[Fixed rows and columns](https://handsontable.com/docs/8.2.0/demo-fixing.html)
 
 Define which rows or columns are visible while scrolling down or across the table.
 
-[Freezing](/docs/8.2.0/demo-freezing.html)
+[Freezing](https://handsontable.com/docs/8.2.0/demo-freezing.html)
 
 Create freeze columns to keep them visible while scrolling.
 
-[Handsontable](/docs/8.2.0/demo-handsontable.html)
+[Handsontable](https://handsontable.com/docs/8.2.0/demo-handsontable.html)
 
 Use Handsontable itself as a custom cell editor.
 
-[Highlighting current](/docs/8.2.0/demo-highlighting-selection.html)
+[Highlighting current](https://handsontable.com/docs/8.2.0/demo-highlighting-selection.html)
 
 Indicate the entire active column or row.
 
-[Internationalization](/docs/8.2.0/tutorial-internationalization.html)
+[Internationalization](https://handsontable.com/docs/8.2.0/tutorial-internationalization.html)
 
 Change the text of the UI for the purpose of translating it to specific languages.
 
-[Merge cells](/docs/8.2.0/demo-merged-cells.html)
+[Merge cells](https://handsontable.com/docs/8.2.0/demo-merged-cells.html)
 
 Display cells across multiple rows or columns.
 
-[Moving](/docs/8.2.0/demo-moving.html)
+[Moving](https://handsontable.com/docs/8.2.0/demo-moving.html)
 
 Drag rows or columns to swap them within the table.
 
-[Numeric](/docs/8.2.0/demo-numeric.html)
+[Numeric](https://handsontable.com/docs/8.2.0/demo-numeric.html)
 
 Type a custom number format in a cell.
 
-[Password](/docs/8.2.0/demo-password.html)
+[Password](https://handsontable.com/docs/8.2.0/demo-password.html)
 
 Use asterisks to mask the value in a cell.
 
-[Pre-populating new rows](/docs/8.2.0/demo-pre-populating.html)
+[Pre-populating new rows](https://handsontable.com/docs/8.2.0/demo-pre-populating.html)
 
 Create empty cells with predefined types or values
 
-[Read-only](/docs/8.2.0/demo-read-only.html)
+[Read-only](https://handsontable.com/docs/8.2.0/demo-read-only.html)
 
 Lock the cell or a range of cells to disallow altering them.
 
-[Resizing](/docs/8.2.0/demo-resizing.html)
+[Resizing](https://handsontable.com/docs/8.2.0/demo-resizing.html)
 
 Drag the sizing handle to change the size of column or row.
 
-[Scrolling](/docs/8.2.0/demo-scrolling.html)
+[Scrolling](https://handsontable.com/docs/8.2.0/demo-scrolling.html)
 
 Use native scrollbars to navigate within the table.
 
-[Search for values](/docs/8.2.0/demo-searching.html)
+[Search for values](https://handsontable.com/docs/8.2.0/demo-searching.html)
 
 Search through the content with the search field.
 
-[Select](/docs/8.2.0/demo-select.html)
+[Select](https://handsontable.com/docs/8.2.0/demo-select.html)
 
 Create a simple dropdown list of choices in a cell.
 
-[Sorting data](/docs/8.2.0/demo-sorting.html)
+[Sorting data](https://handsontable.com/docs/8.2.0/demo-sorting.html)
 
 Sort data in ascending or descending order throughout the column.
 
-[Stretching](/docs/8.2.0/demo-stretching.html)
+[Stretching](https://handsontable.com/docs/8.2.0/demo-stretching.html)
 
 Allow columns to the parent container width.
 
@@ -187,7 +187,7 @@ Name
 
 Description
 
-[Formulas](/docs/8.2.0/demo-formula-support.html)
+[Formulas](https://handsontable.com/docs/8.2.0/demo-formula-support.html)
 
 Use formulas in cells to perform calculations.
 

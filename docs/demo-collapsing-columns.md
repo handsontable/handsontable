@@ -16,9 +16,9 @@ slug: /demo-collapsing-columns
 The _Collapsible Columns_ plugin enables collapsing columns, covered by a header with the `colspan` property defined.  
 The plugin adds a "expand/collapse" button multi-column headers (created with the Nested Headers plugin). Clicking these buttons will collapse (or expands) all "child" headers, leaving the first one visible.
 
-**Node:** You'll need to enable the [Nested Headers](/docs/8.2.0/demo-nested-headers.html) plugin in order for this plugin to work properly.
+**Node:** You'll need to enable the [Nested Headers](https://handsontable.com/docs/8.2.0/demo-nested-headers.html) plugin in order for this plugin to work properly.
 
-**Note:** Please keep in mind that collapsed rows **are included** in a `DataMap` (gets by the [getData](/docs/8.2.0/Core.html#getData) method), but they **aren't rendered**.
+**Note:** Please keep in mind that collapsed rows **are included** in a `DataMap` (gets by the [getData](https://handsontable.com/docs/8.2.0/Core.html#getData) method), but they **aren't rendered**.
 
 ### Setup and configuration
 

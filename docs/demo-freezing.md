@@ -11,7 +11,7 @@ In order to manually freeze a column (in another words - make it fixed), you nee
 
 **Note:** frozen columns won't attempt to go back to original positions upon the unfreeze. The plugin unfreezes the column just after the "line of freeze".
 
-_If you're looking for an option to programmatically fix rows or columns, see the [Fixing](/docs/8.2.0/demo-fixing.html) section of this documentation._
+_If you're looking for an option to programmatically fix rows or columns, see the [Fixing](https://handsontable.com/docs/8.2.0/demo-fixing.html) section of this documentation._
 
 Edit Log to console
 

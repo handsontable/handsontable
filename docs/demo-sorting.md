@@ -56,7 +56,7 @@ Please keep in mind that options defined by the `columnSorting` key in the main 
 
 ### Default compare functions (sorting different kinds of data)
 
-As in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting alghoritm uses the **compare function** (also known as **comparator**). Different kinds of cells (like [`date, numeric, text`](/docs/8.2.0/tutorial-cell-types.html)) are treated in a different way. Each of them have their own comparator for sorting a particular data type.
+As in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting alghoritm uses the **compare function** (also known as **comparator**). Different kinds of cells (like [`date, numeric, text`](https://handsontable.com/docs/8.2.0/tutorial-cell-types.html)) are treated in a different way. Each of them have their own comparator for sorting a particular data type.
 
 As a result, you can see that different types of data are sorted properly. `Handsontable` simply needs the declared data type for the column, as you can see in the example below.
 
@@ -80,7 +80,7 @@ In the next section we’ll take a look how it may be used just for certain colu
 
 ### Plugin options for certain columns only
 
-The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator` may be set just for a particular column. This can be done through the use of the [columns](8.2.0/Options.html#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**.
+The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator` may be set just for a particular column. This can be done through the use of the [columns](https://handsontable.com/docs/8.2.0/Options.html#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**.
 
 Edit Log to console
 
@@ -112,8 +112,8 @@ Please take a look at the custom sort implementation in the snippet below.
 
 The plugin provides two hooks:
 
-*   `[beforeColumnSort](/docs/8.2.0/Hooks.html#event:beforeColumnSort)`, which as the name suggests is run before the sort. This means that the actual sort configuration obtained by the `getSortConfig` method within the callback will be equal to the sort configuration preserved before the hook call. The callback for `beforeColumnSort`, which will return `false`, will stop the table from being sorted. As a result, the `afterColumnSort` hook will not be called.
-*   `[afterColumnSort](/docs/8.2.0/Hooks.html#event:afterColumnSort)`, which is run always after the sorting, unless the callback for `beforeColumnSort` hook returns `false`.
+*   `[beforeColumnSort](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeColumnSort)`, which as the name suggests is run before the sort. This means that the actual sort configuration obtained by the `getSortConfig` method within the callback will be equal to the sort configuration preserved before the hook call. The callback for `beforeColumnSort`, which will return `false`, will stop the table from being sorted. As a result, the `afterColumnSort` hook will not be called.
+*   `[afterColumnSort](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterColumnSort)`, which is run always after the sorting, unless the callback for `beforeColumnSort` hook returns `false`.
 
 Please keep in mind that hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed (validation will fail).
 
@@ -121,9 +121,9 @@ Please keep in mind that hooks are also run when you use the `clearSort` method 
 
 List of methods exposed by the plugin:
 
-*   `[clearSort](/docs/8.2.0/ColumnSorting.html#clearSort)`
-*   `[getSortConfig](/docs/8.2.0/ColumnSorting.html#getSortConfig)`
-*   `[isSorted](/docs/8.2.0/ColumnSorting.html#isSorted)`
-*   `[setSortConfig](/docs/8.2.0/ColumnSorting.html#setSortConfig)`
-*   `[sort](/docs/8.2.0/ColumnSorting.html#sort)`
+*   `[clearSort](https://handsontable.com/docs/8.2.0/ColumnSorting.html#clearSort)`
+*   `[getSortConfig](https://handsontable.com/docs/8.2.0/ColumnSorting.html#getSortConfig)`
+*   `[isSorted](https://handsontable.com/docs/8.2.0/ColumnSorting.html#isSorted)`
+*   `[setSortConfig](https://handsontable.com/docs/8.2.0/ColumnSorting.html#setSortConfig)`
+*   `[sort](https://handsontable.com/docs/8.2.0/ColumnSorting.html#sort)`
 

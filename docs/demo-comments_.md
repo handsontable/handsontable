@@ -26,7 +26,7 @@ To use the plugin, you'll need to set the `comments` property to `true`. It'll e
 
 ### Adding the comments via the Context Menu
 
-After you've enabled the plugin, the [Context Menu](./demo-context-menu.html) gains a few new items:
+After you've enabled the plugin, the [Context Menu](https://handsontable.com/docs/8.2.0/./demo-context-menu.html) gains a few new items:
 
 *   Add/Edit comment
 *   Delete comment
@@ -47,7 +47,7 @@ In this example we're adding a "Hello world!" comment to a cell at (1,1).
 
 ### API
 
-You can add, remove and modify most of the comment-related information using the API. For More info, head to [our Comments documentation](./Comments.html).
+You can add, remove and modify most of the comment-related information using the API. For More info, head to [our Comments documentation](https://handsontable.com/docs/8.2.0/./Comments.html).
 
 ### Example implementation
 

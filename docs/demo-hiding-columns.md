@@ -15,7 +15,7 @@ slug: /demo-hiding-columns
 
 ### Overview
 
-The _Hidden Columns_ plugin allows hiding specific columns from the table. Columns being hidden **are included** in a `DataMap` (gets by the [getData](/docs/8.2.0/Core.html#getData) method), but they **aren't rendered**.
+The _Hidden Columns_ plugin allows hiding specific columns from the table. Columns being hidden **are included** in a `DataMap` (gets by the [getData](https://handsontable.com/docs/8.2.0/Core.html#getData) method), but they **aren't rendered**.
 
 ### Quick setup
 
@@ -34,7 +34,7 @@ See [the examples section](#examples) for more details.
 
 You can change the selection area of copy/paste range by setting `copyPasteEnabled` property to `true` or `false`. By default this property is set to `true`. If set to `false`, then hidden columns are being skipped for copy/paste actions.
 
-You can show/hide certain columns straight from the [Context menu](/docs/8.2.0/demo-context-menu.html) using the following keys: `hidden_columns_show` and `hidden_columns_hide`.  
+You can show/hide certain columns straight from the [Context menu](https://handsontable.com/docs/8.2.0/demo-context-menu.html) using the following keys: `hidden_columns_show` and `hidden_columns_hide`.  
   
 See [the examples section](#examples) for more details.
 

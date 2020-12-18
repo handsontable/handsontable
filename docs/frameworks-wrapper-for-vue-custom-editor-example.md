@@ -8,7 +8,7 @@ slug: /frameworks-wrapper-for-vue-custom-editor-example
 You can declare a custom editor for the `HotTable` component either by declaring it as a class and passing it to the Handsontable options, or create an editor component.
 
 *   [Declaring a renderer as a function](#classEditor)
-*   [Declaring an editor as a component](frameworks-wrapper-for-vue-hot-column.html#custom-editor)
+*   [Declaring an editor as a component](https://handsontable.com/docs/8.2.0/frameworks-wrapper-for-vue-hot-column.html#custom-editor)
 
 Since version 5.1.0 of the Vue wrapper, you can declare a custom editor for the `HotTable` component and use it many times and with different props. To differenciate between editor instances pass a `key` attribute.
 

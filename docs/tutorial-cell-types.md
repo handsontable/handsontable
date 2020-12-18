@@ -111,15 +111,15 @@ From now on, you can use your cell definition like so:
 The below example shows some of the built-in cell types (in other words, combinations of cell renderers and editors) available in Handsontable:
 
 *   Text
-*   [Numeric](/docs/8.2.0/demo-numeric.html)
-*   [Checkbox](/docs/8.2.0/demo-checkbox.html)
-*   [Date](/docs/8.2.0/demo-date.html)
-*   [Select](/docs/8.2.0/demo-select.html)
-*   [Dropdown](/docs/8.2.0/demo-dropdown.html)
-*   [Autocomplete](/docs/8.2.0/demo-autocomplete.html)
-*   [Password](/docs/8.2.0/demo-password.html)
-*   [Handsontable in Handsontable](/docs/8.2.0/demo-handsontable.html)
-*   [Custom](/docs/8.2.0/demo-custom-renderers.html)
+*   [Numeric](https://handsontable.com/docs/8.2.0/demo-numeric.html)
+*   [Checkbox](https://handsontable.com/docs/8.2.0/demo-checkbox.html)
+*   [Date](https://handsontable.com/docs/8.2.0/demo-date.html)
+*   [Select](https://handsontable.com/docs/8.2.0/demo-select.html)
+*   [Dropdown](https://handsontable.com/docs/8.2.0/demo-dropdown.html)
+*   [Autocomplete](https://handsontable.com/docs/8.2.0/demo-autocomplete.html)
+*   [Password](https://handsontable.com/docs/8.2.0/demo-password.html)
+*   [Handsontable in Handsontable](https://handsontable.com/docs/8.2.0/demo-handsontable.html)
+*   [Custom](https://handsontable.com/docs/8.2.0/demo-custom-renderers.html)
 
 The same example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
 

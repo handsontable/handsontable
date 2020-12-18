@@ -111,7 +111,7 @@ Edit Log to console
 
 var container = document.getElementById('example-functionConfig'); var hot7 = new Handsontable(container, { data: generateDataObj(5, 5, false), rowHeaders: true, colHeaders: \['sum', 'min', 'max', 'count', 'average'\], columnSummary: function() { var configArray = \[\]; var summaryTypes = \['sum', 'min', 'max', 'count', 'average'\]; for (var i = 0; i < 5; i++) { configArray.push({ sourceColumn: i, destinationRow: 0, destinationColumn: i, type: summaryTypes\[i\], forceNumeric: true }); } return configArray; } });
 
-This allows many possible usages: for example, you can easily calculate a total for a group in a group parent combining this plugin with the [Nested Rows plugin](/demo-nested-rows.html).
+This allows many possible usages: for example, you can easily calculate a total for a group in a group parent combining this plugin with the [Nested Rows plugin](https://handsontable.com/docs/8.2.0/demo-nested-rows.html).
 
 Take a look at this simple demo:
 

@@ -40,7 +40,7 @@ When the context menu is enabled, it includes default items among which you will
 *   Copy - as a predefined key `copy`
 *   Cut - as a predefined key `cut`
 
-[You can use them in the same way as the rest of the predefined items](./demo-context-menu.html#page-custom). These operations are executed by `document.execCommand()`.
+[You can use them in the same way as the rest of the predefined items](https://handsontable.com/docs/8.2.0/./demo-context-menu.html#page-custom). These operations are executed by `document.execCommand()`.
 
 Edit
 
@@ -65,16 +65,16 @@ Edit
 
 var container = document.getElementById('example1'); var copyBtn = document.getElementById('copy'); var cutBtn = document.getElementById('cut'); var hot = new Handsontable(container, { rowHeaders: true, colHeaders: true, data: Handsontable.helper.createSpreadsheetData(5, 5), outsideClickDeselects: false, }); Handsontable.dom.addEvent(copyBtn, 'mousedown', function () { hot.selectCell(1, 1); }); Handsontable.dom.addEvent(copyBtn, 'click', function () { document.execCommand('copy'); }); Handsontable.dom.addEvent(cutBtn, 'mousedown', function () { hot.selectCell(1, 1); }); Handsontable.dom.addEvent(cutBtn, 'click', function () { document.execCommand('cut'); });  
 
-**Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [`hot.isListening();`](./Core.html#isListening) before copying or pasting data.
+**Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [`hot.isListening();`](https://handsontable.com/docs/8.2.0/./Core.html#isListening) before copying or pasting data.
 
 #### Hooks
 
 The _CopyPaste_ plugin exposes following hooks to manipulate data during copy or cut operations:
 
-*   [_beforeCopy_](./Hooks.html#event:beforeCopy)
-*   [_afterCopy_](./Hooks.html#event:afterCopy)
-*   [_beforeCut_](./Hooks.html#event:beforeCut)
-*   [_afterCut_](./Hooks.html#event:afterCut)
+*   [_beforeCopy_](https://handsontable.com/docs/8.2.0/./Hooks.html#event:beforeCopy)
+*   [_afterCopy_](https://handsontable.com/docs/8.2.0/./Hooks.html#event:afterCopy)
+*   [_beforeCut_](https://handsontable.com/docs/8.2.0/./Hooks.html#event:beforeCut)
+*   [_afterCut_](https://handsontable.com/docs/8.2.0/./Hooks.html#event:afterCut)
 
 In their descriptions, you can find examples of how to use them.
 
@@ -104,8 +104,8 @@ Available options in the browser's toolbar:
 
 The _CopyPaste_ plugin exposes following hooks to manipulate data during the pasting operation:
 
-*   [_beforePaste_](./Hooks.html#event:beforePaste)
-*   [_afterPaste_](./Hooks.html#event:afterPaste)
+*   [_beforePaste_](https://handsontable.com/docs/8.2.0/./Hooks.html#event:beforePaste)
+*   [_afterPaste_](https://handsontable.com/docs/8.2.0/./Hooks.html#event:afterPaste)
 
 In their descriptions, you can find examples of how to use them.
 

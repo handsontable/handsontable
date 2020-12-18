@@ -24,7 +24,7 @@ var example1 = document.getElementById('example1'); var hot = new Handsontable(e
 
 ### Plugin configuration
 
-You can use the default dropdown contents by setting it to `true`, but if you'd like to customize it a little you can set it to use a custom list of actions. For the entry options reference, see the [Context Menu demo](/docs/8.2.0/demo-context-menu.html#page-specific).
+You can use the default dropdown contents by setting it to `true`, but if you'd like to customize it a little you can set it to use a custom list of actions. For the entry options reference, see the [Context Menu demo](https://handsontable.com/docs/8.2.0/demo-context-menu.html#page-specific).
 
 Edit in jsFiddle Log to console
 

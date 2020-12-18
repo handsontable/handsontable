@@ -54,5 +54,5 @@ Now, you can use the Handsontable component in your HTML files
 
 ### License
 
-Handsontable for Angular wrapper is released under [the MIT license](https://github.com/handsontable/angular-handsontable/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](/docs/tutorial-licensing.html). You can either use it for free in all your non-commercial projects or purchase a commercial license.
+Handsontable for Angular wrapper is released under [the MIT license](https://github.com/handsontable/angular-handsontable/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](https://handsontable.com/docs/8.2.0/tutorial-licensing.html). You can either use it for free in all your non-commercial projects or purchase a commercial license.
 

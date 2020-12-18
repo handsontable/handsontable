@@ -14,9 +14,9 @@ slug: /demo-trimming-rows
 
 ### Overview
 
-The _Trim Rows_ plugin allows trimming specific rows from the table. Rows being trimmed **aren't included** in a `DataMap` (gets by the [getData](/docs/8.2.0/Core.html#getData) method) and they **aren't rendered**.
+The _Trim Rows_ plugin allows trimming specific rows from the table. Rows being trimmed **aren't included** in a `DataMap` (gets by the [getData](https://handsontable.com/docs/8.2.0/Core.html#getData) method) and they **aren't rendered**.
 
-**Note:** If you need to exclude some rows from rendering, but keep them in a `DataMap` use the [HiddenRows](/docs/8.2.0/demo-hiding-rows.html) plugin.
+**Note:** If you need to exclude some rows from rendering, but keep them in a `DataMap` use the [HiddenRows](https://handsontable.com/docs/8.2.0/demo-hiding-rows.html) plugin.
 
 ### Setup
 

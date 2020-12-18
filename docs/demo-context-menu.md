@@ -67,13 +67,13 @@ Clear column values action
 
 Undo action
 
-Plugin [UndoRedo](/docs/8.2.0/UndoRedo.html) turned on
+Plugin [UndoRedo](https://handsontable.com/docs/8.2.0/UndoRedo.html) turned on
 
 `redo`
 
 Redo action
 
-Plugin [UndoRedo](/docs/8.2.0/UndoRedo.html) turned on
+Plugin [UndoRedo](https://handsontable.com/docs/8.2.0/UndoRedo.html) turned on
 
 `make_read_only`
 
@@ -87,121 +87,121 @@ Alignment actions
 
 Cut action
 
-Plugin [CopyPaste](/docs/8.2.0/demo-copy-paste.html) turned on
+Plugin [CopyPaste](https://handsontable.com/docs/8.2.0/demo-copy-paste.html) turned on
 
 `copy`
 
 Copy action
 
-Plugin [CopyPaste](/docs/8.2.0/demo-copy-paste.html) turned on
+Plugin [CopyPaste](https://handsontable.com/docs/8.2.0/demo-copy-paste.html) turned on
 
 `freeze_column`
 
 Freeze column action
 
-Plugin [ManualColumnFreeze](/docs/8.2.0/demo-freezing.html) turned on
+Plugin [ManualColumnFreeze](https://handsontable.com/docs/8.2.0/demo-freezing.html) turned on
 
 `unfreeze_column`
 
 Unfreeze column action
 
-Plugin [ManualColumnFreeze](/docs/8.2.0/demo-freezing.html) turned on
+Plugin [ManualColumnFreeze](https://handsontable.com/docs/8.2.0/demo-freezing.html) turned on
 
 `borders`
 
 Custom borders actions
 
-Plugin [CustomBorders](/docs/8.2.0/demo-customizing-borders.html) turned on
+Plugin [CustomBorders](https://handsontable.com/docs/8.2.0/demo-customizing-borders.html) turned on
 
 `commentsAddEdit`
 
 Add and edit comment actions
 
-Plugin [Comments](/docs/8.2.0/demo-comments_.html) turned on
+Plugin [Comments](https://handsontable.com/docs/8.2.0/demo-comments_.html) turned on
 
 `commentsRemove`
 
 Remove comment action
 
-Plugin [Comments](/docs/8.2.0/demo-comments_.html) turned on
+Plugin [Comments](https://handsontable.com/docs/8.2.0/demo-comments_.html) turned on
 
 `commentsReadOnly`
 
 Make comment read only action
 
-Plugin [Comments](/docs/8.2.0/demo-comments_.html) turned on
+Plugin [Comments](https://handsontable.com/docs/8.2.0/demo-comments_.html) turned on
 
 `mergeCells`
 
 Merge and unmerge cells actions
 
-Plugin [MergeCells](/docs/8.2.0/demo-merged-cells.html) turned on
+Plugin [MergeCells](https://handsontable.com/docs/8.2.0/demo-merged-cells.html) turned on
 
 `add_child`
 
 Insert child row action
 
-Plugin [NestedRows](/docs/8.2.0/demo-nested-rows.html) turned on
+Plugin [NestedRows](https://handsontable.com/docs/8.2.0/demo-nested-rows.html) turned on
 
 `detach_from_parent`
 
 Detach from parent row action
 
-Plugin [NestedRows](/docs/8.2.0/demo-nested-rows.html) turned on
+Plugin [NestedRows](https://handsontable.com/docs/8.2.0/demo-nested-rows.html) turned on
 
 `hidden_columns_hide`
 
 Hide column(s) action
 
-Plugin [HiddenColumns](/docs/8.2.0/demo-hiding-columns.html) turned on
+Plugin [HiddenColumns](https://handsontable.com/docs/8.2.0/demo-hiding-columns.html) turned on
 
 `hidden_columns_show`
 
 Show hidden column(s) action
 
-Plugin [HiddenColumns](/docs/8.2.0/demo-hiding-columns.html) turned on
+Plugin [HiddenColumns](https://handsontable.com/docs/8.2.0/demo-hiding-columns.html) turned on
 
 `hidden_rows_hide`
 
 Hide row(s) action
 
-Plugin [HiddenRows](/docs/8.2.0/demo-hiding-rows.html) turned on
+Plugin [HiddenRows](https://handsontable.com/docs/8.2.0/demo-hiding-rows.html) turned on
 
 `hidden_rows_show`
 
 Show hidden row(s) action
 
-Plugin [HiddenRows](/docs/8.2.0/demo-hiding-rows.html) turned on
+Plugin [HiddenRows](https://handsontable.com/docs/8.2.0/demo-hiding-rows.html) turned on
 
 `filter_by_condition`
 
 First conditions select element
 
-Plugin [Filters](/docs/8.2.0/demo-filtering.html) turned on
+Plugin [Filters](https://handsontable.com/docs/8.2.0/demo-filtering.html) turned on
 
 `filter_operators`
 
 Operation select element
 
-Plugin [Filters](/docs/8.2.0/demo-filtering.html) turned on
+Plugin [Filters](https://handsontable.com/docs/8.2.0/demo-filtering.html) turned on
 
 `filter_by_condition2`
 
 Second conditions select element
 
-Plugin [Filters](/docs/8.2.0/demo-filtering.html) turned on
+Plugin [Filters](https://handsontable.com/docs/8.2.0/demo-filtering.html) turned on
 
 `filter_by_value`
 
 Value select element
 
-Plugin [Filters](/docs/8.2.0/demo-filtering.html) turned on
+Plugin [Filters](https://handsontable.com/docs/8.2.0/demo-filtering.html) turned on
 
 `filter_action_bar`
 
 Action bar element
 
-Plugin [Filters](/docs/8.2.0/demo-filtering.html) turned on
+Plugin [Filters](https://handsontable.com/docs/8.2.0/demo-filtering.html) turned on
 
 Edit Log to console
 

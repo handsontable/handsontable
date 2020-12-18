@@ -11,7 +11,7 @@ By default, Handsontable treats all cell values as `string` type. This is becaus
 
 To trigger the Numeric cell type, use the option `type: 'numeric'` in `columns` array or `cells` function. Make sure your cell values are numbers and not strings as Handsontable will not parse strings to numbers. You can input float-typed values in the numeric editor only using a dot or a comma as a decimal separator. For example, both `500000.5`, `500000,5` will be accepted. You are not able to use thousands separator in the editor.
 
-You can format the displayed values of the entered numbers. It can be done using the [numericFormat](/docs/8.2.0/Options.html#numericFormat) option. Please keep in mind that it **have no influence on the way you enter data**.
+You can format the displayed values of the entered numbers. It can be done using the [numericFormat](https://handsontable.com/docs/8.2.0/Options.html#numericFormat) option. Please keep in mind that it **have no influence on the way you enter data**.
 
 Note that all the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are representable in the `Number` type (safe integer). Any calculations that are performed on bigger numbers won't be calculated precisely due to JavaScript limitation (more at [w3schools](http://www.w3schools.com/js/js_numbers.asp)).
 
