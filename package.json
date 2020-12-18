@@ -14,6 +14,7 @@
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
+  "sideEffects": false,
   "exports": {
     ".": {
       "import": "./index.mjs",
@@ -27,21 +28,285 @@
       "import": "./cellTypes/index.mjs",
       "require": "./cellTypes/index.js"
     },
+    "./cellTypes/autocompleteType": {
+      "import": "./editors/autocompleteType/index.mjs",
+      "require": "./editors/autocompleteType/index.js"
+    },
+    "./cellTypes/checkboxType": {
+      "import": "./editors/checkboxType/index.mjs",
+      "require": "./editors/checkboxType/index.js"
+    },
+    "./cellTypes/dateType": {
+      "import": "./editors/dateType/index.mjs",
+      "require": "./editors/dateType/index.js"
+    },
+    "./cellTypes/dropdownType": {
+      "import": "./editors/dropdownType/index.mjs",
+      "require": "./editors/dropdownType/index.js"
+    },
+    "./cellTypes/handsontableType": {
+      "import": "./editors/handsontableType/index.mjs",
+      "require": "./editors/handsontableType/index.js"
+    },
+    "./cellTypes/numericType": {
+      "import": "./editors/numericType/index.mjs",
+      "require": "./editors/numericType/index.js"
+    },
+    "./cellTypes/passwordType": {
+      "import": "./editors/passwordType/index.mjs",
+      "require": "./editors/passwordType/index.js"
+    },
+    "./cellTypes/textType": {
+      "import": "./editors/textType/index.mjs",
+      "require": "./editors/textType/index.js"
+    },
+    "./cellTypes/timeType": {
+      "import": "./editors/timeType/index.mjs",
+      "require": "./editors/timeType/index.js"
+    },
     "./editors": {
       "import": "./editors/index.mjs",
       "require": "./editors/index.js"
+    },
+    "./editors/autocompleteEditor": {
+      "import": "./editors/autocompleteEditor/index.mjs",
+      "require": "./editors/autocompleteEditor/index.js"
+    },
+    "./editors/baseEditor": {
+      "import": "./editors/baseEditor/index.mjs",
+      "require": "./editors/baseEditor/index.js"
+    },
+    "./editors/checkboxEditor": {
+      "import": "./editors/checkboxEditor/index.mjs",
+      "require": "./editors/checkboxEditor/index.js"
+    },
+    "./editors/dateEditor": {
+      "import": "./editors/dateEditor/index.mjs",
+      "require": "./editors/dateEditor/index.js"
+    },
+    "./editors/dropdownEditor": {
+      "import": "./editors/dropdownEditor/index.mjs",
+      "require": "./editors/dropdownEditor/index.js"
+    },
+    "./editors/handsontableEditor": {
+      "import": "./editors/handsontableEditor/index.mjs",
+      "require": "./editors/handsontableEditor/index.js"
+    },
+    "./editors/numericEditor": {
+      "import": "./editors/numericEditor/index.mjs",
+      "require": "./editors/numericEditor/index.js"
+    },
+    "./editors/passwordEditor": {
+      "import": "./editors/passwordEditor/index.mjs",
+      "require": "./editors/passwordEditor/index.js"
+    },
+    "./editors/selectEditor": {
+      "import": "./editors/selectEditor/index.mjs",
+      "require": "./editors/selectEditor/index.js"
+    },
+    "./editors/textEditor": {
+      "import": "./editors/textEditor/index.mjs",
+      "require": "./editors/textEditor/index.js"
     },
     "./plugins": {
       "import": "./plugins/index.mjs",
       "require": "./plugins/index.js"
     },
+    "./plugins/autoColumnSize": {
+      "import": "./plugins/autoColumnSize/index.mjs",
+      "require": "./plugins/autoColumnSize/index.js"
+    },
+    "./plugins/autofill": {
+      "import": "./plugins/autofill/index.mjs",
+      "require": "./plugins/autofill/index.js"
+    },
+    "./plugins/autoRowSize": {
+      "import": "./plugins/autoRowSize/index.mjs",
+      "require": "./plugins/autoRowSize/index.js"
+    },
+    "./plugins/base": {
+      "import": "./plugins/base/index.mjs",
+      "require": "./plugins/base/index.js"
+    },
+    "./plugins/bindRowsWithHeaders": {
+      "import": "./plugins/bindRowsWithHeaders/index.mjs",
+      "require": "./plugins/bindRowsWithHeaders/index.js"
+    },
+    "./plugins/collapsibleColumns": {
+      "import": "./plugins/collapsibleColumns/index.mjs",
+      "require": "./plugins/collapsibleColumns/index.js"
+    },
+    "./plugins/columnSoring": {
+      "import": "./plugins/columnSoring/index.mjs",
+      "require": "./plugins/columnSoring/index.js"
+    },
+    "./plugins/columnSummary": {
+      "import": "./plugins/columnSummary/index.mjs",
+      "require": "./plugins/columnSummary/index.js"
+    },
+    "./plugins/comments": {
+      "import": "./plugins/comments/index.mjs",
+      "require": "./plugins/comments/index.js"
+    },
+    "./plugins/contextMenu": {
+      "import": "./plugins/contextMenu/index.mjs",
+      "require": "./plugins/contextMenu/index.js"
+    },
+    "./plugins/copyPaste": {
+      "import": "./plugins/copyPaste/index.mjs",
+      "require": "./plugins/copyPaste/index.js"
+    },
+    "./plugins/customBorders": {
+      "import": "./plugins/customBorders/index.mjs",
+      "require": "./plugins/customBorders/index.js"
+    },
+    "./plugins/dragToScroll": {
+      "import": "./plugins/dragToScroll/index.mjs",
+      "require": "./plugins/dragToScroll/index.js"
+    },
+    "./plugins/dropdownMenu": {
+      "import": "./plugins/dropdownMenu/index.mjs",
+      "require": "./plugins/dropdownMenu/index.js"
+    },
+    "./plugins/exportFile": {
+      "import": "./plugins/exportFile/index.mjs",
+      "require": "./plugins/exportFile/index.js"
+    },
+    "./plugins/filters": {
+      "import": "./plugins/filters/index.mjs",
+      "require": "./plugins/filters/index.js"
+    },
+    "./plugins/formulas": {
+      "import": "./plugins/formulas/index.mjs",
+      "require": "./plugins/formulas/index.js"
+    },
+    "./plugins/headerTooltips": {
+      "import": "./plugins/headerTooltips/index.mjs",
+      "require": "./plugins/headerTooltips/index.js"
+    },
+    "./plugins/hiddenColumns": {
+      "import": "./plugins/hiddenColumns/index.mjs",
+      "require": "./plugins/hiddenColumns/index.js"
+    },
+    "./plugins/hiddenRows": {
+      "import": "./plugins/hiddenRows/index.mjs",
+      "require": "./plugins/hiddenRows/index.js"
+    },
+    "./plugins/manualColumnFreeze": {
+      "import": "./plugins/manualColumnFreeze/index.mjs",
+      "require": "./plugins/manualColumnFreeze/index.js"
+    },
+    "./plugins/manualColumnMove": {
+      "import": "./plugins/manualColumnMove/index.mjs",
+      "require": "./plugins/manualColumnMove/index.js"
+    },
+    "./plugins/manualColumnResize": {
+      "import": "./plugins/manualColumnResize/index.mjs",
+      "require": "./plugins/manualColumnResize/index.js"
+    },
+    "./plugins/manualRowMove": {
+      "import": "./plugins/manualRowMove/index.mjs",
+      "require": "./plugins/manualRowMove/index.js"
+    },
+    "./plugins/manualRowResize": {
+      "import": "./plugins/manualRowResize/index.mjs",
+      "require": "./plugins/manualRowResize/index.js"
+    },
+    "./plugins/mergeCells": {
+      "import": "./plugins/mergeCells/index.mjs",
+      "require": "./plugins/mergeCells/index.js"
+    },
+    "./plugins/multiColumnSorting": {
+      "import": "./plugins/multiColumnSorting/index.mjs",
+      "require": "./plugins/multiColumnSorting/index.js"
+    },
+    "./plugins/multipleSelectionHandles": {
+      "import": "./plugins/multipleSelectionHandles/index.mjs",
+      "require": "./plugins/multipleSelectionHandles/index.js"
+    },
+    "./plugins/nestedHeaders": {
+      "import": "./plugins/nestedHeaders/index.mjs",
+      "require": "./plugins/nestedHeaders/index.js"
+    },
+    "./plugins/nestedRows": {
+      "import": "./plugins/nestedRows/index.mjs",
+      "require": "./plugins/nestedRows/index.js"
+    },
+    "./plugins/observeChanges": {
+      "import": "./plugins/observeChanges/index.mjs",
+      "require": "./plugins/observeChanges/index.js"
+    },
+    "./plugins/persistentState": {
+      "import": "./plugins/persistentState/index.mjs",
+      "require": "./plugins/persistentState/index.js"
+    },
+    "./plugins/search": {
+      "import": "./plugins/search/index.mjs",
+      "require": "./plugins/search/index.js"
+    },
+    "./plugins/touchScroll": {
+      "import": "./plugins/touchScroll/index.mjs",
+      "require": "./plugins/touchScroll/index.js"
+    },
+    "./plugins/trimRows": {
+      "import": "./plugins/trimRows/index.mjs",
+      "require": "./plugins/trimRows/index.js"
+    },
+    "./plugins/undoRedo": {
+      "import": "./plugins/undoRedo/index.mjs",
+      "require": "./plugins/undoRedo/index.js"
+    },
     "./renderers": {
       "import": "./renderers/index.mjs",
       "require": "./renderers/index.js"
     },
+    "./renderers/autocompleteRenderer": {
+      "import": "./renderers/autocompleteRenderer/index.mjs",
+      "require": "./renderers/autocompleteRenderer/index.js"
+    },
+    "./renderers/baseRenderer": {
+      "import": "./renderers/baseRenderer/index.mjs",
+      "require": "./renderers/baseRenderer/index.js"
+    },
+    "./renderers/checkboxRenderer": {
+      "import": "./renderers/checkboxRenderer/index.mjs",
+      "require": "./renderers/checkboxRenderer/index.js"
+    },
+    "./renderers/htmlRenderer": {
+      "import": "./renderers/htmlRenderer/index.mjs",
+      "require": "./renderers/htmlRenderer/index.js"
+    },
+    "./renderers/numericRenderer": {
+      "import": "./renderers/numericRenderer/index.mjs",
+      "require": "./renderers/numericRenderer/index.js"
+    },
+    "./renderers/passwordRenderer": {
+      "import": "./renderers/passwordRenderer/index.mjs",
+      "require": "./renderers/passwordRenderer/index.js"
+    },
+    "./renderers/textRenderer": {
+      "import": "./renderers/textRenderer/index.mjs",
+      "require": "./renderers/textRenderer/index.js"
+    },
     "./validators": {
       "import": "./validators/index.mjs",
       "require": "./validators/index.js"
+    },
+    "./validators/autocompleteValidator": {
+      "import": "./validators/autocompleteValidator/index.mjs",
+      "require": "./validators/autocompleteValidator/index.js"
+    },
+    "./validators/dateValidator": {
+      "import": "./validators/dateValidator/index.mjs",
+      "require": "./validators/dateValidator/index.js"
+    },
+    "./validators/numericValidator": {
+      "import": "./validators/numericValidator/index.mjs",
+      "require": "./validators/numericValidator/index.js"
+    },
+    "./validators/timeValidator": {
+      "import": "./validators/timeValidator/index.mjs",
+      "require": "./validators/timeValidator/index.js"
     }
   },
   "jsdelivr": "dist/handsontable.full.min.js",
