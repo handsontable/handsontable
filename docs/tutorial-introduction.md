@@ -1,6 +1,6 @@
 ---
 id: tutorial-introduction
-title: Introduction v2
+title: Introduction
 sidebar_label: Introduction
 slug: /
 ---

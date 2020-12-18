@@ -34,6 +34,8 @@ If you are using GitHub pages for hosting, this command is a convenient way to b
 
 ## Docker integration
 
+### Local run;
+
 Build an image:
 
 ```console
@@ -46,10 +48,43 @@ Run services:
 docker-compose up -d &&  docker-compose logs -f --tail=100
 ```
 
+Visit page: [http://localhost:8080](http://localhost:8080)
+
 Stop services:
 
 ```console
 docker-compose stop
 ```
 
+### Auto refresh from GitHub Docker Registry:
+
+
+Login into GDR, as a password should be used [Personal Access Token](https://github.com/settings/tokens)
+
+```console
+docker login --registry docker.pkg.github.com
+```
+
+Run services: (it might require changing volume path in docker-compose.gdr.yml because it dependent on a username)
+
+```console
+docker-compose -f docker-compose.gdr.yml up -d &&  docker-compose logs -f --tail=100
+```
+
 Visit page: [http://localhost:8080](http://localhost:8080)
+
+Update service from localhost:
+
+```console
+docker build -t docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest .
+docker push docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest
+```
+
+Update service from GH Action: each push into master will build&push new version of image, and it will be automatically refreshed here.
+
+Stop services:
+
+```console
+docker-compose -f docker-compose.gdr.yml
+```
+
