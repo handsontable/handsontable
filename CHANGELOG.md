@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix a bug with auto-execution of the first item in ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
+- Optimization for minSpareRows, minSpareCols, minRows and minCols options reducing time of initialization [#7439](https://github.com/handsontable/handsontable/pull/7439)
 
 ## [8.2.0] - 2020-11-12
 
