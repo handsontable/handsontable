@@ -29,13 +29,13 @@ jobs:
       
       - name: Docker tags
         run: 
-          docker tag docs-md $GHA_DOCKER_TAG
-          docker tag docs-md $GHA_DOCKER_TAG_SHA
-          
+          docker tag docs-md ${GHA_DOCKER_TAG}
+          docker tag docs-md ${GHA_DOCKER_TAG_SHA}
+
       - name: Docker push  latest into GDR
         run: |
-          docker push $GHA_DOCKER_TAG
+          docker push ${GHA_DOCKER_TAG}
           
       - name: Docker push SHA tagged into GDR
         run: |
-          docker push $GHA_DOCKER_TAG_SHA        
+          docker push ${GHA_DOCKER_TAG_SHA}
