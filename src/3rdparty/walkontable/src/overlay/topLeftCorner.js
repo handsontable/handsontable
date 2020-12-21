@@ -6,7 +6,7 @@ import {
   resetCssTransform
 } from './../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
-import Overlay from './_base';
+import { Overlay } from './_base';
 import {
   CLONE_TOP_LEFT_CORNER,
 } from './constants';
@@ -15,6 +15,10 @@ import {
  * @class TopLeftCornerOverlay
  */
 export class TopLeftCornerOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_TOP_LEFT_CORNER;
+  }
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */

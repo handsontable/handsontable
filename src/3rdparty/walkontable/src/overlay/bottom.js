@@ -8,7 +8,7 @@ import {
   removeClass,
 } from './../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
-import Overlay from './_base';
+import { Overlay } from './_base';
 import {
   CLONE_BOTTOM,
 } from './constants';
@@ -17,6 +17,10 @@ import {
  * @class BottomOverlay
  */
 export class BottomOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_BOTTOM;
+  }
+
   /**
    * Cached value which holds the previous value of the `fixedRowsBottom` option.
    * It is used as a comparison value that can be used to detect changes in that value.

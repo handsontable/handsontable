@@ -10,7 +10,7 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import TopOverlayTable from './../table/top';
-import Overlay from './_base';
+import { Overlay } from './_base';
 import {
   CLONE_TOP,
 } from './constants';
@@ -19,6 +19,10 @@ import {
  * @class TopOverlay
  */
 export class TopOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_TOP;
+  }
+
   /**
    * Cached value which holds the previous value of the `fixedRowsTop` option.
    * It is used as a comparison value that can be used to detect changes in this value.
