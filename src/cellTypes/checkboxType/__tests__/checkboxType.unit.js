@@ -53,6 +53,7 @@ describe('CheckboxCellType', () => {
       expect(getRegisteredCellTypeNames()).toEqual(['checkbox']);
       expect(getCellType('checkbox')).toEqual(CheckboxCellType);
       expect(getCellType('checkbox')).toEqual({
+        CELL_TYPE,
         editor: getEditor('checkbox'),
         renderer: getRenderer('checkbox'),
       });

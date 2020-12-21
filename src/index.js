@@ -27,80 +27,50 @@ import {
   getEditor,
   registerEditor,
   AutocompleteEditor,
-  AUTOCOMPLETE_EDITOR,
   BaseEditor,
-  BASE_EDITOR,
   CheckboxEditor,
-  CHECKBOX_EDITOR,
   DateEditor,
-  DATE_EDITOR,
   DropdownEditor,
-  DROPDOWN_EDITOR,
   HandsontableEditor,
-  HANDSONTABLE_EDITOR,
   NumericEditor,
-  NUMERIC_EDITOR,
   PasswordEditor,
-  PASSWORD_EDITOR,
   SelectEditor,
-  SELECT_EDITOR,
   TextEditor,
-  TEXT_EDITOR,
 } from './editors';
 import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
   baseRenderer,
-  BASE_RENDERER,
   autocompleteRenderer,
-  AUTOCOMPLETE_RENDERER,
   checkboxRenderer,
-  CHECKBOX_RENDERER,
   htmlRenderer,
-  HTML_RENDERER,
   numericRenderer,
-  NUMERIC_RENDERER,
   passwordRenderer,
-  PASSWORD_RENDERER,
   textRenderer,
-  TEXT_RENDERER,
 } from './renderers';
 import {
   getRegisteredValidatorNames,
   getValidator,
   registerValidator,
   autocompleteValidator,
-  AUTOCOMPLETE_VALIDATOR,
   dateValidator,
-  DATE_VALIDATOR,
   numericValidator,
-  NUMERIC_VALIDATOR,
   timeValidator,
-  TIME_VALIDATOR,
 } from './validators';
 import {
   getRegisteredCellTypeNames,
   getCellType,
   registerCellType,
   AutocompleteCellType,
-  AUTOCOMPLETE_TYPE,
   CheckboxCellType,
-  CHECKBOX_TYPE,
   DateCellType,
-  DATE_TYPE,
   DropdownCellType,
-  DROPDOWN_TYPE,
   HandsontableCellType,
-  HANDSONTABLE_TYPE,
   NumericCellType,
-  NUMERIC_TYPE,
   PasswordCellType,
-  PASSWORD_TYPE,
   TextCellType,
-  TEXT_TYPE,
   TimeCellType,
-  TIME_TYPE,
 } from './cellTypes';
 import {
   AutoColumnSize,
@@ -146,39 +116,39 @@ import {
   registerPlugin,
 } from './plugins';
 
-registerEditor(BASE_EDITOR, BaseEditor);
-registerEditor(AUTOCOMPLETE_EDITOR, AutocompleteEditor);
-registerEditor(CHECKBOX_EDITOR, CheckboxEditor);
-registerEditor(DATE_EDITOR, DateEditor);
-registerEditor(DROPDOWN_EDITOR, DropdownEditor);
-registerEditor(HANDSONTABLE_EDITOR, HandsontableEditor);
-registerEditor(NUMERIC_EDITOR, NumericEditor);
-registerEditor(PASSWORD_EDITOR, PasswordEditor);
-registerEditor(SELECT_EDITOR, SelectEditor);
-registerEditor(TEXT_EDITOR, TextEditor);
+registerEditor(BaseEditor);
+registerEditor(AutocompleteEditor);
+registerEditor(CheckboxEditor);
+registerEditor(DateEditor);
+registerEditor(DropdownEditor);
+registerEditor(HandsontableEditor);
+registerEditor(NumericEditor);
+registerEditor(PasswordEditor);
+registerEditor(SelectEditor);
+registerEditor(TextEditor);
 
-registerRenderer(BASE_RENDERER, baseRenderer);
-registerRenderer(AUTOCOMPLETE_RENDERER, autocompleteRenderer);
-registerRenderer(CHECKBOX_RENDERER, checkboxRenderer);
-registerRenderer(HTML_RENDERER, htmlRenderer);
-registerRenderer(NUMERIC_RENDERER, numericRenderer);
-registerRenderer(PASSWORD_RENDERER, passwordRenderer);
-registerRenderer(TEXT_RENDERER, textRenderer);
+registerRenderer(baseRenderer);
+registerRenderer(autocompleteRenderer);
+registerRenderer(checkboxRenderer);
+registerRenderer(htmlRenderer);
+registerRenderer(numericRenderer);
+registerRenderer(passwordRenderer);
+registerRenderer(textRenderer);
 
-registerValidator(AUTOCOMPLETE_VALIDATOR, autocompleteValidator);
-registerValidator(DATE_VALIDATOR, dateValidator);
-registerValidator(NUMERIC_VALIDATOR, numericValidator);
-registerValidator(TIME_VALIDATOR, timeValidator);
+registerValidator(autocompleteValidator);
+registerValidator(dateValidator);
+registerValidator(numericValidator);
+registerValidator(timeValidator);
 
-registerCellType(AUTOCOMPLETE_TYPE, AutocompleteCellType);
-registerCellType(CHECKBOX_TYPE, CheckboxCellType);
-registerCellType(DATE_TYPE, DateCellType);
-registerCellType(DROPDOWN_TYPE, DropdownCellType);
-registerCellType(HANDSONTABLE_TYPE, HandsontableCellType);
-registerCellType(NUMERIC_TYPE, NumericCellType);
-registerCellType(PASSWORD_TYPE, PasswordCellType);
-registerCellType(TIME_TYPE, TimeCellType);
-registerCellType(TEXT_TYPE, TextCellType);
+registerCellType(AutocompleteCellType);
+registerCellType(CheckboxCellType);
+registerCellType(DateCellType);
+registerCellType(DropdownCellType);
+registerCellType(HandsontableCellType);
+registerCellType(NumericCellType);
+registerCellType(PasswordCellType);
+registerCellType(TimeCellType);
+registerCellType(TextCellType);
 
 jQueryWrapper(Handsontable);
 

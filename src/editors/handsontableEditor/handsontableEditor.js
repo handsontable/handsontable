@@ -14,6 +14,10 @@ export const EDITOR_TYPE = 'handsontable';
  * @class HandsontableEditor
  */
 export class HandsontableEditor extends TextEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   /**
    * Opens the editor and adjust its size.
    */

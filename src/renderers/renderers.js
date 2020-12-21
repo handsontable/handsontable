@@ -25,8 +25,23 @@ function _getItem(name) {
   return getItem(name);
 }
 
+/**
+ * Register renderer under its alias.
+ *
+ * @param {string|Function} name Renderer's alias or renderer function with its descriptor.
+ * @param {Function} [renderer] Renderer function.
+ */
+function _register(name, renderer) {
+  if (typeof name !== 'string') {
+    renderer = name;
+    name = renderer.RENDERER_TYPE;
+  }
+
+  register(name, renderer);
+}
+
 export {
-  register as registerRenderer,
+  _register as registerRenderer,
   _getItem as getRenderer,
   hasItem as hasRenderer,
   getNames as getRegisteredRendererNames,

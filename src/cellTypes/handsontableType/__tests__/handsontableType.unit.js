@@ -53,6 +53,7 @@ describe('HandsontableCellType', () => {
       expect(getRegisteredCellTypeNames()).toEqual(['handsontable']);
       expect(getCellType('handsontable')).toEqual(HandsontableCellType);
       expect(getCellType('handsontable')).toEqual({
+        CELL_TYPE,
         editor: getEditor('handsontable'),
         renderer: getRenderer('handsontable'),
       });

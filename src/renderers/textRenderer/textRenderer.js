@@ -45,3 +45,5 @@ export function textRenderer(instance, TD, row, col, prop, value, cellProperties
     fastInnerText(TD, escaped);
   }
 }
+
+textRenderer.RENDERER_TYPE = RENDERER_TYPE;

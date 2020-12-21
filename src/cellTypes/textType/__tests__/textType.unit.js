@@ -56,6 +56,7 @@ describe('TextCellType', () => {
       expect(getRegisteredCellTypeNames()).toEqual(['text']);
       expect(getCellType('text')).toEqual(TextCellType);
       expect(getCellType('text')).toEqual({
+        CELL_TYPE,
         editor: getEditor('text'),
         renderer: getRenderer('text'),
       });

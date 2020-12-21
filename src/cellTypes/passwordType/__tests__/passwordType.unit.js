@@ -53,6 +53,7 @@ describe('PasswordCellType', () => {
       expect(getRegisteredCellTypeNames()).toEqual(['password']);
       expect(getCellType('password')).toEqual(PasswordCellType);
       expect(getCellType('password')).toEqual({
+        CELL_TYPE,
         editor: getEditor('password'),
         renderer: getRenderer('password'),
         copyable: false,

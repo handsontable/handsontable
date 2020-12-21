@@ -25,6 +25,10 @@ export const EDITOR_TYPE = 'autocomplete';
  * @class AutocompleteEditor
  */
 export class AutocompleteEditor extends HandsontableEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   constructor(instance) {
     super(instance);
     /**

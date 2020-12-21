@@ -34,6 +34,11 @@ function _getItem(name) {
  * @param {object} type An object with contains keys (eq: `editor`, `renderer`, `validator`) which describes specified behaviour of the cell.
  */
 function _register(name, type) {
+  if (typeof name !== 'string') {
+    type = name;
+    name = type.CELL_TYPE;
+  }
+
   const { editor, renderer, validator } = type;
 
   if (editor) {

@@ -229,6 +229,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   }
 }
 
+checkboxRenderer.RENDERER_TYPE = RENDERER_TYPE;
+
 /**
  * Register checkbox listeners.
  *

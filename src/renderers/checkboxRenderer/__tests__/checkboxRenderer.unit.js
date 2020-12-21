@@ -2,7 +2,7 @@ import Core from 'handsontable/core';
 import {
   RENDERER_TYPE,
   checkboxRenderer,
-} from '../';
+} from '..';
 import {
   getRegisteredRendererNames,
   getRenderer,

@@ -53,3 +53,5 @@ export function numericRenderer(instance, TD, row, col, prop, value, cellPropert
 
   textRenderer(instance, TD, row, col, prop, newValue, cellProperties);
 }
+
+numericRenderer.RENDERER_TYPE = RENDERER_TYPE;

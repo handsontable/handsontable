@@ -55,6 +55,7 @@ describe('NumericCellType', () => {
       expect(getRegisteredCellTypeNames()).toEqual(['numeric']);
       expect(getCellType('numeric')).toEqual(NumericCellType);
       expect(getCellType('numeric')).toEqual({
+        CELL_TYPE,
         editor: getEditor('numeric'),
         renderer: getRenderer('numeric'),
         validator: getValidator('numeric'),

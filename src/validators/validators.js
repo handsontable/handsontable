@@ -25,8 +25,23 @@ function _getItem(name) {
   return getItem(name);
 }
 
+/**
+ * Register validator under its alias.
+ *
+ * @param {string|Function} name Validator's alias or validator function with its descriptor.
+ * @param {Function} [validator] Validator function.
+ */
+function _register(name, validator) {
+  if (typeof name !== 'string') {
+    validator = name;
+    name = validator.VALIDATOR_TYPE;
+  }
+
+  register(name, validator);
+}
+
 export {
-  register as registerValidator,
+  _register as registerValidator,
   _getItem as getValidator,
   hasItem as hasValidator,
   getNames as getRegisteredValidatorNames,

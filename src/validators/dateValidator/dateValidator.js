@@ -51,6 +51,8 @@ export function dateValidator(value, callback) {
   callback(valid);
 }
 
+dateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
+
 /**
  * Format the given string using moment.js' format feature.
  *

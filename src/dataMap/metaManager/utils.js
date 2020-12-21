@@ -22,7 +22,8 @@ export function expandMetaType(type, metaObject) {
   const expandedType = {};
 
   objectEach(validType, (value, property) => {
-    if (!preventSourceOverwrite || preventSourceOverwrite && !hasOwnProperty(metaObject, property)) {
+    if (property !== 'CELL_TYPE' && (!preventSourceOverwrite
+        || preventSourceOverwrite && !hasOwnProperty(metaObject, property))) {
       expandedType[property] = value;
     }
   });

@@ -55,6 +55,7 @@ describe('DropdownCellType', () => {
       expect(getRegisteredCellTypeNames()).toEqual(['dropdown']);
       expect(getCellType('dropdown')).toEqual(DropdownCellType);
       expect(getCellType('dropdown')).toEqual({
+        CELL_TYPE,
         editor: getEditor('dropdown'),
         renderer: getRenderer('dropdown'),
         validator: getValidator('dropdown'),

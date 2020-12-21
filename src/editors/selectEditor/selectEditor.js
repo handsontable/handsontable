@@ -25,6 +25,10 @@ export const EDITOR_TYPE = 'select';
  * @class SelectEditor
  */
 export class SelectEditor extends BaseEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   /**
    * Initializes editor instance, DOM Element and mount hooks.
    */

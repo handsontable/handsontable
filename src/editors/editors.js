@@ -89,6 +89,11 @@ function _getItem(name) {
  * @param {Function} editorClass Editor class.
  */
 function _register(name, editorClass) {
+  if (name && typeof name !== 'string') {
+    editorClass = name;
+    name = editorClass.EDITOR_TYPE;
+  }
+
   const editorWrapper = new RegisteredEditor(editorClass);
 
   if (typeof name === 'string') {

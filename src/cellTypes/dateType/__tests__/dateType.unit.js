@@ -55,6 +55,7 @@ describe('DateCellType', () => {
       expect(getRegisteredCellTypeNames()).toEqual(['date']);
       expect(getCellType('date')).toEqual(DateCellType);
       expect(getCellType('date')).toEqual({
+        CELL_TYPE,
         editor: getEditor('date'),
         renderer: getRenderer('date'),
         validator: getValidator('date'),
