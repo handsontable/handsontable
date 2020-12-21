@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fix a bug with auto-execution of the first item in ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
+- Fixed a bug where column sorting with multi column sorting crashed the table [#7415](https://github.com/handsontable/handsontable/issues/7415)
 
 ## [8.2.0] - 2020-11-12
 
