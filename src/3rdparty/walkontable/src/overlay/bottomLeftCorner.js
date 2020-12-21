@@ -5,8 +5,7 @@ import {
   resetCssTransform
 } from './../../../../helpers/dom/element';
 import BottomLeftCornerOverlayTable from './../table/bottomLeftCorner';
-import Overlay from './_base';
-import { registerOverlay } from './registerer';
+import { Overlay } from './_base';
 import {
   CLONE_BOTTOM_LEFT_CORNER,
 } from './constants';
@@ -14,7 +13,11 @@ import {
 /**
  * @class TopLeftCornerOverlay
  */
-class BottomLeftCornerOverlay extends Overlay {
+export class BottomLeftCornerOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_BOTTOM_LEFT_CORNER;
+  }
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
@@ -124,7 +127,3 @@ class BottomLeftCornerOverlay extends Overlay {
     cloneRoot.style.bottom = `${scrollbarWidth}px`;
   }
 }
-
-registerOverlay(CLONE_BOTTOM_LEFT_CORNER, BottomLeftCornerOverlay);
-
-export default BottomLeftCornerOverlay;

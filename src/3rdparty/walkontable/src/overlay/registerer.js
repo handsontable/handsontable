@@ -5,17 +5,21 @@ import {
 const registeredOverlays = {};
 
 /**
- * Register overlay class.
+ * Register overlay class. If the Overlay under the same name is already registered
+ * the class won't be register.
  *
- * @param {string} type Overlay type, one of the CLONE_TYPES value.
  * @param {Overlay} overlayClass Overlay class extended from base overlay class {@link Overlay}.
  */
-export function registerOverlay(type, overlayClass) {
-  if (CLONE_TYPES.indexOf(type) === -1) {
+export function registerOverlayOnce(overlayClass) {
+  const overlayName = overlayClass.OVERLAY_NAME;
+
+  if (CLONE_TYPES.indexOf(overlayName) === -1) {
     throw new Error(`Unsupported overlay (${type}).`);
   }
 
-  registeredOverlays[type] = overlayClass;
+  if (!hasOverlay(overlayName)) {
+    registeredOverlays[overlayName] = overlayClass;
+  }
 }
 
 /**

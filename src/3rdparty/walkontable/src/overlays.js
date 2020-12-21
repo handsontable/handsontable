@@ -6,14 +6,27 @@ import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
-import { createOverlay, hasOverlay } from './overlay/registerer';
 import {
-  CLONE_TOP,
+  CLONE_BOTTOM_LEFT_CORNER,
   CLONE_BOTTOM,
   CLONE_LEFT,
   CLONE_TOP_LEFT_CORNER,
-  CLONE_BOTTOM_LEFT_CORNER,
-} from './overlay/constants';
+  CLONE_TOP,
+  LeftOverlay,
+  TopOverlay,
+  TopLeftCornerOverlay,
+  BottomOverlay,
+  BottomLeftCornerOverlay,
+  registerOverlayOnce,
+  createOverlay,
+  hasOverlay,
+ } from './overlay';
+
+registerOverlayOnce(BottomLeftCornerOverlay);
+registerOverlayOnce(BottomOverlay);
+registerOverlayOnce(LeftOverlay);
+registerOverlayOnce(TopLeftCornerOverlay);
+registerOverlayOnce(TopOverlay);
 
 /**
  * @class Overlays
