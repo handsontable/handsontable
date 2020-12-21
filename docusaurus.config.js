@@ -45,7 +45,9 @@ module.exports = {
     [
       '@docusaurus/preset-classic',
       {
+        debug: isDev,
         docs: {
+          routeBasePath:'/',
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
           includeCurrentVersion: isDev
@@ -53,7 +55,8 @@ module.exports = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
-
+        pages: false,
+        blog: false
       },
     ],
   ],
