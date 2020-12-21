@@ -7,7 +7,6 @@ import {
 } from './../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
 import Overlay from './_base';
-import { registerOverlay } from './registerer';
 import {
   CLONE_TOP_LEFT_CORNER,
 } from './constants';
@@ -15,7 +14,7 @@ import {
 /**
  * @class TopLeftCornerOverlay
  */
-class TopLeftCornerOverlay extends Overlay {
+export class TopLeftCornerOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
@@ -101,7 +100,3 @@ class TopLeftCornerOverlay extends Overlay {
     return false;
   }
 }
-
-registerOverlay(CLONE_TOP_LEFT_CORNER, TopLeftCornerOverlay);
-
-export default TopLeftCornerOverlay;

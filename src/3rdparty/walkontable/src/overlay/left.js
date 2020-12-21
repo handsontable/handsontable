@@ -11,7 +11,6 @@ import {
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
 import Overlay from './_base';
-import { registerOverlay } from './registerer';
 import {
   CLONE_LEFT,
 } from './constants';
@@ -19,7 +18,7 @@ import {
 /**
  * @class LeftOverlay
  */
-class LeftOverlay extends Overlay {
+export class LeftOverlay extends Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
@@ -334,7 +333,3 @@ class LeftOverlay extends Overlay {
     return positionChanged;
   }
 }
-
-registerOverlay(CLONE_LEFT, LeftOverlay);
-
-export default LeftOverlay;

@@ -11,7 +11,6 @@ import {
 } from './../../../../helpers/dom/element';
 import TopOverlayTable from './../table/top';
 import Overlay from './_base';
-import { registerOverlay } from './registerer';
 import {
   CLONE_TOP,
 } from './constants';
@@ -19,7 +18,7 @@ import {
 /**
  * @class TopOverlay
  */
-class TopOverlay extends Overlay {
+export class TopOverlay extends Overlay {
   /**
    * Cached value which holds the previous value of the `fixedRowsTop` option.
    * It is used as a comparison value that can be used to detect changes in this value.
@@ -382,7 +381,3 @@ class TopOverlay extends Overlay {
     return positionChanged;
   }
 }
-
-registerOverlay(CLONE_TOP, TopOverlay);
-
-export default TopOverlay;

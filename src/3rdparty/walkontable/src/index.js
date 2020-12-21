@@ -8,11 +8,19 @@ import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 
 import MasterTable from './table/master';
-import LeftOverlay from './overlay/left';
-import TopOverlay from './overlay/top';
-import TopLeftCornerOverlay from './overlay/topLeftCorner';
-import BottomOverlay from './overlay/bottom';
-import BottomLeftCornerOverlay from './overlay/bottomLeftCorner';
+import { LeftOverlay } from './overlay/left';
+import { TopOverlay } from './overlay/top';
+import { TopLeftCornerOverlay } from './overlay/topLeftCorner';
+import { BottomOverlay } from './overlay/bottom';
+import { BottomLeftCornerOverlay } from './overlay/bottomLeftCorner';
+import { registerOverlay } from './overlay/registerer';
+import {
+  CLONE_BOTTOM_LEFT_CORNER,
+  CLONE_BOTTOM,
+  CLONE_LEFT,
+  CLONE_TOP_LEFT_CORNER,
+  CLONE_TOP,
+} from './overlay/constants';
 
 import Border from './border';
 import Walkontable from './core';
@@ -25,6 +33,12 @@ import * as Renderer from './renderer';
 import { OrderView, SharedOrderView } from './utils/orderView';
 import Viewport from './viewport';
 import { getListenersCounter } from './../../../eventManager';
+
+registerOverlay(CLONE_BOTTOM_LEFT_CORNER, BottomLeftCornerOverlay);
+registerOverlay(CLONE_BOTTOM, BottomOverlay);
+registerOverlay(CLONE_LEFT, LeftOverlay);
+registerOverlay(CLONE_TOP_LEFT_CORNER, TopLeftCornerOverlay);
+registerOverlay(CLONE_TOP, TopOverlay);
 
 export {
   ViewportColumnsCalculator,
