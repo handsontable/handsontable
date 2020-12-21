@@ -1,4 +1,7 @@
 FROM node:14-alpine as build
+# enable development features, comment to disable
+ENV NODE_ENV=development
+
 WORKDIR app
 
 # dependencies

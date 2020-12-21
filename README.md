@@ -102,7 +102,7 @@ docker-compose -f docker-compose.ghcr.yml
 
 ### Current (latest) version:
 
-* Latest version is available under url `/docs`.
+* Latest version is available under url `/docs/`.
 * In a repo it is last version folder in `/versioned_docs/version-*`
 
 ### Legacy versions
@@ -113,3 +113,10 @@ docker-compose -f docker-compose.ghcr.yml
 ### Versioning documentation:
 
 https://v2.docusaurus.io/docs/versioning/
+
+## Development features
+
+if `NODE_ENV=development` during building:
+
+* it is possible to show next documentation version `/docs/next`
+* debug plugin is enabled: `/docs/__docusaurus/debug`
