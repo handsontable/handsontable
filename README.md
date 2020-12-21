@@ -88,3 +88,28 @@ Stop services:
 docker-compose -f docker-compose.ghcr.yml
 ```
 
+## Versioning
+
+### Next version:
+
+* Next version is available only when `NODE_ENV === 'development'`. 
+* It is available under url: `/docs/next`.
+* In a repo it is placed into `./docs/` directory.
+
+#### Publishing next version as current:
+
+`yarn run docusaurus docs:version 8.3.0`, where `8.3.0` it is a version number. 
+
+### Current (latest) version:
+
+* Latest version is available under url `/docs`.
+* In a repo it is last version folder in `/versioned_docs/version-*`
+
+### Legacy versions
+
+* Latest version is available under url `/docs/*`.
+* In a repo it is placed into `/versioned_docs/version-*`
+
+### Versioning documentation:
+
+https://v2.docusaurus.io/docs/versioning/

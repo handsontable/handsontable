@@ -1,3 +1,5 @@
+const isDev = process.env.NODE_ENV === 'development';
+
 module.exports = {
   title: 'Handsontable',
   tagline: 'Documentation',
@@ -27,6 +29,11 @@ module.exports = {
           label: 'GitHub',
           position: 'right',
         },
+        {
+          type: 'docsVersionDropdown',
+          position: 'right',
+          dropdownActiveClassDisabled: true,
+        },
       ],
     },
     footer: {
@@ -40,12 +47,13 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl:
-            'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
+          editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
+          includeCurrentVersion: isDev
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
+
       },
     ],
   ],

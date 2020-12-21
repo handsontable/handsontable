@@ -1,0 +1,9 @@
+{
+  "version-8.2.0/docs": [
+    {
+      "type": "category",
+      "label": "Handsontable",
+      "items": ["version-8.2.0/introduction"]
+    }
+  ]
+}
