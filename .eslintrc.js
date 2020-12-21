@@ -24,6 +24,7 @@ module.exports = {
     "consistent-return": "off",
     "func-names": "off",
     "import/no-extraneous-dependencies": "off",
+    "import/prefer-default-export": "off",
     "indent": [
       "error",
       2,

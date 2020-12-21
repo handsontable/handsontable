@@ -1,7 +1,6 @@
 import { isNumeric } from '../../helpers/number';
 import { isFunction } from '../../helpers/function';
 
-/* eslint-disable import/prefer-default-export */
 export const ASC = 'asc';
 export const DESC = 'desc';
 const ORDER_MAP = new Map([

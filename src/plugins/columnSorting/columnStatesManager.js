@@ -15,7 +15,6 @@ const MAP_NAME = 'ColumnStatesManager.sortingStates';
  * @class ColumnStatesManager
  * @plugin ColumnSorting
  */
-// eslint-disable-next-line import/prefer-default-export
 export class ColumnStatesManager {
   constructor(hot) {
     /**

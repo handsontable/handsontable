@@ -20,7 +20,7 @@ import {
   registerOverlayOnce,
   createOverlay,
   hasOverlay,
- } from './overlay';
+} from './overlay';
 
 registerOverlayOnce(BottomLeftCornerOverlay);
 registerOverlayOnce(BottomOverlay);

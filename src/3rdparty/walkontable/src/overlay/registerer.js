@@ -14,7 +14,7 @@ export function registerOverlayOnce(overlayClass) {
   const overlayName = overlayClass.OVERLAY_NAME;
 
   if (CLONE_TYPES.indexOf(overlayName) === -1) {
-    throw new Error(`Unsupported overlay (${type}).`);
+    throw new Error(`Unsupported overlay (${overlayName}).`);
   }
 
   if (!hasOverlay(overlayName)) {

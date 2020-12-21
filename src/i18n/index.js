@@ -12,7 +12,6 @@ import { isUndefined } from '../helpers/mixed';
  *
  * @returns {string}
  */
-// eslint-disable-next-line import/prefer-default-export
 export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {
   const languageDictionary = getLanguageDictionary(languageCode);
 

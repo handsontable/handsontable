@@ -1,6 +1,5 @@
 import { isFunction } from '../../helpers/function';
 
-/* eslint-disable import/prefer-default-export */
 const DEFAULT_ERROR_ID_EXISTS = id => `The id '${id}' is already declared in a list.`;
 
 /**

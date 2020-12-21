@@ -1,6 +1,5 @@
 import { isFunction } from '../../helpers/function';
 
-/* eslint-disable import/prefer-default-export */
 const DEFAULT_ERROR_ITEM_EXISTS = item => `'${item}' value is already declared in a unique queue.`;
 
 /**
