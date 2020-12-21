@@ -4,7 +4,7 @@ module.exports = {
   title: 'Handsontable',
   tagline: 'Documentation',
   url: 'https://handsontable.com/docs',
-  baseUrl: '/',
+  baseUrl: '/docs/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
