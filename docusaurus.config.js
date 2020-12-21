@@ -1,6 +1,6 @@
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = true || process.env.NODE_ENV === 'development'; // temporary test 'true', because `yarn build` always has k`node_env = production`
 
-console.log('isDev', isDev);
+console.log('isDev', isDev, process.env.NODE_ENV);
 
 module.exports = {
   title: 'Handsontable',
