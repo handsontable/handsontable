@@ -226,9 +226,9 @@ export class Filters extends BasePlugin {
     this.addHook('afterChange', changes => this.onAfterChange(changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
-    if (this.hot.getSettings().dropdownMenu) {
-      this.dropdownMenuPlugin?.disablePlugin();
-      this.dropdownMenuPlugin?.enablePlugin();
+    if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.disablePlugin();
+      this.dropdownMenuPlugin.enablePlugin();
     }
 
     super.enablePlugin();
@@ -636,7 +636,10 @@ export class Filters extends BasePlugin {
       this.filtersRowsMap.clear();
       this.filter();
     }
-    this.dropdownMenuPlugin?.close();
+
+    if (this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.close();
+    }
   }
 
   /**
@@ -670,7 +673,9 @@ export class Filters extends BasePlugin {
    * @private
    */
   setListeningDropdownMenu() {
-    this.dropdownMenuPlugin?.setListening();
+    if (this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.setListening();
+    }
   }
 
   /**
