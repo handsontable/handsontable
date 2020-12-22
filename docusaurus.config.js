@@ -11,8 +11,12 @@ module.exports = {
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'Handsontable',
+  plugins:['@docusaurus/theme-live-codeblock'],
   projectName: 'Handsontable',
   themeConfig: {
+    gtag: {
+      trackingID: 'GTM-55L5D3',
+    },
     navbar: {
       title: 'Handsontable',
       logo: {
