@@ -1,5 +1,5 @@
 {
-  "version-8.2.0/docs": [
+  "version-6.2.2/docs": [
     {
       "collapsed": true,
       "type": "category",
@@ -7,7 +7,7 @@
       "items": [
         {
           "type": "doc",
-          "id": "version-8.2.0/introduction"
+          "id": "version-6.2.2/introduction"
         }
       ]
     }
