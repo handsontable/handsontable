@@ -1,3 +1,6 @@
+import { BasePlugin } from '../base';
+import { registerPluginOnce } from '../plugins';
+import { NestedHeaders } from '../nestedHeaders';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -9,7 +12,6 @@ import {
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { HidingMap } from '../../translations';
-import { BasePlugin } from '../base';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -26,6 +28,8 @@ const actionDictionary = new Map([
     afterHook: 'afterColumnExpand',
   }],
 ]);
+
+registerPluginOnce(NestedHeaders);
 
 /**
  * @plugin CollapsibleColumns

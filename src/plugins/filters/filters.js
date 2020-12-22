@@ -1,4 +1,8 @@
 import { BasePlugin } from '../base';
+import { DropdownMenu } from '../dropdownMenu';
+import { HiddenRows } from '../hiddenRows';
+import { registerPluginOnce } from '../plugins';
+import { registerCellType, CheckboxCellType, getCellType } from '../../cellTypes';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
@@ -25,6 +29,9 @@ import {
 import { TrimmingMap } from '../../translations';
 
 import './filters.css';
+
+registerPluginOnce(DropdownMenu);
+registerPluginOnce(HiddenRows);
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -144,6 +151,11 @@ export class Filters extends BasePlugin {
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
+
+    if (dropdownSettings && !getCellType(CheckboxCellType.CELL_TYPE)) {
+      registerCellType(CheckboxCellType);
+    }
+
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
 
     const addConfirmationHooks = (component) => {
@@ -227,7 +239,9 @@ export class Filters extends BasePlugin {
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu) {
+      // eslint-disable-next-line no-unused-expressions
       this.dropdownMenuPlugin?.disablePlugin();
+      // eslint-disable-next-line no-unused-expressions
       this.dropdownMenuPlugin?.enablePlugin();
     }
 
@@ -636,6 +650,7 @@ export class Filters extends BasePlugin {
       this.filtersRowsMap.clear();
       this.filter();
     }
+    // eslint-disable-next-line no-unused-expressions
     this.dropdownMenuPlugin?.close();
   }
 
@@ -670,6 +685,7 @@ export class Filters extends BasePlugin {
    * @private
    */
   setListeningDropdownMenu() {
+    // eslint-disable-next-line no-unused-expressions
     this.dropdownMenuPlugin?.setListening();
   }
 

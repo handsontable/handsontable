@@ -2,7 +2,8 @@ import {
   getPlugin,
   getPluginsNames,
   registerPlugin,
-} from '../index';
+  registerPluginOnce,
+} from '../plugins';
 
 describe('plugins', () => {
   describe('registering', () => {
@@ -65,6 +66,16 @@ describe('plugins', () => {
       }).toThrowError('There is already registered "PluginJ" plugin.');
       expect(() => {
         registerPlugin('pluginK', pluginRef, 41);
+      }).not.toThrowError();
+    });
+
+    it('should register plugin only once', () => {
+      const pluginRef = jest.fn();
+
+      registerPluginOnce('pluginL', pluginRef);
+
+      expect(() => {
+        registerPluginOnce('pluginL', pluginRef);
       }).not.toThrowError();
     });
   });

@@ -114,6 +114,7 @@ import {
   getPlugin,
   getPluginsNames,
   registerPlugin,
+  registerPluginOnce,
 } from './plugins';
 
 registerEditor(BaseEditor);
@@ -152,40 +153,40 @@ registerCellType(TextCellType);
 
 jQueryWrapper(Handsontable);
 
-registerPlugin(AutoColumnSize);
-registerPlugin(Autofill);
-registerPlugin(AutoRowSize);
-registerPlugin(BindRowsWithHeaders);
-registerPlugin(CollapsibleColumns);
-registerPlugin(ColumnSorting);
-registerPlugin(ColumnSummary);
-registerPlugin(Comments);
-registerPlugin(ContextMenu);
-registerPlugin(CopyPaste);
-registerPlugin(CustomBorders);
-registerPlugin(DragToScroll);
-registerPlugin(DropdownMenu);
-registerPlugin(ExportFile);
-registerPlugin(Filters);
-registerPlugin(Formulas);
-registerPlugin(HeaderTooltips);
-registerPlugin(HiddenColumns);
-registerPlugin(HiddenRows);
-registerPlugin(ManualColumnFreeze);
-registerPlugin(ManualColumnMove);
-registerPlugin(ManualColumnResize);
-registerPlugin(ManualRowMove);
-registerPlugin(ManualRowResize);
-registerPlugin(MergeCells);
-registerPlugin(MultiColumnSorting);
-registerPlugin(MultipleSelectionHandles);
-registerPlugin(NestedHeaders);
-registerPlugin(NestedRows);
-registerPlugin(ObserveChanges);
-registerPlugin(PersistentState);
-registerPlugin(Search);
-registerPlugin(TouchScroll);
-registerPlugin(TrimRows);
+registerPluginOnce(AutoColumnSize);
+registerPluginOnce(Autofill);
+registerPluginOnce(AutoRowSize);
+registerPluginOnce(BindRowsWithHeaders);
+registerPluginOnce(CollapsibleColumns);
+registerPluginOnce(ColumnSorting);
+registerPluginOnce(ColumnSummary);
+registerPluginOnce(Comments);
+registerPluginOnce(ContextMenu);
+registerPluginOnce(CopyPaste);
+registerPluginOnce(CustomBorders);
+registerPluginOnce(DragToScroll);
+registerPluginOnce(DropdownMenu);
+registerPluginOnce(ExportFile);
+registerPluginOnce(Filters);
+registerPluginOnce(Formulas);
+registerPluginOnce(HeaderTooltips);
+registerPluginOnce(HiddenColumns);
+registerPluginOnce(HiddenRows);
+registerPluginOnce(ManualColumnFreeze);
+registerPluginOnce(ManualColumnMove);
+registerPluginOnce(ManualColumnResize);
+registerPluginOnce(ManualRowMove);
+registerPluginOnce(ManualRowResize);
+registerPluginOnce(MergeCells);
+registerPluginOnce(MultiColumnSorting);
+registerPluginOnce(MultipleSelectionHandles);
+registerPluginOnce(NestedHeaders);
+registerPluginOnce(NestedRows);
+registerPluginOnce(ObserveChanges);
+registerPluginOnce(PersistentState);
+registerPluginOnce(Search);
+registerPluginOnce(TouchScroll);
+registerPluginOnce(TrimRows);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;

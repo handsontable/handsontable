@@ -1,4 +1,6 @@
 import { BasePlugin } from '../base';
+import { registerPluginOnce } from '../plugins';
+import { AutoColumnSize } from '../autoColumnSize';
 import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
 import CommandExecutor from './commandExecutor';
@@ -21,6 +23,8 @@ import {
 } from './predefinedItems';
 
 import './contextMenu.css';
+
+registerPluginOnce(AutoColumnSize);
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;
