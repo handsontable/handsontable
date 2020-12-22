@@ -11,8 +11,7 @@
     "baseUrl": "",
     "paths": {
       "handsontable": [ "../../" ]
-    },
-    "skipLibCheck": true
+    }
   },
   "include": [
     "../../handsontable.d.ts",

@@ -92,8 +92,6 @@
     "@babel/preset-env": "^7.11.0",
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.11.2",
-    "@types/jasmine": "^3.4.0",
-    "@types/jest": "^25.1.0",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "^11.0.0-beta.2",
     "babel-jest": "^25.4.0",
@@ -123,6 +121,8 @@
     "jasmine-terminal-reporter": "^1.0.3",
     "jest": "^25.1.0",
     "jest-cli": "^25.1.0",
+    "jsdom": "^15.2.1",
+    "jsdom-global": "^3.0.2",
     "loader-utils": "^1.1.0",
     "mini-css-extract-plugin": "^0.5.0",
     "on-build-webpack": "^0.1.0",
@@ -167,7 +167,7 @@
   "typings": "./handsontable.d.ts",
   "workspaces": {
     "packages": [
-      "packages/*",
+      ".",
       "wrappers/*"
     ]
   }

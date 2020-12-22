@@ -1,4 +1,4 @@
-const fse = require('fs-extra')
+const fse = require('fs-extra');
 const path = require('path');
 
 const LICENSE = 'LICENSE';
@@ -14,6 +14,7 @@ const PACKAGE_BODY = fse.readJsonSync(path.resolve(`./${PACKAGE}`), { encoding: 
 
 delete PACKAGE_BODY.dependencies;
 delete PACKAGE_BODY.devDependencies;
+delete PACKAGE_BODY.exports;
 
 fse.writeJsonSync(path.resolve(`./projects/hot-table/${PACKAGE}`), PACKAGE_BODY);
 

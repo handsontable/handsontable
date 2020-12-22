@@ -4,8 +4,11 @@ const moment = require('moment');
 const {
   displayConfirmationMessage,
   displayErrorMessage
-} = require('./ui');
+} = require('./common');
 const hotPackageJson = require('../package.json');
+
+const CURRENT_VERSION = hotPackageJson.version;
+const SEMVER_SECTIONS = ['major', 'minor', 'patch'];
 
 /**
  * Check if the provided version number is a valid semver version number.
@@ -51,12 +54,22 @@ function setVersion(version) {
   let versionReplaced = true;
   workspaces.forEach((packagesLocation) => {
     const replacementStatus = replace.sync({
-      files: `${packagesLocation}*/package.json`,
-      from: /"version": "(.*)"/,
-      to: `"version": "${version}"`,
+      files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
+      from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
+      to: (fullMatch, ...args) => {
+        if (fullMatch.indexOf('version') > 0) {
+          // Replace the version with the new version.
+          return `"version": "${version}"`;
+
+        } else {
+          // Replace the `handsontable` dependency with the current major.
+          return `"handsontable": "${args[0]}${version.split('.')[0]}.0.0"`;
+        }
+      },
       ignore: [
         `${packagesLocation}*/node_modules/**/*`,
-        `${packagesLocation}*/projects/hot-table/package.json`
+        `${packagesLocation}*/projects/hot-table/package.json`,
+        `${packagesLocation}*/dist/hot-table/package.json`,
       ],
     });
 
@@ -66,7 +79,7 @@ function setVersion(version) {
         versionReplaced = false;
 
       } else {
-        displayConfirmationMessage(`${infoObj.file} -> ${version}`);
+        displayConfirmationMessage(`- Saved the new version (${version}) to ${infoObj.file}.`);
       }
     });
   });
@@ -93,7 +106,7 @@ function setReleaseDate(date) {
     process.exit(1);
 
   } else {
-    displayConfirmationMessage(`${replacementStatus[0].file} -> ${date}`);
+    displayConfirmationMessage(`- Saved the new date (${date}) to ${replacementStatus[0].file}.`);
   }
 }
 
@@ -104,25 +117,29 @@ function setReleaseDate(date) {
  * @returns {string} A new semver-based version.
  */
 function getVersionFromReleaseType(type) {
-  const splitVersion = currentVersion.split('.').map(
+  const splitVersion = CURRENT_VERSION.split('.').map(
     value => parseInt(value, 10)
   );
 
-  splitVersion[semverSections.indexOf(type)] += 1;
+  splitVersion[SEMVER_SECTIONS.indexOf(type)] += 1;
 
   return splitVersion.join('.');
 }
 
 const [/* node bin */, /* path to this script */, versionPrompt, releaseDate] = process.argv;
-const currentVersion = hotPackageJson.version;
-const semverSections = ['major', 'minor', 'patch'];
 let newVersion = '';
 
 if (versionPrompt && releaseDate) {
+  if (!isReleaseDateValid(releaseDate)) {
+    displayErrorMessage(
+      `${releaseDate} is not a valid release date`);
+    process.exit(1);
+  }
+
   if (isVersionValid(versionPrompt)) {
     newVersion = versionPrompt;
 
-  } else if (semverSections.includes(versionPrompt)) {
+  } else if (SEMVER_SECTIONS.includes(versionPrompt)) {
     newVersion = getVersionFromReleaseType(versionPrompt);
 
   } else {

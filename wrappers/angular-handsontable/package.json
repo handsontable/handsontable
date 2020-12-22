@@ -36,6 +36,9 @@
   "bugs": {
     "url": "https://github.com/handsontable/angular-handsontable/issues"
   },
+  "exports": {
+    ".": "./dist/hot-table/bundles/handsontable-angular.umd.js"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

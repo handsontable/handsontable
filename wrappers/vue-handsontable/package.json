@@ -75,7 +75,7 @@
     "rollup-plugin-typescript": "^1.0.1",
     "rollup-plugin-typescript2": "^0.21.1",
     "rollup-plugin-vue": "^5.0.0",
-    "typescript": "^3.7.3",
+    "typescript": "3.7.2",
     "vue": "^2.6.10",
     "vue-class-component": "^7.1.0",
     "vue-jest": "^3.0.4",
