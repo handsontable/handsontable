@@ -238,11 +238,9 @@ export class Filters extends BasePlugin {
     this.addHook('afterChange', changes => this.onAfterChange(changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
-    if (this.hot.getSettings().dropdownMenu) {
-      // eslint-disable-next-line no-unused-expressions
-      this.dropdownMenuPlugin?.disablePlugin();
-      // eslint-disable-next-line no-unused-expressions
-      this.dropdownMenuPlugin?.enablePlugin();
+    if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.disablePlugin();
+      this.dropdownMenuPlugin.enablePlugin();
     }
 
     super.enablePlugin();
@@ -650,8 +648,10 @@ export class Filters extends BasePlugin {
       this.filtersRowsMap.clear();
       this.filter();
     }
-    // eslint-disable-next-line no-unused-expressions
-    this.dropdownMenuPlugin?.close();
+
+    if (this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.close();
+    }
   }
 
   /**
@@ -685,8 +685,9 @@ export class Filters extends BasePlugin {
    * @private
    */
   setListeningDropdownMenu() {
-    // eslint-disable-next-line no-unused-expressions
-    this.dropdownMenuPlugin?.setListening();
+    if (this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.setListening();
+    }
   }
 
   /**

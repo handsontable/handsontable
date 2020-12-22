@@ -877,4 +877,6 @@ hook.register('afterUndo');
 hook.register('beforeRedo');
 hook.register('afterRedo');
 
+UndoRedo.PLUGIN_KEY = PLUGIN_KEY;
+
 export default UndoRedo;

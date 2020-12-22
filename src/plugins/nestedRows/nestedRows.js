@@ -77,7 +77,6 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
     this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap());
 
     this.dataManager = new DataManager(this, this.hot);
