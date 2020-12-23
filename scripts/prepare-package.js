@@ -12,6 +12,7 @@ const filesToMove = [
   'dist/handsontable.min.css',
   'dist/handsontable.full.min.js',
   'dist/handsontable.full.min.css',
+  'dist/README.md',
   'languages',
   'CHANGELOG.md',
   'handsontable.d.ts',
