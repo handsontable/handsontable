@@ -128,7 +128,7 @@ module.exports = {
   },
   "overrides": [
     {
-      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.spec.js", "src/plugins/**/test/helpers/**"],
+      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.spec.js", "src/plugins/**/__tests__/helpers/**"],
       "rules": {
         "import/extensions": "off",
         "import/no-unresolved": [
