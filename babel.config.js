@@ -58,6 +58,7 @@ module.exports = {
         ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
       ],
       ignore: [
+        '**/__tests__/**',
         '**/test/**',
         '**/dist/**',
       ]
@@ -69,6 +70,7 @@ module.exports = {
         ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }]
       ],
       ignore: [
+        '**/__tests__/**',
         '**/test/**',
         '**/dist/**',
       ],

@@ -3,7 +3,15 @@ const path = require('path');
 
 const TARGET_PATH = './tmp';
 const filesToMove = [
-  'dist',
+  'dist/languages',
+  'dist/handsontable.js',
+  'dist/handsontable.css',
+  'dist/handsontable.full.js',
+  'dist/handsontable.full.css',
+  'dist/handsontable.min.js',
+  'dist/handsontable.min.css',
+  'dist/handsontable.full.min.js',
+  'dist/handsontable.full.min.css',
   'languages',
   'CHANGELOG.md',
   'handsontable.d.ts',

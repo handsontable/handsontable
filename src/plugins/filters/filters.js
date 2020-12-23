@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { DropdownMenu } from '../dropdownMenu';
 import { HiddenRows } from '../hiddenRows';
 import { registerPluginOnce } from '../plugins';
-import { registerCellType, CheckboxCellType, getCellType } from '../../cellTypes';
+import { registerCellType, CheckboxCellType, hasCellType } from '../../cellTypes';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
@@ -151,13 +151,7 @@ export class Filters extends BasePlugin {
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
-
-    if (dropdownSettings && !getCellType(CheckboxCellType.CELL_TYPE)) {
-      registerCellType(CheckboxCellType);
-    }
-
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
-
     const addConfirmationHooks = (component) => {
       component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
@@ -555,6 +549,10 @@ export class Filters extends BasePlugin {
    */
   onBeforeDropdownMenuSetItems() {
     if (this.dropdownMenuPlugin) {
+      if (!hasCellType(CheckboxCellType.CELL_TYPE)) {
+        registerCellType(CheckboxCellType);
+      }
+
       this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
         this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
       });
