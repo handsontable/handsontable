@@ -185,8 +185,9 @@ ${chalk.yellow.italic(`### ${uppercaseFirstLetter(changelogEntry.type)}
 const consumeCommand = async(args) => {
   const { dryRun } = args;
 
-  const hotReleaseDateMoment = moment(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY');
-  const formattedDefault = hotReleaseDateMoment.format('YYYY-MM-DD');
+  const formattedDefault = args.date === undefined
+    ? moment(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY').format('YYYY-MM-DD')
+    : args.date;
 
   const { date } = isTTY ? await inquirer.prompt([
     {
