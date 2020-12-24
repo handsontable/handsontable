@@ -17,9 +17,9 @@ jobs:
         run: npm ci
 
       - name: Assert that a new changelog was added, or that the check is skipped
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/check-changelog
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check that all changelogs are valid
         run: bin/changelog consume --date 2050-01-01 --dry-run
