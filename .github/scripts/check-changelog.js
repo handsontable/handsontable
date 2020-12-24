@@ -29,12 +29,12 @@ const run = async() => {
   const pr = result.data[0];
 
   if (pr === undefined) {
-    // No PR found, just exit.
+    console.log('No PR found associated with this commit, exiting.')
     process.exit(0);
   }
 
   if (pr.body.includes(skipCheckString)) {
-    // The PR body (description) includes a string to disable this check.
+    console.log('The PR body (description) includes a string to disable this check, exiting.')
     process.exit(0);
   }
 
@@ -49,7 +49,9 @@ const run = async() => {
     file.status === 'added' && file.filename.startsWith(changelogsPath)
   );
 
-  if (!newChangelogFileAddedwasAdded) {
+  if (newChangelogFileAddedwasAdded) {
+    console.log('Found new changelog(s), success!')
+  } else {
     console.log('Added files:');
     console.log(
       files
