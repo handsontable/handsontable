@@ -46,7 +46,7 @@ const run = async() => {
   });
 
   const newChangelogFileAddedwasAdded = files.some(file =>
-    file.status === 'added' && file.filename.startsWith(changelogsPath)
+    file.status === 'added' && file.filename.startsWith(changelogsPath) && file.filename.endsWith('.json')
   );
 
   if (newChangelogFileAddedwasAdded) {
