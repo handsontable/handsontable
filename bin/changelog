@@ -195,7 +195,7 @@ const consumeCommand = async(args) => {
       message: 'When should the version be released?',
       default: formattedDefault
     }
-  ]) : formattedDefault;
+  ]) : { date: formattedDefault };
 
   const existingChangelogContents = await fs.readFile(changelogPath, 'utf8');
 
