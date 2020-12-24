@@ -7,9 +7,9 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 
-const token = process.env.TOKEN
+const token = process.env.TOKEN;
 
-const skipCheckString = '[skip changelog check]'
+const skipCheckString = '[skip changelog check]';
 
 const changelogsPath = '.changelogs/';
 
@@ -33,9 +33,9 @@ const run = async() => {
     process.exit(0);
   }
 
-  if (pr.body.includes(skipCheckString)){
+  if (pr.body.includes(skipCheckString)) {
     // The PR body (description) includes a string to disable this check.
-    process.exit(0)
+    process.exit(0);
   }
 
   // https://octokit.github.io/rest.js/v18#pagination
