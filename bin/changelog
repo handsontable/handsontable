@@ -117,6 +117,15 @@ const createEntryCommand = async(args) => {
       when: typeof args.title === 'undefined'
     },
     {
+      name: 'issue',
+      type: 'input',
+      message: '# of the related issue/PR (e.g. 512)',
+      default: maybeExtractedNumber,
+      validate: s => ((Number.isNaN(Number(s)) || s.length === 0) ? 'The provided input is not a number' : true),
+      filter: s => Number(s),
+      when: typeof args.issue === 'undefined'
+    },
+    {
       name: 'type',
       type: 'list',
       message: 'Type of the change',
@@ -131,15 +140,6 @@ const createEntryCommand = async(args) => {
         ) || 'changed',
 
       when: typeof args.framework === 'undefined'
-    },
-    {
-      name: 'issue',
-      type: 'input',
-      message: '# of the related issue/PR (e.g. 512)',
-      default: maybeExtractedNumber,
-      validate: s => ((Number.isNaN(Number(s)) || s.length === 0) ? 'The provided input is not a number' : true),
-      filter: s => Number(s),
-      when: typeof args.issue === 'undefined'
     },
     {
       name: 'framework',
