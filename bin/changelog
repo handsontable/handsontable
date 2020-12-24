@@ -17,6 +17,8 @@ const { hideBin } = require('yargs/helpers');
 
 const hotConfig = require('../hot.config');
 
+const isTTY = process.config.isTTY;
+
 const changelogMarkDownMark = '<!-- UNVERSIONED -->';
 const changelogPath = path.join(__dirname, '../CHANGELOG.md');
 const changelogsDirectoryName = '.changelogs';
@@ -53,12 +55,12 @@ const extractNumberFromString = (s) => {
 };
 
 const askToProceedOrExit = async(message = 'Proceed?') => {
-  const { shouldProceed } = await inquirer.prompt({
+  const { shouldProceed } = isTTY ? await inquirer.prompt({
     name: 'shouldProceed',
     type: 'confirm',
     message,
     default: true
-  });
+  }) : true;
 
   if (shouldProceed === false) {
     process.exit(1);
@@ -108,7 +110,7 @@ const createEntryCommand = async(args) => {
   const gitBranchName = (await execa('git', ['rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])).stdout;
   const maybeExtractedNumber = extractNumberFromString(gitBranchName);
 
-  const answers = await inquirer.prompt([
+  const answers = isTTY ? await inquirer.prompt([
     {
       name: 'title',
       type: 'input',
@@ -149,7 +151,7 @@ const createEntryCommand = async(args) => {
       default: 'none',
       when: typeof args.framework === 'undefined'
     }
-  ]);
+  ]) : {};
 
   const changelogEntry = assertChangelogEntryFormat({ ...args, ...answers });
 
@@ -184,15 +186,16 @@ const consumeCommand = async(args) => {
   const { dryRun } = args;
 
   const hotReleaseDateMoment = moment(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY');
+  const formattedDefault = hotReleaseDateMoment.format('YYYY-MM-DD');
 
-  const { date } = await inquirer.prompt([
+  const { date } = isTTY ? await inquirer.prompt([
     {
       name: 'date',
       type: 'input',
       message: 'When should the version be released?',
-      default: hotReleaseDateMoment.format('YYYY-MM-DD')
+      default: formattedDefault
     }
-  ]);
+  ]) : formattedDefault;
 
   const existingChangelogContents = await fs.readFile(changelogPath, 'utf8');
 
