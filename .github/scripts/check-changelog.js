@@ -49,9 +49,13 @@ const run = async() => {
     file.status === 'added' && file.filename.startsWith(changelogsPath)
   );
 
-  if (newChangelogFileAddedwasAdded) {
-    console.log('Changed files:');
-    console.log(files.map(({ filename }) => `${filename}\n`));
+  if (!newChangelogFileAddedwasAdded) {
+    console.log('Added files:');
+    console.log(
+      files
+        .filter(({ status }) => status === 'added')
+        .map(({ filename }) => `${filename}\n`)
+    );
 
     core.setFailed(
       // eslint-disable-next-line max-len
