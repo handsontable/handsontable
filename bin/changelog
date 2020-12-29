@@ -39,9 +39,10 @@ const fileExists = p => fs.access(p).then(() => true).catch(() => false);
 const stringifyChangelogEntryObject = ({ title, issue, framework }) => {
   const frameworkFragment = framework === 'none' ? '' : `**${uppercaseFirstLetter(framework)}:** `;
 
-  const issueFragment = `https://github.com/handsontable/handsontable/issues/${issue}`;
+  const issueLinkFragment =
+    `[#${issue}](https://github.com/handsontable/handsontable/issues/${issue})`;
 
-  return `${frameworkFragment}${title} ${issueFragment}`;
+  return `${frameworkFragment}${title} ${issueLinkFragment}`;
 };
 
 const extractNumberFromString = (s) => {
