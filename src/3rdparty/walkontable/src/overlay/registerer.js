@@ -6,7 +6,7 @@ const registeredOverlays = {};
 
 /**
  * Register overlay class. If the Overlay under the same name is already registered
- * the class won't be register.
+ * the class won't be registered.
  *
  * @param {Overlay} overlayClass Overlay class extended from base overlay class {@link Overlay}.
  */

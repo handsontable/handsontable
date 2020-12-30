@@ -1,5 +1,5 @@
 /**
- * Utility to register plugins and common namespace for keeping reference to all plugins classes.
+ * Utility to register plugins and common namespace for keeping the reference to all plugins classes.
  */
 import { toUpperCaseFirst } from '../helpers/string';
 import { createPriorityQueue } from '../utils/dataStructures/priorityQueue';
@@ -11,7 +11,7 @@ const ERROR_PRIORITY_REGISTERED = priority => `There is already registered plugi
 const ERROR_PRIORITY_NAN = priority => `The priority "${priority}" is not a number.`;
 
 /**
- * Stores plugins names' queue with they priorities.
+ * Stores plugins' names' queue with their priorities.
  */
 const priorityPluginsQueue = createPriorityQueue({
   errorPriorityExists: ERROR_PRIORITY_REGISTERED,
@@ -24,7 +24,7 @@ const uniquePluginsQueue = createUniqueQueue({
   errorItemExists: ERROR_PLUGIN_REGISTERED,
 });
 /**
- * Stores plugins references between theirs' name and class.
+ * Stores plugins references between their name and class.
  */
 const uniquePluginsList = createUniqueList({
   errorIdExists: ERROR_PLUGIN_REGISTERED,
@@ -56,7 +56,7 @@ export function getPlugin(pluginName) {
   return uniquePluginsList.getItem(unifiedPluginName);
 }
 /**
- * Registers plugin under given name.
+ * Registers plugin under the given name.
  *
  * @param {string|Function} pluginName The plugin name or plugin class.
  * @param {Function} [pluginClass] The plugin class.
@@ -80,7 +80,7 @@ export function registerPlugin(pluginName, pluginClass, priority) {
   uniquePluginsList.addItem(unifiedPluginName, pluginClass);
 }
 /**
- * Registers plugin under given name only once.
+ * Registers plugin under the given name only once.
  *
  * @param {string|Function} pluginName The plugin name or plugin class.
  * @param {Function} [pluginClass] The plugin class.
@@ -94,7 +94,7 @@ export function registerPluginOnce(pluginName, pluginClass, priority) {
   }
 }
 /**
- * Unifies arguments to register plugin.
+ * Unifies arguments to register the plugin.
  *
  * @param {string|Function} pluginName The plugin name or plugin class.
  * @param {Function} [pluginClass] The plugin class.
