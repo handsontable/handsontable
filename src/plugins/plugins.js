@@ -31,9 +31,9 @@ const uniquePluginsList = createUniqueList({
 });
 
 /**
- * Gets registered plugins' names with an appropriate order.
- * First ordered plugins by their ascending priority.
- * Then plugins from the unordered registry in order of registration.
+ * Gets registered plugins' names in the following order:
+ * 1) Plugins registered with a defined priority attribute, in the ascending order of priority.
+ * 2) Plugins registered without a defined priority attribute, in the registration order.
  *
  * @returns {string[]}
  */
@@ -44,11 +44,10 @@ export function getPluginsNames() {
   ];
 }
 /**
- * Gets registered plugin's class by passed name.
+ * Gets registered plugin's class based on the given name.
  *
  * @param {string} pluginName Plugin's name.
  * @returns {BasePlugin}
- * @throws Will throw an error if there is no registered plugin on a passed name.
  */
 export function getPlugin(pluginName) {
   const unifiedPluginName = toUpperCaseFirst(pluginName);
