@@ -15,7 +15,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoRowSize
- *
+ * @class AutoRowSize
  * @description
  * This plugin allows to set row heights based on their highest cells.
  *
