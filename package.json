@@ -108,6 +108,10 @@
       "import": "./editors/textEditor/index.mjs",
       "require": "./editors/textEditor/index.js"
     },
+    "./i18n": {
+      "import": "./i18n/languages/index.mjs",
+      "require": "./i18n/languages/index.js"
+    },
     "./plugins": {
       "import": "./plugins/index.mjs",
       "require": "./plugins/index.js"
