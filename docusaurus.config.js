@@ -71,7 +71,8 @@ module.exports = {
       {
         debug: isDev,
         docs: {
-          routeBasePath:'/',
+          path: 'next',
+          routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
           includeCurrentVersion: isDev
