@@ -5,13 +5,13 @@ This website is built using [Docusaurus 2](https://v2.docusaurus.io/), a modern 
 ## Installation
 
 ```console
-yarn install
+npm install
 ```
 
 ## Local Development
 
 ```console
-yarn start
+npm run start
 ```
 
 This command starts a local development server and open up a browser window. Most changes are reflected live without having to restart the server.
@@ -19,7 +19,7 @@ This command starts a local development server and open up a browser window. Mos
 ## Build
 
 ```console
-yarn build
+npm run build
 ```
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
@@ -27,7 +27,7 @@ This command generates static content into the `build` directory and can be serv
 ## Deployment
 
 ```console
-GIT_USER=<Your GitHub username> USE_SSH=true yarn deploy
+GIT_USER=<Your GitHub username> USE_SSH=true npm run deploy
 ```
 
 If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
@@ -94,11 +94,11 @@ docker-compose -f docker-compose.ghcr.yml
 
 * Next version is available only when `NODE_ENV === 'development'`. 
 * It is available under url: `/docs/next`.
-* In a repo it is placed into `./docs/` directory.
+* In a repo it is placed into `./next/` directory.
 
 #### Publishing next version as current:
 
-`yarn run docusaurus docs:version 8.3.0`, where `8.3.0` it is a version number. 
+`npm run docusaurus docs:version 8.3.0`, where `8.3.0` it is a version number. 
 
 ### Current (latest) version:
 
@@ -114,9 +114,11 @@ docker-compose -f docker-compose.ghcr.yml
 
 https://v2.docusaurus.io/docs/versioning/
 
+<!--- TODO: NODE_ENV not working with build (always production)
 ## Development features
 
 if `NODE_ENV=development` during building:
 
 * it is possible to show next documentation version `/docs/next`
 * debug plugin is enabled: `/docs/__docusaurus/debug`
+--->
