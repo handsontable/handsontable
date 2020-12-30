@@ -12,9 +12,10 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations
 
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoRowSize
- *
+ * @class AutoRowSize
  * @description
  * This plugin allows to set row heights based on their highest cells.
  *
@@ -37,7 +38,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
- * ```.
+ * ```
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
@@ -61,6 +62,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class AutoRowSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;

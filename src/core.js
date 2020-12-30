@@ -39,6 +39,7 @@ import { MetaManager, DataMap } from './dataMap/index';
 
 let activeGuid = null;
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Handsontable constructor.
  *
@@ -47,7 +48,6 @@ let activeGuid = null;
  * @description
  * After Handsontable is constructed, you can modify the grid behavior using the available public methods.
  *
- * ---.
  * ## How to call methods.
  *
  * These are 2 equal ways to call a Handsontable method:
@@ -58,13 +58,13 @@ let activeGuid = null;
  *
  * // now, to use setDataAtCell method, you can either:
  * hot.setDataAtCell(0, 0, 'new value');
- * ```.
+ * ```
  *
  * Alternatively, you can call the method using jQuery wrapper (__obsolete__, requires initialization using our jQuery guide
  * ```js
  * $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
  * ```
- * ---.
+ *
  * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
@@ -98,6 +98,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {HTMLElement}
    */
   this.rootElement = rootElement;
+  /* eslint-enable jsdoc/require-description-complete-sentence */
   /**
    * The nearest document over container.
    *

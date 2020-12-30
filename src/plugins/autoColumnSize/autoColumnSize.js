@@ -13,8 +13,10 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations
 const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoColumnSize
+ * @class AutoColumnSize
  *
  * @description
  * This plugin allows to set column widths based on their widest cells.
@@ -35,7 +37,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
- * ```.
+ * ```
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
@@ -55,6 +57,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * }
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class AutoColumnSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;
