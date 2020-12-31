@@ -11,17 +11,19 @@ This is empty version. Choose the next version in a navbar dropdown.
 
 * [Markdown headers](https://v2.docusaurus.io/docs/markdown-features#markdown-headers)
 
-## Code snippets
+## Code Snippets
 
-### Standard
+### Standard With Preview
 
-```js title="index.js"
+Activated by `hot-preview=example1,hot1`.
+
+```js title="index.js" hot-preview=example1,hot1
 var
   container = document.getElementById('example1'),
   hot1;
 
 hot1 = new Handsontable(container, {
-  data: Handsontable.helper.createSpreadsheetData(100, 18),
+  data: Handsontable.helper.createSpreadsheetData(6, 6),
   colWidths: 100,
   rowHeaders: true,
   colHeaders: true,

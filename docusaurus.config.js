@@ -11,8 +11,9 @@ module.exports = {
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'Handsontable',
-  plugins:['@docusaurus/theme-live-codeblock'],
   projectName: 'Handsontable',
+  scripts: ['https://handsontable.com/docs/8.2.0/components/handsontable/dist/handsontable.full.min.js'], // todo https://github.com/handsontable/docs-md/issues/9
+  // stylesheets: ['https://handsontable.com/docs/8.2.0/components/handsontable/dist/handsontable.full.min.css'],
   themeConfig: {
     gtag: {
       trackingID: 'GTM-55L5D3',
@@ -39,24 +40,6 @@ module.exports = {
           type: 'docsVersionDropdown',
           position: 'right',
           dropdownActiveClassDisabled: true,
-          // // COMMENT because it throws broking links error.
-          // // Or if set absolute path, it open links in new tab.
-          // // Instead of this, mock versions generated.
-          // dropdownItemsAfter: [
-          //   {to:"/docs/8.2.0/", label: "8.2.x"},
-          //   {to:"/docs/8.1.0/", label: "8.1.x"},
-          //   {to:"/docs/8.0.0/", label: "8.0.x"},
-          //   {to:"/docs/7.4.2/", label: "7.4.x"},
-          //   {to:"/docs/7.3.0/", label: "7.3.x"},
-          //   {to:"/docs/7.2.2/", label: "7.2.x"},
-          //   {to:"/docs/7.1.1/", label: "7.1.x"},
-          //   {to:"/docs/7.0.3/", label: "7.0.x"},
-          //   {to:"/docs/6.2.2/", label: "6.2.x"},
-          //   {to:"/docs/6.1.1/", label: "6.1.x"},
-          //   {to:"/docs/6.0.1/", label: "6.0.x"},
-          //   {to:"/docs/5.0.2/", label: "5.0.x"},
-          //   {to:"/docs/4.0.0/", label: "4.0.x"},
-          // ],
         },
       ],
     },
@@ -67,7 +50,7 @@ module.exports = {
   },
   presets: [
     [
-      '@docusaurus/preset-classic',
+      '@docusaurus/preset-classic', // todo preset-hansontable same as classic but without blog and pages ( smaller dependency tree )
       {
         debug: isDev,
         docs: {
@@ -75,7 +58,8 @@ module.exports = {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
-          includeCurrentVersion: isDev
+          includeCurrentVersion: isDev,
+          remarkPlugins:[require('./packages/hot-preview-remark')], // todo make Adda package
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
