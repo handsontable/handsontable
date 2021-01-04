@@ -63,4 +63,108 @@ describe('Core.batch', () => {
     expect(rowIndexCacheUpdated).toHaveBeenCalledTimes(3);
     expect(rowIndexCacheUpdated).toHaveBeenCalledWith(true, false, false);
   });
+
+  it('should batch showing/hiding headers correctly', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: false,
+      rowHeaders: false,
+    });
+
+    expect(getTopClone().width()).toBe(0);
+    expect(getTopClone().height()).toBe(0);
+    expect(getTopLeftClone().width()).toBe(null);
+    expect(getTopLeftClone().height()).toBe(null);
+    expect(getLeftClone().width()).toBe(0);
+    expect(getLeftClone().height()).toBe(0);
+
+    hot.batch(() => {
+      hot.updateSettings({
+        colHeaders: true,
+        rowHeaders: true,
+      });
+    });
+
+    expect(getTopClone().width()).toBe(300);
+    expect(getTopClone().height()).toBe(26);
+    expect(getTopLeftClone().width()).toBe(50);
+    expect(getTopLeftClone().height()).toBe(26);
+    expect(getLeftClone().width()).toBe(50);
+    expect(getLeftClone().height()).toBe(142);
+
+    hot.batch(() => {
+      hot.updateSettings({
+        colHeaders: false,
+        rowHeaders: false,
+      });
+    });
+
+    // The top header disappears by setting the width to 0, the height is not touched
+    expect(getTopClone().width()).toBe(0);
+    expect(getTopClone().height()).toBe(26);
+    expect(getTopLeftClone().width()).toBe(0);
+    expect(getTopLeftClone().height()).toBe(0);
+    expect(getLeftClone().width()).toBe(0);
+    expect(getLeftClone().height()).toBe(142);
+  });
+
+  it('should batch adjusting fixed headers correctly', () => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      fixedRowsTop: 0,
+      fixedColumnsLeft: 0,
+      fixedRowsBottom: 0,
+    });
+
+    expect(getTopClone().width()).toBe(0);
+    expect(getTopClone().height()).toBe(0);
+    expect(getTopLeftClone().width()).toBe(null);
+    expect(getTopLeftClone().height()).toBe(null);
+    expect(getLeftClone().width()).toBe(0);
+    expect(getLeftClone().height()).toBe(0);
+    expect(getBottomLeftClone().width()).toBe(null);
+    expect(getBottomLeftClone().height()).toBe(null);
+    expect(getBottomClone().width()).toBe(0);
+    expect(getBottomClone().height()).toBe(0);
+
+    hot.batch(() => {
+      hot.updateSettings({
+        fixedRowsTop: 1,
+        fixedColumnsLeft: 1,
+        fixedRowsBottom: 1,
+      });
+    });
+
+    expect(getTopClone().width()).toBe(250);
+    expect(getTopClone().height()).toBe(24);
+    expect(getTopLeftClone().width()).toBe(50);
+    expect(getTopLeftClone().height()).toBe(24);
+    expect(getLeftClone().width()).toBe(50);
+    expect(getLeftClone().height()).toBe(116);
+    expect(getBottomLeftClone().width()).toBe(50);
+    expect(getBottomLeftClone().height()).toBe(24);
+    expect(getBottomClone().width()).toBe(250);
+    expect(getBottomClone().height()).toBe(24);
+
+    hot.batch(() => {
+      hot.updateSettings({
+        fixedRowsTop: 0,
+        fixedColumnsLeft: 0,
+        fixedRowsBottom: 0,
+      });
+    });
+
+    // The top header disappears by setting the width to 0, the height is not touched
+    expect(getTopClone().width()).toBe(0);
+    expect(getTopClone().height()).toBe(24);
+    expect(getTopLeftClone().width()).toBe(0);
+    expect(getTopLeftClone().height()).toBe(0);
+    expect(getLeftClone().width()).toBe(0);
+    expect(getLeftClone().height()).toBe(116);
+    expect(getBottomLeftClone().width()).toBe(0);
+    expect(getBottomLeftClone().height()).toBe(0);
+    // The bottom header disappears by setting the width to 0, the height is not touched
+    expect(getBottomClone().width()).toBe(0);
+    expect(getBottomClone().height()).toBe(24);
+  });
 });

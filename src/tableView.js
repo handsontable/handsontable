@@ -126,15 +126,15 @@ class TableView {
    */
   render() {
     if (!this.instance.isRenderSuspended()) {
-      this.wt.draw(!this.instance.forceFullRender);
-      this.instance.forceFullRender = false;
-      this.instance.renderCall = false;
-
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
 
         this.adjustElementsSize(true);
       }
+
+      this.wt.draw(!this.instance.forceFullRender);
+      this.instance.forceFullRender = false;
+      this.instance.renderCall = false;
     }
   }
 
