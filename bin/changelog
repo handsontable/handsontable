@@ -23,7 +23,7 @@ const changelogMarkDownMark = '<!-- UNVERSIONED -->';
 const changelogPath = path.join(__dirname, '../CHANGELOG.md');
 const changelogsDirectoryName = '.changelogs';
 
-const changelogEntryTypes = ['breaking change', 'added', 'changed', 'deprecated', 'removed', 'fixed'];
+const changelogEntryTypes = ['changed', 'removed', 'added', 'deprecated', 'fixed'];
 const changelogFrameworkTypes = ['none', 'react', 'vue', 'angular'];
 
 const uppercaseFirstLetter = s => s.slice(0, 1).toUpperCase() + s.slice(1);
@@ -301,4 +301,3 @@ yargs(hideBin(process.argv))
   .demandCommand()
   .version(false)
   .argv;
-
