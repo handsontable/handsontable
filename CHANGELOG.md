@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<!-- This file is generated automatically. See `.changelogs/README.md` for instructions on how to update it. -->
+<!-- This file should generally be updated automatically using our changelog script. See `.changelogs/README.md` for more information. -->
 
 <!-- UNVERSIONED -->
 
