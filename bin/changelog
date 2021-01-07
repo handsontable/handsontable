@@ -177,7 +177,7 @@ ${chalk.yellow.italic(`### ${uppercaseFirstLetter(changelogEntry.type)}
     await askToProceedOrExit('Overwrite?');
   }
 
-  await fs.writeFile(destination, JSON.stringify(changelogEntry, null, 2));
+  await fs.writeFile(destination, `${JSON.stringify(changelogEntry, null, 2)}\n`);
 
   console.log();
   console.log(`Entry created! Run ${chalk.blackBright(`\`rm ${destination}\``)} to undo.`);
