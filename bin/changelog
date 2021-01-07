@@ -125,8 +125,8 @@ const createEntryCommand = async(args) => {
       type: 'input',
       message: '# of the related issue/PR (e.g. 512)',
       default: maybeExtractedNumber,
-      validate: s => ((Number.isNaN(Number(s)) || s.length === 0) ? 'The provided input is not a number' : true),
-      filter: s => Number(s),
+      validate: s => (Number.isInteger(s) ? true : 'The provided input is not a number'),
+      filter: s => (Number.isNaN(parseInt(s, 10)) ? '' : parseInt(s, 10)),
       when: typeof args.issue === 'undefined'
     },
     {
