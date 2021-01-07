@@ -118,6 +118,7 @@ const createEntryCommand = async(args) => {
       type: 'input',
       message: 'Title of the entry (e.g. "Fixed an issue with...")',
       validate: s => s.length > 0,
+      default: argTitle,
       when: typeof argTitle === 'undefined'
     },
     {
@@ -155,7 +156,7 @@ const createEntryCommand = async(args) => {
     }
   ]) : {};
 
-  const changelogEntry = assertChangelogEntryFormat({ ...args, ...answers });
+  const changelogEntry = assertChangelogEntryFormat({ ...args, title: argTitle, ...answers });
 
   const filename = changelogEntry.issue.toString();
   const destination = entryDestination(filename);
