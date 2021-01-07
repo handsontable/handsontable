@@ -111,13 +111,14 @@ const createEntryCommand = async(args) => {
   const gitBranchName = (await execa('git', ['rev-parse', '--symbolic-full-name', '--abbrev-ref', 'HEAD'])).stdout;
   const maybeExtractedNumber = extractNumberFromString(gitBranchName);
 
+  const argTitle = args.title ? args.title.join(' ') : undefined;
   const answers = isTTY ? await inquirer.prompt([
     {
       name: 'title',
       type: 'input',
       message: 'Title of the entry (e.g. "Fixed an issue with...")',
       validate: s => s.length > 0,
-      when: typeof args.title === 'undefined'
+      when: typeof argTitle === 'undefined'
     },
     {
       name: 'issue',
@@ -139,7 +140,7 @@ const createEntryCommand = async(args) => {
         // e.g. the title "Fixed every bug" would return the type "fixed",
         // and "Added 10 features" would return "added".
         changelogEntryTypes.find(
-          type => title.toLowerCase().includes(type)
+          type => (title || argTitle).toLowerCase().includes(type)
         ) || 'changed',
 
       when: typeof args.framework === 'undefined'
@@ -283,7 +284,7 @@ ${chalk.yellow.italic(compiled)}
 
 // eslint-disable-next-line no-unused-expressions
 yargs(hideBin(process.argv))
-  .command('entry [title]', 'create a new changelog entry', (y) => {
+  .command('entry [title..]', 'create a new changelog entry', (y) => {
     return y
       .option('type', { choices: changelogEntryTypes })
       .option('issue', { type: 'number' })
