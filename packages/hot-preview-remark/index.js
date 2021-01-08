@@ -13,6 +13,7 @@ const REGEX_GROUP_INSTANCE = 3;
 
 const addCodePreview = (node, id, instanceVariableName) => {
     const code = node.value;
+    let encodedCode = Buffer.from(code).toString('base64');
 
     return [
         {
@@ -20,9 +21,13 @@ const addCodePreview = (node, id, instanceVariableName) => {
             "value": [
                 '<CodePreview hotId="' + id + '"',
                 instanceVariableName ? 'instanceVariableName="' + instanceVariableName + '"' : '',
-                'code="' + Buffer.from(code).toString('base64') + '"',
+                'code="' + encodedCode + '"',
                 '></CodePreview>'
             ].join(' ')
+        },
+        {
+            "type": "jsx",
+            "value": '<JsFiddleButton hotId="' + id + '" code="' + encodedCode + '"></JsFiddleButton>'
         },
         node
     ];
@@ -40,10 +45,14 @@ const applyResult = (result, tree, index) => {
     return index;
 };
 
-const applyImportNode = (tree) => {
+const applyImports = (tree) => {
     tree.unshift({
         "type": "import",
-        "value": "import {CodePreview} from '@theme/code-preview.component';",
+        "value": "import {CodePreview} from '@site/src/components/code-preview';",
+    });
+    tree.unshift({
+        "type": "import",
+        "value": "import {JsFiddleButton} from '@site/src/components/jsfiddle';",
     });
 };
 
@@ -62,7 +71,7 @@ module.exports = (options = {}) => {
             }
         }
         if (node.type === 'root' && codePreviewAdded) {
-            applyImportNode(node.children);
+            applyImports(node.children);
         }
         return null;
     };
