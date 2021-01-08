@@ -176,27 +176,27 @@ class ManualColumnResize extends BasePlugin {
     const loadedManualColumnWidths = this.loadManualColumnWidths();
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         loadedManualColumnWidths.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
 
     } else if (Array.isArray(initialSetting)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         initialSetting.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
 
       priv.config = initialSetting;
 
     } else if (initialSetting === true && Array.isArray(priv.config)) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         priv.config.forEach((width, physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, width);
         });
-      });
+      }, true);
     }
   }
 
@@ -400,7 +400,7 @@ class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.newSize, column, true);
@@ -497,7 +497,7 @@ class ManualColumnResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const resize = (column, forceRender) => {
       this.hot.runHooks('beforeColumnResize', this.newSize, column, false);

@@ -217,7 +217,7 @@ class AutoRowSize extends BasePlugin {
     });
 
     if (this.ghostTable.rows.length) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         this.ghostTable.getHeights((row, height) => {
           if (row < 0) {
             this.headerHeight = height;
@@ -225,7 +225,7 @@ class AutoRowSize extends BasePlugin {
             this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
           }
         });
-      });
+      }, true);
 
       this.measuredRows = rowsRange.to + 1;
 
@@ -267,7 +267,7 @@ class AutoRowSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        this.hot.view.adjustElementsSize(true);
         // tmp
         if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
           this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
@@ -288,7 +288,7 @@ class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.hot.view.wt.wtOverlays.adjustElementsSize(false);
+      this.hot.view.adjustElementsSize(false);
     }
   }
 
@@ -427,11 +427,11 @@ class AutoRowSize extends BasePlugin {
   clearCacheByRange(range) {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
       });
-    });
+    }, true);
   }
 
   /**

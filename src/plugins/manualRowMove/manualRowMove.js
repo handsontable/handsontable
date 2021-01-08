@@ -650,7 +650,7 @@ class ManualRowMove extends BasePlugin {
     if (movePerformed === true) {
       this.persistentStateSave();
       this.hot.render();
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
       const selectionEnd = selectionStart + rowsLen - 1;
