@@ -1,3 +1,5 @@
+const {Buffer} = require('buffer');
+
 /**
  * Matches to:
  * * `hot-preview=<containerId>`

@@ -156,3 +156,31 @@ Styles required too.
     return <div id="example1"></div>
 }
 ```
+
+
+## Second instance
+
+```js title="index.js" hot-preview=example2,hot2
+var
+  container = document.getElementById('example2'),
+  hot2;
+
+hot2 = new Handsontable(container, {
+  data: Handsontable.helper.createSpreadsheetData(6, 6),
+  colWidths: 100,
+  rowHeaders: true,
+  colHeaders: true,
+  contextMenu: true,
+  mergeCells: [
+    {row: 1, col: 1, rowspan: 3, colspan: 3},
+    {row: 3, col: 4, rowspan: 2, colspan: 2}
+  ],
+  className: "htCenter",
+  cell: [
+    {row: 0, col: 0, className: "htRight"},
+    {row: 1, col: 1, className: "htLeft htMiddle"},
+    {row: 3, col: 4, className: "htLeft htBottom"}
+  ]
+});
+console.log('demo 2 loaded');
+```

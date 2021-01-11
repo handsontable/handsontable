@@ -1,25 +1,48 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, version} from 'react';
+import {useHandsontable} from "../utils/useHandsontable";
+import ExecutionEnvironment from "@docusaurus/core/lib/client/exports/ExecutionEnvironment";
+import {useActiveVersion} from '@theme/hooks/useDocs';
 
-const decode = (base64data) => Buffer.from(base64data, 'base64').toString();
+const decode = (base64data) => {  // todo extract
+    const buffer = ExecutionEnvironment.canUseDOM ? Buffer : require('buffer').Buffer;
+    return buffer.from(base64data, 'base64').toString();
+}
+
+/**
+ * @param code {string}
+ * @returns {[function(string): void, function(): void]}
+ */
+const useCodePreview = (code) => {
+    const scriptElement = document.createElement('script');
+    scriptElement.type = 'text/javascript';
+    scriptElement.innerHTML = code;
+
+    return [
+            (container) => { container.append(scriptElement); },
+            () => { scriptElement.remove(); }
+        ]
+}
 
 export const CodePreview = (props) => {
     const {hotId = "example", code = "", instanceVariableName=undefined} = props;
     const instance = useRef(null);
+    const version = useActiveVersion().name;
+
     useEffect(() => {
-        if(!instance.current) return;
-        const scriptElement = document.createElement('script');
-        scriptElement.type = 'text/javascript';
-        scriptElement.innerHTML = decode(code);
-        instance.current.parentNode.append(scriptElement);
+        const {current} = instance;
+        if(!current) return;
+
+        const [runPreview, clearPreview] = useCodePreview(decode(code));
+
+        useHandsontable(version, () => runPreview(current.parentNode));
 
         return ()=>{
-            scriptElement.remove();
-            if(instanceVariableName && window[instanceVariableName].destroy) {
+            clearPreview();
+            if(instanceVariableName && window[instanceVariableName]?.destroy) {
                 window[instanceVariableName].destroy();
-                console.log("Example hot instance has been destroyed:", instanceVariableName);
             }
         };
     }, [])
 
-    return <div id={hotId} ref={instance}></div>;
+    return <div id={hotId} ref={instance}/>;
 }

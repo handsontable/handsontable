@@ -1,19 +1,27 @@
 import React, {useEffect, useRef} from 'react';
 import './jsfiddle.css';
+import {getHotUrls} from "../utils/useHandsontable";
+import ExecutionEnvironment from "@docusaurus/core/lib/client/exports/ExecutionEnvironment";
+import {useActiveVersion} from '@theme/hooks/useDocs';
 
 const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 
-const decode = (base64data) => Buffer.from(base64data, 'base64').toString();
-
+const decode = (base64data) => { // todo extract
+    const buffer = ExecutionEnvironment.canUseDOM ? Buffer : require('buffer').Buffer;
+    return buffer.from(base64data, 'base64').toString();
+}
 const getHtml = (id) => `<div id="${id}" ></div>`;
-const getCss = (version) => `</style><!-- Ugly Hack due to jsFiddle issue -->
-<script src="https://cdn.jsdelivr.net/npm/handsontable@${version}/dist/handsontable.full.min.js"></script>
-<link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@${version}/dist/handsontable.full.min.css" />
-`;
+const getCss = (version) => {
+    const [scriptUrl, styleUrl] = getHotUrls(version);
+
+    return `</style><!-- Ugly Hack due to jsFiddle issue -->
+<script src="${scriptUrl}"></script>
+<link type="text/css" rel="stylesheet" href="${styleUrl}" />
+`};
 
 /**
  * @param formNode HTMLFormElement
- * @return [ChildNode, (function(): void))]
+ * @return {[ChildNode, (function(): void))]}
  */
 const createButton = (formNode) => {
     const workingDiv = document.createElement("div");
@@ -24,9 +32,10 @@ const createButton = (formNode) => {
     const button = workingDiv.firstChild;
     button.addEventListener('click', () => formNode.submit());
 
-    return [button, () => {
-        button.remove();
-    }];
+    return [
+            button,
+            () => { button.remove(); }
+        ];
 }
 
 export const JsFiddleButton = (props) => {
@@ -57,7 +66,7 @@ export const JsFiddleButton = (props) => {
             <input type="text" name="wrap" readOnly={true} value="d"/>
             <textarea name="js" readOnly={true} value={decode(code)}/>
             <textarea name="html" readOnly={true} value={getHtml(hotId)}/>
-            <textarea name="css" readOnly={true} value={getCss("8.2.0")}/> {/*todo dynamic version*/}
+            <textarea name="css" readOnly={true} value={getCss(useActiveVersion().name)}/>
         </form>
     );
 }

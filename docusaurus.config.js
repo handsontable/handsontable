@@ -12,8 +12,6 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'Handsontable',
   projectName: 'Handsontable',
-  scripts: ['https://handsontable.com/docs/8.2.0/components/handsontable/dist/handsontable.full.min.js'], // todo https://github.com/handsontable/docs-md/issues/9
-  // stylesheets: ['https://handsontable.com/docs/8.2.0/components/handsontable/dist/handsontable.full.min.css'],
   themeConfig: {
     gtag: {
       trackingID: 'GTM-55L5D3',
@@ -59,7 +57,7 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
           includeCurrentVersion: isDev,
-          remarkPlugins:[require('./packages/hot-preview-remark')], // todo make Adda package
+          remarkPlugins:[require('./src/hot-preview-remark')],
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
