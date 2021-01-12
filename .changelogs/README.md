@@ -5,13 +5,15 @@ This directory includes temporary changelog entries, in the form of simple `.jso
 
 ## Mandatory PR check
 
-Every pull request in this repository requires a new changelog entry to be created in this directory, asserted by a GitHub actions workflow. The workflow will fail in any PR that does not have a new `.changelogs/*.json` file added. If a pushed commit does not have a PR associated with it, the check is skipped entirely.
+Every pull request in this repository requires a new changelog entry to be created in this directory, asserted by a GitHub actions workflow. The commit workflow will fail in any PR that does not have a new `.changelogs/*.json` file added. If a pushed commit does not have a PR associated with it, the check is skipped entirely.
 
 **To disable this check**, simply add the following string to the **PR description**:
 
 ```
 [skip changelog]
 ```
+
+...and push a new commit to restart the check (`git commit --allow-empty` to create an empty commit).
 
 
 ## Changelog helper
