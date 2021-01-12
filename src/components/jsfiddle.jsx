@@ -53,10 +53,12 @@ export const JsFiddleButton = (props) => {
 
     setTimeout(() => {
       // DOM was used because it doesn't require overwriting @docusaurus/theme-classic/lib/theme/CodeBlock
-      current.nextElementSibling
-        .querySelector('button[aria-label="Copy code to clipboard"]')
-        .parentNode
-        .appendChild(button);
+      const currentButton = current.nextElementSibling
+        .querySelector('button[aria-label="Copy code to clipboard"]');
+      if (currentButton) {
+        button.className = currentButton.className;
+        currentButton.parentNode.appendChild(button);
+      }
     });
 
     return clearButton;

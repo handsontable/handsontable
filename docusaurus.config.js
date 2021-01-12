@@ -62,7 +62,7 @@ module.exports = {
           includeCurrentVersion: isDev,
           remarkPlugins: [hotPreviewRemarkPlugin],
           showLastUpdateAuthor: true,
-          showLastUpdateTime: true
+          showLastUpdateTime: true,
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
