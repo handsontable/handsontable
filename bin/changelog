@@ -290,8 +290,6 @@ yargs(hideBin(process.argv))
       .option('type', { choices: changelogEntryTypes })
       .option('issue', { type: 'number' })
       .option('framework', { choices: changelogFrameworkTypes });
-    // return y.positional('title')
-    //   .option('type', { choices: changelogEntryTypes });
   }, argv => createEntryCommand(argv))
   .command('consume', `compile all \`${changelogsDirectoryName}/*.json\` files into changelog.md`, (y) => {
     return y
