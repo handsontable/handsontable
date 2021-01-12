@@ -10,7 +10,7 @@ Every pull request in this repository requires a new changelog entry to be creat
 **To disable this check**, simply add the following string to the **PR description**:
 
 ```
-[skip changelog check]
+[skip changelog]
 ```
 
 

@@ -9,7 +9,7 @@ const github = require('@actions/github');
 
 const token = process.env.TOKEN;
 
-const skipCheckString = '[skip changelog check]';
+const skipCheckString = '[skip changelog]';
 
 const changelogsPath = '.changelogs/';
 
