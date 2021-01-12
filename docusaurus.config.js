@@ -61,6 +61,8 @@ module.exports = {
           editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
           includeCurrentVersion: isDev,
           remarkPlugins: [hotPreviewRemarkPlugin],
+          showLastUpdateAuthor: true,
+          showLastUpdateTime: true
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
