@@ -20,7 +20,7 @@ Pass your license key in the `Settings` object as shown below. Note that the lic
       licenseKey: '00000-00000-00000-00000-00000'
     }
 
-Alternatively, you can pass it to a `licenseKey` prop:
+Alternatively, you can pass it to a `licenseKey` prop:
 
 **React**
 
@@ -36,7 +36,7 @@ Alternatively, you can pass it to a `licenseKey` prop:
 
 ### Non-commercial use
 
-If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass a phrase  `'non-commercial-and-evaluation'`.
+If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass a phrase  `'non-commercial-and-evaluation'`.
 
     licenseKey: 'non-commercial-and-evaluation'
 
@@ -50,15 +50,15 @@ If your license key is missing, invalid or expired, we will display a correspond
 
 **License key is missing**
 
-The license key for Handsontable is missing. Use your purchased key to activate the product. Alternatively, you can activate Handsontable to use for non-commercial purposes by passing the key: ‘non-commercial-and-evaluation’.  [Read more](https://handsontable.com/docs/tutorial-license-key.html)  about it in the documentation or contact us at `[email]`.
+The license key for Handsontable is missing. Use your purchased key to activate the product. Alternatively, you can activate Handsontable to use for non-commercial purposes by passing the key: ‘non-commercial-and-evaluation’.  [Read more](https://handsontable.com/docs/tutorial-license-key.html)  about it in the documentation or contact us at `[email]`.
 
 **License key is invalid**
 
-The license key for Handsontable is invalid.  [Read more](https://handsontable.com/docs/tutorial-license-key.html) on how to install it properly or contact us at `[email]`.
+The license key for Handsontable is invalid.  [Read more](https://handsontable.com/docs/tutorial-license-key.html) on how to install it properly or contact us at `[email]`.
 
 **License key has expired**
 
-The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  [Renew](https://my.handsontable.com) your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`.
+The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  [Renew](https://my.handsontable.com) your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`.
 
 ### Troubleshooting
 

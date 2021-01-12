@@ -20,7 +20,7 @@ The _Trim Rows_ plugin allows trimming specific rows from the table. Rows being 
 
 ### Setup
 
-To enable the plugin, you need to set the `trimRows` property to an array of row indexes.  
+To enable the plugin, you need to set the `trimRows` property to an array of row indexes.
 See the [examples](#example) section for a live demo.
 
 ### Example
@@ -51,13 +51,8 @@ To restore the trimmed row(s), use the following methods:
 
     plugin.untrimRow(4);
 
-  
-
     plugin.untrimRow(0, 4, 6);
-
-  
 
     plugin.untrimRows([0, 4, 6]);
 
 To see the changes you made, call `hot.render();` to re-render the table.
-

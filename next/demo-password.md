@@ -34,4 +34,3 @@ By default every hash consists of asterisks `*`. Use option `hashSymbol` to set 
 Edit Log to console
 
 var example3 = document.getElementById('example3'), hot3; hot1 = new Handsontable(example3, { data: getCarData(), colHeaders: \['ID', 'First name', 'Last name', 'Password'\], columns: \[ {data: 'id'}, {data: 'name.first'}, {data: 'name.last'}, {data: 'password', type: 'password', hashSymbol: '&#9632;'} \] });
-

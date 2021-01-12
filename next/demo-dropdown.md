@@ -14,4 +14,3 @@ Internally, cell `{type: "dropdown"}` is equivalent to cell `{type: "autocomplet
 Edit Log to console
 
 var container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: getCarData(), colHeaders: \['Car', 'Year', 'Chassis color', 'Bumper color'\], columns: \[ {}, {type: 'numeric'}, { type: 'dropdown', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'\] }, { type: 'dropdown', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'\] } \] });
-

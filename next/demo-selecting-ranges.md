@@ -62,4 +62,3 @@ The background color can be easily changed using CSS styles. The main, light blu
 For non-contiguous selection, there are multiple classes making each level a bit darker. These classes are called `area-1`, `area-2` etc.
 
 Unfortunately, there is no easy way to change the border color of selection.
-

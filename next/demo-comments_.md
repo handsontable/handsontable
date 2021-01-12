@@ -36,7 +36,7 @@ I think all of them are pretty self-explanatory.
 
 ### Setting up pre-set comments
 
-You can also pre-define comments for your table. As comments are stored in the table's/column's/cell's meta data object, you can declare it as any other property of that type.  
+You can also pre-define comments for your table. As comments are stored in the table's/column's/cell's meta data object, you can declare it as any other property of that type.
 For example:
 
     cell: [
@@ -54,4 +54,3 @@ You can add, remove and modify most of the comment-related information using the
 Edit Log to console
 
 var container = document.getElementById('example1'), hot1; hot1 = new Handsontable(container, { data: getData(), rowHeaders: true, colHeaders: true, contextMenu: true, comments: true, cell: \[ {row: 1, col: 1, comment: {value: 'Some comment'}}, {row: 2, col: 2, comment: {value: 'More comments'}} \] });
-

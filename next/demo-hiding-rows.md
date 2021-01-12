@@ -21,21 +21,21 @@ The _Hidden Rows_ plugin allows hiding specific rows from the table. Rows being 
 
 ### Quick setup
 
-The `hiddenRows` parameter accepts an object. To provide the rows to hide, you need to specify the `rows` property for the object - it should be defined as an array of numbers, which represents the indexes of rows that need to be hidden.  
-  
+The `hiddenRows` parameter accepts an object. To provide the rows to hide, you need to specify the `rows` property for the object - it should be defined as an array of numbers, which represents the indexes of rows that need to be hidden.
+
 See [the examples section](#examples) for more details.
 
 ### Additional options
 
-The plugin allows displaying hidden row indicators in the headers, to notify the user which rows have been hidden.  
-To enable them, set the `indicators` property in the plugin's configuration object to `true`.  
-  
+The plugin allows displaying hidden row indicators in the headers, to notify the user which rows have been hidden.
+To enable them, set the `indicators` property in the plugin's configuration object to `true`.
+
 See [the examples section](#examples) for more details.
 
 You can change the selection area of copy/paste range by setting `copyPasteEnabled` property to `true` or `false`. By default this property is set to `true`. If set to `false`, then hidden rows are being skipped for copy/paste actions.
 
-You can show/hide certain rows straight from the [Context menu](https://handsontable.com/docs/8.2.0/demo-context-menu.html) using the following keys: `hidden_rows_show` and `hidden_rows_hide`.  
-  
+You can show/hide certain rows straight from the [Context menu](https://handsontable.com/docs/8.2.0/demo-context-menu.html) using the following keys: `hidden_rows_show` and `hidden_rows_hide`.
+
 See [the examples section](#examples) for more details.
 
 ### Example
@@ -64,13 +64,8 @@ To restore the hidden row(s), use the following methods:
 
     plugin.showRow(4);
 
-  
-
     plugin.showRow(0, 4, 6);
-
-  
 
     plugin.showRows([0, 4, 6]);
 
 To see the changes you made, call `hot.render();` to re-render the table.
-

@@ -41,8 +41,7 @@ The default `queryMethod` is dead simple:
 
     return value.toString().toLowerCase().indexOf(query.toLowerCase()) !== -1;
   };
-};` 
-    
+};`
 
 If you want to change the `queryMethod`, use `queryMethod` option. You can also pass the `queryMethod` as the third argument of `query()` method. To change the `queryMethod`, use `var searchPlugin = hot.getPlugin('search'); searchPlugin.setQueryMethod(myNewQueryMethod);`.
 
@@ -56,8 +55,7 @@ The default `callback` is responsible for setting the `isSearchResult` property.
 
       `const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
-};` 
-    
+};`
 
 Find the following examples below:
 
@@ -91,4 +89,3 @@ var data = \[ \["Tesla", 2017, "black", "black"\], \["Nissan", 2018, "blue", "bl
 Edit Log to console
 
 var data = \[ \["Tesla", 2017, "black", "black"\], \["Nissan", 2018, "blue", "blue"\], \["Chrysler", 2019, "yellow", "black"\], \["Volvo", 2020, "white", "gray"\] \], example4 = document.getElementById("example4"), hot4, searchFiled4, resultCount, searchResultCount = 0; function searchResultCounter(instance, row, col, value, result) { const DEFAULT\_CALLBACK = function(instance, row, col, data, testResult) { instance.getCellMeta(row, col).isSearchResult = testResult; }; DEFAULT\_CALLBACK.apply(this, arguments); if (result) { searchResultCount++; } } hot4 = new Handsontable(example4,{ data: data, colHeaders: true, search: { callback: searchResultCounter } }); searchFiled4 = document.getElementById('search\_field4'); resultCount = document.getElementById('resultCount'); Handsontable.dom.addEvent(searchFiled4, 'keyup', function(event) { searchResultCount = 0; var search = hot4.getPlugin('search'); var queryResult = search.query(this.value); console.log(queryResult); resultCount.innerText = searchResultCount.toString(); hot4.render(); });
-

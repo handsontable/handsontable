@@ -18,4 +18,3 @@ Note that all the positive and negative integers whose magnitude is no greater t
 Edit Log to console
 
 var container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: getCarData(), colHeaders: \['Car', 'Year', 'Price ($)', 'Price (€)'\], columnSorting : true, columns: \[ { data: 'car' // 1nd column is simple text, no special options here }, { data: 'year', type: 'numeric' }, { data: 'price\_usd', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' // this is the default culture, set up for USD }, allowEmpty: false }, { data: 'price\_eur', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' // use this for EUR (German), // more cultures available on http://numbrojs.com/languages.html } } \] });
-

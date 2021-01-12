@@ -13,7 +13,7 @@ function getCarData() { return \[ \["BMW", 2017, "black", "black"\], \["Nissan",
 
 ### Autocomplete lazy mode
 
-This example shows the usage of the Autocomplete feature in the default **lazy mode**. In this mode, user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
+This example shows the usage of the Autocomplete feature in the default **lazy mode**. In this mode, user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
 In this mode, the mouse and keyboard bindings are identical as in [Handsontable cell type.](https://handsontable.com/docs/8.2.0/demo-handsontable.html) The options are rendered from the `source` property which can be an array, or a function that returns an array.
 
@@ -33,8 +33,6 @@ In strict mode, the **allowInvalid** option determines the behaviour in case of 
 *   `allowInvalid: true` (optional) - allows manual input of value that does not exist in the `source`. In this case, the field background highlight becomes red and the selection advances to the next cell
 *   `allowInvalid: false` - does not allow manual input of value that does not exist in the `source`. In this case, the ENTER key is ignored and the editor field remains opened.
 
-  
-
 Edit Log to console
 
 var container2 = document.getElementById('example2'), hot2; hot2 = new Handsontable(container2, { data: getCarData(), colHeaders: \['Car<br/>(allowInvalid true)', 'Year', 'Chassis color<br/>(allowInvalid false)', 'Bumper color<br/>(allowInvalid true)'\], columns: \[ { type: 'autocomplete', source: \['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'\], strict: true // allowInvalid: true // true is default }, {}, { type: 'autocomplete', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'\], strict: true, allowInvalid: false }, { type: 'autocomplete', source: \['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white', 'purple', 'lime', 'olive', 'cyan'\], strict: true, allowInvalid: true //true is default } \] });
@@ -46,4 +44,3 @@ Autocomplete can be also used with Ajax data source. In the below example, sugge
 Log to console
 
 var container3 = document.getElementById('example3'), hot3; hot3 = new Handsontable(container3, { data: getCarData(), colHeaders: \['Car', 'Year', 'Chassis color', 'Bumper color'\], columns: \[ { type: 'autocomplete', source: function (query, process) { $.ajax({ //url: 'php/cars.php', // commented out because our website is hosted as a set of static pages url: 'scripts/json/autocomplete.json', dataType: 'json', data: { query: query }, success: function (response) { console.log("response", response); //process(JSON.parse(response.data)); // JSON.parse takes string as a argument process(response.data); } }); }, strict: true }, {}, // Year is a default text column {}, // Chassis color is a default text column {} // Bumper color is a default text column \] });
-

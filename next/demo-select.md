@@ -10,4 +10,3 @@ Select editor should be considered an example how to write editors rather than u
 Edit Log to console
 
 var container = document.getElementById("example1"), hot; hot = new Handsontable(container, { data: \[ \['2017', 'Honda', 10\], \['2018', 'Toyota', 20\], \['2019', 'Nissan', 30\] \], colWidths: \[50, 70, 50\], colHeaders: true, columns: \[ {}, { editor: 'select', selectOptions: \['Kia', 'Nissan', 'Toyota', 'Honda'\] }, {} \] });
-

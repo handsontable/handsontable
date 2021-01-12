@@ -18,7 +18,6 @@ This component needs the Handsontable library to work. We suggest using [npm](ht
 Import the Handsontable styles to your project
 
           `@import 'handsontable/dist/handsontable.full.css';`
-        
 
 Then use Handsontable for React component in your codebase
 
@@ -50,4 +49,3 @@ class App extends React.Component {
 ### License
 
 Handsontable for React wrapper is released under [the MIT license](https://github.com/handsontable/react-handsontable/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](https://handsontable.com/docs/8.2.0/tutorial-licensing.html). You can either use it for free in all your non-commercial projects or purchase a commercial license.
-

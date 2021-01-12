@@ -98,13 +98,13 @@ Please take a look at the custom sort implementation in the snippet below.
 
     beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
       const columnSortPlugin = this.getPlugin('columnSorting');
-    
+
       columnSortPlugin.setSortConfig(destinationSortConfigs);
-    
+
       // const newData = ... // Calculated data set, ie. from an AJAX call.
-    
+
       // this.loadData(newData); // Load a new data set.
-    
+
       return false; // The blockade for the default sort action.
     }
 
@@ -112,7 +112,7 @@ Please take a look at the custom sort implementation in the snippet below.
 
 The plugin provides two hooks:
 
-*   `[beforeColumnSort](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeColumnSort)`, which as the name suggests is run before the sort. This means that the actual sort configuration obtained by the `getSortConfig` method within the callback will be equal to the sort configuration preserved before the hook call. The callback for `beforeColumnSort`, which will return `false`, will stop the table from being sorted. As a result, the `afterColumnSort` hook will not be called.
+*   `[beforeColumnSort](https://handsontable.com/docs/8.2.0/Hooks.html#event:beforeColumnSort)`, which as the name suggests is run before the sort. This means that the actual sort configuration obtained by the `getSortConfig` method within the callback will be equal to the sort configuration preserved before the hook call. The callback for `beforeColumnSort`, which will return `false`, will stop the table from being sorted. As a result, the `afterColumnSort` hook will not be called.
 *   `[afterColumnSort](https://handsontable.com/docs/8.2.0/Hooks.html#event:afterColumnSort)`, which is run always after the sorting, unless the callback for `beforeColumnSort` hook returns `false`.
 
 Please keep in mind that hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed (validation will fail).
@@ -126,4 +126,3 @@ List of methods exposed by the plugin:
 *   `[isSorted](https://handsontable.com/docs/8.2.0/ColumnSorting.html#isSorted)`
 *   `[setSortConfig](https://handsontable.com/docs/8.2.0/ColumnSorting.html#setSortConfig)`
 *   `[sort](https://handsontable.com/docs/8.2.0/ColumnSorting.html#sort)`
-

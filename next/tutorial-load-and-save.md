@@ -36,4 +36,3 @@ When `persistentState` is enabled it exposes 3 hooks listed below:
 The main reason behind using `persistentState` hooks rather than a regular LocalStorage API is that it ensures separation of data stored by multiple Handsontable instances. In other words, if you have two (or more) instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key and no data would be overwritten.
 
 **In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.**
-

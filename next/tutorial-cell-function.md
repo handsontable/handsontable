@@ -196,7 +196,7 @@ However, you have to remember that `getCellMeta()` return cell properties "as th
         }
       ]
     });
-    
+
     var cellProperties = hot.getCellMeta(0, 0); // get cell properties for cell [0, 0]
     cellProperties.renderer; // undefined
     cellProperties.editor; // undefined
@@ -210,4 +210,3 @@ To get the actual cell function use appropriate _cell function getter_:
 *   `getCellValidator(row, col)`
 
 Those functions will always return an appropriate value, regardless of whether cell functions have been defined directly or using a cell type.
-

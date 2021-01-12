@@ -35,4 +35,3 @@ To run Jasmine tests in your command line (using Puppeteer), first install all n
 *   The scrollbars should be visible. The size of the scrollbar affects `clientWidth` and `clientHeight`, which can interfere visibility and the number of columns and rows.
 *   The browser window running the test should be on top. Some tests will not pass while running in the background.
 *   Focus should be on the browser window and the mouse should be still. Moving the mouse or losing focus on the window can interfere with the tests, causing them not to pass.
-

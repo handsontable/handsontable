@@ -44,7 +44,7 @@ In the next step, pass a reference to that `<div id="example">` element and fill
       ['2018', 20, 11, 14, 13],
       ['2019', 30, 15, 12, 13]
     ];
-    
+
     var container = document.getElementById('example');
     var hot = new Handsontable(container, {
       data: data,
@@ -72,4 +72,3 @@ Find all the available installation options on the [Download Handsontable](//han
 *   [How to load and save data?](https://handsontable.com/docs/8.2.0/tutorial-load-and-save.html)
 *   [How to create a custom HTML inside a cell or header?](https://handsontable.com/docs/8.2.0/demo-custom-renderers.html)
 *   [How to validate data?](https://handsontable.com/docs/8.2.0/demo-data-validation.html)
-

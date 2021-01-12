@@ -190,4 +190,3 @@ Description
 [Formulas](https://handsontable.com/docs/8.2.0/demo-formula-support.html)
 
 Use formulas in cells to perform calculations.
-

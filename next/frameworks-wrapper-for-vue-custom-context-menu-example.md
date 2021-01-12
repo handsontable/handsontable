@@ -16,4 +16,3 @@ Edit
 ```
 import Vue from 'vue'; import { HotTable } from '@handsontable/vue'; import Handsontable from 'handsontable'; new Vue({ el: '#example1', data: function() { return { hotSettings: { data: Handsontable.helper.createSpreadsheetData(5, 5), colHeaders: true, contextMenu: { items: { 'row\_above': { name: 'Insert row above this one (custom name)' }, 'row\_below': {}, 'separator': Handsontable.plugins.ContextMenu.SEPARATOR, 'clear\_custom': { name: 'Clear all cells (custom)', callback: function() { this.clear(); } } } } } } }, components: { HotTable } });
 ```
-

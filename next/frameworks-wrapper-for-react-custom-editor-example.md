@@ -21,4 +21,3 @@ Edit
 ```
 import React from 'react'; import ReactDOM from 'react-dom'; import { HotTable } from '@handsontable/react'; import Handsontable from 'handsontable'; class CustomEditor extends Handsontable.editors.TextEditor { constructor(props) { super(props); } createElements() { super.createElements(); this.TEXTAREA = document.createElement('input'); this.TEXTAREA.setAttribute('placeholder', 'Custom placeholder'); this.TEXTAREA.setAttribute('data-hot-input', true); this.textareaStyle = this.TEXTAREA.style; Handsontable.dom.empty(this.TEXTAREA\_PARENT); this.TEXTAREA\_PARENT.appendChild(this.TEXTAREA); } } class App extends React.Component { constructor(props) { super(props); this.hotSettings = { startRows: 5, columns: \[ { editor: CustomEditor } \], colHeaders: true, colWidths: 200 }; } render() { return ( <div> <HotTable id="hot" settings={this.hotSettings} /> </div> ); } } ReactDOM.render(<App />, document.getElementById('example1'));
 ```
-

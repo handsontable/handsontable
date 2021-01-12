@@ -101,7 +101,7 @@ For example, we will cover `modifyRow` hook. Prior 8.0.0 to move a row you had t
       if (row === 0) {
         return 1;
       }
-    
+
       if (row === 1) {
         return 0;
       }
@@ -120,7 +120,7 @@ Take look on the trimming example, too. It used to work like this:
       if (row < 9) {
         return row + 1;
       }
-    
+
       return null;
     }
 
@@ -128,13 +128,12 @@ Now, if you want to get the same results you need to use the `TrimmingMap`:
 
     import { TrimmingMap } from "handsontable/es/translations";
     ...
-    
+
     const customTrimmingMap = new TrimmingMap();
-    
+
     hotInstance.rowIndexMapper.registerMap('customTrimmingMap', customTrimmingMap);
     customTrimmingMap.setValueAtIndex(0, true); // trimming index 0
     hotInstance.render();
-    
 
 #### `hiddenRow, hiddenColumn`
 
@@ -143,24 +142,20 @@ If you used `hiddenColumn` or `hiddenColumn` in your application you need do an 
 Prior 8.0.0:
 
         `hot.hasHook('hiddenColumn') && hot.runHooks('hiddenColumn', visualColumn);`
-      
 
 Now:
 
         `hot.columnIndexMapper.isHidden(hot.toPhysicalColumn(visualColumn));`
-      
 
 An example for rows:
 
 Prior 8.0.0:
 
         `hot.hasHook('hiddenRow') && hot.runHooks('hiddenRow', visualRow);`
-      
 
 Now
 
         `hot.rowIndexMapper.isHidden(hot.toPhysicalRow(visualRow));`
-      
 
 ### Removing redundant `render()` from `after*` hooks
 
@@ -183,16 +178,12 @@ Before 8.0.0
 
     nestedRows: true
 
-  
-
     filters: true
 
 After:
 
     nestedRows: true,
     trimRows: true
-
-  
 
     filters: true,
     trimRows: true
@@ -224,7 +215,6 @@ After:
 Before 8.0.0
 
         `collapsibleColumns: true`
-      
 
 After:
 
@@ -265,8 +255,7 @@ Check the following example:
 });
 
 hot.setDataAtRowProp(0, 'available', true) // This usage will throw an error in 8.0.0.
-hot.setSourceDataAtCell(0, 'available', true) // This usage will set a new property in 8.0.0` 
-      
+hot.setSourceDataAtCell(0, 'available', true) // This usage will set a new property in 8.0.0`
 
 ### Changes in ManualRowMove and ManualColumnMove plugins behavior
 
@@ -452,7 +441,6 @@ Prior 8.0.0:
 
 Now:
 
-    
     afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
     afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
     beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
@@ -481,4 +469,3 @@ Public methods `colOffset` and `rowOffset` were removed and their functionality 
 Also, an **experimental** feature: `ganttChart` plugin was removed and is no longer supported.
 
 If you use these features in your project and need backward compatibility, please contact the support (at [support@handsontable.com](mailto:support@handsontable.com)) for further information.
-

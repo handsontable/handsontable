@@ -58,7 +58,6 @@ docker-compose stop
 
 ### Auto refresh from GitHub Container Registry:
 
-
 Login into GHCR, as a password should be used [Personal Access Token](https://github.com/settings/tokens)
 
 ```console
@@ -92,13 +91,13 @@ docker-compose -f docker-compose.ghcr.yml
 
 ### Next version:
 
-* Next version is available only when `NODE_ENV === 'development'`. 
+* Next version is available only when `NODE_ENV === 'development'`.
 * It is available under url: `/docs/next`.
 * In a repo it is placed into `./next/` directory.
 
 #### Publishing next version as current:
 
-`npm run docusaurus docs:version 8.3.0`, where `8.3.0` it is a version number. 
+`npm run docusaurus docs:version 8.3.0`, where `8.3.0` it is a version number.
 
 ### Current (latest) version:
 

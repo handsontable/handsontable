@@ -9,7 +9,13 @@
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
-    "clear": "docusaurus clear"
+    "clear": "docusaurus clear",
+    "lint": "npm run lint:code && npm run lint:docs",
+    "lint:fix": "npm run lint:code:fix && npm run lint:docs:fix",
+    "lint:code": "eslint --ext .js,.jsx ./src ./*.js",
+    "lint:code:fix": "eslint --ext .js,.jsx --fix ./src ./*.js",
+    "lint:docs": "eslint --ext .md ./next ./versioned_docs ./*.md",
+    "lint:docs:fix": "eslint --ext .md --fix ./next ./versioned_docs ./*.md"
   },
   "dependencies": {
     "@docusaurus/core": "2.0.0-alpha.69",
@@ -17,6 +23,7 @@
     "@docusaurus/theme-live-codeblock": "2.0.0-alpha.69",
     "@mdx-js/react": "^1.6.21",
     "clsx": "^1.1.1",
+    "prop-types": "^15.7.2",
     "react": "^16.8.4",
     "react-dom": "^16.8.4"
   },
@@ -31,5 +38,14 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "eslint": "^7.17.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-md": "^1.0.19",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0"
   }
 }

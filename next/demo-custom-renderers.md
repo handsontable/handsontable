@@ -38,16 +38,15 @@ If you'd like to register `asterixDecoratorRenderer` under alias `asterix` you h
 Choose aliases wisely. If you register your renderer under name that is already registered, the target function will be overwritten:
 
     Handsontable.renderers.registerRenderer('text', asterixDecoratorRenderer);
-    
+
     // Now 'text' alias points to `asterixDecoratorRenderer` function, not Handsontable.renderers.TextRenderer
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
 
     Handsontable.renderers.registerRenderer('asterix', asterixDecoratorRenderer);
-    
+
     // Someone might already registered such alias
 
-  
 `Handsontable.renderers.registerRenderer('my.asterix', asterixDecoratorRenderer);
 
 // That's better.`
@@ -62,13 +61,13 @@ To sum up, a well prepared renderer function should look like this:
       function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
         // Optionally include `BaseRenderer` which is responsible for adding/removing CSS classes to/from the table cells.
         Handsontable.renderers.BaseRenderer.apply(this, arguments);
-    
+
         // ...your custom logic of the renderer
       }
-    
+
       // Register an alias
       Handsontable.renderers.registerRenderer('my.custom', customRenderer);
-    
+
     })(Handsontable);
 
 From now on, you can use `customRenderer` like so:
@@ -80,7 +79,7 @@ From now on, you can use `customRenderer` like so:
           renderer: 'my.custom'
         }
       ]
-    }); 
+    });
 
 ### Rendering custom HTML in cells
 
@@ -90,8 +89,6 @@ This example shows how to use custom cell renderers to display HTML content in a
 *   **Description** column also uses HTML renderer (same as above)
 *   **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 *   **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
-
-  
 
 Edit Log to console
 
@@ -104,4 +101,3 @@ You can also put HTML into row and column headers. If you need to attach events 
 Edit Log to console
 
 var isChecked, container2 = document.getElementById('example2'), hot2; hot2 = new Handsontable(container2, { columns: \[ {}, {renderer: customRenderer} \], colHeaders: function (col) { var txt; switch (col) { case 0: return '<b>Bold</b> and <em>Beautiful</em>'; case 1: txt = "Some <input type='checkbox' class='checker' "; txt += isChecked ? 'checked="checked"' : ''; txt += "> checkbox"; return txt; } } }); function customRenderer(instance, td) { Handsontable.renderers.TextRenderer.apply(this, arguments); if (isChecked) { td.style.backgroundColor = 'yellow'; } else { td.style.backgroundColor = 'white'; } } Handsontable.dom.addEvent(container2, 'mousedown', function (event) { if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') { event.stopPropagation(); } }); Handsontable.dom.addEvent(container2, 'mouseup', function (event) { if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') { isChecked = !event.target.checked; hot2.render(); } });
-

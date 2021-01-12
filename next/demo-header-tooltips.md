@@ -45,4 +45,3 @@ var example1 = document.getElementById('example1'); var hot = new Handsontable(e
 Edit in jsFiddle Log to console
 
 var example2 = document.getElementById('example2'); var hot2 = new Handsontable(example2, { data: Handsontable.helper.createSpreadsheetData(4,7), rowHeaders: true, colHeaders: \['A', 'B', 'Long column header label', 'D', 'Another long label', 'E', 'F'\], colWidths: \[null, null, 40, null, 50\], headerTooltips: { rows: false, columns: true, onlyTrimmed: true } });
-

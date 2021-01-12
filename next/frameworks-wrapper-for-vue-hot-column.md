@@ -21,8 +21,7 @@ It doesn't only allow to configure the column-related settings using the `hot-co
 To declare column-specific settings, simply pass the settings as `hot-column` props (either separately or wrapped as a `settings` prop, exactly as you would for `hot-table`).
 
 ```
-<div id="example1" class="hot"> <hot-table :data="hotData"> <hot-column title="First column header"></hot-column> <hot-column :settings="secondColumnSettings" read-only="true"></hot-column> </hot-table> </div>  
-  
+<div id="example1" class="hot"> <hot-table :data="hotData"> <hot-column title="First column header"></hot-column> <hot-column :settings="secondColumnSettings" read-only="true"></hot-column> </hot-table> </div>
 
     <hot-table :data="hotData">
       <hot-column title="First column header">
@@ -43,8 +42,7 @@ import Vue from 'vue'; import { HotTable, HotColumn } from '@handsontable/vue'; 
 To work with an array of objects for the `hot-column` component you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in props as `data`.
 
 ```
-<div id="example2" class="hot"> <hot-table :data="hotData"> <hot-column title="ID" data="id"></hot-column> <hot-column :settings="secondColumnSettings" read-only="true" data="name"></hot-column> <hot-column title="Price" data="payment.price"></hot-column> <hot-column title="Currency" data="payment.currency"></hot-column> </hot-table> </div>  
-  
+<div id="example2" class="hot"> <hot-table :data="hotData"> <hot-column title="ID" data="id"></hot-column> <hot-column :settings="secondColumnSettings" read-only="true" data="name"></hot-column> <hot-column title="Price" data="payment.price"></hot-column> <hot-column title="Currency" data="payment.currency"></hot-column> </hot-table> </div>
 
     <hot-table :data="hotData">
       <hot-column title="ID" data="id">
@@ -68,12 +66,11 @@ The wrapper allows creating custom renderers using Vue components. The data you 
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
-Because the Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.  
+Because the Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 **Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results.**
 
 ```
-<div id="custom-renderer-example" class="hot"> <hot-table :settings="hotSettings"> <hot-column :width="250"> <custom-renderer hot-renderer></custom-renderer> </hot-column> </hot-table> </div>  
-  
+<div id="custom-renderer-example" class="hot"> <hot-table :settings="hotSettings"> <hot-column :width="250"> <custom-renderer hot-renderer></custom-renderer> </hot-column> </hot-table> </div>
 
     <hot-table :settings="hotSettings">
       <hot-column :width="250">
@@ -83,13 +80,12 @@ Because the Handsontable's `autoRowSize` and `autoColumnSize` options require ca
 
 Edit
 
-
 import Vue from 'vue'; import { HotTable, HotColumn } from '@handsontable/vue'; import Handsontable from 'handsontable'; const CustomRenderer = { template: '<div><i style="color: #a9a9a9">Row: {{row}}, column: {{col}},</i> value: {{value}}</div>', data: function() { return { // We'll need to define properties in our data object, // corresponding to all of the data being injected from // the BaseEditorComponent class, which are: // - hotInstance (instance of Handsontable) // - row (row index) // - col (column index) // - prop (column property name) // - TD (the HTML cell element) // - cellProperties (the cellProperties object for the edited cell) hotInstance: null, TD: null, row: null, col: null, prop: null, value: null, cellProperties: null } } }; const App = new Vue({ el: '#custom-renderer-example', data: function() { return { hotSettings: { data: Handsontable.helper.createSpreadsheetData(10, 10) , licenseKey: 'non-commercial-and-evaluation', autoRowSize: false, autoColumnSize: false } } }, components: { HotTable, HotColumn, CustomRenderer } });
 ```
 
-**Note:** in order for the cell renderers to be independent, there are renderer components created for each of the displayed cells (all of them being clones of the "original" renderer component). For performance reasons, there are cached using the LRU algorithm, which stores a certain amount of entries, and overwrites the least recently used ones with fresh ones.  
-By default, the number of entries available for the cache is set to `3000`, which means 3000 cells can be rendered at the same time, while being read from the cache. However, for larger tables, some of the cells may not be able to be cached, and thus, their corresponding component would be recreated each time a cell is rendered (which is not great for performance).  
-  
+**Note:** in order for the cell renderers to be independent, there are renderer components created for each of the displayed cells (all of them being clones of the "original" renderer component). For performance reasons, there are cached using the LRU algorithm, which stores a certain amount of entries, and overwrites the least recently used ones with fresh ones.
+By default, the number of entries available for the cache is set to `3000`, which means 3000 cells can be rendered at the same time, while being read from the cache. However, for larger tables, some of the cells may not be able to be cached, and thus, their corresponding component would be recreated each time a cell is rendered (which is not great for performance).
+
 To prevent this problem, it is possible to pass the `**wrapperRendererCacheSize**` option to the `HotTable` component and set it to a number of entries to be available in the renderer cache.
 
 ### Declaring a custom editor as a component
@@ -103,15 +99,12 @@ This will give you a solid base to build upon. Note, that the editor component n
 
 <div v-if="isVisible" id="editorElement" :style="style" @mousedown="stopMousedownPropagation"> <button v-on:click="setLowerCase">{{ value.toLowerCase() }}</button> <button v-on:click="setUpperCase">{{ value.toUpperCase() }}</button> </div>
 
-  
-  
-
     <hot-table :settings="hotSettings">
       <hot-column :width="250">
         <custom-editor hot-editor></custom-editor>
       </hot-column>
     </hot-table>
-    
+
     <script type="text/x-template" id="editor-template">
       // We're binding the `style` attribute to the style object in our component's data
       // as well as the `mousedown` event to a function, which stops the event propagation
@@ -133,18 +126,17 @@ You can obviously use Vue's `v-model` with the renderer and editor components.
 
 In the example below, we're utilizing an input with `v-model` assigned, and the reading the bound property from the renderer component to highlight the rows entered into the input.
 
-List of row indexes (starting from 0):  
-  
+List of row indexes (starting from 0):
+
 ```
-<div id="v-model-example"> <label for="mainInput">List of row indexes (starting from 0):</label><br/> <input id="mainInput" v-model="highlightedRows"/> <br/><br/> <hot-table :settings="hotSettings" :row-headers="true" :col-headers="true"> <hot-column :width="50"> <custom-renderer hot-renderer></custom-renderer> </hot-column> </hot-table> </div>  
-  
+<div id="v-model-example"> <label for="mainInput">List of row indexes (starting from 0):</label><br/> <input id="mainInput" v-model="highlightedRows"/> <br/><br/> <hot-table :settings="hotSettings" :row-headers="true" :col-headers="true"> <hot-column :width="50"> <custom-renderer hot-renderer></custom-renderer> </hot-column> </hot-table> </div>
 
     <div id="v-model-example">
       <label for="mainInput">List of row indexes (starting from 0):</label><br/>
         <input id="mainInput" v-model="highlightedRows"/>
-    
+
         <br/><br/>
-    
+
         <hot-table :settings="hotSettings" :row-headers="true" :col-headers="true">
           <hot-column :width="50">
             <custom-renderer hot-renderer></custom-renderer>
@@ -173,7 +165,7 @@ Due to the complexity of this example, I've decided to split the components to d
 
 To use an external editor component with Handsontable, you'll need to create an addition "bridge" component, to connect your dependency's and Handsontable's API. In this example, we'll use an external color-picker component, [vue-color](https://github.com/xiaokaike/vue-color).
 
-The editor implementation is pretty straightforward: you need to import your dependency, place in in your editor template and attach its events to your editor logic and you're done!  
+The editor implementation is pretty straightforward: you need to import your dependency, place in in your editor template and attach its events to your editor logic and you're done!
 In our case, we're also adding an "Apply" button, which triggers Handsontable base editor's `finishEditing` method, so all the heavy lifting regarding passing the new value to the dataset is done for us.
 
 All that's left is to modify the component template to be used as a renderer _and_ editor. We'll utilize the `isEditor` and `isRenderer` properties, injected to the component instances created by the wrapper. The template will be divided into a render part and an editor part using Vue's `v-if`.
@@ -198,4 +190,3 @@ Let's use `v-for` to declare the second and third column in a loop. Obviously, y
 #### 3\. Binding the state between components.
 
 As you can see in our first editor/renderer component, we're already commiting all of the changes into the applications `$store`. This way, we can easily bind the state of our new component (based on a star-rating component dependency) to the data in the second and third column.
-

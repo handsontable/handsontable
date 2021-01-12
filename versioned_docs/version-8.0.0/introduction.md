@@ -11,7 +11,6 @@ This page just prevent 404 error, it might be seen only on localhost.
 
 ## snippet for v 8.0.0
 
-
 ```js title="index.js" hot-preview=example2,hot2
 var
   container = document.getElementById('example2'),

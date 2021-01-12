@@ -32,16 +32,15 @@ If you'd like to register `creditCardValidator` under alias `credit-card` you ha
 Choose aliases wisely. If you register your validator under name that is already registered, the target function will be overwritten:
 
     Handsontable.validators.registerValidator('date', creditCardValidator);
-    
+
     // Now 'date' alias points to `creditCardValidator` function, not Handsontable.validators.DateValidator
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your validator, because you never know aliases has been registered by the user who uses your validator.
 
     Handsontable.validators.registerValidator('credit-card', creditCardValidator);
-    
+
     // Someone might already registered such alias
 
-  
 `Handsontable.validators.registerValidator('my.credit-card', creditCardValidator);
 
 // That's better.`
@@ -55,13 +54,13 @@ To sum up, a well prepared validator function should look like this:
     (function(Handsontable){
       function customValidator(query, callback) {
         // ...your custom logic of the validator
-    
+
         callback(/* Pass `true` or `false` based on your logic */);
       }
-    
+
       // Register an alias
       Handsontable.validators.registerValidator('my.custom', customValidator);
-    
+
     })(Handsontable);
 
 From now on, you can use `customValidator` like so:
@@ -73,7 +72,7 @@ From now on, you can use `customValidator` like so:
           validator: 'my.custom'
         }
       ]
-    }); 
+    });
 
 ### Full featured example
 
@@ -87,7 +86,7 @@ By default all invalid cells are marked by `htInvalid` CSS class. If you want to
     ...
     invalidCellClassName: 'myInvalidClass',
     ...
-    
+
     // For specified columns
     ...
     columns: [
@@ -96,7 +95,6 @@ By default all invalid cells are marked by `htInvalid` CSS class. If you want to
       {data: 'address'},
     ]
     ...
-    
 
 Callback console: `[[row, col, oldValue, newValue], ...]`
 
@@ -107,4 +105,3 @@ Edit the above grid to see callback
 Edit Log to console
 
 var people = \[ {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'}, {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'}, {id: 3, name: {first: 'Steve', last: 'Wilson'}, ip: '0.0.0.1', email: 'Steve.Wilson@ex.com'}, {id: 4, name: {first: 'Maria', last: 'Fernandez'}, ip: '0.0.0.1', email: 'M.Fernandez@ex.com'}, {id: 5, name: {first: 'Pierre', last: 'Barbault'}, ip: '0.0.0.1', email: 'Pierre.Barbault@ex.com'}, {id: 6, name: {first: 'Nancy', last: 'Moore'}, ip: '0.0.0.1', email: 'Nancy.Moore@ex.com'}, {id: 7, name: {first: 'Barbara', last: 'MacDonald'}, ip: '0.0.0.1', email: 'B.MacDonald@ex.com'}, {id: 8, name: {first: 'Wilma', last: 'Williams'}, ip: '0.0.0.1', email: 'Wilma.Williams@ex.com'}, {id: 9, name: {first: 'Sasha', last: 'Silver'}, ip: '0.0.0.1', email: 'Sasha.Silver@ex.com'}, {id: 10, name: {first: 'Don', last: 'Pérignon'}, ip: '0.0.0.1', email: 'Don.Pérignon@ex.com'}, {id: 11, name: {first: 'Aaron', last: 'Kinley'}, ip: '0.0.0.1', email: 'Aaron.Kinley@ex.com'} \], example1 = document.getElementById('example1'), example1console = document.getElementById('example1console'), settings1, ipValidatorRegexp, emailValidator; ipValidatorRegexp = /^(?:\\b(?:(?:25\[0-5\]|2\[0-4\]\[0-9\]|\[01\]?\[0-9\]\[0-9\]?)\\.){3}(?:25\[0-5\]|2\[0-4\]\[0-9\]|\[01\]?\[0-9\]\[0-9\]?)\\b|null)$/; emailValidator = function (value, callback) { setTimeout(function(){ if (/.+@.+/.test(value)) { callback(true); } else { callback(false); } }, 1000); }; settings1 = { data: people, beforeChange: function (changes, source) { for (var i = changes.length - 1; i >= 0; i--) { // gently don't accept the word "foo" (remove the change at index i) if (changes\[i\]\[3\] === 'foo') { changes.splice(i, 1); } // if any of pasted cells contains the word "nuke", reject the whole paste else if (changes\[i\]\[3\] === 'nuke') { return false; } // capitalise first letter in column 1 and 2 else if ((changes\[i\]\[1\] === 'name.first' || changes\[i\]\[1\] === 'name.last')) { if(changes\[i\]\[3\] !== null){ changes\[i\]\[3\] = changes\[i\]\[3\].charAt(0).toUpperCase() + changes\[i\]\[3\].slice(1); } } } }, afterChange: function (changes, source) { if (source !== 'loadData') { example1console.innerText = JSON.stringify(changes); } }, rowHeaders: true, contextMenu: true, colHeaders: \['ID', 'First name', 'Last name', 'IP', 'E-mail'\], columns: \[ {data: 'id', type: 'numeric'}, {data: 'name.first'}, {data: 'name.last'}, {data: 'ip', validator: ipValidatorRegexp, allowInvalid: true}, {data: 'email', validator: emailValidator, allowInvalid: false} \] }; var hot = new Handsontable(example1, settings1);
-

@@ -43,7 +43,7 @@ Choose aliases wisely. If you register your cell type under name that is already
       editor: copyablePasswordEditor,
       renderer: copyablePasswordRenderer,
     });
-    
+
     // Now 'password' alias points to the newly created object, not Handsontable.cellTypes.password
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your cell type, because you never know aliases has been registered by the user who uses your cell type.
@@ -52,10 +52,9 @@ So, unless you intentionally want to overwrite an existing alias, try to choose 
       editor: copyablePasswordEditor,
       renderer: copyablePasswordRenderer,
     });
-    
+
     // Someone might already registered such alias
 
-  
 `Handsontable.cellTypes.registerCellType('my.copyable-password', {
   editor: copyablePasswordEditor,
   renderer: copyablePasswordRenderer,
@@ -71,16 +70,16 @@ To sum up, a well prepared cell type object should look like this:
 
     (function(Handsontable){
       var MyEditor = Handsontable.editors.TextEditor.prototype.extend();
-    
+
       function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
         // ...renderer logic
       }
-    
+
       function customValidator(query, callback) {
         // ...validator logic
         callback(/* Pass `true` or `false` */);
       }
-    
+
       // Register an alias
       Handsontable.cellTypes.registerCellType('my.custom', {
         editor: MyEditor,
@@ -92,7 +91,7 @@ To sum up, a well prepared cell type object should look like this:
         // Or you can add custom properties which will be accessible in `cellProperties`
         myCustomCellState: 'complete',
       });
-    
+
     })(Handsontable);
 
 From now on, you can use your cell definition like so:
@@ -104,7 +103,7 @@ From now on, you can use your cell definition like so:
           type: 'my.custom'
         }
       ]
-    }); 
+    });
 
 ### Preview of built-in and custom cell types
 
@@ -171,4 +170,3 @@ Equals:
     }]
 
 This mapping is defined by files [src/cellTypes/](https://github.com/handsontable/handsontable/blob/master/src/cellTypes)
-

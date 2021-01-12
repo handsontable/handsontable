@@ -37,4 +37,3 @@ For more information, see our documentation for [rows](https://handsontable.com/
 ### Rule of thumb: don't use too much styling
 
 Changing your background, font colors etc. shouldn't lower the performance, however adding too many CSS animations, transitions and other calculation-consuming attributes may impact the performance, so keep them at a reasonable level.
-

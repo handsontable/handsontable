@@ -63,7 +63,7 @@ Select and copy cell B2 Select and cut cell B2
 
 Edit
 
-var container = document.getElementById('example1'); var copyBtn = document.getElementById('copy'); var cutBtn = document.getElementById('cut'); var hot = new Handsontable(container, { rowHeaders: true, colHeaders: true, data: Handsontable.helper.createSpreadsheetData(5, 5), outsideClickDeselects: false, }); Handsontable.dom.addEvent(copyBtn, 'mousedown', function () { hot.selectCell(1, 1); }); Handsontable.dom.addEvent(copyBtn, 'click', function () { document.execCommand('copy'); }); Handsontable.dom.addEvent(cutBtn, 'mousedown', function () { hot.selectCell(1, 1); }); Handsontable.dom.addEvent(cutBtn, 'click', function () { document.execCommand('cut'); });  
+var container = document.getElementById('example1'); var copyBtn = document.getElementById('copy'); var cutBtn = document.getElementById('cut'); var hot = new Handsontable(container, { rowHeaders: true, colHeaders: true, data: Handsontable.helper.createSpreadsheetData(5, 5), outsideClickDeselects: false, }); Handsontable.dom.addEvent(copyBtn, 'mousedown', function () { hot.selectCell(1, 1); }); Handsontable.dom.addEvent(copyBtn, 'click', function () { document.execCommand('copy'); }); Handsontable.dom.addEvent(cutBtn, 'mousedown', function () { hot.selectCell(1, 1); }); Handsontable.dom.addEvent(cutBtn, 'click', function () { document.execCommand('cut'); });
 
 **Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [`hot.isListening();`](https://handsontable.com/docs/8.2.0/./Core.html#isListening) before copying or pasting data.
 
@@ -116,4 +116,3 @@ In their descriptions, you can find examples of how to use them.
 3.  `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 4.  Internet Explorer supports only `Text` mime-type - what is an equivalent of `text/plain`.
 5.  Internet Explorer prompts a confirm window to allow/disallow at the first time user tries to call `document.execCommand`. Unfortunately, if user disallows access to the system clipboard, no exceptions will be thrown and `copy` and `cut` actions will be disabled for end-user. You can read more about this behavior of the browser [here](https://github.com/zenorocha/clipboard.js/issues/77)
-

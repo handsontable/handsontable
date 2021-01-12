@@ -38,4 +38,3 @@ latest
 *   Flickering headers
 
 **Note: Support for Internet Explorer is deprecated in 8.0.0 version.**
-

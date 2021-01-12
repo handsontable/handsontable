@@ -26,9 +26,8 @@ var container1 = document.getElementById('example1'), hot1; hot1 = new Handsonta
 
 ### Non-editable specific cells
 
-The following example shows the table with non-editable cells containing the word “Nissan”. This property of the cell is optional and can be easily set in the configuration of Handsontable.
+The following example shows the table with non-editable cells containing the word “Nissan”. This property of the cell is optional and can be easily set in the configuration of Handsontable.
 
 Edit Log to console
 
 var container2 = document.getElementById('example2'), hot2; hot2 = new Handsontable(container2, { data: getCarData(), colHeaders: \['Car', 'Year', 'Chassis color', 'Bumper color'\] }); hot2.updateSettings({ cells: function (row, col, prop) { var cellProperties = {}; if (hot2.getDataAtRowProp(row, prop) === 'Nissan') { cellProperties.editor = false; } else { cellProperties.editor = 'text'; } return cellProperties; } })
-

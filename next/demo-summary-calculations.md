@@ -5,7 +5,7 @@ sidebar_label: Summary calculations
 slug: /demo-summary-calculations
 ---
 
-The Column Summary plugin allows making pre-defined calculations on the cell values and display the results within Handsontable.  
+The Column Summary plugin allows making pre-defined calculations on the cell values and display the results within Handsontable.
 You can think of this plugin as pre-defined formulas.
 
 #### [The basic setup.](#basic-setup)
@@ -30,9 +30,6 @@ You can think of this plugin as pre-defined formulas.
 3.  [Making destination cells read-only](#read-only)
 4.  [Rounding values after the decimal point](#round)
 
-  
-  
-
 Edit Log to console
 
 var generateDataObj = function(rows, columns, additionalRows) { if (additionalRows === void 0) { additionalRows = true; } var data = \[\]; var number = 0; if (!rows) { rows = 3; } if (!columns) { columns = 7; } for (var i = 0; i < rows; i++) { data\[i\] = \[\]; for (var j = 0; j < columns; j++) { data\[i\]\[j\] = number++; } } if (additionalRows) { for (i = 0; i < 2; i++) { data.push(\[\]); } } return data; }; var example1 = document.getElementById('example1'); var hot = new Handsontable(example1, { data: generateDataObj(), colHeaders: true, rowHeaders: true, columnSummary: \[ { destinationRow: 4, destinationColumn: 1, type: 'min' }, { destinationRow: 0, destinationColumn: 3, reversedRowCoords: true, type: 'max' }, { destinationRow: 4, destinationColumn: 5, type: 'sum', forceNumeric: true } \] });
@@ -41,8 +38,8 @@ var generateDataObj = function(rows, columns, additionalRows) { if (additionalRo
 
 ### Basic setup
 
-To initialize the _columnSummary_ plugin, you need to properly set a property in the Handsontable initial config.  
-The `columnSummary` property should be declared as an array of objects, where each object represents a single _endpoint_ (the "output" cell, or a single calculation).  
+To initialize the _columnSummary_ plugin, you need to properly set a property in the Handsontable initial config.
+The `columnSummary` property should be declared as an array of objects, where each object represents a single _endpoint_ (the "output" cell, or a single calculation).
 
     `columnSummary: [
   {
@@ -61,16 +58,16 @@ The `columnSummary` property should be declared as an array of objects, where ea
 
 ### Setting the destination cell
 
-The columnSummary plugin requires the user to provide the destination coordinates (row and column number) for the cell to display the calculations results in.  
-  
+The columnSummary plugin requires the user to provide the destination coordinates (row and column number) for the cell to display the calculations results in.
+
 To do that, you need to set two properties in the Handsontable config object:
 
 Edit Log to console
 
 var container = document.getElementById('example-destination'); var hot7 = new Handsontable(container, { data: generateDataObj(), colHeaders: true, rowHeaders: true, columnSummary: \[ { destinationRow: 4, destinationColumn: 1, type: 'min' } \] });
 
-If the destination cell should be closer to the bottom of the table, you might find the `reversedRowCoords` useful. What it does is counting the rows from the _bottom_, not the top, as it usually does.  
-  
+If the destination cell should be closer to the bottom of the table, you might find the `reversedRowCoords` useful. What it does is counting the rows from the _bottom_, not the top, as it usually does.
+
 So, for example, defining the plugin like this puts the calculation result in a cell in the 5th column (we're counting from 0) and 2nd row from the bottom of the table.
 
 Edit Log to console
@@ -79,27 +76,25 @@ var container = document.getElementById('example-reverse'); var hot1 = new Hands
 
 ### Setting the calculation range
 
-By default, the plugin makes calculations on data from all rows in the endpoint's destination column. However, you can specify it differently (both column and row-wise).  
-  
+By default, the plugin makes calculations on data from all rows in the endpoint's destination column. However, you can specify it differently (both column and row-wise).
+
 The properties responsible for this are `ranges` and `sourceColumn`.
 
-1.  `**ranges**` option specifies the row range to make the calculations on. It should be declared as an _array of arrays_ , where each of the arrays represent a single row range.  
-      
+1.  `**ranges**` option specifies the row range to make the calculations on. It should be declared as an _array of arrays_ , where each of the arrays represent a single row range.
+
     For example, this configuration would do the calculations for rows: `0`, `1`, `2`, `3`, `4`, `6`, `8` and `9`.
-    
+
     Edit Log to console
-    
+
     var container = document.getElementById('example-range'); var hot2 = new Handsontable(container, { data: generateDataObj(10, 3), colHeaders: true, rowHeaders: true, columnSummary: \[ { ranges: \[ \[0, 4\], \[6\], \[8, 9\] \], destinationRow: 0, destinationColumn: 0, reversedRowCoords: true, type: 'sum', forceNumeric: true } \] });
-    
-  
-3.  `**sourceColumn**` option specifies the column to work on.  
-      
-    For example, this will make operations on the 3rd column (again, we're counting from 0):  
-    
+
+3.  `**sourceColumn**` option specifies the column to work on.
+
+    For example, this will make operations on the 3rd column (again, we're counting from 0):
+
     Edit Log to console
-    
+
     var container = document.getElementById('example-sourceColumn'); var hot3 = new Handsontable(container, { data: generateDataObj(5, 5), colHeaders: true, rowHeaders: true, columnSummary: \[ { sourceColumn: 2, destinationRow: 0, destinationColumn: 0, reversedRowCoords: true, type: 'sum', forceNumeric: true } \] });
-    
 
 ### Providing the settings as a function
 
@@ -126,8 +121,8 @@ Available calculations
 
 ### Sum
 
-Calculates a sum of values in the specified column and row range.  
-  
+Calculates a sum of values in the specified column and row range.
+
 Usage:
 
     columnSummary: [
@@ -191,7 +186,7 @@ Takes a custom function and applies ot to the values in the specified column and
         type: 'custom',
         customFunction: function(endpoint) {
           // endpoint is an object containing the endpoint data
-    
+
           // your function
         }
       }
@@ -208,10 +203,10 @@ Additional options
 
 ### Forcing numeric values
 
-If your table doesn't contain only numeric data, you can try to force the values to be numeric in the calculations. For example, _9a_ can be treated as _9_. To enable this feature, you'll need to set the `forceNumeric` property to `true`.  
-  
-Enabling this option might sometimes be a good idea, as text-based Handsontable cells stores their contents as strings, which might cause problems with, for example, the _sum_ function.  
-  
+If your table doesn't contain only numeric data, you can try to force the values to be numeric in the calculations. For example, _9a_ can be treated as _9_. To enable this feature, you'll need to set the `forceNumeric` property to `true`.
+
+Enabling this option might sometimes be a good idea, as text-based Handsontable cells stores their contents as strings, which might cause problems with, for example, the _sum_ function.
+
 By default this option is **disabled**.
 
 Edit Log to console
@@ -220,9 +215,9 @@ var container = document.getElementById('example-forceNumeric'); var hot5 = new 
 
 ### Throwing datatype errors
 
-If your table doesn't contain only numeric data, you can either skip the non-numeric entries in the calculation, throw an error or try to parse them to float using the forceNumeric option.  
-If you choose to throw the errors, you need to set the `suppressDataTypeErrors` property to `false`.  
-  
+If your table doesn't contain only numeric data, you can either skip the non-numeric entries in the calculation, throw an error or try to parse them to float using the forceNumeric option.
+If you choose to throw the errors, you need to set the `suppressDataTypeErrors` property to `false`.
+
 By default, `suppressDataTypeErrors` is set to `true`.
 
     columnSummary: [
@@ -234,16 +229,15 @@ By default, `suppressDataTypeErrors` is set to `true`.
 
 ### Making the endpoint cells read-only
 
-You can make the the cells with the calculation results read-only by setting the `readOnly` option to `true`.  
-  
+You can make the the cells with the calculation results read-only by setting the `readOnly` option to `true`.
+
 This option is `true` by default.
 
 ### Rounding values after the decimal point
 
-If you wish to round the calculation result to a specific number of digits after the decimal point, you need to use the `roundFloat` parameter.  
+If you wish to round the calculation result to a specific number of digits after the decimal point, you need to use the `roundFloat` parameter.
 It's value will result in rounding the result to the appropriate amount of digits.
 
 Edit Log to console
 
 var container = document.getElementById('example-round'); var hot6 = new Handsontable(container, { data: \[ \[0.5, 0.5\], \[0.5, 0.5\], \[1, 1\], \[\],\[\] \], colHeaders: true, rowHeaders: true, columnSummary: \[ { destinationRow: 0, destinationColumn: 0, reversedRowCoords: true, type: 'average' }, { destinationRow: 0, destinationColumn: 1, reversedRowCoords: true, type: 'average', roundFloat: 2 } \] });
-

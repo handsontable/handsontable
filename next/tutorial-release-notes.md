@@ -366,8 +366,8 @@ Released on 19th of February, 2020
 
 Released on 19th of February, 2020
 
-Due to technical issues, version 7.4.2 patch needed to be released.  
-  
+Due to technical issues, version 7.4.2 patch needed to be released.
+
 **All the changes from 7.4.1 are included in the 7.4.2 release.**
 
 ### 7.4.0
@@ -376,7 +376,7 @@ Released on 12th of February, 2020
 
 **Changes**
 
-*   Fixed the problem, where the `onCellMouseUp` hook was fired for all mouse buttons except `RMB`, which was not consistent with the `onCellMouseDown` hook.  
+*   Fixed the problem, where the `onCellMouseUp` hook was fired for all mouse buttons except `RMB`, which was not consistent with the `onCellMouseDown` hook.
     To make the changes more consistent with the native `dblclick` event (which is triggered only for the `LMB` button), the `onCellDblClick` and `onCellCornerDblClick` hooks were modified to also fire only for `LMB`. ([#6507](https://github.com/handsontable/handsontable/issues/6507))
 *   Updated `moment`, `pikaday` and `numbro` to their latest versions. ([#6610](https://github.com/handsontable/handsontable/issues/6610))
 *   Fixed a bug with numbers not being presented properly with the `pt_BR` culture setting. ([#5569](https://github.com/handsontable/handsontable/issues/5569))
@@ -483,12 +483,12 @@ Released on 11th of June, 2019
 **Changes**
 
 *   Added a new feature, allowing users to parse HTML tables into Handsontable settings and Handsontable instances to plain HTML tables. This change introduces these new API methods:
-    
+
     *   \`Handsontable.helper.instanceToHTML: (instance: Handsontable.Core) => string\` - parses the provided Handsontable instance to an HTML table as a `string`
     *   \`Handsontable.helper.htmlToGridSettings(element: Element | string, rootDocument?: Document) => Handsontable.DefaultSettings\` - analyses a static HTML table and returns a Handsontable-compatible settings object
     *   \`hotInstance.toTableElement: () => HTMLTableElement\` - converts the Handsontable instance to a static HTML table
     *   \`hotInstance.toHTML: () => string\` - same as `Handsontable.helper.instanceToHTML`, but the instance is already bound
-    
+
     ([#5684](https://github.com/handsontable/handsontable/issues/5684))
 *   Fixed a bug, where it wasn't possible to block `Undo/Redo` plugin keyboard shortcuts. ([#6028](https://github.com/handsontable/handsontable/issues/6028))
 *   Corrected the `ManualColumnMove` type definitions. ([#6011](https://github.com/handsontable/handsontable/issues/6011))
@@ -545,27 +545,25 @@ Released on 6th of March, 2019
 **Breaking changes**
 
 *   **Starting with version 7.0.0, there is only one Handsontable, as Handsontable Pro has been merged with Handsontable Community Edition.**
-*   Handsontable is now "source-available" instead of "open source". The MIT license has been replaced with a custom, free for [non-commercial license](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).  
-      
+*   Handsontable is now "source-available" instead of "open source". The MIT license has been replaced with a custom, free for [non-commercial license](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
+
     Read our [statement on GitHub](https://github.com/handsontable/handsontable/issues/5831) for more details.
 *   Added the `beforeTrimRows` and `beforeUntrimRows` hooks and modified the argument list for the existing ones in the Trim Rows plugin.
-    
-    *   Was:  
-        `afterTrimRow: (rows)`  
+
+    *   Was:
+        `afterTrimRow: (rows)`
         `afterUntrimRow: (rows)`
-    *   Is:  
-        `afterTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged)`  
+    *   Is:
+        `afterTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged)`
         `afterUntrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged)`
-    
-      
+
     ([#5662](https://github.com/handsontable/handsontable/issues/5662))
 *   Removed the deprecated `selectCellByProp` method. ([#5174](https://github.com/handsontable/handsontable/issues/5174))
-*   Added hooks for the Hidden Rows and Hidden Columns plugins + added validation of the provided rows.  
-    
+*   Added hooks for the Hidden Rows and Hidden Columns plugins + added validation of the provided rows.
+
     *   Before this change, passing an invalid set of indexes (for example, \`\[-1, 0, 1\]\`) would still hide the valid elements from the set.
     *   After this change, an invalid set of indexes passed to the plugin will result in the termination of the performed action.
-    
-      
+
     ([#165](https://github.com/handsontable/handsontable-pro/issues/165), [#163](https://github.com/handsontable/handsontable-pro/issues/163), [#5651](https://github.com/handsontable/handsontable/issues/5651), [#5522](https://github.com/handsontable/handsontable/issues/5522))
 *   We no longer support Bower. To install Handsontable, use Npm or CDN instead.
 
@@ -581,8 +579,8 @@ Released on 6th of March, 2019
     *   `EditorManager` ([#5683](https://github.com/handsontable/handsontable/issues/5683))
     *   `MultiMap` (removed) ([#5660](https://github.com/handsontable/handsontable/issues/5660))
     *   `TableView` ([#5690](https://github.com/handsontable/handsontable/issues/5690))
-    *   `DataMap` ([#5699](https://github.com/handsontable/handsontable/issues/5699))  
-        
+    *   `DataMap` ([#5699](https://github.com/handsontable/handsontable/issues/5699))
+
     ([#5403](https://github.com/handsontable/handsontable/issues/5403))
 *   Fixed a problem where inserting a new row didn't update the TrimRows plugin properly. ([#5761](https://github.com/handsontable/handsontable/issues/5761))
 *   Fixed a problem where removing a row didn't update the TrimRows plugin properly. ([#5738](https://github.com/handsontable/handsontable/issues/5738))
@@ -724,16 +722,16 @@ This release contains changes to the `ColumnSorting` plugin exclusively. Detaile
 
 **Breaking changes**
 
-*   We refactored and rewrote parts of the `ColumnSorting` plugin in order for it to work seamlessly with the new `MultiColumnSorting` plugin for Handsontable Pro. This allowed us to fix multiple problems that the previous version of the plugin had.  
+*   We refactored and rewrote parts of the `ColumnSorting` plugin in order for it to work seamlessly with the new `MultiColumnSorting` plugin for Handsontable Pro. This allowed us to fix multiple problems that the previous version of the plugin had.
     This introduced some backward-incompatible changes:
     *   The configuration items (such as `sortIndicator`, `sortEmptyCells`, `sortFunction`) for the plugin were moved into the scope of the plugin config.
     *   The initial plugin configuration is stored under the `initialConfig` property in the plugin configuration.
     *   The `sortFunction` config item was renamed to `compareFunctionFactory` and converted to a factory returning a compare function (and moved into the plugin configuration scope, as mentioned above).
     *   The `sortIndicator` config item was renamed to `indicator` (and moved into the plugin configuration scope, as mentioned above).
     *   Comparator function structure changed: `// Was: function numericSort(sortOrder, columnMeta) { return function ([, value], [, nextValue]) { // Is: function numericSort(sortOrder, columnMeta) { return function (value, nextValue) {`
-        
+
     *   The `sort` method arguments were reorganized, so it accepts the sorting configuration as an object: `hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });`
-        
+
     *   Some public methods were rewritten, renamed and set as private, namely:
         *   `getNextOrderState`
         *   `loadSortingState`
@@ -745,7 +743,7 @@ This release contains changes to the `ColumnSorting` plugin exclusively. Detaile
 
 Apart from the breaking changes above, this release introduces some additional changes to the sorting plugin:
 
-*   Added a new plugin - `MultiColumnSorting`. It allows multiple columns to be used when sorting the table.  
+*   Added a new plugin - `MultiColumnSorting`. It allows multiple columns to be used when sorting the table.
     While it works similarly to CE's `ColumnSorting`, it introduces multiple new functionalities. Detailed information about this new feature can be found in the [documentation](https://docs.handsontable.com/6.0.0/demo-sorting.html) and in the description of pull request [#101](https://github.com/handsontable/handsontable-pro/issues/101).
 *   Replaced the current sorting indicators with new ones, in the form of arrows.
 *   The sorting indicators will be displayed by default.
@@ -829,7 +827,6 @@ Released on 11th of July, 2018
 *   Refactored the Custom Borders plugin. The API method was changed - added new methods such as `getBorders`, `setBorders` and `clearBorders`. The initial object configuration has been intact, it is still compatible with the previous releases. ([#5017](https://github.com/handsontable/handsontable/issues/5017))
 *   Improved colors, cursor style and sizes of some parts of Handsontable. ([#5170](https://github.com/handsontable/handsontable/issues/5170))
 
-  
 **Changes**
 
 *   Fixed an issue related with a lack of `afterSelectionEnd` hook being fired when `contextmenu` event is called for a cell. This fix additionally introduces two new hooks (`afterOnCellContextMenu`, `beforeOnCellContextMenu`). ([#5201](https://github.com/handsontable/handsontable/issues/5201), [#5232](https://github.com/handsontable/handsontable/issues/5232))
@@ -850,12 +847,11 @@ Released on 13th of June, 2018
     *   `autoInsertRow` (was: `true`, is: `false`)
     *   `autoWrapCol` (was: `false`, is: `true`)
     *   `autoWrapRow` (was: `false`, is: `true`)
-*   Updated our number-handling dependency, _Numbro_ to the latest version. ([#5081](https://github.com/handsontable/handsontable/issues/5081), [#77](https://github.com/handsontable/handsontable-pro/issues/77))  
-    In order to keep your implementation working correctly, you'll need to update the _Numbro 2.x_\-compatible language files.  
-      
+*   Updated our number-handling dependency, _Numbro_ to the latest version. ([#5081](https://github.com/handsontable/handsontable/issues/5081), [#77](https://github.com/handsontable/handsontable-pro/issues/77))
+    In order to keep your implementation working correctly, you'll need to update the _Numbro 2.x_\-compatible language files.
+
     For more information on those, take a look at [the Numbro documentation](http://numbrojs.com/languages.html).
 
-  
 **Changes**
 
 *   Updated the API documentation for the language settings. ([#5099](https://github.com/handsontable/handsontable/issues/5099))
@@ -978,26 +974,26 @@ Released on 1st of March, 2018
 **Breaking changes:**
 
 *   The Merge Cells plugin has been rewritten to ES6 and completely refactored. Before `0.37.0` (`1.17.0` with Handsontable Pro) the plugin was accessible from the `mergeCells` property in the main instance. After the refactor, you can access it just like every other plugin, which is with `hot.getPlugin(‘mergeCells’)`. ([#4214](https://github.com/handsontable/handsontable/issues/4214), [#4858](https://github.com/handsontable/handsontable/issues/4858), [#4870](https://github.com/handsontable/handsontable/issues/4870))
-    
+
     **Pre-`0.37.0`**
-    
+
     **Post-`0.37.0`**
-    
+
     `hot.mergeCells`
-    
+
     `hot.getPlugin('mergeCells')`
-    
+
     `hot.mergeCells.mergedCellInfoCollection`
-    
+
     `hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells`
-    
+
     This update introduces new API (more information in the documentation) and four new hooks:
-    
+
     *   **beforeMergeCells**
     *   **afterMergeCells**
     *   **beforeUnmergeCells**
     *   **afterUnmergeCells**
-    
+
 *   The merged cells are now cleared (filled with `null`s). The only value that remains, is the top-left corner cell's value, which is the visible one. ([#2958](https://github.com/handsontable/handsontable/issues/2958))
 
 **Changes**
@@ -1028,26 +1024,26 @@ Released on 16th of February, 2018
 *   `hot.getSelected()` Returns an array of arrays with the coordinates of all layers (`[[row, col, rowEnd, colEnd], [row, col, rowEnd, colEnd] ...]`);
 *   `hot.getSelectedRange()` Returns an array of `CellRange` objects with the coordinates of all layers (`[{CellRange}, {CellRange} ...]`);
 *   Previously `hot.selection.empty()`, now `hot.emptySelectedCells()`;
-*   Changed selection colors:  
-    \- area borders, was `#89aff9` -> is `#4b89ff`  
-    \- area background, was `#b5d1ff` -> is `#005eff`  
+*   Changed selection colors:
+    \- area borders, was `#89aff9` -> is `#4b89ff`
+    \- area background, was `#b5d1ff` -> is `#005eff`
     \- current selection border, was `#5292f7` -> is `#4b89ff`
 *   Removed the `multiSelect` setting and replaced it with `selectionMode: 'single'`;
 *   Added a new `selectionMode` option, which can be set either as `'single'` (previously as `multiSelect: false`), `'range'` (previously as `multiSelect: true`) or `'multiple'` (new non-contiguous mode);
 
 **Backward-compatible changes**
 
-*   `afterSelection`  
-    \- _previously_: `afterSelection(row, column, rowEnd, columnEnd, preventScrolling)`  
+*   `afterSelection`
+    \- _previously_: `afterSelection(row, column, rowEnd, columnEnd, preventScrolling)`
     \- _now_: `afterSelection(row, column, rowEnd, columnEnd, preventScrolling, selectionLayerLevel)`
-*   `afterSelectionByProp`  
-    \- _previously_: `afterSelectionByProp(row, prop, rowEnd, propEnd, preventScrolling)`  
+*   `afterSelectionByProp`
+    \- _previously_: `afterSelectionByProp(row, prop, rowEnd, propEnd, preventScrolling)`
     \- _now_: `afterSelectionByProp(row, prop, rowEnd, propEnd, preventScrolling, selectionLayerLevel)`
-*   `afterSelectionEnd`  
-    \- _previously_: `afterSelectionEnd(row, column, rowEnd, columnEnd)`  
+*   `afterSelectionEnd`
+    \- _previously_: `afterSelectionEnd(row, column, rowEnd, columnEnd)`
     \- _now_: `afterSelectionEnd(row, column, rowEnd, columnEnd, selectionLayerLevel)`
-*   `afterSelectionEndByProp`  
-    \- _previously_: `afterSelectionEndByProp(row, prop, rowEnd, propEnd)`  
+*   `afterSelectionEndByProp`
+    \- _previously_: `afterSelectionEndByProp(row, prop, rowEnd, propEnd)`
     \- _now_: `afterSelectionEndByProp(row, prop, rowEnd, propEnd, selectionLayerLevel)`
 
 We've added a `selectionLayerLevel` argument for all the hooks listed above. The `selectionLayerLevel` is a number indicating which selection layer is currently being modified. For the first selection, this value is `0`, with the new added layers this number increases.
@@ -1149,7 +1145,7 @@ Released on 12th of September, 2017
 
 **Breaking changes:**
 
-*   Since version `1.14.0`, it is required to pass a valid Handsontable Pro license key in the settings object under the `licenseKey` property. If a valid key is not provided, Handsontable will display a small notification below the table.  
+*   Since version `1.14.0`, it is required to pass a valid Handsontable Pro license key in the settings object under the `licenseKey` property. If a valid key is not provided, Handsontable will display a small notification below the table.
     Please review your implementation to make sure your setup remains intact.
 
 The corresponding Handsontable CE version is `0.34.2`.
@@ -1231,9 +1227,7 @@ We're now using Babel to transpile our code. That means that we had to make brea
 *   The `/plugins` directory was deleted (with the "removeRow plugin" included)
 *   Some global variables were reorganized and/or removed. Please take a look.
 
-  
-  
-**Validators**  
+**Validators**
 
 Was
 
@@ -1259,7 +1253,7 @@ Handsontable.TimeValidator
 
 Handsontable.validators.TimeValidator
 
-**Renderers**  
+**Renderers**
 
 Was
 
@@ -1293,7 +1287,7 @@ Handsontable.TextRenderer
 
 Handsontable.renderers.TextRenderer
 
-**Cell types**  
+**Cell types**
 
 Was
 
@@ -1335,7 +1329,7 @@ Handsontable.TimeCell
 
 Handsontable.cellTypes.time
 
-**Plugins**  
+**Plugins**
 
 Was
 
@@ -1357,7 +1351,7 @@ Handsontable.UndoRedo
 
 Handsontable.plugins.UndoRedo
 
-**Helpers**  
+**Helpers**
 
 Was
 
@@ -1367,7 +1361,7 @@ Handsontable.Dom
 
 Handsontable.dom
 
-**Other**  
+**Other**
 
 Was
 
@@ -1412,11 +1406,11 @@ An example on how to add a custom editor/renderer/validator:
       renderer: MyCustomSelectRenderer,
       validator: MyCustomSelectValidator,
     });
-    
+
     Handsontable.validators.registerValidator('credit-card', function(query, callback) {
       callback(/* passed `true` or `false` depending on a query value */);
     });
-    
+
     new Handsontable(document.getElementById('element'), {
       data: data,
       columns: [{
@@ -1464,11 +1458,11 @@ An example on how to add a custom editor/renderer/validator:
       renderer: MyCustomSelectRenderer,
       validator: MyCustomSelectValidator,
     });
-    
+
     Handsontable.validators.registerValidator('credit-card', function(query, callback) {
       callback(/* passed `true` or `false` depending on a query value */);
     });
-    
+
     new Handsontable(document.getElementById('element'), {
       data: data,
       columns: [{
@@ -1504,9 +1498,7 @@ We're now using Babel to transpile our code. That means that we had to make brea
 *   The `/plugins` directory was deleted (with the "removeRow plugin" included)
 *   Some global variables were reorganized and/or removed. Please take a look.
 
-  
-  
-**Validators**  
+**Validators**
 
 Was
 
@@ -1532,7 +1524,7 @@ Handsontable.TimeValidator
 
 Handsontable.validators.TimeValidator
 
-**Renderers**  
+**Renderers**
 
 Was
 
@@ -1566,7 +1558,7 @@ Handsontable.TextRenderer
 
 Handsontable.renderers.TextRenderer
 
-**Cell types**  
+**Cell types**
 
 Was
 
@@ -1608,7 +1600,7 @@ Handsontable.TimeCell
 
 Handsontable.cellTypes.time
 
-**Plugins**  
+**Plugins**
 
 Was
 
@@ -1630,7 +1622,7 @@ Handsontable.UndoRedo
 
 Handsontable.plugins.UndoRedo
 
-**Helpers**  
+**Helpers**
 
 Was
 
@@ -1640,7 +1632,7 @@ Handsontable.Dom
 
 Handsontable.dom
 
-**Other**  
+**Other**
 
 Was
 
@@ -1819,7 +1811,7 @@ Released on 29th of September, 2016
 
 Released on 15th of September, 2016
 
-**Breaking changes**  
+**Breaking changes**
 
 *   This release introduces a new feature - Formulas (currently in alpha stage, may not be stable). This required us to make some breaking changes, for example, the `afterCreateRow` and `afterCreateCol` changes their argument types (the third argument used to be `boolean`, now it has to be `string`). You can find more about the plugin in our docs: [http://docs.handsontable.com/demo-formula-support.html](http://docs.handsontable.com/demo-formula-support.html).
 *   We've refactored the Manual Column Move plugin to allow the user to move multiple columns at once. This made some backward-incompatible changes. For example the `beforeColumnMove` and `afterColumnMove` hooks had their arguments changed.
@@ -1836,7 +1828,7 @@ After updating to this version, please check if any changes need to made in your
 
 Released on 2nd of September, 2016
 
-**Breaking changes**  
+**Breaking changes**
 
 *   We've refactored the Manual Row Move plugin to allow the user to move multiple rows at once. This made some backward-incompatible changes. For example the \`beforeRowMove\` and \`afterRowMove\` hooks had their arguments changed. After updating to this version, please check if any changes need to made in your implementation.
 *   We've added an additional default column/row header styling - now the column and row header corresponding to the selected cell will be rendered with a darker background. Please have that in mind when styling your Handsontable implementations.
@@ -1851,7 +1843,7 @@ Released on 2nd of September, 2016
 
 Released on 27th of July, 2016
 
-**Changes**  
+**Changes**
 
 *   Improved rendering performance of GanttChart plugin.
 *   Updated Handsontable to the latest version, which is 0.26.1. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.26.1)).
@@ -1860,13 +1852,12 @@ Released on 27th of July, 2016
 
 Released on 27th of June, 2016
 
-**Backward incompatible changes**  
+**Backward incompatible changes**
 
 *   Changed one of our core dependencies. We're using [Numbro](https://github.com/foretagsplatsen/numbro) instead of [Numeral.js](https://github.com/adamwdraper/Numeral-js). If you're including our dependencies independently, please update your setup. ([3487](https://github.com/handsontable/handsontable/issues/3487))
 *   Updated Handsontable to the latest version, which is 0.26.0. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.26.0)).
 
-  
-**Changes**  
+**Changes**
 
 *   Fixed a bug where hovering over the `Filter by value` items would throw errors.
 
@@ -1874,7 +1865,7 @@ Released on 27th of June, 2016
 
 Released on 6th of June, 2016
 
-**Changes**  
+**Changes**
 
 *   Fixed problems with hiddenRows and hiddenColumns.
 *   New feature: Added a Select All and Clear options for the Filtering plugin.
@@ -1885,7 +1876,7 @@ Released on 6th of June, 2016
 
 Released on 25th of May, 2016
 
-**Changes**  
+**Changes**
 
 *   Fixed problems with selection in the nestedHeaders plugin.
 *   New feature: Added "show" and "hide column" to the Context Menu.
@@ -1895,7 +1886,7 @@ Released on 25th of May, 2016
 
 Released on 28th of April, 2016
 
-**Changes**  
+**Changes**
 
 *   Upgraded Handsontable to the latest version, which is 0.24.3. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.24.3)).
 
@@ -1903,7 +1894,7 @@ Released on 28th of April, 2016
 
 Released on 11th of April, 2016
 
-**Changes**  
+**Changes**
 
 *   Added the `afterFilter` hook.
 *   Replaced `keyup` with `input` in "Filter by Value" section.
@@ -1915,7 +1906,7 @@ Released on 11th of April, 2016
 
 Released on 18th of March, 2016
 
-**Changes**  
+**Changes**
 
 *   Update with a working `handsontable.full.js` build. The `.full` build from `1.3.1` had major problems with the date and time cells.
 
@@ -1923,7 +1914,7 @@ Released on 18th of March, 2016
 
 Released on 16th of March, 2016
 
-**Changes**  
+**Changes**
 
 *   Upgraded Handsontable to the latest version, which is 0.24.1. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.24.1)).
 
@@ -1931,13 +1922,12 @@ Released on 16th of March, 2016
 
 Released on 15th of March, 2016
 
-**Backward incompatible change**  
+**Backward incompatible change**
 
 *   Upgraded Handsontable to the latest version, which is 0.24.0. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.24.0)).
 *   A noticeable visual change in the Filters plugin: The filters menu gained a new section (Filter by Value).
 
-  
-**Changes**  
+**Changes**
 
 *   Fixed problem when enabling manualColumnMove and hiddenColumns displayed empty values in a column.
 *   Fixed a problem, when sometimes clicking a dropdown menu button caused the page to refresh.
@@ -1948,12 +1938,11 @@ Released on 15th of March, 2016
 
 Released on 19th of February, 2016
 
-**Backward incompatible change**  
+**Backward incompatible change**
 
 *   Upgraded Handsontable to the latest version, which is 0.23.0. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.23.0))
 
-  
-**Changes**  
+**Changes**
 
 *   Added an asynchronous calls in Gantt Chart plugin to reduce the time needed to update the data.
 *   Improvements to the Context/Dropdown menu, mainly a better UI handling.
@@ -1970,7 +1959,7 @@ Released on 4th of February, 2016
 
 Released on 3th of February, 2016
 
-*   **Backward incompatible change**  
+*   **Backward incompatible change**
     Upgraded Handsontable to the latest version, which is 0.22.0.
 *   Fixed an error with selecting a row, with the last column being hidden.
 *   Fixed a memory leak problem with the GanttChart plugin.
@@ -1979,11 +1968,11 @@ Released on 3th of February, 2016
 
 Released on 20th of January, 2016
 
-*   **Backward incompatible change**  
+*   **Backward incompatible change**
     The `afterValidate` hook will provide the _visual_ row indexes, instead of the _logical_ ones. For example, if the first row becomes the seventh row after sorting the table, the `afterValidate` hook will provide `6` as the row index. To translate the _visual_ row to the _logical_ row, you can use the `translateRow` method of the `columnSorting` plugin ([#3132](https://github.com/handsontable/handsontable/issues/3132)).
-    
+
         var logicalRow = hotInstance.getPlugin('columnSorting').translateRow(row);
-    
+
 *   Fixed problem, where pasting a dataset which row count exceeds the number of rows in the table nothing happened.
 *   Fixed problems with dropdown menu and submenu positioning.
 *   Fixed problems with filtering the fixed rows.
@@ -2004,4 +1993,3 @@ Released on 8th of January, 2016
 *   Fixed problems with `fixedRowsBottom` not working properly with window-scrollable tables.
 *   Fixed wrong position issues in the Filters plugin.
 *   Fixed column selection issues in the `nestedHeaders` plugin.
-

@@ -89,8 +89,7 @@ class CustomEditor extends BaseEditor {
     // ...and then do some stuff specific to your CustomEditor
     this.customEditorSpecificProperty = 'foo';
   }
-}` 
-    
+}`
 
 There are 7 common methods. All of them are described below.
 
@@ -137,14 +136,14 @@ Returns: `Function` - a class function that inherits from the current class. The
 **Example** - inheriting from `BaseEditor` and overriding its method
 
     var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
-    
+
     // This won't alter BaseEditor.prototype.beginEditing()
     CustomEditor.prototype.beginEditing = function() {};
 
 **Example** - inheriting from another editor
 
     var CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
-    
+
     // CustomTextEditor uses all methods implemented by TextEditor.
     // You can safely override any method without affecting original TextEditor.
 
@@ -178,11 +177,11 @@ Method should set editor value to `newValue`.
         constructor(hotInstance) {
           super(hotInstance);
         }
-    
+
         getValue() {
           return calendar.getDate(); // returns currently selected date, for example "2013/09/15"
         }
-    
+
         setValue() {
           calendar.highlightDate(newValue); // highlights given date on calendar
         }
@@ -270,18 +269,18 @@ As you may have guessed, we need to create a new editor class, that inherits fro
 Here is the code
 
     import Handsontable from 'handsontable';
-    
+
     class PasswordEditor extends Handsontable.editors.TextEditor {
       createElements() {
         super.createElements();
-    
+
         this.TEXTAREA = this.hot.rootDocument.createElement('input');
         this.TEXTAREA.setAttribute('type', 'password');
         this.TEXTAREA.setAttribute('data-hot-input', true);; // Makes the element recognizable by HOT as its own component's element.
         this.textareaStyle = this.TEXTAREA.style;
         this.textareaStyle.width = 0;
         this.textareaStyle.height = 0;
-    
+
         Handsontable.dom.empty(this.TEXTAREA_PARENT);
         this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
       }
@@ -349,7 +348,7 @@ The key to choose the best solution is to understand when each of those methods 
 Knowing all this, the most reasonable place to put the code responsible for creating `<select>` input is somewhere in `init()` method. DOM manipulation is considered to be quite expensive (regarding the resource consumption) operation, so it's best to perform it once and reuse the produced HTML nodes throughout the life of editor.
 
     import Handsontable from 'handsontable';
-    
+
     class SelectEditor extends Handsontable.editors.BaseEditor {
       /**
       * Initializes editor instance, DOM Element and mount hooks.
@@ -359,13 +358,11 @@ Knowing all this, the most reasonable place to put the code responsible for crea
         this.select = this.hot.rootDocument.createElement('SELECT');
         Handsontable.dom.addClass(this.select, 'htSelectEditor');
         this.select.style.display = 'none';
-        
+
         // Attach node to DOM, by appending it to the container holding the table
         this.hot.rootElement.appendChild(this.select);
       }
     }
-
-  
 
     .htSelectEditor {
       /*
@@ -402,22 +399,22 @@ We are left with two places `prepare()` and `open()`. The latter one is simpler 
     prepare(row, col, prop, td, originalValue, cellProperties) {
       // Remember to invoke parent's method
       super.prepare(row, col, prop, td, originalValue, cellProperties);
-      
+
       const selectOptions = this.cellProperties.selectOptions;
       let options;
-      
+
       if (typeof selectOptions === 'function') {
         options = this.prepareOptions(selectOptions(this.row, this.col, this.prop));
         } else {
         options = this.prepareOptions(selectOptions);
       }
-      
+
       Handsontable.dom.empty(this.select);
-      
+
       Handsontable.helper.objectEach(options, (value, key) => {
         const optionElement = this.hot.rootDocument.createElement('OPTION');
         optionElement.value = key;
-        
+
         Handsontable.dom.fastInnerHTML(optionElement, value);
         this.select.appendChild(optionElement);
       });
@@ -427,19 +424,18 @@ Where the `prepareOptions` is:
 
     prepareOptions(optionsToPrepare) {
       let preparedOptions = {};
-    
+
       if (Array.isArray(optionsToPrepare)) {
-        for (let i = 0, len = optionsToPrepare.length; i < len; i++) { 
+        for (let i = 0, len = optionsToPrepare.length; i < len; i++) {
           preparedOptions[optionsToPrepare[i]]=optionsToPrepare[i];
         }
-        
-      } else if (typeof optionsToPrepare==='object' ) { 
-        preparedOptions=optionsToPrepare; 
-      } 
-      
-      return preparedOptions; 
+
+      } else if (typeof optionsToPrepare==='object' ) {
+        preparedOptions=optionsToPrepare;
+      }
+
+      return preparedOptions;
     }
-    
 
 Task three: **DONE**
 
@@ -450,24 +446,24 @@ Most of the work is done. Now we just need to implement all the editor specific 
     getValue() {
       return this.select.value;
     }
-    
+
     setValue(value) {
       this.select.value = value;
     }
-    
+
     open() {
       this._opened = true;
       this.refreshDimensions();
       this.select.style.display = '';
     }
-    
+
     refreshDimensions() {
       this.TD = this.getEditedCell();
-    
+
       // TD is outside of the viewport.
       if (!this.TD) {
         this.close();
-    
+
         return;
       }
       const { wtOverlays } = this.hot.view.wt;
@@ -480,7 +476,7 @@ Most of the work is done. Now we just need to implement all the editor specific 
       let editTop = currentOffset.top - containerOffset.top - 1 - (scrollableContainer.scrollTop || 0);
       let editLeft = currentOffset.left - containerOffset.left - 1 - (scrollableContainer.scrollLeft || 0);
       let cssTransformOffset;
-    
+
       switch (editorSection) {
         case 'top':
           cssTransformOffset = Handsontable.dom.getCssTransform(wtOverlays.topOverlay.clone.wtTable.holder.parentNode);
@@ -500,43 +496,43 @@ Most of the work is done. Now we just need to implement all the editor specific 
         default:
           break;
       }
-    
+
       if (this.hot.getSelectedLast()[0] === 0) {
         editTop += 1;
       }
       if (this.hot.getSelectedLast()[1] === 0) {
         editLeft += 1;
       }
-    
+
       const selectStyle = this.select.style;
-    
+
       if (cssTransformOffset && cssTransformOffset !== -1) {
         selectStyle[cssTransformOffset[0]] = cssTransformOffset[1];
       } else {
         Handsontable.dom.resetCssTransform(this.select);
       }
-    
+
       const cellComputedStyle = Handsontable.dom.getComputedStyle(this.TD, this.hot.rootWindow);
-    
+
       if (parseInt(cellComputedStyle.borderTopWidth, 10) > 0) {
         height -= 1;
       }
       if (parseInt(cellComputedStyle.borderLeftWidth, 10) > 0) {
         width -= 1;
       }
-    
+
       selectStyle.height = `${height}px`;
       selectStyle.minWidth = `${width}px`;
       selectStyle.top = `${editTop}px`;
       selectStyle.left = `${editLeft}px`;
       selectStyle.margin = '0px';
     }
-    
+
     getEditedCell() {
       const { wtOverlays } = this.hot.view.wt;
       const editorSection = this.checkEditorSection();
       let editedCell;
-    
+
       switch (editorSection) {
         case 'top':
           editedCell = wtOverlays.topOverlay.clone.wtTable.getCell({
@@ -564,14 +560,14 @@ Most of the work is done. Now we just need to implement all the editor specific 
           this.select.style.zIndex = '';
           break;
       }
-    
-      return editedCell < 0 ? void 0 : editedCell; 
+
+      return editedCell < 0 ? void 0 : editedCell;
     }
-    
+
     focus() {
       this.select.focus();
     }
-    
+
     close() {
       this._opened = false;
       this.select.style.display = 'none';
@@ -610,29 +606,29 @@ Here's how the listener function could look like:
     onBeforeKeyDown() {
       const previousOptionIndex = this.select.selectedIndex - 1;
       const nextOptionIndex = this.select.selectedIndex + 1;
-      
+
       switch (event.keyCode) {
         case Handsontable.helper.KEY_CODES.ARROW_UP:
           if (previousOptionIndex >= 0) {
             this.select[previousOptionIndex].selected = true;
           }
-        
+
           stopImmediatePropagation(event);
           event.preventDefault();
           break;
-        
+
         case Handsontable.helper.KEY_CODES.ARROW_DOWN:
-          if (nextOptionIndex <= this.select.length - 1){ 
-            this.select[nextOptionIndex].selected=true; 
+          if (nextOptionIndex <= this.select.length - 1){
+            this.select[nextOptionIndex].selected=true;
           }
-          
+
           stopImmediatePropagation(event);
           event.preventDefault();
           break;
-    
-        default: 
-          break; 
-      } 
+
+        default:
+          break;
+      }
     }
 
 Active editor is the editor which `prepare()` method was called most recently. For example, if you select a cell which editor is `Handsontable.TextEditor`, then `getActiveEditor()` will return an object of this editor class. If then select a cell (presumably in another column) which editor is `Handsontable.DateEditor`, the active editor changes and now `getActiveEditor()` will return an object of `DateEditor` class.
@@ -642,7 +638,7 @@ The rest of the code should be quite clear. Now all we have to do is register ou
     open() {
       this.addHook('beforeKeyDown', () => this.onBeforeKeyDown());
     }
-    
+
     close() {
       this.clearHooks();
     }
@@ -680,16 +676,15 @@ If you'd like to register `SelectEditor` under alias `select` you have to call:
 Choose aliases wisely. If you register your editor under name that is already registered, the target class will be overwritten:
 
     Handsontable.editors.registerEditor('text', MyNewTextEditor);
-    
+
     // Now 'text' alias points to MyNewTextEditor class, not Handsontable.editors.TextEditor
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your editor, because you never know aliases has been registered by the user who uses your editor.
 
     Handsontable.editors.registerEditor('select', SelectEditor);
-    
+
     // Someone might already registered such alias
 
-  
 `Handsontable.editors.registerEditor('my.select', SelectEditor);
 
 // That's better.`
@@ -705,9 +700,9 @@ Put your code in a module, to avoid polluting the global namespace. You can use 
 
     (function(Handsontable){
       var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
-    
+
       // ...rest of the editor code
-    
+
     })(Handsontable);
 
 Passing `Handsontable` namespace as argument is optional (as it is defined globally), but it's a good practice to use as few global objects as possible, to make modularisation and dependency management easier.
@@ -718,12 +713,12 @@ Code enclosed in IIFE cannot be accessed from outside, unless it's intentionally
 
     (function(Handsontable){
       var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
-    
+
       // ...rest of the editor code
-    
+
       // And at the end
       Handsontable.editors.registerEditor('custom', CustomEditor);
-    
+
     })(Handsontable);
 
 From now on, you can use `CustomEditor` like so:
@@ -735,7 +730,7 @@ From now on, you can use `CustomEditor` like so:
           editor: Handsontable.editors.CustomEditor
         }
       ]
-    }); 
+    });
 
 Extending your `CustomEditor` is also easy.
 
@@ -751,15 +746,15 @@ To sum up, a well prepared editor should look like this:
 
     (function(Handsontable){
       var CustomEditor = Handsontable.editors.BaseEditor.prototype.extend();
-    
+
       // ...rest of the editor code
-    
+
       // Put editor in dedicated namespace
       Handsontable.editors.CustomEditor = CustomEditor;
-    
+
       // Register alias
       Handsontable.editors.registerEditor('theBestEditor', CustomEditor);
-    
+
     })(Handsontable);
 
 From now on, you can use `CustomEditor` like so:
@@ -771,5 +766,4 @@ From now on, you can use `CustomEditor` like so:
           editor: 'theBestEditor'
         }
       ]
-    }); 
-
+    });

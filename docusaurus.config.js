@@ -1,7 +1,10 @@
+// eslint-disable-next-line global-require
+const hotPreviewRemarkPlugin = require('./src/hot-preview-remark');
+
 const isDev = true || process.env.NODE_ENV === 'development'; // temporary test 'true', because `yarn build` always has k`node_env = production`
 
+// eslint-disable-next-line no-console
 console.log('isDev', isDev, process.env.NODE_ENV);
-
 module.exports = {
   title: 'Handsontable',
   tagline: 'Documentation',
@@ -57,13 +60,13 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
           includeCurrentVersion: isDev,
-          remarkPlugins:[require('./src/hot-preview-remark')],
+          remarkPlugins: [hotPreviewRemarkPlugin],
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
         pages: false,
-        blog: false
+        blog: false,
       },
     ],
   ],

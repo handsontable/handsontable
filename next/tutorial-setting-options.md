@@ -24,11 +24,11 @@ Or using cells function property to the Handsontable constructor. Example:
     var hot = new Handsontable(document.getElementById('example'), {
       cells: function (row, col, prop) {
         var cellProperties = {}
-    
+
         if (row === 0 && col === 0) {
           cellProperties.readOnly = true;
         }
-    
+
         return cellProperties;
       }
     })
@@ -48,11 +48,11 @@ Consider the following example:
       ],
       cells: function (row, col, prop) {
         var cellProperties = {}
-    
+
         if (row === 0 && col === 0) {
           cellProperties.readOnly = true;
         }
-    
+
         return cellProperties;
       }
     });
@@ -64,33 +64,31 @@ The above notation will result in all TDs being read only, except for first colu
 The Cascading Configuration model is based on prototypal inheritance. It is much faster and memory efficient compared to the previous model that used jQuery extend. See it yourself: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings)
 
 *   **Constructor**
-    
+
     Configuration options that are provided using first-level
-    
+
         new Handsontable(document.getElementById('example'), {
           option: 'value'
         });
-    
+
     and `updateSettings` method.
-    
+
 *   **Columns**
-    
+
     Configuration options that are provided using second-level object
-    
+
         new Handsontable(document.getElementById('example'), {
           columns: {
             option: 'value'
           }
         });
-    
+
 *   **Cells**
-    
+
     Configuration options that are provided using second-level function
-    
+
         new Handsontable(document.getElementById('example'), {
           cells: function(row, col, prop) {
-        
+
           }
         });
-    
-

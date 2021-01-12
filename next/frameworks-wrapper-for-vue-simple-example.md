@@ -5,7 +5,7 @@ sidebar_label: Basic example
 slug: /frameworks-wrapper-for-vue-simple-example
 ---
 
-### 
+###
 
 A simple implementation of the `@handsontable/vue` component.
 
@@ -22,4 +22,3 @@ Edit
 ```
 import Vue from 'vue'; import { HotTable } from '@handsontable/vue'; import Handsontable from 'handsontable'; new Vue({ el: '#example1', data: function() { return { hotSettings: { data: Handsontable.helper.createSpreadsheetData(6, 10), colHeaders: true } } }, components: { HotTable } });
 ```
-

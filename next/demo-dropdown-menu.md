@@ -11,7 +11,7 @@ slug: /demo-dropdown-menu
 
 ### Overview
 
-This plugin allows adding a configurable dropdown menu to the table's column headers.  
+This plugin allows adding a configurable dropdown menu to the table's column headers.
 The dropdown menu acts like the **Context Menu**, but is triggered by clicking the button in the header.
 
 ### Quick setup
@@ -29,4 +29,3 @@ You can use the default dropdown contents by setting it to `true`, but if you'd 
 Edit in jsFiddle Log to console
 
 var example2 = document.getElementById('example2'); var hot2 = new Handsontable(example2, { data: Handsontable.helper.createSpreadsheetData(3, 7), colHeaders: true, dropdownMenu: \[ 'remove\_col', '---------', 'make\_read\_only', '---------', 'alignment' \] });
-

@@ -20,14 +20,14 @@ To set up Handsontable DOM structure in your application, you have to define its
 There are two possible ways to define a table size.
 
 1.  #### Using CSS styles
-    
+
     Both `width` and `height` could be defined as inline styles or as a CSS class property. In this case, it's important to properly define what should be an `overflow` parent. Handsontable looks for the closest element with `overflow: auto` or `overflow: hidden` to use it as a scrollable container. If no such element is found a window will be used.
-    
-    Handsontable doesn't observe CSS changes for container out of the box.  
+
+    Handsontable doesn't observe CSS changes for container out of the box.
     If you'd like to observe it, you can define dimensions in configuration object or create your own observer.
-    
+
 2.  #### Configuration object
-    
+
         {
           width: '100px',
           width: '75%',
@@ -39,13 +39,12 @@ There are two possible ways to define a table size.
           height: '75%', // Please read info note below
           height: 100 // For backward compatibility we parse number into pixels
         }
-    
+
     These dimensions will be set as inline styles in a container element and `overflow: hidden` will be added automatically.
-    
+
     If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
-    
+
     Changes called in `updateSettings` will rerender grid with the new properties
-    
 
 ### What if dimensions are not set up
 
@@ -77,4 +76,3 @@ Expand container
 Edit
 
 .graybox { padding: 15px; background: #f8f8f8; height: 400px; } .slice { height: 50%; width: 50%; transition: all 0.5s; background: #f0f0f0; overflow: hidden; } .graybox.expanded .slice { height: 100%; width: 100%; } var sliceElem = document.querySelector('.slice'); var blueboxElem = sliceElem.parentElement; var triggerBtn = document.getElementById('expander'); var example = document.getElementById('example'); var hot = new Handsontable(example, { data: Handsontable.helper.createSpreadsheetData(50, 50), rowHeaders: true, colHeaders: true, width: '100%', height: '100%', rowHeights: 30, colWidths: 100, }); triggerBtn.addEventListener('click', function() { if (triggerBtn.textContent === 'Collapse') { triggerBtn.textContent = 'Expand'; blueboxElem.className = blueboxElem.className.replace(' expanded', ''); } else { triggerBtn.textContent = 'Collapse'; blueboxElem.className += ' expanded' } }); sliceElem.addEventListener('transitionend', function(e) { if (e.propertyName === 'width') { hot.refreshDimensions(); } });
-

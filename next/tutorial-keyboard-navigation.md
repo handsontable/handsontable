@@ -59,4 +59,3 @@ slug: /tutorial-keyboard-navigation
 ### Merge cells
 
 *   Ctrl + M – merge/unmerge selected cells
-

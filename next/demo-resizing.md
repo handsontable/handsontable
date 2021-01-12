@@ -19,4 +19,3 @@ For the selected rows or columns works simultaneously resizing.
 Edit Log to console
 
 var container = document.getElementById('example1'); var hot = new Handsontable(container, { data: Handsontable.helper.createSpreadsheetData(200, 10), rowHeaders: true, colHeaders: true, width: '100%', height: 320, colWidths: \[45, 100, 160, 60, 80, 80, 80\], rowHeights: \[50, 40, 100\], manualColumnResize: true, manualRowResize: true });
-

@@ -12,4 +12,3 @@ There are two types of plugins: internal and external. While both extend Handson
 Note that creating a plugin for personal needs is usually easier than writing an application destined for use by other developers. Such code has to be properly described, documented, frequently updated and supported. If you think that your plugin meets those requirements then consider sharing it with us. [Get in touch](https://handsontable.com/contact.html) for more details.
 
 We support **ECMAScript 6** and follow [code style](https://github.com/handsontable/handsontable/blob/master/.eslintrc.js) (inspired by [Airbnb JavaScript Style](https://github.com/airbnb/javascript)), so those standards are required for the new plugins.
-

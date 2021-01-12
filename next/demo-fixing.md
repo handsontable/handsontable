@@ -14,4 +14,3 @@ _If you're looking for an option to manually fix columns, see the [Freezing](htt
 Edit Log to console
 
 var example = document.getElementById('example1'); var hot = new Handsontable(example, { data: Handsontable.helper.createSpreadsheetData(100, 50), colWidths: 100, width: '100%', height: 320, rowHeaders: true, colHeaders: true, fixedRowsTop: 2, fixedColumnsLeft: 2 });
-

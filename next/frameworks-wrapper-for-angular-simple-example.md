@@ -16,4 +16,3 @@ Edit
 ```
 
 The same example you can find [here](https://stackblitz.com/edit/handsontable-angular).
-

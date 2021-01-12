@@ -12,4 +12,3 @@ Currently Handsontable supports only iPad 4 and other mobile devices in a basic 
 Edit Log to console
 
 var container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: Handsontable.helper.createSpreadsheetData(50, 26), rowHeaders: true, colHeaders: true, colWidths: 100, fixedRowsTop: 2, fixedColumnsLeft: 2 });
-

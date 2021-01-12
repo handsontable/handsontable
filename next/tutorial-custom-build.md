@@ -48,4 +48,3 @@ To run your own build, follow the below steps:
 2.  Clone the Handsontable repository on your local disk and go to the directory where you cloned it.
 3.  Run `npm install` to download all the dependencies defined in `package.json`. The dependencies will be downloaded into a new directory `node_modules`, that is ignored by Git.
 4.  **Run `npm run build` to make your first build!**
-

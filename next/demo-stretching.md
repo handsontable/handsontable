@@ -34,4 +34,3 @@ var container2 = document.getElementById('example2'), hot2; hot3 = new Handsonta
 Edit Log to console
 
 var container3 = document.getElementById('example3'), hot3; hot3 = new Handsontable(container3, { data: Handsontable.helper.createSpreadsheetData(40, 6), colWidths: \[47, 47, 47, 47, 47, 47, 47\], // can also be a number or a function rowHeaders: true, colHeaders: true, stretchH: 'none', // actually you don't have to declare it because it is default contextMenu: true });
-

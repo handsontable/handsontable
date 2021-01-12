@@ -16,4 +16,3 @@ _If you're looking for an option to programmatically fix rows or columns, see th
 Edit Log to console
 
 var myData = Handsontable.helper.createSpreadsheetData(100, 26), container = document.getElementById('example1'), hot; hot = new Handsontable(container, { data: myData, rowHeaders: true, colHeaders: true, colWidths: 100, fixedColumnsLeft: 2, contextMenu: true, manualColumnFreeze: true });
-
