@@ -20,7 +20,7 @@ export function createUniqueSet({ errorItemExists } = {}) {
   errorItemExists = isFunction(errorItemExists) ? errorItemExists : DEFAULT_ERROR_ITEM_EXISTS;
 
   /**
-   * Adds items to the unique set.
+   * Adds items to the unique set. Throws an error if `item` is already added.
    *
    * @param {*} item The adding item.
    */
