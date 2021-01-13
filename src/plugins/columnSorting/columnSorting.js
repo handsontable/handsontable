@@ -179,12 +179,12 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
       }
-    });
+    }, true);
 
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
     this.columnStatesManager.destroy();
@@ -239,7 +239,10 @@ class ColumnSorting extends BasePlugin {
 
     if (sortPossible) {
       this.hot.render();
-      this.hot.view.wt.draw(true); // TODO: Workaround? One test won't pass after removal. It should be refactored / described.
+      // TODO: Workaround? This triggers fast redraw. One test won't pass after removal.
+      // It should be refactored / described.
+      this.hot.forceFullRender = false;
+      this.hot.view.render();
     }
   }
 

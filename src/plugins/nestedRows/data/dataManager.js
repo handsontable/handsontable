@@ -693,7 +693,6 @@ class DataManager {
       '__children',
       upmostParent.__children,
       'NestedRows.syncRowWithRawSource',
-      true
     );
     this.plugin.enableCoreAPIModifiers();
   }
@@ -709,7 +708,7 @@ class DataManager {
    */
 
   /* eslint-enable jsdoc/require-param */
-  moveRow(fromIndex, toIndex, moveToCollapsed, moveToLastChild, silentMode = false) {
+  moveRow(fromIndex, toIndex, moveToCollapsed, moveToLastChild) {
     const moveToLastRow = toIndex === this.hot.countRows();
     const fromParent = this.getRowParent(fromIndex);
     const indexInFromParent = this.getRowIndexWithinParent(fromIndex);
@@ -745,10 +744,6 @@ class DataManager {
 
     if (!sameParent) {
       this.syncRowWithRawSource(toParent);
-    }
-
-    if (!silentMode) {
-      this.hot.render();
     }
   }
 
