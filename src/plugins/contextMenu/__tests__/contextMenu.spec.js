@@ -1832,24 +1832,65 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      selectCell(0, 0);
-
-      expect(getDataAtCell(0, 0)).toEqual('A1');
-
       setDataAtCell(0, 0, 'XX');
-
-      expect(getDataAtCell(0, 0)).toEqual('XX');
-
+      selectCell(0, 0);
       contextMenu();
 
       $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(6)
+        .find('tbody td:contains("Undo")')
         .simulate('mousedown')
-        .simulate('mouseup'); // Undo
+        .simulate('mouseup');
 
-      expect(getDataAtCell(0, 0)).toEqual('A1');
+      expect(getDataAtCell(0, 0)).toBe('A1');
+    });
+
+    it('should not undo changes when the UndoRedo plugin is disabled', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        undo: false,
+      });
+
+      setDataAtCell(0, 0, 'XX');
+      selectCell(0, 0);
+      contextMenu();
+
+      const $undoMenuItem = $('.htContextMenu .ht_master .htCore')
+        .find('tbody td:contains("Undo")');
+      $undoMenuItem
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect($undoMenuItem.hasClass('htDisabled')).toBe(true);
+      expect(getDataAtCell(0, 0)).toBe('XX');
+    });
+
+    it('should hide undo menu item when the UndoRedo plugin is missing', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        undo: true,
+      });
+
+      const origGetPlugin = hot.getPlugin;
+
+      spyOn(hot, 'getPlugin').and.callFake(function(pluginName) {
+        if (pluginName === 'undoRedo') {
+          return;
+        }
+
+        return origGetPlugin.call(this, pluginName);
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const $undoMenuItem = $('.htContextMenu .ht_master .htCore')
+        .find('tbody td:contains("Undo")');
+
+      expect($undoMenuItem.length).toBe(0);
     });
 
     it('should redo changes', () => {
@@ -1860,27 +1901,67 @@ describe('ContextMenu', () => {
       });
 
       selectCell(0, 0);
-
-      expect(getDataAtCell(0, 0)).toEqual('A1');
-
       setDataAtCell(0, 0, 'XX');
-
-      expect(getDataAtCell(0, 0)).toEqual('XX');
-
       undo();
 
-      expect(getDataAtCell(0, 0)).toEqual('A1');
+      expect(getDataAtCell(0, 0)).toBe('A1');
 
       contextMenu();
 
       $('.htContextMenu .ht_master .htCore')
-        .find('tbody td')
-        .not('.htSeparator')
-        .eq(7)
+        .find('tbody td:contains("Redo")')
         .simulate('mousedown')
-        .simulate('mouseup'); // Redo
+        .simulate('mouseup');
 
-      expect(getDataAtCell(0, 0)).toEqual('XX');
+      expect(getDataAtCell(0, 0)).toBe('XX');
+    });
+
+    it('should not redo changes when the UndoRedo plugin is disabled', () => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        undo: false,
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const $redoMenuItem = $('.htContextMenu .ht_master .htCore')
+        .find('tbody td:contains("Redo")');
+
+      $redoMenuItem
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect($redoMenuItem.hasClass('htDisabled')).toBe(true);
+    });
+
+    it('should hide redo menu item when the UndoRedo plugin is missing', () => {
+      const hot = handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        height: 100,
+        undo: true,
+      });
+
+      const origGetPlugin = hot.getPlugin;
+
+      spyOn(hot, 'getPlugin').and.callFake(function(pluginName) {
+        if (pluginName === 'undoRedo') {
+          return;
+        }
+
+        return origGetPlugin.call(this, pluginName);
+      });
+
+      selectCell(0, 0);
+      contextMenu();
+
+      const $undoMenuItem = $('.htContextMenu .ht_master .htCore')
+        .find('tbody td:contains("Redo")');
+
+      expect($undoMenuItem.length).toBe(0);
     });
 
     it('should display only the specified actions', () => {

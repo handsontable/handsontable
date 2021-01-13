@@ -184,6 +184,7 @@ registerPlugin(PersistentState);
 registerPlugin(Search);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
+registerPlugin(UndoRedo);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;
@@ -286,7 +287,6 @@ Handsontable.validators.getValidator = getValidator;
 // Export all registered plugins from the Handsontable.
 Handsontable.plugins = {
   [`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`]: BasePlugin,
-  [`${stringHelpers.toUpperCaseFirst(UndoRedo.PLUGIN_KEY)}Redo`]: UndoRedo,
 };
 
 arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {

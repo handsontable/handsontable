@@ -14,8 +14,13 @@ export default function undoItem() {
     callback() {
       this.undo();
     },
+    hidden() {
+      return !this.getPlugin('undoRedo');
+    },
     disabled() {
-      return this.undoRedo && !this.undoRedo.isUndoAvailable();
+      const undoRedo = this.getPlugin('undoRedo');
+
+      return !undoRedo.isEnabled() || !undoRedo.isUndoAvailable();
     }
   };
 }

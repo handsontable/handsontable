@@ -5,7 +5,7 @@ import { inherit, deepClone } from '../../helpers/object';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { align } from '../contextMenu/utils';
 
-export const PLUGIN_KEY = 'undo';
+export const PLUGIN_KEY = 'undoRedo';
 
 /**
  * @description
@@ -26,6 +26,7 @@ function UndoRedo(instance) {
   this.doneActions = [];
   this.undoneActions = [];
   this.ignoreNewActions = false;
+  this.enabled = false;
 
   instance.addHook('afterChange', function(changes, source) {
     const changesLen = changes && changes.length;
@@ -262,6 +263,70 @@ UndoRedo.prototype.isRedoAvailable = function() {
 UndoRedo.prototype.clear = function() {
   this.doneActions.length = 0;
   this.undoneActions.length = 0;
+};
+
+/**
+ * Checks if the plugin is enabled.
+ *
+ * @function isEnabled
+ * @memberof UndoRedo#
+ * @returns {boolean}
+ */
+UndoRedo.prototype.isEnabled = function() {
+  return this.enabled;
+};
+
+/**
+ * Enables the plugin.
+ *
+ * @function enable
+ * @memberof UndoRedo#
+ */
+UndoRedo.prototype.enable = function() {
+  if (this.isEnabled()) {
+    return;
+  }
+
+  const hot = this.instance;
+
+  this.enabled = true;
+  exposeUndoRedoMethods(hot);
+
+  hot.addHook('beforeKeyDown', onBeforeKeyDown);
+  hot.addHook('afterChange', onAfterChange);
+};
+
+/**
+ * Disables the plugin.
+ *
+ * @function disable
+ * @memberof UndoRedo#
+ */
+UndoRedo.prototype.disable = function() {
+  if (!this.isEnabled()) {
+    return;
+  }
+
+  const hot = this.instance;
+
+  this.enabled = false;
+  removeExposedUndoRedoMethods(hot);
+
+  hot.removeHook('beforeKeyDown', onBeforeKeyDown);
+  hot.removeHook('afterChange', onAfterChange);
+};
+
+/**
+ * Destroys the instance.
+ *
+ * @function destroy
+ * @memberof UndoRedo#
+ */
+UndoRedo.prototype.destroy = function() {
+  this.clear();
+  this.instance = null;
+  this.doneActions = null;
+  this.undoneActions = null;
 };
 
 UndoRedo.Action = function() {};
@@ -715,32 +780,25 @@ UndoRedo.RowMoveAction.prototype.redo = function(instance, redoneCallback) {
  */
 function init() {
   const instance = this;
-  const settings = instance.getSettings()[PLUGIN_KEY];
+  const settings = instance.getSettings().undo;
   const pluginEnabled = typeof settings === 'undefined' || settings;
 
+  if (!instance.undoRedo) {
+    /**
+     * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
+     *
+     * @alias undoRedo
+     * @memberof! Handsontable.Core#
+     * @type {UndoRedo}
+     */
+    instance.undoRedo = new UndoRedo(instance);
+  }
+
   if (pluginEnabled) {
-    if (!instance.undoRedo) {
-      /**
-       * Instance of Handsontable.UndoRedo Plugin {@link Handsontable.UndoRedo}.
-       *
-       * @alias undoRedo
-       * @memberof! Handsontable.Core#
-       * @type {UndoRedo}
-       */
-      instance.undoRedo = new UndoRedo(instance);
+    instance.undoRedo.enable();
 
-      exposeUndoRedoMethods(instance);
-
-      instance.addHook('beforeKeyDown', onBeforeKeyDown);
-      instance.addHook('afterChange', onAfterChange);
-    }
-  } else if (instance.undoRedo) {
-    delete instance.undoRedo;
-
-    removeExposedUndoRedoMethods(instance);
-
-    instance.removeHook('beforeKeyDown', onBeforeKeyDown);
-    instance.removeHook('afterChange', onAfterChange);
+  } else {
+    instance.undoRedo.disable();
   }
 }
 

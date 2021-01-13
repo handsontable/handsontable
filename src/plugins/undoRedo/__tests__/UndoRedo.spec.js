@@ -12,6 +12,65 @@ describe('UndoRedo', () => {
     }
   });
 
+  describe('updateSettings', () => {
+    it('should be possible to enable the undo/redo feature', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        undo: false,
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      setDataAtCell(0, 0, 'X1');
+
+      expect(undoRedo.isEnabled()).toBe(false);
+      expect(hot.undo).toBeUndefined();
+      expect(hot.redo).toBeUndefined();
+
+      handsontable({
+        undo: true,
+      });
+
+      setDataAtCell(0, 0, 'X2');
+
+      hot.undo();
+
+      expect(undoRedo.isEnabled()).toBe(true);
+      expect(getDataAtCell(0, 0)).toBe('X1');
+
+      hot.redo();
+
+      expect(getDataAtCell(0, 0)).toBe('X2');
+    });
+
+    it('should be possible to disable the undo/redo feature', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        undo: true,
+      });
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      expect(undoRedo.isEnabled()).toBe(true);
+
+      setDataAtCell(0, 0, 'X2');
+
+      hot.undo();
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+
+      hot.redo();
+
+      expect(getDataAtCell(0, 0)).toBe('X2');
+
+      handsontable({
+        undo: false,
+      });
+
+      expect(undoRedo.isEnabled()).toBe(false);
+      expect(hot.undo).toBeUndefined();
+      expect(hot.redo).toBeUndefined();
+    });
+  });
+
   describe('core features', () => {
     describe('Array data', () => {
       describe('undo', () => {

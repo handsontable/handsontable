@@ -3755,6 +3755,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.getPlugin = function(pluginName) {
     const unifiedPluginName = toUpperCaseFirst(pluginName);
 
+    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
+    if (unifiedPluginName === 'UndoRedo') {
+      return this.undoRedo;
+    }
+
     return pluginsRegistry.getItem(unifiedPluginName);
   };
 
@@ -3767,6 +3772,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string}
    */
   this.getPluginName = function(plugin) {
+    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
+    if (plugin === this.undoRedo) {
+      return this.undoRedo.constructor.PLUGIN_KEY;
+    }
+
     return pluginsRegistry.getId(plugin);
   };
 
