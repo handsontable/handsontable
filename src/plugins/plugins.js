@@ -2,9 +2,9 @@
  * Utility to register plugins and common namespace for keeping the reference to all plugins classes.
  */
 import { toUpperCaseFirst } from '../helpers/string';
-import { createPriorityQueue } from '../utils/dataStructures/priorityQueue';
-import { createUniqueList } from '../utils/dataStructures/uniqueList';
-import { createUniqueQueue } from '../utils/dataStructures/uniqueQueue';
+import { createPriorityMap } from '../utils/dataStructures/priorityMap';
+import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
+import { createUniqueSet } from '../utils/dataStructures/uniqueSet';
 
 const ERROR_PLUGIN_REGISTERED = pluginName => `There is already registered "${pluginName}" plugin.`;
 const ERROR_PRIORITY_REGISTERED = priority => `There is already registered plugin on priority "${priority}".`;
@@ -13,20 +13,20 @@ const ERROR_PRIORITY_NAN = priority => `The priority "${priority}" is not a numb
 /**
  * Stores plugins' names' queue with their priorities.
  */
-const priorityPluginsQueue = createPriorityQueue({
+const priorityPluginsQueue = createPriorityMap({
   errorPriorityExists: ERROR_PRIORITY_REGISTERED,
   errorPriorityNaN: ERROR_PRIORITY_NAN,
 });
 /**
  * Stores plugins names' queue by registration order.
  */
-const uniquePluginsQueue = createUniqueQueue({
+const uniquePluginsQueue = createUniqueSet({
   errorItemExists: ERROR_PLUGIN_REGISTERED,
 });
 /**
  * Stores plugins references between their name and class.
  */
-const uniquePluginsList = createUniqueList({
+const uniquePluginsList = createUniqueMap({
   errorIdExists: ERROR_PLUGIN_REGISTERED,
 });
 

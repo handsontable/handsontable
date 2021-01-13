@@ -7,30 +7,30 @@ const ORDER_MAP = new Map([
   [ASC, [-1, 1]],
   [DESC, [1, -1]],
 ]);
-const DEFAULT_ERROR_PRIORITY_EXISTS = priority => `The priority '${priority}' is already declared in a queue.`;
+const DEFAULT_ERROR_PRIORITY_EXISTS = priority => `The priority '${priority}' is already declared in a map.`;
 const DEFAULT_ERROR_PRIORITY_NAN = priority => `The priority '${priority}' is not a number.`;
 
 /**
- * @typedef {object} PriorityQueue
- * @property {Function} addItem Adds items to the priority queue.
- * @property {Function} getItems Gets items from the passed queue in a ASC or DESC order of priorities.
+ * @typedef {object} PriorityMap
+ * @property {Function} addItem Adds items to the priority map.
+ * @property {Function} getItems Gets items from the passed map in a ASC or DESC order of priorities.
  */
 /**
- * Creates a new priority queue.
+ * Creates a new priority map.
  *
- * @param {object} config The config for priority queue.
+ * @param {object} config The config for priority map.
  * @param {Function} config.errorPriorityExists The function to generate a custom error message if priority is already taken.
  * @param {Function} config.errorPriorityNan The function to generate a custom error message if priority is not a number.
- * @returns {PriorityQueue}
+ * @returns {PriorityMap}
  */
-export function createPriorityQueue({ errorPriorityExists, errorPriorityNaN } = {}) {
-  const queue = new Map();
+export function createPriorityMap({ errorPriorityExists, errorPriorityNaN } = {}) {
+  const priorityMap = new Map();
 
   errorPriorityExists = isFunction(errorPriorityExists) ? errorPriorityExists : DEFAULT_ERROR_PRIORITY_EXISTS;
   errorPriorityNaN = isFunction(errorPriorityNaN) ? errorPriorityNaN : DEFAULT_ERROR_PRIORITY_NAN;
 
   /**
-   * Adds items to priority queue.
+   * Adds items to priority map. Throws an error if `priority` is not a number or if is already added.
    *
    * @param {number} priority The priority for adding item.
    * @param {*} item The adding item.
@@ -39,15 +39,15 @@ export function createPriorityQueue({ errorPriorityExists, errorPriorityNaN } = 
     if (!isNumeric(priority)) {
       throw new Error(errorPriorityNaN(priority));
     }
-    if (queue.has(priority)) {
+    if (priorityMap.has(priority)) {
       throw new Error(errorPriorityExists(priority));
     }
 
-    queue.set(priority, item);
+    priorityMap.set(priority, item);
   }
 
   /**
-   * Gets items from the passed queue in a ASC or DESC order of priorities.
+   * Gets items from the passed map in a ASC or DESC order of priorities.
    *
    * @param {string} [order] The order for getting items. ASC is an default.
    * @returns {*}
@@ -55,7 +55,7 @@ export function createPriorityQueue({ errorPriorityExists, errorPriorityNaN } = 
   function getItems(order = ASC) {
     const [left, right] = ORDER_MAP.get(order) || ORDER_MAP.get(ASC);
 
-    return [...queue]
+    return [...priorityMap]
       // we want to be sure we sort over a priority key
       // if we are sure we can remove custom compare function
       // then we should replace next line with a default `.sort()`

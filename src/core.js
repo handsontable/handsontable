@@ -36,7 +36,7 @@ import {
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DataMap } from './dataMap/index';
-import { createUniqueList } from './utils/dataStructures/uniqueList';
+import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
 
@@ -86,7 +86,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const metaManager = new MetaManager(userSettings);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
-  const pluginsRegistry = createUniqueList();
+  const pluginsRegistry = createUniqueMap();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
