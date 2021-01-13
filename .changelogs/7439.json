@@ -1,6 +1,6 @@
 {
   "title": "Optimization for minSpareRows, minSpareCols, minRows and minCols options reducing time of initialization",
-  "type": "fixed",
+  "type": "changed",
   "issue": 7439,
   "breaking": false,
   "framework": "none"
