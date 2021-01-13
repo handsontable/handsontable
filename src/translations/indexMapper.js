@@ -162,20 +162,20 @@ class IndexMapper {
   }
 
   /**
-   * Execute batch operations with updating cache when necessary. As effect, wrapped operations will be executed and
-   * cache will be updated at most once (cache is updated only when any cached index has been changed).
-   *
-   * @param {Function} wrappedOperations Batched operations wrapped in a function.
+   * Suspends the cache update for this map. The method is helpful to group multiple
+   * operations, which affects the cache. In this case, the cache will be updated once after
+   * calling the `resumeOperations` method.
    */
-  executeBatchOperations(wrappedOperations) {
-    const actualFlag = this.isBatched;
-
+  suspendOperations() {
     this.isBatched = true;
+  }
 
-    wrappedOperations();
-
-    this.isBatched = actualFlag;
-
+  /**
+   * Resumes the cache update for this map. It recalculates the cache and restores the
+   * default behavior where each map modification updates the cache.
+   */
+  resumeOperations() {
+    this.isBatched = false;
     this.updateCache();
   }
 
@@ -361,18 +361,18 @@ class IndexMapper {
     this.notTrimmedIndexesCache = [...new Array(length).keys()];
     this.notHiddenIndexesCache = [...new Array(length).keys()];
 
-    this.executeBatchOperations(() => {
-      this.indexesSequence.init(length);
-      this.trimmingMapsCollection.initEvery(length);
-    });
+    this.suspendOperations();
+    this.indexesSequence.init(length);
+    this.trimmingMapsCollection.initEvery(length);
+    this.resumeOperations();
 
     // We move initialization of hidden collection to next batch for purpose of working on sequence of already trimmed indexes.
-    this.executeBatchOperations(() => {
-      this.hidingMapsCollection.initEvery(length);
+    this.suspendOperations();
+    this.hidingMapsCollection.initEvery(length);
 
-      // It shouldn't reset the cache.
-      this.variousMapsCollection.initEvery(length);
-    });
+    // It shouldn't reset the cache.
+    this.variousMapsCollection.initEvery(length);
+    this.resumeOperations();
 
     this.runLocalHooks('init');
   }
@@ -556,12 +556,12 @@ class IndexMapper {
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
-    this.executeBatchOperations(() => {
-      this.indexesSequence.insert(insertionIndex, insertedIndexes);
-      this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-      this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-    });
+    this.suspendOperations();
+    this.indexesSequence.insert(insertionIndex, insertedIndexes);
+    this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    this.resumeOperations();
   }
 
   /**
@@ -571,12 +571,12 @@ class IndexMapper {
    * @param {Array} removedIndexes List of removed indexes.
    */
   removeIndexes(removedIndexes) {
-    this.executeBatchOperations(() => {
-      this.indexesSequence.remove(removedIndexes);
-      this.trimmingMapsCollection.removeFromEvery(removedIndexes);
-      this.hidingMapsCollection.removeFromEvery(removedIndexes);
-      this.variousMapsCollection.removeFromEvery(removedIndexes);
-    });
+    this.suspendOperations();
+    this.indexesSequence.remove(removedIndexes);
+    this.trimmingMapsCollection.removeFromEvery(removedIndexes);
+    this.hidingMapsCollection.removeFromEvery(removedIndexes);
+    this.variousMapsCollection.removeFromEvery(removedIndexes);
+    this.resumeOperations();
   }
 
   /**
