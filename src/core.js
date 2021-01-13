@@ -609,54 +609,64 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * Makes sure there are empty rows at the bottom of the table.
      */
     adjustRowsAndCols() {
-      if (tableMeta.minRows) {
-        // should I add empty rows to data source to meet minRows?
-        const rows = instance.countRows();
+      const minRows = tableMeta.minRows;
+      const minSpareRows = tableMeta.minSpareRows;
+      const minCols = tableMeta.minCols;
+      const minSpareCols = tableMeta.minSpareCols;
 
-        if (rows < tableMeta.minRows) {
-          for (let r = 0, minRows = tableMeta.minRows; r < minRows - rows; r++) {
-            // The synchronization with cell meta is not desired here. For `minRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
+      if (minRows) {
+        // should I add empty rows to data source to meet minRows?
+        const nrOfRows = instance.countRows();
+
+        if (nrOfRows < minRows) {
+          // The synchronization with cell meta is not desired here. For `minRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createRow(nrOfRows, minRows - nrOfRows, 'auto');
         }
       }
-      if (tableMeta.minSpareRows) {
-        let emptyRows = instance.countEmptyRows(true);
+      if (minSpareRows) {
+        const emptyRows = instance.countEmptyRows(true);
 
         // should I add empty rows to meet minSpareRows?
-        if (emptyRows < tableMeta.minSpareRows) {
-          for (; emptyRows < tableMeta.minSpareRows && instance.countSourceRows() < tableMeta.maxRows; emptyRows++) {
-            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
+        if (emptyRows < minSpareRows) {
+          const emptyRowsMissing = minSpareRows - emptyRows;
+          const rowsToCreate = Math.min(emptyRowsMissing, tableMeta.maxRows - instance.countSourceRows());
+
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createRow(instance.countRows(), rowsToCreate, 'auto');
         }
       }
       {
         let emptyCols;
 
         // count currently empty cols
-        if (tableMeta.minCols || tableMeta.minSpareCols) {
+        if (minCols || minSpareCols) {
           emptyCols = instance.countEmptyCols(true);
         }
 
+        let nrOfColumns = instance.countCols();
+
         // should I add empty cols to meet minCols?
-        if (tableMeta.minCols && !tableMeta.columns && instance.countCols() < tableMeta.minCols) {
-          for (; instance.countCols() < tableMeta.minCols; emptyCols++) {
-            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
+        if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          const colsToCreate = minCols - nrOfColumns;
+
+          emptyCols += colsToCreate;
+
+          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
         }
         // should I add empty cols to meet minSpareCols?
-        if (tableMeta.minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
-            emptyCols < tableMeta.minSpareCols) {
-          for (; emptyCols < tableMeta.minSpareCols && instance.countCols() < tableMeta.maxCols; emptyCols++) {
-            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
+        if (minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
+          emptyCols < minSpareCols) {
+          nrOfColumns = instance.countCols();
+          const emptyColsMissing = minSpareCols - emptyCols;
+          const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
+
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
         }
       }
       const rowCount = instance.countRows();
