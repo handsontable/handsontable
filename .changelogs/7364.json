@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a bug with auto-execution of the first item in the ContextMenu plugin.",
+  "type": "fixed",
+  "issue": 7364,
+  "breaking": false,
+  "framework": "none"
+}

@@ -4,16 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+<!-- This file should generally be updated automatically using our changelog script. See `.changelogs/README.md` for more information. -->
 
-### Added
-- Introduced a new feature that allows postponing the table render and internal data cache update. The table rendering time can be reduced several-fold times by batching (using the `batch` method), multi-line API calls, or manually suspending rendering using the `suspendRender` and `resumeRender` methods. [#7274](https://github.com/handsontable/handsontable/issue/7274)
-
-### Changed
-- Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issue/7375)
-
-### Fixed
-- Fix a bug with auto-execution of the first item in ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
+<!-- UNVERSIONED -->
 
 ## [8.2.0] - 2020-11-12
 

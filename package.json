@@ -22,7 +22,7 @@
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix",
     "stylelint": "stylelint \"src/**/*.css\" \"test/**/*.css\"",
     "stylelint:fix": "stylelint --fix \"src/**/*.css\" \"test/**/*.css\"",
-    "eslint": "eslint src/ test/ lib/",
+    "eslint": "eslint src/ test/ lib/ .github/scripts/ bin/changelog",
     "eslint:fix": "eslint --fix src/ test/",
     "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
     "test.random": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable.random && npm run test:e2e.random && npm run test:production.random",
@@ -53,6 +53,7 @@
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
+    "changelog": "bin/changelog",
     "release": "npm run clean && npm run build && npm publish"
   },
   "keywords": [
@@ -80,6 +81,8 @@
     "pikaday": "1.8.0"
   },
   "devDependencies": {
+    "@actions/core": "^1.2.6",
+    "@actions/github": "^4.0.0",
     "@babel/cli": "^7.8.3",
     "@babel/core": "^7.11.4",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
@@ -96,6 +99,7 @@
     "babel-plugin-forbidden-imports": "^0.1.2",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
+    "chalk": "^4.1.0",
     "concurrently": "^5.3.0",
     "copy-webpack-plugin": "^6.0.3",
     "cpy-cli": "^3.1.1",
@@ -108,16 +112,19 @@
     "eslint-plugin-babel": "^5.3.0",
     "eslint-plugin-import": "^2.7.0",
     "eslint-plugin-jsdoc": "^20.3.1",
+    "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
     "html-parse-stringify": "^1.0.3",
     "html-webpack-plugin": "^3.2.0",
+    "inquirer": "^7.3.3",
     "jasmine-co": "^1.2.2",
     "jasmine-core": "^3.4.0",
     "jasmine-terminal-reporter": "^1.0.3",
     "jest": "^26.6.3",
     "jest-cli": "^26.6.3",
     "loader-utils": "^1.1.0",
+    "lodash": "^4.17.20",
     "mini-css-extract-plugin": "^0.5.0",
     "on-build-webpack": "^0.1.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
@@ -132,7 +139,8 @@
     "tree-kill": "^1.2.2",
     "typescript": "^3.3.3",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.0"
+    "webpack-cli": "^3.3.0",
+    "yargs": "^16.2.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {
