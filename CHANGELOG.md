@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- This file should generally be updated automatically using our changelog script. See `.changelogs/README.md` for more information. -->
 
+<!-- UNVERSIONED -->
+
 ## [8.2.0] - 2020-11-12
 
 ### Added
