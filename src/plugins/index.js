@@ -180,5 +180,4 @@ export {
   getPlugin,
   getPluginsNames,
   registerPlugin,
-  registerPluginOnce,
 } from './plugins';

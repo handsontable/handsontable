@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { DropdownMenu } from '../dropdownMenu';
 import { HiddenRows } from '../hiddenRows';
-import { registerPluginOnce } from '../plugins';
+import { registerPlugin } from '../plugins';
 import { registerCellType, CheckboxCellType, hasCellType } from '../../cellTypes';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -30,8 +30,8 @@ import { TrimmingMap } from '../../translations';
 
 import './filters.css';
 
-registerPluginOnce(DropdownMenu);
-registerPluginOnce(HiddenRows);
+registerPlugin(DropdownMenu);
+registerPlugin(HiddenRows);
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;

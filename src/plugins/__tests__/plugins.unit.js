@@ -2,7 +2,6 @@ import {
   getPlugin,
   getPluginsNames,
   registerPlugin,
-  registerPluginOnce,
 } from '../plugins';
 
 describe('plugins', () => {
@@ -15,13 +14,13 @@ describe('plugins', () => {
       expect(getPlugin(pluginName)).toBe(pluginRef);
     });
 
-    it('should throw an error if there is already registered plugin at the same name', () => {
+    it('should not throw an error if there is already registered plugin at the same name', () => {
       const pluginName = 'pluginA';
       const pluginRef = jest.fn();
 
       expect(() => {
         registerPlugin(pluginName, pluginRef);
-      }).toThrowError();
+      }).not.toThrowError();
     });
 
     it('should register plugins in the correct order', () => {
@@ -56,26 +55,23 @@ describe('plugins', () => {
       }).toThrowError('There is already registered plugin on priority "0"');
     });
 
-    it('should throw an error if there is already registered plugin at the same name but different priority', () => {
+    it('should not throw an error if there is already registered plugin at the same name but different priority', () => {
       const pluginRef = jest.fn();
 
       registerPlugin('pluginJ', pluginRef, 40);
 
       expect(() => {
         registerPlugin('pluginJ', pluginRef, 41);
-      }).toThrowError('There is already registered "PluginJ" plugin.');
-      expect(() => {
-        registerPlugin('pluginK', pluginRef, 41);
-      }).not.toThrowError();
+      }).not.toThrowError('There is already registered "PluginJ" plugin.');
     });
 
     it('should register plugin only once', () => {
       const pluginRef = jest.fn();
 
-      registerPluginOnce('pluginL', pluginRef);
+      registerPlugin('pluginL', pluginRef);
 
       expect(() => {
-        registerPluginOnce('pluginL', pluginRef);
+        registerPlugin('pluginL', pluginRef);
       }).not.toThrowError();
     });
   });

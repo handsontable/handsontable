@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { registerPluginOnce } from '../plugins';
+import { registerPlugin } from '../plugins';
 import { NestedHeaders } from '../nestedHeaders';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
@@ -29,7 +29,7 @@ const actionDictionary = new Map([
   }],
 ]);
 
-registerPluginOnce(NestedHeaders);
+registerPlugin(NestedHeaders);
 
 /**
  * @plugin CollapsibleColumns

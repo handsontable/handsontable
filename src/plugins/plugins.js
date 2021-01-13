@@ -55,7 +55,7 @@ export function getPlugin(pluginName) {
   return uniquePluginsList.getItem(unifiedPluginName);
 }
 /**
- * Registers plugin under the given name.
+ * Registers plugin under the given name only once.
  *
  * @param {string|Function} pluginName The plugin name or plugin class.
  * @param {Function} [pluginClass] The plugin class.
@@ -64,6 +64,18 @@ export function getPlugin(pluginName) {
 export function registerPlugin(pluginName, pluginClass, priority) {
   [pluginName, pluginClass, priority] = unifyPluginArguments(pluginName, pluginClass, priority);
 
+  if (getPlugin(pluginName) === void 0) {
+    _registerPlugin(pluginName, pluginClass, priority);
+  }
+}
+/**
+ * Registers plugin under the given name.
+ *
+ * @param {string|Function} pluginName The plugin name or plugin class.
+ * @param {Function} [pluginClass] The plugin class.
+ * @param {number} [priority] The plugin priority.
+ */
+function _registerPlugin(pluginName, pluginClass, priority) {
   const unifiedPluginName = toUpperCaseFirst(pluginName);
 
   if (uniquePluginsList.hasItem(unifiedPluginName)) {
@@ -77,20 +89,6 @@ export function registerPlugin(pluginName, pluginClass, priority) {
   }
 
   uniquePluginsList.addItem(unifiedPluginName, pluginClass);
-}
-/**
- * Registers plugin under the given name only once.
- *
- * @param {string|Function} pluginName The plugin name or plugin class.
- * @param {Function} [pluginClass] The plugin class.
- * @param {number} [priority] The plugin priority.
- */
-export function registerPluginOnce(pluginName, pluginClass, priority) {
-  [pluginName, pluginClass, priority] = unifyPluginArguments(pluginName, pluginClass, priority);
-
-  if (getPlugin(pluginName) === void 0) {
-    registerPlugin(pluginName, pluginClass, priority);
-  }
 }
 /**
  * Unifies arguments to register the plugin.

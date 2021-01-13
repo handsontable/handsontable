@@ -1,6 +1,6 @@
 import Core from 'handsontable/core';
 import {
-  registerPluginOnce,
+  registerPlugin,
   AutoColumnSize,
   AutoRowSize,
   BindRowsWithHeaders,
@@ -13,16 +13,16 @@ import {
   TrimRows,
 } from 'handsontable/plugins';
 
-registerPluginOnce(AutoColumnSize);
-registerPluginOnce(AutoRowSize);
-registerPluginOnce(BindRowsWithHeaders);
-registerPluginOnce(ColumnSorting);
-registerPluginOnce(DropdownMenu);
-registerPluginOnce(Filters);
-registerPluginOnce(ManualColumnResize);
-registerPluginOnce(ManualRowResize);
-registerPluginOnce(NestedRows);
-registerPluginOnce(TrimRows);
+registerPlugin(AutoColumnSize);
+registerPlugin(AutoRowSize);
+registerPlugin(BindRowsWithHeaders);
+registerPlugin(ColumnSorting);
+registerPlugin(DropdownMenu);
+registerPlugin(Filters);
+registerPlugin(ManualColumnResize);
+registerPlugin(ManualRowResize);
+registerPlugin(NestedRows);
+registerPlugin(TrimRows);
 
 describe('Core', () => {
   let container;
