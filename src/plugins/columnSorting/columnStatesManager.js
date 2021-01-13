@@ -52,7 +52,9 @@ export class ColumnStatesManager {
      */
     this.compareFunctionFactory = void 0;
     /**
-     * Name of map storing sorting states.
+     * Name of map storing sorting states. Required for unique name (PR #7440 introduced it). It's needed as
+     * both ColumnSorting and MultiColumnSorting plugins create state manager and as a consequence register maps.
+     * Objects are destroyed in strange order as the updateSettings doesn't work well.
      */
     this.mapName = mapName;
 
