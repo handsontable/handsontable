@@ -5,13 +5,13 @@ import './css/mobile.handsontable.css';
 
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
-import { getTranslatedPhrase } from './i18n';
-import * as constants from './i18n/constants';
 import {
+  dictionaryKeys,
+  getTranslatedPhrase,
   registerLanguageDictionary,
   getLanguagesDictionaries,
   getLanguageDictionary
-} from './i18n/dictionariesManager';
+} from './i18n';
 import { registerCellType } from './cellTypes';
 import { TextCellType } from './cellTypes/textType';
 
@@ -38,13 +38,12 @@ Handsontable.packageName = 'handsontable';
 Handsontable.buildDate = process.env.HOT_BUILD_DATE;
 Handsontable.version = process.env.HOT_VERSION;
 
-Handsontable.languages = {};
-Handsontable.languages.dictionaryKeys = constants;
-Handsontable.languages.getLanguageDictionary = getLanguageDictionary;
-Handsontable.languages.getLanguagesDictionaries = getLanguagesDictionaries;
-Handsontable.languages.registerLanguageDictionary = registerLanguageDictionary;
-
-// Alias to `getTranslatedPhrase` function, for more information check it API.
-Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);
+Handsontable.languages = {
+  dictionaryKeys,
+  getLanguageDictionary,
+  getLanguagesDictionaries,
+  registerLanguageDictionary,
+  getTranslatedPhrase,
+};
 
 export default Handsontable;

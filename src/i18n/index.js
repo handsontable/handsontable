@@ -1,7 +1,14 @@
 import { arrayEach } from './../helpers/array';
-import { getLanguageDictionary } from './dictionariesManager';
 import { getPhraseFormatters } from './phraseFormatters';
 import { isUndefined } from '../helpers/mixed';
+import { getLanguageDictionary } from './dictionariesManager';
+
+export {
+  getLanguageDictionary,
+  getLanguagesDictionaries,
+  registerLanguageDictionary,
+} from './dictionariesManager';
+export * as dictionaryKeys from './constants';
 
 /**
  * Get phrase for specified dictionary key.

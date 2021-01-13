@@ -108,9 +108,145 @@
       "import": "./editors/textEditor/index.mjs",
       "require": "./editors/textEditor/index.js"
     },
+    "./i18n": {
+      "import": "./i18n/index.mjs",
+      "require": "./i18n/index.js"
+    },
     "./i18n/languages": {
       "import": "./i18n/languages/index.mjs",
       "require": "./i18n/languages/index.js"
+    },
+    "./i18n/languages/de-CH": {
+      "import": "./i18n/languages/de-CH.mjs",
+      "require": "./i18n/languages/de-CH.js"
+    },
+    "./i18n/languages/de-DE": {
+      "import": "./i18n/languages/de-DE.mjs",
+      "require": "./i18n/languages/de-DE.js"
+    },
+    "./i18n/languages/en-US": {
+      "import": "./i18n/languages/en-US.mjs",
+      "require": "./i18n/languages/en-US.js"
+    },
+    "./i18n/languages/es-MX": {
+      "import": "./i18n/languages/es-MX.mjs",
+      "require": "./i18n/languages/es-MX.js"
+    },
+    "./i18n/languages/fr-FR": {
+      "import": "./i18n/languages/fr-FR.mjs",
+      "require": "./i18n/languages/fr-FR.js"
+    },
+    "./i18n/languages/it-IT": {
+      "import": "./i18n/languages/it-IT.mjs",
+      "require": "./i18n/languages/it-IT.js"
+    },
+    "./i18n/languages/ja-JP": {
+      "import": "./i18n/languages/ja-JP.mjs",
+      "require": "./i18n/languages/ja-JP.js"
+    },
+    "./i18n/languages/ko-KR": {
+      "import": "./i18n/languages/ko-KR.mjs",
+      "require": "./i18n/languages/ko-KR.js"
+    },
+    "./i18n/languages/lv-LV": {
+      "import": "./i18n/languages/lv-LV.mjs",
+      "require": "./i18n/languages/lv-LV.js"
+    },
+    "./i18n/languages/nb-NO": {
+      "import": "./i18n/languages/nb-NO.mjs",
+      "require": "./i18n/languages/nb-NO.js"
+    },
+    "./i18n/languages/nl-NL": {
+      "import": "./i18n/languages/nl-NL.mjs",
+      "require": "./i18n/languages/nl-NL.js"
+    },
+    "./i18n/languages/pl-PL": {
+      "import": "./i18n/languages/pl-PL.mjs",
+      "require": "./i18n/languages/pl-PL.js"
+    },
+    "./i18n/languages/pt-BR": {
+      "import": "./i18n/languages/pt-BR.mjs",
+      "require": "./i18n/languages/pt-BR.js"
+    },
+    "./i18n/languages/ru-RU": {
+      "import": "./i18n/languages/ru-RU.mjs",
+      "require": "./i18n/languages/ru-RU.js"
+    },
+    "./i18n/languages/zh-CN": {
+      "import": "./i18n/languages/zh-CN.mjs",
+      "require": "./i18n/languages/zh-CN.js"
+    },
+    "./i18n/languages/zh-TW": {
+      "import": "./i18n/languages/zh-TW.mjs",
+      "require": "./i18n/languages/zh-TW.js"
+    },
+    "./languages/all": {
+      "import": "./languages/all.js",
+      "require": "./languages/all.js"
+    },
+    "./languages/de-CH": {
+      "import": "./languages/de-CH.js",
+      "require": "./languages/de-CH.js"
+    },
+    "./languages/de-DE": {
+      "import": "./languages/de-DE.js",
+      "require": "./languages/de-DE.js"
+    },
+    "./languages/en-US": {
+      "import": "./languages/en-US.js",
+      "require": "./languages/en-US.js"
+    },
+    "./languages/es-MX": {
+      "import": "./languages/es-MX.js",
+      "require": "./languages/es-MX.js"
+    },
+    "./languages/fr-FR": {
+      "import": "./languages/fr-FR.js",
+      "require": "./languages/fr-FR.js"
+    },
+    "./languages/it-IT": {
+      "import": "./languages/it-IT.js",
+      "require": "./languages/it-IT.js"
+    },
+    "./languages/ja-JP": {
+      "import": "./languages/ja-JP.js",
+      "require": "./languages/ja-JP.js"
+    },
+    "./languages/ko-KR": {
+      "import": "./languages/ko-KR.js",
+      "require": "./languages/ko-KR.js"
+    },
+    "./languages/lv-LV": {
+      "import": "./languages/lv-LV.js",
+      "require": "./languages/lv-LV.js"
+    },
+    "./languages/nb-NO": {
+      "import": "./languages/nb-NO.js",
+      "require": "./languages/nb-NO.js"
+    },
+    "./languages/nl-NL": {
+      "import": "./languages/nl-NL.js",
+      "require": "./languages/nl-NL.js"
+    },
+    "./languages/pl-PL": {
+      "import": "./languages/pl-PL.js",
+      "require": "./languages/pl-PL.js"
+    },
+    "./languages/pt-BR": {
+      "import": "./languages/pt-BR.js",
+      "require": "./languages/pt-BR.js"
+    },
+    "./languages/ru-RU": {
+      "import": "./languages/ru-RU.js",
+      "require": "./languages/ru-RU.js"
+    },
+    "./languages/zh-CN": {
+      "import": "./languages/zh-CN.js",
+      "require": "./languages/zh-CN.js"
+    },
+    "./languages/zh-TW": {
+      "import": "./languages/zh-TW.js",
+      "require": "./languages/zh-TW.js"
     },
     "./plugins": {
       "import": "./plugins/index.mjs",
