@@ -10,6 +10,10 @@ let initializedPlugins = null;
  * @util
  */
 export class BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
   /**
    * @param {object} hotInstance Handsontable instance.
    */

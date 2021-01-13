@@ -76,7 +76,6 @@ import {
   AutoColumnSize,
   AutoRowSize,
   Autofill,
-  BASE_KEY,
   BasePlugin,
   BindRowsWithHeaders,
   CollapsibleColumns,
@@ -109,7 +108,6 @@ import {
   Search,
   TouchScroll,
   TrimRows,
-  UNDOREDO_KEY,
   UndoRedo,
   getPlugin,
   getPluginsNames,
@@ -287,8 +285,8 @@ Handsontable.validators.getValidator = getValidator;
 
 // Export all registered plugins from the Handsontable.
 Handsontable.plugins = {
-  [`${stringHelpers.toUpperCaseFirst(BASE_KEY)}Plugin`]: BasePlugin,
-  [`${stringHelpers.toUpperCaseFirst(UNDOREDO_KEY)}Redo`]: UndoRedo,
+  [`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`]: BasePlugin,
+  [`${stringHelpers.toUpperCaseFirst(UndoRedo.PLUGIN_KEY)}Redo`]: UndoRedo,
 };
 
 arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
