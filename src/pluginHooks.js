@@ -1370,6 +1370,7 @@ const REGISTERED_HOOKS = [
    */
   'beforeStretchingColumnWidth',
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin before applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
@@ -1394,11 +1395,14 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```.
+   * ```
    * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
    */
   'beforeFilter',
 
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin after applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
@@ -1423,9 +1427,11 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```.
+   * ```
    */
   'afterFilter',
+
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Fired while retrieving the column header height.
@@ -1931,6 +1937,7 @@ const REMOVED_HOOKS = new Map([
   ['hiddenRow', '8.0.0'],
 ]);
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The list of the hooks which are deprecated. The warning message is printed out in
  * the developer console when the hook is used.
@@ -1939,17 +1946,18 @@ const REMOVED_HOOKS = new Map([
  * printed out when the hook is used.
  *
  * Usage:
- * ```.
+ * ```js
  * ...
  * New Map([
  *   ['beforeColumnExpand', 'The plugin hook "beforeColumnExpand" is deprecated. Use "beforeColumnExpand2" instead.'],
  * ])
  * ...
- * ```.
+ * ```
  *
  *
  * @type {Map<string, string>}
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 const DEPRECATED_HOOKS = new Map([]);
 
 class Hooks {

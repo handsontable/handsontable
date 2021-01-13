@@ -13,8 +13,10 @@ import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations
 const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoColumnSize
+ * @class AutoColumnSize
  *
  * @description
  * This plugin allows to set column widths based on their widest cells.
@@ -35,7 +37,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
- * ```.
+ * ```
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
@@ -55,6 +57,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * }
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 class AutoColumnSize extends BasePlugin {
   static get CALCULATION_STEP() {
     return 50;
@@ -260,13 +263,13 @@ class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         this.ghostTable.getWidths((visualColumn, width) => {
           const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
           this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
         });
-      });
+      }, true);
 
       this.measuredColumns = columnsRange.to + 1;
 
@@ -311,7 +314,7 @@ class AutoColumnSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.wt.wtOverlays.adjustElementsSize();
+        this.hot.view.adjustElementsSize();
       }
     };
 
@@ -504,11 +507,11 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(columns, (physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
-      });
+      }, true);
 
     } else {
       this.columnWidthsMap.clear();
