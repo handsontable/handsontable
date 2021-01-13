@@ -15,7 +15,7 @@ hotMock.columnIndexMapper.initToLength(5);
 describe('MultiColumnSorting DOM helpers', () => {
   describe('getClassesToAdd', () => {
     it('multiple sorted columns', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE },
@@ -34,7 +34,7 @@ describe('MultiColumnSorting DOM helpers', () => {
 
   describe('getClassesToRemove', () => {
     it('should return all calculated classes', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE },

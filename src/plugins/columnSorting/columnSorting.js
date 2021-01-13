@@ -131,7 +131,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.columnStatesManager = new ColumnStatesManager(this.hot);
+    this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
 
     this.columnMetaCache = new IndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
@@ -188,6 +188,8 @@ class ColumnSorting extends BasePlugin {
 
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
     this.columnStatesManager.destroy();
+    this.columnMetaCache = null;
+    this.columnStatesManager = null;
 
     super.disablePlugin();
   }
