@@ -1,4 +1,6 @@
 import { BasePlugin } from '../base';
+import { registerPlugin } from '../plugins';
+import { ContextMenu } from '../contextMenu';
 import { arrayEach } from '../../helpers/array';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import EventManager from '../../eventManager';
@@ -17,6 +19,8 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.css';
+
+registerPlugin(ContextMenu);
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
