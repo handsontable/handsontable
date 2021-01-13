@@ -369,7 +369,7 @@ class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -460,7 +460,7 @@ class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
@@ -542,7 +542,7 @@ class ManualRowResize extends BasePlugin {
     const initialSetting = this.hot.getSettings().manualRowResize;
     const loadedManualRowHeights = this.loadManualRowHeights();
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       if (typeof loadedManualRowHeights !== 'undefined') {
         loadedManualRowHeights.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
@@ -561,7 +561,7 @@ class ManualRowResize extends BasePlugin {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
       }
-    });
+    }, true);
   }
 
   /**

@@ -376,7 +376,7 @@ class Filters extends BasePlugin {
       if (needToFilter) {
         const trimmedRows = [];
 
-        this.hot.batch(() => {
+        this.hot.batchExecution(() => {
           this.filtersRowsMap.clear();
 
           visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
@@ -392,7 +392,7 @@ class Filters extends BasePlugin {
           arrayEach(trimmedRows, (physicalRow) => {
             this.filtersRowsMap.setValueAtIndex(physicalRow, true);
           });
-        });
+        }, true);
 
         if (!visibleVisualRows.length) {
           this.hot.deselectCell();
@@ -404,7 +404,7 @@ class Filters extends BasePlugin {
 
     this.hot.runHooks('afterFilter', conditions);
 
-    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize(true);
     this.hot.render();
     this.clearColumnSelection();
   }
