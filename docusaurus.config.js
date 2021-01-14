@@ -78,6 +78,8 @@ module.exports = {
         {
           href: 'https://github.com/handsontable/handsontable',
           position: 'right',
+          className: 'hot-navbar-item-github',
+          'aria-label': 'GitHub repository',
         },
       ],
     },
