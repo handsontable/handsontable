@@ -16,31 +16,68 @@ module.exports = {
   organizationName: 'Handsontable',
   projectName: 'Handsontable',
   themeConfig: {
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: false,
+      respectPrefersColorScheme: false
+    },
     gtag: {
       trackingID: 'GTM-55L5D3',
     },
     navbar: {
       title: 'Handsontable',
-      logo: {
-        alt: 'My Site Logo',
-        src: 'img/logo.svg',
-      },
       items: [
         {
           to: '/',
           activeBasePath: 'docs',
           label: 'Docs',
           position: 'left',
-        },
-        {
-          href: 'https://github.com/handsontable/handsontable',
-          label: 'GitHub',
-          position: 'right',
+          className: 'hot-navbar-item-docs'
         },
         {
           type: 'docsVersionDropdown',
-          position: 'right',
+          position: 'left',
           dropdownActiveClassDisabled: true,
+        },
+        {
+          to: '/',
+          activeBasePath: 'docs',
+          label: 'API',
+          position: 'right',
+        },
+        {
+          to: '/',
+          activeBasePath: 'docs',
+          label: 'Guides',
+          position: 'right',
+        },
+        {
+          to: '/',
+          activeBasePath: 'docs',
+          label: 'Blog',
+          position: 'right',
+        },
+        {
+          label: 'Support',
+          position: 'right',
+          items: [
+            {
+              label: 'Discussion',
+              href: '...',
+            },
+            {
+              label: 'Report an issue',
+              href: '...',
+            },
+            {
+              label: 'Contact support',
+              href: '...',
+            }
+          ],
+        },
+        {
+          href: 'https://github.com/handsontable/handsontable',
+          position: 'right',
         },
       ],
     },
