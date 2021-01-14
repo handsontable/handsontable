@@ -14,7 +14,25 @@
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
-  "sideEffects": false,
+  "sideEffects": [
+    "./languages/all.js",
+    "./languages/de-CH.js",
+    "./languages/de-DE.js",
+    "./languages/en-US.js",
+    "./languages/es-MX.js",
+    "./languages/fr-FR.js",
+    "./languages/it-IT.js",
+    "./languages/ja-JP.js",
+    "./languages/ko-KR.js",
+    "./languages/lv-LV.js",
+    "./languages/nb-NO.js",
+    "./languages/nl-NL.js",
+    "./languages/pl-PL.js",
+    "./languages/pt-BR.js",
+    "./languages/ru-RU.js",
+    "./languages/zh-CN.js",
+    "./languages/zh-TW.js"
+  ],
   "exports": {
     ".": {
       "import": "./index.mjs",
