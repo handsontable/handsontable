@@ -1845,7 +1845,7 @@ describe('ContextMenu', () => {
     });
 
     it('should hide undo menu item when the UndoRedo plugin is disabled', () => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100,
@@ -1912,7 +1912,7 @@ describe('ContextMenu', () => {
     });
 
     it('should hide redo menu item when the UndoRedo plugin is disabled', () => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100,
