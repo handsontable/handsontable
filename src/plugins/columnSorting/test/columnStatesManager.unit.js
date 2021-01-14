@@ -14,7 +14,7 @@ hotMock.columnIndexMapper.initToLength(3);
 describe('ColumnSorting', () => {
   describe('ColumnStatesManager.updateAllColumnsProperties', () => {
     it('should update internal properties', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
       const compareFunctionFactory = function() {};
 
       columnStatesManager.updateAllColumnsProperties({
@@ -33,7 +33,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.getAllColumnsProperties', () => {
     it('should return default columns properties', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       expect(columnStatesManager.getAllColumnsProperties()).toEqual({
         sortEmptyCells: false,
@@ -45,7 +45,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should return set columns properties', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
       const compareFunctionFactory = function() {};
 
       columnStatesManager.updateAllColumnsProperties({
@@ -68,7 +68,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.setSortStates', () => {
     it('should change state queue', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
       const initialState = columnStatesManager.getSortStates();
 
       columnStatesManager.setSortStates([{ column: 0, sortOrder: ASC_SORT_STATE }]);
@@ -83,7 +83,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.getSortStates', () => {
     it('should return copy of states', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
       const newStatesQueue = [
         { column: 0, sortOrder: DESC_SORT_STATE },
         { column: 2, sortOrder: ASC_SORT_STATE },
@@ -101,7 +101,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.getColumnSortState', () => {
     it('should return copy of state', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       const newStatesQueue = [
         { column: 0, sortOrder: DESC_SORT_STATE },
@@ -120,7 +120,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.isListOfSortedColumnsEmpty', () => {
     it('should return `true` when state queue is empty', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       expect(columnStatesManager.isListOfSortedColumnsEmpty()).toBeTruthy();
 
@@ -128,7 +128,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should return `true` when state of the only sorted column was changed to not sorted', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([{ column: 0, sortOrder: ASC_SORT_STATE }]);
       columnStatesManager.setSortStates([]);
@@ -139,7 +139,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should return `false` when state queue is not empty', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([{ column: 0, sortOrder: ASC_SORT_STATE }]);
 
@@ -151,7 +151,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.getIndexOfColumnInSortQueue', () => {
     it('should return index of particular column in the states queue', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 0, sortOrder: DESC_SORT_STATE },
@@ -167,7 +167,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should return -1 when particular column does not exist in the states queue', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       expect(columnStatesManager.getIndexOfColumnInSortQueue(0)).toEqual(-1);
 
@@ -177,7 +177,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.getNumberOfSortedColumns', () => {
     it('should return number of sorted columns', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 0, sortOrder: DESC_SORT_STATE },
@@ -204,7 +204,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.isColumnSorted', () => {
     it('should return if particular column is sorted', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([{ column: 1, sortOrder: ASC_SORT_STATE }]);
 
@@ -217,7 +217,7 @@ describe('ColumnSorting', () => {
 
   describe('ColumnStatesManager.getSortOrderOfColumn', () => {
     it('should return `undefined` when column is not sorted', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       expect(columnStatesManager.getSortOrderOfColumn(0)).toBeUndefined();
 
@@ -225,7 +225,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should return proper order when column is sorted', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 0, sortOrder: DESC_SORT_STATE },

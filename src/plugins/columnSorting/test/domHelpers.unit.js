@@ -15,7 +15,7 @@ hotMock.columnIndexMapper.initToLength(3);
 describe('ColumnSorting DOM helpers', () => {
   describe('getClassesToAdd', () => {
     it('should add `columnSorting` CSS class by default', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE }
@@ -28,7 +28,7 @@ describe('ColumnSorting DOM helpers', () => {
     });
 
     it('should add `sortAction` CSS class for clickable header', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 1, sortOrder: DESC_SORT_STATE }
@@ -45,7 +45,7 @@ describe('ColumnSorting DOM helpers', () => {
 
     describe('should add proper CSS classes for enabled / disabled indicator', () => {
       it('single sorted column', () => {
-        const columnStatesManager = new ColumnStatesManager(hotMock);
+        const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
         columnStatesManager.setSortStates([
           { column: 1, sortOrder: DESC_SORT_STATE }
@@ -72,7 +72,7 @@ describe('ColumnSorting DOM helpers', () => {
 
   describe('getClassesToRemove', () => {
     it('should return all calculated classes', () => {
-      const columnStatesManager = new ColumnStatesManager(hotMock);
+      const columnStatesManager = new ColumnStatesManager(hotMock, 'sortingStates');
 
       columnStatesManager.setSortStates([
         { column: 3, sortOrder: ASC_SORT_STATE },

@@ -7,7 +7,6 @@ const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction'
 const SORT_EMPTY_CELLS_DEFAULT = false;
 const SHOW_SORT_INDICATOR_DEFAULT = true;
 const HEADER_ACTION_DEFAULT = true;
-const MAP_NAME = 'ColumnStatesManager.sortingStates';
 
 /**
  * Store and manages states of sorted columns.
@@ -17,7 +16,7 @@ const MAP_NAME = 'ColumnStatesManager.sortingStates';
  */
 // eslint-disable-next-line import/prefer-default-export
 export class ColumnStatesManager {
-  constructor(hot) {
+  constructor(hot, mapName) {
     /**
      * Handsontable instance.
      *
@@ -52,8 +51,14 @@ export class ColumnStatesManager {
      * Determines compare function factory. Method get as parameters `sortOder` and `columnMeta` and return compare function.
      */
     this.compareFunctionFactory = void 0;
+    /**
+     * Name of map storing sorting states. Required for unique name (PR #7440 introduced it). It's needed as
+     * both ColumnSorting and MultiColumnSorting plugins create state manager and as a consequence register maps.
+     * Objects are destroyed in strange order as the updateSettings doesn't work well.
+     */
+    this.mapName = mapName;
 
-    this.hot.columnIndexMapper.registerMap(MAP_NAME, this.sortingStates);
+    this.hot.columnIndexMapper.registerMap(mapName, this.sortingStates);
   }
 
   /**
@@ -200,7 +205,7 @@ export class ColumnStatesManager {
    * Destroy the state manager.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
+    this.hot.columnIndexMapper.unregisterMap(this.mapName);
     this.sortingStates = null;
   }
 }
