@@ -8,6 +8,10 @@
         {
           "type": "doc",
           "id": "version-temporary/introduction"
+        },
+        {
+          "type": "doc",
+          "id": "version-temporary/features"
         }
       ]
     }
