@@ -17,8 +17,8 @@
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
-    "in": "node scripts/delegateCommand.js",
-    "all": "node scripts/runAll.js",
+    "in": "node scripts/delegate-command.js",
+    "all": "node scripts/run-all.js",
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "npm run eslint && npm run stylelint",
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix",
@@ -46,7 +46,7 @@
     "test:unit.watch": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ./hot.config.js jest --testPathPattern=$npm_config_testPathPattern --watch",
     "test:mobile.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ./hot.config.js webpack --hide-modules helpers=./test/helpers/index.js mobile=./test/e2e/mobile/index.js",
     "test:types": "tsc -p ./test/types",
-    "test:ci": "node scripts/runTargetedTests.js",
+    "test:ci": "node scripts/run-targeted-tests.js",
     "watch": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ./hot.config.js webpack --hide-modules --watch src/index.js",
     "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.min",
     "build:commonjs": "cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ./hot.config.js babel src --out-dir commonjs",
@@ -56,7 +56,10 @@
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
-    "release": "npm run clean && npm run build && npm publish"
+    "freeze": "node ./scripts/freeze.js",
+    "release": "node ./scripts/release.js",
+    "publish": "npm publish",
+    "publish-all": "npm run all publish"
   },
   "keywords": [
     "data",

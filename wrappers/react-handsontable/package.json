@@ -87,14 +87,13 @@
     "handsontable": ">=8.0.0"
   },
   "scripts": {
-    "build": "npm run delete-build && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
+    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
     "build:commonjs": "cross-env NODE_ENV=cjs rollup -c",
     "build:umd": "cross-env NODE_ENV=umd rollup -c",
     "build:es": "cross-env NODE_ENV=es rollup -c",
     "build:min": "cross-env NODE_ENV=min rollup -c",
-    "delete-build": "del-cli ./es/ && del-cli ./commonjs/ && del-cli ./dist/ && del-cli ./*.d.ts",
-    "publish-build": "npm publish",
-    "publish-all": "npm run build && npm run publish-build && npm run delete-build",
+    "clean": "del-cli ./es/ && del-cli ./commonjs/ && del-cli ./dist/ && del-cli ./*.d.ts",
+    "publish": "npm publish",
     "test": "jest",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch",
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch"

@@ -6,7 +6,7 @@ const {
   getVersionFromReleaseType,
   setVersion,
   setReleaseDate,
-} = require('./setVersion');
+} = require('./set-version');
 
 const questions = [
   {

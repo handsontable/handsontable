@@ -22,10 +22,9 @@ spawnProcess('npm --version', true, (childProcess) => {
 spawnProcess('git status -s', true, (output) => {
   // If there are any uncommitted changes, kill the script.
   if (output.stdout.length > 0) {
-    // TODO: temporarily commented
-    // displayErrorMessage('There are uncommitted changes present. Exiting.');
-    //
-    // process.exitCode = 1;
+    displayErrorMessage('There are uncommitted changes present. Exiting.');
+
+    process.exit(1);
   }
 });
 
@@ -34,7 +33,7 @@ if (version && releaseDate) {
   spawnProcess(`node ./scripts/setVersion.js ${version} ${releaseDate}`);
 
 } else {
-  spawnProcess('node ./scripts/scheduleRelease.js');
+  spawnProcess('node ./scripts/schedule-release.js');
 }
 
 // Clear the projects' node_modules nad lock files.
@@ -43,6 +42,9 @@ spawnProcess('node ./scripts/clean.js');
 // Install fresh dependencies
 spawnProcess('npm i');
 
+// Clear old package builds.
+spawnProcess('npm run all clean');
+
 // Build all packages.
 spawnProcess('npm run all build');
 
@@ -50,15 +52,28 @@ spawnProcess('npm run all build');
 spawnProcess('npm run all test');
 
 // Verify if the bundles have the same (and correct) version.
-spawnProcess('node ./scripts/verifyBundles.js');
+spawnProcess('node ./scripts/verify-bundles.js');
 
 // Check if we're on a release branch.
+let branchName = null;
+
 spawnProcess('git rev-parse --abbrev-ref HEAD', true, (childProcess) => {
-  if (childProcess.stdout.toString().indexOf('release/') === -1) {
+  branchName = childProcess.stdout.toString().replace('\n', '');
+
+  if (branchName.indexOf('release/') === -1) {
     displayErrorMessage('You are not on a release branch.');
     process.exit(1);
   }
 });
 
 // Commit the changes to the release branch.
-// spawnProcess('');
+spawnProcess('git add .');
+
+const hotPackageJson = require('../package.json');
+
+spawnProcess(`git commit -m "${hotPackageJson.version}"`);
+
+if (branchName) {
+  spawnProcess(`git flow release publish ${branchName.replace('release/', '')}`);
+}
+

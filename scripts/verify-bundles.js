@@ -52,14 +52,14 @@ function verifyPackageVersions() {
       let defaultPackageVersion = null;
       let jsDelivrPackageVersion = null;
 
-      if (packagesInfo[packageName].defaultExport) {
+      if (packagesInfo[packageName]?.defaultExport) {
         defaultPackageVersion = defaultPackage.default.version;
 
       } else {
-        defaultPackageVersion = defaultPackage[packagesInfo[packageName].className].version;
+        defaultPackageVersion = defaultPackage[packagesInfo[packageName]?.className]?.version;
 
         if (jsDelivrPackage) {
-          jsDelivrPackageVersion = jsDelivrPackage[packagesInfo[packageName].className].version;
+          jsDelivrPackageVersion = jsDelivrPackage[packagesInfo[packageName]?.className]?.version;
         }
       }
 
@@ -75,11 +75,15 @@ function verifyPackageVersions() {
 
   if (mismatchedVersions.length > 0) {
     mismatchedVersions.forEach((mismatch) => {
-      displayErrorMessage(`Mismatched versions in ${mismatch}.`);
+      displayErrorMessage(`\nMismatched versions in ${mismatch}.`);
     });
 
+    process.exit(1);
+
   } else {
-    displayConfirmationMessage('All packages have the expected version number.');
+    displayConfirmationMessage('\nAll packages have the expected version number.\n');
+
+    process.exit(0);
   }
 }
 
