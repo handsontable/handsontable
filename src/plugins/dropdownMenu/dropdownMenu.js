@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { registerPlugin } from '../plugins';
-import { ContextMenu } from '../contextMenu';
+import { AutoColumnSize } from '../autoColumnSize';
 import { arrayEach } from '../../helpers/array';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import EventManager from '../../eventManager';
@@ -20,7 +20,7 @@ import {
 
 import './dropdownMenu.css';
 
-registerPlugin(ContextMenu);
+registerPlugin(AutoColumnSize);
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
