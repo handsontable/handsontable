@@ -2,7 +2,7 @@
 id: features
 title: Features Showcase
 sidebar_label: Features Showcase
-slug: /features
+slug: /temp/features
 ---
 
 # Header 1
@@ -25,9 +25,7 @@ Available options in the browser's toolbar:
 
 *   `Edit > Paste` - paste the content into the last selected cell range
 
-
 [Due to security reason, modern browsers disallow to read from the system clipboard.](https://www.w3.org/TR/clipboard-apis/#privacy)
-
 
 ### Code snippet
 
@@ -44,7 +42,6 @@ hot1 = new Handsontable(container, {
   className: "htCenter",
 });
 ```
-
 
 ### Image
 
@@ -77,7 +74,7 @@ hot1 = new Handsontable(container, {
 5. point 5 (minus)
    - point 5.1
    - point 5.2
-   
+
 #### Stars
 
 * point 1
@@ -93,7 +90,7 @@ hot1 = new Handsontable(container, {
 * point 5 (minus)
    * point 5.1
    * point 5.2
-   
+
 #### Multilevel
 
 1. 1
@@ -102,20 +99,18 @@ hot1 = new Handsontable(container, {
          1. 1.1.1.1
             1. 1.1.1.1
             1. 1.1.1.2
-            
-            
+
 * 1
    * 1.1
       * 1.1.1
          * 1.1.1.1
             * 1.1.1.1
             * 1.1.1.2
-            
+
 ### Inline HTML
 
 <center>center</center>
 <table><tr><td>a1</td><td>a2</td></tr></table>
-
 
 ### Admonitions
 

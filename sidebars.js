@@ -1,5 +1,9 @@
 module.exports = {
   docs: {
+    Temporary: [
+      'temp/features',
+      'temp/introduction',
+    ],
     Handsontable: [
       { type: 'category', label: 'Getting started', items: ['tutorial-introduction', 'tutorial-features', 'tutorial-compatibility', 'tutorial-licensing', 'tutorial-license-key'] },
       { type: 'category', label: 'Basic usage', items: ['tutorial-quick-start', 'tutorial-data-binding', 'tutorial-data-sources', 'tutorial-load-and-save', 'tutorial-setting-options', 'tutorial-grid-sizing', 'tutorial-using-callbacks', 'tutorial-keyboard-navigation', 'tutorial-internationalization'] },
