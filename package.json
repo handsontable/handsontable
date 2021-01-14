@@ -21,6 +21,7 @@
     "./languages/en-US.js",
     "./languages/es-MX.js",
     "./languages/fr-FR.js",
+    "./languages/index.js",
     "./languages/it-IT.js",
     "./languages/ja-JP.js",
     "./languages/ko-KR.js",
