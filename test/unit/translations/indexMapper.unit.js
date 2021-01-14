@@ -2464,7 +2464,7 @@ describe('IndexMapper', () => {
       expect(renderablePhysicalIndexesCache).toEqual(indexMapper.renderablePhysicalIndexesCache);
     });
 
-    it('should update cache only once when used the `executeBatchOperations` function', () => {
+    it('should update cache only once when used the `suspendOperations` function', () => {
       const indexMapper1 = new IndexMapper();
       const indexMapper2 = new IndexMapper();
       const cacheUpdatedCallback1 = jasmine.createSpy('cacheUpdated');
@@ -2486,11 +2486,11 @@ describe('IndexMapper', () => {
       const renderablePhysicalIndexesCache1 = indexMapper1.renderablePhysicalIndexesCache;
       const renderablePhysicalIndexesCache2 = indexMapper2.renderablePhysicalIndexesCache;
 
-      indexMapper1.executeBatchOperations(() => {
-        indexMapper1.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
-        indexMapper1.setIndexesSequence([0, 1, 2, 3, 4, 9, 8, 7, 6, 5]);
-        indexMapper1.setIndexesSequence([9, 8, 7, 6, 0, 1, 2, 3, 4, 5]);
-      });
+      indexMapper1.suspendOperations();
+      indexMapper1.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+      indexMapper1.setIndexesSequence([0, 1, 2, 3, 4, 9, 8, 7, 6, 5]);
+      indexMapper1.setIndexesSequence([9, 8, 7, 6, 0, 1, 2, 3, 4, 5]);
+      indexMapper1.resumeOperations();
 
       expect(notTrimmedIndexesCache1).not.toBe(indexMapper1.notTrimmedIndexesCache);
       expect(notHiddenIndexesCache1).not.toBe(indexMapper1.notHiddenIndexesCache);

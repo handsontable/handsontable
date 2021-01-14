@@ -232,11 +232,11 @@ export class HiddenRows extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(rows, (visualRow) => {
           this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });
-      });
+      }, true);
     }
 
     this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, isConfigValid,

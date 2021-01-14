@@ -48,7 +48,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
       }
 
       this.render();
-      this.view.wt.wtOverlays.adjustElementsSize(true);
+      this.view.adjustElementsSize(true);
     },
     disabled: false,
     hidden() {

@@ -4,7 +4,7 @@ const allowedE2EModules = [
   'jest-matcher-utils',
   'html-parse-stringify',
   'core-js/*',
-  'regenerator-runtime/runtime',
+  'regenerator-runtime/runtime*',
   '@babel/runtime/*',
   './htmlNormalize',
   './common',

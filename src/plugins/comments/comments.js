@@ -38,7 +38,7 @@ const META_READONLY = 'readOnly';
  * To enable the plugin, you'll need to set the comments property of the config object to `true`:
  * ```js
  * comments: true
- * ```.
+ * ```
  *
  * or an object with extra predefined plugin config:
  *
@@ -46,7 +46,7 @@ const META_READONLY = 'readOnly';
  * comments: {
  *   displayDelay: 1000
  * }
- * ```.
+ * ```
  *
  * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
  *

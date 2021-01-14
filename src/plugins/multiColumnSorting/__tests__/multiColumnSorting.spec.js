@@ -2996,4 +2996,89 @@ describe('MultiColumnSorting', () => {
       expect(onErrorSpy).not.toHaveBeenCalled();
     });
   });
+
+  it('cooperation with the ColumnSorting plugin (extra warn and just one plugin works)', () => {
+    const warnSpy = spyOn(console, 'warn');
+
+    handsontable({
+      columnSorting: true,
+      multiColumnSorting: true,
+      colHeaders: true
+    });
+
+    spec().sortByClickOnColumnHeader(2);
+
+    keyDown('ctrl');
+
+    spec().sortByClickOnColumnHeader(3);
+
+    expect(warnSpy).toHaveBeenCalled();
+
+    const sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
+    const sortedColumn2 = spec().$container.find('th span.columnSorting')[3];
+
+    expect(window.getComputedStyle(sortedColumn1, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn2, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
+      { column: 2, sortOrder: 'asc' },
+      { column: 3, sortOrder: 'asc' },
+    ]);
+  });
+
+  it('cooperation with the ColumnSorting plugin (updateSettings enable and disable plugins properly)', () => {
+    handsontable({
+      columnSorting: true,
+      colHeaders: true
+    });
+
+    spec().sortByClickOnColumnHeader(2);
+
+    keyDown('ctrl');
+
+    spec().sortByClickOnColumnHeader(3);
+
+    let sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
+    let sortedColumn2 = spec().$container.find('th span.columnSorting')[3];
+
+    expect(window.getComputedStyle(sortedColumn1, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn2, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    updateSettings({ columnSorting: true, multiColumnSorting: false });
+
+    expect(window.getComputedStyle(sortedColumn1, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn2, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    updateSettings({ columnSorting: false, multiColumnSorting: true });
+
+    spec().sortByClickOnColumnHeader(0);
+
+    keyDown('ctrl');
+
+    spec().sortByClickOnColumnHeader(1);
+
+    sortedColumn1 = spec().$container.find('th span.columnSorting')[0];
+    sortedColumn2 = spec().$container.find('th span.columnSorting')[1];
+
+    expect(window.getComputedStyle(sortedColumn1, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn2, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    updateSettings({ columnSorting: false, multiColumnSorting: true });
+
+    expect(window.getComputedStyle(sortedColumn1, ':before').getPropertyValue('background-image')).toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn2, ':before').getPropertyValue('background-image')).toMatch(/url/);
+
+    updateSettings({ columnSorting: true, multiColumnSorting: false });
+
+    spec().sortByClickOnColumnHeader(2);
+
+    keyDown('ctrl');
+
+    spec().sortByClickOnColumnHeader(3);
+
+    sortedColumn1 = spec().$container.find('th span.columnSorting')[2];
+    sortedColumn2 = spec().$container.find('th span.columnSorting')[3];
+
+    expect(window.getComputedStyle(sortedColumn1, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
+    expect(window.getComputedStyle(sortedColumn2, ':before').getPropertyValue('background-image')).toMatch(/url/);
+  });
 });

@@ -361,12 +361,12 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       arrayEach(affectedColumnsIndexes, (visualColumn) => {
         this.#collapsedColumnsMap
           .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
       });
-    });
+    }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
 
@@ -379,7 +379,7 @@ export class CollapsibleColumns extends BasePlugin {
     );
 
     this.hot.render();
-    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize(true);
   }
 
   /**

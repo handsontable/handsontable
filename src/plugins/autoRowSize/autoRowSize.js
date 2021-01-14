@@ -13,9 +13,10 @@ export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoRowSize
- *
+ * @class AutoRowSize
  * @description
  * This plugin allows to set row heights based on their highest cells.
  *
@@ -38,7 +39,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
- * ```.
+ * ```
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
@@ -62,6 +63,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoRowSize extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -226,7 +228,7 @@ export class AutoRowSize extends BasePlugin {
     });
 
     if (this.ghostTable.rows.length) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         this.ghostTable.getHeights((row, height) => {
           if (row < 0) {
             this.headerHeight = height;
@@ -234,7 +236,7 @@ export class AutoRowSize extends BasePlugin {
             this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
           }
         });
-      });
+      }, true);
 
       this.measuredRows = rowsRange.to + 1;
 
@@ -276,7 +278,7 @@ export class AutoRowSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        this.hot.view.adjustElementsSize(true);
         // tmp
         if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
           this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
@@ -297,7 +299,7 @@ export class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.hot.view.wt.wtOverlays.adjustElementsSize(false);
+      this.hot.view.adjustElementsSize(false);
     }
   }
 
@@ -437,11 +439,11 @@ export class AutoRowSize extends BasePlugin {
   clearCacheByRange(range) {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
       });
-    });
+    }, true);
   }
 
   /**
