@@ -63,15 +63,15 @@ module.exports = {
           items: [
             {
               label: 'Discussion',
-              href: '...',
+              href: 'https://handsontable.com',
             },
             {
               label: 'Report an issue',
-              href: '...',
+              href: 'https://handsontable.com',
             },
             {
               label: 'Contact support',
-              href: '...',
+              href: 'https://handsontable.com',
             }
           ],
         },
