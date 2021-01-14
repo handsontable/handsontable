@@ -38,6 +38,7 @@ describe('built-in plugins', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
+      'UndoRedo',
     ]);
   });
 });

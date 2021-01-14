@@ -15,12 +15,12 @@ export default function redoItem() {
       this.redo();
     },
     hidden() {
-      return !this.getPlugin('undoRedo');
-    },
-    disabled() {
       const undoRedo = this.getPlugin('undoRedo');
 
-      return !undoRedo.isEnabled() || !undoRedo.isRedoAvailable();
+      return !undoRedo || !undoRedo.isEnabled();
+    },
+    disabled() {
+      return !this.getPlugin('undoRedo').isRedoAvailable();
     }
   };
 }

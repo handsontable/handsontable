@@ -1844,26 +1844,21 @@ describe('ContextMenu', () => {
       expect(getDataAtCell(0, 0)).toBe('A1');
     });
 
-    it('should not undo changes when the UndoRedo plugin is disabled', () => {
-      handsontable({
+    it('should hide undo menu item when the UndoRedo plugin is disabled', () => {
+      const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100,
         undo: false,
       });
 
-      setDataAtCell(0, 0, 'XX');
       selectCell(0, 0);
       contextMenu();
 
       const $undoMenuItem = $('.htContextMenu .ht_master .htCore')
         .find('tbody td:contains("Undo")');
-      $undoMenuItem
-        .simulate('mousedown')
-        .simulate('mouseup');
 
-      expect($undoMenuItem.hasClass('htDisabled')).toBe(true);
-      expect(getDataAtCell(0, 0)).toBe('XX');
+      expect($undoMenuItem.length).toBe(0);
     });
 
     it('should hide undo menu item when the UndoRedo plugin is missing', () => {
@@ -1916,8 +1911,8 @@ describe('ContextMenu', () => {
       expect(getDataAtCell(0, 0)).toBe('XX');
     });
 
-    it('should not redo changes when the UndoRedo plugin is disabled', () => {
-      handsontable({
+    it('should hide redo menu item when the UndoRedo plugin is disabled', () => {
+      const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100,
@@ -1927,14 +1922,10 @@ describe('ContextMenu', () => {
       selectCell(0, 0);
       contextMenu();
 
-      const $redoMenuItem = $('.htContextMenu .ht_master .htCore')
+      const $undoMenuItem = $('.htContextMenu .ht_master .htCore')
         .find('tbody td:contains("Redo")');
 
-      $redoMenuItem
-        .simulate('mousedown')
-        .simulate('mouseup');
-
-      expect($redoMenuItem.hasClass('htDisabled')).toBe(true);
+      expect($undoMenuItem.length).toBe(0);
     });
 
     it('should hide redo menu item when the UndoRedo plugin is missing', () => {
