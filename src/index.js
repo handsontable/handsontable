@@ -285,13 +285,19 @@ Handsontable.validators.registerValidator = registerValidator;
 Handsontable.validators.getValidator = getValidator;
 
 // Export all registered plugins from the Handsontable.
-Handsontable.plugins = {
-  [`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`]: BasePlugin,
-};
+// Make sure to initialize the plugin dictionary as an empty object. Otherwise, while
+// transpiling the files into ES and CommonJS format, the injected CoreJS helper
+// `import "core-js/modules/es.object.get-own-property-names";` won't be processed
+// by the `./config/plugin/babel/add-import-extension` babel plugin. Thus, the distribution
+// files will be broken. The reason is not known right now (probably it's caused by bug in
+// the Babel or missing something in the plugin).
+Handsontable.plugins = {};
 
 arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
   Handsontable.plugins[pluginName] = getPlugin(pluginName);
 });
+
+Handsontable.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`] = BasePlugin;
 
 Handsontable.plugins.registerPlugin = registerPlugin;
 Handsontable.plugins.getPlugin = getPlugin;
