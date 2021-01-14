@@ -7,11 +7,18 @@ import {
   ColumnSorting,
   DropdownMenu,
   Filters,
+  HiddenRows,
   ManualColumnResize,
   ManualRowResize,
   NestedRows,
   TrimRows,
 } from 'handsontable/plugins';
+import {
+  registerCellType,
+  CheckboxCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(CheckboxCellType);
 
 registerPlugin(AutoColumnSize);
 registerPlugin(AutoRowSize);
@@ -19,6 +26,7 @@ registerPlugin(BindRowsWithHeaders);
 registerPlugin(ColumnSorting);
 registerPlugin(DropdownMenu);
 registerPlugin(Filters);
+registerPlugin(HiddenRows);
 registerPlugin(ManualColumnResize);
 registerPlugin(ManualRowResize);
 registerPlugin(NestedRows);

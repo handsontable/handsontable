@@ -35,6 +35,7 @@ export class BasePlugin {
     this.isPluginsReady = false;
     this.enabled = false;
     this.initialized = false;
+    this.dependecies = [];
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
     this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
@@ -43,6 +44,28 @@ export class BasePlugin {
 
   init() {
     this.pluginName = this.hot.getPluginName(this);
+
+    if (this.dependecies.length > 0) {
+      const errorStack = [];
+
+      this.dependecies.forEach((callback) => {
+        const msg = callback();
+
+        if (msg) {
+          errorStack.push(msg);
+        }
+      });
+
+      if (errorStack.length > 0) {
+        const errorMsg = [
+          `Plugin ${this.pluginName} requires the following modules:\n`,
+          `${errorStack.join('\n')}\n`,
+          'You have to import and register them manually.',
+        ].join('');
+
+        throw new Error(errorMsg);
+      }
+    }
 
     if (this.isEnabled && this.isEnabled()) {
       this.enablePlugin();

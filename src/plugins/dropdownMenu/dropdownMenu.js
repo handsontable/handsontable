@@ -1,6 +1,4 @@
 import { BasePlugin } from '../base';
-import { registerPlugin } from '../plugins';
-import { AutoColumnSize } from '../autoColumnSize';
 import { arrayEach } from '../../helpers/array';
 import CommandExecutor from '../contextMenu/commandExecutor';
 import EventManager from '../../eventManager';
@@ -19,8 +17,6 @@ import {
 } from '../contextMenu/predefinedItems';
 
 import './dropdownMenu.css';
-
-registerPlugin(AutoColumnSize);
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -98,6 +94,15 @@ export class DropdownMenu extends BasePlugin {
       ALIGNMENT,
     ];
   }
+
+  /**
+   * Dependencies list.
+   *
+   * @type {Array}
+   */
+  dependecies = [
+    () => (this.hot.getPlugin('AutoColumnSize') ? '' : 'AutoColumnSize'),
+  ];
 
   constructor(hotInstance) {
     super(hotInstance);

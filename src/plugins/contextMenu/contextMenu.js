@@ -1,6 +1,4 @@
 import { BasePlugin } from '../base';
-import { registerPlugin } from '../plugins';
-import { AutoColumnSize } from '../autoColumnSize';
 import Hooks from '../../pluginHooks';
 import { arrayEach } from '../../helpers/array';
 import CommandExecutor from './commandExecutor';
@@ -23,8 +21,6 @@ import {
 } from './predefinedItems';
 
 import './contextMenu.css';
-
-registerPlugin(AutoColumnSize);
 
 export const PLUGIN_KEY = 'contextMenu';
 export const PLUGIN_PRIORITY = 70;
@@ -104,6 +100,15 @@ export class ContextMenu extends BasePlugin {
       ALIGNMENT,
     ];
   }
+
+  /**
+   * Dependencies list.
+   *
+   * @type {Array}
+   */
+  dependecies = [
+    () => (this.hot.getPlugin('AutoColumnSize') ? '' : 'AutoColumnSize'),
+  ];
 
   constructor(hotInstance) {
     super(hotInstance);

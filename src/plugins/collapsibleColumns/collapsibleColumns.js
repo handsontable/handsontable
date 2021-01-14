@@ -1,6 +1,4 @@
 import { BasePlugin } from '../base';
-import { registerPlugin } from '../plugins';
-import { NestedHeaders } from '../nestedHeaders';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -28,8 +26,6 @@ const actionDictionary = new Map([
     afterHook: 'afterColumnExpand',
   }],
 ]);
-
-registerPlugin(NestedHeaders);
 
 /**
  * @plugin CollapsibleColumns
@@ -107,6 +103,14 @@ export class CollapsibleColumns extends BasePlugin {
    * @type {HidingMap|null}
    */
   #collapsedColumnsMap = null;
+  /**
+   * Dependencies list.
+   *
+   * @type {Array}
+   */
+  dependecies = [
+    () => (this.hot.getPlugin('NestedHeaders') ? '' : 'NestedHeaders'),
+  ];
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}

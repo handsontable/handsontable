@@ -1,8 +1,5 @@
 import { BasePlugin } from '../base';
-import { DropdownMenu } from '../dropdownMenu';
-import { HiddenRows } from '../hiddenRows';
-import { registerPlugin } from '../plugins';
-import { registerCellType, CheckboxCellType, hasCellType } from '../../cellTypes';
+import { hasCellType } from '../../cellTypes';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
@@ -29,9 +26,6 @@ import {
 import { TrimmingMap } from '../../translations';
 
 import './filters.css';
-
-registerPlugin(DropdownMenu);
-registerPlugin(HiddenRows);
 
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
@@ -64,6 +58,17 @@ export class Filters extends BasePlugin {
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
+
+  /**
+   * Dependencies list.
+   *
+   * @type {Array}
+   */
+  dependecies = [
+    () => (this.hot.getPlugin('DropdownMenu') ? '' : 'DropdownMenu'),
+    () => (this.hot.getPlugin('HiddenRows') ? '' : 'HiddenRows'),
+    () => (hasCellType('checkbox') ? '' : 'CheckboxCellType'),
+  ];
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -549,10 +554,6 @@ export class Filters extends BasePlugin {
    */
   onBeforeDropdownMenuSetItems() {
     if (this.dropdownMenuPlugin) {
-      if (!hasCellType(CheckboxCellType.CELL_TYPE)) {
-        registerCellType(CheckboxCellType);
-      }
-
       this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
         this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
       });
