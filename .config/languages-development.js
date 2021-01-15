@@ -41,6 +41,8 @@ const ruleForSnippetsInjection = {
       {
         pattern: /import.+constants.+/,
         replacement: function() {
+          // Adding the `index.js` file at the end of the import path ensures that the language
+          // will require the Handsontable module using the CommonJS environment (.js files).
           const snippet1 = `import Handsontable from '../../${PACKAGE_FILENAME}/index.js';`;
           const snippet2 = `const C = Handsontable.languages.dictionaryKeys;`;
 
