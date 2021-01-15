@@ -1,0 +1,531 @@
+{
+  "version-9.0/docs": [
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Temporary",
+      "items": [
+        {
+          "type": "doc",
+          "id": "version-9.0/temp/features"
+        },
+        {
+          "type": "doc",
+          "id": "version-9.0/temp/introduction"
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Handsontable",
+      "items": [
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Getting started",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-introduction"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-features"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-compatibility"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-licensing"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-license-key"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Basic usage",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-quick-start"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-data-binding"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-data-sources"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-load-and-save"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-setting-options"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-grid-sizing"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-using-callbacks"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-keyboard-navigation"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-internationalization"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Developer guide",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-custom-build"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-custom-plugin"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-cell-types"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-cell-editor"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-cell-function"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-testing"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-performance-tips"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-release-notes"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/tutorial-migration-guide"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Wrappers",
+      "items": [
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Wrapper for React",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-installation"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-simple-examples"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-hot-column"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-custom-context-menu-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-custom-editor-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-custom-renderer-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-language-change-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-redux-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-react-hot-reference"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Wrapper for Angular",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-installation"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-simple-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-custom-id"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-custom-context-menu-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-custom-editor-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-custom-renderer-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-language-change-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-angular-hot-reference"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Wrapper for Vue",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-installation"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-simple-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-hot-column"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-custom-id-class-style"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-custom-context-menu-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-custom-editor-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-custom-renderer-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-language-change-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-vuex-example"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/frameworks-wrapper-for-vue-hot-reference"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "collapsed": true,
+      "type": "category",
+      "label": "Demos",
+      "items": [
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Rows and columns",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-scrolling"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-fixing"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-resizing"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-moving"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-header-tooltips"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-pre-populating"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-stretching"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-freezing"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-fixing-bottom"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-hiding-rows"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-hiding-columns"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-trimming-rows"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-bind-rows-headers"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-collapsing-columns"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-nested-headers"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-nested-rows"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-dropdown-menu"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Data operations",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-sorting"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-multicolumn-sorting"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-searching"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-filtering"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-summary-calculations"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Cell features",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-data-validation"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-auto-fill"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-merged-cells"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-alignment"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-read-only"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-disabled-editing"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Cell types",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-custom-renderers"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-numeric"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-date"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-time"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-checkbox"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-select"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-dropdown"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-autocomplete"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-password"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-handsontable"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Utilities",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-context-menu"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-custom-buttons"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-spreadsheet-icons"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-comments_"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-copy-paste"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-export-file"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Appearance",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-conditional-formatting"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-customizing-borders"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-selecting-ranges"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-highlighting-selection"
+            },
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-mobiles-and-tablets"
+            }
+          ]
+        },
+        {
+          "collapsed": true,
+          "type": "category",
+          "label": "Formulas",
+          "items": [
+            {
+              "type": "doc",
+              "id": "version-9.0/demo-formula-support"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

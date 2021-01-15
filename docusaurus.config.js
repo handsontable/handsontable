@@ -9,13 +9,18 @@ module.exports = {
   title: 'Handsontable',
   tagline: 'Documentation',
   url: 'https://handsontable.com/docs',
-  baseUrl: '/docs/next/', // `next` is needed as long as none additional versions published.
+  baseUrl: '/docs/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'Handsontable',
   projectName: 'Handsontable',
   themeConfig: {
+    announcementBar: isDev && {
+      content: `Development, built at ${new Date().toLocaleString()}`,
+      backgroundColor: '#fafbfc',
+      textColor: '#091E42',
+    },
     colorMode: {
       defaultMode: 'light',
       disableSwitch: false,
