@@ -20,8 +20,9 @@ const createVisitor = ({ declaration, origArgs }) => {
     const { opts: { filename } } = file;
     const isTypeOnly = exportKind === 'type' || importKind === 'type';
 
-    // Add before the default export declaration expression statement with
-    // language registration (`Handsontable.languages.registerLanguageDictionary(dictionary)`).
+    // This adds the expression statement with language registration
+    // (`Handsontable.languages.registerLanguageDictionary(dictionary)`) before default
+    // export declaration.
     if (path.node.type === 'ExportDefaultDeclaration') {
       const registerLanguageExpression = types.expressionStatement(
         types.callExpression(
@@ -56,7 +57,7 @@ const createVisitor = ({ declaration, origArgs }) => {
         types.stringLiteral(HOT_MODULE_NAME),
       );
 
-      // Replace namespace import `import * as C from '../constants';` with default import
+      // Replace the namespace import `import * as C from '../constants';` with default import
       // declaration `import Handsontable from 'handsontable';`.
       path.replaceWith(importDeclaration);
 
