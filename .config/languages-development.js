@@ -41,7 +41,7 @@ const ruleForSnippetsInjection = {
       {
         pattern: /import.+constants.+/,
         replacement: function() {
-          const snippet1 = `import Handsontable from '../../${PACKAGE_FILENAME}';`;
+          const snippet1 = `import Handsontable from '../../${PACKAGE_FILENAME}/index.js';`;
           const snippet2 = `const C = Handsontable.languages.dictionaryKeys;`;
 
           return `${snippet1}${NEW_LINE_CHAR.repeat(2)}${snippet2}`;
@@ -71,13 +71,12 @@ module.exports.create = function create() {
       libraryTarget: 'umd',
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       umdNamedDefine: true,
-      
     },
     externals: {
-      [`../../${PACKAGE_FILENAME}`]: {
+      [`../../${PACKAGE_FILENAME}/index.js`]: {
         root: 'Handsontable',
-        commonjs2: `../../${PACKAGE_FILENAME}`,
-        commonjs: `../../${PACKAGE_FILENAME}`,
+        commonjs2: `../../${PACKAGE_FILENAME}/index.js`,
+        commonjs: `../../${PACKAGE_FILENAME}/index.js`,
         amd: `../../${PACKAGE_FILENAME}`,
       },
     },

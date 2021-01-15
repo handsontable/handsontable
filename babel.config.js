@@ -75,6 +75,16 @@ module.exports = {
         '**/dist/**',
       ],
     },
+    // Environment for transpiling only legacy language files (e.q. import `languages/pl-PL`)
+    // which need to be compatible with ES Modules. That format, by default, automatically
+    // registers the language pack. It's not suitable to use with the modularized version of
+    // the Handsontable.
+    es_languages: {
+      plugins: [
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['./.config/plugin/babel/add-language-registration.js'],
+      ],
+    },
     // Environment for building E2E tests (UMD).
     commonjs_e2e: {
       plugins: [

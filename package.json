@@ -32,7 +32,24 @@
     "./languages/pt-BR.js",
     "./languages/ru-RU.js",
     "./languages/zh-CN.js",
-    "./languages/zh-TW.js"
+    "./languages/zh-TW.js",
+    "./languages/de-CH.mjs",
+    "./languages/de-DE.mjs",
+    "./languages/en-US.mjs",
+    "./languages/es-MX.mjs",
+    "./languages/fr-FR.mjs",
+    "./languages/index.mjs",
+    "./languages/it-IT.mjs",
+    "./languages/ja-JP.mjs",
+    "./languages/ko-KR.mjs",
+    "./languages/lv-LV.mjs",
+    "./languages/nb-NO.mjs",
+    "./languages/nl-NL.mjs",
+    "./languages/pl-PL.mjs",
+    "./languages/pt-BR.mjs",
+    "./languages/ru-RU.mjs",
+    "./languages/zh-CN.mjs",
+    "./languages/zh-TW.mjs"
   ],
   "exports": {
     ".": {
@@ -199,72 +216,76 @@
       "import": "./i18n/languages/zh-TW.mjs",
       "require": "./i18n/languages/zh-TW.js"
     },
+    "./languages": {
+      "import": "./languages/index.mjs",
+      "require": "./languages/index.js"
+    },
     "./languages/all": {
-      "import": "./languages/all.js",
+      "import": "./languages/index.mjs",
       "require": "./languages/all.js"
     },
     "./languages/de-CH": {
-      "import": "./languages/de-CH.js",
+      "import": "./languages/de-CH.mjs",
       "require": "./languages/de-CH.js"
     },
     "./languages/de-DE": {
-      "import": "./languages/de-DE.js",
+      "import": "./languages/de-DE.mjs",
       "require": "./languages/de-DE.js"
     },
     "./languages/en-US": {
-      "import": "./languages/en-US.js",
+      "import": "./languages/en-US.mjs",
       "require": "./languages/en-US.js"
     },
     "./languages/es-MX": {
-      "import": "./languages/es-MX.js",
+      "import": "./languages/es-MX.mjs",
       "require": "./languages/es-MX.js"
     },
     "./languages/fr-FR": {
-      "import": "./languages/fr-FR.js",
+      "import": "./languages/fr-FR.mjs",
       "require": "./languages/fr-FR.js"
     },
     "./languages/it-IT": {
-      "import": "./languages/it-IT.js",
+      "import": "./languages/it-IT.mjs",
       "require": "./languages/it-IT.js"
     },
     "./languages/ja-JP": {
-      "import": "./languages/ja-JP.js",
+      "import": "./languages/ja-JP.mjs",
       "require": "./languages/ja-JP.js"
     },
     "./languages/ko-KR": {
-      "import": "./languages/ko-KR.js",
+      "import": "./languages/ko-KR.mjs",
       "require": "./languages/ko-KR.js"
     },
     "./languages/lv-LV": {
-      "import": "./languages/lv-LV.js",
+      "import": "./languages/lv-LV.mjs",
       "require": "./languages/lv-LV.js"
     },
     "./languages/nb-NO": {
-      "import": "./languages/nb-NO.js",
+      "import": "./languages/nb-NO.mjs",
       "require": "./languages/nb-NO.js"
     },
     "./languages/nl-NL": {
-      "import": "./languages/nl-NL.js",
+      "import": "./languages/nl-NL.mjs",
       "require": "./languages/nl-NL.js"
     },
     "./languages/pl-PL": {
-      "import": "./languages/pl-PL.js",
+      "import": "./languages/pl-PL.mjs",
       "require": "./languages/pl-PL.js"
     },
     "./languages/pt-BR": {
-      "import": "./languages/pt-BR.js",
+      "import": "./languages/pt-BR.mjs",
       "require": "./languages/pt-BR.js"
     },
     "./languages/ru-RU": {
-      "import": "./languages/ru-RU.js",
+      "import": "./languages/ru-RU.mjs",
       "require": "./languages/ru-RU.js"
     },
     "./languages/zh-CN": {
-      "import": "./languages/zh-CN.js",
+      "import": "./languages/zh-CN.mjs",
       "require": "./languages/zh-CN.js"
     },
     "./languages/zh-TW": {
-      "import": "./languages/zh-TW.js",
+      "import": "./languages/zh-TW.mjs",
       "require": "./languages/zh-TW.js"
     },
     "./plugins": {
@@ -499,15 +520,16 @@
     "test:mobile.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ./hot.config.js webpack --hide-modules helpers=./test/helpers/index.js mobile=./test/e2e/mobile/index.js",
     "test:types": "tsc -p ./test/types",
     "watch": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ./hot.config.js webpack --hide-modules --watch src/index.js",
-    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.min",
+    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.es && npm run build:languages.min",
     "build:commonjs": "cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ./hot.config.js babel src --out-dir tmp",
     "build:es": "cross-env-shell BABEL_ENV=es env-cmd -f ./hot.config.js babel src --out-file-extension .mjs --out-dir tmp",
     "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ./hot.config.js webpack --hide-modules ./src/index.js",
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ./hot.config.js webpack --hide-modules ./src/3rdparty/walkontable/src/index.js",
     "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ./hot.config.js webpack",
+    "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
-    "postbuild": "node ./scripts/prepare-package",
+    "postbuild": "node ./scripts/prepare-package-for-publish",
     "changelog": "bin/changelog",
     "release": "npm run build && cd tmp && npm publish && cd .."
   },
