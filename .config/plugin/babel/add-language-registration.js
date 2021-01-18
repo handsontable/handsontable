@@ -48,7 +48,7 @@ const createVisitor = ({ declaration, origArgs }) => {
 
     const { value: moduleName } = source;
 
-    if (moduleName.endsWith('constants')) {
+    if (moduleName.endsWith('constants.mjs')) {
       const importDefaultSpecifier = types.importDefaultSpecifier(
         types.identifier(HOT_LIBRARY_NAME),
       );

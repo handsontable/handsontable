@@ -63,6 +63,7 @@ export function getPlugin(pluginName) {
  * @returns {boolean}
  */
 export function hasPlugin(pluginName) {
+  /* eslint-disable no-unneeded-ternary */
   return getPlugin(pluginName) ? true : false;
 }
 

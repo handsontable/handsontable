@@ -82,6 +82,7 @@ module.exports = {
     es_languages: {
       plugins: [
         ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }],
         ['./.config/plugin/babel/add-language-registration.js'],
       ],
     },

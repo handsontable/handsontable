@@ -1,5 +1,4 @@
 import { BasePlugin } from '../base';
-import { hasCellType } from '../../cellTypes';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
