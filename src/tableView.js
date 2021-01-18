@@ -411,7 +411,17 @@ class TableView {
    * @returns {number}
    */
   countRenderableColumns() {
-    return Math.min(this.instance.columnIndexMapper.getRenderableIndexesLength(), this.settings.maxCols);
+    const numberOfColumns = Math.min(
+      this.instance.columnIndexMapper.getNotTrimmedIndexesLength(), this.settings.maxCols);
+    // Don't take hidden columns into account.
+    const firstNotHiddenColumn = this.instance.columnIndexMapper.getFirstNotHiddenIndex(
+      numberOfColumns - 1, -1);
+
+    if (firstNotHiddenColumn === null) {
+      return 0;
+    }
+
+    return this.instance.columnIndexMapper.getRenderableFromVisualIndex(firstNotHiddenColumn) + 1;
   }
 
   /**
@@ -420,7 +430,16 @@ class TableView {
    * @returns {number}
    */
   countRenderableRows() {
-    return Math.min(this.instance.rowIndexMapper.getRenderableIndexesLength(), this.settings.maxRows);
+    const numberOfRows = Math.min(this.instance.rowIndexMapper.getNotTrimmedIndexesLength(), this.settings.maxRows);
+    // Don't take hidden rows into account.
+    const firstNotHiddenRow = this.instance.rowIndexMapper.getFirstNotHiddenIndex(
+      numberOfRows - 1, -1);
+
+    if (firstNotHiddenRow === null) {
+      return 0;
+    }
+
+    return this.instance.rowIndexMapper.getRenderableFromVisualIndex(firstNotHiddenRow) + 1;
   }
 
   /**

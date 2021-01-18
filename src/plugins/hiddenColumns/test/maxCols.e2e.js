@@ -38,7 +38,7 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.ht_master tbody td').length).toBe(0); // cells
     });
 
-    it('just some columns are hidden', () => {
+    it('just some column is hidden #1', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         maxCols: 3,
@@ -79,6 +79,135 @@ describe('HiddenColumns', () => {
       expect(spec().$container.find('.ht_master thead th').length).toBe(3); // corner + column headers
       expect(spec().$container.find('.ht_master tbody th').length).toBe(5); // row headers
       expect(spec().$container.find('.ht_master tbody td').length).toBe(10); // cells
+    });
+
+    it('just some column is hidden #2', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        maxCols: 3,
+        hiddenColumns: {
+          columns: [1],
+          indicators: true
+        },
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+        ['A4', 'B4', 'C4'],
+        ['A5', 'B5', 'C5'],
+      ]);
+
+      expect(getCell(0, 0).innerText).toBe('A1');
+      expect(getCell(1, 0).innerText).toBe('A2');
+      expect(getCell(2, 0).innerText).toBe('A3');
+      expect(getCell(3, 0).innerText).toBe('A4');
+      expect(getCell(4, 0).innerText).toBe('A5');
+
+      expect(getCell(0, 1)).toBe(null); // Hidden column
+      expect(getCell(1, 1)).toBe(null); // Hidden column
+      expect(getCell(2, 1)).toBe(null); // Hidden column
+      expect(getCell(3, 1)).toBe(null); // Hidden column
+      expect(getCell(4, 1)).toBe(null); // Hidden column
+
+      expect(getCell(0, 2).innerText).toBe('C1');
+      expect(getCell(1, 2).innerText).toBe('C2');
+      expect(getCell(2, 2).innerText).toBe('C3');
+      expect(getCell(3, 2).innerText).toBe('C4');
+      expect(getCell(4, 2).innerText).toBe('C5');
+
+      expect(spec().$container.find('.ht_master thead th').length).toBe(3); // corner + column headers
+      expect(spec().$container.find('.ht_master tbody th').length).toBe(5); // row headers
+      expect(spec().$container.find('.ht_master tbody td').length).toBe(10); // cells
+    });
+
+    it('just some columns are hidden #1', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        maxCols: 3,
+        hiddenColumns: {
+          columns: [1, 2],
+          indicators: true
+        },
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+        ['A4', 'B4', 'C4'],
+        ['A5', 'B5', 'C5'],
+      ]);
+
+      expect(getCell(0, 0).innerText).toBe('A1');
+      expect(getCell(1, 0).innerText).toBe('A2');
+      expect(getCell(2, 0).innerText).toBe('A3');
+      expect(getCell(3, 0).innerText).toBe('A4');
+      expect(getCell(4, 0).innerText).toBe('A5');
+
+      expect(getCell(0, 1)).toBe(null); // Hidden column
+      expect(getCell(1, 1)).toBe(null); // Hidden column
+      expect(getCell(2, 1)).toBe(null); // Hidden column
+      expect(getCell(3, 1)).toBe(null); // Hidden column
+      expect(getCell(4, 1)).toBe(null); // Hidden column
+
+      expect(getCell(0, 2)).toBe(null); // Hidden column
+      expect(getCell(1, 2)).toBe(null); // Hidden column
+      expect(getCell(2, 2)).toBe(null); // Hidden column
+      expect(getCell(3, 2)).toBe(null); // Hidden column
+      expect(getCell(4, 2)).toBe(null); // Hidden column
+
+      expect(spec().$container.find('.ht_master thead th').length).toBe(2); // corner + column headers
+      expect(spec().$container.find('.ht_master tbody th').length).toBe(5); // row headers
+      expect(spec().$container.find('.ht_master tbody td').length).toBe(5); // cells
+    });
+
+    it('just some columns are hidden #2', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        maxCols: 3,
+        hiddenColumns: {
+          columns: [0, 1],
+          indicators: true
+        },
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+        ['A4', 'B4', 'C4'],
+        ['A5', 'B5', 'C5'],
+      ]);
+
+      expect(getCell(0, 0)).toBe(null); // Hidden column
+      expect(getCell(1, 0)).toBe(null); // Hidden column
+      expect(getCell(2, 0)).toBe(null); // Hidden column
+      expect(getCell(3, 0)).toBe(null); // Hidden column
+      expect(getCell(4, 0)).toBe(null); // Hidden column
+
+      expect(getCell(0, 1)).toBe(null); // Hidden column
+      expect(getCell(1, 1)).toBe(null); // Hidden column
+      expect(getCell(2, 1)).toBe(null); // Hidden column
+      expect(getCell(3, 1)).toBe(null); // Hidden column
+      expect(getCell(4, 1)).toBe(null); // Hidden column
+
+      expect(getCell(0, 2).innerText).toBe('C1');
+      expect(getCell(1, 2).innerText).toBe('C2');
+      expect(getCell(2, 2).innerText).toBe('C3');
+      expect(getCell(3, 2).innerText).toBe('C4');
+      expect(getCell(4, 2).innerText).toBe('C5');
+
+      expect(spec().$container.find('.ht_master thead th').length).toBe(2); // corner + column headers
+      expect(spec().$container.find('.ht_master tbody th').length).toBe(5); // row headers
+      expect(spec().$container.find('.ht_master tbody td').length).toBe(5); // cells
     });
 
     it('is set to Infinity value', () => {
