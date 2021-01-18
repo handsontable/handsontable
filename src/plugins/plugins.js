@@ -43,6 +43,7 @@ export function getPluginsNames() {
     ...uniquePluginsQueue.getItems(),
   ];
 }
+
 /**
  * Gets registered plugin's class based on the given name.
  *
@@ -54,6 +55,17 @@ export function getPlugin(pluginName) {
 
   return uniquePluginsList.getItem(unifiedPluginName);
 }
+
+/**
+ * Checks if the plugin under the name is already registered.
+ *
+ * @param {string} pluginName Plugin's name.
+ * @returns {boolean}
+ */
+export function hasPlugin(pluginName) {
+  return getPlugin(pluginName) ? true : false;
+}
+
 /**
  * Registers plugin under the given name only once.
  *
@@ -68,6 +80,7 @@ export function registerPlugin(pluginName, pluginClass, priority) {
     _registerPlugin(pluginName, pluginClass, priority);
   }
 }
+
 /**
  * Registers plugin under the given name.
  *
@@ -90,6 +103,7 @@ function _registerPlugin(pluginName, pluginClass, priority) {
 
   uniquePluginsList.addItem(unifiedPluginName, pluginClass);
 }
+
 /**
  * Unifies arguments to register the plugin.
  *

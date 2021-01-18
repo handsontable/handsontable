@@ -1,9 +1,22 @@
 import { defineGetter, objectEach } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
-import { getPluginsNames } from '../../plugins';
+import { getPluginsNames, hasPlugin } from '../plugins';
+import { hasCellType } from '../../cellTypes';
+import { hasEditor } from '../../editors';
+import { hasRenderer } from '../../renderers';
+import { hasValidator } from '../../validators';
+
+const DEPS_TYPE_CHECKERS = new Map([
+  ['plugin', hasPlugin],
+  ['cell-type', hasCellType],
+  ['editor', hasEditor],
+  ['renderer', hasRenderer],
+  ['validator', hasValidator],
+]);
 
 export const PLUGIN_KEY = 'base';
 const privatePool = new WeakMap();
+const missingDependeciesMsgs = [];
 let initializedPlugins = null;
 
 /**
@@ -35,7 +48,6 @@ export class BasePlugin {
     this.isPluginsReady = false;
     this.enabled = false;
     this.initialized = false;
-    this.dependecies = [];
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
     this.hot.addHook('afterUpdateSettings', newSettings => this.onUpdateSettings(newSettings));
@@ -45,31 +57,34 @@ export class BasePlugin {
   init() {
     this.pluginName = this.hot.getPluginName(this);
 
-    if (this.dependecies.length > 0) {
-      const errorStack = [];
+    const pluginDeps = this.constructor.PLUGIN_DEPS;
+    const dependecies = Array.isArray(pluginDeps) ? pluginDeps : [];
 
-      this.dependecies.forEach((callback) => {
-        const msg = callback();
+    if (dependecies.length > 0) {
+      const missingDependencies = [];
 
-        if (msg) {
-          errorStack.push(msg);
+      dependecies.forEach((dependency) => {
+        const [type, moduleName] = dependency.split(':');
+
+        if (!DEPS_TYPE_CHECKERS.has(type)) {
+          throw new Error(`Unknown plugin dependency type "${type}" was found.`);
+        }
+
+        if (!DEPS_TYPE_CHECKERS.get(type)(moduleName)) {
+          missingDependencies.push(` - ${moduleName} (${type})`);
         }
       });
 
-      if (errorStack.length > 0) {
+      if (missingDependencies.length > 0) {
         const errorMsg = [
-          `Plugin ${this.pluginName} requires the following modules:\n`,
-          `${errorStack.join('\n')}\n`,
-          'You have to import and register them manually.',
+          `The ${this.pluginName} plugin requires the following modules:\n`,
+          `${missingDependencies.join('\n')}\n`,
         ].join('');
 
-        throw new Error(errorMsg);
+        missingDependeciesMsgs.push(errorMsg);
       }
     }
 
-    if (this.isEnabled && this.isEnabled()) {
-      this.enablePlugin();
-    }
     if (!initializedPlugins) {
       initializedPlugins = getPluginsNames();
     }
@@ -84,7 +99,23 @@ export class BasePlugin {
     if (initializedPlugins.indexOf(this.pluginName) >= 0) {
       initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
     }
-    if (!initializedPlugins.length) {
+
+    const isAllPluginsAreInitialized = initializedPlugins.length === 0;
+
+    if (isAllPluginsAreInitialized && missingDependeciesMsgs.length > 0) {
+      const errorMsg = [
+        `${missingDependeciesMsgs.join('\n')}\n`,
+        'You have to import and register them manually.',
+      ].join('');
+
+      throw new Error(errorMsg);
+    }
+
+    if (this.isEnabled && this.isEnabled()) {
+      this.enablePlugin();
+    }
+
+    if (isAllPluginsAreInitialized) {
       this.hot.runHooks('afterPluginsInitialized');
     }
     this.initialized = true;

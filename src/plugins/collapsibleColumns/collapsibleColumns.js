@@ -76,6 +76,12 @@ export class CollapsibleColumns extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:NestedHeaders',
+    ];
+  }
+
   /**
    * Cached reference to the NestedHeaders plugin.
    *
@@ -103,14 +109,6 @@ export class CollapsibleColumns extends BasePlugin {
    * @type {HidingMap|null}
    */
   #collapsedColumnsMap = null;
-  /**
-   * Dependencies list.
-   *
-   * @type {Array}
-   */
-  dependecies = [
-    () => (this.hot.getPlugin('NestedHeaders') ? '' : 'NestedHeaders'),
-  ];
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}

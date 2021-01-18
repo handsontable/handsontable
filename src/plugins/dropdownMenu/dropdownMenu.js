@@ -75,6 +75,12 @@ export class DropdownMenu extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:AutoColumnSize',
+    ];
+  }
+
   /**
    * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
    *
@@ -94,15 +100,6 @@ export class DropdownMenu extends BasePlugin {
       ALIGNMENT,
     ];
   }
-
-  /**
-   * Dependencies list.
-   *
-   * @type {Array}
-   */
-  dependecies = [
-    () => (this.hot.getPlugin('AutoColumnSize') ? '' : 'AutoColumnSize'),
-  ];
 
   constructor(hotInstance) {
     super(hotInstance);

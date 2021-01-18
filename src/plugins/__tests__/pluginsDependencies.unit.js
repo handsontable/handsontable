@@ -5,9 +5,11 @@ import { registerPlugin } from '../';
 describe('plugins dependencies', () => {
   it('should be possible to add dependencies', () => {
     class CustomPlugin extends BasePlugin {
-      dependecies = [
-        () => (this.hot.getPlugin('NonExistingPlugin') ? '' : 'NonExistingPlugin')
-      ]
+      static get PLUGIN_DEPS() {
+        return [
+          'plugin:NonExistingPlugin',
+        ];
+      }
     }
 
     registerPlugin('CustomPlugin', CustomPlugin);
@@ -17,8 +19,8 @@ describe('plugins dependencies', () => {
     expect(() => {
       hot = new Handsontable(document.createElement('div'), {});
     }).toThrowError([
-      'Plugin CustomPlugin requires the following modules:',
-      'NonExistingPlugin',
+      'The CustomPlugin plugin requires the following modules:',
+      ' - NonExistingPlugin (plugin)',
       'You have to import and register them manually.',
     ].join('\n'));
     expect(hot).toBeUndefined();

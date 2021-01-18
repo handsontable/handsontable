@@ -59,16 +59,13 @@ export class Filters extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  /**
-   * Dependencies list.
-   *
-   * @type {Array}
-   */
-  dependecies = [
-    () => (this.hot.getPlugin('DropdownMenu') ? '' : 'DropdownMenu'),
-    () => (this.hot.getPlugin('HiddenRows') ? '' : 'HiddenRows'),
-    () => (hasCellType('checkbox') ? '' : 'CheckboxCellType'),
-  ];
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:DropdownMenu',
+      'plugin:HiddenRows',
+      'cell-type:checkbox',
+    ];
+  }
 
   constructor(hotInstance) {
     super(hotInstance);

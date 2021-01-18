@@ -80,6 +80,12 @@ export class ContextMenu extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:AutoColumnSize',
+    ];
+  }
+
   /**
    * Context menu default items order when `contextMenu` options is set as `true`.
    *
@@ -100,15 +106,6 @@ export class ContextMenu extends BasePlugin {
       ALIGNMENT,
     ];
   }
-
-  /**
-   * Dependencies list.
-   *
-   * @type {Array}
-   */
-  dependecies = [
-    () => (this.hot.getPlugin('AutoColumnSize') ? '' : 'AutoColumnSize'),
-  ];
 
   constructor(hotInstance) {
     super(hotInstance);
