@@ -411,12 +411,13 @@ class TableView {
    * @returns {number}
    */
   countRenderableColumns() {
-    const numberOfColumns = Math.min(
+    const consideredColumns = Math.min(
       this.instance.columnIndexMapper.getNotTrimmedIndexesLength(), this.settings.maxCols);
-    // Don't take hidden columns into account.
+    // Don't take hidden columns into account. We are looking just for renderable columns.
     const firstNotHiddenColumn = this.instance.columnIndexMapper.getFirstNotHiddenIndex(
-      numberOfColumns - 1, -1);
+      consideredColumns - 1, -1);
 
+    // There are no renderable columns.
     if (firstNotHiddenColumn === null) {
       return 0;
     }
@@ -430,11 +431,13 @@ class TableView {
    * @returns {number}
    */
   countRenderableRows() {
-    const numberOfRows = Math.min(this.instance.rowIndexMapper.getNotTrimmedIndexesLength(), this.settings.maxRows);
-    // Don't take hidden rows into account.
+    const consideredRows = Math.min(
+      this.instance.rowIndexMapper.getNotTrimmedIndexesLength(), this.settings.maxRows);
+    // Don't take hidden rows into account. We are looking just for renderable rows.
     const firstNotHiddenRow = this.instance.rowIndexMapper.getFirstNotHiddenIndex(
-      numberOfRows - 1, -1);
+      consideredRows - 1, -1);
 
+    // There are no renderable rows.
     if (firstNotHiddenRow === null) {
       return 0;
     }
