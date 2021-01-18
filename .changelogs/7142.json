@@ -1,0 +1,7 @@
+{
+  "title": "Fixed double tap to zoom gesture preventing the editor from opening properly on some mobile devices",
+  "type": "fixed",
+  "issue": 7142,
+  "breaking": false,
+  "framework": "none"
+}
