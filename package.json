@@ -64,6 +64,10 @@
       "import": "./cellTypes/index.mjs",
       "require": "./cellTypes/index.js"
     },
+    "./cellTypes/registry": {
+      "import": "./cellTypes/registry.mjs",
+      "require": "./cellTypes/registry.js"
+    },
     "./cellTypes/autocompleteType": {
       "import": "./editors/autocompleteType/index.mjs",
       "require": "./editors/autocompleteType/index.js"
@@ -103,6 +107,10 @@
     "./editors": {
       "import": "./editors/index.mjs",
       "require": "./editors/index.js"
+    },
+    "./editors/registry": {
+      "import": "./editors/registry.mjs",
+      "require": "./editors/registry.js"
     },
     "./editors/autocompleteEditor": {
       "import": "./editors/autocompleteEditor/index.mjs",
@@ -292,6 +300,10 @@
       "import": "./plugins/index.mjs",
       "require": "./plugins/index.js"
     },
+    "./plugins/registry": {
+      "import": "./plugins/registry.mjs",
+      "require": "./plugins/registry.js"
+    },
     "./plugins/autoColumnSize": {
       "import": "./plugins/autoColumnSize/index.mjs",
       "require": "./plugins/autoColumnSize/index.js"
@@ -440,6 +452,10 @@
       "import": "./renderers/index.mjs",
       "require": "./renderers/index.js"
     },
+    "./renderers/registry": {
+      "import": "./renderers/registry.mjs",
+      "require": "./renderers/registry.js"
+    },
     "./renderers/autocompleteRenderer": {
       "import": "./renderers/autocompleteRenderer/index.mjs",
       "require": "./renderers/autocompleteRenderer/index.js"
@@ -471,6 +487,10 @@
     "./validators": {
       "import": "./validators/index.mjs",
       "require": "./validators/index.js"
+    },
+    "./validators/registry": {
+      "import": "./validators/registry.mjs",
+      "require": "./validators/registry.js"
     },
     "./validators/autocompleteValidator": {
       "import": "./validators/autocompleteValidator/index.mjs",
