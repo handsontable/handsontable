@@ -90,12 +90,14 @@ class Highlight {
    * Check if highlight cell rendering is disabled for specified highlight type.
    *
    * @param {string} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {boolean}
    */
-  isEnabledFor(highlightType) {
+  isEnabledFor(highlightType, coords) {
     // Legacy compatibility.
     const type = highlightType === 'current' ? CELL_TYPE : highlightType;
-    let disableHighlight = this.options.disableHighlight;
+
+    let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];

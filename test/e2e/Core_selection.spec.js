@@ -1729,6 +1729,103 @@ describe('Core_selection', () => {
     expect(getSelected()).toEqual([[-1, 1, 1, 1]]);
   });
 
+  describe('cooperation with `disableVisualSelection` option', () => {
+    describe('is set globally', () => {
+      it('to value `true`', () => {
+        handsontable({
+          rowHeaders: true,
+          colHeaders: true,
+          startRows: 5,
+          startCols: 5,
+          disableVisualSelection: true
+        });
+
+        // Cell selection (header isn't selected?)
+        // TODO: Should it not select headers?
+        simulateClick($(getCell(1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Area selection (headers are selected).
+        $(getCell(1, 1)).simulate('mousedown');
+        $(getCell(4, 4)).simulate('mouseover');
+        $(getCell(4, 4)).simulate('mouseup');
+
+        expect(getSelected()).toEqual([[1, 1, 4, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Column header selection.
+        simulateClick($(getCell(-1, 1)), 'LMB');
+
+        expect(getSelected()).toEqual([[-1, 1, 4, 1]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(1);
+        expect(getSelectedRangeLast().from.row).toBe(-1);
+        expect(getSelectedRangeLast().from.col).toBe(1);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(1);
+        expect(`
+        |   ║   : * :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+
+        // Row header selection.
+        simulateClick($(getCell(1, -1)), 'LMB');
+
+        expect(getSelected()).toEqual([[1, -1, 1, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(1);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(1);
+        expect(getSelectedRangeLast().from.col).toBe(-1);
+        expect(getSelectedRangeLast().to.row).toBe(1);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+        expect(`
+        |   ║   :   :   :   :   |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | * ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+      });
+    });
+  });
+
   describe('multiple selection mode', () => {
     it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
       handsontable({
