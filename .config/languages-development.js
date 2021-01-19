@@ -74,7 +74,6 @@ module.exports.create = function create() {
       path: path.resolve(__dirname, '../' + OUTPUT_LANGUAGES_DIRECTORY),
       umdNamedDefine: true,
     },
-
     externals: {
       [PACKAGE_FILENAME]: {
         root: 'Handsontable',
