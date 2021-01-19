@@ -100,24 +100,27 @@ export class BasePlugin {
       initializedPlugins.splice(initializedPlugins.indexOf(this.pluginName), 1);
     }
 
+    this.hot.addHookOnce('afterPluginsInitialized', () => {
+      if (this.isEnabled && this.isEnabled()) {
+        this.enablePlugin();
+      }
+    });
+
     const isAllPluginsAreInitialized = initializedPlugins.length === 0;
 
-    if (isAllPluginsAreInitialized && missingDependeciesMsgs.length > 0) {
-      const errorMsg = [
-        `${missingDependeciesMsgs.join('\n')}\n`,
-        'You have to import and register them manually.',
-      ].join('');
-
-      throw new Error(errorMsg);
-    }
-
-    if (this.isEnabled && this.isEnabled()) {
-      this.enablePlugin();
-    }
-
     if (isAllPluginsAreInitialized) {
+      if (missingDependeciesMsgs.length > 0) {
+        const errorMsg = [
+          `${missingDependeciesMsgs.join('\n')}\n`,
+          'You have to import and register them manually.',
+        ].join('');
+
+        throw new Error(errorMsg);
+      }
+
       this.hot.runHooks('afterPluginsInitialized');
     }
+
     this.initialized = true;
   }
 
