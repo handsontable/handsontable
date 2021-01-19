@@ -76,7 +76,7 @@ module.exports.create = function create() {
     },
     externals: {
       [PACKAGE_FILENAME]: {
-        root: PACKAGE_FILENAME,
+        root: 'Handsontable',
         commonjs2: PACKAGE_FILENAME,
         commonjs: PACKAGE_FILENAME,
         amd: PACKAGE_FILENAME,
