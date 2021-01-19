@@ -43,7 +43,7 @@ const ruleForSnippetsInjection = {
         replacement: function() {
           // Adding the `index.js` file at the end of the import path ensures that the language
           // will require the Handsontable module using the CommonJS environment (.js files).
-          const snippet1 = `import Handsontable from '../../${PACKAGE_FILENAME}/index.js';`;
+          const snippet1 = `import Handsontable from '${PACKAGE_FILENAME}';`;
           const snippet2 = `const C = Handsontable.languages.dictionaryKeys;`;
 
           return `${snippet1}${NEW_LINE_CHAR.repeat(2)}${snippet2}`;
@@ -75,11 +75,11 @@ module.exports.create = function create() {
       umdNamedDefine: true,
     },
     externals: {
-      [`../../${PACKAGE_FILENAME}/index.js`]: {
-        root: 'Handsontable',
-        commonjs2: `../../${PACKAGE_FILENAME}/index.js`,
-        commonjs: `../../${PACKAGE_FILENAME}/index.js`,
-        amd: `../../${PACKAGE_FILENAME}`,
+      [PACKAGE_FILENAME]: {
+        root: PACKAGE_FILENAME,
+        commonjs2: PACKAGE_FILENAME,
+        commonjs: PACKAGE_FILENAME,
+        amd: PACKAGE_FILENAME,
       },
     },
     module: {
