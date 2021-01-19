@@ -38,4 +38,4 @@ export {
   getPlugin,
   getPluginsNames,
   registerPlugin,
-} from './plugins';
+} from './registry';

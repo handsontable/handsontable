@@ -6,7 +6,7 @@ import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
-} from '../../renderers';
+} from '../../registry';
 
 describe('textRenderer', () => {
   describe('registering', () => {

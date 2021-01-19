@@ -12,7 +12,7 @@ import {
   getLanguagesDictionaries,
   getLanguageDictionary
 } from './i18n';
-import { registerCellType } from './cellTypes';
+import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 
 registerCellType(TextCellType);

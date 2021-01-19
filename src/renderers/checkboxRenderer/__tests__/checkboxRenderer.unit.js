@@ -7,7 +7,7 @@ import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
-} from '../../renderers';
+} from '../../registry';
 
 describe('checkboxRenderer', () => {
   describe('registering', () => {

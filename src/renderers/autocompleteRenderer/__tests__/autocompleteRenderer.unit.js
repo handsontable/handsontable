@@ -7,7 +7,7 @@ import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
-} from '../..';
+} from '../../registry';
 
 describe('autocompleteRenderer', () => {
   describe('registering', () => {

@@ -18,4 +18,4 @@ export {
   getRegisteredEditors,
   hasEditor,
   registerEditor,
-} from './editors';
+} from './registry';

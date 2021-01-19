@@ -6,7 +6,7 @@ import {
   getCellType,
   getRegisteredCellTypeNames,
   registerCellType,
-} from '../../cellTypes';
+} from '../../registry';
 import {
   getEditor,
   getRegisteredEditorNames,

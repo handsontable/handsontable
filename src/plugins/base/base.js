@@ -1,10 +1,10 @@
 import { defineGetter, objectEach } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
-import { getPluginsNames, hasPlugin } from '../plugins';
-import { hasCellType } from '../../cellTypes';
-import { hasEditor } from '../../editors';
-import { hasRenderer } from '../../renderers';
-import { hasValidator } from '../../validators';
+import { getPluginsNames, hasPlugin } from '../registry';
+import { hasCellType } from '../../cellTypes/registry';
+import { hasEditor } from '../../editors/registry';
+import { hasRenderer } from '../../renderers/registry';
+import { hasValidator } from '../../validators/registry';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],

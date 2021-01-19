@@ -12,4 +12,4 @@ export {
   getRenderer,
   hasRenderer,
   registerRenderer,
-} from './renderers';
+} from './registry';

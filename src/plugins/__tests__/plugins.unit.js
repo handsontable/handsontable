@@ -2,7 +2,7 @@ import {
   getPlugin,
   getPluginsNames,
   registerPlugin,
-} from '../plugins';
+} from '../registry';
 
 describe('plugins', () => {
   describe('registering', () => {

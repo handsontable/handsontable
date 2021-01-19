@@ -14,4 +14,4 @@ export {
   getRegisteredCellTypes,
   hasCellType,
   registerCellType,
-} from './cellTypes';
+} from './registry';

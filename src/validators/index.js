@@ -9,4 +9,4 @@ export {
   getValidator,
   hasValidator,
   registerValidator,
-} from './validators';
+} from './registry';

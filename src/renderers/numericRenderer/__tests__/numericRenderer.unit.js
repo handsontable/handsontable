@@ -9,7 +9,7 @@ import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
-} from '../../renderers';
+} from '../../registry';
 
 describe('numericRenderer', () => {
   describe('registering', () => {
