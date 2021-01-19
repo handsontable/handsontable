@@ -9,7 +9,6 @@ describe('BasePlugin', () => {
             are enabled`, () => {
     it('should throw an error when the dependencies are missing', () => {
       class SomePlugin extends BasePlugin {}
-      class FooPlugin extends BasePlugin {}
       class BarPlugin extends BasePlugin {
         static get PLUGIN_DEPS() {
           return [
