@@ -21,125 +21,170 @@ import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
-import * as plugins from './plugins/index';
-import { registerPlugin } from './plugins';
 
 import {
   getRegisteredEditorNames,
   getEditor,
   registerEditor,
   AutocompleteEditor,
-  AUTOCOMPLETE_EDITOR,
   BaseEditor,
-  BASE_EDITOR,
   CheckboxEditor,
-  CHECKBOX_EDITOR,
   DateEditor,
-  DATE_EDITOR,
   DropdownEditor,
-  DROPDOWN_EDITOR,
   HandsontableEditor,
-  HANDSONTABLE_EDITOR,
   NumericEditor,
-  NUMERIC_EDITOR,
   PasswordEditor,
-  PASSWORD_EDITOR,
   SelectEditor,
-  SELECT_EDITOR,
   TextEditor,
-  TEXT_EDITOR,
 } from './editors';
 import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
   baseRenderer,
-  BASE_RENDERER,
   autocompleteRenderer,
-  AUTOCOMPLETE_RENDERER,
   checkboxRenderer,
-  CHECKBOX_RENDERER,
   htmlRenderer,
-  HTML_RENDERER,
   numericRenderer,
-  NUMERIC_RENDERER,
   passwordRenderer,
-  PASSWORD_RENDERER,
   textRenderer,
-  TEXT_RENDERER,
 } from './renderers';
 import {
   getRegisteredValidatorNames,
   getValidator,
   registerValidator,
   autocompleteValidator,
-  AUTOCOMPLETE_VALIDATOR,
   dateValidator,
-  DATE_VALIDATOR,
   numericValidator,
-  NUMERIC_VALIDATOR,
   timeValidator,
-  TIME_VALIDATOR,
 } from './validators';
 import {
   getRegisteredCellTypeNames,
   getCellType,
   registerCellType,
   AutocompleteCellType,
-  AUTOCOMPLETE_TYPE,
   CheckboxCellType,
-  CHECKBOX_TYPE,
   DateCellType,
-  DATE_TYPE,
   DropdownCellType,
-  DROPDOWN_TYPE,
   HandsontableCellType,
-  HANDSONTABLE_TYPE,
   NumericCellType,
-  NUMERIC_TYPE,
   PasswordCellType,
-  PASSWORD_TYPE,
   TextCellType,
-  TEXT_TYPE,
   TimeCellType,
-  TIME_TYPE,
 } from './cellTypes';
+import {
+  AutoColumnSize,
+  AutoRowSize,
+  Autofill,
+  BasePlugin,
+  BindRowsWithHeaders,
+  CollapsibleColumns,
+  ColumnSorting,
+  ColumnSummary,
+  Comments,
+  ContextMenu,
+  CopyPaste,
+  CustomBorders,
+  DragToScroll,
+  DropdownMenu,
+  ExportFile,
+  Filters,
+  Formulas,
+  HeaderTooltips,
+  HiddenColumns,
+  HiddenRows,
+  ManualColumnFreeze,
+  ManualColumnMove,
+  ManualColumnResize,
+  ManualRowMove,
+  ManualRowResize,
+  MergeCells,
+  MultiColumnSorting,
+  MultipleSelectionHandles,
+  NestedHeaders,
+  NestedRows,
+  ObserveChanges,
+  PersistentState,
+  Search,
+  TouchScroll,
+  TrimRows,
+  UndoRedo,
+  getPlugin,
+  getPluginsNames,
+  registerPlugin,
+} from './plugins';
 
-registerEditor(BASE_EDITOR, BaseEditor);
-registerEditor(AUTOCOMPLETE_EDITOR, AutocompleteEditor);
-registerEditor(CHECKBOX_EDITOR, CheckboxEditor);
-registerEditor(DATE_EDITOR, DateEditor);
-registerEditor(DROPDOWN_EDITOR, DropdownEditor);
-registerEditor(HANDSONTABLE_EDITOR, HandsontableEditor);
-registerEditor(NUMERIC_EDITOR, NumericEditor);
-registerEditor(PASSWORD_EDITOR, PasswordEditor);
-registerEditor(SELECT_EDITOR, SelectEditor);
-registerEditor(TEXT_EDITOR, TextEditor);
+registerEditor(BaseEditor);
+registerEditor(AutocompleteEditor);
+registerEditor(CheckboxEditor);
+registerEditor(DateEditor);
+registerEditor(DropdownEditor);
+registerEditor(HandsontableEditor);
+registerEditor(NumericEditor);
+registerEditor(PasswordEditor);
+registerEditor(SelectEditor);
+registerEditor(TextEditor);
 
-registerRenderer(BASE_RENDERER, baseRenderer);
-registerRenderer(AUTOCOMPLETE_RENDERER, autocompleteRenderer);
-registerRenderer(CHECKBOX_RENDERER, checkboxRenderer);
-registerRenderer(HTML_RENDERER, htmlRenderer);
-registerRenderer(NUMERIC_RENDERER, numericRenderer);
-registerRenderer(PASSWORD_RENDERER, passwordRenderer);
-registerRenderer(TEXT_RENDERER, textRenderer);
+registerRenderer(baseRenderer);
+registerRenderer(autocompleteRenderer);
+registerRenderer(checkboxRenderer);
+registerRenderer(htmlRenderer);
+registerRenderer(numericRenderer);
+registerRenderer(passwordRenderer);
+registerRenderer(textRenderer);
 
-registerValidator(AUTOCOMPLETE_VALIDATOR, autocompleteValidator);
-registerValidator(DATE_VALIDATOR, dateValidator);
-registerValidator(NUMERIC_VALIDATOR, numericValidator);
-registerValidator(TIME_VALIDATOR, timeValidator);
+registerValidator(autocompleteValidator);
+registerValidator(dateValidator);
+registerValidator(numericValidator);
+registerValidator(timeValidator);
 
-registerCellType(AUTOCOMPLETE_TYPE, AutocompleteCellType);
-registerCellType(CHECKBOX_TYPE, CheckboxCellType);
-registerCellType(DATE_TYPE, DateCellType);
-registerCellType(DROPDOWN_TYPE, DropdownCellType);
-registerCellType(HANDSONTABLE_TYPE, HandsontableCellType);
-registerCellType(NUMERIC_TYPE, NumericCellType);
-registerCellType(PASSWORD_TYPE, PasswordCellType);
-registerCellType(TIME_TYPE, TimeCellType);
-registerCellType(TEXT_TYPE, TextCellType);
+registerCellType(AutocompleteCellType);
+registerCellType(CheckboxCellType);
+registerCellType(DateCellType);
+registerCellType(DropdownCellType);
+registerCellType(HandsontableCellType);
+registerCellType(NumericCellType);
+registerCellType(PasswordCellType);
+registerCellType(TimeCellType);
+registerCellType(TextCellType);
 
 jQueryWrapper(Handsontable);
+
+registerPlugin(AutoColumnSize);
+registerPlugin(Autofill);
+registerPlugin(AutoRowSize);
+registerPlugin(BindRowsWithHeaders);
+registerPlugin(CollapsibleColumns);
+registerPlugin(ColumnSorting);
+registerPlugin(ColumnSummary);
+registerPlugin(Comments);
+registerPlugin(ContextMenu);
+registerPlugin(CopyPaste);
+registerPlugin(CustomBorders);
+registerPlugin(DragToScroll);
+registerPlugin(DropdownMenu);
+registerPlugin(ExportFile);
+registerPlugin(Filters);
+registerPlugin(Formulas);
+registerPlugin(HeaderTooltips);
+registerPlugin(HiddenColumns);
+registerPlugin(HiddenRows);
+registerPlugin(ManualColumnFreeze);
+registerPlugin(ManualColumnMove);
+registerPlugin(ManualColumnResize);
+registerPlugin(ManualRowMove);
+registerPlugin(ManualRowResize);
+registerPlugin(MergeCells);
+registerPlugin(MultiColumnSorting);
+registerPlugin(MultipleSelectionHandles);
+registerPlugin(NestedHeaders);
+registerPlugin(NestedRows);
+registerPlugin(ObserveChanges);
+registerPlugin(PersistentState);
+registerPlugin(Search);
+registerPlugin(TouchScroll);
+registerPlugin(TrimRows);
+registerPlugin(UndoRedo);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;
@@ -240,18 +285,21 @@ Handsontable.validators.registerValidator = registerValidator;
 Handsontable.validators.getValidator = getValidator;
 
 // Export all registered plugins from the Handsontable.
+// Make sure to initialize the plugin dictionary as an empty object. Otherwise, while
+// transpiling the files into ES and CommonJS format, the injected CoreJS helper
+// `import "core-js/modules/es.object.get-own-property-names";` won't be processed
+// by the `./config/plugin/babel/add-import-extension` babel plugin. Thus, the distribution
+// files will be broken. The reason is not known right now (probably it's caused by bug in
+// the Babel or missing something in the plugin).
 Handsontable.plugins = {};
 
-arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
-  const plugin = plugins[pluginName];
-
-  if (pluginName === 'Base') {
-    Handsontable.plugins[`${pluginName}Plugin`] = plugin;
-  } else {
-    Handsontable.plugins[pluginName] = plugin;
-  }
+arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
+  Handsontable.plugins[pluginName] = getPlugin(pluginName);
 });
 
+Handsontable.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`] = BasePlugin;
+
 Handsontable.plugins.registerPlugin = registerPlugin;
+Handsontable.plugins.getPlugin = getPlugin;
 
 export default Handsontable;

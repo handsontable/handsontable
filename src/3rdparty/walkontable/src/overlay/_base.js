@@ -6,7 +6,6 @@ import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
-import Walkontable from './../core';
 import {
   CLONE_TYPES,
   CLONE_TOP,
@@ -19,7 +18,7 @@ import {
  *
  * @class Overlay
  */
-class Overlay {
+export class Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
@@ -257,7 +256,8 @@ class Overlay {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
 
-    return new Walkontable({
+    // Create a new instance of the Walkontable class
+    return new this.wot.constructor({
       cloneSource: this.wot,
       cloneOverlay: this,
       table: clonedTable,
@@ -307,5 +307,3 @@ class Overlay {
     (new EventManager(this.clone)).destroy();
   }
 }
-
-export default Overlay;

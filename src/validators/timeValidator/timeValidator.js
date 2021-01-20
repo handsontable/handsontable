@@ -65,3 +65,5 @@ export function timeValidator(value, callback) {
 
   callback(valid);
 }
+
+timeValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;

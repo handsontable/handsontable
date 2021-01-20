@@ -1,4 +1,4 @@
-import { getWindowScrollLeft, getWindowScrollTop } from './../../helpers/dom/element';
+import { getWindowScrollLeft, getWindowScrollTop } from '../../helpers/dom/element';
 
 /**
  * Helper class for checking if element will fit at the desired side of cursor.

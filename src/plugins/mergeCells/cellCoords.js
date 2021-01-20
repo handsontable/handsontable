@@ -1,5 +1,5 @@
 import { CellCoords, CellRange } from '../../3rdparty/walkontable/src/index';
-import { toSingleLine } from './../../helpers/templateLiteralTag';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 /**
  * The `MergedCellCoords` class represents a single merged cell.

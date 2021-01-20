@@ -1,10 +1,11 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
 import freezeColumnItem from './contextMenuItem/freezeColumn';
 import unfreezeColumnItem from './contextMenuItem/unfreezeColumn';
 
 import './manualColumnFreeze.css';
 
+export const PLUGIN_KEY = 'manualColumnFreeze';
+export const PLUGIN_PRIORITY = 110;
 const privatePool = new WeakMap();
 /**
  * This plugin allows to manually "freeze" and "unfreeze" a column using an entry in the Context Menu or using API.
@@ -18,7 +19,15 @@ const privatePool = new WeakMap();
  *
  * @plugin ManualColumnFreeze
  */
-class ManualColumnFreeze extends BasePlugin {
+export class ManualColumnFreeze extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -34,7 +43,7 @@ class ManualColumnFreeze extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().manualColumnFreeze;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -156,7 +165,3 @@ class ManualColumnFreeze extends BasePlugin {
     }
   }
 }
-
-registerPlugin('manualColumnFreeze', ManualColumnFreeze);
-
-export default ManualColumnFreeze;

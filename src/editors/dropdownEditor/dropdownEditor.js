@@ -8,6 +8,10 @@ export const EDITOR_TYPE = 'dropdown';
  * @class DropdownEditor
  */
 export class DropdownEditor extends AutocompleteEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   /**
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.

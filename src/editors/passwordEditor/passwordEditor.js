@@ -8,6 +8,10 @@ export const EDITOR_TYPE = 'password';
  * @class PasswordEditor
  */
 export class PasswordEditor extends TextEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   createElements() {
     super.createElements();
 

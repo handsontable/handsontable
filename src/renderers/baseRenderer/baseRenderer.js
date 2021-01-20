@@ -44,3 +44,5 @@ export function baseRenderer(instance, TD, row, col, prop, value, cellProperties
   removeClass(TD, classesToRemove);
   addClass(TD, classesToAdd);
 }
+
+baseRenderer.RENDERER_TYPE = RENDERER_TYPE;

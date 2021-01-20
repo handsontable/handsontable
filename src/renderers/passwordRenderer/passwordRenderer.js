@@ -27,3 +27,5 @@ export function passwordRenderer(instance, TD, row, col, prop, value, cellProper
   });
   fastInnerHTML(TD, hash);
 }
+
+passwordRenderer.RENDERER_TYPE = RENDERER_TYPE;

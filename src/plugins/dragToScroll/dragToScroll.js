@@ -1,9 +1,10 @@
-import BasePlugin from './../_base';
-import EventManager from './../../eventManager';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
+import EventManager from '../../eventManager';
 import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 
+export const PLUGIN_KEY = 'dragToScroll';
+export const PLUGIN_PRIORITY = 100;
 /**
  * @description
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
@@ -12,7 +13,15 @@ import { getParentWindow } from '../../helpers/dom/element';
  * @class DragToScroll
  * @plugin DragToScroll
  */
-class DragToScroll extends BasePlugin {
+export class DragToScroll extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -52,7 +61,7 @@ class DragToScroll extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().dragToScroll;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -255,7 +264,3 @@ class DragToScroll extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('dragToScroll', DragToScroll);
-
-export default DragToScroll;

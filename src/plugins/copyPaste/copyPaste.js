@@ -1,16 +1,15 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { stringify, parse } from './../../3rdparty/SheetClip';
-import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
-import { sanitize } from './../../helpers/string';
-import { getSelectionText } from './../../helpers/dom/element';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { stringify, parse } from '../../3rdparty/SheetClip';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { sanitize } from '../../helpers/string';
+import { getSelectionText } from '../../helpers/dom/element';
 import copyItem from './contextMenuItem/copy';
 import cutItem from './contextMenuItem/cut';
 import PasteEvent from './pasteEvent';
 import { createElement, destroyElement } from './focusableElement';
-import { _dataToHTML, htmlToGridSettings } from './../../utils/parseTable';
+import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
 import './copyPaste.css';
 
@@ -23,6 +22,8 @@ Hooks.getSingleton().register('afterPaste');
 Hooks.getSingleton().register('beforeCopy');
 Hooks.getSingleton().register('afterCopy');
 
+export const PLUGIN_KEY = 'copyPaste';
+export const PLUGIN_PRIORITY = 80;
 const ROWS_LIMIT = 1000;
 const COLUMNS_LIMIT = 1000;
 const privatePool = new WeakMap();
@@ -64,7 +65,15 @@ const META_HEAD = [
  * @plugin CopyPaste
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-class CopyPaste extends BasePlugin {
+export class CopyPaste extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -127,7 +136,7 @@ class CopyPaste extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().copyPaste;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -137,7 +146,7 @@ class CopyPaste extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    const { copyPaste: settings, fragmentSelection } = this.hot.getSettings();
+    const { [PLUGIN_KEY]: settings, fragmentSelection } = this.hot.getSettings();
     const priv = privatePool.get(this);
 
     priv.isFragmentSelectionEnabled = !!fragmentSelection;
@@ -663,7 +672,3 @@ class CopyPaste extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('CopyPaste', CopyPaste);
-
-export default CopyPaste;

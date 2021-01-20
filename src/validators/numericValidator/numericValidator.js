@@ -25,3 +25,5 @@ export function numericValidator(value, callback) {
     callback(isNumeric(value));
   }
 }
+
+numericValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;

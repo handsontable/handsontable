@@ -304,7 +304,7 @@ class DataMap {
         }
 
       } else if (this.instance.dataType === 'function') {
-        row = this.tableMeta.dataSchema(rowIndex);
+        row = this.tableMeta.dataSchema(rowIndex + numberOfCreatedRows);
 
       } else {
         row = {};

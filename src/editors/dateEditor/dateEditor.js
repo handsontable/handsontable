@@ -14,6 +14,10 @@ export const EDITOR_TYPE = 'date';
  * @class DateEditor
  */
 export class DateEditor extends TextEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   /**
    * @param {Core} hotInstance Handsontable instance.
    * @private

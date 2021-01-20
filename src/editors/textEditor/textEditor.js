@@ -31,6 +31,10 @@ export const EDITOR_TYPE = 'text';
  * @class TextEditor
  */
 export class TextEditor extends BaseEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   /**
    * @param {Core} instance The Handsontable instance.
    */

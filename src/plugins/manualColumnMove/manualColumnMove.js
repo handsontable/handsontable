@@ -1,10 +1,9 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { arrayReduce } from './../../helpers/array';
-import { addClass, removeClass, offset, hasClass } from './../../helpers/dom/element';
-import { rangeEach } from './../../helpers/number';
-import EventManager from './../../eventManager';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { arrayReduce } from '../../helpers/array';
+import { addClass, removeClass, offset, hasClass } from '../../helpers/dom/element';
+import { rangeEach } from '../../helpers/number';
+import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -13,6 +12,8 @@ import './manualColumnMove.css';
 Hooks.getSingleton().register('beforeColumnMove');
 Hooks.getSingleton().register('afterColumnMove');
 
+export const PLUGIN_KEY = 'manualColumnMove';
+export const PLUGIN_PRIORITY = 120;
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';
@@ -42,7 +43,15 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @class ManualColumnMove
  * @plugin ManualColumnMove
  */
-class ManualColumnMove extends BasePlugin {
+export class ManualColumnMove extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -93,7 +102,7 @@ class ManualColumnMove extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().manualColumnMove;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -317,7 +326,7 @@ class ManualColumnMove extends BasePlugin {
    * @private
    */
   moveBySettingsOrLoad() {
-    const pluginSettings = this.hot.getSettings().manualColumnMove;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(pluginSettings)) {
       this.moveColumns(pluginSettings, 0);
@@ -663,7 +672,7 @@ class ManualColumnMove extends BasePlugin {
     if (movePerformed === true) {
       this.persistentStateSave();
       this.hot.render();
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
 
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
       const selectionEnd = selectionStart + columnsLen - 1;
@@ -716,7 +725,3 @@ class ManualColumnMove extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('ManualColumnMove', ManualColumnMove);
-
-export default ManualColumnMove;

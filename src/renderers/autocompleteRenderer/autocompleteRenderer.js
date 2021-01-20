@@ -57,3 +57,5 @@ export function autocompleteRenderer(instance, TD, row, col, prop, value, cellPr
     });
   }
 }
+
+autocompleteRenderer.RENDERER_TYPE = RENDERER_TYPE;

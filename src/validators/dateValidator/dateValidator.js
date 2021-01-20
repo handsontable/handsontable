@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { getEditorInstance } from '../../editors';
+import { getEditorInstance } from '../../editors/registry';
 import { EDITOR_TYPE as DATE_EDITOR_TYPE } from '../../editors/dateEditor';
 import { getNormalizedDate } from '../../helpers/date';
 
@@ -50,6 +50,8 @@ export function dateValidator(value, callback) {
 
   callback(valid);
 }
+
+dateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 
 /**
  * Format the given string using moment.js' format feature.

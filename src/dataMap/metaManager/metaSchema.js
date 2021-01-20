@@ -46,7 +46,7 @@ import { isObjectEqual } from '../../helpers/object';
  *     return cellProperties;
  *   }
  * });
- * ```.
+ * ```
  *
  * The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
  *
@@ -558,6 +558,8 @@ export default () => {
 
     /**
      * Minimum number of columns. At least that number of columns will be created during initialization.
+     * Works only with an array data source. When data source in an object, you can only have as many columns
+     * as defined in the first data row, data schema, or the `columns` setting.
      *
      * @memberof Options#
      * @type {number}
@@ -1018,7 +1020,10 @@ export default () => {
     activeHeaderClassName: 'ht__active_highlight',
 
     /**
-     * Class name for the Handsontable container element.
+     * Class name for the current element.
+     * The interpretation depends on the level on which this option is provided in the [cascading configuration](https://handsontable.com/docs/Options.html).
+     * If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
+     * If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
      *
      * @memberof Options#
      * @type {string|string[]}
@@ -1026,10 +1031,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for table container
+     * // can be set as a string
      * className: 'your__class--name',
      *
-     * // or
+     * // or as an array of strings
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
@@ -1263,6 +1268,7 @@ export default () => {
      */
     readOnlyCellClassName: 'htDimmed',
 
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
      * If a string is provided, it may be one of the following predefined values:
@@ -1279,7 +1285,7 @@ export default () => {
      * If a function is provided, it will receive the following arguments:
      * ```js
      * function(instance, TD, row, col, prop, value, cellProperties) {}
-     * ```.
+     * ```
      *
      * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
      *
@@ -1316,6 +1322,8 @@ export default () => {
      * ```
      */
     renderer: void 0,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * CSS class name added to the commented cells.

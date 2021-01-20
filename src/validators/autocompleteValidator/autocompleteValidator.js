@@ -31,6 +31,8 @@ export function autocompleteValidator(value, callback) {
   }
 }
 
+autocompleteValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
+
 /**
  * Function responsible for validation of autocomplete value.
  *

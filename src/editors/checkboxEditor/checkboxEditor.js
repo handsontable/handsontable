@@ -8,6 +8,10 @@ export const EDITOR_TYPE = 'checkbox';
  * @class CheckboxEditor
  */
 export class CheckboxEditor extends BaseEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   beginEditing(initialValue, event) {
     // Just some events connected with checkbox editor are delegated here. Some `keydown` events like `enter` and `space` key press
     // are handled inside `checkboxRenderer`. Some events come here from `editorManager`. Below `if` statement was created by author

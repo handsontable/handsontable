@@ -72,6 +72,15 @@ class TableView {
      * @type {Walkontable}
      */
     this.activeWt = void 0;
+    /**
+     * The flag determines if the `adjustElementsSize` method call was made during
+     * the render suspending. If true, the method has to be triggered once after render
+     * resuming.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this.postponedAdjustElementsSize = false;
 
     privatePool.set(this, {
       /**
@@ -116,9 +125,30 @@ class TableView {
    * Renders WalkontableUI.
    */
   render() {
-    this.wt.draw(!this.instance.forceFullRender);
-    this.instance.forceFullRender = false;
-    this.instance.renderCall = false;
+    if (!this.instance.isRenderSuspended()) {
+      if (this.postponedAdjustElementsSize) {
+        this.postponedAdjustElementsSize = false;
+
+        this.adjustElementsSize(true);
+      }
+
+      this.wt.draw(!this.instance.forceFullRender);
+      this.instance.forceFullRender = false;
+      this.instance.renderCall = false;
+    }
+  }
+
+  /**
+   * Adjust overlays elements size and master table size.
+   *
+   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
+   */
+  adjustElementsSize(force = false) {
+    if (this.instance.isRenderSuspended()) {
+      this.postponedAdjustElementsSize = true;
+    } else {
+      this.wt.wtOverlays.adjustElementsSize(force);
+    }
   }
 
   /**

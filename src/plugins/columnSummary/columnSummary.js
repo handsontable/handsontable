@@ -1,8 +1,10 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
-import { registerPlugin } from '../../plugins';
 import Endpoints from './endpoints';
-import { toSingleLine } from './../../helpers/templateLiteralTag';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+
+export const PLUGIN_KEY = 'columnSummary';
+export const PLUGIN_PRIORITY = 220;
 
 /**
  * @plugin ColumnSummary
@@ -38,7 +40,15 @@ import { toSingleLine } from './../../helpers/templateLiteralTag';
  *   ]
  * });
  */
-class ColumnSummary extends BasePlugin {
+export class ColumnSummary extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -57,7 +67,7 @@ class ColumnSummary extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().columnSummary;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -68,7 +78,7 @@ class ColumnSummary extends BasePlugin {
       return;
     }
 
-    this.settings = this.hot.getSettings().columnSummary;
+    this.settings = this.hot.getSettings()[PLUGIN_KEY];
     this.endpoints = new Endpoints(this, this.settings);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
@@ -391,7 +401,3 @@ class ColumnSummary extends BasePlugin {
     this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
   }
 }
-
-registerPlugin('columnSummary', ColumnSummary);
-
-export default ColumnSummary;

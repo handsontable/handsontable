@@ -18,3 +18,5 @@ export function htmlRenderer(instance, TD, row, col, prop, value, cellProperties
 
   fastInnerHTML(TD, value === null || value === void 0 ? '' : value, false);
 }
+
+htmlRenderer.RENDERER_TYPE = RENDERER_TYPE;

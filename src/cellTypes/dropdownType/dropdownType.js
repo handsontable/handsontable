@@ -4,6 +4,7 @@ import { autocompleteValidator } from '../../validators/autocompleteValidator';
 
 export const CELL_TYPE = 'dropdown';
 export const DropdownCellType = {
+  CELL_TYPE,
   editor: DropdownEditor,
   // displays small gray arrow on right side of the cell
   renderer: autocompleteRenderer,

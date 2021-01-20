@@ -16,6 +16,10 @@ export const EDITOR_STATE = Object.freeze({
  * @class BaseEditor
  */
 export class BaseEditor {
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
   /**
    * @param {Handsontable} instance A reference to the source instance of the Handsontable.
    */
