@@ -13,16 +13,16 @@ const skipCheckString = '[skip changelog]';
 
 const changelogsPath = '.changelogs/';
 
-const {owner, repo} = github.context.repo
+const { owner, repo } = github.context.repo;
 const octokit = github.getOctokit(token);
 
 const run = async() => {
-  const pr = github.context.payload.pull_request
+  const pr = github.context.payload.pull_request;
 
   if (pr === undefined) {
     return core.setFailed(
       'This script can only run within GitHub Action `pull_request` events.'
-    )
+    );
   }
 
   if ((pr.body || '').includes(skipCheckString)) {
