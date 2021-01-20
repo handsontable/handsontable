@@ -4,16 +4,16 @@
 name: Changelog
 
 on:
-  pull_request: [
-    # When new commits get pushed to the associated PR
-    synchronize,
+  pull_request:
+    types:
+      # When new commits get pushed to the associated PR
+      - synchronize
 
-    # When a PR gets first opened
-    opened,
+      # When a PR gets first opened
+      - opened
 
-    # When a PR gets edited, as in the title, body or the base branch gets changed
-    edited
-  ]
+      # When a PR gets edited, as in the title, body or the base branch gets changed
+      - edited
 
 jobs:
   check:
