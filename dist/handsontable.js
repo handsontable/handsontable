@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.3.0
- * Release date: 27/01/2020 (built at 20/01/2021 12:41:34)
+ * Release date: 27/01/2020 (built at 20/01/2021 15:44:41)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -32394,8 +32394,8 @@ var DEFAULT_ERROR_ID_EXISTS = function DEFAULT_ERROR_ID_EXISTS(id) {
  * Creates a new unique map.
  *
  * @param {object} config The config for priority queue.
- * @param {(id: *) => string} config.errorItemExists The function to generate custom message.
- * @param {(id: *) => string} config.errorItemNotExists The function to generate custom message.
+ * @param {Function} config.errorItemExists The function to generate custom message.
+ * @param {Function} config.errorItemNotExists The function to generate custom message.
  * @returns {UniqueMap}
  */
 
@@ -32467,7 +32467,7 @@ function createUniqueMap() {
   /**
    * Gets all items from the map.
    *
-   * @returns {*[]}
+   * @returns {Array}
    */
 
 
@@ -39932,7 +39932,7 @@ Handsontable.Core = function (rootElement) {
 };
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "20/01/2021 12:41:34";
+Handsontable.buildDate = "20/01/2021 15:44:41";
 Handsontable.version = "8.3.0";
 Handsontable.languages = {
   dictionaryKeys: _i18n.dictionaryKeys,
