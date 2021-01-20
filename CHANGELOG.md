@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [8.3.0] - 2020-01-27
+
+### Added
+- Introduced a new feature that allows postponing the table render and internal data cache update. The table rendering time can be reduced several-fold times by batching (using the `batch` method), multi-line API calls, or manually suspending rendering using the `suspendRender` and `resumeRender` methods. [#7274](https://github.com/handsontable/handsontable/issues/7274)
+
+### Fixed
+- Fixed a bug with auto-execution of the first item in the ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
+- Fixed a bug where column sorting with multi column sorting crashed the table [#7415](https://github.com/handsontable/handsontable/issues/7415)
+
+### Changed
+- Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issues/7375)
+- All predefined cell types, editors, renderers and validators are modularized for ES and CommonJS bundles. [#7402](https://github.com/handsontable/handsontable/issues/7402)
+- Optimization for minSpareRows, minSpareCols, minRows and minCols options reducing time of initialization [#7439](https://github.com/handsontable/handsontable/issues/7439)
+
 ## [8.2.0] - 2020-11-12
 
 ### Added

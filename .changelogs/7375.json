@@ -1,7 +1,0 @@
-{
-  "title": "Corrected a typo in a helper method from the Column Sorting plugin.",
-  "type": "changed",
-  "issue": 7375,
-  "breaking": false,
-  "framework": "none"
-}
