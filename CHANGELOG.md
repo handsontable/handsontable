@@ -17,11 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed a bug with auto-execution of the first item in the ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
 - Fixed a bug where column sorting with multi column sorting crashed the table [#7415](https://github.com/handsontable/handsontable/issues/7415)
+- Added a missing entry for the `skipRowOnPaste` option in the TypeScript definition file. [#7394](https://github.com/handsontable/handsontable/issues/7394)
+- Added missing tests to prevent issue #7377 from resurfacing. [#7396](https://github.com/handsontable/handsontable/issues/7396)
+- Fixed an issue where altering columns did not update filters attached to columns. [#6830](https://github.com/handsontable/handsontable/issues/6830)
+- Fixed typos and wrong return types in the TypeScript definition file.  [#7399](https://github.com/handsontable/handsontable/issues/7399), [#7400](https://github.com/handsontable/handsontable/issues/7400)
+- Updated the dependencies causing potential security issues, as well as Babel configuration needed after the update.  [#7463](https://github.com/handsontable/handsontable/issues/7463)
 
 ### Changed
 - Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issues/7375)
 - All predefined cell types, editors, renderers and validators are modularized for ES and CommonJS bundles. [#7402](https://github.com/handsontable/handsontable/issues/7402)
-- Optimization for minSpareRows, minSpareCols, minRows and minCols options reducing time of initialization [#7439](https://github.com/handsontable/handsontable/issues/7439)
+- Optimization for minSpareRows, minSpareCols, minRows and minCols options reducing time of initialization. [#7439](https://github.com/handsontable/handsontable/issues/7439)
 
 ## [8.2.0] - 2020-11-12
 
@@ -31,7 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed an issue the container not being updated after trimming rows. [#7241](https://github.com/handsontable/handsontable/issues/7241)
-- Fixed an issue where altering columns did not update filters attached to columns [#6830](https://github.com/handsontable/handsontable/issues/6830)
 - Fixed an issue with a `htmlToGridSettings` helper if passed `<table>` had no rows. [#7311](https://github.com/handsontable/handsontable/issues/7311)
 - Fixed an issue where sorting indicator moved incorrectly when column was added. [#6397](https://github.com/handsontable/handsontable/issues/6397)
 - Fixed a bug, where untrimming previously trimmed rows would sometimes result in the table instance not refreshing its height, leaving the row headers not properly rendered. [#6276](https://github.com/handsontable/handsontable/issues/6276)
