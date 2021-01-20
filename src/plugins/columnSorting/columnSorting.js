@@ -6,8 +6,7 @@ import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
-import BasePlugin from '../_base';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
 import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
@@ -23,9 +22,10 @@ import { getClassesToRemove, getClassesToAdd } from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 
+export const PLUGIN_KEY = 'columnSorting';
+export const PLUGIN_PRIORITY = 50;
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
-const PLUGIN_KEY = 'columnSorting';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -80,7 +80,15 @@ Hooks.getSingleton().register('afterColumnSort');
  *   }
  * }]```
  */
-class ColumnSorting extends BasePlugin {
+export class ColumnSorting extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -793,7 +801,3 @@ class ColumnSorting extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin(PLUGIN_KEY, ColumnSorting);
-
-export default ColumnSorting;

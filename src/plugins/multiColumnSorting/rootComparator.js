@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 import { getCompareFunctionFactory, DO_NOT_SWAP } from '../columnSorting/sortService';
 
 /**

@@ -1,5 +1,5 @@
-import { objectEach, isObject, extend } from './../../helpers/object';
-import { arrayEach } from './../../helpers/array';
+import { objectEach, isObject, extend } from '../../helpers/object';
+import { arrayEach } from '../../helpers/array';
 import {
   SEPARATOR,
   ITEMS,

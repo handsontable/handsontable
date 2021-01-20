@@ -1,4 +1,4 @@
-import SheetClip from './../lib/SheetClip/SheetClip';
+import { stringify } from './3rdparty/SheetClip';
 import {
   cellMethodLookupFactory,
   countFirstRowKeys
@@ -912,7 +912,7 @@ class DataMap {
    * @returns {string}
    */
   getText(start, end) {
-    return SheetClip.stringify(this.getRange(start, end, DataMap.DESTINATION_RENDERER));
+    return stringify(this.getRange(start, end, DataMap.DESTINATION_RENDERER));
   }
 
   /**
@@ -923,7 +923,7 @@ class DataMap {
    * @returns {string}
    */
   getCopyableText(start, end) {
-    return SheetClip.stringify(this.getRange(start, end, DataMap.DESTINATION_CLIPBOARD_GENERATOR));
+    return stringify(this.getRange(start, end, DataMap.DESTINATION_CLIPBOARD_GENERATOR));
   }
 
   /**

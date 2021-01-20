@@ -1,4 +1,8 @@
 {
+  "packages": ["tmp"],
+  "publishDirectory": {
+    "handsontable": "tmp"
+  },
   "sandboxes": [
     "github/handsontable/examples/tree/master/vanilla/pull-request", 
     "github/handsontable/examples/tree/master/vue/pull-request", 

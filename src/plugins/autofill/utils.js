@@ -1,6 +1,6 @@
-import { isObject } from './../../helpers/object';
-import { isDefined } from './../../helpers/mixed';
-import { CellCoords } from './../../3rdparty/walkontable/src';
+import { isObject } from '../../helpers/object';
+import { isDefined } from '../../helpers/mixed';
+import { CellCoords } from '../../3rdparty/walkontable/src';
 
 export const DIRECTIONS = {
   horizontal: 'horizontal',

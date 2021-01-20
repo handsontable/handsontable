@@ -1,13 +1,14 @@
-import BasePlugin from './../_base';
-import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from './../../helpers/dom/element';
-import EventManager from './../../eventManager';
-import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from '../../helpers/dom/element';
+import EventManager from '../../eventManager';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
+export const PLUGIN_KEY = 'manualColumnResize';
+export const PLUGIN_PRIORITY = 130;
 const PERSISTENT_STATE_KEY = 'manualColumnWidths';
 const privatePool = new WeakMap();
 /**
@@ -21,7 +22,15 @@ const privatePool = new WeakMap();
  *
  * @plugin ManualColumnResize
  */
-class ManualColumnResize extends BasePlugin {
+export class ManualColumnResize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -67,7 +76,7 @@ class ManualColumnResize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().manualColumnResize;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -172,7 +181,7 @@ class ManualColumnResize extends BasePlugin {
   onMapInit() {
     const priv = privatePool.get(this);
 
-    const initialSetting = this.hot.getSettings().manualColumnResize;
+    const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
     const loadedManualColumnWidths = this.loadManualColumnWidths();
 
     if (typeof loadedManualColumnWidths !== 'undefined') {
@@ -563,7 +572,7 @@ class ManualColumnResize extends BasePlugin {
       const physicalColumn = this.hot.toPhysicalColumn(column);
       const columnWidth = this.columnWidthsMap.getValueAtIndex(physicalColumn);
 
-      if (this.hot.getSettings().manualColumnResize && columnWidth) {
+      if (this.hot.getSettings()[PLUGIN_KEY] && columnWidth) {
         newWidth = columnWidth;
       }
     }
@@ -608,7 +617,3 @@ class ManualColumnResize extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('manualColumnResize', ManualColumnResize);
-
-export default ManualColumnResize;
