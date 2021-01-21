@@ -1,4 +1,4 @@
-import { sanitize as purifySanitize } from 'dompurify';
+import DOMPurify from 'dompurify';
 import { stringify } from './mixed';
 
 /**
@@ -97,5 +97,5 @@ export function stripTags(string) {
  * @returns {string}
  */
 export function sanitize(string, options) {
-  return purifySanitize(string, options);
+  return DOMPurify.sanitize(string, options);
 }

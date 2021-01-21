@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 

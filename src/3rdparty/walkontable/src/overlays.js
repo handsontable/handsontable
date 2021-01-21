@@ -6,7 +6,27 @@ import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
-import Overlay from './overlay/_base';
+import {
+  CLONE_BOTTOM_LEFT_CORNER,
+  CLONE_BOTTOM,
+  CLONE_LEFT,
+  CLONE_TOP_LEFT_CORNER,
+  CLONE_TOP,
+  LeftOverlay,
+  TopOverlay,
+  TopLeftCornerOverlay,
+  BottomOverlay,
+  BottomLeftCornerOverlay,
+  registerOverlayOnce,
+  createOverlay,
+  hasOverlay,
+} from './overlay';
+
+registerOverlayOnce(BottomLeftCornerOverlay);
+registerOverlayOnce(BottomOverlay);
+registerOverlayOnce(LeftOverlay);
+registerOverlayOnce(TopLeftCornerOverlay);
+registerOverlayOnce(TopOverlay);
 
 /**
  * @class Overlays
@@ -84,16 +104,16 @@ class Overlays {
     if (this.topOverlay) {
       syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.topOverlay = Overlay.createOverlay(Overlay.CLONE_TOP, this.wot);
+      this.topOverlay = createOverlay(CLONE_TOP, this.wot);
     }
 
-    if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM)) {
+    if (!hasOverlay(CLONE_BOTTOM)) {
       this.bottomOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => false,
       };
     }
-    if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    if (!hasOverlay(CLONE_BOTTOM_LEFT_CORNER)) {
       this.bottomLeftCornerOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => false,
@@ -103,20 +123,20 @@ class Overlays {
     if (this.bottomOverlay) {
       syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.bottomOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM, this.wot);
+      this.bottomOverlay = createOverlay(CLONE_BOTTOM, this.wot);
     }
 
     if (this.leftOverlay) {
       syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.leftOverlay = Overlay.createOverlay(Overlay.CLONE_LEFT, this.wot);
+      this.leftOverlay = createOverlay(CLONE_LEFT, this.wot);
     }
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.topLeftCornerOverlay) {
         syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       } else {
-        this.topLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_TOP_LEFT_CORNER, this.wot);
+        this.topLeftCornerOverlay = createOverlay(CLONE_TOP_LEFT_CORNER, this.wot);
       }
     }
 
@@ -124,7 +144,7 @@ class Overlays {
       if (this.bottomLeftCornerOverlay) {
         syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       } else {
-        this.bottomLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
+        this.bottomLeftCornerOverlay = createOverlay(CLONE_BOTTOM_LEFT_CORNER, this.wot);
       }
     }
 

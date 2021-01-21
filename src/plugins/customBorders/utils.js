@@ -1,7 +1,7 @@
 import {
   hasOwnProperty,
-  isObject } from './../../helpers/object';
-import { arrayEach } from './../../helpers/array';
+  isObject } from '../../helpers/object';
+import { arrayEach } from '../../helpers/array';
 
 /**
  * Create separated id for borders for each cell.

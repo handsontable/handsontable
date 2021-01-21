@@ -1,7 +1,9 @@
-import BasePlugin from '../_base';
-import { registerPlugin } from '../../plugins';
+import { BasePlugin } from '../base';
 import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
+
+export const PLUGIN_KEY = 'exportFile';
+export const PLUGIN_PRIORITY = 240;
 
 /**
  * @plugin ExportFile
@@ -42,7 +44,15 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
  * });
  * ```
  */
-class ExportFile extends BasePlugin {
+export class ExportFile extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
@@ -156,7 +166,3 @@ class ExportFile extends BasePlugin {
     return formatter;
   }
 }
-
-registerPlugin('exportFile', ExportFile);
-
-export default ExportFile;

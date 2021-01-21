@@ -1,15 +1,25 @@
-import { addClass, removeClass } from './../../helpers/dom/element';
-import { arrayEach } from './../../helpers/array';
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
-import { isTouchSupported } from './../../helpers/feature';
+import { addClass, removeClass } from '../../helpers/dom/element';
+import { arrayEach } from '../../helpers/array';
+import { BasePlugin } from '../base';
+import { isTouchSupported } from '../../helpers/feature';
+
+export const PLUGIN_KEY = 'touchScroll';
+export const PLUGIN_PRIORITY = 200;
 
 /**
  * @private
  * @plugin TouchScroll
  * @class TouchScroll
  */
-class TouchScroll extends BasePlugin {
+export class TouchScroll extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -183,7 +193,3 @@ class TouchScroll extends BasePlugin {
     this.hot.view.wt.wtOverlays.syncScrollWithMaster();
   }
 }
-
-registerPlugin('touchScroll', TouchScroll);
-
-export default TouchScroll;

@@ -10,12 +10,19 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import TopOverlayTable from './../table/top';
-import Overlay from './_base';
+import { Overlay } from './_base';
+import {
+  CLONE_TOP,
+} from './constants';
 
 /**
  * @class TopOverlay
  */
-class TopOverlay extends Overlay {
+export class TopOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_TOP;
+  }
+
   /**
    * Cached value which holds the previous value of the `fixedRowsTop` option.
    * It is used as a comparison value that can be used to detect changes in this value.
@@ -29,7 +36,7 @@ class TopOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_TOP);
+    this.clone = this.makeClone(CLONE_TOP);
   }
 
   /**
@@ -378,7 +385,3 @@ class TopOverlay extends Overlay {
     return positionChanged;
   }
 }
-
-Overlay.registerOverlay(Overlay.CLONE_TOP, TopOverlay);
-
-export default TopOverlay;
