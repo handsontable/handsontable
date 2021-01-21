@@ -1,3 +1,7 @@
+.handsontable {
+  touch-action: manipulation;
+}
+
 .handsontable.htAutoSize {
   visibility: hidden;
   left: -99000px;
