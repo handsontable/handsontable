@@ -1795,7 +1795,7 @@ describe('Core_selection', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(1);
         expect(`
-        |   ║   : * :   :   :   |
+        |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
@@ -1818,7 +1818,7 @@ describe('Core_selection', () => {
         |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
-        | * ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
@@ -2072,7 +2072,7 @@ describe('Core_selection', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(1);
         expect(`
-        |   ║   : * :   :   :   |
+        |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   : A :   :   :   |
         |   ║   : 0 :   :   :   |
@@ -2096,7 +2096,7 @@ describe('Core_selection', () => {
         |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
-        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║ A : 0 : 0 : 0 : 0 |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
@@ -2127,9 +2127,6 @@ describe('Core_selection', () => {
           ]
         });
 
-        // Cell selection (header isn't selected?)
-        // TODO: Should it not select headers? Documentation says that value set to `true` disables any type of
-        // visual selection (current and area selection)
         simulateClick($(getCell(1, 1)), 'LMB');
 
         expect(getSelected()).toEqual([[1, 1, 1, 1]]);
@@ -2182,7 +2179,7 @@ describe('Core_selection', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(1);
         expect(`
-        |   ║   : * :   :   :   |
+        |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
@@ -2205,7 +2202,7 @@ describe('Core_selection', () => {
         |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
-        | * ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
@@ -2604,7 +2601,7 @@ describe('Core_selection', () => {
         expect(getSelectedRangeLast().to.row).toBe(4);
         expect(getSelectedRangeLast().to.col).toBe(1);
         expect(`
-        |   ║   : * :   :   :   |
+        |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   : A :   :   :   |
         |   ║   : 0 :   :   :   |
@@ -2628,7 +2625,7 @@ describe('Core_selection', () => {
         |   ║   :   :   :   :   |
         |===:===:===:===:===:===|
         |   ║   :   :   :   :   |
-        | * ║ A : 0 : 0 : 0 : 0 |
+        |   ║ A : 0 : 0 : 0 : 0 |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
         |   ║   :   :   :   :   |
