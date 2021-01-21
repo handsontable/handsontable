@@ -2110,9 +2110,13 @@ describe('Core_selection', () => {
           rowHeaders: true,
           colHeaders: true,
           cells(row) {
-            return {
-              disableVisualSelection: row === 1
-            };
+            const cellProperties = {};
+
+            if (row === 1) {
+              cellProperties.disableVisualSelection = true;
+            }
+
+            return cellProperties;
           },
           columns: [
             {},
