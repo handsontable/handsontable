@@ -406,23 +406,34 @@ class TableView {
   }
 
   /**
+   * Returns the number of renderable indexes.
+   *
+   * @private
+   * @param {IndexMapper} indexMapper The IndexMapper instance for specific axis.
+   * @param {number} maxElements Maximum number of elements (rows or columns).
+   *
+   * @returns {number|*}
+   */
+  countRenderableIndexes(indexMapper, maxElements) {
+    const consideredElements = Math.min(indexMapper.getNotTrimmedIndexesLength(), maxElements);
+    // Don't take hidden indexes into account. We are looking just for renderable indexes.
+    const firstNotHiddenIndex = indexMapper.getFirstNotHiddenIndex(consideredElements - 1, -1);
+
+    // There are no renderable indexes.
+    if (firstNotHiddenIndex === null) {
+      return 0;
+    }
+
+    return indexMapper.getRenderableFromVisualIndex(firstNotHiddenIndex) + 1;
+  }
+
+  /**
    * Returns the number of renderable columns.
    *
    * @returns {number}
    */
   countRenderableColumns() {
-    const consideredColumns = Math.min(
-      this.instance.columnIndexMapper.getNotTrimmedIndexesLength(), this.settings.maxCols);
-    // Don't take hidden columns into account. We are looking just for renderable columns.
-    const firstNotHiddenColumn = this.instance.columnIndexMapper.getFirstNotHiddenIndex(
-      consideredColumns - 1, -1);
-
-    // There are no renderable columns.
-    if (firstNotHiddenColumn === null) {
-      return 0;
-    }
-
-    return this.instance.columnIndexMapper.getRenderableFromVisualIndex(firstNotHiddenColumn) + 1;
+    return this.countRenderableIndexes(this.instance.columnIndexMapper, this.settings.maxCols);
   }
 
   /**
@@ -431,18 +442,7 @@ class TableView {
    * @returns {number}
    */
   countRenderableRows() {
-    const consideredRows = Math.min(
-      this.instance.rowIndexMapper.getNotTrimmedIndexesLength(), this.settings.maxRows);
-    // Don't take hidden rows into account. We are looking just for renderable rows.
-    const firstNotHiddenRow = this.instance.rowIndexMapper.getFirstNotHiddenIndex(
-      consideredRows - 1, -1);
-
-    // There are no renderable rows.
-    if (firstNotHiddenRow === null) {
-      return 0;
-    }
-
-    return this.instance.rowIndexMapper.getRenderableFromVisualIndex(firstNotHiddenRow) + 1;
+    return this.countRenderableIndexes(this.instance.rowIndexMapper, this.settings.maxRows);
   }
 
   /**
