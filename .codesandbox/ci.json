@@ -1,13 +1,13 @@
 {
   "buildCommand": "all build",
   "packages": [
-    "./",
+    "tmp",
     "wrappers/angular-handsontable",
     "wrappers/react-handsontable",
     "wrappers/vue-handsontable"
   ],
   "publishDirectory": {
-    "handsontable": "./",
+    "handsontable": "tmp",
     "@handsontable/angular": "wrappers/angular-handsontable/dist/hot-table",
     "@handsontable/react": "wrappers/react-handsontable",
     "@handsontable/vue": "wrappers/vue-handsontable"

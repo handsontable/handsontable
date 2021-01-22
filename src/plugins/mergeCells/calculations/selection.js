@@ -1,4 +1,4 @@
-import { CellCoords, CellRange } from './../../../3rdparty/walkontable/src';
+import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 
 /**
  * Class responsible for all of the Selection-related operations on merged cells.

@@ -353,11 +353,11 @@ class CollapsingUI extends BaseUI {
    * @param {Array} rows Physical row indexes.
    */
   trimRows(rows) {
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, true);
       });
-    });
+    }, true);
   }
 
   /**
@@ -366,11 +366,11 @@ class CollapsingUI extends BaseUI {
    * @param {Array} rows Physical row indexes.
    */
   untrimRows(rows) {
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       arrayEach(rows, (physicalRow) => {
         this.plugin.collapsedRowsMap.setValueAtIndex(physicalRow, false);
       });
-    });
+    }, true);
   }
 
   /**
@@ -484,7 +484,7 @@ class CollapsingUI extends BaseUI {
     this.hot.render();
 
     // Dirty workaround to prevent scroll height not adjusting to the table height. Needs refactoring in the future.
-    this.hot.view.wt.wtOverlays.adjustElementsSize();
+    this.hot.view.adjustElementsSize();
   }
 }
 

@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 const COLUMN_ORDER_PREFIX = 'sort';
 
 /**

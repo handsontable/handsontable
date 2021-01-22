@@ -2,10 +2,11 @@ import {
   outerWidth
 } from '../../helpers/dom/element';
 import { warn } from '../../helpers/console';
-import { registerPlugin } from '../../plugins';
 import { rangeEach } from '../../helpers/number';
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 
+export const PLUGIN_KEY = 'headerTooltips';
+export const PLUGIN_PRIORITY = 270;
 let isDeprecationMessageShowed = false;
 
 /**
@@ -34,7 +35,15 @@ let isDeprecationMessageShowed = false;
  * });
  * ```
  */
-class HeaderTooltips extends BasePlugin {
+export class HeaderTooltips extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -54,7 +63,7 @@ class HeaderTooltips extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().headerTooltips;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -70,7 +79,7 @@ class HeaderTooltips extends BasePlugin {
       warn('The Header Tooltips plugin is deprecated and will be removed in the next major release');
     }
 
-    this.settings = this.hot.getSettings().headerTooltips;
+    this.settings = this.hot.getSettings()[PLUGIN_KEY];
 
     this.parseSettings();
 
@@ -170,7 +179,3 @@ class HeaderTooltips extends BasePlugin {
   }
 
 }
-
-registerPlugin('headerTooltips', HeaderTooltips);
-
-export default HeaderTooltips;

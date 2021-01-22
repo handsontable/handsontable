@@ -72,6 +72,15 @@ class TableView {
      * @type {Walkontable}
      */
     this.activeWt = void 0;
+    /**
+     * The flag determines if the `adjustElementsSize` method call was made during
+     * the render suspending. If true, the method has to be triggered once after render
+     * resuming.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this.postponedAdjustElementsSize = false;
 
     privatePool.set(this, {
       /**
@@ -116,9 +125,30 @@ class TableView {
    * Renders WalkontableUI.
    */
   render() {
-    this.wt.draw(!this.instance.forceFullRender);
-    this.instance.forceFullRender = false;
-    this.instance.renderCall = false;
+    if (!this.instance.isRenderSuspended()) {
+      if (this.postponedAdjustElementsSize) {
+        this.postponedAdjustElementsSize = false;
+
+        this.adjustElementsSize(true);
+      }
+
+      this.wt.draw(!this.instance.forceFullRender);
+      this.instance.forceFullRender = false;
+      this.instance.renderCall = false;
+    }
+  }
+
+  /**
+   * Adjust overlays elements size and master table size.
+   *
+   * @param {boolean} [force=false] When `true`, it adjust the DOM nodes sizes for all overlays.
+   */
+  adjustElementsSize(force = false) {
+    if (this.instance.isRenderSuspended()) {
+      this.postponedAdjustElementsSize = true;
+    } else {
+      this.wt.wtOverlays.adjustElementsSize(force);
+    }
   }
 
   /**
@@ -376,12 +406,34 @@ class TableView {
   }
 
   /**
+   * Returns the number of renderable indexes.
+   *
+   * @private
+   * @param {IndexMapper} indexMapper The IndexMapper instance for specific axis.
+   * @param {number} maxElements Maximum number of elements (rows or columns).
+   *
+   * @returns {number|*}
+   */
+  countRenderableIndexes(indexMapper, maxElements) {
+    const consideredElements = Math.min(indexMapper.getNotTrimmedIndexesLength(), maxElements);
+    // Don't take hidden indexes into account. We are looking just for renderable indexes.
+    const firstNotHiddenIndex = indexMapper.getFirstNotHiddenIndex(consideredElements - 1, -1);
+
+    // There are no renderable indexes.
+    if (firstNotHiddenIndex === null) {
+      return 0;
+    }
+
+    return indexMapper.getRenderableFromVisualIndex(firstNotHiddenIndex) + 1;
+  }
+
+  /**
    * Returns the number of renderable columns.
    *
    * @returns {number}
    */
   countRenderableColumns() {
-    return Math.min(this.instance.columnIndexMapper.getRenderableIndexesLength(), this.settings.maxCols);
+    return this.countRenderableIndexes(this.instance.columnIndexMapper, this.settings.maxCols);
   }
 
   /**
@@ -390,7 +442,7 @@ class TableView {
    * @returns {number}
    */
   countRenderableRows() {
-    return Math.min(this.instance.rowIndexMapper.getRenderableIndexesLength(), this.settings.maxRows);
+    return this.countRenderableIndexes(this.instance.rowIndexMapper, this.settings.maxRows);
   }
 
   /**

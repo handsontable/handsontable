@@ -6,19 +6,20 @@ import {
   offset,
   outerWidth,
   outerHeight
-} from './../../helpers/dom/element';
-import { deepClone, deepExtend, isObject } from './../../helpers/object';
-import EventManager from './../../eventManager';
-import { CellCoords } from './../../3rdparty/walkontable/src';
-import { registerPlugin } from './../../plugins';
-import BasePlugin from './../_base';
+} from '../../helpers/dom/element';
+import { deepClone, deepExtend, isObject } from '../../helpers/object';
+import EventManager from '../../eventManager';
+import { CellCoords } from '../../3rdparty/walkontable/src';
+import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
-import { checkSelectionConsistency, markLabelAsSelected } from './../contextMenu/utils';
+import { checkSelectionConsistency, markLabelAsSelected } from '../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
-import * as C from './../../i18n/constants';
+import * as C from '../../i18n/constants';
 
 import './comments.css';
 
+export const PLUGIN_KEY = 'comments';
+export const PLUGIN_PRIORITY = 60;
 const privatePool = new WeakMap();
 const META_COMMENT = 'comment';
 const META_COMMENT_VALUE = 'value';
@@ -37,7 +38,7 @@ const META_READONLY = 'readOnly';
  * To enable the plugin, you'll need to set the comments property of the config object to `true`:
  * ```js
  * comments: true
- * ```.
+ * ```
  *
  * or an object with extra predefined plugin config:
  *
@@ -45,7 +46,7 @@ const META_READONLY = 'readOnly';
  * comments: {
  *   displayDelay: 1000
  * }
- * ```.
+ * ```
  *
  * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
  *
@@ -77,7 +78,15 @@ const META_READONLY = 'readOnly';
  * ```
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-class Comments extends BasePlugin {
+export class Comments extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -136,7 +145,7 @@ class Comments extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().comments;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -821,7 +830,7 @@ class Comments extends BasePlugin {
    * @returns {number|undefined}
    */
   getDisplayDelaySetting() {
-    const commentSetting = this.hot.getSettings().comments;
+    const commentSetting = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(commentSetting)) {
       return commentSetting.displayDelay;
@@ -854,7 +863,3 @@ class Comments extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('comments', Comments);
-
-export default Comments;

@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 import { isEmpty } from '../../../helpers/mixed';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
 

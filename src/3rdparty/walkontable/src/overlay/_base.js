@@ -6,9 +6,11 @@ import { defineGetter } from './../../../../helpers/object';
 import { arrayEach } from './../../../../helpers/array';
 import { warn } from './../../../../helpers/console';
 import EventManager from './../../../../eventManager';
-import Walkontable from './../core';
-
-const registeredOverlays = {};
+import {
+  CLONE_TYPES,
+  CLONE_TOP,
+  CLONE_LEFT,
+} from './constants';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -16,106 +18,7 @@ const registeredOverlays = {};
  *
  * @class Overlay
  */
-class Overlay {
-  /**
-   * @type {string}
-   */
-  static get CLONE_TOP() {
-    return 'top';
-  }
-
-  /**
-   * @type {string}
-   */
-  static get CLONE_BOTTOM() {
-    return 'bottom';
-  }
-
-  /**
-   * @type {string}
-   */
-  static get CLONE_LEFT() {
-    return 'left';
-  }
-
-  /**
-   * @type {string}
-   */
-  static get CLONE_TOP_LEFT_CORNER() {
-    return 'top_left_corner';
-  }
-
-  /**
-   * @type {string}
-   */
-  static get CLONE_BOTTOM_LEFT_CORNER() {
-    return 'bottom_left_corner';
-  }
-
-  /**
-   * List of all availables clone types.
-   *
-   * @type {Array}
-   */
-  static get CLONE_TYPES() {
-    return [
-      Overlay.CLONE_TOP,
-      Overlay.CLONE_BOTTOM,
-      Overlay.CLONE_LEFT,
-      Overlay.CLONE_TOP_LEFT_CORNER,
-      Overlay.CLONE_BOTTOM_LEFT_CORNER,
-    ];
-  }
-
-  /**
-   * Register overlay class.
-   *
-   * @param {string} type Overlay type, one of the CLONE_TYPES value.
-   * @param {Overlay} overlayClass Overlay class extended from base overlay class {@link Overlay}.
-   */
-  static registerOverlay(type, overlayClass) {
-    if (Overlay.CLONE_TYPES.indexOf(type) === -1) {
-      throw new Error(`Unsupported overlay (${type}).`);
-    }
-    registeredOverlays[type] = overlayClass;
-  }
-
-  /**
-   * Create new instance of overlay type.
-   *
-   * @param {string} type Overlay type, one of the CLONE_TYPES value.
-   * @param {Walkontable} wot The Walkontable instance.
-   * @returns {Overlay}
-   */
-  static createOverlay(type, wot) {
-    return new registeredOverlays[type](wot);
-  }
-
-  /**
-   * Check if specified overlay was registered.
-   *
-   * @param {string} type Overlay type, one of the CLONE_TYPES value.
-   * @returns {boolean}
-   */
-  static hasOverlay(type) {
-    return registeredOverlays[type] !== void 0;
-  }
-
-  /**
-   * Checks if overlay object (`overlay`) is instance of overlay type (`type`).
-   *
-   * @param {Overlay} overlay Overlay object.
-   * @param {string} type Overlay type, one of the CLONE_TYPES value.
-   * @returns {boolean}
-   */
-  static isOverlayTypeOf(overlay, type) {
-    if (!overlay || !registeredOverlays[type]) {
-      return false;
-    }
-
-    return overlay instanceof registeredOverlays[type];
-  }
-
+export class Overlay {
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
@@ -320,7 +223,7 @@ class Overlay {
    * @returns {Walkontable}
    */
   makeClone(direction) {
-    if (Overlay.CLONE_TYPES.indexOf(direction) === -1) {
+    if (CLONE_TYPES.indexOf(direction) === -1) {
       throw new Error(`Clone type "${direction}" is not supported.`);
     }
     const { wtTable, rootDocument, rootWindow } = this.wot;
@@ -343,8 +246,8 @@ class Overlay {
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (preventOverflow === true ||
-      preventOverflow === 'horizontal' && this.type === Overlay.CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === Overlay.CLONE_LEFT) {
+      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
+      preventOverflow === 'vertical' && this.type === CLONE_LEFT) {
       this.mainTableScrollableElement = rootWindow;
 
     } else if (rootWindow.getComputedStyle(tableParent).getPropertyValue('overflow') === 'hidden') {
@@ -353,7 +256,8 @@ class Overlay {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
 
-    return new Walkontable({
+    // Create a new instance of the Walkontable class
+    return new this.wot.constructor({
       cloneSource: this.wot,
       cloneOverlay: this,
       table: clonedTable,
@@ -403,5 +307,3 @@ class Overlay {
     (new EventManager(this.clone)).destroy();
   }
 }
-
-export default Overlay;

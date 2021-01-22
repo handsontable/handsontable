@@ -1,10 +1,9 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
-import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
@@ -17,6 +16,9 @@ Hooks.getSingleton().register('beforeHideColumns');
 Hooks.getSingleton().register('afterHideColumns');
 Hooks.getSingleton().register('beforeUnhideColumns');
 Hooks.getSingleton().register('afterUnhideColumns');
+
+export const PLUGIN_KEY = 'hiddenColumns';
+export const PLUGIN_PRIORITY = 310;
 
 /**
  * @plugin HiddenColumns
@@ -68,7 +70,15 @@ Hooks.getSingleton().register('afterUnhideColumns');
  * hot.render();
  * ```
  */
-class HiddenColumns extends BasePlugin {
+export class HiddenColumns extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Cached plugin settings.
    *
@@ -91,7 +101,7 @@ class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().hiddenColumns;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -102,7 +112,7 @@ class HiddenColumns extends BasePlugin {
       return;
     }
 
-    const pluginSettings = this.hot.getSettings().hiddenColumns;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(pluginSettings)) {
       this.#settings = pluginSettings;
@@ -188,7 +198,7 @@ class HiddenColumns extends BasePlugin {
     }
 
     // @TODO Should call once per render cycle, currently fired separately in different plugins
-    this.hot.view.wt.wtOverlays.adjustElementsSize();
+    this.hot.view.adjustElementsSize();
 
     this.hot.runHooks('afterUnhideColumns', currentHideConfig, destinationHideConfig,
       isValidConfig && isAnyColumnShowed, isValidConfig && destinationHideConfig.length < currentHideConfig.length);
@@ -225,11 +235,11 @@ class HiddenColumns extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(columns, (visualColumn) => {
           this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });
-      });
+      }, true);
     }
 
     this.hot.runHooks('afterHideColumns', currentHideConfig, destinationHideConfig, isConfigValid,
@@ -466,7 +476,3 @@ class HiddenColumns extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('hiddenColumns', HiddenColumns);
-
-export default HiddenColumns;

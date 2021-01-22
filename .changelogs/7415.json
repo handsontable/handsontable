@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a bug where column sorting with multi column sorting crashed the table",
+  "type": "fixed",
+  "issue": 7415,
+  "breaking": false,
+  "framework": "none"
+}

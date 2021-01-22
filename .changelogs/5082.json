@@ -1,0 +1,7 @@
+{
+  "title": "Fixed a bug where there was no possibility to use `disableVisualSelection` for particular cell/column",
+  "type": "fixed",
+  "issue": 5082,
+  "breaking": false,
+  "framework": "none"
+}
