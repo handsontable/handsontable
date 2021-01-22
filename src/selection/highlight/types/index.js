@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import staticRegister from './../../../utils/staticRegister';
 
 import activeHeaderHighlight from './activeHeader';

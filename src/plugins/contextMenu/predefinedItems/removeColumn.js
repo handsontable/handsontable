@@ -1,6 +1,6 @@
-import { getValidSelection } from './../utils';
-import { transformSelectionToColumnDistance } from './../../../selection/utils';
-import * as C from './../../../i18n/constants';
+import { getValidSelection } from '../utils';
+import { transformSelectionToColumnDistance } from '../../../selection/utils';
+import * as C from '../../../i18n/constants';
 
 export const KEY = 'remove_col';
 

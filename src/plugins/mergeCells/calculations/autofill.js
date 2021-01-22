@@ -1,6 +1,6 @@
 import { extend } from '../../../helpers/object';
-import { CellCoords, CellRange } from './../../../3rdparty/walkontable/src';
-import { arrayEach } from './../../../helpers/array';
+import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
+import { arrayEach } from '../../../helpers/array';
 
 /**
  * Class responsible for all of the Autofill-related operations on merged cells.

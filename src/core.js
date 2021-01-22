@@ -15,10 +15,10 @@ import {
 } from './helpers/object';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
-import { getPlugin } from './plugins';
-import { getRenderer } from './renderers';
-import { getValidator } from './validators';
-import { randomString } from './helpers/string';
+import { getPlugin, getPluginsNames } from './plugins/registry';
+import { getRenderer } from './renderers/registry';
+import { getValidator } from './validators/registry';
+import { randomString, toUpperCaseFirst } from './helpers/string';
 import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
@@ -36,6 +36,7 @@ import {
 } from './utils/keyStateObserver';
 import { Selection } from './selection';
 import { MetaManager, DataMap } from './dataMap/index';
+import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
 
@@ -85,6 +86,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const metaManager = new MetaManager(userSettings);
   const tableMeta = metaManager.getTableMeta();
   const globalMeta = metaManager.getGlobalMeta();
+  const pluginsRegistry = createUniqueMap();
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -207,7 +209,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countColsTranslated: () => this.view.countRenderableColumns(),
     countRowsTranslated: () => this.view.countRenderableRows(),
     visualToRenderableCoords,
-    renderableToVisualCoords
+    renderableToVisualCoords,
+    isDisabledCellSelection: (visualRow, visualColumn) =>
+      instance.getCellMeta(visualRow, visualColumn).disableVisualSelection
   });
 
   this.selection = selection;
@@ -609,54 +613,64 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
      * Makes sure there are empty rows at the bottom of the table.
      */
     adjustRowsAndCols() {
-      if (tableMeta.minRows) {
-        // should I add empty rows to data source to meet minRows?
-        const rows = instance.countRows();
+      const minRows = tableMeta.minRows;
+      const minSpareRows = tableMeta.minSpareRows;
+      const minCols = tableMeta.minCols;
+      const minSpareCols = tableMeta.minSpareCols;
 
-        if (rows < tableMeta.minRows) {
-          for (let r = 0, minRows = tableMeta.minRows; r < minRows - rows; r++) {
-            // The synchronization with cell meta is not desired here. For `minRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
+      if (minRows) {
+        // should I add empty rows to data source to meet minRows?
+        const nrOfRows = instance.countRows();
+
+        if (nrOfRows < minRows) {
+          // The synchronization with cell meta is not desired here. For `minRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createRow(nrOfRows, minRows - nrOfRows, 'auto');
         }
       }
-      if (tableMeta.minSpareRows) {
-        let emptyRows = instance.countEmptyRows(true);
+      if (minSpareRows) {
+        const emptyRows = instance.countEmptyRows(true);
 
         // should I add empty rows to meet minSpareRows?
-        if (emptyRows < tableMeta.minSpareRows) {
-          for (; emptyRows < tableMeta.minSpareRows && instance.countSourceRows() < tableMeta.maxRows; emptyRows++) {
-            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createRow(instance.countRows(), 1, 'auto');
-          }
+        if (emptyRows < minSpareRows) {
+          const emptyRowsMissing = minSpareRows - emptyRows;
+          const rowsToCreate = Math.min(emptyRowsMissing, tableMeta.maxRows - instance.countSourceRows());
+
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createRow(instance.countRows(), rowsToCreate, 'auto');
         }
       }
       {
         let emptyCols;
 
         // count currently empty cols
-        if (tableMeta.minCols || tableMeta.minSpareCols) {
+        if (minCols || minSpareCols) {
           emptyCols = instance.countEmptyCols(true);
         }
 
+        let nrOfColumns = instance.countCols();
+
         // should I add empty cols to meet minCols?
-        if (tableMeta.minCols && !tableMeta.columns && instance.countCols() < tableMeta.minCols) {
-          for (; instance.countCols() < tableMeta.minCols; emptyCols++) {
-            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
+        if (minCols && !tableMeta.columns && nrOfColumns < minCols) {
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          const colsToCreate = minCols - nrOfColumns;
+
+          emptyCols += colsToCreate;
+
+          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
         }
         // should I add empty cols to meet minSpareCols?
-        if (tableMeta.minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
-            emptyCols < tableMeta.minSpareCols) {
-          for (; emptyCols < tableMeta.minSpareCols && instance.countCols() < tableMeta.maxCols; emptyCols++) {
-            // The synchronization with cell meta is not desired here. For `minSpareRows` option,
-            // we don't want to touch/shift cell meta objects.
-            datamap.createCol(instance.countCols(), 1, 'auto');
-          }
+        if (minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
+          emptyCols < minSpareCols) {
+          nrOfColumns = instance.countCols();
+          const emptyColsMissing = minSpareCols - emptyCols;
+          const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
+
+          // The synchronization with cell meta is not desired here. For `minSpareRows` option,
+          // we don't want to touch/shift cell meta objects.
+          datamap.createCol(nrOfColumns, colsToCreate, 'auto');
         }
       }
       const rowCount = instance.countRows();
@@ -3973,6 +3987,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
     instance.batchExecution(() => {
+      pluginsRegistry
+        .getItems()
+        .forEach(([, plugin]) => {
+          plugin.destroy();
+        });
+      pluginsRegistry.clear();
       instance.runHooks('afterDestroy');
     }, true);
 
@@ -4037,10 +4057,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @function getPlugin
    * @param {string} pluginName The plugin name.
-   * @returns {BasePlugin} The plugin instance.
+   * @returns {BasePlugin|undefined} The plugin instance or undefined if there is no plugin.
    */
   this.getPlugin = function(pluginName) {
-    return getPlugin(this, pluginName);
+    const unifiedPluginName = toUpperCaseFirst(pluginName);
+
+    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
+    if (unifiedPluginName === 'UndoRedo') {
+      return this.undoRedo;
+    }
+
+    return pluginsRegistry.getItem(unifiedPluginName);
+  };
+
+  /**
+   * Returns name of the passed plugin.
+   *
+   * @private
+   * @memberof Core#
+   * @param {BasePlugin} plugin The plugin instance.
+   * @returns {string}
+   */
+  this.getPluginName = function(plugin) {
+    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
+    if (plugin === this.undoRedo) {
+      return this.undoRedo.constructor.PLUGIN_KEY;
+    }
+
+    return pluginsRegistry.getId(plugin);
   };
 
   /**
@@ -4261,6 +4305,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.prepareEditor();
     }
   };
+
+  getPluginsNames().forEach((pluginName) => {
+    const PluginClass = getPlugin(pluginName);
+
+    pluginsRegistry.addItem(pluginName, new PluginClass(this));
+  });
 
   Hooks.getSingleton().run(instance, 'construct');
 }

@@ -1,7 +1,9 @@
-import BasePlugin from '../_base';
-import { registerPlugin } from '../../plugins';
+import { BasePlugin } from '../base';
 import { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
+
+export const PLUGIN_KEY = 'trimRows';
+export const PLUGIN_PRIORITY = 330;
 
 /**
  * @plugin TrimRows
@@ -45,7 +47,15 @@ import { arrayEach, arrayReduce } from '../../helpers/array';
  * hot.render();
  * ```
  */
-class TrimRows extends BasePlugin {
+export class TrimRows extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -63,7 +73,7 @@ class TrimRows extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().trimRows;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -84,7 +94,7 @@ class TrimRows extends BasePlugin {
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    const trimmedRows = this.hot.getSettings().trimRows;
+    const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(trimmedRows)) {
       this.hot.batchExecution(() => {
@@ -251,7 +261,7 @@ class TrimRows extends BasePlugin {
    * @private
    */
   onMapInit() {
-    const trimmedRows = this.hot.getSettings().trimRows;
+    const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(trimmedRows)) {
       this.hot.batchExecution(() => {
@@ -271,7 +281,3 @@ class TrimRows extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('trimRows', TrimRows);
-
-export default TrimRows;
