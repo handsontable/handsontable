@@ -78,7 +78,8 @@ Hooks.getSingleton().register('afterColumnSort');
  *       }
  *     }
  *   }
- * }]```
+ * }]
+ * ```
  */
 class ColumnSorting extends BasePlugin {
   constructor(hotInstance) {

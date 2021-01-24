@@ -39,7 +39,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * autoColumnSize: {syncLimit: '40%'},
  * ```
  *
- * To configure this plugin see {@link Options#autoColumnSize}.
+ * To configure this plugin see {@link options#autocolumnsize Options#autoColumnSize}.
  *
  * @example
  * ```js
