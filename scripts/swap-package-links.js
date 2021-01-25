@@ -1,20 +1,34 @@
 const fse = require('fs-extra');
 const path = require('path');
+const {
+  displayConfirmationMessage
+} = require('./common');
+const [/* node bin */, /* path to this script */, pkgName] = process.argv;
 
 const PACKAGE_LOCATIONS = {
   handsontable: './tmp',
   '@handsontable/angular': './wrappers/angular-handsontable/dist/hot-table'
 };
+let packageList = {};
 
-for (const [packageName, packageLocation] of Object.entries(PACKAGE_LOCATIONS)) {
-  fse.removeSync(
-    path.resolve(`./node_modules/${packageName}`),
-  );
+if (pkgName) {
+  packageList[pkgName] = PACKAGE_LOCATIONS[pkgName];
 
-  fse.ensureSymlinkSync(
-    path.resolve(`${packageLocation}`),
-    path.resolve(`./node_modules/${packageName}`),
-  );
+} else {
+  packageList = PACKAGE_LOCATIONS;
+}
 
-  console.log(`Symlink created ${packageName} -> ${packageLocation}.`);
+for (const [packageName, packageLocation] of Object.entries(packageList)) {
+  if (fse.pathExistsSync(`${packageLocation}`)) {
+    fse.removeSync(
+      path.resolve(`./node_modules/${packageName}`),
+    );
+
+    fse.ensureSymlinkSync(
+      path.resolve(`${packageLocation}`),
+      path.resolve(`./node_modules/${packageName}`),
+    );
+
+    displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
+  }
 }

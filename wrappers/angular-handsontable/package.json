@@ -45,7 +45,7 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean && node scripts/pre-build.js",
     "build": "ng build hot-table",
-    "postbuild": "node scripts/post-build.js",
+    "postbuild": "node scripts/post-build.js && cd ../.. && node ./scripts/swap-package-links @handsontable/angular",
     "pretest": "npm run lint && npm run build",
     "test": "ng test hot-table",
     "lint": "ng lint hot-table",
