@@ -44,8 +44,8 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
  */
 class ExportFile extends BasePlugin {
   /**
-   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link hooks#beforeinit Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link export-file#enableplugin ExportFile#enablePlugin} method is called.
    *
    * @returns {boolean}
    */

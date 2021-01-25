@@ -2807,7 +2807,7 @@ export default () => {
      * Enables the {@link observe-changes ObserveChanges} plugin switches table into one-way data binding where changes are applied into
      * data source (from outside table) will be automatically reflected in the table.
      *
-     * For every data change [afterChangesObserved](Hooks.html#event:afterChangesObserved) hook will be fired.
+     * For every data change [afterChangesObserved](hooks#afterchangesobserved) hook will be fired.
      *
      * @memberof Options#
      * @type {boolean}
