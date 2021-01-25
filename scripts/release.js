@@ -34,8 +34,12 @@ spawnProcess(`git checkout ${branchName}`);
 
 // Merge the changes to the `develop` and `master` branches.
 spawnProcess(`git flow release finish ${branchName.replace('release/', '')}`);
-spawnProcess('git checkout develop');
-spawnProcess('git push origin develop');
-spawnProcess('git checkout master');
-spawnProcess('git push origin master');
-spawnProcess('git push --tags');
+
+if (process.argv.includes('--push')) {
+  spawnProcess('git checkout develop');
+  spawnProcess('git push origin develop');
+  spawnProcess('git checkout master');
+  spawnProcess('git push origin master');
+  spawnProcess('git push --tags');
+}
+
