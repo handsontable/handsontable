@@ -3,13 +3,13 @@ import {
   getLanguagesDictionaries,
   registerLanguageDictionary,
   hasLanguageDictionary,
+  dictionaryKeys,
   DEFAULT_LANGUAGE_CODE
-} from 'handsontable/i18n/dictionariesManager';
+} from 'handsontable/i18n';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 import enUS from 'handsontable/i18n/languages/en-US';
-import * as constants from 'handsontable/i18n/constants';
 
-describe('i18n dictionariesManager', () => {
+describe('i18n registry', () => {
   it('should register automatically default language', () => {
     const allLanguages = getLanguagesDictionaries();
     const defaultLanguageIsRegistered = allLanguages
@@ -79,8 +79,8 @@ describe('i18n dictionariesManager', () => {
   it('should extend registered language by default language dictionary', () => {
     const defaultLanguageDictionary = getLanguageDictionary(DEFAULT_LANGUAGE_CODE);
 
-    const dictionaryKey1 = constants.CONTEXTMENU_ITEMS_ROW_ABOVE;
-    const dictionaryKey2 = constants.CONTEXTMENU_ITEMS_COLUMN_RIGHT;
+    const dictionaryKey1 = dictionaryKeys.CONTEXTMENU_ITEMS_ROW_ABOVE;
+    const dictionaryKey2 = dictionaryKeys.CONTEXTMENU_ITEMS_COLUMN_RIGHT;
 
     const registeredLanguage = registerLanguageDictionary({
       languageCode: 'kl-PU',
