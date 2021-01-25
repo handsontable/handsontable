@@ -1,0 +1,13 @@
+{
+  "name": "temp",
+  "version": "1.0.0",
+  "scripts": {
+    "jsdoc2md": "node jsdoc.js"
+  },
+  "author": "Paweł Siemienik<siemienik.pawel@gmail.com>",
+  "private": true,
+  "dependencies": {
+    "jsdoc-to-markdown": "^6.0.1",
+    "fs-extra": "^9.0.1"
+  }
+}

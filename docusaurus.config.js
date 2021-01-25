@@ -61,7 +61,7 @@ module.exports = {
         },
         {
           label: 'API',
-          to: '/',
+          to: 'api',
           activeBasePath: 'docs',
           position: 'right',
         },

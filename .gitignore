@@ -1,5 +1,7 @@
 # Dependencies
-/node_modules
+node_modules
+#/next/api
+#/src/utils/jsdoc-convert/sidebar.js
 
 # Production
 /build

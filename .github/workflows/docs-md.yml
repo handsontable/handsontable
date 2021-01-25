@@ -19,6 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@5a4ac90 # v2
 
+## monorepo required
+#      - name: Api Reference
+#        working-directory: ./src/utils/jsdoc-convert/
+#        run: |
+#          npm install
+#          npm run jsdoc2md
+
       - name: Docker login into GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
