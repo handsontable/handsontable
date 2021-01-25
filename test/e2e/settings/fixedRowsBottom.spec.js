@@ -242,7 +242,8 @@ describe('settings', () => {
 
       updateSettings({ data: [] });
 
-      expect(getTopClone().height()).toBe(26);
+      // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
+      expect(getTopClone().height()).toBe(27);
     });
   });
 });

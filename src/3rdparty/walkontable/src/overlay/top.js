@@ -24,17 +24,19 @@ export class TopOverlay extends Overlay {
   }
 
   /**
+   * Cached value which holds the previous value of the `fixedRowsTop` option.
+   * It is used as a comparison value that can be used to detect changes in this value.
+   *
+   * @type {number}
+   */
+  cachedFixedRowsTop = -1;
+
+  /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(CLONE_TOP);
-    /**
-     * Cached value which holds the previous value of the `fixedRowsTop` option.
-     * It is used as a comparison value that can be used to detect changes in this value.
-     *
-     * @type {number}
-     */
     this.cachedFixedRowsTop = this.wot.getSetting('fixedRowsTop');
   }
 
