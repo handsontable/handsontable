@@ -35,6 +35,7 @@ export class BottomOverlay extends Overlay {
   constructor(wotInstance) {
     super(wotInstance);
     this.clone = this.makeClone(CLONE_BOTTOM);
+    this.cachedFixedRowsBottom = this.wot.getSetting('fixedRowsBottom');
   }
 
   /**
