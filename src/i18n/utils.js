@@ -2,7 +2,7 @@ import { isUndefined, isDefined } from './../helpers/mixed';
 import { objectEach } from './../helpers/object';
 import { error } from './../helpers/console';
 import { toSingleLine } from './../helpers/templateLiteralTag';
-import { DEFAULT_LANGUAGE_CODE, hasLanguageDictionary } from './dictionariesManager';
+import { DEFAULT_LANGUAGE_CODE, hasLanguageDictionary } from './registry';
 
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.

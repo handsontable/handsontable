@@ -14,7 +14,7 @@ import {
   registerLanguageDictionary,
   getLanguagesDictionaries,
   getLanguageDictionary
-} from './i18n';
+} from './i18n/registry';
 /* eslint-enable import/named */
 import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
