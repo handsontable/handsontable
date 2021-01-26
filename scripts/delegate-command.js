@@ -1,18 +1,21 @@
 const { spawn } = require('child_process');
 
-const [/* node bin */, /* path to this script */, project, command, arguments] = process.argv;
-
+const [/* node bin */, /* path to this script */, project, command, args] = process.argv;
 const PROJECT_ALIASES = {
   angular: 'angular-handsontable',
   react: 'react-handsontable',
   vue: 'vue-handsontable'
 };
-
-const spawnedCommand = spawn('npm', [
+const commandArray = [
   'run',
-  command,
-  arguments
-], {
+  command
+];
+
+if (args) {
+  commandArray.push(args);
+}
+
+const spawnedCommand = spawn('npm', commandArray, {
   cwd: (project === 'handsontable' ? '.' : `./wrappers/${PROJECT_ALIASES[project] || project}`),
   stdio: 'inherit'
 });
