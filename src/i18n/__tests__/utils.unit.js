@@ -3,14 +3,7 @@ import {
   createCellHeadersRange,
   normalizeLanguageCode,
   warnUserAboutLanguageRegistration,
-  getValidLanguageCode
 } from 'handsontable/i18n/utils';
-
-import {
-  DEFAULT_LANGUAGE_CODE,
-  registerLanguageDictionary,
-} from 'handsontable/i18n/registry';
-import plPL from 'handsontable/i18n/languages/pl-PL';
 
 describe('i18n helpers', () => {
   describe('extendNotExistingKeys', () => {
@@ -91,33 +84,6 @@ describe('i18n helpers', () => {
 
     it('should normlize properly langage code #3', () => {
       expect(normalizeLanguageCode('PL-PL')).toEqual('pl-PL');
-    });
-  });
-
-  describe('getValidLanguageCode', () => {
-    beforeAll(() => {
-      // Note: please keep in mind that this language will be registered also for next unit tests (within this file)!
-      // It's stored globally for already loaded Handsontable library.
-
-      registerLanguageDictionary(plPL);
-    });
-
-    it('should returns valid language code', () => {
-      expect(getValidLanguageCode(plPL.languageCode)).toEqual(plPL.languageCode);
-    });
-
-    it('should returns default language code when provided valid code not exist in the registered languages', () => {
-      spyOn(console, 'error');
-
-      expect(getValidLanguageCode('aa-BB')).toEqual(DEFAULT_LANGUAGE_CODE);
-    });
-
-    it('should log error when handling not existing language', () => {
-      const spy = spyOn(console, 'error');
-
-      getValidLanguageCode('aa-BB');
-
-      expect(spy).toHaveBeenCalled();
     });
   });
 
