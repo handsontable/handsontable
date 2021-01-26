@@ -3,6 +3,7 @@ import {
   getLanguageDictionary,
   getLanguagesDictionaries,
   getTranslatedPhrase,
+  getValidLanguageCode,
   hasLanguageDictionary,
   registerLanguageDictionary,
   dictionaryKeys,
@@ -31,6 +32,7 @@ describe('i18n', () => {
     expect(getLanguageDictionary).toBeFunction();
     expect(getLanguagesDictionaries).toBeFunction();
     expect(getTranslatedPhrase).toBeFunction();
+    expect(getValidLanguageCode).toBeFunction();
     expect(hasLanguageDictionary).toBeFunction();
     expect(registerLanguageDictionary).toBeFunction();
   });
