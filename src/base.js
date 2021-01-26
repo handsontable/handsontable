@@ -11,7 +11,7 @@ import {
   registerLanguageDictionary,
   getLanguagesDictionaries,
   getLanguageDictionary
-} from './i18n';
+} from './i18n/registry';
 import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 

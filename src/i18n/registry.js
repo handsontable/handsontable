@@ -1,7 +1,13 @@
 import { isObject, deepClone } from '../helpers/object';
+import { arrayEach } from './../helpers/array';
+import { isUndefined } from '../helpers/mixed';
 import { extendNotExistingKeys } from './utils';
 import staticRegister from '../utils/staticRegister';
+import { getPhraseFormatters } from './phraseFormatters';
+import { getLanguageDictionary } from './registry';
 import DEFAULT_DICTIONARY from './languages/en-US';
+
+export * as dictionaryKeys from './constants';
 
 const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
 
@@ -11,6 +17,11 @@ const {
   hasItem: hasGlobalLanguageDictionary,
   getValues: getGlobalLanguagesDictionaries
 } = staticRegister('languagesDictionaries');
+
+/**
+ * Register automatically the default language dictionary.
+ */
+registerLanguage(DEFAULT_DICTIONARY);
 
 /**
  * Register language dictionary for specific language code.
@@ -92,16 +103,62 @@ function getLanguages() {
   return getGlobalLanguagesDictionaries();
 }
 
+/**
+ * Get phrase for specified dictionary key.
+ *
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @param {string} dictionaryKey Constant which is dictionary key.
+ * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
+ *
+ * @returns {string}
+ */
+function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {
+  const languageDictionary = getLanguageDictionary(languageCode);
+
+  if (languageDictionary === null) {
+    return null;
+  }
+
+  const phrasePropositions = languageDictionary[dictionaryKey];
+
+  if (isUndefined(phrasePropositions)) {
+    return null;
+  }
+
+  const formattedPhrase = getFormattedPhrase(phrasePropositions, argumentsForFormatters);
+
+  if (Array.isArray(formattedPhrase)) {
+    return formattedPhrase[0];
+  }
+
+  return formattedPhrase;
+}
+
+/**
+ * Get formatted phrase from phrases propositions for specified dictionary key.
+ *
+ * @private
+ * @param {Array|string} phrasePropositions List of phrase propositions.
+ * @param {*} argumentsForFormatters Arguments which will be handled by formatters.
+ *
+ * @returns {Array|string}
+ */
+function getFormattedPhrase(phrasePropositions, argumentsForFormatters) {
+  let formattedPhrasePropositions = phrasePropositions;
+
+  arrayEach(getPhraseFormatters(), (formatter) => {
+    formattedPhrasePropositions = formatter(phrasePropositions, argumentsForFormatters);
+  });
+
+  return formattedPhrasePropositions;
+}
+
 export {
   registerLanguage as registerLanguageDictionary,
   getLanguage as getLanguageDictionary,
   hasLanguage as hasLanguageDictionary,
   getDefaultLanguage as getDefaultLanguageDictionary,
   getLanguages as getLanguagesDictionaries,
-  DEFAULT_LANGUAGE_CODE
+  getTranslatedPhrase,
+  DEFAULT_LANGUAGE_CODE,
 };
-
-/**
- * Automatically registers default dictionary.
- */
-registerLanguage(DEFAULT_DICTIONARY);

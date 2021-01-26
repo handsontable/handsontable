@@ -6,7 +6,10 @@ import {
   getValidLanguageCode
 } from 'handsontable/i18n/utils';
 
-import { DEFAULT_LANGUAGE_CODE, registerLanguageDictionary } from 'handsontable/i18n/dictionariesManager';
+import {
+  DEFAULT_LANGUAGE_CODE,
+  registerLanguageDictionary,
+} from 'handsontable/i18n/registry';
 import plPL from 'handsontable/i18n/languages/pl-PL';
 
 describe('i18n helpers', () => {
