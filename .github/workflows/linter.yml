@@ -20,7 +20,7 @@ jobs:
 
       - name: JavaScript lint
         run: |
-          npm run eslint
+          npm run all lint
 
       - name: CSS lint
         run: |

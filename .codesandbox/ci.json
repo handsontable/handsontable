@@ -1,5 +1,5 @@
 {
-  "buildCommand": "all build",
+  "buildCommand": "build",
   "packages": [
     "tmp"
   ],

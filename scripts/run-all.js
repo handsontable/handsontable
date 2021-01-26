@@ -5,30 +5,10 @@ const ORDER = [
   'vue-handsontable'
 ];
 
-const { spawnSync } = require('child_process');
-
+const { spawnProcess } = require('./common');
 const [/* node bin */, /* path to this script */, command] = process.argv;
-let hasErrors = false;
 
 ORDER.forEach((project) => {
-  if (hasErrors) {
-    return;
-  }
-  const spawnedCommand = spawnSync('npm', [
-    'run',
-    'in',
-    project,
-    command
-  ], {
-    stdio: 'inherit'
-  });
-
-  if (spawnedCommand.status) {
-    hasErrors = true;
-  }
+  spawnProcess(`npm run in ${project} ${command} -- --if-present`);
 });
-
-if (hasErrors) {
-  process.exitCode = 1;
-}
 

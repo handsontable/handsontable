@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 
-const [/* node bin */, /* path to this script */, project, command] = process.argv;
+const [/* node bin */, /* path to this script */, project, command, arguments] = process.argv;
 
 const PROJECT_ALIASES = {
   angular: 'angular-handsontable',
@@ -10,7 +10,8 @@ const PROJECT_ALIASES = {
 
 const spawnedCommand = spawn('npm', [
   'run',
-  command
+  command,
+  arguments
 ], {
   cwd: (project === 'handsontable' ? '.' : `./wrappers/${PROJECT_ALIASES[project] || project}`),
   stdio: 'inherit'
