@@ -27,8 +27,7 @@ import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
-import { getTranslatedPhrase } from './i18n';
-import { hasLanguageDictionary } from './i18n/dictionariesManager';
+import { hasLanguageDictionary, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, getValidLanguageCode, normalizeLanguageCode } from './i18n/utils';
 import {
   startObserving as keyStateStartObserving,
