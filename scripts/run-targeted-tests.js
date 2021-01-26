@@ -72,6 +72,11 @@ filesModifiedInLastCommit.forEach((fileUrl) => {
   }
 });
 
+// If the changes consist of anything except Handsontable, rebuild the handsontable package for linking.
+if (!touchedProjects.length === 1 && touchedProjects[0] === 'handsontable') {
+  spawnCommand('npm run in handsontable build:es');
+}
+
 touchedProjects.forEach((project) => {
   const status = spawnCommand(`run in ${project} test`);
 

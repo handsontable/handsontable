@@ -1,8 +1,10 @@
 const fse = require('fs-extra');
 const path = require('path');
 const {
-  displayConfirmationMessage
+  displayConfirmationMessage,
+  displayErrorMessage
 } = require('./common');
+
 const [/* node bin */, /* path to this script */, pkgName] = process.argv;
 
 const PACKAGE_LOCATIONS = {
@@ -30,5 +32,8 @@ for (const [packageName, packageLocation] of Object.entries(packageList)) {
     );
 
     displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
+
+  } else {
+    displayErrorMessage(`Cannot create symlink to ${packageLocation} - the path doesn't exits.`);
   }
 }
