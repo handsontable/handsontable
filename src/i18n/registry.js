@@ -1,7 +1,7 @@
 import { isObject, deepClone } from '../helpers/object';
 import { arrayEach } from './../helpers/array';
 import { isUndefined } from '../helpers/mixed';
-import { extendNotExistingKeys } from './utils';
+import { extendNotExistingKeys, normalizeLanguageCode, warnUserAboutLanguageRegistration } from './utils';
 import staticRegister from '../utils/staticRegister';
 import { getPhraseFormatters } from './phraseFormatters';
 import DEFAULT_DICTIONARY from './languages/en-US';
@@ -150,4 +150,22 @@ function getFormattedPhrase(phrasePropositions, argumentsForFormatters) {
   });
 
   return formattedPhrasePropositions;
+}
+
+/**
+ * Returns valid language code. If the passed language code doesn't exist default one will be used.
+ *
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @returns {string}
+ */
+export function getValidLanguageCode(languageCode) {
+  let normalizedLanguageCode = normalizeLanguageCode(languageCode);
+
+  if (!hasLanguageDictionary(normalizedLanguageCode)) {
+    normalizedLanguageCode = DEFAULT_LANGUAGE_CODE;
+
+    warnUserAboutLanguageRegistration(languageCode);
+  }
+
+  return normalizedLanguageCode;
 }
