@@ -1,0 +1,7 @@
+{
+  "title": "Fixed problems with displaying double border when `window` is is a scrollable container",
+  "type": "fixed",
+  "issue": 7356,
+  "breaking": false,
+  "framework": "none"
+}
