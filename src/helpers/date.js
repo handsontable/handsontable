@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 /**
  * Get normalized Date object for the ISO formatted date strings.
  * Natively, the date object parsed from a ISO 8601 string will be offsetted by the timezone difference, which may result in returning a wrong date.

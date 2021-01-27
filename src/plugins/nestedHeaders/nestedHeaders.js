@@ -7,12 +7,14 @@ import {
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import { registerPlugin } from '../../plugins';
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
+
+export const PLUGIN_KEY = 'nestedHeaders';
+export const PLUGIN_PRIORITY = 280;
 
 /**
  * @plugin NestedHeaders
@@ -39,7 +41,15 @@ import './nestedHeaders.css';
  *  ],
  * ```
  */
-class NestedHeaders extends BasePlugin {
+export class NestedHeaders extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * @private
    * @type {StateManager}
@@ -68,7 +78,7 @@ class NestedHeaders extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().nestedHeaders;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -541,7 +551,3 @@ class NestedHeaders extends BasePlugin {
   }
 
 }
-
-registerPlugin('nestedHeaders', NestedHeaders);
-
-export default NestedHeaders;

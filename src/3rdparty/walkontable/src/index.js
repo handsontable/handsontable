@@ -6,13 +6,14 @@ import CellRange from './cell/range';
 
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
-
 import MasterTable from './table/master';
-import LeftOverlay from './overlay/left';
-import TopOverlay from './overlay/top';
-import TopLeftCornerOverlay from './overlay/topLeftCorner';
-import BottomOverlay from './overlay/bottom';
-import BottomLeftCornerOverlay from './overlay/bottomLeftCorner';
+import {
+  LeftOverlay,
+  TopOverlay,
+  TopLeftCornerOverlay,
+  BottomOverlay,
+  BottomLeftCornerOverlay,
+} from './overlay';
 
 import Border from './border';
 import Walkontable from './core';

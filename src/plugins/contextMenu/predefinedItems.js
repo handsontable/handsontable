@@ -1,4 +1,4 @@
-import { objectEach } from './../../helpers/object';
+import { objectEach } from '../../helpers/object';
 import alignmentItem, { KEY as ALIGNMENT } from './predefinedItems/alignment';
 import clearColumnItem, { KEY as CLEAR_COLUMN } from './predefinedItems/clearColumn';
 import columnLeftItem, { KEY as COLUMN_LEFT } from './predefinedItems/columnLeft';

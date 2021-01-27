@@ -2,7 +2,6 @@ import { isUndefined, isDefined } from './../helpers/mixed';
 import { objectEach } from './../helpers/object';
 import { error } from './../helpers/console';
 import { toSingleLine } from './../helpers/templateLiteralTag';
-import { DEFAULT_LANGUAGE_CODE, hasLanguageDictionary } from './dictionariesManager';
 
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
@@ -64,24 +63,6 @@ export function normalizeLanguageCode(languageCode) {
   }
 
   return languageCode;
-}
-
-/**
- * Returns valid language code. If the passed language code doesn't exist default one will be used.
- *
- * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
- * @returns {string}
- */
-export function getValidLanguageCode(languageCode) {
-  let normalizedLanguageCode = normalizeLanguageCode(languageCode);
-
-  if (!hasLanguageDictionary(normalizedLanguageCode)) {
-    normalizedLanguageCode = DEFAULT_LANGUAGE_CODE;
-
-    warnUserAboutLanguageRegistration(languageCode);
-  }
-
-  return normalizedLanguageCode;
 }
 
 /**

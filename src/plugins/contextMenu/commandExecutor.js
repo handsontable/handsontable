@@ -1,5 +1,5 @@
-import { arrayEach } from './../../helpers/array';
-import { hasOwnProperty } from './../../helpers/object';
+import { arrayEach } from '../../helpers/array';
+import { hasOwnProperty } from '../../helpers/object';
 
 /**
  * Command executor for ContextMenu.

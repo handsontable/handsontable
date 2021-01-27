@@ -1,5 +1,5 @@
-import * as C from './../../../i18n/constants';
-import { checkSelectionBorders } from './../utils';
+import * as C from '../../../i18n/constants';
+import { checkSelectionBorders } from '../utils';
 
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.

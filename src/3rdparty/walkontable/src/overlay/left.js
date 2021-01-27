@@ -10,18 +10,25 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import LeftOverlayTable from './../table/left';
-import Overlay from './_base';
+import { Overlay } from './_base';
+import {
+  CLONE_LEFT,
+} from './constants';
 
 /**
  * @class LeftOverlay
  */
-class LeftOverlay extends Overlay {
+export class LeftOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_LEFT;
+  }
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_LEFT);
+    this.clone = this.makeClone(CLONE_LEFT);
   }
 
   /**
@@ -330,7 +337,3 @@ class LeftOverlay extends Overlay {
     return positionChanged;
   }
 }
-
-Overlay.registerOverlay(Overlay.CLONE_LEFT, LeftOverlay);
-
-export default LeftOverlay;

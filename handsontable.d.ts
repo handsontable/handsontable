@@ -2333,7 +2333,9 @@ declare namespace Handsontable {
     Search: plugins.Search;
     TouchScroll: plugins.TouchScroll;
     TrimRows: plugins.TrimRows;
+    getPlugin<T extends keyof PluginsCollection>(pluginName: T): PluginsCollection[T];
     registerPlugin(pluginName: string, pluginClass: { new(hotInstance?: _Handsontable.Core): plugins.Base }): void;
+    registerPlugin(pluginClass: { new(hotInstance?: _Handsontable.Core): plugins.Base }): void;
   }
 
   // Plugin collection, map for getPlugin method

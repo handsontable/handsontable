@@ -1,18 +1,11 @@
-import './css/bootstrap.css';
-import './3rdparty/walkontable/css/walkontable.css';
-import './css/handsontable.css';
-import './css/mobile.handsontable.css';
-
-import { getRegisteredEditorNames, registerEditor, getEditor } from './editors';
-import { getRegisteredRendererNames, getRenderer, registerRenderer } from './renderers';
-import { getRegisteredValidatorNames, getValidator, registerValidator } from './validators';
-import { getRegisteredCellTypeNames, getCellType, registerCellType } from './cellTypes';
-
-import Core from './core';
-import jQueryWrapper from './helpers/wrappers/jquery';
+import Handsontable from './base';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations/mapCollection';
 import Hooks from './pluginHooks';
+import { metaSchemaFactory } from './dataMap/index';
+
+import jQueryWrapper from './helpers/wrappers/jquery';
+
 import GhostTable from './utils/ghostTable';
 import * as parseTableHelpers from './utils/parseTable';
 import * as arrayHelpers from './helpers/array';
@@ -28,52 +21,182 @@ import * as stringHelpers from './helpers/string';
 import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
-import * as plugins from './plugins/index';
-import { registerPlugin } from './plugins';
-import { metaSchemaFactory } from './dataMap/index';
-import { rootInstanceSymbol } from './utils/rootInstance';
-import { getTranslatedPhrase } from './i18n';
-import * as constants from './i18n/constants';
 
 import {
-  registerLanguageDictionary,
-  getLanguagesDictionaries,
-  getLanguageDictionary
-} from './i18n/dictionariesManager';
+  getRegisteredEditorNames,
+  getEditor,
+  registerEditor,
+  AutocompleteEditor,
+  BaseEditor,
+  CheckboxEditor,
+  DateEditor,
+  DropdownEditor,
+  HandsontableEditor,
+  NumericEditor,
+  PasswordEditor,
+  SelectEditor,
+  TextEditor,
+} from './editors';
+import {
+  getRegisteredRendererNames,
+  getRenderer,
+  registerRenderer,
+  baseRenderer,
+  autocompleteRenderer,
+  checkboxRenderer,
+  htmlRenderer,
+  numericRenderer,
+  passwordRenderer,
+  textRenderer,
+} from './renderers';
+import {
+  getRegisteredValidatorNames,
+  getValidator,
+  registerValidator,
+  autocompleteValidator,
+  dateValidator,
+  numericValidator,
+  timeValidator,
+} from './validators';
+import {
+  getRegisteredCellTypeNames,
+  getCellType,
+  registerCellType,
+  AutocompleteCellType,
+  CheckboxCellType,
+  DateCellType,
+  DropdownCellType,
+  HandsontableCellType,
+  NumericCellType,
+  PasswordCellType,
+  TextCellType,
+  TimeCellType,
+} from './cellTypes';
+import {
+  AutoColumnSize,
+  AutoRowSize,
+  Autofill,
+  BasePlugin,
+  BindRowsWithHeaders,
+  CollapsibleColumns,
+  ColumnSorting,
+  ColumnSummary,
+  Comments,
+  ContextMenu,
+  CopyPaste,
+  CustomBorders,
+  DragToScroll,
+  DropdownMenu,
+  ExportFile,
+  Filters,
+  Formulas,
+  HeaderTooltips,
+  HiddenColumns,
+  HiddenRows,
+  ManualColumnFreeze,
+  ManualColumnMove,
+  ManualColumnResize,
+  ManualRowMove,
+  ManualRowResize,
+  MergeCells,
+  MultiColumnSorting,
+  MultipleSelectionHandles,
+  NestedHeaders,
+  NestedRows,
+  ObserveChanges,
+  PersistentState,
+  Search,
+  TouchScroll,
+  TrimRows,
+  UndoRedo,
+  getPlugin,
+  getPluginsNames,
+  registerPlugin,
+} from './plugins';
 
-/**
- * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
- * @param {object} userSettings The user defined options.
- * @returns {Core}
- */
-function Handsontable(rootElement, userSettings) {
-  const instance = new Core(rootElement, userSettings || {}, rootInstanceSymbol);
+registerEditor(BaseEditor);
+registerEditor(AutocompleteEditor);
+registerEditor(CheckboxEditor);
+registerEditor(DateEditor);
+registerEditor(DropdownEditor);
+registerEditor(HandsontableEditor);
+registerEditor(NumericEditor);
+registerEditor(PasswordEditor);
+registerEditor(SelectEditor);
+registerEditor(TextEditor);
 
-  instance.init();
+registerRenderer(baseRenderer);
+registerRenderer(autocompleteRenderer);
+registerRenderer(checkboxRenderer);
+registerRenderer(htmlRenderer);
+registerRenderer(numericRenderer);
+registerRenderer(passwordRenderer);
+registerRenderer(textRenderer);
 
-  return instance;
-}
+registerValidator(autocompleteValidator);
+registerValidator(dateValidator);
+registerValidator(numericValidator);
+registerValidator(timeValidator);
+
+registerCellType(AutocompleteCellType);
+registerCellType(CheckboxCellType);
+registerCellType(DateCellType);
+registerCellType(DropdownCellType);
+registerCellType(HandsontableCellType);
+registerCellType(NumericCellType);
+registerCellType(PasswordCellType);
+registerCellType(TimeCellType);
+registerCellType(TextCellType);
 
 jQueryWrapper(Handsontable);
 
-Handsontable.Core = function(rootElement, userSettings = {}) {
-  return new Core(rootElement, userSettings, rootInstanceSymbol);
-};
-Handsontable.DefaultSettings = metaSchemaFactory();
-Handsontable.EventManager = EventManager;
-Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
-Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
-
-Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = process.env.HOT_BUILD_DATE;
-Handsontable.version = process.env.HOT_VERSION;
-
-// Export Hooks singleton
-Handsontable.hooks = Hooks.getSingleton();
+registerPlugin(AutoColumnSize);
+registerPlugin(Autofill);
+registerPlugin(AutoRowSize);
+registerPlugin(BindRowsWithHeaders);
+registerPlugin(CollapsibleColumns);
+registerPlugin(ColumnSorting);
+registerPlugin(ColumnSummary);
+registerPlugin(Comments);
+registerPlugin(ContextMenu);
+registerPlugin(CopyPaste);
+registerPlugin(CustomBorders);
+registerPlugin(DragToScroll);
+registerPlugin(DropdownMenu);
+registerPlugin(ExportFile);
+registerPlugin(Filters);
+registerPlugin(Formulas);
+registerPlugin(HeaderTooltips);
+registerPlugin(HiddenColumns);
+registerPlugin(HiddenRows);
+registerPlugin(ManualColumnFreeze);
+registerPlugin(ManualColumnMove);
+registerPlugin(ManualColumnResize);
+registerPlugin(ManualRowMove);
+registerPlugin(ManualRowResize);
+registerPlugin(MergeCells);
+registerPlugin(MultiColumnSorting);
+registerPlugin(MultipleSelectionHandles);
+registerPlugin(NestedHeaders);
+registerPlugin(NestedRows);
+registerPlugin(ObserveChanges);
+registerPlugin(PersistentState);
+registerPlugin(Search);
+registerPlugin(TouchScroll);
+registerPlugin(TrimRows);
+registerPlugin(UndoRedo);
 
 // TODO: Remove this exports after rewrite tests about this module
 Handsontable.__GhostTable = GhostTable;
-//
+
+Handsontable._getListenersCounter = getListenersCounter; // For MemoryLeak tests
+Handsontable._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
+
+Handsontable.DefaultSettings = metaSchemaFactory();
+Handsontable.EventManager = EventManager;
+
+// Export Hooks singleton
+Handsontable.hooks = Hooks.getSingleton();
 
 // Export all helpers to the Handsontable object
 const HELPERS = [
@@ -162,27 +285,21 @@ Handsontable.validators.registerValidator = registerValidator;
 Handsontable.validators.getValidator = getValidator;
 
 // Export all registered plugins from the Handsontable.
+// Make sure to initialize the plugin dictionary as an empty object. Otherwise, while
+// transpiling the files into ES and CommonJS format, the injected CoreJS helper
+// `import "core-js/modules/es.object.get-own-property-names";` won't be processed
+// by the `./config/plugin/babel/add-import-extension` babel plugin. Thus, the distribution
+// files will be broken. The reason is not known right now (probably it's caused by bug in
+// the Babel or missing something in the plugin).
 Handsontable.plugins = {};
 
-arrayHelpers.arrayEach(Object.getOwnPropertyNames(plugins), (pluginName) => {
-  const plugin = plugins[pluginName];
-
-  if (pluginName === 'Base') {
-    Handsontable.plugins[`${pluginName}Plugin`] = plugin;
-  } else {
-    Handsontable.plugins[pluginName] = plugin;
-  }
+arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
+  Handsontable.plugins[pluginName] = getPlugin(pluginName);
 });
 
+Handsontable.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`] = BasePlugin;
+
 Handsontable.plugins.registerPlugin = registerPlugin;
-
-Handsontable.languages = {};
-Handsontable.languages.dictionaryKeys = constants;
-Handsontable.languages.getLanguageDictionary = getLanguageDictionary;
-Handsontable.languages.getLanguagesDictionaries = getLanguagesDictionaries;
-Handsontable.languages.registerLanguageDictionary = registerLanguageDictionary;
-
-// Alias to `getTranslatedPhrase` function, for more information check it API.
-Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);
+Handsontable.plugins.getPlugin = getPlugin;
 
 export default Handsontable;
