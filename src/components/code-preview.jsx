@@ -46,7 +46,7 @@ export const CodePreview = (props) => {
     };
   }, []);
 
-  return <div id={hotId} ref={instance} />;
+  return <div className="hot"><div id={hotId} ref={instance}/></div>;
 };
 
 CodePreview.propTypes = {

@@ -84,7 +84,6 @@ html[data-theme='dark'] .hot-navbar-item-github:before {
 .markdown table {
   display: table;
 }
-
 .table-of-contents {
   border-left: none!important;
 }
@@ -114,3 +113,67 @@ article header h1 {
 .menu__link--sublist:after {
   background: var(--ifm-menu-link-sublist-icon) 50% / 1.4rem 1.4rem;
 }
+
+/* Handsontable container */
+main .hot, .hot {
+  color: #000;
+  overflow-x: scroll;
+}
+
+main .hot td, main .hot th, main .hot input, main .hot select, .hot td, .hot th, .hot input, .hot select {
+  padding: 0 4px;
+  font-size: 13px;
+  font-family: Verdana, Helvetica, Arial, FreeSans, sans-serif;
+}
+
+main .hot td span, main .hot th span, main .hot input span, main .hot select span, .hot td span, .hot th span, .hot input span, .hot select span {
+  font-size: inherit;
+}
+
+main .hot .handsontable table, .hot .handsontable table {
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+main .hot .handsontable span.colHeader.columnSorting::before, .hot .handsontable span.colHeader.columnSorting::before {
+  /* Changed margin size for purpose of proper positioning of sorting arrow, as `font-size` in docs was changed */
+  margin-top: -5px;
+}
+
+main .hot thead .htGroupIndicatorContainer, .hot thead .htGroupIndicatorContainer {
+  padding: 0;
+}
+
+main .hot textarea, .hot textarea {
+  transition: none;
+  background-color: #fff;
+}
+
+main .hot input, .hot input {
+  margin: 0;
+  padding: 1px 5px 0;
+  border: none;
+  box-shadow: 0 0 0 2px #5292F7 inset;
+}
+
+main .hot input[type='checkbox'], .hot input[type='checkbox'] {
+  padding: 0;
+  box-shadow: none;
+}
+
+main .hot select, main .hot select:hover, .hot select, .hot select:hover {
+  padding: 0;
+  border: 1px solid #ccc;
+  font-size: 13px;
+  color: #393939;
+  background: #fff;
+}
+
+main .hot .currentRow, .hot .currentRow {
+  background-color: #E7E8EF;
+}
+
+main .hot .currentCol, .hot .currentCol {
+  background-color: #F9F9FB;
+}
+
