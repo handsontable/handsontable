@@ -1,0 +1,7 @@
+{
+  "title": "Fix table size underneath a scale transform",
+  "type": "fixed",
+  "issue": 6201,
+  "breaking": false,
+  "framework": "none"
+}
