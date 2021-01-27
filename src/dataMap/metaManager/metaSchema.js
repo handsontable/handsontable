@@ -2028,7 +2028,7 @@ export default () => {
      * Disables visual cells selection.
      *
      * Possible values:
-     *  * `true` - Disables any type of visual selection (current and area selection),
+     *  * `true` - Disables any type of visual selection (current, header and area selection),
      *  * `false` - Enables any type of visual selection. This is default value.
      *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
      *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
