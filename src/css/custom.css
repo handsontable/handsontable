@@ -7,14 +7,27 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: rgb(33, 175, 144);
-  --ifm-color-primary-darker: rgb(31, 165, 136);
-  --ifm-color-primary-darkest: rgb(26, 136, 112);
-  --ifm-color-primary-light: rgb(70, 203, 174);
-  --ifm-color-primary-lighter: rgb(102, 212, 189);
-  --ifm-color-primary-lightest: rgb(146, 224, 208);
+  --ifm-color-primary: #104bcc;
+  --ifm-color-primary-dark: #0e43b8;
+  --ifm-color-primary-darker: #0e40ad;
+  --ifm-color-primary-darkest: #0b348f;
+  --ifm-color-primary-light: #1252e0;
+  --ifm-color-primary-lighter: #1256eb;
+  --ifm-color-primary-lightest: #2f6bef;
+  --ifm-navbar-link-color: var(--ifm-color-primary);
+
   --ifm-code-font-size: 95%;
+  --ifm-global-shadow-lw: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+  --ifm-toc-border-color: #e6ebf8;
+
+  --ifm-menu-color: 1c1e21;
+
+  --ifm-menu-link-padding-vertical: 2px;
+  --ifm-menu-link-padding-horizontal: 12px;
+  --ifm-menu-color-active: #104bcc;
+  --ifm-menu-color-background-active: #F4F8FF;
+
+  --ifm-global-spacing: 2rem;
 }
 
 .docusaurus-highlight-code-line {
@@ -24,12 +37,26 @@
   padding: 0 var(--ifm-pre-padding);
 }
 
-.navbar__brand{
+.navbar {
+  padding: 12px 30px;
+}
+
+.navbar__brand {
   margin-right: 0;
 }
 
-.hot-navbar-item-docs{
-  padding-left: 0.3rem;
+.hot-navbar-item-docs {
+  background: #104bcc;
+  color: #fff;
+  padding: 0 6px 0;
+  font-weight: 600;
+  border-radius: 4px;
+  position: relative;
+  margin-left: 0.35rem;
+}
+
+.hot-navbar-item-docs:hover {
+    color: #fff;
 }
 
 .hot-navbar-item-github:hover {
@@ -54,6 +81,36 @@ html[data-theme='dark'] .hot-navbar-item-github:before {
   --ifm-h3-vertical-rhythm-top: 2.25;
 }
 
-.markdown table{
+.markdown table {
   display: table;
+}
+
+.table-of-contents {
+  border-left: none!important;
+}
+
+article header h1 {
+  font-size: 2.4rem !important;
+}
+
+.menu__link {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.menu__link--sublist {
+  font-weight: 600;
+}
+
+.menu {
+  padding: 12px 10px 20px 20px !important;
+  overflow-y: hidden;
+}
+
+.menu:hover {
+  overflow-y: visible;
+}
+
+.menu__link--sublist:after {
+  background: var(--ifm-menu-link-sublist-icon) 50% / 1.4rem 1.4rem;
 }

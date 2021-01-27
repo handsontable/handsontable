@@ -23,7 +23,7 @@ module.exports = {
     },
     colorMode: {
       defaultMode: 'light',
-      disableSwitch: false,
+      disableSwitch: true,
       respectPrefersColorScheme: false,
     },
     gtag: {
@@ -62,19 +62,17 @@ module.exports = {
         {
           label: 'API',
           to: 'api',
-          activeBasePath: 'docs',
+          activeBaseRegex: 'docs/([0-9.]*|next/)?api.*',
           position: 'right',
         },
         {
           label: 'Guides',
-          to: '/',
-          activeBasePath: 'docs',
+          to: '/docs/tutorial-quick-start',
           position: 'right',
         },
         {
           label: 'Blog',
-          to: '/',
-          activeBasePath: 'docs',
+          href: 'https://handsontable.com/blog/',
           position: 'right',
         },
         {
@@ -83,15 +81,16 @@ module.exports = {
           items: [
             {
               label: 'Discussion',
-              href: 'https://handsontable.com',
+              // todo 404: href: 'https://github.com/handsontable/handsontable/discussions',
+              href: 'https://github.com/handsontable/handsontable?discussions',
             },
             {
               label: 'Report an issue',
-              href: 'https://handsontable.com',
+              href: 'https://github.com/handsontable/handsontable/issues/new',
             },
             {
               label: 'Contact support',
-              href: 'https://handsontable.com',
+              href: 'https://handsontable.com/contact?category=technical_support',
             },
           ],
         },
@@ -122,6 +121,11 @@ module.exports = {
           remarkPlugins: [hotPreviewRemarkPlugin],
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
+          versions: {
+            '9.0':{
+              label: 'Latest (9.0)',
+            }
+          }
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
