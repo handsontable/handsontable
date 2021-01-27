@@ -84,6 +84,7 @@ html[data-theme='dark'] .hot-navbar-item-github:before {
 .markdown table {
   display: table;
 }
+
 .table-of-contents {
   border-left: none!important;
 }
@@ -117,7 +118,6 @@ article header h1 {
 /* Handsontable container */
 main .hot, .hot {
   color: #000;
-  overflow-x: scroll;
 }
 
 main .hot td, main .hot th, main .hot input, main .hot select, .hot td, .hot th, .hot input, .hot select {
@@ -176,4 +176,3 @@ main .hot .currentRow, .hot .currentRow {
 main .hot .currentCol, .hot .currentCol {
   background-color: #F9F9FB;
 }
-
