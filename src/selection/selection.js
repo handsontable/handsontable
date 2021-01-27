@@ -76,7 +76,7 @@ class Selection {
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
-      disableHighlight: this.settings.disableVisualSelection,
+      disabledCellSelection: (row, column) => this.tableProps.isDisabledCellSelection(row, column),
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
@@ -223,7 +223,7 @@ class Selection {
     // Set up current selection.
     this.highlight.getCell().clear();
 
-    if (this.highlight.isEnabledFor(CELL_TYPE)) {
+    if (this.highlight.isEnabledFor(CELL_TYPE, cellRange.highlight)) {
       this.highlight.getCell()
         .add(this.selectedRange.current().highlight)
         .commit()
@@ -250,7 +250,7 @@ class Selection {
     headerHighlight.clear();
     activeHeaderHighlight.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
+    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
         .add(cellRange.from)
         .add(cellRange.to)
@@ -274,7 +274,7 @@ class Selection {
       }
     }
 
-    if (this.highlight.isEnabledFor(HEADER_TYPE)) {
+    if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
       // The header selection generally contains cell selection. In a case when all rows (or columns)
       // are hidden that visual coordinates are translated to renderable coordinates that do not exist.
       // Hence no header highlight is generated. In that case, to make a column (or a row) header
@@ -573,9 +573,9 @@ class Selection {
     const isValid = !selectionRanges.some((selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
       const _isValid = isValidCoord(rowStart, nrOfRows) &&
-                      isValidCoord(columnStart, nrOfColumns) &&
-                      isValidCoord(rowEnd, nrOfRows) &&
-                      isValidCoord(columnEnd, nrOfColumns);
+        isValidCoord(columnStart, nrOfColumns) &&
+        isValidCoord(rowEnd, nrOfRows) &&
+        isValidCoord(columnEnd, nrOfColumns);
 
       return !_isValid;
     });

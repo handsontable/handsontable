@@ -27,9 +27,8 @@ import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
-import { getTranslatedPhrase } from './i18n';
-import { hasLanguageDictionary } from './i18n/dictionariesManager';
-import { warnUserAboutLanguageRegistration, getValidLanguageCode, normalizeLanguageCode } from './i18n/utils';
+import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
+import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import {
   startObserving as keyStateStartObserving,
   stopObserving as keyStateStopObserving
@@ -209,7 +208,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     countColsTranslated: () => this.view.countRenderableColumns(),
     countRowsTranslated: () => this.view.countRenderableRows(),
     visualToRenderableCoords,
-    renderableToVisualCoords
+    renderableToVisualCoords,
+    isDisabledCellSelection: (visualRow, visualColumn) =>
+      instance.getCellMeta(visualRow, visualColumn).disableVisualSelection
   });
 
   this.selection = selection;

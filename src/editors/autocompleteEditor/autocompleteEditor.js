@@ -91,11 +91,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   open() {
     const priv = privatePool.get(this);
 
-    // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
-    // Ugly fix for handsontable which grab window object for autocomplete scroll listener instead table element.
-    this.TEXTAREA_PARENT.style.overflow = 'auto';
     super.open();
-    this.TEXTAREA_PARENT.style.overflow = '';
 
     const choicesListHot = this.htEditor.getInstance();
     const trimDropdown = this.cellProperties.trimDropdown === void 0 ? true : this.cellProperties.trimDropdown;
