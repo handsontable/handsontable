@@ -1,0 +1,7 @@
+{
+  "title": "Added a flexible source option to UndoRedo. You can now specify custom sources to allow changes to skip the undo/redo buffer.",
+  "type": "added",
+  "issue": 7500,
+  "breaking": false,
+  "framework": "none"
+}
