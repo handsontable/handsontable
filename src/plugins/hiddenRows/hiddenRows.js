@@ -1,10 +1,9 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
 import { isObject } from '../../helpers/object';
 import { isUndefined } from '../../helpers/mixed';
-import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import Hooks from '../../pluginHooks';
 import hideRowItem from './contextMenuItem/hideRow';
@@ -17,6 +16,9 @@ Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
 Hooks.getSingleton().register('beforeUnhideRows');
 Hooks.getSingleton().register('afterUnhideRows');
+
+export const PLUGIN_KEY = 'hiddenRows';
+export const PLUGIN_PRIORITY = 320;
 
 /**
  * @plugin HiddenRows
@@ -69,7 +71,15 @@ Hooks.getSingleton().register('afterUnhideRows');
  * hot.render();
  * ```
  */
-class HiddenRows extends BasePlugin {
+export class HiddenRows extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   /**
    * Cached settings from Handsontable settings.
    *
@@ -92,7 +102,7 @@ class HiddenRows extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().hiddenRows;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -103,7 +113,7 @@ class HiddenRows extends BasePlugin {
       return;
     }
 
-    const pluginSettings = this.hot.getSettings().hiddenRows;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(pluginSettings)) {
       this.#settings = pluginSettings;
@@ -222,11 +232,11 @@ class HiddenRows extends BasePlugin {
     }
 
     if (isConfigValid) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(rows, (visualRow) => {
           this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });
-      });
+      }, true);
     }
 
     this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, isConfigValid,
@@ -456,7 +466,3 @@ class HiddenRows extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('hiddenRows', HiddenRows);
-
-export default HiddenRows;

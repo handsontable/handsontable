@@ -2,6 +2,7 @@ import IndexMap from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
+import { isFunction } from '../../helpers/function';
 
 /**
  * Map for storing mappings from an physical index to a value. Those entries are linked and stored in a certain order.
@@ -47,15 +48,16 @@ class LinkedPhysicalIndexToValueMap extends IndexMap {
    *
    * @param {number} index The index.
    * @param {*} value The value to save.
+   * @param {number} position Position to which entry will be added.
    *
    * @returns {boolean}
    */
-  setValueAtIndex(index, value) {
+  setValueAtIndex(index, value, position = this.orderOfIndexes.length) {
     if (index < this.indexedValues.length) {
       this.indexedValues[index] = value;
 
       if (this.orderOfIndexes.includes(index) === false) {
-        this.orderOfIndexes.push(index);
+        this.orderOfIndexes.splice(position, 0, index);
       }
 
       this.runLocalHooks('change');
@@ -64,6 +66,22 @@ class LinkedPhysicalIndexToValueMap extends IndexMap {
     }
 
     return false;
+  }
+
+  /**
+   * Clear value for particular index.
+   *
+   * @param {number} physicalIndex Physical index.
+   */
+  clearValue(physicalIndex) {
+    this.orderOfIndexes = getListWithoutIndexes(this.orderOfIndexes, [physicalIndex]);
+
+    if (isFunction(this.initValueOrFn)) {
+      super.setValueAtIndex(physicalIndex, this.initValueOrFn(physicalIndex));
+
+    } else {
+      super.setValueAtIndex(physicalIndex, this.initValueOrFn);
+    }
   }
 
   /**

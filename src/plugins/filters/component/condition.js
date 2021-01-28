@@ -16,9 +16,11 @@ import { getConditionDescriptor } from '../conditionRegisterer';
  */
 class ConditionComponent extends BaseComponent {
   constructor(hotInstance, options) {
-    super(hotInstance);
+    super(hotInstance, {
+      id: options.id,
+      stateless: false,
+    });
 
-    this.id = options.id;
     this.name = options.name;
     this.addSeparator = options.addSeparator;
 
@@ -50,29 +52,31 @@ class ConditionComponent extends BaseComponent {
   setState(value) {
     this.reset();
 
-    if (value) {
-      const copyOfCommand = clone(value.command);
+    if (!value) {
+      return;
+    }
 
-      if (copyOfCommand.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
-        copyOfCommand.name = this.hot.getTranslatedPhrase(copyOfCommand.name);
+    const copyOfCommand = clone(value.command);
+
+    if (copyOfCommand.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
+      copyOfCommand.name = this.hot.getTranslatedPhrase(copyOfCommand.name);
+    }
+
+    this.getSelectElement().setValue(copyOfCommand);
+    arrayEach(value.args, (arg, index) => {
+      if (index > copyOfCommand.inputsCount - 1) {
+        return false;
       }
 
-      this.getSelectElement().setValue(copyOfCommand);
-      arrayEach(value.args, (arg, index) => {
-        if (index > copyOfCommand.inputsCount - 1) {
-          return false;
-        }
+      const element = this.getInputElement(index);
 
-        const element = this.getInputElement(index);
+      element.setValue(arg);
+      element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
 
-        element.setValue(arg);
-        element[copyOfCommand.inputsCount > index ? 'show' : 'hide']();
-
-        if (!index) {
-          setTimeout(() => element.focus(), 10);
-        }
-      });
-    }
+      if (!index) {
+        setTimeout(() => element.focus(), 10);
+      }
+    });
   }
 
   /**
@@ -107,7 +111,7 @@ class ConditionComponent extends BaseComponent {
   updateState(condition, column) {
     const command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
 
-    this.setCachedState(column, {
+    this.state.setValueAtIndex(column, {
       command,
       args: condition ? condition.args : [],
     });

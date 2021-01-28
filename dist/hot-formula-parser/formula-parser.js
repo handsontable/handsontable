@@ -2,12 +2,12 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define([], factory);
+		define("formulaParser", [], factory);
 	else if(typeof exports === 'object')
 		exports["formulaParser"] = factory();
 	else
 		root["formulaParser"] = factory();
-})(typeof self !== 'undefined' ? self : this, function() {
+})(window, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -46,12 +46,32 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -68,6 +88,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
+/******/
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 15);
@@ -371,31 +392,40 @@ exports.transpose = function(matrix) {
 
 
 exports.__esModule = true;
+exports["default"] = error;
+exports.isValidStrict = isValidStrict;
+exports.ERROR_VALUE = exports.ERROR_REF = exports.ERROR_NUM = exports.ERROR_NULL = exports.ERROR_NOT_AVAILABLE = exports.ERROR_NAME = exports.ERROR_DIV_ZERO = exports.ERROR = void 0;
 
 var _errors;
 
-exports['default'] = error;
-exports.isValidStrict = isValidStrict;
-var ERROR = exports.ERROR = 'ERROR';
-var ERROR_DIV_ZERO = exports.ERROR_DIV_ZERO = 'DIV/0';
-var ERROR_NAME = exports.ERROR_NAME = 'NAME';
-var ERROR_NOT_AVAILABLE = exports.ERROR_NOT_AVAILABLE = 'N/A';
-var ERROR_NULL = exports.ERROR_NULL = 'NULL';
-var ERROR_NUM = exports.ERROR_NUM = 'NUM';
-var ERROR_REF = exports.ERROR_REF = 'REF';
-var ERROR_VALUE = exports.ERROR_VALUE = 'VALUE';
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var errors = (_errors = {}, _errors[ERROR] = '#ERROR!', _errors[ERROR_DIV_ZERO] = '#DIV/0!', _errors[ERROR_NAME] = '#NAME?', _errors[ERROR_NOT_AVAILABLE] = '#N/A', _errors[ERROR_NULL] = '#NULL!', _errors[ERROR_NUM] = '#NUM!', _errors[ERROR_REF] = '#REF!', _errors[ERROR_VALUE] = '#VALUE!', _errors);
-
+var ERROR = 'ERROR';
+exports.ERROR = ERROR;
+var ERROR_DIV_ZERO = 'DIV/0';
+exports.ERROR_DIV_ZERO = ERROR_DIV_ZERO;
+var ERROR_NAME = 'NAME';
+exports.ERROR_NAME = ERROR_NAME;
+var ERROR_NOT_AVAILABLE = 'N/A';
+exports.ERROR_NOT_AVAILABLE = ERROR_NOT_AVAILABLE;
+var ERROR_NULL = 'NULL';
+exports.ERROR_NULL = ERROR_NULL;
+var ERROR_NUM = 'NUM';
+exports.ERROR_NUM = ERROR_NUM;
+var ERROR_REF = 'REF';
+exports.ERROR_REF = ERROR_REF;
+var ERROR_VALUE = 'VALUE';
+exports.ERROR_VALUE = ERROR_VALUE;
+var errors = (_errors = {}, _defineProperty(_errors, ERROR, '#ERROR!'), _defineProperty(_errors, ERROR_DIV_ZERO, '#DIV/0!'), _defineProperty(_errors, ERROR_NAME, '#NAME?'), _defineProperty(_errors, ERROR_NOT_AVAILABLE, '#N/A'), _defineProperty(_errors, ERROR_NULL, '#NULL!'), _defineProperty(_errors, ERROR_NUM, '#NUM!'), _defineProperty(_errors, ERROR_REF, '#REF!'), _defineProperty(_errors, ERROR_VALUE, '#VALUE!'), _errors);
 /**
  * Return error type based on provided error id.
  *
  * @param {String} type Error type.
  * @returns {String|null} Returns error id.
  */
-function error(type) {
-  var result = void 0;
 
+function error(type) {
+  var result;
   type = (type + '').replace(/#|!|\?/g, '');
 
   if (errors[type]) {
@@ -404,13 +434,14 @@ function error(type) {
 
   return result ? result : null;
 }
-
 /**
  * Check if error type is strict valid with knows errors.
  *
  * @param {String} Error type.
  * @return {Boolean}
  */
+
+
 function isValidStrict(type) {
   var valid = false;
 
@@ -434,6 +465,7 @@ function isValidStrict(type) {
 exports.__esModule = true;
 exports.toNumber = toNumber;
 exports.invertNumber = invertNumber;
+
 /**
  * Convert value into number.
  *
@@ -441,7 +473,7 @@ exports.invertNumber = invertNumber;
  * @returns {*}
  */
 function toNumber(number) {
-  var result = void 0;
+  var result;
 
   if (typeof number === 'number') {
     result = number;
@@ -451,13 +483,14 @@ function toNumber(number) {
 
   return result;
 }
-
 /**
  * Invert provided number.
  *
  * @param {Number} number
  * @returns {Number} Returns inverted number.
  */
+
+
 function invertNumber(number) {
   return -1 * toNumber(number);
 }
@@ -4711,11 +4744,7 @@ function serial(date) {
 (function (window, factory) {
     if (true) {
         module.exports = factory();
-    } else if (typeof define === 'function' && define.amd) {
-        define(factory);
-    } else {
-        window.jStat = factory();
-    }
+    } else {}
 })(this, function () {
 var jStat = (function(Math, undefined) {
 
@@ -5555,21 +5584,35 @@ jStat.diff = function diff(arr) {
 
 // ranks of an array
 jStat.rank = function (arr) {
-  var arrlen = arr.length;
-  var sorted = arr.slice().sort(ascNum);
-  var ranks = new Array(arrlen);
-  var val;
-  for (var i = 0; i < arrlen; i++) {
-    var first = sorted.indexOf(arr[i]);
-    var last = sorted.lastIndexOf(arr[i]);
-    if (first === last) {
-      val = first;
+  var i;
+  var distinctNumbers = [];
+  var numberCounts = {};
+  for (i = 0; i < arr.length; i++) {
+    var number = arr[i];
+    if (numberCounts[number]) {
+      numberCounts[number]++;
     } else {
-      val = (first + last) / 2;
+      numberCounts[number] = 1;
+      distinctNumbers.push(number);
     }
-    ranks[i] = val + 1;
   }
-  return ranks;
+
+  var sortedDistinctNumbers = distinctNumbers.sort(ascNum);
+  var numberRanks = {};
+  var currentRank = 1;
+  for (i = 0; i < sortedDistinctNumbers.length; i++) {
+    var number = sortedDistinctNumbers[i];
+    var count = numberCounts[number];
+    var first = currentRank;
+    var last = currentRank + count - 1;
+    var rank = (first + last) / 2;
+    numberRanks[number] = rank;
+    currentRank += count;
+  }
+
+  return arr.map(function (number) {
+    return numberRanks[number];
+  });
 };
 
 
@@ -6026,6 +6069,9 @@ jStat.gammafn = function gammafn(x) {
   var xnum = 0;
   var y = x;
   var i, z, yi, res;
+  if (x > 171.6243769536076) {
+    return Infinity;
+  }
   if (y <= 0) {
     res = y % 1 + 3.6e-16;
     if (res) {
@@ -6465,9 +6511,9 @@ jStat.randg = function randg(shape, n, m) {
 (function(list) {
   for (var i = 0; i < list.length; i++) (function(func) {
     // distribution instance method
-    jStat[func] = function(a, b, c) {
-      if (!(this instanceof arguments.callee))
-        return new arguments.callee(a, b, c);
+    jStat[func] = function f(a, b, c) {
+      if (!(this instanceof f))
+        return new f(a, b, c);
       this._a = a;
       this._b = b;
       this._c = c;
@@ -11341,9 +11387,10 @@ exports.OCT2HEX = function(number, places) {
 
 
 exports.__esModule = true;
+exports["default"] = void 0;
 var SUPPORTED_FORMULAS = ['ABS', 'ACCRINT', 'ACOS', 'ACOSH', 'ACOT', 'ACOTH', 'ADD', 'AGGREGATE', 'AND', 'ARABIC', 'ARGS2ARRAY', 'ASIN', 'ASINH', 'ATAN', 'ATAN2', 'ATANH', 'AVEDEV', 'AVERAGE', 'AVERAGEA', 'AVERAGEIF', 'AVERAGEIFS', 'BASE', 'BESSELI', 'BESSELJ', 'BESSELK', 'BESSELY', 'BETA.DIST', 'BETA.INV', 'BETADIST', 'BETAINV', 'BIN2DEC', 'BIN2HEX', 'BIN2OCT', 'BINOM.DIST', 'BINOM.DIST.RANGE', 'BINOM.INV', 'BINOMDIST', 'BITAND', 'BITLSHIFT', 'BITOR', 'BITRSHIFT', 'BITXOR', 'CEILING', 'CEILINGMATH', 'CEILINGPRECISE', 'CHAR', 'CHISQ.DIST', 'CHISQ.DIST.RT', 'CHISQ.INV', 'CHISQ.INV.RT', 'CHOOSE', 'CHOOSE', 'CLEAN', 'CODE', 'COLUMN', 'COLUMNS', 'COMBIN', 'COMBINA', 'COMPLEX', 'CONCATENATE', 'CONFIDENCE', 'CONFIDENCE.NORM', 'CONFIDENCE.T', 'CONVERT', 'CORREL', 'COS', 'COSH', 'COT', 'COTH', 'COUNT', 'COUNTA', 'COUNTBLANK', 'COUNTIF', 'COUNTIFS', 'COUNTIN', 'COUNTUNIQUE', 'COVARIANCE.P', 'COVARIANCE.S', 'CSC', 'CSCH', 'CUMIPMT', 'CUMPRINC', 'DATE', 'DATEVALUE', 'DAY', 'DAYS', 'DAYS360', 'DB', 'DDB', 'DEC2BIN', 'DEC2HEX', 'DEC2OCT', 'DECIMAL', 'DEGREES', 'DELTA', 'DEVSQ', 'DIVIDE', 'DOLLARDE', 'DOLLARFR', 'E', 'EDATE', 'EFFECT', 'EOMONTH', 'EQ', 'ERF', 'ERFC', 'EVEN', 'EXACT', 'EXP', 'EXPON.DIST', 'EXPONDIST', 'F.DIST', 'F.DIST.RT', 'F.INV', 'F.INV.RT', 'FACT', 'FACTDOUBLE', 'FALSE', 'FDIST', 'FDISTRT', 'FIND', 'FINV', 'FINVRT', 'FISHER', 'FISHERINV', 'FLATTEN', 'FLOOR', 'FORECAST', 'FREQUENCY', 'FV', 'FVSCHEDULE', 'GAMMA', 'GAMMA.DIST', 'GAMMA.INV', 'GAMMADIST', 'GAMMAINV', 'GAMMALN', 'GAMMALN.PRECISE', 'GAUSS', 'GCD', 'GEOMEAN', 'GESTEP', 'GROWTH', 'GTE', 'HARMEAN', 'HEX2BIN', 'HEX2DEC', 'HEX2OCT', 'HOUR', 'HTML2TEXT', 'HYPGEOM.DIST', 'HYPGEOMDIST', 'IF', 'IMABS', 'IMAGINARY', 'IMARGUMENT', 'IMCONJUGATE', 'IMCOS', 'IMCOSH', 'IMCOT', 'IMCSC', 'IMCSCH', 'IMDIV', 'IMEXP', 'IMLN', 'IMLOG10', 'IMLOG2', 'IMPOWER', 'IMPRODUCT', 'IMREAL', 'IMSEC', 'IMSECH', 'IMSIN', 'IMSINH', 'IMSQRT', 'IMSUB', 'IMSUM', 'IMTAN', 'INT', 'INTERCEPT', 'INTERVAL', 'IPMT', 'IRR', 'ISBINARY', 'ISBLANK', 'ISEVEN', 'ISLOGICAL', 'ISNONTEXT', 'ISNUMBER', 'ISODD', 'ISODD', 'ISOWEEKNUM', 'ISPMT', 'ISTEXT', 'JOIN', 'KURT', 'LARGE', 'LCM', 'LEFT', 'LEN', 'LINEST', 'LN', 'LOG', 'LOG10', 'LOGEST', 'LOGNORM.DIST', 'LOGNORM.INV', 'LOGNORMDIST', 'LOGNORMINV', 'LOWER', 'LT', 'LTE', 'MATCH', 'MAX', 'MAXA', 'MEDIAN', 'MID', 'MIN', 'MINA', 'MINUS', 'MINUTE', 'MIRR', 'MOD', 'MODE.MULT', 'MODE.SNGL', 'MODEMULT', 'MODESNGL', 'MONTH', 'MROUND', 'MULTINOMIAL', 'MULTIPLY', 'NE', 'NEGBINOM.DIST', 'NEGBINOMDIST', 'NETWORKDAYS', 'NOMINAL', 'NORM.DIST', 'NORM.INV', 'NORM.S.DIST', 'NORM.S.INV', 'NORMDIST', 'NORMINV', 'NORMSDIST', 'NORMSINV', 'NOT', 'NOW', 'NPER', 'NPV', 'NUMBERS', 'OCT2BIN', 'OCT2DEC', 'OCT2HEX', 'ODD', 'OR', 'PDURATION', 'PEARSON', 'PERCENTILEEXC', 'PERCENTILEINC', 'PERCENTRANKEXC', 'PERCENTRANKINC', 'PERMUT', 'PERMUTATIONA', 'PHI', 'PI', 'PMT', 'POISSON.DIST', 'POISSONDIST', 'POW', 'POWER', 'PPMT', 'PROB', 'PRODUCT', 'PROPER', 'PV', 'QUARTILE.EXC', 'QUARTILE.INC', 'QUARTILEEXC', 'QUARTILEINC', 'QUOTIENT', 'RADIANS', 'RAND', 'RANDBETWEEN', 'RANK.AVG', 'RANK.EQ', 'RANKAVG', 'RANKEQ', 'RATE', 'REFERENCE', 'REGEXEXTRACT', 'REGEXMATCH', 'REGEXREPLACE', 'REPLACE', 'REPT', 'RIGHT', 'ROMAN', 'ROUND', 'ROUNDDOWN', 'ROUNDUP', 'ROW', 'ROWS', 'RRI', 'RSQ', 'SEARCH', 'SEC', 'SECH', 'SECOND', 'SERIESSUM', 'SIGN', 'SIN', 'SINH', 'SKEW', 'SKEW.P', 'SKEWP', 'SLN', 'SLOPE', 'SMALL', 'SPLIT', 'SPLIT', 'SQRT', 'SQRTPI', 'STANDARDIZE', 'STDEV.P', 'STDEV.S', 'STDEVA', 'STDEVP', 'STDEVPA', 'STDEVS', 'STEYX', 'SUBSTITUTE', 'SUBTOTAL', 'SUM', 'SUMIF', 'SUMIFS', 'SUMPRODUCT', 'SUMSQ', 'SUMX2MY2', 'SUMX2PY2', 'SUMXMY2', 'SWITCH', 'SYD', 'T', 'T.DIST', 'T.DIST.2T', 'T.DIST.RT', 'T.INV', 'T.INV.2T', 'TAN', 'TANH', 'TBILLEQ', 'TBILLPRICE', 'TBILLYIELD', 'TDIST', 'TDIST2T', 'TDISTRT', 'TIME', 'TIMEVALUE', 'TINV', 'TINV2T', 'TODAY', 'TRANSPOSE', 'TREND', 'TRIM', 'TRIMMEAN', 'TRUE', 'TRUNC', 'UNICHAR', 'UNICODE', 'UNIQUE', 'UPPER', 'VAR.P', 'VAR.S', 'VARA', 'VARP', 'VARPA', 'VARS', 'WEEKDAY', 'WEEKNUM', 'WEIBULL.DIST', 'WEIBULLDIST', 'WORKDAY', 'XIRR', 'XNPV', 'XOR', 'YEAR', 'YEARFRAC'];
-
-exports['default'] = SUPPORTED_FORMULAS;
+var _default = SUPPORTED_FORMULAS;
+exports["default"] = _default;
 
 /***/ }),
 /* 14 */
@@ -11359,6 +11406,19 @@ exports.columnLabelToIndex = columnLabelToIndex;
 exports.columnIndexToLabel = columnIndexToLabel;
 exports.extractLabel = extractLabel;
 exports.toLabel = toLabel;
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 /**
  * Convert row label to index.
  *
@@ -11376,18 +11436,19 @@ function rowLabelToIndex(label) {
 
   return result;
 }
-
 /**
  * Convert row index to label.
  *
  * @param {Number} row Row index.
  * @returns {String} Returns row label (eq. '1', '7').
  */
+
+
 function rowIndexToLabel(row) {
   var result = '';
 
   if (row >= 0) {
-    result = '' + (row + 1);
+    result = "".concat(row + 1);
   }
 
   return result;
@@ -11395,13 +11456,13 @@ function rowIndexToLabel(row) {
 
 var COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 var COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
-
 /**
  * Convert column label to index.
  *
  * @param {String} label Column label (eq. 'ABB', 'CNQ')
  * @returns {Number} Returns -1 if label is not recognized otherwise proper column index.
  */
+
 function columnLabelToIndex(label) {
   var result = 0;
 
@@ -11412,17 +11473,18 @@ function columnLabelToIndex(label) {
       result += Math.pow(COLUMN_LABEL_BASE_LENGTH, j) * (COLUMN_LABEL_BASE.indexOf(label[i]) + 1);
     }
   }
-  --result;
 
+  --result;
   return result;
 }
-
 /**
  * Convert column index to label.
  *
  * @param {Number} column Column index.
  * @returns {String} Returns column label (eq. 'ABB', 'CNQ').
  */
+
+
 function columnIndexToLabel(column) {
   var result = '';
 
@@ -11435,23 +11497,24 @@ function columnIndexToLabel(column) {
 }
 
 var LABEL_EXTRACT_REGEXP = /^([$])?([A-Za-z]+)([$])?([0-9]+)$/;
-
 /**
  * Extract cell coordinates.
  *
  * @param {String} label Cell coordinates (eq. 'A1', '$B6', '$N$98').
  * @returns {Array} Returns an array of objects.
  */
+
 function extractLabel(label) {
   if (typeof label !== 'string' || !LABEL_EXTRACT_REGEXP.test(label)) {
     return [];
   }
 
   var _label$toUpperCase$ma = label.toUpperCase().match(LABEL_EXTRACT_REGEXP),
-      columnAbs = _label$toUpperCase$ma[1],
-      column = _label$toUpperCase$ma[2],
-      rowAbs = _label$toUpperCase$ma[3],
-      row = _label$toUpperCase$ma[4];
+      _label$toUpperCase$ma2 = _slicedToArray(_label$toUpperCase$ma, 5),
+      columnAbs = _label$toUpperCase$ma2[1],
+      column = _label$toUpperCase$ma2[2],
+      rowAbs = _label$toUpperCase$ma2[3],
+      row = _label$toUpperCase$ma2[4];
 
   return [{
     index: rowLabelToIndex(row),
@@ -11463,7 +11526,6 @@ function extractLabel(label) {
     isAbsolute: columnAbs === '$'
   }];
 }
-
 /**
  * Convert row and column indexes into cell label.
  *
@@ -11471,10 +11533,11 @@ function extractLabel(label) {
  * @param {Object} column Object with `index` and `isAbsolute` properties.
  * @returns {String} Returns cell label.
  */
+
+
 function toLabel(row, column) {
   var rowLabel = (row.isAbsolute ? '$' : '') + rowIndexToLabel(row.index);
   var columnLabel = (column.isAbsolute ? '$' : '') + columnIndexToLabel(column.index);
-
   return columnLabel + rowLabel;
 }
 
@@ -11485,26 +11548,21 @@ function toLabel(row, column) {
 "use strict";
 
 
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 exports.__esModule = true;
-exports.rowLabelToIndex = exports.rowIndexToLabel = exports.columnLabelToIndex = exports.columnIndexToLabel = exports.toLabel = exports.extractLabel = exports.error = exports.Parser = exports.ERROR_VALUE = exports.ERROR_REF = exports.ERROR_NUM = exports.ERROR_NULL = exports.ERROR_NOT_AVAILABLE = exports.ERROR_NAME = exports.ERROR_DIV_ZERO = exports.ERROR = exports.SUPPORTED_FORMULAS = undefined;
 
-var _parser = __webpack_require__(16);
+var _parser = _interopRequireDefault(__webpack_require__(16));
 
-var _parser2 = _interopRequireDefault(_parser);
+exports.Parser = _parser["default"];
 
-var _supportedFormulas = __webpack_require__(13);
+var _supportedFormulas = _interopRequireDefault(__webpack_require__(13));
 
-var _supportedFormulas2 = _interopRequireDefault(_supportedFormulas);
+exports.SUPPORTED_FORMULAS = _supportedFormulas["default"];
 
-var _error = __webpack_require__(2);
+var _error = _interopRequireWildcard(__webpack_require__(2));
 
-var _error2 = _interopRequireDefault(_error);
-
-var _cell = __webpack_require__(14);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-exports.SUPPORTED_FORMULAS = _supportedFormulas2['default'];
+exports.error = _error["default"];
 exports.ERROR = _error.ERROR;
 exports.ERROR_DIV_ZERO = _error.ERROR_DIV_ZERO;
 exports.ERROR_NAME = _error.ERROR_NAME;
@@ -11513,14 +11571,21 @@ exports.ERROR_NULL = _error.ERROR_NULL;
 exports.ERROR_NUM = _error.ERROR_NUM;
 exports.ERROR_REF = _error.ERROR_REF;
 exports.ERROR_VALUE = _error.ERROR_VALUE;
-exports.Parser = _parser2['default'];
-exports.error = _error2['default'];
+
+var _cell = __webpack_require__(14);
+
 exports.extractLabel = _cell.extractLabel;
 exports.toLabel = _cell.toLabel;
 exports.columnIndexToLabel = _cell.columnIndexToLabel;
 exports.columnLabelToIndex = _cell.columnLabelToIndex;
 exports.rowIndexToLabel = _cell.rowIndexToLabel;
 exports.rowLabelToIndex = _cell.rowLabelToIndex;
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 /***/ }),
 /* 16 */
@@ -11529,15 +11594,14 @@ exports.rowLabelToIndex = _cell.rowLabelToIndex;
 "use strict";
 
 
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 exports.__esModule = true;
+exports["default"] = void 0;
 
-var _tinyEmitter = __webpack_require__(17);
+var _tinyEmitter = _interopRequireDefault(__webpack_require__(17));
 
-var _tinyEmitter2 = _interopRequireDefault(_tinyEmitter);
-
-var _evaluateByOperator = __webpack_require__(18);
-
-var _evaluateByOperator2 = _interopRequireDefault(_evaluateByOperator);
+var _evaluateByOperator = _interopRequireDefault(__webpack_require__(18));
 
 var _grammarParser = __webpack_require__(39);
 
@@ -11545,31 +11609,62 @@ var _string = __webpack_require__(40);
 
 var _number = __webpack_require__(3);
 
-var _error = __webpack_require__(2);
-
-var _error2 = _interopRequireDefault(_error);
+var _error = _interopRequireWildcard(__webpack_require__(2));
 
 var _cell = __webpack_require__(14);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 /**
  * @class Parser
  */
-var Parser = function (_Emitter) {
+var Parser = /*#__PURE__*/function (_Emitter) {
   _inherits(Parser, _Emitter);
 
+  var _super = _createSuper(Parser);
+
   function Parser() {
+    var _this;
+
     _classCallCheck(this, Parser);
 
-    var _this = _possibleConstructorReturn(this, _Emitter.call(this));
-
+    _this = _super.call(this);
     _this.parser = new _grammarParser.Parser();
     _this.parser.yy = {
       toNumber: _number.toNumber,
@@ -11581,7 +11676,7 @@ var Parser = function (_Emitter) {
       callVariable: function callVariable(variable) {
         return _this._callVariable(variable);
       },
-      evaluateByOperator: _evaluateByOperator2['default'],
+      evaluateByOperator: _evaluateByOperator["default"],
       callFunction: function callFunction(name, params) {
         return _this._callFunction(name, params);
       },
@@ -11596,9 +11691,9 @@ var Parser = function (_Emitter) {
     _this.functions = Object.create(null);
 
     _this.setVariable('TRUE', true).setVariable('FALSE', false).setVariable('NULL', null);
+
     return _this;
   }
-
   /**
    * Parse formula expression.
    *
@@ -11607,246 +11702,247 @@ var Parser = function (_Emitter) {
    */
 
 
-  Parser.prototype.parse = function parse(expression) {
-    var result = null;
-    var error = null;
+  _createClass(Parser, [{
+    key: "parse",
+    value: function parse(expression) {
+      var result = null;
+      var error = null;
 
-    try {
-      if (expression === '') {
-        result = '';
+      try {
+        if (expression === '') {
+          result = '';
+        } else {
+          result = this.parser.parse(expression);
+        }
+      } catch (ex) {
+        var message = (0, _error["default"])(ex.message);
+
+        if (message) {
+          error = message;
+        } else {
+          error = (0, _error["default"])(_error.ERROR);
+        }
+      }
+
+      if (result instanceof Error) {
+        error = (0, _error["default"])(result.message) || (0, _error["default"])(_error.ERROR);
+        result = null;
+      }
+
+      return {
+        error: error,
+        result: result
+      };
+    }
+    /**
+     * Set predefined variable name which can be visible while parsing formula expression.
+     *
+     * @param {String} name Variable name.
+     * @param {*} value Variable value.
+     * @returns {Parser}
+     */
+
+  }, {
+    key: "setVariable",
+    value: function setVariable(name, value) {
+      this.variables[name] = value;
+      return this;
+    }
+    /**
+     * Get variable name.
+     *
+     * @param {String} name Variable name.
+     * @returns {*}
+     */
+
+  }, {
+    key: "getVariable",
+    value: function getVariable(name) {
+      return this.variables[name];
+    }
+    /**
+     * Retrieve variable value by its name.
+     *
+     * @param name Variable name.
+     * @returns {*}
+     * @private
+     */
+
+  }, {
+    key: "_callVariable",
+    value: function _callVariable(name) {
+      var value = this.getVariable(name);
+      this.emit('callVariable', name, function (newValue) {
+        if (newValue !== void 0) {
+          value = newValue;
+        }
+      });
+
+      if (value === void 0) {
+        throw Error(_error.ERROR_NAME);
+      }
+
+      return value;
+    }
+    /**
+     * Set custom function which can be visible while parsing formula expression.
+     *
+     * @param {String} name Custom function name.
+     * @param {Function} fn Custom function.
+     * @returns {Parser}
+     */
+
+  }, {
+    key: "setFunction",
+    value: function setFunction(name, fn) {
+      this.functions[name] = fn;
+      return this;
+    }
+    /**
+     * Get custom function.
+     *
+     * @param {String} name Custom function name.
+     * @returns {*}
+     */
+
+  }, {
+    key: "getFunction",
+    value: function getFunction(name) {
+      return this.functions[name];
+    }
+    /**
+     * Call function with provided params.
+     *
+     * @param name Function name.
+     * @param params Function params.
+     * @returns {*}
+     * @private
+     */
+
+  }, {
+    key: "_callFunction",
+    value: function _callFunction(name) {
+      var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      var fn = this.getFunction(name);
+      var value;
+
+      if (fn) {
+        value = fn(params);
+      }
+
+      this.emit('callFunction', name, params, function (newValue) {
+        if (newValue !== void 0) {
+          value = newValue;
+        }
+      });
+      return value === void 0 ? (0, _evaluateByOperator["default"])(name, params) : value;
+    }
+    /**
+     * Retrieve value by its label (`B3`, `B$3`, `B$3`, `$B$3`).
+     *
+     * @param {String} label Coordinates.
+     * @returns {*}
+     * @private
+     */
+
+  }, {
+    key: "_callCellValue",
+    value: function _callCellValue(label) {
+      label = label.toUpperCase();
+
+      var _extractLabel = (0, _cell.extractLabel)(label),
+          _extractLabel2 = _slicedToArray(_extractLabel, 2),
+          row = _extractLabel2[0],
+          column = _extractLabel2[1];
+
+      var value = void 0;
+      this.emit('callCellValue', {
+        label: label,
+        row: row,
+        column: column
+      }, function (_value) {
+        value = _value;
+      });
+      return value;
+    }
+    /**
+     * Retrieve value by its label (`B3:A1`, `B$3:A1`, `B$3:$A1`, `$B$3:A$1`).
+     *
+     * @param {String} startLabel Coordinates of the first cell.
+     * @param {String} endLabel Coordinates of the last cell.
+     * @returns {Array} Returns an array of mixed values.
+     * @private
+     */
+
+  }, {
+    key: "_callRangeValue",
+    value: function _callRangeValue(startLabel, endLabel) {
+      startLabel = startLabel.toUpperCase();
+      endLabel = endLabel.toUpperCase();
+
+      var _extractLabel3 = (0, _cell.extractLabel)(startLabel),
+          _extractLabel4 = _slicedToArray(_extractLabel3, 2),
+          startRow = _extractLabel4[0],
+          startColumn = _extractLabel4[1];
+
+      var _extractLabel5 = (0, _cell.extractLabel)(endLabel),
+          _extractLabel6 = _slicedToArray(_extractLabel5, 2),
+          endRow = _extractLabel6[0],
+          endColumn = _extractLabel6[1];
+
+      var startCell = {};
+      var endCell = {};
+
+      if (startRow.index <= endRow.index) {
+        startCell.row = startRow;
+        endCell.row = endRow;
       } else {
-        result = this.parser.parse(expression);
+        startCell.row = endRow;
+        endCell.row = startRow;
       }
-    } catch (ex) {
-      var message = (0, _error2['default'])(ex.message);
 
-      if (message) {
-        error = message;
+      if (startColumn.index <= endColumn.index) {
+        startCell.column = startColumn;
+        endCell.column = endColumn;
       } else {
-        error = (0, _error2['default'])(_error.ERROR);
+        startCell.column = endColumn;
+        endCell.column = startColumn;
       }
+
+      startCell.label = (0, _cell.toLabel)(startCell.row, startCell.column);
+      endCell.label = (0, _cell.toLabel)(endCell.row, endCell.column);
+      var value = [];
+      this.emit('callRangeValue', startCell, endCell, function () {
+        var _value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+        value = _value;
+      });
+      return value;
     }
+    /**
+     * Try to throw error by its name.
+     *
+     * @param {String} errorName Error name.
+     * @returns {String}
+     * @private
+     */
 
-    if (result instanceof Error) {
-      error = (0, _error2['default'])(result.message) || (0, _error2['default'])(_error.ERROR);
-      result = null;
-    }
-
-    return {
-      error: error,
-      result: result
-    };
-  };
-
-  /**
-   * Set predefined variable name which can be visible while parsing formula expression.
-   *
-   * @param {String} name Variable name.
-   * @param {*} value Variable value.
-   * @returns {Parser}
-   */
-
-
-  Parser.prototype.setVariable = function setVariable(name, value) {
-    this.variables[name] = value;
-
-    return this;
-  };
-
-  /**
-   * Get variable name.
-   *
-   * @param {String} name Variable name.
-   * @returns {*}
-   */
-
-
-  Parser.prototype.getVariable = function getVariable(name) {
-    return this.variables[name];
-  };
-
-  /**
-   * Retrieve variable value by its name.
-   *
-   * @param name Variable name.
-   * @returns {*}
-   * @private
-   */
-
-
-  Parser.prototype._callVariable = function _callVariable(name) {
-    var value = this.getVariable(name);
-
-    this.emit('callVariable', name, function (newValue) {
-      if (newValue !== void 0) {
-        value = newValue;
+  }, {
+    key: "_throwError",
+    value: function _throwError(errorName) {
+      if ((0, _error.isValidStrict)(errorName)) {
+        throw Error(errorName);
       }
-    });
 
-    if (value === void 0) {
-      throw Error(_error.ERROR_NAME);
+      throw Error(_error.ERROR);
     }
-
-    return value;
-  };
-
-  /**
-   * Set custom function which can be visible while parsing formula expression.
-   *
-   * @param {String} name Custom function name.
-   * @param {Function} fn Custom function.
-   * @returns {Parser}
-   */
-
-
-  Parser.prototype.setFunction = function setFunction(name, fn) {
-    this.functions[name] = fn;
-
-    return this;
-  };
-
-  /**
-   * Get custom function.
-   *
-   * @param {String} name Custom function name.
-   * @returns {*}
-   */
-
-
-  Parser.prototype.getFunction = function getFunction(name) {
-    return this.functions[name];
-  };
-
-  /**
-   * Call function with provided params.
-   *
-   * @param name Function name.
-   * @param params Function params.
-   * @returns {*}
-   * @private
-   */
-
-
-  Parser.prototype._callFunction = function _callFunction(name) {
-    var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-
-    var fn = this.getFunction(name);
-    var value = void 0;
-
-    if (fn) {
-      value = fn(params);
-    }
-
-    this.emit('callFunction', name, params, function (newValue) {
-      if (newValue !== void 0) {
-        value = newValue;
-      }
-    });
-
-    return value === void 0 ? (0, _evaluateByOperator2['default'])(name, params) : value;
-  };
-
-  /**
-   * Retrieve value by its label (`B3`, `B$3`, `B$3`, `$B$3`).
-   *
-   * @param {String} label Coordinates.
-   * @returns {*}
-   * @private
-   */
-
-
-  Parser.prototype._callCellValue = function _callCellValue(label) {
-    label = label.toUpperCase();
-
-    var _extractLabel = (0, _cell.extractLabel)(label),
-        row = _extractLabel[0],
-        column = _extractLabel[1];
-
-    var value = void 0;
-
-    this.emit('callCellValue', { label: label, row: row, column: column }, function (_value) {
-      value = _value;
-    });
-
-    return value;
-  };
-
-  /**
-   * Retrieve value by its label (`B3:A1`, `B$3:A1`, `B$3:$A1`, `$B$3:A$1`).
-   *
-   * @param {String} startLabel Coordinates of the first cell.
-   * @param {String} endLabel Coordinates of the last cell.
-   * @returns {Array} Returns an array of mixed values.
-   * @private
-   */
-
-
-  Parser.prototype._callRangeValue = function _callRangeValue(startLabel, endLabel) {
-    startLabel = startLabel.toUpperCase();
-    endLabel = endLabel.toUpperCase();
-
-    var _extractLabel2 = (0, _cell.extractLabel)(startLabel),
-        startRow = _extractLabel2[0],
-        startColumn = _extractLabel2[1];
-
-    var _extractLabel3 = (0, _cell.extractLabel)(endLabel),
-        endRow = _extractLabel3[0],
-        endColumn = _extractLabel3[1];
-
-    var startCell = {};
-    var endCell = {};
-
-    if (startRow.index <= endRow.index) {
-      startCell.row = startRow;
-      endCell.row = endRow;
-    } else {
-      startCell.row = endRow;
-      endCell.row = startRow;
-    }
-
-    if (startColumn.index <= endColumn.index) {
-      startCell.column = startColumn;
-      endCell.column = endColumn;
-    } else {
-      startCell.column = endColumn;
-      endCell.column = startColumn;
-    }
-
-    startCell.label = (0, _cell.toLabel)(startCell.row, startCell.column);
-    endCell.label = (0, _cell.toLabel)(endCell.row, endCell.column);
-
-    var value = [];
-
-    this.emit('callRangeValue', startCell, endCell, function () {
-      var _value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-
-      value = _value;
-    });
-
-    return value;
-  };
-
-  /**
-   * Try to throw error by its name.
-   *
-   * @param {String} errorName Error name.
-   * @returns {String}
-   * @private
-   */
-
-
-  Parser.prototype._throwError = function _throwError(errorName) {
-    if ((0, _error.isValidStrict)(errorName)) {
-      throw Error(errorName);
-    }
-
-    throw Error(_error.ERROR);
-  };
+  }]);
 
   return Parser;
-}(_tinyEmitter2['default']);
+}(_tinyEmitter["default"]);
 
-exports['default'] = Parser;
+var _default = Parser;
+exports["default"] = _default;
 
 /***/ }),
 /* 17 */
@@ -11929,68 +12025,52 @@ module.exports.TinyEmitter = E;
 
 
 exports.__esModule = true;
-exports['default'] = evaluateByOperator;
+exports["default"] = evaluateByOperator;
 exports.registerOperation = registerOperation;
 
-var _add = __webpack_require__(19);
+var _add = _interopRequireDefault(__webpack_require__(19));
 
-var _add2 = _interopRequireDefault(_add);
+var _ampersand = _interopRequireDefault(__webpack_require__(20));
 
-var _ampersand = __webpack_require__(20);
+var _divide = _interopRequireDefault(__webpack_require__(21));
 
-var _ampersand2 = _interopRequireDefault(_ampersand);
+var _equal = _interopRequireDefault(__webpack_require__(22));
 
-var _divide = __webpack_require__(21);
+var _formulaFunction = _interopRequireDefault(__webpack_require__(23));
 
-var _divide2 = _interopRequireDefault(_divide);
+var _greaterThan = _interopRequireDefault(__webpack_require__(31));
 
-var _equal = __webpack_require__(22);
+var _greaterThanOrEqual = _interopRequireDefault(__webpack_require__(32));
 
-var _equal2 = _interopRequireDefault(_equal);
+var _lessThan = _interopRequireDefault(__webpack_require__(33));
 
-var _formulaFunction = __webpack_require__(23);
+var _lessThanOrEqual = _interopRequireDefault(__webpack_require__(34));
 
-var _formulaFunction2 = _interopRequireDefault(_formulaFunction);
+var _minus = _interopRequireDefault(__webpack_require__(35));
 
-var _greaterThan = __webpack_require__(31);
+var _multiply = _interopRequireDefault(__webpack_require__(36));
 
-var _greaterThan2 = _interopRequireDefault(_greaterThan);
+var _notEqual = _interopRequireDefault(__webpack_require__(37));
 
-var _greaterThanOrEqual = __webpack_require__(32);
-
-var _greaterThanOrEqual2 = _interopRequireDefault(_greaterThanOrEqual);
-
-var _lessThan = __webpack_require__(33);
-
-var _lessThan2 = _interopRequireDefault(_lessThan);
-
-var _lessThanOrEqual = __webpack_require__(34);
-
-var _lessThanOrEqual2 = _interopRequireDefault(_lessThanOrEqual);
-
-var _minus = __webpack_require__(35);
-
-var _minus2 = _interopRequireDefault(_minus);
-
-var _multiply = __webpack_require__(36);
-
-var _multiply2 = _interopRequireDefault(_multiply);
-
-var _notEqual = __webpack_require__(37);
-
-var _notEqual2 = _interopRequireDefault(_notEqual);
-
-var _power = __webpack_require__(38);
-
-var _power2 = _interopRequireDefault(_power);
+var _power = _interopRequireDefault(__webpack_require__(38));
 
 var _error = __webpack_require__(2);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-/* eslint-disable import/no-named-as-default-member */
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 var availableOperators = Object.create(null);
-
 /**
  * Evaluate values by operator id.git
  *
@@ -11998,28 +12078,30 @@ var availableOperators = Object.create(null);
  * @param {Array} [params=[]] Arguments to evaluate.
  * @returns {*}
  */
+
 function evaluateByOperator(operator) {
   var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-
   operator = operator.toUpperCase();
 
   if (!availableOperators[operator]) {
     throw Error(_error.ERROR_NAME);
   }
 
-  return availableOperators[operator].apply(availableOperators, params);
+  return availableOperators[operator].apply(availableOperators, _toConsumableArray(params));
 }
-
 /**
  * Register operator.
  *
  * @param {String|Array} symbol Symbol to register.
  * @param {Function} func Logic to register for this symbol.
  */
+
+
 function registerOperation(symbol, func) {
   if (!Array.isArray(symbol)) {
     symbol = [symbol.toUpperCase()];
   }
+
   symbol.forEach(function (s) {
     if (func.isFactory) {
       availableOperators[s] = func(s);
@@ -12029,19 +12111,19 @@ function registerOperation(symbol, func) {
   });
 }
 
-registerOperation(_add2['default'].SYMBOL, _add2['default']);
-registerOperation(_ampersand2['default'].SYMBOL, _ampersand2['default']);
-registerOperation(_divide2['default'].SYMBOL, _divide2['default']);
-registerOperation(_equal2['default'].SYMBOL, _equal2['default']);
-registerOperation(_power2['default'].SYMBOL, _power2['default']);
-registerOperation(_formulaFunction2['default'].SYMBOL, _formulaFunction2['default']);
-registerOperation(_greaterThan2['default'].SYMBOL, _greaterThan2['default']);
-registerOperation(_greaterThanOrEqual2['default'].SYMBOL, _greaterThanOrEqual2['default']);
-registerOperation(_lessThan2['default'].SYMBOL, _lessThan2['default']);
-registerOperation(_lessThanOrEqual2['default'].SYMBOL, _lessThanOrEqual2['default']);
-registerOperation(_multiply2['default'].SYMBOL, _multiply2['default']);
-registerOperation(_notEqual2['default'].SYMBOL, _notEqual2['default']);
-registerOperation(_minus2['default'].SYMBOL, _minus2['default']);
+registerOperation(_add["default"].SYMBOL, _add["default"]);
+registerOperation(_ampersand["default"].SYMBOL, _ampersand["default"]);
+registerOperation(_divide["default"].SYMBOL, _divide["default"]);
+registerOperation(_equal["default"].SYMBOL, _equal["default"]);
+registerOperation(_power["default"].SYMBOL, _power["default"]);
+registerOperation(_formulaFunction["default"].SYMBOL, _formulaFunction["default"]);
+registerOperation(_greaterThan["default"].SYMBOL, _greaterThan["default"]);
+registerOperation(_greaterThanOrEqual["default"].SYMBOL, _greaterThanOrEqual["default"]);
+registerOperation(_lessThan["default"].SYMBOL, _lessThan["default"]);
+registerOperation(_lessThanOrEqual["default"].SYMBOL, _lessThanOrEqual["default"]);
+registerOperation(_multiply["default"].SYMBOL, _multiply["default"]);
+registerOperation(_notEqual["default"].SYMBOL, _notEqual["default"]);
+registerOperation(_minus["default"].SYMBOL, _minus["default"]);
 
 /***/ }),
 /* 19 */
@@ -12051,17 +12133,18 @@ registerOperation(_minus2['default'].SYMBOL, _minus2['default']);
 
 
 exports.__esModule = true;
-exports.SYMBOL = undefined;
-exports['default'] = func;
+exports["default"] = func;
+exports.SYMBOL = void 0;
 
 var _number = __webpack_require__(3);
 
 var _error = __webpack_require__(2);
 
-var SYMBOL = exports.SYMBOL = '+';
+var SYMBOL = '+';
+exports.SYMBOL = SYMBOL;
 
 function func(first) {
-  for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+  for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     rest[_key - 1] = arguments[_key];
   }
 
@@ -12086,11 +12169,13 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports['default'] = func;
-var SYMBOL = exports.SYMBOL = '&';
+exports["default"] = func;
+exports.SYMBOL = void 0;
+var SYMBOL = '&';
+exports.SYMBOL = SYMBOL;
 
 function func() {
-  for (var _len = arguments.length, params = Array(_len), _key = 0; _key < _len; _key++) {
+  for (var _len = arguments.length, params = new Array(_len), _key = 0; _key < _len; _key++) {
     params[_key] = arguments[_key];
   }
 
@@ -12109,17 +12194,18 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports.SYMBOL = undefined;
-exports['default'] = func;
+exports["default"] = func;
+exports.SYMBOL = void 0;
 
 var _number = __webpack_require__(3);
 
 var _error = __webpack_require__(2);
 
-var SYMBOL = exports.SYMBOL = '/';
+var SYMBOL = '/';
+exports.SYMBOL = SYMBOL;
 
 function func(first) {
-  for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+  for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     rest[_key - 1] = arguments[_key];
   }
 
@@ -12130,6 +12216,7 @@ function func(first) {
   if (result === Infinity) {
     throw Error(_error.ERROR_DIV_ZERO);
   }
+
   if (isNaN(result)) {
     throw Error(_error.ERROR_VALUE);
   }
@@ -12147,8 +12234,10 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports['default'] = func;
-var SYMBOL = exports.SYMBOL = '=';
+exports["default"] = func;
+exports.SYMBOL = void 0;
+var SYMBOL = '=';
+exports.SYMBOL = SYMBOL;
 
 function func(exp1, exp2) {
   return exp1 === exp2;
@@ -12164,42 +12253,36 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports.SYMBOL = undefined;
-exports['default'] = func;
+exports["default"] = func;
+exports.SYMBOL = void 0;
 
-var _formulajs = __webpack_require__(24);
+var _formulajs = _interopRequireDefault(__webpack_require__(24));
 
-var formulajs = _interopRequireWildcard(_formulajs);
-
-var _supportedFormulas = __webpack_require__(13);
-
-var _supportedFormulas2 = _interopRequireDefault(_supportedFormulas);
+var _supportedFormulas = _interopRequireDefault(__webpack_require__(13));
 
 var _error = __webpack_require__(2);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-var SYMBOL = exports.SYMBOL = _supportedFormulas2['default'];
+var SYMBOL = _supportedFormulas["default"];
+exports.SYMBOL = SYMBOL;
 
 function func(symbol) {
   return function __formulaFunction() {
     symbol = symbol.toUpperCase();
-
     var symbolParts = symbol.split('.');
     var foundFormula = false;
-    var result = void 0;
+    var result;
 
     if (symbolParts.length === 1) {
-      if (formulajs[symbolParts[0]]) {
+      if (_formulajs["default"][symbolParts[0]]) {
         foundFormula = true;
-        result = formulajs[symbolParts[0]].apply(formulajs, arguments);
+        result = _formulajs["default"][symbolParts[0]].apply(_formulajs["default"], arguments);
       }
     } else {
       var length = symbolParts.length;
       var index = 0;
-      var nestedFormula = formulajs;
+      var nestedFormula = _formulajs["default"];
 
       while (index < length) {
         nestedFormula = nestedFormula[symbolParts[index]];
@@ -12210,9 +12293,10 @@ function func(symbol) {
           break;
         }
       }
+
       if (nestedFormula) {
         foundFormula = true;
-        result = nestedFormula.apply(undefined, arguments);
+        result = nestedFormula.apply(void 0, arguments);
       }
     }
 
@@ -12360,15 +12444,7 @@ var BESSEL;
   if(typeof DO_NOT_EXPORT_BESSEL === 'undefined') {
     if(true) {
       factory(exports);
-    } else if ('function' === typeof define && define.amd) {
-      define(function () {
-        var module = {};
-        factory(module);
-        return module;
-      });
-    } else {
-      factory(BESSEL = {});
-    }
+    } else {}
   } else {
     factory(BESSEL = {});
   }
@@ -14331,8 +14407,10 @@ exports.HLOOKUP = function (needle, table, index, rangeLookup) {
 
 
 exports.__esModule = true;
-exports['default'] = func;
-var SYMBOL = exports.SYMBOL = '>';
+exports["default"] = func;
+exports.SYMBOL = void 0;
+var SYMBOL = '>';
+exports.SYMBOL = SYMBOL;
 
 function func(exp1, exp2) {
   return exp1 > exp2;
@@ -14348,8 +14426,10 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports['default'] = func;
-var SYMBOL = exports.SYMBOL = '>=';
+exports["default"] = func;
+exports.SYMBOL = void 0;
+var SYMBOL = '>=';
+exports.SYMBOL = SYMBOL;
 
 function func(exp1, exp2) {
   return exp1 >= exp2;
@@ -14365,8 +14445,10 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports['default'] = func;
-var SYMBOL = exports.SYMBOL = '<';
+exports["default"] = func;
+exports.SYMBOL = void 0;
+var SYMBOL = '<';
+exports.SYMBOL = SYMBOL;
 
 function func(exp1, exp2) {
   return exp1 < exp2;
@@ -14382,8 +14464,10 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports['default'] = func;
-var SYMBOL = exports.SYMBOL = '<=';
+exports["default"] = func;
+exports.SYMBOL = void 0;
+var SYMBOL = '<=';
+exports.SYMBOL = SYMBOL;
 
 function func(exp1, exp2) {
   return exp1 <= exp2;
@@ -14399,17 +14483,18 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports.SYMBOL = undefined;
-exports['default'] = func;
+exports["default"] = func;
+exports.SYMBOL = void 0;
 
 var _number = __webpack_require__(3);
 
 var _error = __webpack_require__(2);
 
-var SYMBOL = exports.SYMBOL = '-';
+var SYMBOL = '-';
+exports.SYMBOL = SYMBOL;
 
 function func(first) {
-  for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+  for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     rest[_key - 1] = arguments[_key];
   }
 
@@ -14434,17 +14519,18 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports.SYMBOL = undefined;
-exports['default'] = func;
+exports["default"] = func;
+exports.SYMBOL = void 0;
 
 var _number = __webpack_require__(3);
 
 var _error = __webpack_require__(2);
 
-var SYMBOL = exports.SYMBOL = '*';
+var SYMBOL = '*';
+exports.SYMBOL = SYMBOL;
 
 function func(first) {
-  for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+  for (var _len = arguments.length, rest = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     rest[_key - 1] = arguments[_key];
   }
 
@@ -14469,8 +14555,10 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports['default'] = func;
-var SYMBOL = exports.SYMBOL = '<>';
+exports["default"] = func;
+exports.SYMBOL = void 0;
+var SYMBOL = '<>';
+exports.SYMBOL = SYMBOL;
 
 function func(exp1, exp2) {
   return exp1 !== exp2;
@@ -14486,14 +14574,15 @@ func.SYMBOL = SYMBOL;
 
 
 exports.__esModule = true;
-exports.SYMBOL = undefined;
-exports['default'] = func;
+exports["default"] = func;
+exports.SYMBOL = void 0;
 
 var _number = __webpack_require__(3);
 
 var _error = __webpack_require__(2);
 
-var SYMBOL = exports.SYMBOL = '^';
+var SYMBOL = '^';
+exports.SYMBOL = SYMBOL;
 
 function func(exp1, exp2) {
   var result = Math.pow((0, _number.toNumber)(exp1), (0, _number.toNumber)(exp2));
@@ -14509,8 +14598,11 @@ func.SYMBOL = SYMBOL;
 
 /***/ }),
 /* 39 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Parser", function() { return Parser; });
 /* parser generated by jison 0.4.18 */
 /*
   Returns a Parser object of the following structure:
@@ -14584,7 +14676,7 @@ func.SYMBOL = SYMBOL;
     recoverable: (boolean: TRUE when the parser has a error recovery rule available for this particular error)
   }
 */
-var grammarParser = (function(){
+
 var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[1,5],$V1=[1,8],$V2=[1,6],$V3=[1,7],$V4=[1,9],$V5=[1,14],$V6=[1,15],$V7=[1,16],$V8=[1,12],$V9=[1,13],$Va=[1,17],$Vb=[1,19],$Vc=[1,20],$Vd=[1,21],$Ve=[1,22],$Vf=[1,23],$Vg=[1,24],$Vh=[1,25],$Vi=[1,26],$Vj=[1,27],$Vk=[1,28],$Vl=[5,9,10,11,13,14,15,16,17,18,19,20,29,30],$Vm=[5,9,10,11,13,14,15,16,17,18,19,20,29,30,32],$Vn=[5,9,10,11,13,14,15,16,17,18,19,20,29,30,34],$Vo=[5,10,11,13,14,15,16,17,29,30],$Vp=[5,10,13,14,15,16,29,30],$Vq=[5,10,11,13,14,15,16,17,18,19,29,30],$Vr=[13,29,30];
 var parser = {trace: function trace () { },
 yy: {},
@@ -14833,7 +14925,6 @@ parse: function parse (input) {
         lstack.length = lstack.length - n;
     }
 
-_token_stack:
     var lex = function () {
         var token;
         token = lexer.lex() || EOF;
@@ -14860,7 +14951,6 @@ _token_stack:
             action = table[state] && table[state][symbol];
         }
 
-_handle_error:
         // handle parse error
         if (typeof action === 'undefined' || !action.length || !action[0]) {
             var error_rule_depth;
@@ -15435,16 +15525,8 @@ parser.lexer = lexer;
 function Parser () {
   this.yy = {};
 }
-Parser.prototype = parser;parser.Parser = Parser;
-return new Parser;
-})();
-
-
-if (true) {
-exports.parser = grammarParser;
-exports.Parser = grammarParser.Parser;
-exports.parse = function () { return grammarParser.parse.apply(grammarParser, arguments); };
-}
+Parser.prototype = parser;
+parser.Parser = Parser;
 
 
 /***/ }),
@@ -15456,7 +15538,9 @@ exports.parse = function () { return grammarParser.parse.apply(grammarParser, ar
 
 exports.__esModule = true;
 exports.trimEdges = trimEdges;
+
 /* eslint-disable import/prefer-default-export */
+
 /**
  * Trim value by cutting character starting from the beginning and ending at the same time.
  *
@@ -15466,9 +15550,7 @@ exports.trimEdges = trimEdges;
  */
 function trimEdges(string) {
   var margin = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
   string = string.substring(margin, string.length - margin);
-
   return string;
 }
 

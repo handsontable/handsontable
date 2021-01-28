@@ -1,10 +1,12 @@
-import BasePlugin from './../_base';
+import { BasePlugin } from '../base';
 import DataObserver from './dataObserver';
-import { arrayEach } from './../../helpers/array';
+import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
-import { registerPlugin } from './../../plugins';
 
 // Handsontable.hooks.register('afterChangesObserved');
+
+export const PLUGIN_KEY = 'observeChanges';
+export const PLUGIN_PRIORITY = 180;
 
 /**
  * @plugin ObserveChanges
@@ -23,7 +25,15 @@ import { registerPlugin } from './../../plugins';
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */
-class ObserveChanges extends BasePlugin {
+export class ObserveChanges extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -42,7 +52,7 @@ class ObserveChanges extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().observeChanges;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -202,7 +212,3 @@ class ObserveChanges extends BasePlugin {
     delete hot.isPausedObservingChanges;
   }
 }
-
-export default ObserveChanges;
-
-registerPlugin('observeChanges', ObserveChanges);

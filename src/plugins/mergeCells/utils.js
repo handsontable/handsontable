@@ -6,7 +6,6 @@
  * @param {number} row Row index.
  * @param {number} col Column index.
  */
-// eslint-disable-next-line import/prefer-default-export
 export function applySpanProperties(TD, mergedCellInfo, row, col) {
   if (mergedCellInfo) {
     if (mergedCellInfo.row === row && mergedCellInfo.col === col) {

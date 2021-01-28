@@ -4,7 +4,7 @@ import { rangeEach, rangeEachReverse } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { applySpanProperties } from './utils';
-import { toSingleLine } from './../../helpers/templateLiteralTag';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 /**
  * Defines a container object for the merged cells.

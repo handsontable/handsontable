@@ -1,10 +1,9 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { arrayReduce } from './../../helpers/array';
-import { addClass, removeClass, offset } from './../../helpers/dom/element';
-import { rangeEach } from './../../helpers/number';
-import EventManager from './../../eventManager';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { arrayReduce } from '../../helpers/array';
+import { addClass, removeClass, offset } from '../../helpers/dom/element';
+import { rangeEach } from '../../helpers/number';
+import EventManager from '../../eventManager';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
 
@@ -13,6 +12,8 @@ import './manualRowMove.css';
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
 
+export const PLUGIN_KEY = 'manualRowMove';
+export const PLUGIN_PRIORITY = 140;
 const privatePool = new WeakMap();
 const CSS_PLUGIN = 'ht__manualRowMove';
 const CSS_SHOW_UI = 'show-ui';
@@ -42,7 +43,15 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @class ManualRowMove
  * @plugin ManualRowMove
  */
-class ManualRowMove extends BasePlugin {
+export class ManualRowMove extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -91,7 +100,7 @@ class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().manualRowMove;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -310,7 +319,7 @@ class ManualRowMove extends BasePlugin {
    * @private
    */
   moveBySettingsOrLoad() {
-    const pluginSettings = this.hot.getSettings().manualRowMove;
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
@@ -650,7 +659,7 @@ class ManualRowMove extends BasePlugin {
     if (movePerformed === true) {
       this.persistentStateSave();
       this.hot.render();
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
       const selectionEnd = selectionStart + rowsLen - 1;
@@ -703,7 +712,3 @@ class ManualRowMove extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('ManualRowMove', ManualRowMove);
-
-export default ManualRowMove;

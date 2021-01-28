@@ -6,8 +6,7 @@ import { isUndefined, isDefined } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
-import BasePlugin from '../_base';
-import { registerPlugin } from './../../plugins';
+import { BasePlugin } from '../base';
 import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import Hooks from '../../pluginHooks';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
@@ -19,13 +18,14 @@ import {
   isFirstLevelColumnHeader,
   wasHeaderClickedProperly
 } from './utils';
-import { getClassedToRemove, getClassesToAdd } from './domHelpers';
+import { getClassesToRemove, getClassesToAdd } from './domHelpers';
 import { rootComparator } from './rootComparator';
 import { registerRootComparator, sort } from './sortService';
 
+export const PLUGIN_KEY = 'columnSorting';
+export const PLUGIN_PRIORITY = 50;
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
-const PLUGIN_KEY = 'columnSorting';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
@@ -80,7 +80,15 @@ Hooks.getSingleton().register('afterColumnSort');
  *   }
  * }]```
  */
-class ColumnSorting extends BasePlugin {
+export class ColumnSorting extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -131,7 +139,7 @@ class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.columnStatesManager = new ColumnStatesManager(this.hot);
+    this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
 
     this.columnMetaCache = new IndexToValueMap((physicalIndex) => {
       let visualIndex = this.hot.toVisualColumn(physicalIndex);
@@ -179,15 +187,17 @@ class ColumnSorting extends BasePlugin {
       this.hot.removeHook('afterGetColHeader', clearColHeader);
     });
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       if (this.indexesSequenceCache !== null) {
         this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
       }
-    });
+    }, true);
 
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
     this.columnStatesManager.destroy();
+    this.columnMetaCache = null;
+    this.columnStatesManager = null;
 
     super.disablePlugin();
   }
@@ -239,7 +249,10 @@ class ColumnSorting extends BasePlugin {
 
     if (sortPossible) {
       this.hot.render();
-      this.hot.view.wt.draw(true); // TODO: Workaround? One test won't pass after removal. It should be refactored / described.
+      // TODO: Workaround? This triggers fast redraw. One test won't pass after removal.
+      // It should be refactored / described.
+      this.hot.forceFullRender = false;
+      this.hot.view.render();
     }
   }
 
@@ -676,7 +689,7 @@ class ColumnSorting extends BasePlugin {
    * @param {...*} args Extra arguments for helpers.
    */
   updateHeaderClasses(headerSpanElement, ...args) {
-    removeClass(headerSpanElement, getClassedToRemove(headerSpanElement));
+    removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
@@ -788,7 +801,3 @@ class ColumnSorting extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin(PLUGIN_KEY, ColumnSorting);
-
-export default ColumnSorting;

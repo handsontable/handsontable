@@ -1,3 +1,4 @@
+import { BasePlugin } from '../base';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -7,10 +8,11 @@ import {
   fastInnerText
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
-import { registerPlugin } from '../../plugins';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { HidingMap } from '../../translations';
-import BasePlugin from '../_base';
+
+export const PLUGIN_KEY = 'collapsibleColumns';
+export const PLUGIN_PRIORITY = 290;
 
 const actionDictionary = new Map([
   ['collapse', {
@@ -65,7 +67,21 @@ const actionDictionary = new Map([
  * });
  * ```
  */
-class CollapsibleColumns extends BasePlugin {
+export class CollapsibleColumns extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:NestedHeaders',
+    ];
+  }
+
   /**
    * Cached reference to the NestedHeaders plugin.
    *
@@ -101,7 +117,7 @@ class CollapsibleColumns extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().collapsibleColumns;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -347,12 +363,12 @@ class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       arrayEach(affectedColumnsIndexes, (visualColumn) => {
         this.#collapsedColumnsMap
           .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
       });
-    });
+    }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
 
@@ -365,7 +381,7 @@ class CollapsibleColumns extends BasePlugin {
     );
 
     this.hot.render();
-    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize(true);
   }
 
   /**
@@ -480,7 +496,3 @@ class CollapsibleColumns extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('collapsibleColumns', CollapsibleColumns);
-
-export default CollapsibleColumns;

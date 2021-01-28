@@ -1,17 +1,17 @@
-import ColumnSorting from '../columnSorting/columnSorting';
+import { ColumnSorting } from '../columnSorting';
 import { registerRootComparator } from '../columnSorting/sortService';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
-import { registerPlugin } from '../../plugins';
 import { isPressedCtrlKey } from '../../utils/keyStateObserver';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { warnAboutPluginsConflict } from './utils';
-import { getClassesToAdd, getClassedToRemove } from './domHelpers';
+import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 
 import './multiColumnSorting.css';
 
+export const PLUGIN_KEY = 'multiColumnSorting';
+export const PLUGIN_PRIORITY = 170;
 const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
-const PLUGIN_KEY = 'multiColumnSorting';
 const CONFLICTED_PLUGIN_KEY = 'columnSorting';
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
@@ -66,7 +66,15 @@ registerRootComparator(PLUGIN_KEY, rootComparator);
  *   }
  * }]```
  */
-class MultiColumnSorting extends ColumnSorting {
+export class MultiColumnSorting extends ColumnSorting {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -217,7 +225,7 @@ class MultiColumnSorting extends ColumnSorting {
   updateHeaderClasses(headerSpanElement, ...args) {
     super.updateHeaderClasses(headerSpanElement, ...args);
 
-    removeClass(headerSpanElement, getClassedToRemove(headerSpanElement));
+    removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
     if (this.enabled !== false) {
       addClass(headerSpanElement, getClassesToAdd(...args));
@@ -264,7 +272,3 @@ class MultiColumnSorting extends ColumnSorting {
     }
   }
 }
-
-registerPlugin(PLUGIN_KEY, MultiColumnSorting);
-
-export default MultiColumnSorting;
