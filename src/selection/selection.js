@@ -308,29 +308,29 @@ class Selection {
           .add(headerCellRange.to)
           .commit();
       }
-    }
 
-    if (this.isEntireRowSelected()) {
-      const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
+      if (this.isEntireRowSelected()) {
+        const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
-      // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
-      if (isRowSelected) {
-        activeHeaderHighlight
-          .add(new CellCoords(cellRange.from.row, -1))
-          .add(new CellCoords(cellRange.to.row, -1))
-          .commit();
+        // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
+        if (isRowSelected) {
+          activeHeaderHighlight
+            .add(new CellCoords(cellRange.from.row, -1))
+            .add(new CellCoords(cellRange.to.row, -1))
+            .commit();
+        }
       }
-    }
 
-    if (this.isEntireColumnSelected()) {
-      const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
+      if (this.isEntireColumnSelected()) {
+        const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
-      // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
-      if (isColumnSelected) {
-        activeHeaderHighlight
-          .add(new CellCoords(-1, cellRange.from.col))
-          .add(new CellCoords(-1, cellRange.to.col))
-          .commit();
+        // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
+        if (isColumnSelected) {
+          activeHeaderHighlight
+            .add(new CellCoords(-1, cellRange.from.col))
+            .add(new CellCoords(-1, cellRange.to.col))
+            .commit();
+        }
       }
     }
 

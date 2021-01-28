@@ -1,0 +1,7 @@
+{
+  "title": "Fixed problems with `header` value for the `disableVisualSelection` option",
+  "type": "fixed",
+  "issue": 6025,
+  "breaking": false,
+  "framework": "none"
+}
