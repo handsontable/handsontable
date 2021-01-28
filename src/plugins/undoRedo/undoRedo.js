@@ -31,7 +31,7 @@ function UndoRedo(instance) {
   instance.addHook('afterChange', function(changes, source) {
     const changesLen = changes && changes.length;
 
-    if (!changesLen || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
+    if (!changesLen || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source) || source.startsWith("UndoRedo.Ignore.")) {
       return;
     }
     const hasDifferences = changes.find((change) => {
