@@ -1,7 +1,0 @@
-{
-  "title": "Introduced a new feature that allows postponing the table render and internal data cache update. The table rendering time can be reduced several-fold times by batching (using the `batch` method), multi-line API calls, or manually suspending rendering using the `suspendRender` and `resumeRender` methods.",
-  "type": "added",
-  "issue": 7274,
-  "breaking": false,
-  "framework": "none"
-}
