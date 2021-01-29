@@ -145,5 +145,5 @@ module.exports = {
       { label: 'Formulas', type: 'category', items: formulasItems },
     ]}
   ],
-  apiReference: require('./src/utils/jsdoc-convert/sidebar')
+  apiReference: require('./src/jsdoc-convert/sidebar')
 };

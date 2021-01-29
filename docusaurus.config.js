@@ -12,7 +12,7 @@ module.exports = {
   baseUrl: '/docs/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon-32x32.png',
   organizationName: 'Handsontable',
   projectName: 'Handsontable',
   themeConfig: {
@@ -119,7 +119,7 @@ module.exports = {
           editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
           includeCurrentVersion: isDev,
           remarkPlugins: [hotPreviewRemarkPlugin],
-          showLastUpdateAuthor: true,
+          showLastUpdateAuthor: false,
           showLastUpdateTime: true,
           versions: {
             '9.0':{

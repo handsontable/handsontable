@@ -4,8 +4,8 @@ const path = require('path')
 const fs = require('fs')
 
 /// parameters
-const pathToSource = '../../../../handsontable/src';
-const pathToDist = '../../../next/api';
+const pathToSource = '../../../handsontable/src'; // after including in monorepo `../../../src`
+const pathToDist = '../../next/api';
 const prefix = 'api/';
 const whitelist = ['core.js', 'pluginHooks.js', 'dataMap/metaManager/metaSchema.js'];
 

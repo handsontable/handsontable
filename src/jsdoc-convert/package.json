@@ -1,5 +1,5 @@
 {
-  "name": "temp",
+  "name": "jsdoc-convert",
   "version": "1.0.0",
   "scripts": {
     "jsdoc2md": "node jsdoc.js"
