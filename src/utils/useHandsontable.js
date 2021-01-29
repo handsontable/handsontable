@@ -37,7 +37,7 @@ export const useHandsontable = (version, callback, id = 'hot-script') => {
     hotScript.addEventListener('load', () => { hotScript.loaded = true; });
 
     document.head.append(hotScript);
-    document.head.insertAdjacentHTML('beforeend', '<link type="text/css" rel="stylesheet" href="' + styleUrl + '"/>');
+    document.head.insertAdjacentHTML('beforeend', `<link type="text/css" rel="stylesheet" href="${styleUrl}"/>`);
   }
 
   // execute callback

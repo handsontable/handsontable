@@ -26,6 +26,10 @@ const seo = {
         slug: '/api/core'
     }
 }
+/// paths construction
+const source = (file) => path.join(__dirname, pathToSource, file);
+const dist = (file) => path.join(__dirname, pathToDist, file.replace(/(.*)\.js/, "$1.md"));
+
 /// jsdoc2md integration
 const parse = (file) => jsdoc2md.renderSync({
     files: source(file),
@@ -68,10 +72,6 @@ sidebar_label: ${seoSidebarLabel(file)}
 slug: ${seoSlug(file)}
 ---
 `
-
-/// paths construction
-const source = (file) => path.join(__dirname, pathToSource, file);
-const dist = (file) => path.join(__dirname, pathToDist, file.replace(/(.*)\.js/, "$1.md"));
 
 /// main logic
 const write = (file, output) => {

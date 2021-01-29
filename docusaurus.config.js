@@ -103,8 +103,8 @@ module.exports = {
       apiKey: '9fcb096ca6994bc9f123c62e16ed7f8d',
       indexName: 'prod_HOTDOCS',
       searchParameters: {
-        facetFilters: 'tags:current'
-      }
+        facetFilters: 'tags:current',
+      },
     },
   },
   presets: [
@@ -122,10 +122,10 @@ module.exports = {
           showLastUpdateAuthor: false,
           showLastUpdateTime: true,
           versions: {
-            '9.0':{
+            '9.0': {
               label: 'Latest (9.0)',
-            }
-          }
+            },
+          },
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

@@ -3,7 +3,7 @@ const gettingStartedItems = [
   'tutorial-features',
   'tutorial-compatibility',
   'tutorial-licensing',
-  'tutorial-license-key'
+  'tutorial-license-key',
 ];
 const basicUsageItems = [
   'tutorial-quick-start',
@@ -14,7 +14,7 @@ const basicUsageItems = [
   'tutorial-grid-sizing',
   'tutorial-using-callbacks',
   'tutorial-keyboard-navigation',
-  'tutorial-internationalization'
+  'tutorial-internationalization',
 ];
 const developerGuideItems = [
   'tutorial-custom-build',
@@ -25,7 +25,7 @@ const developerGuideItems = [
   'tutorial-testing',
   'tutorial-performance-tips',
   'tutorial-release-notes',
-  'tutorial-migration-guide'
+  'tutorial-migration-guide',
 ];
 const wrapperForReactItems = [
   'frameworks-wrapper-for-react-installation',
@@ -36,7 +36,7 @@ const wrapperForReactItems = [
   'frameworks-wrapper-for-react-custom-renderer-example',
   'frameworks-wrapper-for-react-language-change-example',
   'frameworks-wrapper-for-react-redux-example',
-  'frameworks-wrapper-for-react-hot-reference'
+  'frameworks-wrapper-for-react-hot-reference',
 ];
 const wrapperForAngularItems = [
   'frameworks-wrapper-for-angular-installation',
@@ -46,7 +46,7 @@ const wrapperForAngularItems = [
   'frameworks-wrapper-for-angular-custom-editor-example',
   'frameworks-wrapper-for-angular-custom-renderer-example',
   'frameworks-wrapper-for-angular-language-change-example',
-  'frameworks-wrapper-for-angular-hot-reference'
+  'frameworks-wrapper-for-angular-hot-reference',
 ];
 const wrapperForVueItems = [
   'frameworks-wrapper-for-vue-installation',
@@ -58,7 +58,7 @@ const wrapperForVueItems = [
   'frameworks-wrapper-for-vue-custom-renderer-example',
   'frameworks-wrapper-for-vue-language-change-example',
   'frameworks-wrapper-for-vue-vuex-example',
-  'frameworks-wrapper-for-vue-hot-reference'
+  'frameworks-wrapper-for-vue-hot-reference',
 ];
 const rowsAndColumnsItems = [
   'demo-scrolling',
@@ -77,14 +77,14 @@ const rowsAndColumnsItems = [
   'demo-collapsing-columns',
   'demo-nested-headers',
   'demo-nested-rows',
-  'demo-dropdown-menu'
+  'demo-dropdown-menu',
 ];
 const dataOperationsItems = [
   'demo-sorting',
   'demo-multicolumn-sorting',
   'demo-searching',
   'demo-filtering',
-  'demo-summary-calculations'
+  'demo-summary-calculations',
 ];
 const cellFeaturesItems = [
   'demo-data-validation',
@@ -92,7 +92,7 @@ const cellFeaturesItems = [
   'demo-merged-cells',
   'demo-alignment',
   'demo-read-only',
-  'demo-disabled-editing'
+  'demo-disabled-editing',
 ];
 const cellTypesItems = [
   'demo-custom-renderers',
@@ -104,7 +104,7 @@ const cellTypesItems = [
   'demo-dropdown',
   'demo-autocomplete',
   'demo-password',
-  'demo-handsontable'
+  'demo-handsontable',
 ];
 const utilitiesItems = [
   'demo-context-menu',
@@ -112,38 +112,49 @@ const utilitiesItems = [
   'demo-spreadsheet-icons',
   'demo-comments_',
   'demo-copy-paste',
-  'demo-export-file'
+  'demo-export-file',
 ];
 const appearanceItems = [
   'demo-conditional-formatting',
   'demo-customizing-borders',
   'demo-selecting-ranges',
   'demo-highlighting-selection',
-  'demo-mobiles-and-tablets'
+  'demo-mobiles-and-tablets',
 ];
 const formulasItems = [
-  'demo-formula-support'
+  'demo-formula-support',
 ];
 
 module.exports = {
   docs: [
-    { label: 'Getting started', type: 'category', collapsed:false, items: gettingStartedItems },
+    {
+      label: 'Getting started', type: 'category', collapsed: false, items: gettingStartedItems,
+    },
     { label: 'Basic usage', type: 'category', items: basicUsageItems },
     { label: 'Developer guide', type: 'category', items: developerGuideItems },
-    { label: 'Wrappers', type: 'category', items: [
-      { label: 'Wrapper for React', type: 'category', items: wrapperForReactItems },
-      { label: 'Wrapper for Angular', type: 'category', items: wrapperForAngularItems },
-      { label: 'Wrapper for Vue', type: 'category', items: wrapperForVueItems },
-    ]},
-    { label: 'Demos', type: 'category', items: [
-      { label: 'Rows and columns', type: 'category', items: rowsAndColumnsItems },
-      { label: 'Data operations', type: 'category', items: dataOperationsItems },
-      { label: 'Cell features', type: 'category', items: cellFeaturesItems },
-      { label: 'Cell types', type: 'category', items: cellTypesItems },
-      { label: 'Utilities', type: 'category', items: utilitiesItems },
-      { label: 'Appearance', type: 'category', items: appearanceItems },
-      { label: 'Formulas', type: 'category', items: formulasItems },
-    ]}
+    {
+      label: 'Wrappers',
+      type: 'category',
+      items: [
+        { label: 'Wrapper for React', type: 'category', items: wrapperForReactItems },
+        { label: 'Wrapper for Angular', type: 'category', items: wrapperForAngularItems },
+        { label: 'Wrapper for Vue', type: 'category', items: wrapperForVueItems },
+      ],
+    },
+    {
+      label: 'Demos',
+      type: 'category',
+      items: [
+        { label: 'Rows and columns', type: 'category', items: rowsAndColumnsItems },
+        { label: 'Data operations', type: 'category', items: dataOperationsItems },
+        { label: 'Cell features', type: 'category', items: cellFeaturesItems },
+        { label: 'Cell types', type: 'category', items: cellTypesItems },
+        { label: 'Utilities', type: 'category', items: utilitiesItems },
+        { label: 'Appearance', type: 'category', items: appearanceItems },
+        { label: 'Formulas', type: 'category', items: formulasItems },
+      ],
+    },
   ],
-  apiReference: require('./src/jsdoc-convert/sidebar')
+  // eslint-disable-next-line global-require
+  apiReference: require('./src/jsdoc-convert/sidebar'),
 };
