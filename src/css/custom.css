@@ -26,8 +26,6 @@
   --ifm-menu-link-padding-horizontal: 12px;
   --ifm-menu-color-active: #104bcc;
   --ifm-menu-color-background-active: #F4F8FF;
-
-  --ifm-global-spacing: 2rem;
 }
 
 .docusaurus-highlight-code-line {
@@ -41,22 +39,15 @@
   padding: 12px 30px;
 }
 
-.navbar__brand {
-  margin-right: 0;
-}
-
-.hot-navbar-item-docs {
+.navbar__title:after {
   background: #104bcc;
   color: #fff;
-  padding: 0 6px 0;
+  padding: 4px 6px;
   font-weight: 600;
   border-radius: 4px;
   position: relative;
   margin-left: 0.35rem;
-}
-
-.hot-navbar-item-docs:hover {
-    color: #fff;
+  content:'Docs'
 }
 
 .hot-navbar-item-github:hover {
@@ -113,6 +104,14 @@ article header h1 {
 
 .menu__link--sublist:after {
   background: var(--ifm-menu-link-sublist-icon) 50% / 1.4rem 1.4rem;
+}
+
+.dropdown > .navbar__link:after {
+  border-width: .3em .3em 0;
+}
+
+main article .badge.badge--secondary{
+  display: none;
 }
 
 /* Handsontable container */

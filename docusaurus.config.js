@@ -30,15 +30,8 @@ module.exports = {
       trackingID: 'GTM-55L5D3',
     },
     navbar: {
-      title: 'Handsontable',
-      items: [
-        {
-          label: 'Docs',
-          to: '/',
-          activeBasePath: 'docs',
-          position: 'left',
-          className: 'hot-navbar-item-docs',
-        },
+      title: 'Handsontable ',
+      items: [ // todo type: 'doc', @see https://v2.docusaurus.io/docs/api/themes/configuration#navbar-doc-link
         {
           type: 'docsVersionDropdown',
           position: 'left',
@@ -105,6 +98,13 @@ module.exports = {
     footer: {
       style: 'dark',
       copyright: `Copyright © ${new Date().getFullYear()} Handsontable.`,
+    },
+    algolia: {
+      apiKey: '9fcb096ca6994bc9f123c62e16ed7f8d',
+      indexName: 'prod_HOTDOCS',
+      searchParameters: {
+        facetFilters: 'tags:current'
+      }
     },
   },
   presets: [
