@@ -7,7 +7,8 @@ env:
 on:
   push:
     branches: [ master ]
-    
+  workflow_dispatch:
+
 defaults:
   run:
     working-directory: ./ # todo change this when merging into monorepo
