@@ -1,6 +1,19 @@
+# This workflow asserts that new changelog entries get added within pull requests.
+# See `/.changelogs/README.md` for more information.
+
 name: Changelog
 
-on: [push]
+on:
+  pull_request:
+    types:
+      # When new commits get pushed to the associated PR
+      - synchronize
+
+      # When a PR gets first opened
+      - opened
+
+      # When a PR gets edited, as in the title, body or the base branch gets changed
+      - edited
 
 jobs:
   check:
