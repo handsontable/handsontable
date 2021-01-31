@@ -760,13 +760,13 @@ export function getComputedStyle(element, rootWindow = window) {
 }
 
 /**
- * Returns the element's outer width.
+ * Returns the element's outer width, rounded to an integer.
  *
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
-  return Math.ceil(element.getBoundingClientRect().width);
+  return element.offsetWidth;
 }
 
 /**
