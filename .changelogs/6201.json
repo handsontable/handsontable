@@ -1,5 +1,5 @@
 {
-  "title": "Fixed table size not being set correctly underneath a scale transform",
+  "title": "Fixed table size, selection border widths and header background sizes not being set correctly underneath a scale transform",
   "type": "fixed",
   "issue": 6201,
   "breaking": false,
