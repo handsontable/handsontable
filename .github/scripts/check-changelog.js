@@ -14,26 +14,18 @@ const skipCheckString = '[skip changelog]';
 const changelogsPath = '.changelogs/';
 
 const { owner, repo } = github.context.repo;
-const { sha } = github.context;
+const octokit = github.getOctokit(token);
 
 const run = async() => {
-  const octokit = github.getOctokit(token);
-
-  const result = await octokit.repos.listPullRequestsAssociatedWithCommit({
-    owner,
-    repo,
-    commit_sha: sha
-  });
-
-  console.log(`Found ${result.data.length} PR's associated with this commit`);
-  const pr = result.data[0];
+  const pr = github.context.payload.pull_request;
 
   if (pr === undefined) {
-    console.log('No PR found associated with this commit, exiting.');
-    process.exit(0);
+    return core.setFailed(
+      'This script can only run within GitHub Action `pull_request` events.'
+    );
   }
 
-  if (pr.body.includes(skipCheckString)) {
+  if ((pr.body || '').includes(skipCheckString)) {
     console.log('The PR body (description) includes a string to disable this check, exiting.');
     process.exit(0);
   }
