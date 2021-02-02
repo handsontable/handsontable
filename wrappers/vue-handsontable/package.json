@@ -38,10 +38,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/handsontable/vue-handsontable-official.git"
+    "url": "https://github.com/handsontable/handsontable.git"
   },
   "bugs": {
-    "url": "https://github.com/handsontable/vue-handsontable-official/issues"
+    "url": "https://github.com/handsontable/handsontable/issues"
   },
   "peerDependencies": {
     "handsontable": ">=8.0.0",

@@ -37,10 +37,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/handsontable/react-handsontable.git"
+    "url": "https://github.com/handsontable/handsontable.git"
   },
   "bugs": {
-    "url": "https://github.com/handsontable/react-handsontable/issues"
+    "url": "https://github.com/handsontable/handsontable/issues"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
