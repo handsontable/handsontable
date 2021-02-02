@@ -273,7 +273,7 @@ class GhostTable {
   }
 
   /**
-   * Creating DOM elements for headers and adding them to the document.
+   * Creates DOM elements for headers and appends them to the THEAD element of the table.
    */
   appendColumnHeadersRow() {
     const { rootDocument } = this.hot;
