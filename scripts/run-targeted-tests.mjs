@@ -6,11 +6,6 @@ const WRAPPERS = [
   'react-handsontable',
   'vue-handsontable',
 ];
-const FULL_TEST_BRANCHES = [
-  'master',
-  'develop',
-  'release/',
-];
 
 (async() => {
   const currentBranch = (
@@ -23,13 +18,10 @@ const FULL_TEST_BRANCHES = [
   filesModifiedInLastCommit.shift();
   filesModifiedInLastCommit.pop();
 
-  const fullTestBranchMatch = currentBranch.match(
-    `(${FULL_TEST_BRANCHES.join('|').replace('/', '\\\\/')}).*`
-  );
+  const fullTestBranchRegex = new RegExp('^(master|develop|release\/.{5,})$');
+  const fullTestBranchMatch = fullTestBranchRegex.test(currentBranch);
 
-  console.log(`(${FULL_TEST_BRANCHES.join('|').replace('/', '\\\\/')}).*`);
-
-  if (fullTestBranchMatch !== null && fullTestBranchMatch.index === 0) {
+  if (fullTestBranchMatch) {
     spawnProcess('run all test');
   }
 
@@ -64,7 +56,7 @@ const FULL_TEST_BRANCHES = [
 
   /* eslint-disable no-await-in-loop,no-restricted-syntax */
   for (const project of touchedProjects) {
-    // await spawnProcess(`npm run in ${project} test`);
+    await spawnProcess(`npm run in ${project} test`);
   }
   /* eslint-enable no-await-in-loop,no-restricted-syntax */
 })();

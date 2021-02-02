@@ -61,4 +61,3 @@ inquirer.prompt([
     spawnProcess('git push --tags');
   }
 });
-

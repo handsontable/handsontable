@@ -10,34 +10,27 @@ import {
 } from './utils/index.mjs';
 
 const [/* node bin */, /* path to this script */, pkgName] = process.argv;
+const PACKAGE_LOCATIONS = new Map([
+  ['handsontable', './tmp'],
+  ['@handsontable/angular', './wrappers/angular-handsontable/dist/hot-table']
+]);
 
-const PACKAGE_LOCATIONS = {
-  handsontable: './tmp',
-  '@handsontable/angular': './wrappers/angular-handsontable/dist/hot-table'
-};
-let packageList = {};
+for (const [packageName, packageLocation] of PACKAGE_LOCATIONS) {
+  if (!pkgName || (pkgName && packageName === pkgName)) {
+    if (fse.pathExistsSync(`${packageLocation}`)) {
+      fse.removeSync(
+        path.resolve(`./node_modules/${packageName}`),
+      );
 
-if (pkgName) {
-  packageList[pkgName] = PACKAGE_LOCATIONS[pkgName];
+      fse.ensureSymlinkSync(
+        path.resolve(`${packageLocation}`),
+        path.resolve(`./node_modules/${packageName}`),
+      );
 
-} else {
-  packageList = PACKAGE_LOCATIONS;
-}
+      displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
 
-for (const [packageName, packageLocation] of Object.entries(packageList)) {
-  if (fse.pathExistsSync(`${packageLocation}`)) {
-    fse.removeSync(
-      path.resolve(`./node_modules/${packageName}`),
-    );
-
-    fse.ensureSymlinkSync(
-      path.resolve(`${packageLocation}`),
-      path.resolve(`./node_modules/${packageName}`),
-    );
-
-    displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
-
-  } else {
-    displayWarningMessage(`Cannot create symlink to ${packageLocation} - the path doesn't exits.`);
+    } else {
+      displayWarningMessage(`Cannot create symlink to ${packageLocation} - the path doesn't exits.`);
+    }
   }
 }

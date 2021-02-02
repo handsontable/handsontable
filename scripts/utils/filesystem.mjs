@@ -25,15 +25,15 @@ export function cleanNodeModules() {
       }
     });
 
-    // console.log(`- Removing the ${lockfileLocation} file.`);
-    //
-    // rimraf(lockfileLocation, (error) => {
-    //   if (error) {
-    //     console.error(`Error deleting ${nodeModulesLocation} - ${error}`);
-    //
-    //     process.exit(1);
-    //   }
-    // });
+    console.log(`- Removing the ${lockfileLocation} file.`);
+
+    rimraf(lockfileLocation, (error) => {
+      if (error) {
+        console.error(`Error deleting ${nodeModulesLocation} - ${error}`);
+
+        process.exit(1);
+      }
+    });
   });
 
   console.log('\n');

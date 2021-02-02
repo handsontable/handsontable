@@ -7,7 +7,7 @@ It provides data binding, data validation, filtering, sorting and more.<br>
 
 [![npm](https://img.shields.io/npm/dt/@handsontable/angular.svg)](//npmjs.com/package/@handsontable/angular)
 [![npm](https://img.shields.io/npm/dm/@handsontable/angular.svg)](//npmjs.com/package/@handsontable/angular)
-[![Build status](https://travis-ci.org/handsontable/angular-handsontable.png?branch=master)](//travis-ci.org/handsontable/angular-handsontable)
+[![Build status](https://img.shields.io/codeship/1ec34290-ed0a-0131-911c-1a47c8fbcce0/master)](//travis-ci.org/handsontable/angular-handsontable)
 </div>
 
 <br>

@@ -59,7 +59,7 @@ export function validateReleaseDate(date) {
 }
 
 /**
- * Set the provided version number to the packages' package.json files.
+ * Set the provided version number to the Handsontable's `package.json` and other packages' `dependency` fields.
  *
  * @param {string} version The version number.
  * @param {Array} [packages] Array of package paths. Defaults to the workspace config.
@@ -77,8 +77,11 @@ export function setVersion(version, packages = workspacePackages) {
           return `"version": "${version}"`;
 
         } else {
-          // Replace the `handsontable` dependency with the current major.
-          return `"handsontable": "${args[0]}${semver.major(version)}.0.0"`;
+          const prerelease = !!semver.prerelease(version);
+          const depVersion = `${args[0]}${parseInt(semver.major(version), 10) - (+prerelease)}.0.0`;
+
+          // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
+          return `"handsontable": "${depVersion}"`;
         }
       },
       ignore: [
@@ -118,9 +121,21 @@ export function setReleaseDate(date) {
     from: /HOT_RELEASE_DATE: '(.*)'/,
     to: `HOT_RELEASE_DATE: '${date}'`,
   });
+  const notModifiedFiles = [];
 
-  if (!replacementStatus[0].hasChanged) {
-    displayErrorMessage(`${replacementStatus[0].file} was not modified.`);
+  replacementStatus.forEach((infoObj) => {
+    const filePath = infoObj.file.replace('./', '');
+
+    if (!infoObj.hasChanged) {
+      notModifiedFiles.push(filePath);
+    }
+  });
+
+  if (notModifiedFiles.length) {
+    notModifiedFiles.forEach((url) => {
+      displayErrorMessage(`${url} was not modified.`);
+    });
+
     process.exit(1);
 
   } else {
@@ -171,7 +186,6 @@ export async function scheduleRelease(version, releaseDate) {
       message: 'Enter the custom version number.',
       when: answers => answers.changeType === 'custom',
       validate: (value) => {
-        // if (isVersionValid(value)) {
         if (!!semver.valid(value)) {
           return true;
         }
