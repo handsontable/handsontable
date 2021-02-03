@@ -1,15 +1,14 @@
 import { isObject, deepClone } from '../helpers/object';
 import { arrayEach } from './../helpers/array';
 import { isUndefined } from '../helpers/mixed';
-import { extendNotExistingKeys } from './utils';
+import { extendNotExistingKeys, normalizeLanguageCode, warnUserAboutLanguageRegistration } from './utils';
 import staticRegister from '../utils/staticRegister';
 import { getPhraseFormatters } from './phraseFormatters';
-import { getLanguageDictionary } from './registry';
 import DEFAULT_DICTIONARY from './languages/en-US';
 
 export * as dictionaryKeys from './constants';
 
-const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
+export const DEFAULT_LANGUAGE_CODE = DEFAULT_DICTIONARY.languageCode;
 
 const {
   register: registerGloballyLanguageDictionary,
@@ -21,7 +20,7 @@ const {
 /**
  * Register automatically the default language dictionary.
  */
-registerLanguage(DEFAULT_DICTIONARY);
+registerLanguageDictionary(DEFAULT_DICTIONARY);
 
 /**
  * Register language dictionary for specific language code.
@@ -30,7 +29,7 @@ registerLanguage(DEFAULT_DICTIONARY);
  * @param {object} dictionary Dictionary for specific language (optional if first parameter has already dictionary).
  * @returns {object}
  */
-function registerLanguage(languageCodeOrDictionary, dictionary) {
+export function registerLanguageDictionary(languageCodeOrDictionary, dictionary) {
   let languageCode = languageCodeOrDictionary;
   let dictionaryObject = dictionary;
 
@@ -48,40 +47,6 @@ function registerLanguage(languageCodeOrDictionary, dictionary) {
 }
 
 /**
- * Get language dictionary for specific language code.
- *
- * @param {string} languageCode Language code.
- * @returns {object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
- */
-function getLanguage(languageCode) {
-  if (!hasLanguage(languageCode)) {
-    return null;
-  }
-
-  return deepClone(getGlobalLanguageDictionary(languageCode));
-}
-
-/**
- *
- * Get if language with specified language code was registered.
- *
- * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
- * @returns {boolean}
- */
-function hasLanguage(languageCode) {
-  return hasGlobalLanguageDictionary(languageCode);
-}
-
-/**
- * Get default language dictionary.
- *
- * @returns {object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
- */
-function getDefaultLanguage() {
-  return DEFAULT_DICTIONARY;
-}
-
-/**
  * Extend handled dictionary by default language dictionary. As result, if any dictionary key isn't defined for specific language, it will be filled with default language value ("dictionary gaps" are supplemented).
  *
  * @private
@@ -95,11 +60,45 @@ function extendLanguageDictionary(languageCode, dictionary) {
 }
 
 /**
+ * Get language dictionary for specific language code.
+ *
+ * @param {string} languageCode Language code.
+ * @returns {object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
+ */
+export function getLanguageDictionary(languageCode) {
+  if (!hasLanguageDictionary(languageCode)) {
+    return null;
+  }
+
+  return deepClone(getGlobalLanguageDictionary(languageCode));
+}
+
+/**
+ *
+ * Get if language with specified language code was registered.
+ *
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @returns {boolean}
+ */
+export function hasLanguageDictionary(languageCode) {
+  return hasGlobalLanguageDictionary(languageCode);
+}
+
+/**
+ * Get default language dictionary.
+ *
+ * @returns {object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
+ */
+export function getDefaultLanguageDictionary() {
+  return DEFAULT_DICTIONARY;
+}
+
+/**
  * Get registered language dictionaries.
  *
  * @returns {Array}
  */
-function getLanguages() {
+export function getLanguagesDictionaries() {
   return getGlobalLanguagesDictionaries();
 }
 
@@ -112,7 +111,7 @@ function getLanguages() {
  *
  * @returns {string}
  */
-function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {
+export function getTranslatedPhrase(languageCode, dictionaryKey, argumentsForFormatters) {
   const languageDictionary = getLanguageDictionary(languageCode);
 
   if (languageDictionary === null) {
@@ -153,12 +152,20 @@ function getFormattedPhrase(phrasePropositions, argumentsForFormatters) {
   return formattedPhrasePropositions;
 }
 
-export {
-  registerLanguage as registerLanguageDictionary,
-  getLanguage as getLanguageDictionary,
-  hasLanguage as hasLanguageDictionary,
-  getDefaultLanguage as getDefaultLanguageDictionary,
-  getLanguages as getLanguagesDictionaries,
-  getTranslatedPhrase,
-  DEFAULT_LANGUAGE_CODE,
-};
+/**
+ * Returns valid language code. If the passed language code doesn't exist default one will be used.
+ *
+ * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
+ * @returns {string}
+ */
+export function getValidLanguageCode(languageCode) {
+  let normalizedLanguageCode = normalizeLanguageCode(languageCode);
+
+  if (!hasLanguageDictionary(normalizedLanguageCode)) {
+    normalizedLanguageCode = DEFAULT_LANGUAGE_CODE;
+
+    warnUserAboutLanguageRegistration(languageCode);
+  }
+
+  return normalizedLanguageCode;
+}

@@ -94,8 +94,12 @@ class Highlight {
    * @returns {boolean}
    */
   isEnabledFor(highlightType, coords) {
+    let type = highlightType;
+
     // Legacy compatibility.
-    const type = highlightType === 'current' ? CELL_TYPE : highlightType;
+    if (highlightType === CELL_TYPE) {
+      type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
+    }
 
     let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
 

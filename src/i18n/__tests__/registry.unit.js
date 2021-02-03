@@ -1,9 +1,10 @@
 import {
+  dictionaryKeys,
   getLanguageDictionary,
   getLanguagesDictionaries,
-  registerLanguageDictionary,
+  getValidLanguageCode,
   hasLanguageDictionary,
-  dictionaryKeys,
+  registerLanguageDictionary,
   DEFAULT_LANGUAGE_CODE
 } from 'handsontable/i18n';
 import plPL from 'handsontable/i18n/languages/pl-PL';
@@ -89,5 +90,32 @@ describe('i18n registry', () => {
 
     expect(registeredLanguage[dictionaryKey1]).toEqual('Hello world');
     expect(registeredLanguage[dictionaryKey2]).toEqual(defaultLanguageDictionary[dictionaryKey2]);
+  });
+
+  describe('getValidLanguageCode', () => {
+    beforeAll(() => {
+      // Note: please keep in mind that this language will be registered also for next unit tests (within this file)!
+      // It's stored globally for already loaded Handsontable library.
+
+      registerLanguageDictionary(plPL);
+    });
+
+    it('should returns valid language code', () => {
+      expect(getValidLanguageCode(plPL.languageCode)).toEqual(plPL.languageCode);
+    });
+
+    it('should returns default language code when provided valid code not exist in the registered languages', () => {
+      spyOn(console, 'error');
+
+      expect(getValidLanguageCode('aa-BB')).toEqual(DEFAULT_LANGUAGE_CODE);
+    });
+
+    it('should log error when handling not existing language', () => {
+      const spy = spyOn(console, 'error');
+
+      getValidLanguageCode('aa-BB');
+
+      expect(spy).toHaveBeenCalled();
+    });
   });
 });

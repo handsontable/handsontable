@@ -1,7 +1,0 @@
-{
-  "title": "All predefined cell types, editors, renderers and validators are modularized for ES and CommonJS bundles.",
-  "type": "changed",
-  "issue": 7402,
-  "breaking": false,
-  "framework": "none"
-}

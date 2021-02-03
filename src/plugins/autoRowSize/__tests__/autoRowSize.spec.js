@@ -530,4 +530,21 @@ describe('AutoRowSize', () => {
 
     expect(calculateColumnsWidth).not.toHaveBeenCalled();
   });
+
+  it('should not throw error while traversing header\'s DOM elements', () => {
+    const onErrorSpy = spyOn(window, 'onerror');
+
+    handsontable({
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      autoRowSize: true,
+      afterGetColHeader(column, TH) {
+        const TR = TH.parentNode;
+
+        return TR.parentNode; // TH element hadn't parent until fix introduction within #7424.
+      }
+    });
+
+    expect(onErrorSpy).not.toHaveBeenCalled();
+  });
 });
