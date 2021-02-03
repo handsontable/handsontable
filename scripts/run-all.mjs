@@ -26,7 +26,7 @@ const argv = yargs(hideBin(process.argv))
 
   /* eslint-disable no-await-in-loop,no-restricted-syntax */
   for (const project of ORDER) {
-    if (!argv.exclude.split(',').includes(project)) {
+    if (!(argv.exclude || '').split(',').includes(project)) {
       await spawnProcess(`npm run in ${project} ${command} -- --if-present`);
     }
   }
