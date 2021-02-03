@@ -1,10 +1,14 @@
 /**
  * Release helper script.
+ * Required to be run on the release branch.
+ *
+ * It merges the release branch to the `develop` and `master` branches and pushes them, along with the created tags.
  */
 import inquirer from 'inquirer';
 import {
   displayErrorMessage,
   spawnProcess,
+// eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
 // Initial verification prompt

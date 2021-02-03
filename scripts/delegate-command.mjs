@@ -6,7 +6,7 @@
  */
 import execa from 'execa';
 
-const [/* node bin */, /* path to this script */, project, command, args] = process.argv;
+const [project, command, args] = process.argv.slice(2);
 const PROJECT_ALIASES = {
   angular: 'angular-handsontable',
   react: 'react-handsontable',

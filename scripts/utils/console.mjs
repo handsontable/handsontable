@@ -6,6 +6,7 @@ import chalk from 'chalk';
  * @param {string} message The message to be displayed.
  */
 export function displayErrorMessage(message) {
+  // eslint-disable-next-line no-restricted-globals
   console.log(chalk.red(`ERROR: ${message}`));
 }
 
@@ -15,6 +16,7 @@ export function displayErrorMessage(message) {
  * @param {string} message The message to be displayed.
  */
 export function displayWarningMessage(message) {
+  // eslint-disable-next-line no-restricted-globals
   console.log(chalk.yellow(`WARNING: ${message}`));
 }
 
@@ -24,5 +26,6 @@ export function displayWarningMessage(message) {
  * @param {string} message The message to be displayed.
  */
 export function displayConfirmationMessage(message) {
+  // eslint-disable-next-line no-restricted-globals
   console.log(chalk.green(`${message}`));
 }

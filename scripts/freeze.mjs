@@ -1,5 +1,9 @@
 /**
  * Code-freeze helper script.
+ * Required to be run on a release branch.
+ *
+ * It takes extends the committed changes with a new version and release date, runs builds and tests and pushes the
+ * changes to the release branch.
  */
 import { createRequire } from 'module';
 import inquirer from 'inquirer';
@@ -7,12 +11,13 @@ import {
   cleanNodeModules,
   displayErrorMessage, scheduleRelease,
   spawnProcess, verifyBundles
+// eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
 // Using `require` exclusively to import `json` files. Prevents 'experimental' warnings from being thrown in the
 // console.
 const require = createRequire(import.meta.url);
-const [/* node bin */, /* path to this script */, version, releaseDate] = process.argv;
+const [version, releaseDate] = process.argv.slice(2);
 
 // Initial verification prompt
 inquirer.prompt([

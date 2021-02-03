@@ -7,9 +7,10 @@ import path from 'path';
 import {
   displayConfirmationMessage,
   displayWarningMessage
+// eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
-const [/* node bin */, /* path to this script */, pkgName] = process.argv;
+const [pkgName] = process.argv.slice(2);
 const PACKAGE_LOCATIONS = new Map([
   ['handsontable', './tmp'],
   ['@handsontable/angular', './wrappers/angular-handsontable/dist/hot-table']
