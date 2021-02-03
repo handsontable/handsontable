@@ -22,6 +22,7 @@ import * as unicodeHelpers from './helpers/unicode';
 import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 
+/* eslint-disable handsontable/restricted-module-imports */
 import {
   getRegisteredEditorNames,
   getEditor,
@@ -113,6 +114,7 @@ import {
   getPluginsNames,
   registerPlugin,
 } from './plugins';
+/* eslint-enable handsontable/restricted-module-imports */
 
 registerEditor(BaseEditor);
 registerEditor(AutocompleteEditor);
