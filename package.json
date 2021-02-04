@@ -554,7 +554,7 @@
     "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
     "postbuild": "node ./scripts/prepare-package-for-publish",
-    "postinstall": "npm i --no-save ./.config/plugin/eslint",
+    "postinstall": "npm link --no-audit --no-fund ./.config/plugin/eslint && npm link --no-audit --no-fund eslint-plugin-handsontable",
     "changelog": "bin/changelog",
     "release": "npm run build && cd tmp && npm publish && cd .."
   },
