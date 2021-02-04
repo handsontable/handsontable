@@ -38,6 +38,7 @@ export const plugins = {
   commonjs: commonjs({
     include: [
       '../../node_modules/**',
+      'node_modules/**',
       'src/lib/**'
     ],
     namedExports: {
