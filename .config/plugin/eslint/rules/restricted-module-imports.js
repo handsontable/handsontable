@@ -16,9 +16,9 @@ module.exports = {
 
     messages: {
       path: `The module '{{importSource}}' that you're trying to import (or re-export) is part of
-              the public API and cannot be used. Importing the main entry of the module can
-              make the "dead" code elimination process more difficult. If you need to use the
-              module, use its specific files (e.g. use 'plugins/registry' instead of 'plugin').`,
+               the public API and cannot be used. Importing the main entry of the module can
+               make the "dead" code elimination process more difficult. If you need to use the
+               module, use its specific files (e.g. use 'plugins/registry' instead of 'plugin').`,
     },
 
     schema: {
