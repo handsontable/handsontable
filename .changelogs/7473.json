@@ -1,5 +1,5 @@
 {
-  "title": "I added a custom ESLint rule which allows restrict specified modules from loading by `import` or re-export",
+  "title": "Added a custom ESLint rule which allows restrict specified modules from loading by `import` or re-export",
   "type": "added",
   "issue": 7473,
   "breaking": false,
