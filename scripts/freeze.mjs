@@ -107,7 +107,5 @@ inquirer.prompt([
 
   await spawnProcess(`git commit -m "${hotPackageJson.version}"`);
 
-  if (branchName) {
-    await spawnProcess(`git flow release publish ${hotPackageJson.version}`);
-  }
+  await spawnProcess(`git flow release publish ${hotPackageJson.version}`);
 });

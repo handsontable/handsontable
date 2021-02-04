@@ -139,7 +139,7 @@ export function setReleaseDate(date) {
     process.exit(1);
 
   } else {
-    const rootPath = `${path.resolve(__dirname, '../../..')}/`;
+    const rootPath = `${path.resolve(__dirname, '../..')}/`;
 
     displayConfirmationMessage(
       `- Saved the new date (${date}) to ${replacementStatus[0].file.replace(rootPath, '')}.`

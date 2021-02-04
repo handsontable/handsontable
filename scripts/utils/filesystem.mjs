@@ -16,30 +16,33 @@ export function cleanNodeModules() {
   workspaces.forEach((packagesLocation) => {
     const nodeModulesLocation = `${packagesLocation}/node_modules`;
     const lockfileLocation = `${packagesLocation}/package-lock.json`;
+    const printRelative = path => path.replace('./', '');
 
-    // eslint-disable-next-line no-restricted-globals
-    console.log(`- Removing the ${nodeModulesLocation} directory.`);
+    try {
+      // eslint-disable-next-line no-restricted-globals
+      console.log(`- Removing the ${printRelative(nodeModulesLocation)} directory.`);
 
-    rimraf(nodeModulesLocation, (error) => {
-      if (error) {
-        // eslint-disable-next-line no-restricted-globals
-        console.error(`Error deleting ${nodeModulesLocation} - ${error}`);
+      rimraf.sync(nodeModulesLocation);
 
-        process.exit(1);
-      }
-    });
+    } catch (error) {
+      // eslint-disable-next-line no-restricted-globals
+      console.error(`Error deleting ${printRelative(nodeModulesLocation)} - ${error}`);
 
-    // eslint-disable-next-line no-restricted-globals
-    console.log(`- Removing the ${lockfileLocation} file.`);
+      process.exit(1);
+    }
 
-    rimraf(lockfileLocation, (error) => {
-      if (error) {
-        // eslint-disable-next-line no-restricted-globals
-        console.error(`Error deleting ${nodeModulesLocation} - ${error}`);
+    try {
+      // eslint-disable-next-line no-restricted-globals
+      console.log(`- Removing the ${printRelative(lockfileLocation)} file.`);
 
-        process.exit(1);
-      }
-    });
+      rimraf.sync(lockfileLocation);
+
+    } catch (error) {
+      // eslint-disable-next-line no-restricted-globals
+      console.error(`Error deleting ${printRelative(lockfileLocation)} - ${error}`);
+
+      process.exit(1);
+    }
   });
 
   // eslint-disable-next-line no-restricted-globals
