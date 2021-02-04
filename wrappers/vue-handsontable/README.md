@@ -7,7 +7,7 @@ It provides data binding, data validation, filtering, sorting and more.<br>
 
 [![npm](https://img.shields.io/npm/dt/@handsontable/vue.svg)](//npmjs.com/package/@handsontable/vue)
 [![npm](https://img.shields.io/npm/dm/@handsontable/vue.svg)](//npmjs.com/package/@handsontable/vue)
-[![Build status](https://img.shields.io/codeship/1ec34290-ed0a-0131-911c-1a47c8fbcce0/master)](//travis-ci.org/handsontable/vue-handsontable-official)
+![Build status](https://img.shields.io/codeship/1ec34290-ed0a-0131-911c-1a47c8fbcce0/master)
 </div>
 
 <br>

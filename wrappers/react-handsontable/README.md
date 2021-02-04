@@ -7,7 +7,7 @@ It provides data binding, data validation, filtering, sorting and more.<br>
 
 [![npm](https://img.shields.io/npm/dt/@handsontable/react.svg)](//npmjs.com/package/@handsontable/react)
 [![npm](https://img.shields.io/npm/dm/@handsontable/react.svg)](//npmjs.com/package/@handsontable/react)
-[![Build status](https://img.shields.io/codeship/1ec34290-ed0a-0131-911c-1a47c8fbcce0/master)](//travis-ci.org/handsontable/react-handsontable)
+![Build status](https://img.shields.io/codeship/1ec34290-ed0a-0131-911c-1a47c8fbcce0/master)
 </div>
 
 <br>
