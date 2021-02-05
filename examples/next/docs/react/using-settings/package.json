@@ -1,0 +1,47 @@
+{
+  "name": "react-example-using-settings-testwip",
+  "version": "8.1.0",
+  "private": true,
+  "homepage": ".",
+  "scripts": {
+    "preinstall": "node scripts/removeNodeModules.js && node scripts/test-config.js",
+    "start": "BROWSER=none PORT=8080 react-scripts start",
+    "build": "react-scripts build",
+    "eject": "react-scripts eject",
+    "jasmine": "node spec/support/jasmine.config.js",
+    "test": "npm run build && start-server-and-test 'http-server ./build -c-1' 8080 'npm run jasmine'",
+    "test:ci": "start-server-and-test 'http-server ./dist -c-1' 8080 'node spec/support/jasmine.config.js'"
+  },
+  "dependencies": {
+    "@handsontable/react": "latest",
+    "handsontable": "latest",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-scripts": "4.0.1"
+  },
+  "devDependencies": {
+    "http-server": "^0.12.3",
+    "jasmine": "file:../../../../../node_modules/jasmine",
+    "jasmine-console-reporter": "file:../../../../../node_modules/jasmine-console-reporter",
+    "puppeteer": "file:../../../../../node_modules/puppeteer",
+    "start-server-and-test": "^1.12.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

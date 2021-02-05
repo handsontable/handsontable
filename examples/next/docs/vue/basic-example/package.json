@@ -1,0 +1,54 @@
+{
+  "name": "vue-example-basic",
+  "version": "8.1.0",
+  "private": true,
+  "scripts": {
+    "preinstall": "node scripts/removeNodeModules.js && node scripts/test-config.js",
+    "start": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "jasmine": "node spec/support/jasmine.config.js",
+    "serve": "http-server ./dist -c-1 -p 8080",
+    "test": "npm run build && start-server-and-test 'npm run serve' 8080 'npm run jasmine'",
+    "test:ci": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
+  },
+  "dependencies": {
+    "@handsontable/vue": "latest",
+    "core-js": "^3.6.5",
+    "handsontable": "latest",
+    "vue": "^2.6.11"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "http-server": "^0.12.3",
+    "jasmine": "file:../../../../../node_modules/jasmine",
+    "jasmine-console-reporter": "file:../../../../../node_modules/jasmine-console-reporter",
+    "puppeteer": "file:../../../../../node_modules/puppeteer",
+    "start-server-and-test": "^1.12.0",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

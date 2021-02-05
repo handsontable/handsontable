@@ -1,0 +1,27 @@
+{
+  "name": "vanilla-template",
+  "private": true,
+  "version": 100000,
+  "description": "Javascript code snippet template",
+  "main": "index.html",
+  "scripts": {
+    "preinstall": "node scripts/removeNodeModules.js && node scripts/test-config.js",
+    "start": "parcel index.html --port 8080",
+    "build": "parcel build index.html --public-url '.'",
+    "jasmine": "node spec/support/jasmine.config.js",
+    "serve": "http-server ./dist -c-1 -p 8080",
+    "test": "npm run build && start-server-and-test 'npm run serve' 8080 'npm run jasmine'",
+    "test:ci": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
+  },
+  "dependencies": {
+    "handsontable": "latest"
+  },
+  "devDependencies": {
+    "http-server": "^0.12.3",
+    "jasmine": "file:../../../node_modules/jasmine",
+    "jasmine-console-reporter": "file:../../../node_modules/jasmine-console-reporter",
+    "parcel-bundler": "^1.6.1",
+    "puppeteer": "file:../../../node_modules/puppeteer",
+    "start-server-and-test": "^1.12.0"
+  }
+}
