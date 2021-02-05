@@ -1,4 +1,4 @@
-const path = require("path");
+const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 
@@ -10,19 +10,24 @@ const packageJsonFile = require(packageJsonPath);
 delete packageJsonFile.devDependencies['jasmine']
 delete packageJsonFile.devDependencies['jasmine-console-reporter']
 delete packageJsonFile.devDependencies['puppeteer']
+delete packageJsonFile.devDependencies['http-server']
 
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJsonFile, null, 2));
 
 // Install `jasmine`, `jasmine-terminal-reporter`, `puppeteer` and `http-server` from local root `node_modules`
 execSync(`npm install --save-dev ${path.join(PROJECT_ROOT, 'node_modules', 'jasmine')}`, {
-    stdio: 'inherit',
-    shell: true
+  stdio: 'inherit',
+  shell: true
 });
 execSync(`npm install --save-dev ${path.join(PROJECT_ROOT, 'node_modules', 'jasmine-console-reporter')}`, {
-    stdio: 'inherit',
-    shell: true
+  stdio: 'inherit',
+  shell: true
 });
 execSync(`npm install --save-dev ${path.join(PROJECT_ROOT, 'node_modules', 'puppeteer')}`, {
-    stdio: 'inherit',
-    shell: true
+  stdio: 'inherit',
+  shell: true
+});
+execSync(`npm install --save-dev ${path.join(PROJECT_ROOT, 'node_modules', 'http-server')}`, {
+  stdio: 'inherit',
+  shell: true
 });

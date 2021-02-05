@@ -10,6 +10,7 @@ const packageJsonFile = require(packageJsonPath);
 delete packageJsonFile.devDependencies['jasmine']
 delete packageJsonFile.devDependencies['jasmine-console-reporter']
 delete packageJsonFile.devDependencies['puppeteer']
+delete packageJsonFile.devDependencies['http-server']
 
 fs.writeFileSync(packageJsonPath, JSON.stringify(packageJsonFile, null, 2));
 
@@ -23,6 +24,10 @@ execSync(`npm install --save-dev ${path.join(PROJECT_ROOT, 'node_modules', 'jasm
   shell: true
 });
 execSync(`npm install --save-dev ${path.join(PROJECT_ROOT, 'node_modules', 'puppeteer')}`, {
+  stdio: 'inherit',
+  shell: true
+});
+execSync(`npm install --save-dev ${path.join(PROJECT_ROOT, 'node_modules', 'http-server')}`, {
   stdio: 'inherit',
   shell: true
 });
