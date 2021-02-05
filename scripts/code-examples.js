@@ -99,7 +99,6 @@ const runNpmCommandInExample = (exampleDir, command) => {
 const updateExamplesWithVersion = (examplesFolders, version) => {
   examplesFolders.forEach((exampleDir) => {
     updatePackageJsonWithVersion(exampleDir, version);
-    runNpmCommandInExample(exampleDir, 'npm install');
   });
 };
 
@@ -134,6 +133,17 @@ if (shellCommand === 'version') {
   fs.copySync(NEXT_EXAMPLES, dirDest);
   const examplesFolders = getExamplesFolders(dirDest);
   updateExamplesWithVersion(examplesFolders, hotVersion);
+}
+
+// npm run examples:install <version_number>
+if (shellCommand === 'install') {
+  if (!examplesExist) {
+    throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+  }
+  const examplesFolders = getExamplesFolders(dirDest);
+  examplesFolders.forEach((exampleDir) => {
+    runNpmCommandInExample(exampleDir, 'npm install');
+  });
 }
 
 // npm run examples:build <version_number>

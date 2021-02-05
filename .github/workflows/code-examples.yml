@@ -26,6 +26,8 @@ jobs:
         run: npm run examples:version ${{ github.event.inputs.hotVersion }}
         # this action can throw an error, when the examples for specific version exist already. If they exist, move to the next action
         continue-on-error: true
+      - name: Install the code examples
+        run: npm run examples:install ${{ github.event.inputs.hotVersion }}
       - name: Build the code examples
         run: npm run examples:build:ci ${{ github.event.inputs.hotVersion }}
       - name: Test each code example
