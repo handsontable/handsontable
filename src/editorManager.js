@@ -506,9 +506,14 @@ class EditorManager {
 
       case KEY_CODES.HOME:
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier.call(this.selection, new CellCoords(0, this.selection.selectedRange.current().from.col));
+          rangeModifier.call(this.selection,
+            new CellCoords(
+              this.instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+              this.selection.selectedRange.current().from.col));
         } else {
-          rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, 0));
+          rangeModifier.call(this.selection,
+            new CellCoords(this.selection.selectedRange.current().from.row,
+              this.instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1)));
         }
         event.preventDefault(); // don't scroll the window
         event.stopPropagation();
@@ -518,12 +523,14 @@ class EditorManager {
         if (event.ctrlKey || event.metaKey) {
           rangeModifier.call(
             this.selection,
-            new CellCoords(this.instance.countRows() - 1, this.selection.selectedRange.current().from.col)
+            new CellCoords(this.instance.rowIndexMapper.getFirstNotHiddenIndex(this.instance.countRows() - 1, -1),
+              this.selection.selectedRange.current().from.col)
           );
         } else {
           rangeModifier.call(
             this.selection,
-            new CellCoords(this.selection.selectedRange.current().from.row, this.instance.countCols() - 1)
+            new CellCoords(this.selection.selectedRange.current().from.row,
+              this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.instance.countCols() - 1, -1))
           );
         }
         event.preventDefault(); // don't scroll the window
