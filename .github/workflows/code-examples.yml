@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-      - name: Use Node 14
+      - name: Use Node 15
         uses: actions/setup-node@c46424eee26de4078d34105d3de3cc4992202b1e # https://github.com/actions/setup-node/releases/tag/v2.1.4
         with:
-          node-version: '14'
+          node-version: '15'
       - name: Checkout gh-pages branch to "./examples/tmp" folder
         uses: actions/checkout@v2
         with:
