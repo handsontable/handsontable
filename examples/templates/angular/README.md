@@ -27,7 +27,7 @@ In order to run tests for this project you have two options:
 
 ## License
 
-This wrapper is released under the MIT license.
+This example is released under the MIT license.
 
 Copyrights belong to Handsoncode sp. z o.o.
 
