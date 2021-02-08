@@ -6,13 +6,13 @@
 
 ## Live preview
 
-You can preview this template on CodeSandbox  under the URL: https://githubbox.com/handsontable/code-snippets/tree/master/examples/templates/vue
+You can preview this template on CodeSandbox  under the URL: https://githubbox.com/handsontable/code-snippets/tree/master/{{ PATH TO THE EXAMPLE }}
 
 ## How to run this project
 
 ### Installation
 
-Call `npm install` to install all necessary dependencies. This command will first remove `node_modules` folder and install testing tools (`jasmine`, `jasmine-console-reporter`, `puppeteer` and `http-server`) from the root directory.
+Call `npm install` to install all necessary dependencies.
 
 ### Development
 
@@ -27,35 +27,10 @@ In order to run tests for this project you have two options:
 
 ## License
 
-Handsontable is dual-licensed. You can either use a free license for all your non-commercial projects or purchase a commercial license. See the table below for a comparison of these two.
+This wrapper is released under the MIT license.
 
-<table>
-  <thead align="center">
-    <tr>
-      <th width="50%">Free license</th>
-      <th width="50%">Paid license</th>
-    </tr>    
-  </thead>
-  <tbody align="center">
-    <tr>
-      <td>For non-commercial purposes such as teaching, academic research, personal experimentation, and evaluating  on development and testing servers.</td>
-      <td>For all commercial purposes</td>
-    </tr>
-    <tr>
-      <td>All features are available</td>
-      <td>All features are available</td>
-    </tr>
-    <tr>
-      <td>Community support</td>
-      <td>Dedicated support</td>
-    </tr>    
-    <tr>
-      <td><a href="//github.com/handsontable/handsontable/blob/master/LICENSE.txt">Read the license</a></td>
-      <td><a href="//handsontable.com/pricing">See plans</a></td>
-    </tr>
-  </tbody>
-</table>
+Copyrights belong to Handsoncode sp. z o.o.
 
 ## Contact support
 
-We provide support for all users through [GitHub issues](https://github.com/handsontable/vue-handsontable-official/issues). If you have a commercial license then you can add a new ticket through the [contact form](https://handsontable.com/contact?category=technical_support).
+We provide support for all users through [GitHub issues](https://github.com/handsontable/handsontable/issues). If you have a commercial license then you can add a new ticket through the [contact form](https://handsontable.com/contact?category=technical_support).
