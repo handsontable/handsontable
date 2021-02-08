@@ -1,6 +1,6 @@
 {
   "name": "angular-example-custom-context-menu",
-  "version": "8.1.0",
+  "version": "next",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 8080",
@@ -38,7 +38,6 @@
     "http-server": "^0.12.3",
     "jasmine": "^3.6.4",
     "jasmine-console-reporter": "^3.1.0",
-    "puppeteer": "^7.0.1",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~5.1.0",
@@ -47,6 +46,7 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "^1.5.0",
     "protractor": "~7.0.0",
+    "puppeteer": "^7.0.1",
     "start-server-and-test": "^1.12.0",
     "ts-node": "~8.3.0",
     "tslint": "~6.1.0",

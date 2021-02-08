@@ -1,6 +1,6 @@
 {
   "name": "vue-example-hot-column",
-  "version": "8.1.0",
+  "version": "next",
   "private": true,
   "scripts": {
     "start": "vue-cli-service serve",

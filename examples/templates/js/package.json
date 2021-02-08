@@ -1,7 +1,7 @@
 {
   "name": "vanilla-template",
   "private": true,
-  "version": "0.0.1",
+  "version": "next",
   "description": "Javascript code snippet template",
   "main": "index.html",
   "scripts": {

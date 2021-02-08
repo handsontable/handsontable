@@ -1,6 +1,6 @@
 {
   "name": "angular",
-  "version": "0.0.1",
+  "version": "next",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 8080",
