@@ -6,7 +6,7 @@
  */
 import execa from 'execa';
 
-const [project, command, args] = process.argv.slice(2);
+const [project, command, ...args] = process.argv.slice(2);
 const PROJECT_ALIASES = {
   angular: 'angular-handsontable',
   react: 'react-handsontable',
@@ -18,7 +18,7 @@ const commandArray = [
 ];
 
 if (args) {
-  commandArray.push(args);
+  commandArray.push(...args);
 }
 
 ((async function() {
