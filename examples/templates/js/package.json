@@ -5,7 +5,6 @@
   "description": "Javascript code snippet template",
   "main": "index.html",
   "scripts": {
-    "preinstall": "node scripts/removeNodeModules.js && node scripts/test-config.js",
     "start": "parcel index.html --port 8080",
     "build": "parcel build index.html --public-url '.'",
     "jasmine": "node spec/support/jasmine.config.js",
@@ -18,10 +17,10 @@
   },
   "devDependencies": {
     "http-server": "^0.12.3",
-    "jasmine": "file:../../../node_modules/jasmine",
-    "jasmine-console-reporter": "file:../../../node_modules/jasmine-console-reporter",
+    "jasmine": "^3.6.4",
+    "jasmine-console-reporter": "^3.1.0",
     "parcel-bundler": "^1.6.1",
-    "puppeteer": "file:../../../node_modules/puppeteer",
+    "puppeteer": "^7.0.1",
     "start-server-and-test": "^1.12.0"
   }
 }

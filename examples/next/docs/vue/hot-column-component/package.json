@@ -3,7 +3,6 @@
   "version": "8.1.0",
   "private": true,
   "scripts": {
-    "preinstall": "node scripts/removeNodeModules.js && node scripts/test-config.js",
     "start": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
@@ -26,9 +25,9 @@
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
     "http-server": "^0.12.3",
-    "jasmine": "file:../../../../../node_modules/jasmine",
-    "jasmine-console-reporter": "file:../../../../../node_modules/jasmine-console-reporter",
-    "puppeteer": "file:../../../../../node_modules/puppeteer",
+    "jasmine": "^3.6.4",
+    "jasmine-console-reporter": "^3.1.0",
+    "puppeteer": "^7.0.1",
     "start-server-and-test": "^1.12.0",
     "vue-template-compiler": "^2.6.11"
   },

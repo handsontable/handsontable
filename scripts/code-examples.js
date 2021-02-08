@@ -2,6 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { execSync } = require('child_process');
 const chalk = require('chalk');
+const rimraf = require('rimraf');
 
 const REPO_ROOT = __dirname.split('scripts')[0];
 const NEXT_EXAMPLES = path.join('examples', 'next');
@@ -11,8 +12,6 @@ const TMP_DIR = path.join('examples', TMP_DIR_NAME);
 const HOT_WRAPPERS = ['@handsontable/react', '@handsontable/angular', '@handsontable/vue'];
 
 const [/* node bin */, /* path to this script */, shellCommand, hotVersion] = process.argv;
-
-// __dirname
 
 const currentEnvironment = process.env.NODE_ENV;
 
@@ -142,6 +141,7 @@ if (shellCommand === 'install') {
   }
   const examplesFolders = getExamplesFolders(dirDest);
   examplesFolders.forEach((exampleDir) => {
+    rimraf.sync(path.join(exampleDir, 'node_modules'));
     runNpmCommandInExample(exampleDir, 'npm install');
   });
 }
@@ -156,6 +156,7 @@ if (shellCommand === 'build') {
     if (currentEnvironment === 'gh-actions') {
       runNpmCommandInExample(exampleDir, 'npm run build');
     } else {
+      rimraf.sync(path.join(exampleDir, 'node_modules'));
       runNpmCommandInExample(exampleDir, 'npm install');
       runNpmCommandInExample(exampleDir, 'npm run build');
     }

@@ -4,7 +4,6 @@
   "private": true,
   "homepage": ".",
   "scripts": {
-    "preinstall": "node scripts/removeNodeModules.js && node scripts/test-config.js",
     "start": "BROWSER=none PORT=8080 react-scripts start",
     "build": "react-scripts build",
     "eject": "react-scripts eject",
@@ -21,9 +20,9 @@
   },
   "devDependencies": {
     "http-server": "^0.12.3",
-    "jasmine": "file:../../../../../node_modules/jasmine",
-    "jasmine-console-reporter": "file:../../../../../node_modules/jasmine-console-reporter",
-    "puppeteer": "file:../../../../../node_modules/puppeteer",
+    "jasmine": "^3.6.4",
+    "jasmine-console-reporter": "^3.1.0",
+    "puppeteer": "^7.0.1",
     "start-server-and-test": "^1.12.0"
   },
   "eslintConfig": {
