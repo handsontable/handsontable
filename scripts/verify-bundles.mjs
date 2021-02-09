@@ -53,7 +53,7 @@ async function verifyBundles() {
       if (packagesInfo[packageName]) {
         const defaultPackage = await import(
           packagesInfo[packageName].entryFile ?
-            `../../${subdir}/${packagesInfo[packageName].entryFile}` :
+            `../${subdir}/${packagesInfo[packageName].entryFile}` :
             packageName
           );
         let defaultPackageVersion = null;
