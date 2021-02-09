@@ -14,7 +14,8 @@ const workspacePackages = hotPackageJson.workspaces.packages;
 const PROJECT_ALIASES = {
   angular: 'angular-handsontable',
   react: 'react-handsontable',
-  vue: 'vue-handsontable'
+  vue: 'vue-handsontable',
+  handsontable: '.',
 };
 const commandArray = [
   'run',
@@ -35,9 +36,6 @@ workspacePackages.forEach((packagesLocation) => {
 
     if (project === directoryName || PROJECT_ALIASES[project] === directoryName) {
       processCwd = subdir;
-
-    } else if (project === 'handsontable') {
-      processCwd = '.';
     }
 
     return !!processCwd;
