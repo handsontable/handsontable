@@ -31,5 +31,6 @@
     "parcel-bundler": "^1.6.1",
     "puppeteer": "^7.0.1",
     "start-server-and-test": "^1.12.0"
-  }
+  },
+  "license": "MIT"
 }
