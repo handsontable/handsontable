@@ -2,14 +2,22 @@
   "name": "react-template",
   "version": "next",
   "private": true,
-  "homepage": ".",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "BROWSER=none PORT=8080 react-scripts start",
-    "build": "react-scripts build",
+    "build": "PUBLIC_URL=. react-scripts build",
     "eject": "react-scripts eject",
     "jasmine": "node spec/support/jasmine.config.js",
-    "test": "npm run build && start-server-and-test 'http-server ./build -c-1 --port 8080' 8080 'npm run jasmine'",
-    "test:ci": "start-server-and-test 'http-server ./dist -c-1 --port 8080' 8080 'npm run jasmine'"
+    "test": "npm run build && start-server-and-test 'http-server ./build -c-1' 8080 'npm run jasmine'",
+    "test:ci": "start-server-and-test 'http-server ./dist -c-1' 8080 'npm run jasmine'"
   },
   "dependencies": {
     "@handsontable/react": "latest",

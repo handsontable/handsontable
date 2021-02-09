@@ -2,6 +2,15 @@
   "name": "vue",
   "version": "next",
   "private": true,
+  "homepage": "https://handsontable.com/.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "vue-cli-service serve",
     "build": "vue-cli-service build",

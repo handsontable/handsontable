@@ -4,6 +4,15 @@
   "version": "next",
   "description": "Javascript data binding example (1)",
   "main": "index.html",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "parcel index.html --port 8080",
     "build": "parcel build index.html --public-url '.'",

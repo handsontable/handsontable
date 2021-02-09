@@ -1,6 +1,15 @@
 {
   "name": "angular-example-custom-id",
   "version": "next",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 8080",

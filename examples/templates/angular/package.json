@@ -1,6 +1,16 @@
 {
   "name": "angular",
+  "private": true,
   "version": "next",
+  "homepage": "https://handsontable.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 8080",
@@ -11,7 +21,6 @@
     "test": "npm run build && start-server-and-test 'npm run serve' 8080 'npm run jasmine'",
     "test:ci": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "~11.0.5",
     "@angular/common": "~11.0.5",
