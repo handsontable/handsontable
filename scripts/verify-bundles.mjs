@@ -63,7 +63,7 @@ async function verifyBundles() {
         if (packagesInfo[packageName].umd || packageJson.jsdelivr) {
           umdPackage = await import(
             packagesInfo[packageName].entryFile ?
-              `../../${subdir}/${packagesInfo[packageName].umd}` :
+              `../${subdir}/${packagesInfo[packageName].umd}` :
               `${packageName}/${packageJson.jsdelivr}`
             );
           umdPackage = umdPackage.default;
