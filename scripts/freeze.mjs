@@ -5,19 +5,19 @@
  * It takes extends the committed changes with a new version and release date, runs builds and tests and pushes the
  * changes to the release branch.
  */
-import { createRequire } from 'module';
 import inquirer from 'inquirer';
 import {
   cleanNodeModules,
-  displayErrorMessage, scheduleRelease,
-  spawnProcess, verifyBundles
+  displayErrorMessage,
+  displaySeparator,
+  scheduleRelease,
+  spawnProcess
 // eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
-// Using `require` exclusively to import `json` files. Prevents 'experimental' warnings from being thrown in the
-// console.
-const require = createRequire(import.meta.url);
 const [version, releaseDate] = process.argv.slice(2);
+
+displaySeparator();
 
 // Initial verification prompt
 inquirer.prompt([
@@ -33,7 +33,7 @@ inquirer.prompt([
   }
 
   // Check if we're using the minimum required npm version.
-  await spawnProcess('npm --version', true, (childProcess) => {
+  await spawnProcess('npm --version', true).then((childProcess) => {
     const npmVersion = childProcess.stdout.toString().replace('\n', '').split('.');
 
     if (
@@ -48,7 +48,7 @@ inquirer.prompt([
   // Check if we're on a release branch.
   let branchName = null;
 
-  await spawnProcess('git rev-parse --abbrev-ref HEAD', true, (childProcess) => {
+  await spawnProcess('git rev-parse --abbrev-ref HEAD', true,).then((childProcess) => {
     branchName = childProcess.stdout.toString().replace('\n', '');
 
     if (!branchName.startsWith('release/')) {
@@ -60,12 +60,14 @@ inquirer.prompt([
   });
 
   // Check if `git flow` is installed.
-  await spawnProcess('git flow version', true, null, () => {
+  await spawnProcess('git flow version', true).catch((error) => {
     displayErrorMessage('Git flow not installed.');
+
+    process.exit(error.exitCode);
   });
 
   // Check if all the files are committed.
-  await spawnProcess('git status -s', true, (output) => {
+  await spawnProcess('git status -s', true).then((output) => {
     // If there are any uncommitted changes, kill the script.
     if (output.stdout.length > 0) {
       displayErrorMessage('There are uncommitted changes present. Exiting.');
@@ -98,12 +100,12 @@ inquirer.prompt([
   await spawnProcess('npm run all test');
 
   // Verify if the bundles have the same (and correct) version.
-  await verifyBundles();
+  await spawnProcess('node --experimental-json-modules ./scripts/utils/verify-bundles.mjs');
 
   // Commit the changes to the release branch.
   await spawnProcess('git add .');
 
-  const hotPackageJson = require('../package.json');
+  const { default: hotPackageJson } = await import('../package.json');
 
   await spawnProcess(`git commit -m "${hotPackageJson.version}"`);
 

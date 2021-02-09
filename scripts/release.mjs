@@ -7,9 +7,12 @@
 import inquirer from 'inquirer';
 import {
   displayErrorMessage,
+  displaySeparator,
   spawnProcess,
 // eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
+
+displaySeparator();
 
 // Initial verification prompt
 inquirer.prompt([
@@ -26,7 +29,7 @@ inquirer.prompt([
   }
 
   // Check if all the files are committed.
-  spawnProcess('git status -s', true, (output) => {
+  spawnProcess('git status -s', true).then((output) => {
     // If there are any uncommitted changes, kill the script.
     if (output.stdout.length > 0) {
       displayErrorMessage('There are uncommitted changes present. Exiting.');
@@ -38,7 +41,7 @@ inquirer.prompt([
   // Check if we're on a release branch.
   let branchName = null;
 
-  spawnProcess('git rev-parse --abbrev-ref HEAD', true, (childProcess) => {
+  spawnProcess('git rev-parse --abbrev-ref HEAD', true).then((childProcess) => {
     branchName = childProcess.stdout.toString().replace('\n', '');
 
     if (!branchName.startsWith('release/')) {

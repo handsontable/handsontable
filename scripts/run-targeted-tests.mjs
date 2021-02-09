@@ -1,10 +1,10 @@
-import { createRequire } from 'module';
 import execa from 'execa';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import glob from 'glob';
 // eslint-disable-next-line import/extensions
 import { spawnProcess } from './utils/index.mjs';
+import hotPackageJson from '../package.json';
 
 // eslint-disable-next-line no-unused-expressions
 const argv = yargs(hideBin(process.argv))
@@ -16,10 +16,6 @@ const argv = yargs(hideBin(process.argv))
     '\n\n If HOT was _not_ modified, both pipelines run the other packages\' tests (distributed ~50/50).' +
     '\n\n If no pipeline is defined, all the test run consecutively.')
   .argv;
-// Using `require` exclusively to import `json` files. Prevents 'experimental' warnings from being thrown in the
-// console.
-const require = createRequire(import.meta.url);
-const hotPackageJson = require('../package.json');
 
 const workspacePackages = hotPackageJson.workspaces.packages;
 const touchedProjects = [];
