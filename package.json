@@ -69,9 +69,7 @@
     "examples:version": "node scripts/code-examples.js version",
     "examples:install": "node scripts/code-examples.js install",
     "examples:build": "node scripts/code-examples.js build",
-    "examples:build:ci": "cross-env NODE_ENV=gh-actions node scripts/code-examples.js build",
     "examples:test": "node scripts/code-examples.js test",
-    "examples:test:ci": "cross-env NODE_ENV=gh-actions node scripts/code-examples.js test",
     "examples:start": "http-server ./examples/tmp"
   },
   "keywords": [
