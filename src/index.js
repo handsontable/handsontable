@@ -23,6 +23,12 @@ import * as domHelpers from './helpers/dom/element';
 import * as domEventHelpers from './helpers/dom/event';
 
 /* eslint-disable handsontable/restricted-module-imports */
+// Since the Handsontable was modularized, importing some submodules is restricted.
+// Importing the main entry of the submodule can make the "dead" code elimination
+// process more difficult. The "handsontable/restricted-module-imports" rule is on
+// guard. For the index.js file, the rule has to be disabled. This file exports the
+// full version of the Handsontable with build-in all available components, so that's
+// why the rule is disabled here (see more #7506).
 import {
   getRegisteredEditorNames,
   getEditor,
