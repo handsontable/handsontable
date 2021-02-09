@@ -4,7 +4,7 @@ import glob from 'glob';
 import {
   displayConfirmationMessage,
   displayErrorMessage
-} from './console.mjs';
+} from './utils/console.mjs';
 
 // TODO: The bundle verification script was moved to a separate file because of a problem with React and Node 15
 //  (https://github.com/facebook/react/issues/20756). Having this script in a separate file, allows killing its
@@ -35,7 +35,7 @@ async function verifyBundles() {
       className: 'HotTable'
     }
   };
-  const {default: hotPackageJson} = await import('../../package.json');
+  const {default: hotPackageJson} = await import('../package.json');
   const workspacePackages = hotPackageJson.workspaces.packages;
   const mismatchedVersions = [];
   JSDOMGlobal();
@@ -46,7 +46,7 @@ async function verifyBundles() {
     const subdirs = glob.sync(packagesLocation);
 
     for (const subdir of subdirs) {
-      const packageJsonLocation = `../../${subdir}/package.json`;
+      const packageJsonLocation = `../${subdir}/package.json`;
       const {default: packageJson} = await import(packageJsonLocation);
       const packageName = packageJson.name;
 

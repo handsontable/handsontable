@@ -33,7 +33,7 @@ export function isVersionValid(version) {
  * string}`.
  */
 export function validateReleaseDate(date) {
-  const dateObj = moment(date, 'DD/MM/YYYY');
+  const dateObj = moment(date, 'DD/MM/YYYY', true);
   const now = moment();
   const returnObj = {
     valid: true,
@@ -65,17 +65,16 @@ export function setVersion(version, packages = workspacePackages) {
     const replacementStatus = replace.sync({
       files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
       from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
-      to: (fullMatch, ...args) => {
+      to: (fullMatch, ...[semverPrefix, previousVersion]) => {
         if (fullMatch.indexOf('version') > 0) {
           // Replace the version with the new version.
           return `"version": "${version}"`;
 
         } else {
-          const prerelease = !!semver.prerelease(version);
-          const depVersion = `${args[0]}${parseInt(semver.major(version), 10) - (+prerelease)}.0.0`;
+          const maxSatisfyingVersion = `${semver.major(semver.maxSatisfying([version, previousVersion], '*'))}.0.0`;
 
           // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
-          return `"handsontable": "${depVersion}"`;
+          return `"handsontable": "${semverPrefix}${maxSatisfyingVersion}"`;
         }
       },
       ignore: [
@@ -253,7 +252,7 @@ Are the version number and release date above correct?`,
 
   } else {
     await inquirer.prompt(questions).then(async (answers) => {
-      const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY');
+      const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY', true);
 
       const newVersion =
         answers.changeType !== 'custom' ?

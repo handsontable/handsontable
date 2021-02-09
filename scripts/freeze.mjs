@@ -6,6 +6,7 @@
  * changes to the release branch.
  */
 import inquirer from 'inquirer';
+import semver from 'semver';
 import {
   cleanNodeModules,
   displayErrorMessage,
@@ -33,23 +34,20 @@ inquirer.prompt([
   }
 
   // Check if we're using the minimum required npm version.
-  await spawnProcess('npm --version', true).then((childProcess) => {
-    const npmVersion = childProcess.stdout.toString().replace('\n', '').split('.');
+  {
+    const processInfo = await spawnProcess('npm --version', true);
+    const npmVersion = processInfo.stdout.toString();
 
-    if (
-      (npmVersion[0] < 7) ||
-      (npmVersion[0] >= 7 && npmVersion[1] < 2)
-    ) {
+    if (!semver.satisfies(npmVersion, '>=7.2.0')) {
       displayErrorMessage('The minimum required npm version is 7.2.0');
       process.exit(1);
     }
-  });
+  }
 
   // Check if we're on a release branch.
-  let branchName = null;
-
-  await spawnProcess('git rev-parse --abbrev-ref HEAD', true,).then((childProcess) => {
-    branchName = childProcess.stdout.toString().replace('\n', '');
+  {
+    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', true,);
+    const branchName = processInfo.stdout.toString();
 
     if (!branchName.startsWith('release/')) {
       displayErrorMessage(
@@ -57,32 +55,33 @@ inquirer.prompt([
         ' command on the current `develop` branch.');
       process.exit(1);
     }
-  });
+  }
 
   // Check if `git flow` is installed.
-  await spawnProcess('git flow version', true).catch((error) => {
+  try {
+    await spawnProcess('git flow version', true);
+
+  } catch (error) {
     displayErrorMessage('Git flow not installed.');
 
-    process.exit(error.exitCode);
-  });
+    process.exit(1);
+  }
 
   // Check if all the files are committed.
-  await spawnProcess('git status -s', true).then((output) => {
+  {
+    const processInfo = await spawnProcess('git status -s', true);
+    const output = processInfo.stdout.toString();
+
     // If there are any uncommitted changes, kill the script.
-    if (output.stdout.length > 0) {
+    if (output.length > 0) {
       displayErrorMessage('There are uncommitted changes present. Exiting.');
 
       process.exit(1);
     }
-  });
+  }
 
   // Bump the version in all packages.
-  if (version && releaseDate) {
-    await scheduleRelease(version, releaseDate);
-
-  } else {
-    await scheduleRelease();
-  }
+  await scheduleRelease(version, releaseDate);
 
   // Clear the projects' node_modules nad lock files.
   cleanNodeModules();
@@ -100,7 +99,7 @@ inquirer.prompt([
   await spawnProcess('npm run all test');
 
   // Verify if the bundles have the same (and correct) version.
-  await spawnProcess('node --experimental-json-modules ./scripts/utils/verify-bundles.mjs');
+  await spawnProcess('node --experimental-json-modules ./scripts/verify-bundles.mjs');
 
   // Commit the changes to the release branch.
   await spawnProcess('git add .');

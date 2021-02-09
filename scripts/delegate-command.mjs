@@ -5,8 +5,12 @@
  * will run the `build` command from the directory of the provided project.
  */
 import execa from 'execa';
+import glob from 'glob';
+import hotPackageJson from '../package.json';
+import { displayErrorMessage } from './utils/index.mjs';
 
 const [project, command, ...args] = process.argv.slice(2);
+const workspacePackages = hotPackageJson.workspaces.packages;
 const PROJECT_ALIASES = {
   angular: 'angular-handsontable',
   react: 'react-handsontable',
@@ -21,12 +25,37 @@ if (args) {
   commandArray.push(...args);
 }
 
+let processCwd = null;
+
+workspacePackages.forEach((packagesLocation) => {
+  const subdirs = glob.sync(packagesLocation);
+
+  subdirs.some((subdir) => {
+    const directoryName = subdir.split('/').pop();
+
+    if (project === directoryName || PROJECT_ALIASES[project] === directoryName) {
+      processCwd = subdir;
+
+    } else if (project === 'handsontable') {
+      processCwd = '.';
+    }
+
+    return !!processCwd;
+  });
+});
+
 ((async function() {
   try {
-    await execa('npm', commandArray, {
-      cwd: (project === 'handsontable' ? '.' : `./wrappers/${PROJECT_ALIASES[project] || project}`),
-      stdio: 'inherit'
-    });
+    if (processCwd) {
+      await execa('npm', commandArray, {
+        cwd: processCwd,
+        stdio: 'inherit'
+      });
+
+    } else {
+      displayErrorMessage('Found no match for the provided project name.');
+    }
+
   } catch (error) {
     process.exit(error.exitCode);
   }
