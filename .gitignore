@@ -20,4 +20,3 @@ commonjs/
 es/
 coverage/
 tmp/
-!examples/tmp
