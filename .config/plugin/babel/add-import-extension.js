@@ -5,24 +5,12 @@ const { dirname, resolve } = require('path');
 
 const VALID_EXTENSIONS = ['js', 'mjs'];
 
-const hasExtension = (moduleName) => VALID_EXTENSIONS.some(ext => moduleName.endsWith(`.${ext}`));
-const isCoreJSPolyfill = (moduleName) => moduleName.startsWith('core-js');
-const isLocalModule = (moduleName) => moduleName.startsWith('.');
-const isNodeModule = (moduleName) => {
-  try {
-    require.resolve(moduleName);
-
-    return true;
-  } catch (ex) {
-    if (ex.code === 'MODULE_NOT_FOUND') {
-      return false;
-    }
-  }
-};
-
+const hasExtension = moduleName => VALID_EXTENSIONS.some(ext => moduleName.endsWith(`.${ext}`));
+const isCoreJSPolyfill = moduleName => moduleName.startsWith('core-js');
+const isLocalModule = moduleName => moduleName.startsWith('.');
 const isProcessableModule = (moduleName) => {
   return !hasExtension(moduleName) && (isCoreJSPolyfill(moduleName) || isLocalModule(moduleName));
-}
+};
 
 const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
   return (path, { file }) => {
@@ -62,7 +50,7 @@ const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
     // In a case when the file doesn't exist and the module is a directory it will
     // rename to `plugins/index.js`.
     } else if (existsSync(absoluteFilePath) && lstatSync(absoluteFilePath).isDirectory()) {
-      newModulePath =  `${moduleName}/index.${finalExtension}`;
+      newModulePath = `${moduleName}/index.${finalExtension}`;
 
     // And for other cases it simply put the extension on the end of the module path
     } else {
