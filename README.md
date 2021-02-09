@@ -1,123 +1,202 @@
-# Website
+# Handsontable Documentation
 
-This website is built using [Docusaurus 2](https://v2.docusaurus.io/), a modern static website generator.
+## Dir structure
 
-## Installation
+```
+- /next                 # The next version of documentation, unavailable on production build.
+    + /api              # Automatically generated files from JsDoc. Do not edit!
+    *.md                # The content of documentation
++ /src                  # Place where the our customizations exists
++ /static               # A directory with static files
+- /versioned_docs       # Content (with API Ref) of released versions
+    + /version-*        # Previous versions
+    + /version-[TheLatestVersionNumber] # The latest documentation content
+- /versioned_sidebars                   # Archived sidebars for released versions
+    - version-[TheLatestVersionNumber]-sidebars.json    # Sidebars for the latest documentation
+    - version-*-sidebars.json   # Sidebars for previous documentations
+- docusaurus.config.js          # Configuration file
+- sidebars.js                   # Sidebars configuration for the Next version
+- versions.json                 # List of released versions
+...
 
-```console
+```
+
+## Getting started
+
+```shell script
+# Clone the repo
+git clone git@github.com:handsontable/docs-md.git
+cd docs-md
+
+# Install dependencies
 npm install
+cd src/jsdoc-convert && npm install && cd ../../
+
+# Run localhost
+npm run start # It opens a browser automatically
+
+# The website is running at http://localhost:3001/docs/
 ```
 
-## Local Development
+## Best practices for content
 
-```console
-npm run start
+Applied to `/next` and `/versioned_docs/`.
+
+### Mutating API Reference content
+
+API Reference is generated automatically, so any changes in `/next/api` will be overwritten. Please avoid changing it.
+
+### JS Doc links
+
+Since we want to support case-insensitive URLs, all links in JsDoc should:
+
+* Before `#`: use `-` to separate words, lower case.
+* After `#`: lower case.
+
+**For instance:**
+
+```js
+// Wrong:
+/** {@link Options#autoColumnSize}. */
+
+// OK: 
+/** {@link options#autocolumnsize Options#autoColumnSize}. */
+
+
+// Wrong:
+/** {@link HiddenRows} */
+
+// OK:
+/** {@link hidden-rows HiddenRows} */
 ```
 
-This command starts a local development server and open up a browser window. Most changes are reflected live without having to restart the server.
+*We have build-in `404` detector, so during the build, it will be caught.*
 
-## Build
+### Filenames
 
-```console
-npm run build
+File names have meaning only for copywriters to makes manage files easier. So any convention isn't defined yet.
+
+### Headers
+
+Each markdown file with a content starts by Admonitions:
+
+```markdown
+---
+id: api-introduction
+title: Introduction
+sidebar_label: Introduction
+slug: /api/
+---
 ```
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+* **id**: To avoid many problems please **keep it immutable**.
+* **title**: A header on a page.
+* **sidebar_label**: Displayed label in a menu.
+* **slug**: part of URL append to the current version, **should be unique** in the scope of version.
+* Many others described in https://v2.docusaurus.io/docs/markdown-features/#markdown-headers
 
-## Deployment
+### Subdirectories
 
-```console
-GIT_USER=<Your GitHub username> USE_SSH=true npm run deploy
+Any rule for subdirectories isn't defined.
+Please keep in mind, that the subdirectory is also a prefix for page id.
+
+**For instance:**
+
+```markdown
+---
+id: example
+---
 ```
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+Saved as `/next/some-folder/example-file.md` has id: `some-folder/example`.
 
-## Docker integration
+### Prefer .md, avoid .mdx
 
-### Local run;
+The `*.mdx` allows us to use react components. It is undesirable because it introduces additional complexity.
+Keeping all content as just `.md` file makes them more manageable.
 
-Build an image:
+*If any extra behaviour needed, should be done as a remark or rehype plugin.*
 
-```console
-docker -t docs-md .
+## Editing documentation content
+
+### ESLint for markdown
+
+ESLint is a tool which helps us keep our content in agreed with best rules.
+
+```shell script
+npm run lint:docs # feedback with error list
+
+npm run lint:docs:fix # attempt to fix errors
 ```
 
-Run services:
+ESLint runs in GH Action on each commit pushed into the repo.
 
-```console
-docker-compose up -d &&  docker-compose logs -f --tail=100
+### Live demo:
+
+It is able to run code snippets to show result of the code:
+
+```
+    ```js hot-preview=container_id,instance_var
 ```
 
-Visit page: [http://localhost:8080](http://localhost:8080)
+* **container_id** id target into div for putting handsontable. The `div#container_id` is created automatically
+* **instance_var** (optional) target into variable name with HOT instance to destroy on component unmount (Docusaurus is a SPA, it is needed to  destroy it on changed page event).
 
-Stop services:
+Example: https://github.com/handsontable/docs-md/blob/12b309b/versioned_docs/version-9.0/temp/introduction.mdx
 
-```console
-docker-compose stop
-```
+### Editing the `Next` version
 
-### Auto refresh from GitHub Container Registry:
+*The next version is only available on the `localhost` and `dev.handsontable.com/docs/next`*
 
-Login into GHCR, as a password should be used [Personal Access Token](https://github.com/settings/tokens)
+Files included in next versions live in dir `/next/`.
+To display it in a browser, please go into URL: `/docs/next`.
 
-```console
-docker login --registry docker.pkg.github.com
-```
+### Editing the `latest` version
 
-Run services: (it might require changing volume path in docker-compose.ghcr.yml because it dependent on a username)
+The latest version is the first item from `/vesions.json`. It is in `/versioned_docs/version-[number]/`.
 
-```console
-docker-compose -f docker-compose.ghcr.yml up -d &&  docker-compose logs -f --tail=100
-```
+To display the latest docs version in a browser, please go into: `/docs/`.
 
-Visit page: [http://localhost:8080](http://localhost:8080)
+### Editing an archival version
 
-Update service from localhost:
+Directory: `/versioned_docs/version-[number]/`.
 
-```console
-docker build -t docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest .
-docker push docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest
-```
+In a browser please go into: `/docs/[number]`.
 
-Update service from GH Action: each push into master will build&push new version of image, and it will be automatically refreshed here.
+## Editing API Reference
 
-Stop services:
+To edit API Reference goes into source code and change jsdocs comments. Then, to generate API Reference pages:
 
-```console
-docker-compose -f docker-compose.ghcr.yml
+```shell script
+cd src/jsdoc-convert
+
+npm run jsdoc2md
 ```
 
 ## Versioning
 
-### Next version:
+**Release a version**
 
-* Next version is available only when `NODE_ENV === 'development'`.
-* It is available under url: `/docs/next`.
-* In a repo it is placed into `./next/` directory.
+```shell script
+yarn run docusaurus docs:version number
+```
 
-#### Publishing next version as current:
+**Remove a version**
 
-`npm run docusaurus docs:version 8.3.0`, where `8.3.0` it is a version number.
+1. First, open `versions.json`  in a text editor, then remove desirable version number and save.
+2. Secondly, if want you remove all version content, remove versioned docs and sidebars:
 
-### Current (latest) version:
+```shell script
+rm -rf versioned_docs/version-NUMBER
+rm versioned_sidebars/version-NUMBER-sidebars.json
+```
 
-* Latest version is available under url `/docs/`.
-* In a repo it is last version folder in `/versioned_docs/version-*`
+**Edit a version**
 
-### Legacy versions
+Described in section: [Editing documentation content](#editing-documentation-content)
 
-* Latest version is available under url `/docs/*`.
-* In a repo it is placed into `/versioned_docs/version-*`
+**For more information** goes into https://v2.docusaurus.io/docs/versioning/
 
-### Versioning documentation:
+## Deployment
 
-https://v2.docusaurus.io/docs/versioning/
-
-<!--- TODO: NODE_ENV not working with build (always production)
-## Development features
-
-if `NODE_ENV=development` during building:
-
-* it is possible to show next documentation version `/docs/next`
-* debug plugin is enabled: `/docs/__docusaurus/debug`
---->
+[See DEPLOYMENT.md](./DEPLOYMENT.md)
