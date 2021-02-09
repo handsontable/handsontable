@@ -8,7 +8,7 @@ module.exports = {
     type: 'suggestion',
 
     docs: {
-      description: 'Allows restrict specified modules from loading by `import` or re-export',
+      description: 'Allows restricting specified modules from loading via an `import` or a re-export',
       category: 'Custom',
       recommended: false,
       fixable: false,
