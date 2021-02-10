@@ -1,7 +1,7 @@
 {
   "name": "vanilla-settings-example-testwip",
   "private": true,
-  "version": "next",
+  "version": "0.0.0",
   "description": "Javascript settings example",
   "main": "index.html",
   "homepage": "https://handsontable.com/",

@@ -1,7 +1,7 @@
 {
   "name": "vanilla-template",
   "private": true,
-  "version": "next",
+  "version": "0.0.0",
   "description": "Javascript code snippet template",
   "main": "index.html",
   "homepage": "https://handsontable.com/",

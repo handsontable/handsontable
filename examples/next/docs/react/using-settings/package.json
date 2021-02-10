@@ -1,6 +1,6 @@
 {
   "name": "react-example-using-settings-testwip",
-  "version": "next",
+  "version": "0.0.0",
   "private": true,
   "homepage": "https://handsontable.com/",
   "repository": {
@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "BROWSER=none PORT=8080 react-scripts start",
-    "build": "PUBLIC_URL=. react-scripts build",
+    "build": "react-scripts build",
     "eject": "react-scripts eject",
     "jasmine": "node spec/support/jasmine.config.js",
     "test": "npm run build && start-server-and-test 'http-server ./build -c-1' 8080 'npm run jasmine'",

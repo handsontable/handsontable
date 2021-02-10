@@ -1,7 +1,7 @@
 {
   "name": "vanilla-data-binding-example-1",
   "private": true,
-  "version": "next",
+  "version": "0.0.0",
   "description": "Javascript data binding example (1)",
   "main": "index.html",
   "homepage": "https://handsontable.com/",
