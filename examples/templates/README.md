@@ -8,7 +8,7 @@ All new code examples should be added to the `/examples/next` directory. Based o
 
 1. Add new example using the template within the `/next` directory with paths followed by the convention `/<category>/<framework>/<example_path>`.
 2. Commit and push the examples to the repo.
-3. In Github Actions run a manual workflow with the `<version_number>` input for the Handsontable and Handsontable's wrapper version. The new folder will be created: `/examples/<version_number>`. Within that folder, new code snippets will be created with Handsontable and Handsontable's wrapper version fixed to the `<version_number>`. Note that the Handsontable **version must be available on the NPM** first.
+3. In Github Actions run a manual workflow with the `<version_number>` input for the Handsontable and Handsontable's wrapper version. The new folder will be created: `/examples/<version_number>`. Within that folder, new code examples will be created with Handsontable and Handsontable's wrapper version fixed to the `<version_number>`. Note that the Handsontable **version must be available on the NPM** first.
 4. The new code snippets will be deployed to the Github Pages and will be available under URL mentioned in the "Live on production" section in the [Code Examples](../README.md).
 
 ### Requirements for a new example

@@ -6,7 +6,7 @@
 
 ## Live preview
 
-You can preview this template on CodeSandbox  under the URL: https://githubbox.com/handsontable/code-snippets/tree/master/{{ PATH TO THE EXAMPLE }}
+You can preview this template on CodeSandbox  under the URL: https://githubbox.com/handsontable/handsontable/tree/master/{{ PATH TO THE EXAMPLE }}
 
 ## How to run this project
 
