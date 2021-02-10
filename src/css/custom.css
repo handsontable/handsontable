@@ -68,7 +68,7 @@
 }
 
 .menu {
-  padding: 12px 10px 20px 20px !important;
+  padding: 32px 10px 20px 20px !important;
   overflow-y: hidden;
 }
 
@@ -82,6 +82,10 @@
 
 .dropdown > .navbar__link:after {
   border-width: .3em .3em 0;
+}
+
+.menu__list-item {
+  margin: .5rem 0;
 }
 
 /* Content */
