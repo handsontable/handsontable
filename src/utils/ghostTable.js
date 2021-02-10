@@ -160,7 +160,7 @@ class GhostTable {
       this.injectTable();
     }
     arrayEach(this.columns, (column) => {
-      callback(column.col, outerWidth(column.table) + 1);
+      callback(column.col, outerWidth(column.table));
     });
   }
 
