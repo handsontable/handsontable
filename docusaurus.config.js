@@ -30,7 +30,7 @@ module.exports = {
       trackingID: 'GTM-55L5D3',
     },
     navbar: {
-      title: 'Handsontable ',
+      title: 'Handsontable Docs',
       items: [ // todo type: 'doc', @see https://v2.docusaurus.io/docs/api/themes/configuration#navbar-doc-link
         {
           type: 'docsVersionDropdown',
@@ -69,6 +69,11 @@ module.exports = {
           position: 'right',
         },
         {
+          label: 'GitHub',
+          href: 'https://github.com/handsontable/handsontable',
+          position: 'right',
+        },
+        {
           label: 'Support',
           position: 'right',
           items: [
@@ -87,25 +92,19 @@ module.exports = {
             },
           ],
         },
-        {
-          href: 'https://github.com/handsontable/handsontable',
-          position: 'right',
-          className: 'hot-navbar-item-github',
-          'aria-label': 'GitHub repository',
-        },
       ],
     },
     footer: {
       style: 'dark',
       copyright: `Copyright © ${new Date().getFullYear()} Handsontable.`,
     },
-    algolia: {
-      apiKey: '9fcb096ca6994bc9f123c62e16ed7f8d',
-      indexName: 'prod_HOTDOCS',
-      searchParameters: {
-        facetFilters: 'tags:current',
-      },
-    },
+    // algolia: {
+    //   apiKey: '6b1f6a9141059860765e9ab6b9cabd0b',
+    //   indexName: 'handsontable',
+    //   searchParameters: {
+    //     facetFilters: 'tags:current',
+    //   },
+    // },
   },
   presets: [
     [
