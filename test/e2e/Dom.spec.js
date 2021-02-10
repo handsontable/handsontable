@@ -157,7 +157,7 @@ describe('Handsontable.Dom', () => {
     });
   });
 
-  fdescribe('outerWidth', () => {
+  describe('outerWidth', () => {
     let element;
 
     beforeEach(() => {
@@ -188,7 +188,7 @@ describe('Handsontable.Dom', () => {
     });
   });
 
-  fdescribe('preciseOuterWidth', () => {
+  describe('preciseOuterWidth', () => {
     let element;
     let container;
 
