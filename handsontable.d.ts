@@ -1656,7 +1656,7 @@ declare namespace Handsontable {
     columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
     columnSorting?: boolean | columnSorting.Settings;
     columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]);
-    colWidths?: number | number[] | string | string[] | ((index: number) => string | number);
+    colWidths?: number | (number | undefined)[] | string | (string | undefined)[] | ((index: number) => string | number | undefined);
     commentedCellClassName?: string;
     comments?: boolean | comments.Settings | comments.CommentConfig[];
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
