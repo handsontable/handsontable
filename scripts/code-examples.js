@@ -4,8 +4,8 @@ const { execSync } = require('child_process');
 const chalk = require('chalk');
 const rimraf = require('rimraf');
 
-const REPO_ROOT = __dirname.split('scripts')[0];
-const NEXT_EXAMPLES = path.join('examples', 'next');
+const REPO_ROOT_DIR = __dirname.split('scripts')[0];
+const NEXT_EXAMPLES_DIR = path.join(REPO_ROOT_DIR, 'examples', 'next');
 const TMP_DIR_NAME = 'tmp';
 const TMP_DIR = path.join('examples', TMP_DIR_NAME);
 
@@ -35,58 +35,28 @@ const getExamplesFolders = (dirPath, exampleFolders) => {
   return exampleFolders;
 };
 
-const getNodeModulesInDir = (dirPath, nodeModules) => {
-  const files = fs.readdirSync(dirPath);
+const getHotWrapperName = (packageJson) => {
+  const { dependencies } = packageJson;
 
-  nodeModules = nodeModules || [];
-
-  files.forEach((file) => {
-    if (fs.statSync(path.join(dirPath, file)).isDirectory() && file !== 'node_modules') {
-      nodeModules = getNodeModulesInDir(path.join(dirPath, file), nodeModules);
-    }
-    if (file === 'node_modules') {
-      nodeModules.push(path.join(dirPath, 'node_modules'));
-    }
-  });
-
-  return nodeModules;
-};
-
-/**
- * Remove `node_modules` from `/next` directory.
- */
-const removeNodeModulesFromNext = () => {
-  const nodeModules = getNodeModulesInDir(path.join(REPO_ROOT, NEXT_EXAMPLES));
-  nodeModules.forEach((dir) => {
-    fs.removeSync(dir);
-  });
-};
-
-/**
- * Get Handsontable wrapper from current projet.
- *
- * @param {object} deps - Arg is the package.json dependencies object.
- * @returns {string|undefined}
- */
-const getHotWrapper = (deps) => {
-  return HOT_WRAPPERS.find(wrapper => Object.keys(deps).find(dependency => dependency === wrapper));
+  return HOT_WRAPPERS.find(wrapper => Object.keys(dependencies).find(dependency => dependency === wrapper));
 };
 
 const updatePackageJsonWithVersion = (projectDir, version) => {
-  const pJsonPath = path.join(projectDir, 'package.json');
-  const pJsonFile = fs.readJsonSync(pJsonPath);
+  const packageJsonPath = path.join(projectDir, 'package.json');
+  const packageJson = fs.readJsonSync(packageJsonPath);
+  const wrapper = getHotWrapperName(packageJson);
 
-  const wrapper = getHotWrapper(pJsonFile.dependencies);
-  pJsonFile.version = version;
-  pJsonFile.dependencies.handsontable = version;
+  packageJson.version = version;
+  packageJson.dependencies.handsontable = version;
   if (wrapper) {
     // TODO: uncomment it when wrappers will be using the same versioning as Handsontable
     // pJsonFile.dependencies[wrapper] = hotVersion;
   }
-  fs.writeJsonSync(pJsonPath, pJsonFile, { spaces: 2 });
+  fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
 };
 
 const runNpmCommandInExample = (exampleDir, command) => {
+  // eslint-disable-next-line
   console.log(chalk.yellow(`"${command}" STARTED IN DIRECTORY "${exampleDir}"`));
   execSync(command, {
     cwd: exampleDir,
@@ -95,98 +65,83 @@ const runNpmCommandInExample = (exampleDir, command) => {
   });
 };
 
-const updateExamplesWithVersion = (examplesFolders, version) => {
-  examplesFolders.forEach((exampleDir) => {
-    updatePackageJsonWithVersion(exampleDir, version);
-  });
-};
-
-const renameDirectory = (oldDirPath, distDirPath) => {
-  try {
-    fs.renameSync(oldDirPath, distDirPath);
-  } catch (e) {
-    // Don't have to rename folder, because folder to rename doesn't exist
-    // console.log(e.message)
-  }
-};
-
 // EXECUTE SCRIPTS
 
 if (!hotVersion) {
   throw Error('You must provide version of the Handsontable as a last parameter to the script');
 }
 
-/**
- * Directory to the versioned examples.
- */
-const dirDest = path.join(REPO_ROOT, 'examples', hotVersion);
-const examplesExist = fs.existsSync(dirDest);
+const versionedDir = path.join(REPO_ROOT_DIR, 'examples', hotVersion);
+const versionedExamplesExist = fs.existsSync(versionedDir);
 
-// npm run examples:version <version_number>
-if (shellCommand === 'version') {
-  if (examplesExist) {
-    throw Error(`Examples already exist: ${path.join('examples', hotVersion)}`);
-  }
-  // remove node_modules before copy files
-  removeNodeModulesFromNext();
-  fs.copySync(NEXT_EXAMPLES, dirDest);
-  const examplesFolders = getExamplesFolders(dirDest);
-  updateExamplesWithVersion(examplesFolders, hotVersion);
-}
+switch (shellCommand) {
 
-// npm run examples:install <version_number>
-if (shellCommand === 'install') {
-  if (!examplesExist) {
-    throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+  case 'version': { // npm run examples:version <version_number>
+    if (versionedExamplesExist) {
+      throw Error(`Examples already exist: ${path.join('examples', hotVersion)}`);
+    }
+    const nextExamplesFolders = getExamplesFolders(NEXT_EXAMPLES_DIR);
+    nextExamplesFolders.forEach((nextDir) => {
+      rimraf.sync(path.join(nextDir, 'node_modules'));
+    });
+    fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
+    const versionedExamplesFolders = getExamplesFolders(versionedDir);
+    versionedExamplesFolders.forEach((versionedExampleDir) => {
+      updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
+    });
+    break;
   }
-  const examplesFolders = getExamplesFolders(dirDest);
-  examplesFolders.forEach((exampleDir) => {
-    rimraf.sync(path.join(exampleDir, 'node_modules'));
-    runNpmCommandInExample(exampleDir, 'npm install');
-  });
-}
 
-// npm run examples:build <version_number>
-if (shellCommand === 'build') {
-  if (!examplesExist) {
-    throw Error('Examples don\'t exist! First, create a directory with versioned examples');
-  }
-  const examplesFolders = getExamplesFolders(dirDest);
-  examplesFolders.forEach((exampleDir) => {
-    if (currentEnvironment === 'gh-actions') {
-      runNpmCommandInExample(exampleDir, 'npm run build');
-    } else {
+  case 'install': { // npm run examples:install <version_number>
+    if (!versionedExamplesExist) {
+      throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+    }
+    const examplesFolders = getExamplesFolders(versionedDir);
+    examplesFolders.forEach((exampleDir) => {
       rimraf.sync(path.join(exampleDir, 'node_modules'));
       runNpmCommandInExample(exampleDir, 'npm install');
-      runNpmCommandInExample(exampleDir, 'npm run build');
-    }
-
-    // unify production output folder names to `dist` (React creates production output with `build` directory)
-    const prodOutputDir = path.join(exampleDir, 'dist');
-    renameDirectory(path.join(exampleDir, 'build'), prodOutputDir);
-
-    // create example's deploy directory path
-    const deployDirDest = path.join(TMP_DIR, exampleDir.split('examples')[1]);
-
-    // create deploy directory
-    fs.mkdirSync(deployDirDest, { recursive: true });
-
-    fs.copySync(prodOutputDir, deployDirDest);
-  });
-}
-
-// npm run examples:test <version_number>
-if (shellCommand === 'test') {
-  if (!examplesExist) {
-    throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+    });
+    break;
   }
-  const examplesFolders = getExamplesFolders(dirDest);
-  examplesFolders.forEach((exampleDir) => {
-    if (currentEnvironment === 'gh-actions') {
-      runNpmCommandInExample(exampleDir, 'npm run test:ci');
-    } else {
-      runNpmCommandInExample(exampleDir, 'npm install');
-      runNpmCommandInExample(exampleDir, 'npm run test');
+
+  case 'build': { // npm run examples:build <version_number>
+    if (!versionedExamplesExist) {
+      throw Error('Examples don\'t exist! First, create a directory with versioned examples');
     }
-  });
+    const examplesFolders = getExamplesFolders(versionedDir);
+    examplesFolders.forEach((exampleDir) => {
+      if (currentEnvironment === 'gh-actions') {
+        runNpmCommandInExample(exampleDir, 'npm run build');
+      } else {
+        rimraf.sync(path.join(exampleDir, 'node_modules'));
+        runNpmCommandInExample(exampleDir, 'npm install');
+        runNpmCommandInExample(exampleDir, 'npm run build');
+      }
+      const prodOutputDir = path.join(exampleDir, 'dist');
+      const deployDir = path.join(TMP_DIR, exampleDir.split('examples')[1]);
+      fs.mkdirSync(deployDir, { recursive: true });
+      fs.copySync(prodOutputDir, deployDir);
+    });
+    break;
+  }
+
+  case 'test': { // npm run examples:test <version_number>
+    if (!versionedExamplesExist) {
+      throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+    }
+    const examplesFolders = getExamplesFolders(versionedDir);
+    examplesFolders.forEach((exampleDir) => {
+      if (currentEnvironment === 'gh-actions') {
+        runNpmCommandInExample(exampleDir, 'npm run test:ci');
+      } else {
+        runNpmCommandInExample(exampleDir, 'npm install');
+        runNpmCommandInExample(exampleDir, 'npm run test');
+      }
+    });
+    break;
+  }
+
+  default:
+    throw Error('Command doesn\'t exists');
+
 }

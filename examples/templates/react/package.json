@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "BROWSER=none PORT=8080 react-scripts start",
-    "build": "PUBLIC_URL=. react-scripts build",
+    "build": "PUBLIC_URL=. react-scripts build && node after-build.js",
     "eject": "react-scripts eject",
     "jasmine": "node spec/support/jasmine.config.js",
     "test": "npm run build && start-server-and-test 'http-server ./build -c-1' 8080 'npm run jasmine'",
