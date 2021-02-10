@@ -1,4 +1,4 @@
-import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
+import { addClass, outerHeight, outerWidth, preciseOuterWidth } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 
 /**
@@ -160,7 +160,7 @@ class GhostTable {
       this.injectTable();
     }
     arrayEach(this.columns, (column) => {
-      callback(column.col, outerWidth(column.table));
+      callback(column.col, preciseOuterWidth(column.table));
     });
   }
 

@@ -762,11 +762,48 @@ export function getComputedStyle(element, rootWindow = window) {
 /**
  * Returns the element's outer width.
  *
+ * @see {preciseOuterWidth}
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
   return Math.ceil(element.getBoundingClientRect().width);
+}
+
+/**
+ * Returns the element's outer width rounded up to the nearest integer,
+ * accounting for any scale transforms on parent elements. This function is
+ * much more costly than `outerWidth`, use sparingly.
+ *
+ * @param {HTMLElement} element An element to get the width from.
+ * @returns {number} Element's outer width.
+ */
+export function preciseOuterWidth(element) {
+  // A dummy element with a constant size, used to calculate the `scale`.
+
+  // @reviewer, how do I fix the eslint error here?
+  const $dummy = document.createElement('div');
+  const factor = 100;
+
+  $dummy.style.width = `${factor}px`;
+  $dummy.style.display = 'inline-block';
+  $dummy.style.position = 'absolute';
+  $dummy.style.left = '0';
+  $dummy.style.top = '0';
+  $dummy.style.visibility = 'hidden';
+
+  element.appendChild($dummy);
+
+  const dummyRect = $dummy.getBoundingClientRect();
+
+  const scaleX = dummyRect.width / factor;
+
+  const elRect = element.getBoundingClientRect();
+
+  // @reviewer, Maybe keep the element for performance?
+  $dummy.remove();
+
+  return Math.ceil(elRect.width / scaleX);
 }
 
 /**

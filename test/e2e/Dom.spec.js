@@ -157,7 +157,7 @@ describe('Handsontable.Dom', () => {
     });
   });
 
-  describe('outerWidth', () => {
+  fdescribe('outerWidth', () => {
     let element;
 
     beforeEach(() => {
@@ -185,6 +185,43 @@ describe('Handsontable.Dom', () => {
       element.css({ width: '10.5px' });
 
       expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
+    });
+  });
+
+  fdescribe('preciseOuterWidth', () => {
+    let element;
+    let container;
+
+    beforeEach(() => {
+      container = $('<div/>').appendTo('body');
+      container.css('scaleX', '0.75');
+      element = $('<div/>').appendTo(container);
+    });
+
+    afterEach(() => {
+      container.remove();
+      element.remove();
+
+      container = null;
+      element = null;
+    });
+
+    it('should properly calculate element\'s width if it\'s an integer value', () => {
+      element.css({ width: '10px' });
+
+      expect(Handsontable.dom.preciseOuterWidth(element[0])).toBe(10);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (less than x.5)', () => {
+      element.css({ width: '10.25px' });
+
+      expect(Handsontable.dom.preciseOuterWidth(element[0])).toBe(11);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (equal or greater than x.5)', () => {
+      element.css({ width: '10.5px' });
+
+      expect(Handsontable.dom.preciseOuterWidth(element[0])).toBe(11);
     });
   });
 
