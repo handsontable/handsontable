@@ -46,14 +46,7 @@ To preview the arbitary code snippet on CodeSandbox you must get the link to the
 
 ### Creating new snippets
 
-All new snippets should be created in the `/examples/next` directory. Based on them you can create new code snippets, the next after the last published version. Code snippets within the `next` directory have Handsontable and Handsontable's wrapper version set to the latest version distributed by the NPM.
-
-For a new code snippet you should use the code snippet template. You can find them in the `/examples/templates` (***don't forget*** to fill out the `package.json` and a `README.md` file with all the necessary information about the new code snippet).
-
-1. Add new snippets using the code snippet template within the `/next` directory with paths followed by the mentioned convention `<version_number>/<category>/<framework>/<example_path>`.
-2. Commit and push the snippets to the repo.
-3. In Github Actions run a manual workflow with the `<version_number>` input for the Handsontable and Handsontable's wrapper version. The new folder will be created: `/examples/<version_number>`. Within that folder, new code snippets will be created with Handsontable and Handsontable's wrapper version fixed to the `<version_number>`. Note that the Handsontable **version must be available on the NPM** first.
-4. The new code snippets will be deployed to the Github Pages and will be available under URL mentioned in the [Live preview](#live-preview) section.
+Read the [Templates Guideline](./templates/README.md) for the detailed information about new code examples creation.
 
 ### Editing existing snippets
 
