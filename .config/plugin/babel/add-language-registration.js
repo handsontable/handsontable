@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The plugin participates in transpiling the legacy language files (e.q. import `languages/pl-PL`).
  * The files have to be modified to be compatible with counterparts CommonJS
@@ -6,18 +7,16 @@
  * itself. And at the end of the file, the code about language registration has
  * to be injected.
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 const { types } = require('@babel/core');
 const { declare } = require('@babel/helper-plugin-utils');
-const { existsSync, lstatSync } = require('fs');
-const { dirname, resolve } = require('path');
 
-let HOT_LIBRARY_NAME = 'Handsontable';
-let HOT_MODULE_NAME = 'handsontable';
+const HOT_LIBRARY_NAME = 'Handsontable';
+const HOT_MODULE_NAME = 'handsontable';
 
-const createVisitor = ({ declaration, origArgs }) => {
-  return (path, { file }) => {
+const createVisitor = () => {
+  return (path) => {
     const { node: { source, exportKind, importKind } } = path;
-    const { opts: { filename } } = file;
     const isTypeOnly = exportKind === 'type' || importKind === 'type';
 
     // This adds the expression statement with language registration
@@ -83,20 +82,14 @@ const createVisitor = ({ declaration, origArgs }) => {
   };
 };
 
-module.exports = declare((api, options) => {
+module.exports = declare((api) => {
   api.assertVersion(7);
 
   return {
     name: 'register-language',
     visitor: {
-      ImportDeclaration: createVisitor({
-        declaration: types.importDeclaration,
-        origArgs: ({ node: { specifiers } }) => [specifiers],
-      }),
-      ExportDefaultDeclaration: createVisitor({
-        declaration: types.exportDefaultDeclaration,
-        origArgs: () => [],
-      }),
+      ImportDeclaration: createVisitor(),
+      ExportDefaultDeclaration: createVisitor(),
     }
   };
 });
