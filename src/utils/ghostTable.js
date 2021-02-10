@@ -1,4 +1,4 @@
-import { addClass, outerHeight, outerWidth, preciseOuterWidth } from './../helpers/dom/element';
+import { addClass, outerHeight, preciseOuterWidth } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 
 /**
