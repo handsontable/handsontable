@@ -6,7 +6,6 @@
  */
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-// eslint-disable-next-line import/extensions
 import { spawnProcess } from './utils/index.mjs';
 
 // eslint-disable-next-line no-unused-expressions

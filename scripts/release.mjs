@@ -9,7 +9,6 @@ import {
   displayErrorMessage,
   displaySeparator,
   spawnProcess,
-// eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
 displaySeparator();

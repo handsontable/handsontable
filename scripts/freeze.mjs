@@ -13,7 +13,6 @@ import {
   displaySeparator,
   scheduleRelease,
   spawnProcess
-// eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
 const [version, releaseDate] = process.argv.slice(2);

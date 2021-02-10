@@ -7,7 +7,6 @@ import path from 'path';
 import {
   displayConfirmationMessage,
   displayWarningMessage
-// eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
 const [pkgName] = process.argv.slice(2);

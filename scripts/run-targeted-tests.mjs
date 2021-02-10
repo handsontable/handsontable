@@ -2,11 +2,33 @@ import execa from 'execa';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import glob from 'glob';
-// eslint-disable-next-line import/extensions
 import { spawnProcess } from './utils/index.mjs';
 import hotPackageJson from '../package.json';
 
-// eslint-disable-next-line no-unused-expressions
+const CONFIG_PATHS = [
+  '.config',
+  'scripts'
+];
+const IGNORED_PATHS = [
+  '.changelogs',
+  '.codesandbox',
+  '.github',
+  'bin',
+  'resources',
+  '.editorconfig',
+  '.gitattributes',
+  '.gitignore',
+  '.stylelintignore',
+  'CODE_OF_CONDUCT.md',
+  'handsontable-general-terms.pdf',
+  'handsontable-non-commercial-license.pdf',
+  'hot.config.js',
+  'LICENSE.txt',
+  'README.md',
+  'stylelint.config.js',
+  'CHANGELOG.md',
+];
+
 const argv = yargs(hideBin(process.argv))
   .alias('p', 'pipeline')
   .describe('p', 'Define the pipeline number the tests will be triggered on.' +
@@ -76,7 +98,11 @@ async function distributeBetweenPipelines(modifiedProjects) {
 
       break;
     default:
-      await spawnProcess('npm run all test');
+      // eslint-disable-next-line no-restricted-syntax
+      for (const projectName of modifiedProjects) {
+        // eslint-disable-next-line no-await-in-loop
+        await spawnProcess(`npm run in ${projectName} test`);
+      }
   }
 }
 
@@ -84,17 +110,32 @@ async function distributeBetweenPipelines(modifiedProjects) {
   const currentBranch = (
     await execa('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' })
   ).stdout.replace(/(\n)/gm, '');
+  const filesModifiedInLastCommit = (
+    await execa('git', ['log', '--name-only', '--oneline', 'HEAD^..HEAD'], { encoding: 'utf8' })
+  ).stdout.split('\n');
   const fullTestBranchRegex = new RegExp('^(master|develop|release\/.{5,})$');
+  const configPathsRegex = new RegExp(`^(${CONFIG_PATHS.join('|').replace(/\./g,'\\.')})`);
   const fullTestBranchMatch = fullTestBranchRegex.test(currentBranch);
+  let configPathMatched = false;
+
+  filesModifiedInLastCommit.shift();
+
+  filesModifiedInLastCommit.some((fileUrl) => {
+    if (configPathsRegex.test(fileUrl)) {
+      configPathMatched = true;
+    }
+
+    return configPathMatched;
+  });
 
   // Tests triggered on the `master`, `develop` and `release/` branches.
-  if (fullTestBranchMatch) {
+  if (fullTestBranchMatch || configPathMatched) {
     workspacePackages.forEach((packagesLocation) => {
       const subdirs = glob.sync(packagesLocation);
 
       subdirs.forEach((subdir) => {
         if (subdir === '.') {
-          touchedProjects.push('handsontable');
+          touchedProjects.unshift('handsontable');
 
         } else {
           const splitSubdir = subdir.split('/');
@@ -108,15 +149,11 @@ async function distributeBetweenPipelines(modifiedProjects) {
     });
 
   } else {
-    const filesModifiedInLastCommit = (
-      await execa('git', ['log', '--name-only', '--oneline', 'HEAD^..HEAD'], { encoding: 'utf8' })
-    ).stdout.split('\n');
+    const ignoredPathsRegex = new RegExp(`^(${IGNORED_PATHS.join('|').replace(/\./g,'\\.')})`);
     let filesMatchedCount = 0;
 
-    filesModifiedInLastCommit.shift();
-
     filesModifiedInLastCommit.forEach((fileUrl) => {
-      if (fileUrl.includes('CHANGELOG')) {
+      if (ignoredPathsRegex.test(fileUrl)) {
         filesMatchedCount += 1;
 
         return;
@@ -124,7 +161,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
 
       workspacePackages.forEach((packageWildcard) => {
         if (packageWildcard !== '.') {
-          const escapedPackageUrl = packageWildcard.replace('*', '').replace('/', '\\/');
+          const escapedPackageUrl = packageWildcard.replace(/\*/g, '').replace(/\//g, '\\/');
           const packageMatch = fileUrl.match(`(${escapedPackageUrl})(?<projectName>[^\/]*)(\/)`);
 
           if (packageMatch) {
@@ -141,12 +178,12 @@ async function distributeBetweenPipelines(modifiedProjects) {
     });
 
     if (filesMatchedCount < filesModifiedInLastCommit.length) {
-      touchedProjects.push('handsontable');
+      touchedProjects.unshift('handsontable');
     }
   }
 
-  // If the changes consist of anything except Handsontable, rebuild the handsontable package for linking.
-  if (touchedProjects.length > 1 && touchedProjects.includes('handsontable')) {
+  // If testing anything but handsontable, build handsontable first.
+  if (!touchedProjects.includes('handsontable')) {
     await spawnProcess('npm run in handsontable build:es');
   }
 

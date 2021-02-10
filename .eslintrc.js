@@ -184,6 +184,12 @@ module.exports = {
         "jsdoc/require-returns": "off",
         "handsontable/restricted-module-imports": "off",
       }
-    }
+    },
+    {
+      "files": ["scripts/**"],
+      "rules": {
+        "import/extensions": "off",
+      }
+    },
   ],
 }
