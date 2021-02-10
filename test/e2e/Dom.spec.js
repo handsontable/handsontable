@@ -157,6 +157,37 @@ describe('Handsontable.Dom', () => {
     });
   });
 
+  describe('outerWidth', () => {
+    let element;
+
+    beforeEach(() => {
+      element = $('<div/>').appendTo('body');
+    });
+
+    afterEach(() => {
+      element.remove();
+      element = null;
+    });
+
+    it('should properly calculate element\'s width if it\'s an integer value', () => {
+      element.css({ width: '10px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(10);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (less than x.5)', () => {
+      element.css({ width: '10.25px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (equal or greater than x.5)', () => {
+      element.css({ width: '10.5px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
+    });
+  });
+
   xit('should return correct offset for table cell (table with caption)', () => {
     const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0">' +
                      '<div style="height: 30px">caption</div></caption><tbody>' +
