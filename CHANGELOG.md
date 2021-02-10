@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- UNVERSIONED -->
 
+## [8.3.1] - 2021-02-10
+
+### Fixed
+- Fixed an issue where the CSS files could be eliminated during tree-shaking [#7516](https://github.com/handsontable/handsontable/issues/7516)
+
 ## [8.3.0] - 2021-01-28
 
 ### Added
