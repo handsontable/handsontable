@@ -29,7 +29,7 @@ jobs:
         run: npm run examples:version ${{ github.event.inputs.hotVersion }}
         # this action can throw an error, when the examples for specific version exist already. If they exist, move to the next action
         continue-on-error: true
-      - name: Install the code examples
+      - name: Install dependencies of code examples
         run: npm run examples:install ${{ github.event.inputs.hotVersion }}
       - name: Build the code examples
         run: NODE_ENV=$CI npm run examples:build ${{ github.event.inputs.hotVersion }}
@@ -40,11 +40,14 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
       - name: Commit
+        # make commit only when there is something to commit, so when new examples have been made
         run: |
           git pull --ff
-          git add examples/${{ github.event.inputs.hotVersion }}
-          git commit -m "Update code examples with version: ${{ github.event.inputs.hotVersion }}"
-          git push origin master
+          if [ "$(git status --porcelain)" ]; then
+            git add examples/${{ github.event.inputs.hotVersion }}
+            git commit -m "Update code examples with version: ${{ github.event.inputs.hotVersion }}"
+            git push origin master
+          fi
       - name: Deploy
         uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501 # https://github.com/peaceiris/actions-gh-pages/releases/tag/v3.7.3
         with:

@@ -26,9 +26,6 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "aot": true,
-            "assets": [
-              "src/favicon.ico"
-            ],
             "styles": [
               "src/styles.scss",
               "node_modules/handsontable/dist/handsontable.full.css"

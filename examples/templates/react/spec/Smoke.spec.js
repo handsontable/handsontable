@@ -18,7 +18,7 @@ describe('Smoke check', () => {
         await browser.close();
     });
 
-    it('should be always false', async () => {
+    it('should fail', async () => {
         // failing assertion, this should encourage developers to write tests for new code snippets
         await expect(false).toBeTruthy();
     });
