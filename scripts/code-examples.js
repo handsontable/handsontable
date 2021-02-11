@@ -13,8 +13,6 @@ const HOT_WRAPPERS = ['@handsontable/react', '@handsontable/angular', '@handsont
 
 const [/* node bin */, /* path to this script */, shellCommand, hotVersion] = process.argv;
 
-const currentEnvironment = process.env.NODE_ENV;
-
 // Function search recursively in the provided `dirPath` for the package.json file
 // and gets the project directory path.
 const getExamplesFolders = (dirPath, exampleFolders) => {
