@@ -29,3 +29,12 @@ export function displayConfirmationMessage(message) {
   // eslint-disable-next-line no-restricted-globals
   console.log(chalk.green(`${message}`));
 }
+
+/**
+ * Display a separator surrounded by empty lines. (useful to temporarily visually distance the output from the
+ * `experimental` warnings).
+ */
+export function displaySeparator() {
+  // eslint-disable-next-line no-restricted-globals
+  console.log('\n-----------------------------------------------------\n');
+}

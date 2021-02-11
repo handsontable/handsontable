@@ -7,7 +7,6 @@ import path from 'path';
 import {
   displayConfirmationMessage,
   displayWarningMessage
-// eslint-disable-next-line import/extensions
 } from './utils/index.mjs';
 
 const [pkgName] = process.argv.slice(2);
@@ -15,23 +14,36 @@ const PACKAGE_LOCATIONS = new Map([
   ['handsontable', './tmp'],
   ['@handsontable/angular', './wrappers/angular-handsontable/dist/hot-table']
 ]);
+const linkPackage = (packageName, packageLocation) => {
+  if (fse.pathExistsSync(`${packageLocation}`)) {
+    fse.removeSync(
+      path.resolve(`./node_modules/${packageName}`),
+    );
 
-for (const [packageName, packageLocation] of PACKAGE_LOCATIONS) {
-  if (!pkgName || (pkgName && packageName === pkgName)) {
-    if (fse.pathExistsSync(`${packageLocation}`)) {
-      fse.removeSync(
-        path.resolve(`./node_modules/${packageName}`),
-      );
+    fse.ensureSymlinkSync(
+      path.resolve(`${packageLocation}`),
+      path.resolve(`./node_modules/${packageName}`),
+    );
 
-      fse.ensureSymlinkSync(
-        path.resolve(`${packageLocation}`),
-        path.resolve(`./node_modules/${packageName}`),
-      );
+    displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
 
-      displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
-
-    } else {
-      displayWarningMessage(`Cannot create symlink to ${packageLocation} - the path doesn't exits.`);
-    }
+  } else {
+    displayWarningMessage(`Cannot create symlink to ${packageLocation} - the path doesn't exits.`);
   }
+};
+
+if (pkgName && PACKAGE_LOCATIONS.has(pkgName)) {
+  linkPackage(pkgName, PACKAGE_LOCATIONS.get(pkgName));
+
+} else if (!pkgName) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const [packageName, packageLocation] of PACKAGE_LOCATIONS) {
+    linkPackage(packageName, packageLocation);
+  }
+
+} else {
+  displayWarningMessage(
+    `No package location for provided ${pkgName}, doing nothing. Known page names: ${
+      Array.from(PACKAGE_LOCATIONS.keys()).join(', ')
+    }.`);
 }

@@ -45,7 +45,7 @@
 .handsontable .table > thead > tr > td,
 .handsontable .table > thead > tr > th {
   line-height: 21px;
-  padding: 0 4px;
+  padding: 0;
 }
 
 .col-lg-1.handsontable, .col-lg-10.handsontable, .col-lg-11.handsontable, .col-lg-12.handsontable,

@@ -1,5 +1,4 @@
 import path from 'path';
-import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import moment from 'moment';
 import replace from 'replace-in-file';
@@ -9,16 +8,11 @@ import {
   displayErrorMessage,
   displayConfirmationMessage
 } from './index.mjs';
-import JSDOMGlobal from 'jsdom-global';
-import chalk from 'chalk';
-import glob from 'glob';
+
+import hotPackageJson from '../../package.json';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Using `require` exclusively to import `json` files. Prevents 'experimental' warnings from being thrown in the
-// console.
-const require = createRequire(import.meta.url);
-const hotPackageJson = require('../../package.json');
 const workspacePackages = hotPackageJson.workspaces.packages;
 
 /**
@@ -39,7 +33,7 @@ export function isVersionValid(version) {
  * string}`.
  */
 export function validateReleaseDate(date) {
-  const dateObj = moment(date, 'DD/MM/YYYY');
+  const dateObj = moment(date, 'DD/MM/YYYY', true);
   const now = moment();
   const returnObj = {
     valid: true,
@@ -71,17 +65,16 @@ export function setVersion(version, packages = workspacePackages) {
     const replacementStatus = replace.sync({
       files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
       from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],
-      to: (fullMatch, ...args) => {
+      to: (fullMatch, ...[semverPrefix, previousVersion]) => {
         if (fullMatch.indexOf('version') > 0) {
           // Replace the version with the new version.
           return `"version": "${version}"`;
 
         } else {
-          const prerelease = !!semver.prerelease(version);
-          const depVersion = `${args[0]}${parseInt(semver.major(version), 10) - (+prerelease)}.0.0`;
+          const maxSatisfyingVersion = `${semver.major(semver.maxSatisfying([version, previousVersion], '*'))}.0.0`;
 
           // Replace the `handsontable` dependency with the current major (or previous major, if it's a prerelease).
-          return `"handsontable": "${depVersion}"`;
+          return `"handsontable": "${semverPrefix}${maxSatisfyingVersion}"`;
         }
       },
       ignore: [
@@ -259,7 +252,7 @@ Are the version number and release date above correct?`,
 
   } else {
     await inquirer.prompt(questions).then(async (answers) => {
-      const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY');
+      const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY', true);
 
       const newVersion =
         answers.changeType !== 'custom' ?
@@ -275,96 +268,5 @@ Are the version number and release date above correct?`,
         }
       });
     });
-  }
-}
-
-/**
- * Verify if the builds of all of the packages defined as workspaces have correct version number in them.
- * Currently it's checking the following builds:
- * - the one declared as default,
- * - UMD (if it's declared under the 'jsdelivr' key in the package.json file or a `umd` key in this function's
- * settings).
- */
-export async function verifyBundles() {
-  const packagesInfo = {
-    handsontable: {
-      className: 'Handsontable',
-      umd: 'tmp/dist/handsontable.full.min.js',
-      entryFile: 'tmp/index.mjs',
-      defaultExport: true
-    },
-    '@handsontable/angular': {
-      className: 'HotTableModule'
-    },
-    '@handsontable/react': {
-      className: 'HotTable'
-    },
-    '@handsontable/vue': {
-      className: 'HotTable'
-    }
-  };
-  const hotPackageJson = require('../../package.json');
-  const mismatchedVersions = [];
-  JSDOMGlobal();
-
-  console.log(`\nMain package.json version:\n${chalk.green(hotPackageJson.version)}\n`);
-
-  for (const packagesLocation of workspacePackages) {
-    const subdirs = glob.sync(packagesLocation);
-
-    for (const subdir of subdirs) {
-      const packageJsonLocation = `../../${subdir}/package.json`;
-      const packageJson = require(packageJsonLocation);
-      const packageName = packageJson.name;
-      const defaultPackage = await import(
-        packagesInfo[packageName].entryFile ?
-          `../../${subdir}/${packagesInfo[packageName].entryFile}` :
-          packageName
-        );
-      let defaultPackageVersion = null;
-      let umdPackageVersion = null;
-      let umdPackage = null;
-
-      if (packagesInfo[packageName].umd || packageJson.jsdelivr) {
-        umdPackage = await import(
-          packagesInfo[packageName].entryFile ?
-            `../../${subdir}/${packagesInfo[packageName].umd}` :
-            `${packageName}/${packageJson.jsdelivr}`
-          );
-        umdPackage = umdPackage.default;
-      }
-
-      if (packagesInfo[packageName]?.defaultExport) {
-        defaultPackageVersion = defaultPackage.default.version;
-
-      } else {
-        defaultPackageVersion = defaultPackage[packagesInfo[packageName]?.className]?.version;
-
-        if (umdPackage) {
-          umdPackageVersion = umdPackage[packagesInfo[packageName]?.className]?.version;
-        }
-      }
-
-      if (hotPackageJson.version !== defaultPackageVersion) {
-        mismatchedVersions.push(`${packageName} (default) - ${defaultPackageVersion}`);
-      }
-
-      if (umdPackageVersion && (hotPackageJson.version !== umdPackageVersion)) {
-        mismatchedVersions.push(`${packageName} (UMD) - ${umdPackageVersion}`);
-      }
-    }
-  }
-
-  if (mismatchedVersions.length > 0) {
-    mismatchedVersions.forEach((mismatch) => {
-      displayErrorMessage(`\nMismatched versions in ${mismatch}.`);
-    });
-
-    process.exit(1);
-
-  } else {
-    displayConfirmationMessage('\nAll packages have the expected version number.\n');
-
-    process.exit(0);
   }
 }

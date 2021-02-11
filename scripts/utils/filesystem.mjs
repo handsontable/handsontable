@@ -1,8 +1,5 @@
 import rimraf from 'rimraf';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const hotPackageJson = require('../../package.json');
+import hotPackageJson from '../../package.json';
 
 const workspaces = hotPackageJson.workspaces.packages;
 
