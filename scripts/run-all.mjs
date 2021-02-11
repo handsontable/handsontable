@@ -8,7 +8,6 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { spawnProcess } from './utils/index.mjs';
 
-// eslint-disable-next-line no-unused-expressions
 const argv = yargs(hideBin(process.argv))
   .alias('e', 'exclude')
   .array('e')

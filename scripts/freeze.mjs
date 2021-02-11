@@ -19,17 +19,19 @@ const [version, releaseDate] = process.argv.slice(2);
 
 displaySeparator();
 
-// Initial verification prompt
-inquirer.prompt([
-  {
-    type: 'confirm',
-    name: 'continueFreeze',
-    message: 'This script will create and commit a code-freeze of the entire repo. \nContinue?',
-    default: true,
-  }
-]).then(async(answers) => {
+(async() => {
+  // Initial verification prompt
+  const answers = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'continueFreeze',
+      message: 'This script will create and commit a code-freeze of the entire repo. \nContinue?',
+      default: true,
+    }
+  ]);
+
   if (!answers.continueFreeze) {
-    return;
+    process.exit(0);
   }
 
   // Check if we're using the minimum required npm version.
@@ -108,4 +110,4 @@ inquirer.prompt([
   await spawnProcess(`git commit -m "${hotPackageJson.version}"`);
 
   await spawnProcess(`git flow release publish ${hotPackageJson.version}`);
-});
+})();

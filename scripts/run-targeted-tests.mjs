@@ -31,6 +31,7 @@ const IGNORED_PATHS = [
 
 const argv = yargs(hideBin(process.argv))
   .alias('p', 'pipeline')
+  .number('p')
   .describe('p', 'Define the pipeline number the tests will be triggered on.' +
     '\n If HOT was modified or the tests are triggered on a full-test branch:' +
     '\n - pipeline 1: `production` tests for Handsontable and package tests.' +
@@ -64,14 +65,12 @@ async function distributeBetweenPipelines(modifiedProjects) {
         await spawnProcess('npm run in handsontable test:production');
       }
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const projectName of modifiedProjects) {
         if (
           (!isHandsontableTouched &&
             modifiedProjects.indexOf(projectName) < Math.floor(modifiedProjects.length / pipelineCount)) ||
           (isHandsontableTouched && projectName !== 'handsontable')
         ) {
-          // eslint-disable-next-line no-await-in-loop
           await spawnProcess(`npm run in ${projectName} test`);
         }
       }
@@ -85,22 +84,18 @@ async function distributeBetweenPipelines(modifiedProjects) {
         await spawnProcess('npm run in handsontable test:e2e');
       }
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const projectName of modifiedProjects) {
         if (
           !isHandsontableTouched &&
           modifiedProjects.indexOf(projectName) >= Math.floor(modifiedProjects.length / pipelineCount)
         ) {
-          // eslint-disable-next-line no-await-in-loop
           await spawnProcess(`npm run in ${projectName} test`);
         }
       }
 
       break;
     default:
-      // eslint-disable-next-line no-restricted-syntax
       for (const projectName of modifiedProjects) {
-        // eslint-disable-next-line no-await-in-loop
         await spawnProcess(`npm run in ${projectName} test`);
       }
   }
@@ -184,7 +179,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
 
   // If there was anything touched except for handsontable, build handsontable for it to be
   // available for import in the other projects.
-  if (touchedProjects.length > 1 || touchedProjects[0] !== 'handsontable') {
+  if (touchedProjects.length > 1 || (touchedProjects.length === 1 && touchedProjects[0] !== 'handsontable')) {
     await spawnProcess('npm run in handsontable build');
   }
 
