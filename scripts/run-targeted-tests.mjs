@@ -182,10 +182,10 @@ async function distributeBetweenPipelines(modifiedProjects) {
     }
   }
 
-  // If there was anything touched except for handsontable, build the `es` version of handsontable for it to be
+  // If there was anything touched except for handsontable, build handsontable for it to be
   // available for import in the other projects.
   if (touchedProjects.length > 1 || touchedProjects[0] !== 'handsontable') {
-    await spawnProcess('npm run in handsontable build:es');
+    await spawnProcess('npm run in handsontable build');
   }
 
   await distributeBetweenPipelines(touchedProjects);
