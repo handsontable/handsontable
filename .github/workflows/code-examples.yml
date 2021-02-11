@@ -10,8 +10,6 @@ jobs:
   Examples:
     name: Version and Deploy
     runs-on: ubuntu-18.04
-    env:
-      CI: gh-actions
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node 15
@@ -32,9 +30,9 @@ jobs:
       - name: Install dependencies of code examples
         run: npm run examples:install ${{ github.event.inputs.hotVersion }}
       - name: Build the code examples
-        run: NODE_ENV=$CI npm run examples:build ${{ github.event.inputs.hotVersion }}
+        run: npm run examples:build ${{ github.event.inputs.hotVersion }}
       - name: Test each code example
-        run: NODE_ENV=$CI npm run examples:test ${{ github.event.inputs.hotVersion }}
+        run: npm run examples:test ${{ github.event.inputs.hotVersion }}
       - name: Setup git config
         run: |
           git config user.name "GitHub Actions Bot"

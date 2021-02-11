@@ -16,8 +16,7 @@
     "build": "PUBLIC_URL=. react-scripts build && node post-build.js",
     "eject": "react-scripts eject",
     "jasmine": "node spec/support/jasmine.config.js",
-    "test": "npm run build && start-server-and-test 'http-server ./build -c-1' 8080 'npm run jasmine'",
-    "test:ci": "start-server-and-test 'http-server ./dist -c-1' 8080 'npm run jasmine'"
+    "test": "start-server-and-test 'http-server ./dist -c-1' 8080 'npm run jasmine'"
   },
   "dependencies": {
     "@handsontable/react": "latest",

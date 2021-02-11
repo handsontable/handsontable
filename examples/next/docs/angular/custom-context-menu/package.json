@@ -16,8 +16,7 @@
     "build": "ng build",
     "serve": "http-server ./dist -c-1 --port 8080",
     "jasmine": "node spec/support/jasmine.config.js",
-    "test": "npm run build && start-server-and-test 'npm run serve' 8080 'npm run jasmine'",
-    "test:ci": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
+    "test": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
   },
   "private": true,
   "dependencies": {

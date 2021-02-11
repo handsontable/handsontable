@@ -61,7 +61,7 @@ You can launch the `http-server` or any other server if you want to test and che
 
 To see code examples in action run these commands:
 
-1. `npm run examples:build <version_number>` - will install dependencies and build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
+1. `npm run examples:build <version_number>` - will build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
 2. `npm run examples:start` - it will start the `http-server` right in the `/examples/tmp` on PORT `8080`. So the URL to the specific code example would be `http://localhost:8080/8.1.0/docs/angular/custom-context-menu/`. The URL follows the same convention as mentioned in the [Live on production](#live-on-production) section.
 
 #### How to run the arbitrary code example
@@ -91,4 +91,4 @@ Each code example has its own test suites which you can run in two ways:
 #### How to run tests for the versioned code examples locally
 
 1. Code examples **must** exist in the `examples/<version_number>` directory.
-2. `npm run examples:test <version_number>`. This command will run `npm install` and `npm run test` for each code example (to know what the `npm run test` command does check out the section above).
+2. `npm run examples:test <version_number>`. This command will run `npm run test` for each code example (to know what the `npm run test` command does check out the section above).

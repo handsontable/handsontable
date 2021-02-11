@@ -75,7 +75,6 @@ const versionedDir = path.join(REPO_ROOT_DIR, 'examples', hotVersion);
 const versionedExamplesExist = fs.existsSync(versionedDir);
 
 switch (shellCommand) {
-
   case 'version': { // npm run examples:version <version_number>
     if (versionedExamplesExist) {
       throw Error(`Examples already exist: ${path.join('examples', hotVersion)}`);
@@ -110,14 +109,8 @@ switch (shellCommand) {
     }
     const examplesFolders = getExamplesFolders(versionedDir);
     examplesFolders.forEach((exampleDir) => {
-      if (currentEnvironment === 'gh-actions') {
-        runNpmCommandInExample(exampleDir, 'npm run build');
-      } else {
-        rimraf.sync(path.join(exampleDir, 'node_modules'));
-        rimraf.sync(path.join(exampleDir, 'dist'));
-        runNpmCommandInExample(exampleDir, 'npm install');
-        runNpmCommandInExample(exampleDir, 'npm run build');
-      }
+      rimraf.sync(path.join(exampleDir, 'dist'));
+      runNpmCommandInExample(exampleDir, 'npm run build');
       const prodOutputDir = path.join(exampleDir, 'dist');
       const deployDir = path.join(TMP_DIR, exampleDir.split('examples')[1]);
       fs.mkdirSync(deployDir, { recursive: true });
@@ -132,17 +125,11 @@ switch (shellCommand) {
     }
     const examplesFolders = getExamplesFolders(versionedDir);
     examplesFolders.forEach((exampleDir) => {
-      if (currentEnvironment === 'gh-actions') {
-        runNpmCommandInExample(exampleDir, 'npm run test:ci');
-      } else {
-        runNpmCommandInExample(exampleDir, 'npm install');
-        runNpmCommandInExample(exampleDir, 'npm run test');
-      }
+      runNpmCommandInExample(exampleDir, 'npm run test');
     });
     break;
   }
 
   default:
     throw Error('Command doesn\'t exists');
-
 }

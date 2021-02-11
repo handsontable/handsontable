@@ -18,8 +18,7 @@
     "build": "parcel build index.html --public-url '.'",
     "jasmine": "node spec/support/jasmine.config.js",
     "serve": "http-server ./dist -c-1 -p 8080",
-    "test": "npm run build && start-server-and-test 'npm run serve' 8080 'npm run jasmine'",
-    "test:ci": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
+    "test": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
   },
   "dependencies": {
     "handsontable": "latest"
