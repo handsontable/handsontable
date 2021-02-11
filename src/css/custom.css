@@ -24,7 +24,9 @@
   --ifm-code-font-size: 95%;
   --ifm-toc-border-color: #e6ebf8;
 
-  --ifm-menu-color: 1c1e21;
+  --ifm-menu-color: #394C61;
+  --ifm-menu-color-hover: #293A4A;
+  --ifm-menu-color-background-hover: none;
   --ifm-menu-link-padding-vertical: 2px;
   --ifm-menu-link-padding-horizontal: 12px;
   --ifm-menu-color-active: #104bcc;
@@ -59,6 +61,10 @@
   font-weight: 400;
 }
 
+.menu__link:hover {
+  color: var(--ifm-menu-color-hover);
+}
+
 .menu__link--sublist {
   font-weight: 600;
 }
@@ -68,7 +74,7 @@
 }
 
 .menu {
-  padding: 32px 10px 20px 20px !important;
+  padding: 22px 20px 20px 20px !important;
   overflow-y: hidden;
 }
 
