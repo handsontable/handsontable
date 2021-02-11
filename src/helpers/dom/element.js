@@ -795,13 +795,12 @@ export function preciseOuterWidth(element) {
   element.appendChild($dummy);
 
   const dummyRect = $dummy.getBoundingClientRect();
-
   const scaleX = dummyRect.width / factor;
-
-  const elRect = element.getBoundingClientRect();
 
   // @reviewer, Maybe keep the element for performance?
   $dummy.remove();
+
+  const elRect = element.getBoundingClientRect();
 
   return Math.ceil(elRect.width / scaleX);
 }
