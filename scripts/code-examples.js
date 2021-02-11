@@ -114,6 +114,7 @@ switch (shellCommand) {
         runNpmCommandInExample(exampleDir, 'npm run build');
       } else {
         rimraf.sync(path.join(exampleDir, 'node_modules'));
+        rimraf.sync(path.join(exampleDir, 'dist'));
         runNpmCommandInExample(exampleDir, 'npm install');
         runNpmCommandInExample(exampleDir, 'npm run build');
       }
