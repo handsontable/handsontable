@@ -2297,7 +2297,7 @@ export default () => {
      * You can also use the `useHeaders` option to take the column headers width into calculation.
      *
      * Note: Using {@link Core#colWidths} option will forcely disable {@link AutoColumnSize}.
-     * 
+     *
      * @memberof Options#
      * @type {object|boolean}
      * @default {syncLimit: 50}
