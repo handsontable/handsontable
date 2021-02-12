@@ -746,7 +746,10 @@ class TableView {
         this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
 
-        if (isImmediatePropagationStopped(event)) {
+        // TODO: Second argument is for workaround. Callback corresponding the method `updateSettings` disable plugin
+        // and enable it again. Disabling plugin closes the menu. Thus, calling the `updateSettings` in a body of
+        // any callback executed right after some context-menu action breaks the table (#7231).
+        if (isImmediatePropagationStopped(event) || this.instance.isDestroyed) {
           return;
         }
 

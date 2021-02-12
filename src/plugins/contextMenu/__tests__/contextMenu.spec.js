@@ -4082,4 +4082,29 @@ describe('ContextMenu', () => {
       });
     });
   });
+
+  it('should not throw error while calling the `updateSettings` in a body of any callback executed right ' +
+    'after some context-menu action', () => {
+    const errorSpy = spyOn(console, 'error');
+    const hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      contextMenu: true,
+      height: 100
+    });
+
+    hot.addHook('beforeCreateCol', () => {
+      hot.updateSettings({}); // Will close the menu. Instance of Handsontable being a context-menu is destroyed.
+    });
+
+    contextMenu();
+
+    $('.htContextMenu .ht_master .htCore')
+      .find('tbody td')
+      .not('.htSeparator')
+      .eq(2)
+      .simulate('mousedown')
+      .simulate('mouseup'); // Insert column left
+
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
 });
