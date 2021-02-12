@@ -1,4 +1,3 @@
-// @reviewer, I have no idea where to put these tests in a way that it would make sense
 describe('Core header widths under a scale transform', () => {
   beforeEach(function() {
     this.$container = $('<div/>').appendTo('body');
