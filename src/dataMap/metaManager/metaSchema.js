@@ -286,9 +286,11 @@ export default () => {
      * Defines column widths in pixels. Accepts number, string (that will be converted to a number), array of numbers
      * (if you want to define column width separately for each column) or a function (if you want to set column width
      * dynamically on each render).
+     * 
+     * Note that this option will disable {@link AutoColumnSize} plugin.
      *
      * @memberof Options#
-     * @type {number|number[]|string|string[]|Function}
+     * @type {number|(number|undefined)[]|string|(string|undefined)[]|Function}
      * @default undefined
      *
      * @example
@@ -299,8 +301,8 @@ export default () => {
      * // as a string, for each column.
      * colWidths: '100px',
      *
-     * // as an array, based on visual indexes. The rest of the columns have a default width.
-     * colWidths: [100, 120, 90],
+     * // as an array, based on visual indexes. Unspecified columns have a default width.
+     * colWidths: [100, 120, undefined, 90],
      *
      * // as a function, based on visual indexes.
      * colWidths: function(index) {
