@@ -13,6 +13,9 @@ describe('selection width under scale transform', () => {
   });
 
   afterEach(function() {
+    this.$root.css('transform-origin', '');
+    this.$root.css('transform', '');
+
     this.$wrapper.remove();
     this.wotInstance.destroy();
   });
