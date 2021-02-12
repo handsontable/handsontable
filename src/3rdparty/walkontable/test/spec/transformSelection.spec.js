@@ -1,6 +1,4 @@
 describe('selection width under scale transform', () => {
-  const debug = true;
-
   beforeEach(function() {
     this.$root = $('<div/>');
     this.$wrapper = $('<div></div>').addClass('handsontable').css({ overflow: 'hidden' });
@@ -15,10 +13,6 @@ describe('selection width under scale transform', () => {
   });
 
   afterEach(function() {
-    if (!debug) {
-      $('.wtHolder').remove();
-    }
-
     this.$wrapper.remove();
     this.wotInstance.destroy();
   });
