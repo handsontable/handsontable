@@ -294,7 +294,7 @@ export default () => {
      * Note: This option will forcely disable {@link AutoColumnSize} plugin.
      *
      * @memberof Options#
-     * @type {number|number[]|string|string[]|undefined[]|Function}
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      *
      * @example
@@ -330,7 +330,7 @@ export default () => {
      * An `undefined` value is for detection in {@link Hooks#modifyRowHeight} hook if plugin or setting changed the default size.
      *
      * @memberof Options#
-     * @type {number|number[]|string|string[]|undefined[]|Function}
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      *
      * @example
