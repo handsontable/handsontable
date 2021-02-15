@@ -1,5 +1,5 @@
 {
-  "title": "\"Fixed an issue with inconsistent documentation and TypeScript definitions for `colWidths` and `rowHeights` options\"",
+  "title": "Fixed an issue with inconsistent documentation and TypeScript definitions for `colWidths` and `rowHeights` options",
   "type": "changed",
   "issue": 7507,
   "breaking": false,
