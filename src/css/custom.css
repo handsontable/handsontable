@@ -58,7 +58,7 @@
 
 .menu__link {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .menu__link:hover {
@@ -75,11 +75,6 @@
 
 .menu {
   padding: 22px 20px 20px 20px !important;
-  overflow-y: hidden;
-}
-
-.menu:hover {
-  overflow-y: overlay; /* todo deprecated */
 }
 
 .menu__link--sublist:after {

@@ -82,7 +82,7 @@ function DocItem(props) {
           className={clsx('col', {
             [styles.docItemCol]: !hideTableOfContents,
           })}>
-          <DocVersionSuggestions />
+          {/*<DocVersionSuggestions />/* todo temporary hidden: https://handsoncode.slack.com/archives/C01KNSJ4M08/p1613073031005100?thread_ts=1612893176.005400&cid=C01KNSJ4M08 */}
           <div className={styles.docItemContainer}>
             <article>
               {showVersionBadge && (
@@ -146,7 +146,10 @@ function DocItem(props) {
                               >
                                 {new Date(
                                   lastUpdatedAt * 1000,
-                                ).toLocaleDateString()}
+                                ).toDateString()
+                                  .replace(/^\w+? /,'')
+                                  .replace(/(\d) (\d)/,'$1, $2')
+                                }
                               </time>
                               {lastUpdatedBy && ' '}
                             </>

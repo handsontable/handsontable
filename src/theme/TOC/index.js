@@ -24,7 +24,7 @@ function Headings({headings, isChild}) {
       className={
         isChild ? '' : 'table-of-contents table-of-contents__left-border'
       }>
-        <li className={styles.tocHeader}>Table of contents</li>
+        {isChild ? '' : <li className={styles.tocHeader}>Table of contents</li>}
       {headings.map((heading) => (
         <li key={heading.id}>
           <a
