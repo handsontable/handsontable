@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { execSync } from 'child_process';
 import execa from 'execa';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
