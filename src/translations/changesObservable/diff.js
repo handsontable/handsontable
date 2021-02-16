@@ -3,6 +3,7 @@ export function arrayDiff(baseArray, newArray) {
   let i = 0;
   let j = 0;
 
+  /* eslint-disable no-plusplus */
   for (; i < baseArray.length && j < newArray.length; i++, j++) {
     if (baseArray[i] !== newArray[j]) {
       changes.push({

@@ -107,5 +107,5 @@ export function sanitize(string, options) {
  * @returns {string}
  */
 export function camelCase(string) {
-  return string.replace(/-\D/g, (match) => match.charAt(1).toUpperCase());
+  return string.replace(/-\D/g, match => match.charAt(1).toUpperCase());
 }

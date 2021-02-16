@@ -79,7 +79,7 @@ class ChangesObservable {
     const diff = [];
 
     this.#collectedChanges.get(collectionName).forEach((a) => {
-      const { changeType, index, oldValue, newValue } = a;
+      const { changeType, oldValue, newValue } = a;
 
       if (changeType === 'multiple') {
         diff.push(...arrayDiff(oldValue, newValue));

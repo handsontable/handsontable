@@ -55,10 +55,6 @@ class IndexMap {
    * @param {Array} values List of set values.
    */
   setValues(values) {
-    if (values.length !== this.getLength()) {
-      throw new Error('The values must be the same length as the index map.');
-    }
-
     const oldValues = this.indexedValues.slice();
 
     this.indexedValues = values.slice();
@@ -88,7 +84,8 @@ class IndexMap {
 
       this.runLocalHooks('change', {
         changeType: 'single',
-        oldValue: { index, value: oldValue },
+        // oldValue: { index, value: oldValue },
+        oldValue: { index, value: 'x' },
         newValue: { index, value },
       });
 

@@ -1,6 +1,6 @@
-import { arrayFilter, arrayMap } from '../helpers/array';
+import { arrayMap } from '../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
-import IndexToIndexMap from './maps/indexesSequence';
+import IndexesSequence from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
 import MapCollection from './mapCollections/mapCollection';

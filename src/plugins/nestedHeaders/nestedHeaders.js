@@ -94,8 +94,6 @@ export class NestedHeaders extends BasePlugin {
     this.hot.columnIndexMapper
       .createChangesListener({ collectionName: 'hiding', mapsToExclude: ['CollapsibleColumns'] })
       .addLocalHook('change', (changes) => {
-        console.log('listener change 2', changes);
-
         changes.forEach(({ op, index, newValue: isHidden }) => {
           if (op === 'replace') {
             if (isHidden) {
@@ -104,7 +102,7 @@ export class NestedHeaders extends BasePlugin {
               this.#stateManager.triggerNodeModification('show-column', -1, index);
             }
           }
-        })
+        });
       });
 
     if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
