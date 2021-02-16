@@ -58,7 +58,7 @@ const updatePackageJsonWithVersion = (projectDir, version) => {
 
 const runNpmCommandInExample = (exampleDir, command) => {
   // eslint-disable-next-line
-  console.log(chalk.yellow(`"${command}" STARTED IN DIRECTORY "${exampleDir}"`));
+  console.log(chalk.cyan(`"${command}" STARTED IN DIRECTORY "${exampleDir}"`));
   execSync(command, {
     cwd: exampleDir,
     stdio: 'inherit',
