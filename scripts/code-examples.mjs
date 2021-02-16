@@ -29,6 +29,7 @@ const getExamplesFolders = (dirPath, exampleFolders) => {
       exampleFolders = getExamplesFolders(path.join(dirPath, file), exampleFolders);
       return;
     }
+
     if (file === 'package.json') {
       exampleFolders.push(dirPath);
     }
@@ -46,20 +47,24 @@ const getHotWrapperName = (packageJson) => {
 const updatePackageJsonWithVersion = (projectDir, version) => {
   const packageJsonPath = path.join(projectDir, 'package.json');
   const packageJson = fs.readJsonSync(packageJsonPath);
+
   const wrapper = getHotWrapperName(packageJson);
 
   packageJson.version = version;
   packageJson.dependencies.handsontable = version;
+
   if (wrapper) {
     // TODO: uncomment it when wrappers will be using the same versioning as Handsontable
-    // pJsonFile.dependencies[wrapper] = hotVersion;
+    // packageJson.dependencies[wrapper] = version;
   }
+
   fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
 };
 
 const runNpmCommandInExample = (exampleDir, command) => {
   // eslint-disable-next-line
   console.log(chalk.cyan(`"${command}" STARTED IN DIRECTORY "${exampleDir}"`));
+
   try {
     execa.sync(command, {
       cwd: exampleDir,
@@ -84,43 +89,60 @@ const versionedExamplesExist = fs.existsSync(versionedDir);
 
 switch (shellCommand) {
   case 'version': { // npm run examples:version <version_number>
+
     if (versionedExamplesExist) {
       throw Error(`Examples already exist: ${path.join('examples', hotVersion)}.`);
     }
+
     const nextExamplesFolders = getExamplesFolders(NEXT_EXAMPLES_DIR);
+
     nextExamplesFolders.forEach((nextDir) => {
       rimraf.sync(path.join(nextDir, 'node_modules'));
     });
+
     fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
+
     const versionedExamplesFolders = getExamplesFolders(versionedDir);
+
     versionedExamplesFolders.forEach((versionedExampleDir) => {
       updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
     });
+
     break;
   }
 
   case 'install': { // npm run examples:install <version_number>
+
     if (!versionedExamplesExist) {
       throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
+
     const examplesFolders = getExamplesFolders(versionedDir);
+
     examplesFolders.forEach((exampleDir) => {
       rimraf.sync(path.join(exampleDir, 'node_modules'));
       runNpmCommandInExample(exampleDir, 'npm install');
     });
+
     break;
   }
 
   case 'build': { // npm run examples:build <version_number>
+
     if (!versionedExamplesExist) {
       throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
+
     const examplesFolders = getExamplesFolders(versionedDir);
+
     examplesFolders.forEach((exampleDir) => {
       rimraf.sync(path.join(exampleDir, 'dist'));
+
       runNpmCommandInExample(exampleDir, 'npm run build');
+
       const prodOutputDir = path.join(exampleDir, 'dist');
       const deployDir = path.join(TMP_DIR, exampleDir.split('examples')[1]);
+
       fs.mkdirSync(deployDir, { recursive: true });
       fs.copySync(prodOutputDir, deployDir);
     });
@@ -128,13 +150,17 @@ switch (shellCommand) {
   }
 
   case 'test': { // npm run examples:test <version_number>
+
     if (!versionedExamplesExist) {
       throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
+
     const examplesFolders = getExamplesFolders(versionedDir);
+
     examplesFolders.forEach((exampleDir) => {
       runNpmCommandInExample(exampleDir, 'npm run test');
     });
+
     break;
   }
 
