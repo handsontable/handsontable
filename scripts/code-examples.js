@@ -66,7 +66,7 @@ const runNpmCommandInExample = (exampleDir, command) => {
 // EXECUTE SCRIPTS
 
 if (!hotVersion) {
-  throw Error('You must provide version of the Handsontable as a last parameter to the script');
+  throw Error('You must provide the version of the Handsontable as the last parameter to the script.');
 }
 
 const versionedDir = path.join(REPO_ROOT_DIR, 'examples', hotVersion);
