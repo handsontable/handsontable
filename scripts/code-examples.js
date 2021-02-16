@@ -75,7 +75,7 @@ const versionedExamplesExist = fs.existsSync(versionedDir);
 switch (shellCommand) {
   case 'version': { // npm run examples:version <version_number>
     if (versionedExamplesExist) {
-      throw Error(`Examples already exist: ${path.join('examples', hotVersion)}`);
+      throw Error(`Examples already exist: ${path.join('examples', hotVersion)}.`);
     }
     const nextExamplesFolders = getExamplesFolders(NEXT_EXAMPLES_DIR);
     nextExamplesFolders.forEach((nextDir) => {
@@ -91,7 +91,7 @@ switch (shellCommand) {
 
   case 'install': { // npm run examples:install <version_number>
     if (!versionedExamplesExist) {
-      throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+      throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
     const examplesFolders = getExamplesFolders(versionedDir);
     examplesFolders.forEach((exampleDir) => {
@@ -103,7 +103,7 @@ switch (shellCommand) {
 
   case 'build': { // npm run examples:build <version_number>
     if (!versionedExamplesExist) {
-      throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+      throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
     const examplesFolders = getExamplesFolders(versionedDir);
     examplesFolders.forEach((exampleDir) => {
@@ -119,7 +119,7 @@ switch (shellCommand) {
 
   case 'test': { // npm run examples:test <version_number>
     if (!versionedExamplesExist) {
-      throw Error('Examples don\'t exist! First, create a directory with versioned examples');
+      throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
     const examplesFolders = getExamplesFolders(versionedDir);
     examplesFolders.forEach((exampleDir) => {
@@ -129,5 +129,5 @@ switch (shellCommand) {
   }
 
   default:
-    throw Error('Command doesn\'t exists');
+    throw Error('Command doesn\'t exist.');
 }
