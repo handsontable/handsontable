@@ -1,0 +1,17 @@
+.handsontable .green-bg {
+  background-color: #2ECC40;
+}
+
+.handsontable .red-bg {
+  background-color: #FF4136;
+}
+
+#logOuput {
+  padding: 15px 0 10px 0;
+  max-height:400px;
+  overflow-y: auto;
+}
+
+#logOuput div:first-child {
+  font-weight: bold;
+}

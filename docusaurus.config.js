@@ -1,5 +1,6 @@
 // eslint-disable-next-line global-require
 const hotPreviewRemarkPlugin = require('./src/hot-preview-remark');
+const githubPrismTheme = require('prism-react-renderer/themes/github');
 
 const isDev = true || process.env.NODE_ENV === 'development'; // temporary test 'true', because `yarn build` always has k`node_env = production`
 const getLegacyVersionUrl = (version) => (isDev ? 'https://dev.handsontable.com/docs/' : 'https://handsontable.com/docs/') + version;
@@ -15,6 +16,7 @@ module.exports = {
   favicon: 'img/favicon-32x32.png',
   organizationName: 'Handsontable',
   projectName: 'Handsontable',
+  themes: ['@docusaurus/theme-live-codeblock'],
   themeConfig: {
     announcementBar: isDev && {
       content: `Development, built at ${new Date().toLocaleString()}`,
@@ -37,6 +39,7 @@ module.exports = {
           position: 'left',
           dropdownActiveClassDisabled: true,
           dropdownItemsAfter: [
+            { label: '8.3', to: getLegacyVersionUrl('8.3.0'), target: '_self' },
             { label: '8.2', to: getLegacyVersionUrl('8.2.0'), target: '_self' },
             { label: '8.1', to: getLegacyVersionUrl('8.1.0'), target: '_self' },
             { label: '8.0', to: getLegacyVersionUrl('8.0.0'), target: '_self' },
@@ -60,7 +63,7 @@ module.exports = {
         },
         {
           label: 'Guides',
-          to: '/docs/tutorial-quick-start',
+          to: '/docs/quick-start',
           position: 'right',
         },
         {
@@ -94,17 +97,21 @@ module.exports = {
         },
       ],
     },
+    prism: {
+      theme: githubPrismTheme,
+      // additionalLanguages: ['jsx'],
+    },
     footer: {
       style: 'dark',
       copyright: `Copyright © ${new Date().getFullYear()} Handsontable.`,
     },
-    // algolia: {
-    //   apiKey: '6b1f6a9141059860765e9ab6b9cabd0b',
-    //   indexName: 'handsontable',
-    //   searchParameters: {
-    //     facetFilters: 'tags:current',
-    //   },
-    // },
+    algolia: {
+      apiKey: '6b1f6a9141059860765e9ab6b9cabd0b',
+      indexName: 'handsontable',
+      searchParameters: {
+        facetFilters: 'tags:current',
+      },
+    },
   },
   presets: [
     [

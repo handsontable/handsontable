@@ -90,6 +90,17 @@
 }
 
 /* Content */
+summary {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.scroll-container {
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+}
+
 .docusaurus-highlight-code-line {
   background-color: rgb(72, 77, 91);
   display: block;
@@ -188,3 +199,4 @@ main .hot .currentRow, .hot .currentRow {
 main .hot .currentCol, .hot .currentCol {
   background-color: #F9F9FB;
 }
+

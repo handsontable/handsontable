@@ -2,7 +2,7 @@
 id: tutorial-quick-start
 title: Quick start
 sidebar_label: Quick start
-slug: /tutorial-quick-start
+slug: /quick-start
 ---
 
 Follow these steps to install Handsontable:

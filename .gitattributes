@@ -1,0 +1,2 @@
+# Makes sure that Git automatically detects what files are considered "text" and use LF as the line ending in all OS
+* text=auto eol=lf
