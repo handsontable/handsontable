@@ -111,17 +111,9 @@ async function distributeBetweenPipelines(modifiedProjects) {
   const fullTestBranchRegex = new RegExp('^(master|develop|release\/.{5,})$');
   const configPathsRegex = new RegExp(`^(${CONFIG_PATHS.join('|').replace(/\./g,'\\.')})`);
   const fullTestBranchMatch = fullTestBranchRegex.test(currentBranch);
-  let configPathMatched = false;
-
   filesModifiedInLastCommit.shift();
 
-  filesModifiedInLastCommit.some((fileUrl) => {
-    if (configPathsRegex.test(fileUrl)) {
-      configPathMatched = true;
-    }
-
-    return configPathMatched;
-  });
+  const configPathMatched = filesModifiedInLastCommit.some(fileUrl => configPathsRegex.test(fileUrl));
 
   // Tests triggered on the `master`, `develop` and `release/` branches.
   if (fullTestBranchMatch || configPathMatched) {
