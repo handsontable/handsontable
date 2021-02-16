@@ -173,7 +173,7 @@
     "packages": [
       ".",
       "wrappers/*",
-      "examples/*"
+      "examples"
     ]
   },
   "typings": "./handsontable.d.ts",
