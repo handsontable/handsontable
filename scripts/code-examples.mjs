@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { execSync } from 'child_process';
+import execa from 'execa';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
@@ -14,7 +15,7 @@ const TMP_DIR = path.join('examples', TMP_DIR_NAME);
 
 const HOT_WRAPPERS = ['@handsontable/react', '@handsontable/angular', '@handsontable/vue'];
 
-const [/* node bin */, /* path to this script */, shellCommand, hotVersion] = process.argv;
+const [shellCommand, hotVersion] = process.argv.slice(2);
 
 // Function search recursively in the provided `dirPath` for the package.json file
 // and gets the project directory path.
@@ -59,11 +60,17 @@ const updatePackageJsonWithVersion = (projectDir, version) => {
 const runNpmCommandInExample = (exampleDir, command) => {
   // eslint-disable-next-line
   console.log(chalk.cyan(`"${command}" STARTED IN DIRECTORY "${exampleDir}"`));
-  execSync(command, {
-    cwd: exampleDir,
-    stdio: 'inherit',
-    shell: true
-  });
+  try {
+    execa.sync(command, {
+      cwd: exampleDir,
+      stdio: 'inherit',
+      shell: true
+    });
+  } catch (error) {
+    // eslint-disable-next-line
+    console.error(error);
+    process.exit(error.exitCode);
+  }
 };
 
 // EXECUTE SCRIPTS
