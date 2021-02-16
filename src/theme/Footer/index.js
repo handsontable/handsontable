@@ -57,7 +57,7 @@ function Footer() {
             <p>All trademarks belong to their respective owners.</p>
             <p>
               Handsontable documentation is licensed under
-              <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+              <a href="https://creativecommons.org/licenses/by/4.0/"> CC BY 4.0</a>
             </p>
             <ul className="legal-links">
               <li><a href="/terms-of-use">Terms of use</a></li>

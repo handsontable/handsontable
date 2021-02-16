@@ -115,7 +115,7 @@ module.exports = {
           path: 'next',
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/handsontable/handsontable/edit/master/website/docs-md',
+          editUrl: 'https://github.com/handsontable/handsontable/edit/master/docs',
           includeCurrentVersion: isDev,
           remarkPlugins: [hotPreviewRemarkPlugin],
           showLastUpdateAuthor: false,

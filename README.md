@@ -1,6 +1,18 @@
 # Handsontable Documentation
 
-## Dir structure
+## Getting started
+
+```shell script
+# Install dependencies (npm version > 7.5)
+npm install
+
+# Run localhost
+npm run docs:start # It opens a browser automatically
+
+# The website is running at http://localhost:3001/docs/
+```
+
+## Directory structure
 
 ```
 - /next                 # The next version of documentation, unavailable on production build.
@@ -19,23 +31,6 @@
 - versions.json                 # List of released versions
 ...
 
-```
-
-## Getting started
-
-```shell script
-# Clone the repo
-git clone git@github.com:handsontable/docs-md.git
-cd docs-md
-
-# Install dependencies
-npm install
-cd src/jsdoc-convert && npm install && cd ../../
-
-# Run localhost
-npm run start # It opens a browser automatically
-
-# The website is running at http://localhost:3001/docs/
 ```
 
 ## Best practices for content
@@ -124,9 +119,9 @@ Keeping all content as just `.md` file makes them more manageable.
 ESLint is a tool which helps us keep our content in agreed with best rules.
 
 ```shell script
-npm run lint:docs # feedback with error list
+npm run docs:lint:docs # feedback with error list
 
-npm run lint:docs:fix # attempt to fix errors
+npm run docs:lint:docs:fix # attempt to fix errors
 ```
 
 ESLint runs in GH Action on each commit pushed into the repo.
@@ -168,9 +163,7 @@ In a browser please go into: `/docs/[number]`.
 To edit API Reference goes into source code and change jsdocs comments. Then, to generate API Reference pages:
 
 ```shell script
-cd src/jsdoc-convert
-
-npm run jsdoc2md
+npm run docs:jsdoc
 ```
 
 ## Versioning
@@ -178,7 +171,7 @@ npm run jsdoc2md
 **Release a version**
 
 ```shell script
-yarn run docusaurus docs:version number
+npm run docs:version number
 ```
 
 **Remove a version**
