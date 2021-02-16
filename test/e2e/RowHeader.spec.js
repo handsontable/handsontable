@@ -26,7 +26,7 @@ describe('RowHeader', () => {
     expect(spec().$container.find('tbody th').length).toBeGreaterThan(0);
   });
 
-  it('should properly calculate colHeaders\' overlay width', () => {
+  it('should properly calculate rowHeaders\' overlay height', () => {
     handsontable({
       rowHeaders: true,
       startCols: 1,
@@ -36,14 +36,14 @@ describe('RowHeader', () => {
       rowHeights: 25,
     });
 
-    const cloneTop = spec().$container.find('.ht_clone_left');
+    const cloneLeft = spec().$container.find('.ht_clone_left');
     const masterHolder = spec().$container.find('.ht_master .wtHolder');
 
-    expect(cloneTop.height()).toBe(masterHolder.height());
+    expect(cloneLeft.height()).toBe(masterHolder.height());
 
     alter('insert_col', void 0, 10);
 
-    expect(cloneTop.height()).toBeLessThan(masterHolder.height());
+    expect(cloneLeft.height()).toBeLessThan(masterHolder.height());
   });
 
   it('should show row headers numbered from `0` to `n` by default (where `n` is number of rows)', () => {

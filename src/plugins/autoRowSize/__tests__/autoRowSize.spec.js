@@ -547,4 +547,33 @@ describe('AutoRowSize', () => {
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
+
+  it('should render headers properly after scroll and updating data in cell', () => {
+    const hot = handsontable({
+      data: [
+        ['A1', 'A long text'],
+        ['A2', 'A very long text'],
+        ['A3', 'A very very long text'],
+        ['A4', 'A long text'],
+      ],
+      colWidths: 50,
+      height: 300,
+      rowHeaders: true,
+      columns: [{}, {}],
+      autoRowSize: true
+    });
+
+    // Simulating scroll on 2 overlays. The `scrollViewportTo` method has wrong effect.
+    $(spec().$container.find('.handsontable.ht_clone_left .wtHolder')).scrollTop(100);
+    $(spec().$container.find('.handsontable.handsontable  .wtHolder')).scrollTop(100);
+
+    hot.setDataAtCell(2, 0, 'A33'); // Rerender with updating DOM elements
+
+    const cloneLeft = spec().$container.find('.handsontable.ht_clone_left table.htCore')[0];
+    const master = spec().$container.find('.handsontable.ht_master table.htCore')[0];
+
+    expect(cloneLeft.getBoundingClientRect().x).toBe(master.getBoundingClientRect().x);
+    expect(cloneLeft.getBoundingClientRect().y).toBe(master.getBoundingClientRect().y);
+    expect(cloneLeft.getBoundingClientRect().height).toBe(master.getBoundingClientRect().height);
+  });
 });

@@ -81,7 +81,6 @@ export default class RowHeadersRenderer extends BaseRenderer {
         const TH = orderView.getCurrentNode();
 
         TH.className = '';
-        TH.removeAttribute('style');
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
       }
