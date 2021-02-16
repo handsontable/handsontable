@@ -82,7 +82,7 @@ displaySeparator();
   }
 
   // Bump the version in all packages.
-  await scheduleRelease(version, releaseDate);
+  const { version: finalVersion } = await scheduleRelease(version, releaseDate);
 
   // Clear the projects' node_modules nad lock files.
   cleanNodeModules();
@@ -102,12 +102,13 @@ displaySeparator();
   // Verify if the bundles have the same (and correct) version.
   await spawnProcess('node --experimental-json-modules ./scripts/verify-bundles.mjs');
 
+  // Generate the CHANGELOG.md file.
+  await spawnProcess('npm run changelog consume | cat');
+
   // Commit the changes to the release branch.
   await spawnProcess('git add .');
 
-  const { default: hotPackageJson } = await import('../package.json');
+  await spawnProcess(`git commit -m "${finalVersion}"`);
 
-  await spawnProcess(`git commit -m "${hotPackageJson.version}"`);
-
-  await spawnProcess(`git flow release publish ${hotPackageJson.version}`);
+  await spawnProcess(`git flow release publish ${finalVersion}`);
 })();

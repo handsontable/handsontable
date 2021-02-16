@@ -56,7 +56,7 @@ const touchedProjects = [];
  */
 async function distributeBetweenPipelines(modifiedProjects) {
   const pipelineCount = 2;
-  const pipeline = parseInt(argv.pipeline, 10);
+  const pipeline = argv.pipeline;
   const isHandsontableTouched = modifiedProjects.includes('handsontable');
 
   switch (pipeline) {

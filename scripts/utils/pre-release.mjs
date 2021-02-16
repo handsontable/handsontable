@@ -179,7 +179,7 @@ export async function scheduleRelease(version, releaseDate) {
       message: 'Enter the custom version number.',
       when: answers => answers.changeType === 'custom',
       validate: (value) => {
-        if (semver.valid(value)) {
+        if (isVersionValid(value)) {
           return true;
         }
 
@@ -214,6 +214,8 @@ Are the version number and release date above correct?`,
       default: true,
     },
   ];
+  let finalVersion = null;
+  let finalReleaseDate = null;
 
   // Version and release date were passed as arguments.
   if (version && releaseDate) {
@@ -247,6 +249,9 @@ Are the version number and release date above correct?`,
       `\nChanging the version number to ${newVersion}, to be released on ${releaseDate}. \n`
     );
 
+    finalVersion = newVersion;
+    finalReleaseDate = releaseDate;
+
     setVersion(newVersion, workspacePackages);
     setReleaseDate(releaseDate);
 
@@ -262,8 +267,17 @@ Are the version number and release date above correct?`,
     );
 
     if (confirmationAnswers.isReleaseDateConfirmed) {
+
+      finalVersion = newVersion;
+      finalReleaseDate = answers.releaseDate;
+
       setVersion(newVersion);
       setReleaseDate(answers.releaseDate);
     }
   }
+
+  return {
+    version: finalVersion,
+    releaseDate: finalReleaseDate
+  };
 }

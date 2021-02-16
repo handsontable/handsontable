@@ -12,7 +12,7 @@ import {
 const [pkgName] = process.argv.slice(2);
 const PACKAGE_LOCATIONS = new Map([
   ['handsontable', './tmp'],
-  ['@handsontable/angular', './wrappers/angular-handsontable/dist/hot-table']
+  ['@handsontable/angular', './wrappers/angular/dist/hot-table']
 ]);
 const linkPackage = (packageName, packageLocation) => {
   if (fse.pathExistsSync(`${packageLocation}`)) {

@@ -3,7 +3,7 @@ import { addLicenseBanner } from './helpers/licenseBanner';
 import replace from 'rollup-plugin-replace';
 import { terser } from 'rollup-plugin-terser';
 
-const minFilename = 'react-handsontable.min.js';
+const minFilename = 'react.min.js';
 
 const minConfig = {
   output: {
