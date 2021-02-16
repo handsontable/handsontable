@@ -1,4 +1,5 @@
 import { arrayEach } from '../../../helpers/array';
+import { camelCase } from '../../../helpers/string';
 
 /**
  * The NodeModifiers module is responsible for the modification of a tree
@@ -31,10 +32,10 @@ export default class NodeModifiers {
    *                          which the processed node colspan was reduced.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  collapseNode(nodeToProcess) {
+  collapse(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === true || nodeData.isHidden === true || nodeData.origColspan <= 1) {
+    if (nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],
@@ -122,10 +123,10 @@ export default class NodeModifiers {
    *                          which the processed node colspan was increased.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
-  expandNode(nodeToProcess) {
+  expand(nodeToProcess) {
     const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-    if (nodeData.isCollapsed === false || nodeData.isHidden === true || nodeData.origColspan <= 1) {
+    if (nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
       return {
         rollbackModification: () => {},
         affectedColumns: [],
@@ -197,6 +198,40 @@ export default class NodeModifiers {
     };
   }
 
+  hideColumn(nodeToProcess) {
+    const { columnIndex: processedColumnIndex } = nodeToProcess.data;
+
+    nodeToProcess.walkUp((node) => {
+      const { data } = node;
+
+      if (data.colspan > 1) {
+        data.colspan -= 1;
+
+        if (processedColumnIndex === data.columnIndex + data.offset) {
+          data.offset += 1;
+        }
+
+      } else {
+        data.isHidden = true;
+      }
+    });
+  }
+
+  showColumn(nodeToProcess) {
+    const { columnIndex: processedColumnIndex } = nodeToProcess.data;
+
+    nodeToProcess.walkUp((node) => {
+      const { data } = node;
+
+      if (!data.isHidden && data.colspan < data.origColspan) {
+        data.colspan += 1;
+      }
+
+      data.offset = Math.min(data.offset, processedColumnIndex - data.columnIndex);
+      data.isHidden = false;
+    });
+  }
+
   /**
    * An entry point for triggering a node modifiers. If the triggered action
    * does not exist the exception is thrown.
@@ -206,11 +241,17 @@ export default class NodeModifiers {
    * @returns {object}
    */
   triggerAction(actionName, nodeToProcess) {
-    if (!NodeModifiers.AVAILABLE_ACTIONS.includes(actionName)) {
-      throw new Error(`The node modifier action ("${actionName}") does not exist.`);
+    const camelCasedActionName = camelCase(actionName);
+
+    if (!NodeModifiers.AVAILABLE_ACTIONS.includes(camelCasedActionName)) {
+      throw new Error(`The node modifier action ("${camelCasedActionName}") is not exposed.`);
     }
 
-    return this[`${actionName}Node`](nodeToProcess);
+    if (typeof this[camelCasedActionName] !== 'function') {
+      throw new Error(`The node modifier action ("${camelCasedActionName}") does not exist.`);
+    }
+
+    return this[camelCasedActionName](nodeToProcess);
   }
 }
 

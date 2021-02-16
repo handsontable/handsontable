@@ -1,13 +1,14 @@
-import { arrayMap } from '../helpers/array';
+import { arrayFilter, arrayMap } from '../helpers/array';
 import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
-import IndexesSequence from './maps/indexesSequence';
+import IndexToIndexMap from './maps/indexesSequence';
 import TrimmingMap from './maps/trimmingMap';
 import HidingMap from './maps/hidingMap';
-import MapCollection from './mapCollection';
-import AggregatedCollection from './aggregatedCollection';
+import MapCollection from './mapCollections/mapCollection';
+import AggregatedCollection from './mapCollections/aggregatedCollection';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
+import ChangesObservable from './changesObservable/observable';
 
 /**
  * Index mapper stores, registers and manages the indexes on the basis of calculations collected from the subsidiary maps.
@@ -27,6 +28,7 @@ import { isDefined } from '../helpers/mixed';
  */
 class IndexMapper {
   constructor() {
+    this.changesObservable = new ChangesObservable();
     /**
      * Map for storing the sequence of indexes.
      *
@@ -138,7 +140,8 @@ class IndexMapper {
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.trimmingMapsCollection.addLocalHook('change', (changedMap) => {
+    this.trimmingMapsCollection.addLocalHook('change', (mapName, changedMap, changes) => {
+      this.changesObservable.collect('trimming', mapName, changes);
       this.trimmedIndexesChanged = true;
 
       // Number of trimmed indexes might change.
@@ -147,7 +150,8 @@ class IndexMapper {
       this.runLocalHooks('change', changedMap, this.trimmingMapsCollection);
     });
 
-    this.hidingMapsCollection.addLocalHook('change', (changedMap) => {
+    this.hidingMapsCollection.addLocalHook('change', (mapName, changedMap, changes) => {
+      this.changesObservable.collect('hiding', mapName, changes);
       this.hiddenIndexesChanged = true;
 
       // Number of hidden indexes might change.
@@ -156,7 +160,7 @@ class IndexMapper {
       this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
-    this.variousMapsCollection.addLocalHook('change', (changedMap) => {
+    this.variousMapsCollection.addLocalHook('change', (mapName, changedMap) => {
       this.runLocalHooks('change', changedMap, this.variousMapsCollection);
     });
   }
@@ -177,6 +181,10 @@ class IndexMapper {
   resumeOperations() {
     this.isBatched = false;
     this.updateCache();
+  }
+
+  createChangesListener({ collectionName, ...observerOptions }) {
+    return this.changesObservable.createObserver(collectionName, observerOptions);
   }
 
   /**

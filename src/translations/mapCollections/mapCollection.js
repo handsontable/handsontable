@@ -1,6 +1,6 @@
-import { isUndefined, isDefined } from '../helpers/mixed';
-import { mixin } from '../helpers/object';
-import localHooks from '../mixins/localHooks';
+import { isUndefined, isDefined } from '../../helpers/mixed';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
@@ -28,7 +28,9 @@ class MapCollection {
     if (this.collection.has(uniqueName) === false) {
       this.collection.set(uniqueName, indexMap);
 
-      indexMap.addLocalHook('change', () => this.runLocalHooks('change', indexMap));
+      indexMap.addLocalHook('change', (changes) => {
+        this.runLocalHooks('change', uniqueName, indexMap, changes);
+      });
 
       registeredMaps += 1;
     }
@@ -43,10 +45,8 @@ class MapCollection {
     const indexMap = this.collection.get(name);
 
     if (isDefined(indexMap)) {
-      indexMap.clearLocalHooks();
+      indexMap.destroy();
       this.collection.delete(name);
-
-      this.runLocalHooks('change', indexMap);
 
       registeredMaps -= 1;
     }

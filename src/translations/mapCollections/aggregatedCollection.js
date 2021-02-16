@@ -1,6 +1,6 @@
 import MapCollection from './mapCollection';
-import { arrayMap } from '../helpers/array';
-import { isDefined } from '../helpers/mixed';
+import { arrayMap } from '../../helpers/array';
+import { isDefined } from '../../helpers/mixed';
 
 /**
  * Collection of maps. This collection aggregate maps with the same type of values. Values from the registered maps

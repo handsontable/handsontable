@@ -99,3 +99,13 @@ export function stripTags(string) {
 export function sanitize(string, options) {
   return DOMPurify.sanitize(string, options);
 }
+
+/**
+ * Transforms hyphenated string ('get-user-from-db') into camel case variant ('getUserFromDb').
+ *
+ * @param {string} string String to transform.
+ * @returns {string}
+ */
+export function camelCase(string) {
+  return string.replace(/-\D/g, (match) => match.charAt(1).toUpperCase());
+}

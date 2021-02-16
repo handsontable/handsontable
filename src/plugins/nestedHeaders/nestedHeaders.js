@@ -91,6 +91,22 @@ export class NestedHeaders extends BasePlugin {
 
     const { nestedHeaders } = this.hot.getSettings();
 
+    this.hot.columnIndexMapper
+      .createChangesListener({ collectionName: 'hiding', mapsToExclude: ['CollapsibleColumns'] })
+      .addLocalHook('change', (changes) => {
+        console.log('listener change 2', changes);
+
+        changes.forEach(({ op, index, newValue: isHidden }) => {
+          if (op === 'replace') {
+            if (isHidden) {
+              this.#stateManager.triggerNodeModification('hide-column', -1, index);
+            } else {
+              this.#stateManager.triggerNodeModification('show-column', -1, index);
+            }
+          }
+        })
+      });
+
     if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
       warn(toSingleLine`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
