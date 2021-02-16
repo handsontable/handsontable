@@ -1,0 +1,7 @@
+{
+  "title": "Fixed scroll desynchronization in some case",
+  "type": "fixed",
+  "issue": 7102,
+  "breaking": false,
+  "framework": "none"
+}
