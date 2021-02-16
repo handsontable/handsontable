@@ -1,6 +1,6 @@
-import { getValidSelection } from './../utils';
-import * as C from './../../../i18n/constants';
-import { isDefined } from './../../../helpers/mixed';
+import { getValidSelection } from '../utils';
+import * as C from '../../../i18n/constants';
+import { isDefined } from '../../../helpers/mixed';
 
 export const KEY = 'col_right';
 

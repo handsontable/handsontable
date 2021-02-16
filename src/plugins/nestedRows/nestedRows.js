@@ -1,5 +1,4 @@
-import BasePlugin from '../_base';
-import { registerPlugin } from '../../plugins';
+import { BasePlugin } from '../base';
 import DataManager from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
@@ -9,6 +8,8 @@ import './nestedRows.css';
 import { TrimmingMap } from '../../translations';
 import RowMoveController from './utils/rowMoveController';
 
+export const PLUGIN_KEY = 'nestedRows';
+export const PLUGIN_PRIORITY = 300;
 const privatePool = new WeakMap();
 
 /**
@@ -17,7 +18,15 @@ const privatePool = new WeakMap();
  * @description
  * Plugin responsible for displaying and operating on data sources with nested structures.
  */
-class NestedRows extends BasePlugin {
+export class NestedRows extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -57,7 +66,7 @@ class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().nestedRows;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -68,7 +77,6 @@ class NestedRows extends BasePlugin {
       return;
     }
 
-    this.bindRowsWithHeadersPlugin = this.hot.getPlugin('bindRowsWithHeaders');
     this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap());
 
     this.dataManager = new DataManager(this, this.hot);
@@ -447,7 +455,3 @@ class NestedRows extends BasePlugin {
     this.dataManager.rewriteCache();
   }
 }
-
-registerPlugin('nestedRows', NestedRows);
-
-export default NestedRows;

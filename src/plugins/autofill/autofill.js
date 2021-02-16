@@ -1,16 +1,17 @@
-import BasePlugin from './../_base';
-import Hooks from './../../pluginHooks';
-import { offset, outerHeight, outerWidth } from './../../helpers/dom/element';
-import { arrayEach, arrayMap } from './../../helpers/array';
-import EventManager from './../../eventManager';
-import { registerPlugin } from './../../plugins';
-import { CellCoords } from './../../3rdparty/walkontable/src';
+import { BasePlugin } from '../base';
+import Hooks from '../../pluginHooks';
+import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { arrayEach, arrayMap } from '../../helpers/array';
+import EventManager from '../../eventManager';
+import { CellCoords } from '../../3rdparty/walkontable/src';
 import { getDeltas, getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
 Hooks.getSingleton().register('afterAutofill');
 
+export const PLUGIN_KEY = 'autofill';
+export const PLUGIN_PRIORITY = 20;
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
@@ -27,7 +28,15 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  * @plugin Autofill
  */
 
-class Autofill extends BasePlugin {
+export class Autofill extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -626,7 +635,3 @@ class Autofill extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('autofill', Autofill);
-
-export default Autofill;

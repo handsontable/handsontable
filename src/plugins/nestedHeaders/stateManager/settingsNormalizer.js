@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import { isObject } from '../../../helpers/object';

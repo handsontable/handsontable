@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach } from '../../../helpers/array';
 import { HEADER_DEFAULT_SETTINGS } from './constants';

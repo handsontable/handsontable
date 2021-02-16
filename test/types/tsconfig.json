@@ -10,11 +10,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": "",
     "paths": {
-      "handsontable": [ "../../" ]
+      "handsontable": [ "../../" ],
+      "handsontable/base": [ "../../" ]
     }
   },
   "include": [
-    "../../handsontable.d.ts",
     "**/*.types.ts",
     "../../src/plugins/**/test/*.types.ts"
   ]

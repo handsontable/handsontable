@@ -1,20 +1,23 @@
-import BasePlugin from './../_base';
-import { arrayEach, arrayFilter, arrayReduce, arrayMap } from './../../helpers/array';
-import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import GhostTable from './../../utils/ghostTable';
-import { isObject, hasOwnProperty } from './../../helpers/object';
-import { valueAccordingPercent, rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import SamplesGenerator from './../../utils/samplesGenerator';
-import { isPercentValue } from './../../helpers/string';
-import { ViewportColumnsCalculator } from './../../3rdparty/walkontable/src';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { arrayEach, arrayFilter, arrayReduce, arrayMap } from '../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
+import GhostTable from '../../utils/ghostTable';
+import { isObject, hasOwnProperty } from '../../helpers/object';
+import { valueAccordingPercent, rangeEach } from '../../helpers/number';
+import SamplesGenerator from '../../utils/samplesGenerator';
+import { isPercentValue } from '../../helpers/string';
+import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
+export const PLUGIN_KEY = 'autoColumnSize';
+export const PLUGIN_PRIORITY = 10;
 const privatePool = new WeakMap();
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoColumnSize
+ * @class AutoColumnSize
  *
  * @description
  * This plugin allows to set column widths based on their widest cells.
@@ -35,7 +38,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
- * ```.
+ * ```
  *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
@@ -55,7 +58,16 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * }
  * ```
  */
-class AutoColumnSize extends BasePlugin {
+/* eslint-enable jsdoc/require-description-complete-sentence */
+export class AutoColumnSize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }
@@ -158,7 +170,7 @@ class AutoColumnSize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().autoColumnSize !== false && !this.hot.getSettings().colWidths;
+    return this.hot.getSettings()[PLUGIN_KEY] !== false && !this.hot.getSettings().colWidths;
   }
 
   /**
@@ -169,7 +181,7 @@ class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    const setting = this.hot.getSettings().autoColumnSize;
+    const setting = this.hot.getSettings()[PLUGIN_KEY];
 
     if (setting && setting.useHeaders !== null && setting.useHeaders !== void 0) {
       this.ghostTable.setSetting('useHeaders', setting.useHeaders);
@@ -260,13 +272,13 @@ class AutoColumnSize extends BasePlugin {
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         this.ghostTable.getWidths((visualColumn, width) => {
           const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
           this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
         });
-      });
+      }, true);
 
       this.measuredColumns = columnsRange.to + 1;
 
@@ -311,7 +323,7 @@ class AutoColumnSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.wt.wtOverlays.adjustElementsSize();
+        this.hot.view.adjustElementsSize();
       }
     };
 
@@ -337,11 +349,11 @@ class AutoColumnSize extends BasePlugin {
    * @private
    */
   setSamplingOptions() {
-    const setting = this.hot.getSettings().autoColumnSize;
+    const setting = this.hot.getSettings()[PLUGIN_KEY];
     const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
-      this.hot.getSettings().autoColumnSize.samplingRatio : void 0;
+      setting.samplingRatio : void 0;
     const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
-      this.hot.getSettings().autoColumnSize.allowSampleDuplicates : void 0;
+      setting.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -369,12 +381,13 @@ class AutoColumnSize extends BasePlugin {
    * @returns {number}
    */
   getSyncCalculationLimit() {
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
     /* eslint-disable no-bitwise */
     let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
     const colsLimit = this.hot.countCols() - 1;
 
-    if (isObject(this.hot.getSettings().autoColumnSize)) {
-      limit = this.hot.getSettings().autoColumnSize.syncLimit;
+    if (isObject(settings)) {
+      limit = settings.syncLimit;
 
       if (isPercentValue(limit)) {
         limit = valueAccordingPercent(colsLimit, limit);
@@ -504,11 +517,11 @@ class AutoColumnSize extends BasePlugin {
    */
   clearCache(columns = []) {
     if (columns.length) {
-      this.hot.batch(() => {
+      this.hot.batchExecution(() => {
         arrayEach(columns, (physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
         });
-      });
+      }, true);
 
     } else {
       this.columnWidthsMap.clear();
@@ -608,7 +621,3 @@ class AutoColumnSize extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('autoColumnSize', AutoColumnSize);
-
-export default AutoColumnSize;

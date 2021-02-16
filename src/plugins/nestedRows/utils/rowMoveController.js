@@ -226,8 +226,10 @@ export default class RowMoveController {
     const moveToLastChild = physicalDropIndex === this.dataManager.getRowIndex(targetParent) +
       this.dataManager.countChildren(targetParent) + 1;
 
-    physicalStartIndexes.forEach((physicalStartIndex) => {
-      this.dataManager.moveRow(physicalStartIndex, physicalDropIndex, this.movedToCollapsed, moveToLastChild, true);
+    this.hot.batchRender(() => {
+      physicalStartIndexes.forEach((physicalStartIndex) => {
+        this.dataManager.moveRow(physicalStartIndex, physicalDropIndex, this.movedToCollapsed, moveToLastChild);
+      });
     });
   }
 

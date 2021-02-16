@@ -332,6 +332,35 @@ describe('Core_dataSchema', () => {
     expect(countRows()).toEqual(6); // row should be added by keepEmptyRows
   });
 
+  it('should create new row from dataSchema (functional) - cooperation with alter method', () => {
+    handsontable({
+      data: [],
+      dataSchema(index) {
+        return { id: 1000 + index, name: { first: null, last: null }, address: null };
+      },
+      isEmptyRow(r) {
+        const row = this.getSourceData()[r];
+
+        return (row.name.first === null || row.name.first === '') &&
+          (row.name.last === null || row.name.last === '') &&
+          (row.address === null || row.address === '');
+      },
+      minRows: 5,
+      colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
+      columns: [
+        { data: 'id' },
+        { data: 'name.first' },
+        { data: 'name.last' },
+        { data: 'address' }
+      ],
+    });
+
+    alter('insert_row', 5, 5);
+
+    expect(countRows()).toEqual(10);
+    expect(getDataAtCol(0)).toEqual([1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009]);
+  });
+
   it('should translate prop to col, when prop is a function', () => {
     const idAccessor = createAccessorForProperty('id');
     const nameAccessor = createAccessorForProperty('name');

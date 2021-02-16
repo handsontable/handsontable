@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.2.0
- * Release date: 12/11/2020 (built at 09/11/2020 11:35:30)
+ * Version: 8.3.1
+ * Release date: 10/02/2021 (built at 09/02/2021 09:19:07)
  */
 /**
  * Fix for bootstrap styles
@@ -656,44 +656,6 @@ TextRenderer placeholder value
   color: #999;
 }
 
-/*
-AutocompleteRenderer down arrow
-*/
-
-.handsontable .htAutocompleteArrow {
-  float: right;
-  font-size: 10px;
-  color: #EEE;
-  cursor: default;
-  width: 16px;
-  text-align: center;
-}
-
-.handsontable td .htAutocompleteArrow:hover {
-  color: #777;
-}
-
-.handsontable td.area .htAutocompleteArrow {
-  color: #d3d3d3;
-}
-
-/*
-CheckboxRenderer
-*/
-.handsontable .htCheckboxRendererInput {
-  display: inline-block;
-}
-.handsontable .htCheckboxRendererInput.noValue {
-  opacity: 0.5;
-}
-.handsontable .htCheckboxRendererLabel {
-  font-size: inherit;
-  vertical-align: middle;
-  cursor: pointer;
-  display: inline-block;
-  width: 100%;
-}
-
 /**
  * Handsontable listbox theme
  */
@@ -983,6 +945,44 @@ CheckboxRenderer
   animation: opacity-show 0.3s;
   animation-fill-mode: forwards;
   -webkit-animation-fill-mode: forwards;
+}
+
+/*
+AutocompleteRenderer down arrow
+*/
+
+.handsontable .htAutocompleteArrow {
+  float: right;
+  font-size: 10px;
+  color: #EEE;
+  cursor: default;
+  width: 16px;
+  text-align: center;
+}
+
+.handsontable td .htAutocompleteArrow:hover {
+  color: #777;
+}
+
+.handsontable td.area .htAutocompleteArrow {
+  color: #d3d3d3;
+}
+
+/*
+CheckboxRenderer
+*/
+.handsontable .htCheckboxRendererInput {
+  display: inline-block;
+}
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 0.5;
+}
+.handsontable .htCheckboxRendererLabel {
+  font-size: inherit;
+  vertical-align: middle;
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
 }
 
 .htCommentCell {
