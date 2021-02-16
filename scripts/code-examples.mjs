@@ -1,9 +1,12 @@
-const fs = require('fs-extra');
-const path = require('path');
-const { execSync } = require('child_process');
-const chalk = require('chalk');
-const rimraf = require('rimraf');
+import fs from 'fs-extra';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import chalk from 'chalk';
+import rimraf from 'rimraf';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const REPO_ROOT_DIR = __dirname.split('scripts')[0];
 const NEXT_EXAMPLES_DIR = path.join(REPO_ROOT_DIR, 'examples', 'next');
 const TMP_DIR_NAME = 'tmp';

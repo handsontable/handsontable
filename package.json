@@ -65,10 +65,10 @@
     "changelog": "bin/changelog",
     "publish": "cd tmp && npm publish && cd ..",
     "publish-all": "npm run all publish",
-    "examples:version": "node scripts/code-examples.js version",
-    "examples:install": "node scripts/code-examples.js install",
-    "examples:build": "node scripts/code-examples.js build",
-    "examples:test": "node scripts/code-examples.js test",
+    "examples:version": "node scripts/code-examples.mjs version",
+    "examples:install": "node scripts/code-examples.mjs install",
+    "examples:build": "node scripts/code-examples.mjs build",
+    "examples:test": "node scripts/code-examples.mjs test",
     "examples:start": "http-server ./examples/tmp"
   },
   "keywords": [
