@@ -17,7 +17,7 @@ const { hideBin } = require('yargs/helpers');
 
 const hotConfig = require('../hot.config');
 
-const isTTY = process.stdout.isTTY;
+const isTTY = process.stdin.isTTY;
 
 const changelogMarkDownMark = '<!-- UNVERSIONED -->';
 const changelogPath = path.join(__dirname, '../CHANGELOG.md');

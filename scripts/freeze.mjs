@@ -36,7 +36,7 @@ displaySeparator();
 
   // Check if we're using the minimum required npm version.
   {
-    const processInfo = await spawnProcess('npm --version', true);
+    const processInfo = await spawnProcess('npm --version', { silent: true });
     const npmVersion = processInfo.stdout.toString();
 
     if (!semver.satisfies(npmVersion, '>=7.2.0')) {
@@ -47,7 +47,7 @@ displaySeparator();
 
   // Check if we're on a release branch.
   {
-    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', true,);
+    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true });
     const branchName = processInfo.stdout.toString();
 
     if (!branchName.startsWith('release/')) {
@@ -60,7 +60,7 @@ displaySeparator();
 
   // Check if `git flow` is installed.
   try {
-    await spawnProcess('git flow version', true);
+    await spawnProcess('git flow version', { silent: true });
 
   } catch (error) {
     displayErrorMessage('Git flow not installed.');
@@ -70,7 +70,7 @@ displaySeparator();
 
   // Check if all the files are committed.
   {
-    const processInfo = await spawnProcess('git status -s', true);
+    const processInfo = await spawnProcess('git status -s', { silent: true });
     const output = processInfo.stdout.toString();
 
     // If there are any uncommitted changes, kill the script.
@@ -103,7 +103,10 @@ displaySeparator();
   await spawnProcess('node --experimental-json-modules ./scripts/verify-bundles.mjs');
 
   // Generate the CHANGELOG.md file.
-  await spawnProcess('npm run changelog consume | cat');
+  await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
+
+  // Commit the changes to the release branch.
+  await spawnProcess('git add .');
 
   // Commit the changes to the release branch.
   await spawnProcess('git add .');

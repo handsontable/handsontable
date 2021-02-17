@@ -31,7 +31,7 @@ displaySeparator();
 
   // Check if all the files are committed.
   {
-    const processInfo = await spawnProcess('git status -s', true);
+    const processInfo = await spawnProcess('git status -s', { silent: true });
     const output = processInfo.stdout.toString();
 
     // If there are any uncommitted changes, kill the script.
@@ -43,7 +43,7 @@ displaySeparator();
   }
   {
     // Check if we're on a release branch.
-    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', true);
+    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true });
     const branchName = processInfo.stdout.toString();
 
     if (!branchName.startsWith('release/')) {
