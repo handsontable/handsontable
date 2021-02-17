@@ -28,7 +28,7 @@ const linkPackage = (packageName, packageLocation) => {
     displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
 
   } else {
-    displayWarningMessage(`Cannot create symlink to ${packageLocation} - the path doesn't exits.`);
+    displayWarningMessage(`Cannot create symlink to ${packageLocation} - the path doesn't exist.`);
   }
 };
 
