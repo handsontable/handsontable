@@ -13,9 +13,9 @@ export async function spawnProcess(command, options = {}) {
   cmdSplit.shift();
 
   if (!options.silent) {
-    options.stdin = options.stdin || 'inherit';
-    options.stdout = options.stdout || 'inherit';
-    options.stderr = options.stderr || 'inherit';
+    options.stdin = options.stdin ?? 'inherit';
+    options.stdout = options.stdout ?? 'inherit';
+    options.stderr = options.stderr ?? 'inherit';
   }
 
   return execa(mainCmd, cmdSplit, options);
