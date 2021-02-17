@@ -444,6 +444,14 @@ export function handsontableKeyTriggerFactory(type) {
           ev.keyCode = 32;
           break;
 
+        case 'home':
+          ev.keyCode = 36;
+          break;
+
+        case 'end':
+          ev.keyCode = 35;
+          break;
+
         case 'x':
           ev.keyCode = 88;
           break;

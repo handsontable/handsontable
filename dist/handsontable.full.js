@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.3.0
- * Release date: 28/01/2021 (built at 28/01/2021 10:09:55)
+ * Version: 8.3.1
+ * Release date: 10/02/2021 (built at 09/02/2021 09:19:07)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -2993,65 +2993,7 @@ var _moment = _interopRequireDefault(__webpack_require__(73));
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject6() {
-  var data = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is missing. Use your purchased key to activate the product. \n    Alternatively, you can activate Handsontable to use for non-commercial purposes by \n    passing the key: 'non-commercial-and-evaluation'. \n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> about it in \n    the documentation or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."], ["\n    The license key for Handsontable is missing. Use your purchased key to activate the product.\\x20\n    Alternatively, you can activate Handsontable to use for non-commercial purposes by\\x20\n    passing the key: 'non-commercial-and-evaluation'.\\x20\n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> about it in\\x20\n    the documentation or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."]);
-
-  _templateObject6 = function _templateObject6() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject5() {
-  var data = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable expired on ", ", and is not valid for the installed \n    version ", ". <a href=\"https://handsontable.com/pricing\" target=\"_blank\">Renew</a> your \n    license key or downgrade to a version released prior to ", ". If you need any \n    help, contact us at <a href=\"mailto:sales@handsontable.com\">sales@handsontable.com</a>."], ["\n    The license key for Handsontable expired on ", ", and is not valid for the installed\\x20\n    version ", ". <a href=\"https://handsontable.com/pricing\" target=\"_blank\">Renew</a> your\\x20\n    license key or downgrade to a version released prior to ", ". If you need any\\x20\n    help, contact us at <a href=\"mailto:sales@handsontable.com\">sales@handsontable.com</a>."]);
-
-  _templateObject5 = function _templateObject5() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject4() {
-  var data = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is invalid. \n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> on how to \n    install it properly or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."], ["\n    The license key for Handsontable is invalid.\\x20\n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> on how to\\x20\n    install it properly or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."]);
-
-  _templateObject4 = function _templateObject4() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject3() {
-  var data = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is missing. Use your purchased key to activate the product. \n    Alternatively, you can activate Handsontable to use for non-commercial purposes by \n    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact \n    us at support@handsontable.com."], ["\n    The license key for Handsontable is missing. Use your purchased key to activate the product.\\x20\n    Alternatively, you can activate Handsontable to use for non-commercial purposes by\\x20\n    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\\x20\n    us at support@handsontable.com."]);
-
-  _templateObject3 = function _templateObject3() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject2() {
-  var data = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable expired on ", ", and is not valid for the installed \n    version ", ". Renew your license key at handsontable.com or downgrade to a version released prior \n    to ", ". If you need any help, contact us at sales@handsontable.com."], ["\n    The license key for Handsontable expired on ", ", and is not valid for the installed\\x20\n    version ", ". Renew your license key at handsontable.com or downgrade to a version released prior\\x20\n    to ", ". If you need any help, contact us at sales@handsontable.com."]);
-
-  _templateObject2 = function _templateObject2() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is invalid. \n    If you need any help, contact us at support@handsontable.com."], ["\n    The license key for Handsontable is invalid.\\x20\n    If you need any help, contact us at support@handsontable.com."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject, _templateObject2, _templateObject3, _templateObject4, _templateObject5, _templateObject6;
 
 /**
  * Converts any value to string.
@@ -3163,15 +3105,15 @@ var _ignored = function _ignored() {
 var _notified = false;
 var consoleMessages = {
   invalid: function invalid() {
-    return (0, _templateLiteralTag.toSingleLine)(_templateObject());
+    return (0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is invalid. \n    If you need any help, contact us at support@handsontable.com."], ["\n    The license key for Handsontable is invalid.\\x20\n    If you need any help, contact us at support@handsontable.com."])));
   },
   expired: function expired(_ref) {
     var keyValidityDate = _ref.keyValidityDate,
         hotVersion = _ref.hotVersion;
-    return (0, _templateLiteralTag.toSingleLine)(_templateObject2(), keyValidityDate, hotVersion, keyValidityDate);
+    return (0, _templateLiteralTag.toSingleLine)(_templateObject2 || (_templateObject2 = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable expired on ", ", and is not valid for the installed \n    version ", ". Renew your license key at handsontable.com or downgrade to a version released prior \n    to ", ". If you need any help, contact us at sales@handsontable.com."], ["\n    The license key for Handsontable expired on ", ", and is not valid for the installed\\x20\n    version ", ". Renew your license key at handsontable.com or downgrade to a version released prior\\x20\n    to ", ". If you need any help, contact us at sales@handsontable.com."])), keyValidityDate, hotVersion, keyValidityDate);
   },
   missing: function missing() {
-    return (0, _templateLiteralTag.toSingleLine)(_templateObject3());
+    return (0, _templateLiteralTag.toSingleLine)(_templateObject3 || (_templateObject3 = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is missing. Use your purchased key to activate the product. \n    Alternatively, you can activate Handsontable to use for non-commercial purposes by \n    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact \n    us at support@handsontable.com."], ["\n    The license key for Handsontable is missing. Use your purchased key to activate the product.\\x20\n    Alternatively, you can activate Handsontable to use for non-commercial purposes by\\x20\n    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\\x20\n    us at support@handsontable.com."])));
   },
   non_commercial: function non_commercial() {
     return '';
@@ -3179,15 +3121,15 @@ var consoleMessages = {
 };
 var domMessages = {
   invalid: function invalid() {
-    return (0, _templateLiteralTag.toSingleLine)(_templateObject4());
+    return (0, _templateLiteralTag.toSingleLine)(_templateObject4 || (_templateObject4 = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is invalid. \n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> on how to \n    install it properly or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."], ["\n    The license key for Handsontable is invalid.\\x20\n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> on how to\\x20\n    install it properly or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."])));
   },
   expired: function expired(_ref2) {
     var keyValidityDate = _ref2.keyValidityDate,
         hotVersion = _ref2.hotVersion;
-    return (0, _templateLiteralTag.toSingleLine)(_templateObject5(), keyValidityDate, hotVersion, keyValidityDate);
+    return (0, _templateLiteralTag.toSingleLine)(_templateObject5 || (_templateObject5 = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable expired on ", ", and is not valid for the installed \n    version ", ". <a href=\"https://handsontable.com/pricing\" target=\"_blank\">Renew</a> your \n    license key or downgrade to a version released prior to ", ". If you need any \n    help, contact us at <a href=\"mailto:sales@handsontable.com\">sales@handsontable.com</a>."], ["\n    The license key for Handsontable expired on ", ", and is not valid for the installed\\x20\n    version ", ". <a href=\"https://handsontable.com/pricing\" target=\"_blank\">Renew</a> your\\x20\n    license key or downgrade to a version released prior to ", ". If you need any\\x20\n    help, contact us at <a href=\"mailto:sales@handsontable.com\">sales@handsontable.com</a>."])), keyValidityDate, hotVersion, keyValidityDate);
   },
   missing: function missing() {
-    return (0, _templateLiteralTag.toSingleLine)(_templateObject6());
+    return (0, _templateLiteralTag.toSingleLine)(_templateObject6 || (_templateObject6 = (0, _taggedTemplateLiteral2.default)(["\n    The license key for Handsontable is missing. Use your purchased key to activate the product. \n    Alternatively, you can activate Handsontable to use for non-commercial purposes by \n    passing the key: 'non-commercial-and-evaluation'. \n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> about it in \n    the documentation or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."], ["\n    The license key for Handsontable is missing. Use your purchased key to activate the product.\\x20\n    Alternatively, you can activate Handsontable to use for non-commercial purposes by\\x20\n    passing the key: 'non-commercial-and-evaluation'.\\x20\n    <a href=\"https://handsontable.com/docs/tutorial-license-key.html\" target=\"_blank\">Read more</a> about it in\\x20\n    the documentation or contact us at <a href=\"mailto:support@handsontable.com\">support@handsontable.com</a>."])));
   },
   non_commercial: function non_commercial() {
     return '';
@@ -3197,7 +3139,7 @@ var domMessages = {
 function _injectProductInfo(key, element) {
   var hasValidType = !isEmpty(key);
   var isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  var hotVersion = "8.3.0";
+  var hotVersion = "8.3.1";
   var keyValidityDate;
   var consoleMessageState = 'invalid';
   var domMessageState = 'invalid';
@@ -3207,7 +3149,7 @@ function _injectProductInfo(key, element) {
 
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      var releaseDate = (0, _moment.default)("28/01/2021", 'DD/MM/YYYY');
+      var releaseDate = (0, _moment.default)("10/02/2021", 'DD/MM/YYYY');
       var releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
 
       var keyValidityDays = _extractTime(key);
@@ -5202,15 +5144,7 @@ var _console = __webpack_require__(66);
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The plugin hook \"[hookName]\" was removed in Handsontable [removedInVersion]. \n  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to \n  learn about the migration path."], ["The plugin hook \"[hookName]\" was removed in Handsontable [removedInVersion].\\x20\n  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to\\x20\n  learn about the migration path."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 /**
  * @description
@@ -6961,7 +6895,7 @@ var REGISTERED_HOOKS = [
  * @type {string}
  */
 
-var REMOVED_MESSAGE = (0, _templateLiteralTag.toSingleLine)(_templateObject());
+var REMOVED_MESSAGE = (0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["The plugin hook \"[hookName]\" was removed in Handsontable [removedInVersion]. \n  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to \n  learn about the migration path."], ["The plugin hook \"[hookName]\" was removed in Handsontable [removedInVersion].\\x20\n  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to\\x20\n  learn about the migration path."])));
 /**
  * The list of the hooks which are removed from the API. The warning message is printed out in
  * the developer console when the hook is used.
@@ -7000,17 +6934,9 @@ var REMOVED_HOOKS = new Map([['modifyRow', '8.0.0'], ['modifyCol', '8.0.0'], ['u
 var DEPRECATED_HOOKS = new Map([]);
 
 var Hooks = /*#__PURE__*/function () {
-  (0, _createClass2.default)(Hooks, null, [{
-    key: "getSingleton",
-    value: function getSingleton() {
-      return getGlobalSingleton();
-    }
-    /**
-     *
-     */
-
-  }]);
-
+  /**
+   *
+   */
   function Hooks() {
     (0, _classCallCheck2.default)(this, Hooks);
     this.globalBucket = this.createEmptyBucket();
@@ -7442,6 +7368,11 @@ var Hooks = /*#__PURE__*/function () {
     key: "getRegistered",
     value: function getRegistered() {
       return REGISTERED_HOOKS;
+    }
+  }], [{
+    key: "getSingleton",
+    value: function getSingleton() {
+      return getGlobalSingleton();
     }
   }]);
   return Hooks;
@@ -14123,41 +14054,6 @@ var CellValue = /*#__PURE__*/function (_BaseCell) {
 
   var _super = _createSuper(CellValue);
 
-  (0, _createClass2.default)(CellValue, null, [{
-    key: "STATE_OUT_OFF_DATE",
-
-    /**
-     * Out of date state indicates cells ready for recomputing.
-     *
-     * @returns {number}
-     */
-    get: function get() {
-      return 1; // PhantomJS crashes when we want to use constant above
-    }
-    /**
-     * Computing state indicates cells under processing.
-     *
-     * @returns {number}
-     */
-
-  }, {
-    key: "STATE_COMPUTING",
-    get: function get() {
-      return 2; // PhantomJS crashes when we want to use constant above
-    }
-    /**
-     * Up to date state indicates cells with fresh computed value.
-     *
-     * @returns {number}
-     */
-
-  }, {
-    key: "STATE_UP_TO_DATE",
-    get: function get() {
-      return 3; // PhantomJS crashes when we want to use constant above
-    }
-  }]);
-
   function CellValue(row, column) {
     var _this;
 
@@ -14354,6 +14250,39 @@ var CellValue = /*#__PURE__*/function (_BaseCell) {
       return (0, _array.arrayFilter)(this.precedents, function (cell) {
         return cell.isEqual(cellReference);
       }).length > 0;
+    }
+  }], [{
+    key: "STATE_OUT_OFF_DATE",
+    get:
+    /**
+     * Out of date state indicates cells ready for recomputing.
+     *
+     * @returns {number}
+     */
+    function get() {
+      return 1; // PhantomJS crashes when we want to use constant above
+    }
+    /**
+     * Computing state indicates cells under processing.
+     *
+     * @returns {number}
+     */
+
+  }, {
+    key: "STATE_COMPUTING",
+    get: function get() {
+      return 2; // PhantomJS crashes when we want to use constant above
+    }
+    /**
+     * Up to date state indicates cells with fresh computed value.
+     *
+     * @returns {number}
+     */
+
+  }, {
+    key: "STATE_UP_TO_DATE",
+    get: function get() {
+      return 3; // PhantomJS crashes when we want to use constant above
     }
   }]);
   return CellValue;
@@ -19512,19 +19441,6 @@ var EVENTS_TO_REGISTER = ['click', 'input', 'keydown', 'keypress', 'keyup', 'foc
  */
 
 var BaseUI = /*#__PURE__*/function () {
-  (0, _createClass2.default)(BaseUI, null, [{
-    key: "DEFAULTS",
-    get: function get() {
-      return (0, _object.clone)({
-        className: '',
-        value: '',
-        tagName: 'div',
-        children: [],
-        wrapIt: true
-      });
-    }
-  }]);
-
   function BaseUI(hotInstance, options) {
     (0, _classCallCheck2.default)(this, BaseUI);
 
@@ -19595,13 +19511,30 @@ var BaseUI = /*#__PURE__*/function () {
      */
 
   }, {
-    key: "isBuilt",
+    key: "element",
+    get: function get() {
+      if (this.buildState === STATE_BUILDING) {
+        return this._element;
+      }
 
+      if (this.buildState === STATE_BUILT) {
+        this.update();
+        return this._element;
+      }
+
+      this.buildState = STATE_BUILDING;
+      this.build();
+      this.buildState = STATE_BUILT;
+      return this._element;
+    }
     /**
      * Check if element was built (built whole DOM structure).
      *
      * @returns {boolean}
      */
+
+  }, {
+    key: "isBuilt",
     value: function isBuilt() {
       return this.buildState === STATE_BUILT;
     }
@@ -19722,22 +19655,16 @@ var BaseUI = /*#__PURE__*/function () {
 
       this._element = null;
     }
-  }, {
-    key: "element",
+  }], [{
+    key: "DEFAULTS",
     get: function get() {
-      if (this.buildState === STATE_BUILDING) {
-        return this._element;
-      }
-
-      if (this.buildState === STATE_BUILT) {
-        this.update();
-        return this._element;
-      }
-
-      this.buildState = STATE_BUILDING;
-      this.build();
-      this.buildState = STATE_BUILT;
-      return this._element;
+      return (0, _object.clone)({
+        className: '',
+        value: '',
+        tagName: 'div',
+        children: [],
+        wrapIt: true
+      });
     }
   }]);
   return BaseUI;
@@ -26464,7 +26391,7 @@ var PhysicalIndexToValueMap = /*#__PURE__*/function (_IndexMap) {
 
   (0, _createClass2.default)(PhysicalIndexToValueMap, [{
     key: "insert",
-
+    value:
     /**
      * Add values to list and reorganize.
      *
@@ -26472,7 +26399,7 @@ var PhysicalIndexToValueMap = /*#__PURE__*/function (_IndexMap) {
      * @param {number} insertionIndex Position inside the list.
      * @param {Array} insertedIndexes List of inserted indexes.
      */
-    value: function insert(insertionIndex, insertedIndexes) {
+    function insert(insertionIndex, insertedIndexes) {
       this.indexedValues = (0, _physicallyIndexed.getListWithInsertedItems)(this.indexedValues, insertionIndex, insertedIndexes, this.initValueOrFn);
       (0, _get2.default)((0, _getPrototypeOf2.default)(PhysicalIndexToValueMap.prototype), "insert", this).call(this, insertionIndex, insertedIndexes);
     }
@@ -28515,45 +28442,7 @@ var _index = __webpack_require__(34);
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject4() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "] has \"rowspan\" \n      or \"colspan\" declared as \"0\", which is not supported. It cannot be added to the collection."], ["The merged cell declared at [", ", ", "] has \"rowspan\"\\x20\n      or \"colspan\" declared as \"0\", which is not supported. It cannot be added to the collection."]);
-
-  _templateObject4 = function _templateObject4() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject3() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "] has both \"rowspan\" \n      and \"colspan\" declared as \"1\", which makes it a single cell. It cannot be added to the collection."], ["The merged cell declared at [", ", ", "] has both \"rowspan\"\\x20\n      and \"colspan\" declared as \"1\", which makes it a single cell. It cannot be added to the collection."]);
-
-  _templateObject3 = function _templateObject3() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject2() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "] is positioned \n      (or positioned partially) outside of the table range. It was not added to the table, please fix your setup."], ["The merged cell declared at [", ", ", "] is positioned\\x20\n      (or positioned partially) outside of the table range. It was not added to the table, please fix your setup."]);
-
-  _templateObject2 = function _templateObject2() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The merged cell declared with {row: ", ", col: ", ", \n      rowspan: ", ", colspan: ", "} contains negative values, which is \n      not supported. It will not be added to the collection."], ["The merged cell declared with {row: ", ", col: ", ",\\x20\n      rowspan: ", ", colspan: ", "} contains negative values, which is\\x20\n      not supported. It will not be added to the collection."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject, _templateObject2, _templateObject3, _templateObject4;
 
 /**
  * The `MergedCellCoords` class represents a single merged cell.
@@ -28610,13 +28499,13 @@ var MergedCellCoords = /*#__PURE__*/function () {
 
   (0, _createClass2.default)(MergedCellCoords, [{
     key: "normalize",
-
+    value:
     /**
      * Sanitize (prevent from going outside the boundaries) the merged cell.
      *
      * @param {Core} hotInstance The Handsontable instance.
      */
-    value: function normalize(hotInstance) {
+    function normalize(hotInstance) {
       var totalRows = hotInstance.countRows();
       var totalColumns = hotInstance.countCols();
 
@@ -28790,7 +28679,7 @@ var MergedCellCoords = /*#__PURE__*/function () {
   }], [{
     key: "NEGATIVE_VALUES_WARNING",
     value: function NEGATIVE_VALUES_WARNING(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject(), newMergedCell.row, newMergedCell.col, newMergedCell.rowspan, newMergedCell.colspan);
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["The merged cell declared with {row: ", ", col: ", ", \n      rowspan: ", ", colspan: ", "} contains negative values, which is \n      not supported. It will not be added to the collection."], ["The merged cell declared with {row: ", ", col: ", ",\\x20\n      rowspan: ", ", colspan: ", "} contains negative values, which is\\x20\n      not supported. It will not be added to the collection."])), newMergedCell.row, newMergedCell.col, newMergedCell.rowspan, newMergedCell.colspan);
     }
     /**
      * Get a warning message for when the declared merged cell data contains values exceeding the table limits.
@@ -28802,7 +28691,7 @@ var MergedCellCoords = /*#__PURE__*/function () {
   }, {
     key: "IS_OUT_OF_BOUNDS_WARNING",
     value: function IS_OUT_OF_BOUNDS_WARNING(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject2(), newMergedCell.row, newMergedCell.col);
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject2 || (_templateObject2 = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "] is positioned \n      (or positioned partially) outside of the table range. It was not added to the table, please fix your setup."], ["The merged cell declared at [", ", ", "] is positioned\\x20\n      (or positioned partially) outside of the table range. It was not added to the table, please fix your setup."])), newMergedCell.row, newMergedCell.col);
     }
     /**
      * Get a warning message for when the declared merged cell data represents a single cell.
@@ -28814,7 +28703,7 @@ var MergedCellCoords = /*#__PURE__*/function () {
   }, {
     key: "IS_SINGLE_CELL",
     value: function IS_SINGLE_CELL(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject3(), newMergedCell.row, newMergedCell.col);
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject3 || (_templateObject3 = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "] has both \"rowspan\" \n      and \"colspan\" declared as \"1\", which makes it a single cell. It cannot be added to the collection."], ["The merged cell declared at [", ", ", "] has both \"rowspan\"\\x20\n      and \"colspan\" declared as \"1\", which makes it a single cell. It cannot be added to the collection."])), newMergedCell.row, newMergedCell.col);
     }
     /**
      * Get a warning message for when the declared merged cell data contains "colspan" or "rowspan", that equals 0.
@@ -28826,7 +28715,7 @@ var MergedCellCoords = /*#__PURE__*/function () {
   }, {
     key: "ZERO_SPAN_WARNING",
     value: function ZERO_SPAN_WARNING(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject4(), newMergedCell.row, newMergedCell.col);
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject4 || (_templateObject4 = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "] has \"rowspan\" \n      or \"colspan\" declared as \"0\", which is not supported. It cannot be added to the collection."], ["The merged cell declared at [", ", ", "] has \"rowspan\"\\x20\n      or \"colspan\" declared as \"0\", which is not supported. It cannot be added to the collection."])), newMergedCell.row, newMergedCell.col);
     }
     /**
      * Check whether the values provided for a merged cell contain any negative values.
@@ -29125,11 +29014,11 @@ exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -29157,17 +29046,6 @@ var InputUI = /*#__PURE__*/function (_BaseUI) {
   (0, _inherits2.default)(InputUI, _BaseUI);
 
   var _super = _createSuper(InputUI);
-
-  (0, _createClass2.default)(InputUI, null, [{
-    key: "DEFAULTS",
-    get: function get() {
-      return (0, _object.clone)({
-        placeholder: '',
-        type: 'text',
-        tagName: 'input'
-      });
-    }
-  }]);
 
   function InputUI(hotInstance, options) {
     var _this;
@@ -29259,6 +29137,15 @@ var InputUI = /*#__PURE__*/function (_BaseUI) {
     key: "onKeyup",
     value: function onKeyup(event) {
       this.options.value = event.target.value;
+    }
+  }], [{
+    key: "DEFAULTS",
+    get: function get() {
+      return (0, _object.clone)({
+        placeholder: '',
+        type: 'text',
+        tagName: 'input'
+      });
     }
   }]);
   return InputUI;
@@ -38164,31 +38051,17 @@ var privatePool = new WeakMap();
  */
 
 var ViewportColumnsCalculator = /*#__PURE__*/function () {
-  (0, _createClass2.default)(ViewportColumnsCalculator, null, [{
-    key: "DEFAULT_WIDTH",
-
-    /**
-     * Default column width.
-     *
-     * @type {number}
-     */
-    get: function get() {
-      return 50;
-    }
-    /**
-     * @param {object} options Object with all options specified for column viewport calculation.
-     * @param {number} options.viewportWidth Width of the viewport.
-     * @param {number} options.scrollOffset Current horizontal scroll position of the viewport.
-     * @param {number} options.totalColumns Total number of columns.
-     * @param {Function} options.columnWidthFn Function that returns the width of the column at a given index (in px).
-     * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
-     * @param {string} options.calculationType String which describes types of calculation which will be performed.
-     * @param {string} [options.stretchH] Stretch mode 'all' or 'last'.
-     * @param {Function} [options.stretchingColumnWidthFn] Function that returns the new width of the stretched column.
-     */
-
-  }]);
-
+  /**
+   * @param {object} options Object with all options specified for column viewport calculation.
+   * @param {number} options.viewportWidth Width of the viewport.
+   * @param {number} options.scrollOffset Current horizontal scroll position of the viewport.
+   * @param {number} options.totalColumns Total number of columns.
+   * @param {Function} options.columnWidthFn Function that returns the width of the column at a given index (in px).
+   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
+   * @param {string} options.calculationType String which describes types of calculation which will be performed.
+   * @param {string} [options.stretchH] Stretch mode 'all' or 'last'.
+   * @param {Function} [options.stretchingColumnWidthFn] Function that returns the new width of the stretched column.
+   */
   function ViewportColumnsCalculator() {
     var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
         viewportSize = _ref.viewportSize,
@@ -38474,6 +38347,17 @@ var ViewportColumnsCalculator = /*#__PURE__*/function () {
 
       return width;
     }
+  }], [{
+    key: "DEFAULT_WIDTH",
+    get:
+    /**
+     * Default column width.
+     *
+     * @type {number}
+     */
+    function get() {
+      return 50;
+    }
   }]);
   return ViewportColumnsCalculator;
 }();
@@ -38518,30 +38402,16 @@ var privatePool = new WeakMap();
  */
 
 var ViewportRowsCalculator = /*#__PURE__*/function () {
-  (0, _createClass2.default)(ViewportRowsCalculator, null, [{
-    key: "DEFAULT_HEIGHT",
-
-    /**
-     * Default row height.
-     *
-     * @type {number}
-     */
-    get: function get() {
-      return 23;
-    }
-    /**
-     * @param {object} options Object with all options specified for row viewport calculation.
-     * @param {number} options.viewportHeight Height of the viewport.
-     * @param {number} options.scrollOffset Current vertical scroll position of the viewport.
-     * @param {number} options.totalRows Total number of rows.
-     * @param {Function} options.rowHeightFn Function that returns the height of the row at a given index (in px).
-     * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
-     * @param {string} options.calculationType String which describes types of calculation which will be performed.
-     * @param {number} options.horizontalScrollbarHeight The scrollbar height.
-     */
-
-  }]);
-
+  /**
+   * @param {object} options Object with all options specified for row viewport calculation.
+   * @param {number} options.viewportHeight Height of the viewport.
+   * @param {number} options.scrollOffset Current vertical scroll position of the viewport.
+   * @param {number} options.totalRows Total number of rows.
+   * @param {Function} options.rowHeightFn Function that returns the height of the row at a given index (in px).
+   * @param {Function} options.overrideFn Function that changes calculated this.startRow, this.endRow (used by MergeCells plugin).
+   * @param {string} options.calculationType String which describes types of calculation which will be performed.
+   * @param {number} options.horizontalScrollbarHeight The scrollbar height.
+   */
   function ViewportRowsCalculator() {
     var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
         viewportSize = _ref.viewportSize,
@@ -38683,6 +38553,17 @@ var ViewportRowsCalculator = /*#__PURE__*/function () {
       if (this.startRow !== null) {
         this.count = this.endRow - this.startRow + 1;
       }
+    }
+  }], [{
+    key: "DEFAULT_HEIGHT",
+    get:
+    /**
+     * Default row height.
+     *
+     * @type {number}
+     */
+    function get() {
+      return 23;
     }
   }]);
   return ViewportRowsCalculator;
@@ -44696,15 +44577,7 @@ var _console = __webpack_require__(66);
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Language with code \"", "\" was not found. You should register particular language \n    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code."], ["Language with code \"", "\" was not found. You should register particular language\\x20\n    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 /**
  * Perform shallow extend of a target object with only this extension's properties which doesn't exist in the target.
@@ -44783,7 +44656,7 @@ function normalizeLanguageCode(languageCode) {
 
 function warnUserAboutLanguageRegistration(languageCode) {
   if ((0, _mixed.isDefined)(languageCode)) {
-    (0, _console.error)((0, _templateLiteralTag.toSingleLine)(_templateObject(), languageCode));
+    (0, _console.error)((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Language with code \"", "\" was not found. You should register particular language \n    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code."], ["Language with code \"", "\" was not found. You should register particular language\\x20\n    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code."])), languageCode));
   }
 }
 
@@ -48891,19 +48764,6 @@ var _mixed = __webpack_require__(20);
  * @util
  */
 var SamplesGenerator = /*#__PURE__*/function () {
-  (0, _createClass2.default)(SamplesGenerator, null, [{
-    key: "SAMPLE_COUNT",
-
-    /**
-     * Number of samples to take of each value length.
-     *
-     * @type {number}
-     */
-    get: function get() {
-      return 3;
-    }
-  }]);
-
   function SamplesGenerator(dataFactory) {
     (0, _classCallCheck2.default)(this, SamplesGenerator);
 
@@ -49095,6 +48955,17 @@ var SamplesGenerator = /*#__PURE__*/function () {
         }
       });
       return samples;
+    }
+  }], [{
+    key: "SAMPLE_COUNT",
+    get:
+    /**
+     * Number of samples to take of each value length.
+     *
+     * @type {number}
+     */
+    function get() {
+      return 3;
     }
   }]);
   return SamplesGenerator;
@@ -50401,25 +50272,7 @@ var _mixed = __webpack_require__(20);
 
 var _translations = __webpack_require__(49);
 
-function _templateObject2() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Unexpected operation named `", "`. Possible ones are \n        `disjunction` and `conjunction`."], ["Unexpected operation named \\`", "\\`. Possible ones are\\x20\n        \\`disjunction\\` and \\`conjunction\\`."]);
-
-  _templateObject2 = function _templateObject2() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The column of index ", " has been already applied with a `", "` \n        filter operation. Use `removeConditions` to clear the current conditions and then add new ones. \n        Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, \n        use it consequently for a particular column)."], ["The column of index ", " has been already applied with a \\`", "\\`\\x20\n        filter operation. Use \\`removeConditions\\` to clear the current conditions and then add new ones.\\x20\n        Mind that you cannot mix different types of operations (for instance, if you use \\`conjunction\\`,\\x20\n        use it consequently for a particular column)."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject, _templateObject2;
 
 var MAP_NAME = 'ConditionCollection.filteringStates';
 /**
@@ -50539,10 +50392,10 @@ var ConditionCollection = /*#__PURE__*/function () {
 
       if (columnType) {
         if (columnType !== operation) {
-          throw Error((0, _templateLiteralTag.toSingleLine)(_templateObject(), column, columnType));
+          throw Error((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["The column of index ", " has been already applied with a `", "` \n        filter operation. Use `removeConditions` to clear the current conditions and then add new ones. \n        Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, \n        use it consequently for a particular column)."], ["The column of index ", " has been already applied with a \\`", "\\`\\x20\n        filter operation. Use \\`removeConditions\\` to clear the current conditions and then add new ones.\\x20\n        Mind that you cannot mix different types of operations (for instance, if you use \\`conjunction\\`,\\x20\n        use it consequently for a particular column)."])), column, columnType));
         }
       } else if ((0, _mixed.isUndefined)(_logicalOperationRegisterer.operations[operation])) {
-        throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject2(), operation));
+        throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject2 || (_templateObject2 = (0, _taggedTemplateLiteral2.default)(["Unexpected operation named `", "`. Possible ones are \n        `disjunction` and `conjunction`."], ["Unexpected operation named \\`", "\\`. Possible ones are\\x20\n        \\`disjunction\\` and \\`conjunction\\`."])), operation));
       }
 
       var conditionsForColumn = this.getConditions(column);
@@ -58009,27 +57862,6 @@ var HeadersUI = /*#__PURE__*/function (_BaseUI) {
 
   var _super = _createSuper(HeadersUI);
 
-  (0, _createClass2.default)(HeadersUI, null, [{
-    key: "CSS_CLASSES",
-
-    /**
-     * CSS classes used in the row headers.
-     *
-     * @type {object}
-     */
-    get: function get() {
-      return {
-        indicatorContainer: 'ht_nestingLevels',
-        parent: 'ht_nestingParent',
-        indicator: 'ht_nestingLevel',
-        emptyIndicator: 'ht_nestingLevel_empty',
-        button: 'ht_nestingButton',
-        expandButton: 'ht_nestingExpand',
-        collapseButton: 'ht_nestingCollapse'
-      };
-    }
-  }]);
-
   function HeadersUI(nestedRowsPlugin, hotInstance) {
     var _this;
 
@@ -58132,6 +57964,25 @@ var HeadersUI = /*#__PURE__*/function (_BaseUI) {
 
       this.rowHeaderWidthCache = Math.max(50, 11 + 10 * deepestLevelIndex + 25);
       this.hot.render();
+    }
+  }], [{
+    key: "CSS_CLASSES",
+    get:
+    /**
+     * CSS classes used in the row headers.
+     *
+     * @type {object}
+     */
+    function get() {
+      return {
+        indicatorContainer: 'ht_nestingLevels',
+        parent: 'ht_nestingParent',
+        indicator: 'ht_nestingLevel',
+        emptyIndicator: 'ht_nestingLevel_empty',
+        button: 'ht_nestingButton',
+        expandButton: 'ht_nestingExpand',
+        collapseButton: 'ht_nestingCollapse'
+      };
     }
   }]);
   return HeadersUI;
@@ -58439,8 +58290,8 @@ Handsontable.Core = function (rootElement) {
 };
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "28/01/2021 10:09:55";
-Handsontable.version = "8.3.0";
+Handsontable.buildDate = "09/02/2021 09:19:07";
+Handsontable.version = "8.3.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,
@@ -60395,7 +60246,7 @@ var SharedOrderView = /*#__PURE__*/function (_OrderView) {
 
   (0, _createClass2.default)(SharedOrderView, [{
     key: "prependView",
-
+    value:
     /**
      * The method results in merging external order view into the current order. This happens only for order views which
      * operate on the same root node.
@@ -60407,7 +60258,7 @@ var SharedOrderView = /*#__PURE__*/function (_OrderView) {
      * @param {OrderView} orderView The order view to merging with. The view will be added at the beginning of the list.
      * @returns {SharedOrderView}
      */
-    value: function prependView(orderView) {
+    function prependView(orderView) {
       this.sizeSet.prepend(orderView.sizeSet);
       orderView.sizeSet.append(this.sizeSet);
       return this;
@@ -60775,15 +60626,7 @@ var _orderView = __webpack_require__(158);
 
 var _base = _interopRequireDefault(__webpack_require__(127));
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting \n        the number of rendered rows by specifying the table height and/or turning off the \"renderAllRows\" option."], ["Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting\\x20\n        the number of rendered rows by specifying the table height and/or turning off the \"renderAllRows\" option."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -60848,7 +60691,7 @@ var RowsRenderer = /*#__PURE__*/function (_BaseRenderer) {
 
       if (!performanceWarningAppeared && rowsToRender > 1000) {
         performanceWarningAppeared = true;
-        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject()));
+        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting \n        the number of rendered rows by specifying the table height and/or turning off the \"renderAllRows\" option."], ["Performance tip: Handsontable rendered more than 1000 visible rows. Consider limiting\\x20\n        the number of rendered rows by specifying the table height and/or turning off the \"renderAllRows\" option."]))));
       }
 
       this.orderView.setSize(rowsToRender).setOffset(this.table.renderedRowToSource(0)).start();
@@ -61613,17 +61456,9 @@ var BottomLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
 
   var _super = _createSuper(BottomLeftCornerOverlay);
 
-  (0, _createClass2.default)(BottomLeftCornerOverlay, null, [{
-    key: "OVERLAY_NAME",
-    get: function get() {
-      return _constants.CLONE_BOTTOM_LEFT_CORNER;
-    }
-    /**
-     * @param {Walkontable} wotInstance The Walkontable instance.
-     */
-
-  }]);
-
+  /**
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   */
   function BottomLeftCornerOverlay(wotInstance) {
     var _this;
 
@@ -61744,6 +61579,11 @@ var BottomLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
 
       cloneRoot.style.bottom = "".concat(scrollbarWidth, "px");
     }
+  }], [{
+    key: "OVERLAY_NAME",
+    get: function get() {
+      return _constants.CLONE_BOTTOM_LEFT_CORNER;
+    }
   }]);
   return BottomLeftCornerOverlay;
 }(_base.Overlay);
@@ -61838,9 +61678,9 @@ var _construct2 = _interopRequireDefault(__webpack_require__(106));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -61869,20 +61709,6 @@ var BottomOverlay = /*#__PURE__*/function (_Overlay) {
   (0, _inherits2.default)(BottomOverlay, _Overlay);
 
   var _super = _createSuper(BottomOverlay);
-
-  (0, _createClass2.default)(BottomOverlay, null, [{
-    key: "OVERLAY_NAME",
-    get: function get() {
-      return _constants.CLONE_BOTTOM;
-    }
-    /**
-     * Cached value which holds the previous value of the `fixedRowsBottom` option.
-     * It is used as a comparison value that can be used to detect changes in that value.
-     *
-     * @type {number}
-     */
-
-  }]);
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
@@ -62244,6 +62070,18 @@ var BottomOverlay = /*#__PURE__*/function (_Overlay) {
 
       return positionChanged;
     }
+  }], [{
+    key: "OVERLAY_NAME",
+    get: function get() {
+      return _constants.CLONE_BOTTOM;
+    }
+    /**
+     * Cached value which holds the previous value of the `fixedRowsBottom` option.
+     * It is used as a comparison value that can be used to detect changes in that value.
+     *
+     * @type {number}
+     */
+
   }]);
   return BottomOverlay;
 }(_base.Overlay);
@@ -62347,17 +62185,9 @@ var LeftOverlay = /*#__PURE__*/function (_Overlay) {
 
   var _super = _createSuper(LeftOverlay);
 
-  (0, _createClass2.default)(LeftOverlay, null, [{
-    key: "OVERLAY_NAME",
-    get: function get() {
-      return _constants.CLONE_LEFT;
-    }
-    /**
-     * @param {Walkontable} wotInstance The Walkontable instance.
-     */
-
-  }]);
-
+  /**
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   */
   function LeftOverlay(wotInstance) {
     var _this;
 
@@ -62699,6 +62529,11 @@ var LeftOverlay = /*#__PURE__*/function (_Overlay) {
 
       return positionChanged;
     }
+  }], [{
+    key: "OVERLAY_NAME",
+    get: function get() {
+      return _constants.CLONE_LEFT;
+    }
   }]);
   return LeftOverlay;
 }(_base.Overlay);
@@ -62802,17 +62637,9 @@ var TopLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
 
   var _super = _createSuper(TopLeftCornerOverlay);
 
-  (0, _createClass2.default)(TopLeftCornerOverlay, null, [{
-    key: "OVERLAY_NAME",
-    get: function get() {
-      return _constants.CLONE_TOP_LEFT_CORNER;
-    }
-    /**
-     * @param {Walkontable} wotInstance The Walkontable instance.
-     */
-
-  }]);
-
+  /**
+   * @param {Walkontable} wotInstance The Walkontable instance.
+   */
   function TopLeftCornerOverlay(wotInstance) {
     var _this;
 
@@ -62908,6 +62735,11 @@ var TopLeftCornerOverlay = /*#__PURE__*/function (_Overlay) {
       overlayRoot.style.width = "".concat(tableWidth, "px");
       return false;
     }
+  }], [{
+    key: "OVERLAY_NAME",
+    get: function get() {
+      return _constants.CLONE_TOP_LEFT_CORNER;
+    }
   }]);
   return TopLeftCornerOverlay;
 }(_base.Overlay);
@@ -62983,9 +62815,9 @@ var _construct2 = _interopRequireDefault(__webpack_require__(106));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -63014,20 +62846,6 @@ var TopOverlay = /*#__PURE__*/function (_Overlay) {
   (0, _inherits2.default)(TopOverlay, _Overlay);
 
   var _super = _createSuper(TopOverlay);
-
-  (0, _createClass2.default)(TopOverlay, null, [{
-    key: "OVERLAY_NAME",
-    get: function get() {
-      return _constants.CLONE_TOP;
-    }
-    /**
-     * Cached value which holds the previous value of the `fixedRowsTop` option.
-     * It is used as a comparison value that can be used to detect changes in this value.
-     *
-     * @type {number}
-     */
-
-  }]);
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
@@ -63411,6 +63229,18 @@ var TopOverlay = /*#__PURE__*/function (_Overlay) {
 
       return positionChanged;
     }
+  }], [{
+    key: "OVERLAY_NAME",
+    get: function get() {
+      return _constants.CLONE_TOP;
+    }
+    /**
+     * Cached value which holds the previous value of the `fixedRowsTop` option.
+     * It is used as a comparison value that can be used to detect changes in this value.
+     *
+     * @type {number}
+     */
+
   }]);
   return TopOverlay;
 }(_base.Overlay);
@@ -64261,17 +64091,9 @@ var EDITOR_STATE = Object.freeze({
 exports.EDITOR_STATE = EDITOR_STATE;
 
 var BaseEditor = /*#__PURE__*/function () {
-  (0, _createClass2.default)(BaseEditor, null, [{
-    key: "EDITOR_TYPE",
-    get: function get() {
-      return EDITOR_TYPE;
-    }
-    /**
-     * @param {Handsontable} instance A reference to the source instance of the Handsontable.
-     */
-
-  }]);
-
+  /**
+   * @param {Handsontable} instance A reference to the source instance of the Handsontable.
+   */
   function BaseEditor(instance) {
     (0, _classCallCheck2.default)(this, BaseEditor);
 
@@ -64782,6 +64604,11 @@ var BaseEditor = /*#__PURE__*/function () {
       }
 
       return section;
+    }
+  }], [{
+    key: "EDITOR_TYPE",
+    get: function get() {
+      return EDITOR_TYPE;
     }
   }]);
   return BaseEditor;
@@ -67924,13 +67751,13 @@ var LinkedPhysicalIndexToValueMap = /*#__PURE__*/function (_IndexMap) {
 
   (0, _createClass2.default)(LinkedPhysicalIndexToValueMap, [{
     key: "getValues",
-
+    value:
     /**
      * Get full list of ordered values for particular indexes.
      *
      * @returns {Array}
      */
-    value: function getValues() {
+    function getValues() {
       var _this2 = this;
 
       return this.orderOfIndexes.map(function (physicalIndex) {
@@ -68576,9 +68403,9 @@ exports.default = _default;
 "use strict";
 
 
-var _interopRequireWildcard = __webpack_require__(13);
-
 var _interopRequireDefault = __webpack_require__(0);
+
+var _interopRequireWildcard = __webpack_require__(13);
 
 __webpack_require__(18);
 
@@ -68641,15 +68468,7 @@ var _utils = __webpack_require__(165);
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Unsupported format of the selection ranges was passed. To select cells pass \n        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, \n        columnEnd/columnPropEnd]]) or as an array of CellRange objects."], ["Unsupported format of the selection ranges was passed. To select cells pass\\x20\n        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd,\\x20\n        columnEnd/columnPropEnd]]) or as an array of CellRange objects."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 /**
  * @class Selection
@@ -69289,7 +69108,7 @@ var Selection = /*#__PURE__*/function () {
       if (selectionType === _utils.SELECTION_TYPE_EMPTY) {
         return false;
       } else if (selectionType === _utils.SELECTION_TYPE_UNRECOGNIZED) {
-        throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject()));
+        throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Unsupported format of the selection ranges was passed. To select cells pass \n        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd, \n        columnEnd/columnPropEnd]]) or as an array of CellRange objects."], ["Unsupported format of the selection ranges was passed. To select cells pass\\x20\n        the coordinates as an array of arrays ([[rowStart, columnStart/columnPropStart, rowEnd,\\x20\n        columnEnd/columnPropEnd]]) or as an array of CellRange objects."]))));
       }
 
       var selectionSchemaNormalizer = (0, _utils.normalizeSelectionFactory)(selectionType, {
@@ -69901,32 +69720,11 @@ var copyableLookup = (0, _data.cellMethodLookupFactory)('copyable', false);
  */
 
 var DataMap = /*#__PURE__*/function () {
-  (0, _createClass2.default)(DataMap, null, [{
-    key: "DESTINATION_RENDERER",
-
-    /**
-     * @type {number}
-     */
-    get: function get() {
-      return 1;
-    }
-    /**
-     * @type {number}
-     */
-
-  }, {
-    key: "DESTINATION_CLIPBOARD_GENERATOR",
-    get: function get() {
-      return 2;
-    }
-    /**
-     * @param {object} instance Instance of Handsontable.
-     * @param {Array} data Array of arrays or array of objects containing data.
-     * @param {TableMeta} tableMeta The table meta instance.
-     */
-
-  }]);
-
+  /**
+   * @param {object} instance Instance of Handsontable.
+   * @param {Array} data Array of arrays or array of objects containing data.
+   * @param {TableMeta} tableMeta The table meta instance.
+   */
   function DataMap(instance, data, tableMeta) {
     (0, _classCallCheck2.default)(this, DataMap);
 
@@ -70880,6 +70678,24 @@ var DataMap = /*#__PURE__*/function () {
       this.colToPropCache.length = 0;
       this.propToColCache.clear();
       this.propToColCache = void 0;
+    }
+  }], [{
+    key: "DESTINATION_RENDERER",
+    get:
+    /**
+     * @type {number}
+     */
+    function get() {
+      return 1;
+    }
+    /**
+     * @type {number}
+     */
+
+  }, {
+    key: "DESTINATION_CLIPBOARD_GENERATOR",
+    get: function get() {
+      return 2;
     }
   }]);
   return DataMap;
@@ -72078,11 +71894,11 @@ exports.TextEditor = exports.EDITOR_TYPE = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -72125,17 +71941,9 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
 
   var _super = _createSuper(TextEditor);
 
-  (0, _createClass2.default)(TextEditor, null, [{
-    key: "EDITOR_TYPE",
-    get: function get() {
-      return EDITOR_TYPE;
-    }
-    /**
-     * @param {Core} instance The Handsontable instance.
-     */
-
-  }]);
-
+  /**
+   * @param {Core} instance The Handsontable instance.
+   */
   function TextEditor(instance) {
     var _this;
 
@@ -72703,6 +72511,11 @@ var TextEditor = /*#__PURE__*/function (_BaseEditor) {
         this.autoResize.resize(String.fromCharCode(event.keyCode));
       }
     }
+  }], [{
+    key: "EDITOR_TYPE",
+    get: function get() {
+      return EDITOR_TYPE;
+    }
   }]);
   return TextEditor;
 }(_baseEditor.BaseEditor);
@@ -73220,11 +73033,11 @@ exports.AutocompleteEditor = exports.EDITOR_TYPE = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -73263,13 +73076,6 @@ var AutocompleteEditor = /*#__PURE__*/function (_HandsontableEditor) {
   (0, _inherits2.default)(AutocompleteEditor, _HandsontableEditor);
 
   var _super = _createSuper(AutocompleteEditor);
-
-  (0, _createClass2.default)(AutocompleteEditor, null, [{
-    key: "EDITOR_TYPE",
-    get: function get() {
-      return EDITOR_TYPE;
-    }
-  }]);
 
   function AutocompleteEditor(instance) {
     var _this;
@@ -73769,6 +73575,11 @@ var AutocompleteEditor = /*#__PURE__*/function (_HandsontableEditor) {
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(AutocompleteEditor.prototype), "onBeforeKeyDown", this).call(this, event);
     }
+  }], [{
+    key: "EDITOR_TYPE",
+    get: function get() {
+      return EDITOR_TYPE;
+    }
   }]);
   return AutocompleteEditor;
 }(_handsontableEditor.HandsontableEditor);
@@ -73911,11 +73722,11 @@ var HandsontableEditor = /*#__PURE__*/function (_TextEditor) {
 
   (0, _createClass2.default)(HandsontableEditor, [{
     key: "open",
-
+    value:
     /**
      * Opens the editor and adjust its size.
      */
-    value: function open() {
+    function open() {
       // this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
       (0, _get2.default)((0, _getPrototypeOf2.default)(HandsontableEditor.prototype), "open", this).call(this);
 
@@ -74257,9 +74068,9 @@ exports.DateEditor = exports.EDITOR_TYPE = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -74300,18 +74111,10 @@ var DateEditor = /*#__PURE__*/function (_TextEditor) {
 
   var _super = _createSuper(DateEditor);
 
-  (0, _createClass2.default)(DateEditor, null, [{
-    key: "EDITOR_TYPE",
-    get: function get() {
-      return EDITOR_TYPE;
-    }
-    /**
-     * @param {Core} hotInstance Handsontable instance.
-     * @private
-     */
-
-  }]);
-
+  /**
+   * @param {Core} hotInstance Handsontable instance.
+   * @private
+   */
   function DateEditor(hotInstance) {
     var _this;
 
@@ -74579,6 +74382,11 @@ var DateEditor = /*#__PURE__*/function (_TextEditor) {
       };
 
       return options;
+    }
+  }], [{
+    key: "EDITOR_TYPE",
+    get: function get() {
+      return EDITOR_TYPE;
     }
   }]);
   return DateEditor;
@@ -75898,7 +75706,7 @@ var DropdownEditor = /*#__PURE__*/function (_AutocompleteEditor) {
 
   (0, _createClass2.default)(DropdownEditor, [{
     key: "prepare",
-
+    value:
     /**
      * @param {number} row The visual row index.
      * @param {number} col The visual column index.
@@ -75907,7 +75715,7 @@ var DropdownEditor = /*#__PURE__*/function (_AutocompleteEditor) {
      * @param {*} value The rendered value.
      * @param {object} cellProperties The cell meta object ({@see Core#getCellMeta}).
      */
-    value: function prepare(row, col, prop, td, value, cellProperties) {
+    function prepare(row, col, prop, td, value, cellProperties) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(DropdownEditor.prototype), "prepare", this).call(this, row, col, prop, td, value, cellProperties);
       this.cellProperties.filter = false;
       this.cellProperties.strict = true;
@@ -76143,11 +75951,11 @@ var SelectEditor = /*#__PURE__*/function (_BaseEditor) {
 
   (0, _createClass2.default)(SelectEditor, [{
     key: "init",
-
+    value:
     /**
      * Initializes editor instance, DOM Element and mount hooks.
      */
-    value: function init() {
+    function init() {
       this.select = this.hot.rootDocument.createElement('SELECT');
       (0, _element.addClass)(this.select, 'htSelectEditor');
       this.select.style.display = 'none';
@@ -78107,9 +77915,9 @@ exports.PersistentState = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -78159,18 +77967,6 @@ var PersistentState = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(PersistentState, _BasePlugin);
 
   var _super = _createSuper(PersistentState);
-
-  (0, _createClass2.default)(PersistentState, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function PersistentState(hotInstance) {
     var _this;
@@ -78297,6 +78093,16 @@ var PersistentState = /*#__PURE__*/function (_BasePlugin) {
     value: function destroy() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(PersistentState.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return PersistentState;
 }(_base.BasePlugin);
@@ -78374,17 +78180,9 @@ var initializedPlugins = null;
  */
 
 var BasePlugin = /*#__PURE__*/function () {
-  (0, _createClass2.default)(BasePlugin, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-    /**
-     * @param {object} hotInstance Handsontable instance.
-     */
-
-  }]);
-
+  /**
+   * @param {object} hotInstance Handsontable instance.
+   */
   function BasePlugin(hotInstance) {
     var _this = this;
 
@@ -78637,6 +78435,11 @@ var BasePlugin = /*#__PURE__*/function () {
       delete this.t;
       delete this.hot;
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
   }]);
   return BasePlugin;
 }();
@@ -78850,11 +78653,11 @@ var _slicedToArray2 = _interopRequireDefault(__webpack_require__(17));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -78944,28 +78747,6 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(AutoColumnSize, _BasePlugin);
 
   var _super = _createSuper(AutoColumnSize);
-
-  (0, _createClass2.default)(AutoColumnSize, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }, {
-    key: "CALCULATION_STEP",
-    get: function get() {
-      return 50;
-    }
-  }, {
-    key: "SYNC_CALCULATION_LIMIT",
-    get: function get() {
-      return 50;
-    }
-  }]);
 
   function AutoColumnSize(hotInstance) {
     var _this;
@@ -79625,6 +79406,26 @@ var AutoColumnSize = /*#__PURE__*/function (_BasePlugin) {
       this.ghostTable.clean();
       (0, _get2.default)((0, _getPrototypeOf2.default)(AutoColumnSize.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
+  }, {
+    key: "CALCULATION_STEP",
+    get: function get() {
+      return 50;
+    }
+  }, {
+    key: "SYNC_CALCULATION_LIMIT",
+    get: function get() {
+      return 50;
+    }
   }]);
   return AutoColumnSize;
 }(_base.BasePlugin);
@@ -79673,11 +79474,11 @@ var _slicedToArray2 = _interopRequireDefault(__webpack_require__(17));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -79732,18 +79533,6 @@ var Autofill = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(Autofill, _BasePlugin);
 
   var _super = _createSuper(Autofill);
-
-  (0, _createClass2.default)(Autofill, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function Autofill(hotInstance) {
     var _this;
@@ -80381,6 +80170,16 @@ var Autofill = /*#__PURE__*/function (_BasePlugin) {
     value: function destroy() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(Autofill.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return Autofill;
 }(_base.BasePlugin);
@@ -80600,11 +80399,11 @@ exports.ManualRowResize = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -80653,18 +80452,6 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ManualRowResize, _BasePlugin);
 
   var _super = _createSuper(ManualRowResize);
-
-  (0, _createClass2.default)(ManualRowResize, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ManualRowResize(hotInstance) {
     var _this;
@@ -81274,6 +81061,16 @@ var ManualRowResize = /*#__PURE__*/function (_BasePlugin) {
       this.hot.rowIndexMapper.unregisterMap(this.pluginName);
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualRowResize.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return ManualRowResize;
 }(_base.BasePlugin);
@@ -81316,9 +81113,9 @@ var _slicedToArray2 = _interopRequireDefault(__webpack_require__(17));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -81413,28 +81210,6 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(AutoRowSize, _BasePlugin);
 
   var _super = _createSuper(AutoRowSize);
-
-  (0, _createClass2.default)(AutoRowSize, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }, {
-    key: "CALCULATION_STEP",
-    get: function get() {
-      return 50;
-    }
-  }, {
-    key: "SYNC_CALCULATION_LIMIT",
-    get: function get() {
-      return 500;
-    }
-  }]);
 
   function AutoRowSize(hotInstance) {
     var _this;
@@ -82043,6 +81818,26 @@ var AutoRowSize = /*#__PURE__*/function (_BasePlugin) {
       this.ghostTable.clean();
       (0, _get2.default)((0, _getPrototypeOf2.default)(AutoRowSize.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
+  }, {
+    key: "CALCULATION_STEP",
+    get: function get() {
+      return 50;
+    }
+  }, {
+    key: "SYNC_CALCULATION_LIMIT",
+    get: function get() {
+      return 500;
+    }
   }]);
   return AutoRowSize;
 }(_base.BasePlugin);
@@ -82095,9 +81890,9 @@ var _objectWithoutProperties2 = _interopRequireDefault(__webpack_require__(94));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -82206,18 +82001,6 @@ var ColumnSorting = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ColumnSorting, _BasePlugin);
 
   var _super = _createSuper(ColumnSorting);
-
-  (0, _createClass2.default)(ColumnSorting, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ColumnSorting(hotInstance) {
     var _this;
@@ -82995,6 +82778,16 @@ var ColumnSorting = /*#__PURE__*/function (_BasePlugin) {
       this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
       this.hot.columnIndexMapper.unregisterMap("".concat(this.pluginKey, ".columnMeta"));
       (0, _get2.default)((0, _getPrototypeOf2.default)(ColumnSorting.prototype), "destroy", this).call(this);
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return ColumnSorting;
@@ -84171,11 +83964,11 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(31));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -84275,18 +84068,6 @@ var Comments = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(Comments, _BasePlugin);
 
   var _super = _createSuper(Comments);
-
-  (0, _createClass2.default)(Comments, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function Comments(hotInstance) {
     var _this;
@@ -85161,6 +84942,16 @@ var Comments = /*#__PURE__*/function (_BasePlugin) {
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(Comments.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return Comments;
 }(_base.BasePlugin);
@@ -85192,28 +84983,6 @@ var _element = __webpack_require__(9);
  * @plugin Comments
  */
 var CommentEditor = /*#__PURE__*/function () {
-  (0, _createClass2.default)(CommentEditor, null, [{
-    key: "CLASS_EDITOR_CONTAINER",
-    get: function get() {
-      return 'htCommentsContainer';
-    }
-  }, {
-    key: "CLASS_EDITOR",
-    get: function get() {
-      return 'htComments';
-    }
-  }, {
-    key: "CLASS_INPUT",
-    get: function get() {
-      return 'htCommentTextArea';
-    }
-  }, {
-    key: "CLASS_CELL",
-    get: function get() {
-      return 'htCommentCell';
-    }
-  }]);
-
   function CommentEditor(rootDocument) {
     (0, _classCallCheck2.default)(this, CommentEditor);
     this.container = null;
@@ -85403,6 +85172,26 @@ var CommentEditor = /*#__PURE__*/function () {
         containerParentElement.removeChild(this.container);
       }
     }
+  }], [{
+    key: "CLASS_EDITOR_CONTAINER",
+    get: function get() {
+      return 'htCommentsContainer';
+    }
+  }, {
+    key: "CLASS_EDITOR",
+    get: function get() {
+      return 'htComments';
+    }
+  }, {
+    key: "CLASS_INPUT",
+    get: function get() {
+      return 'htCommentTextArea';
+    }
+  }, {
+    key: "CLASS_CELL",
+    get: function get() {
+      return 'htCommentCell';
+    }
   }]);
   return CommentEditor;
 }();
@@ -85583,11 +85372,11 @@ exports.ContextMenu = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -85681,34 +85470,6 @@ var ContextMenu = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ContextMenu, _BasePlugin);
 
   var _super = _createSuper(ContextMenu);
-
-  (0, _createClass2.default)(ContextMenu, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }, {
-    key: "PLUGIN_DEPS",
-    get: function get() {
-      return ['plugin:AutoColumnSize'];
-    }
-    /**
-     * Context menu default items order when `contextMenu` options is set as `true`.
-     *
-     * @returns {string[]}
-     */
-
-  }, {
-    key: "DEFAULT_ITEMS",
-    get: function get() {
-      return [_predefinedItems.ROW_ABOVE, _predefinedItems.ROW_BELOW, _predefinedItems.SEPARATOR, _predefinedItems.COLUMN_LEFT, _predefinedItems.COLUMN_RIGHT, _predefinedItems.SEPARATOR, _predefinedItems.REMOVE_ROW, _predefinedItems.REMOVE_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.UNDO, _predefinedItems.REDO, _predefinedItems.SEPARATOR, _predefinedItems.READ_ONLY, _predefinedItems.SEPARATOR, _predefinedItems.ALIGNMENT];
-    }
-  }]);
 
   function ContextMenu(hotInstance) {
     var _this;
@@ -86050,6 +85811,32 @@ var ContextMenu = /*#__PURE__*/function (_BasePlugin) {
       }
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(ContextMenu.prototype), "destroy", this).call(this);
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
+  }, {
+    key: "PLUGIN_DEPS",
+    get: function get() {
+      return ['plugin:AutoColumnSize'];
+    }
+    /**
+     * Context menu default items order when `contextMenu` options is set as `true`.
+     *
+     * @returns {string[]}
+     */
+
+  }, {
+    key: "DEFAULT_ITEMS",
+    get: function get() {
+      return [_predefinedItems.ROW_ABOVE, _predefinedItems.ROW_BELOW, _predefinedItems.SEPARATOR, _predefinedItems.COLUMN_LEFT, _predefinedItems.COLUMN_RIGHT, _predefinedItems.SEPARATOR, _predefinedItems.REMOVE_ROW, _predefinedItems.REMOVE_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.UNDO, _predefinedItems.REDO, _predefinedItems.SEPARATOR, _predefinedItems.READ_ONLY, _predefinedItems.SEPARATOR, _predefinedItems.ALIGNMENT];
     }
   }]);
   return ContextMenu;
@@ -87260,11 +87047,11 @@ var _typeof2 = _interopRequireDefault(__webpack_require__(50));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -87366,18 +87153,6 @@ var CopyPaste = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(CopyPaste, _BasePlugin);
 
   var _super = _createSuper(CopyPaste);
-
-  (0, _createClass2.default)(CopyPaste, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function CopyPaste(hotInstance) {
     var _this;
@@ -88028,6 +87803,16 @@ var CopyPaste = /*#__PURE__*/function (_BasePlugin) {
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(CopyPaste.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return CopyPaste;
 }(_base.BasePlugin);
@@ -88505,9 +88290,9 @@ var _slicedToArray2 = _interopRequireDefault(__webpack_require__(17));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -88599,18 +88384,6 @@ var CustomBorders = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(CustomBorders, _BasePlugin);
 
   var _super = _createSuper(CustomBorders);
-
-  (0, _createClass2.default)(CustomBorders, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function CustomBorders(hotInstance) {
     var _this;
@@ -89379,6 +89152,16 @@ var CustomBorders = /*#__PURE__*/function (_BasePlugin) {
     value: function destroy() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(CustomBorders.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return CustomBorders;
 }(_base.BasePlugin);
@@ -89641,11 +89424,11 @@ exports.DragToScroll = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -89683,18 +89466,6 @@ var DragToScroll = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(DragToScroll, _BasePlugin);
 
   var _super = _createSuper(DragToScroll);
-
-  (0, _createClass2.default)(DragToScroll, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function DragToScroll(hotInstance) {
     var _this;
@@ -89979,6 +89750,16 @@ var DragToScroll = /*#__PURE__*/function (_BasePlugin) {
     value: function destroy() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(DragToScroll.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return DragToScroll;
 }(_base.BasePlugin);
@@ -90027,11 +89808,11 @@ exports.ManualColumnFreeze = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -90073,18 +89854,6 @@ var ManualColumnFreeze = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ManualColumnFreeze, _BasePlugin);
 
   var _super = _createSuper(ManualColumnFreeze);
-
-  (0, _createClass2.default)(ManualColumnFreeze, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ManualColumnFreeze(hotInstance) {
     var _this;
@@ -90240,6 +90009,16 @@ var ManualColumnFreeze = /*#__PURE__*/function (_BasePlugin) {
           return false;
         }
       }
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return ManualColumnFreeze;
@@ -90405,11 +90184,11 @@ exports.ManualColumnMove = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -90480,18 +90259,6 @@ var ManualColumnMove = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ManualColumnMove, _BasePlugin);
 
   var _super = _createSuper(ManualColumnMove);
-
-  (0, _createClass2.default)(ManualColumnMove, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ManualColumnMove(hotInstance) {
     var _this;
@@ -91210,6 +90977,16 @@ var ManualColumnMove = /*#__PURE__*/function (_BasePlugin) {
       this.guideline.destroy();
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnMove.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return ManualColumnMove;
 }(_base.BasePlugin);
@@ -91266,11 +91043,11 @@ var BacklightUI = /*#__PURE__*/function (_BaseUI) {
 
   (0, _createClass2.default)(BacklightUI, [{
     key: "build",
-
+    value:
     /**
      * Custom className on build process.
      */
-    value: function build() {
+    function build() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(BacklightUI.prototype), "build", this).call(this);
       (0, _element.addClass)(this._element, CSS_CLASSNAME);
     }
@@ -91331,11 +91108,11 @@ var GuidelineUI = /*#__PURE__*/function (_BaseUI) {
 
   (0, _createClass2.default)(GuidelineUI, [{
     key: "build",
-
+    value:
     /**
      * Custom className on build process.
      */
-    value: function build() {
+    function build() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(GuidelineUI.prototype), "build", this).call(this);
       (0, _element.addClass)(this._element, CSS_CLASSNAME);
     }
@@ -91402,11 +91179,11 @@ exports.ManualColumnResize = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -91453,18 +91230,6 @@ var ManualColumnResize = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ManualColumnResize, _BasePlugin);
 
   var _super = _createSuper(ManualColumnResize);
-
-  (0, _createClass2.default)(ManualColumnResize, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ManualColumnResize(hotInstance) {
     var _this;
@@ -92116,6 +91881,16 @@ var ManualColumnResize = /*#__PURE__*/function (_BasePlugin) {
       this.hot.columnIndexMapper.unregisterMap(this.pluginName);
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualColumnResize.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return ManualColumnResize;
 }(_base.BasePlugin);
@@ -92168,11 +91943,11 @@ exports.ManualRowMove = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -92243,18 +92018,6 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ManualRowMove, _BasePlugin);
 
   var _super = _createSuper(ManualRowMove);
-
-  (0, _createClass2.default)(ManualRowMove, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ManualRowMove(hotInstance) {
     var _this;
@@ -92968,6 +92731,16 @@ var ManualRowMove = /*#__PURE__*/function (_BasePlugin) {
       this.guideline.destroy();
       (0, _get2.default)((0, _getPrototypeOf2.default)(ManualRowMove.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return ManualRowMove;
 }(_base.BasePlugin);
@@ -93024,11 +92797,11 @@ var BacklightUI = /*#__PURE__*/function (_BaseUI) {
 
   (0, _createClass2.default)(BacklightUI, [{
     key: "build",
-
+    value:
     /**
      * Custom className on build process.
      */
-    value: function build() {
+    function build() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(BacklightUI.prototype), "build", this).call(this);
       (0, _element.addClass)(this._element, CSS_CLASSNAME);
     }
@@ -93089,11 +92862,11 @@ var GuidelineUI = /*#__PURE__*/function (_BaseUI) {
 
   (0, _createClass2.default)(GuidelineUI, [{
     key: "build",
-
+    value:
     /**
      * Custom className on build process.
      */
-    value: function build() {
+    function build() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(GuidelineUI.prototype), "build", this).call(this);
       (0, _element.addClass)(this._element, CSS_CLASSNAME);
     }
@@ -93164,11 +92937,11 @@ var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(23));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -93246,18 +93019,6 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(MergeCells, _BasePlugin);
 
   var _super = _createSuper(MergeCells);
-
-  (0, _createClass2.default)(MergeCells, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function MergeCells(hotInstance) {
     var _this;
@@ -94531,6 +94292,16 @@ var MergeCells = /*#__PURE__*/function (_BasePlugin) {
     value: function onBeforeRemoveCellClassNames() {
       return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return MergeCells;
 }(_base.BasePlugin);
@@ -94575,15 +94346,7 @@ var _utils = __webpack_require__(453);
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "], overlaps \n      with the other declared merged cell. The overlapping merged cell was not added to the table, please \n      fix your setup."], ["The merged cell declared at [", ", ", "], overlaps\\x20\n      with the other declared merged cell. The overlapping merged cell was not added to the table, please\\x20\n      fix your setup."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 /**
  * Defines a container object for the merged cells.
@@ -94626,7 +94389,7 @@ var MergedCellsCollection = /*#__PURE__*/function () {
 
   (0, _createClass2.default)(MergedCellsCollection, [{
     key: "get",
-
+    value:
     /**
      * Get a merged cell from the container, based on the provided arguments. You can provide either the "starting coordinates"
      * of a merged cell, or any coordinates from the body of the merged cell.
@@ -94635,7 +94398,7 @@ var MergedCellsCollection = /*#__PURE__*/function () {
      * @param {number} column Column index.
      * @returns {MergedCellCoords|boolean} Returns a wanted merged cell on success and `false` on failure.
      */
-    value: function get(row, column) {
+    function get(row, column) {
       var mergedCells = this.mergedCells;
       var result = false;
       (0, _array.arrayEach)(mergedCells, function (mergedCell) {
@@ -94912,7 +94675,7 @@ var MergedCellsCollection = /*#__PURE__*/function () {
   }], [{
     key: "IS_OVERLAPPING_WARNING",
     value: function IS_OVERLAPPING_WARNING(newMergedCell) {
-      return (0, _templateLiteralTag.toSingleLine)(_templateObject(), newMergedCell.row, newMergedCell.col);
+      return (0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["The merged cell declared at [", ", ", "], overlaps \n      with the other declared merged cell. The overlapping merged cell was not added to the table, please \n      fix your setup."], ["The merged cell declared at [", ", ", "], overlaps\\x20\n      with the other declared merged cell. The overlapping merged cell was not added to the table, please\\x20\n      fix your setup."])), newMergedCell.row, newMergedCell.col);
     }
   }]);
   return MergedCellsCollection;
@@ -95788,9 +95551,9 @@ exports.MultipleSelectionHandles = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY 
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -95827,22 +95590,9 @@ var MultipleSelectionHandles = /*#__PURE__*/function (_BasePlugin) {
 
   var _super = _createSuper(MultipleSelectionHandles);
 
-  (0, _createClass2.default)(MultipleSelectionHandles, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-    /**
-     * @param {object} hotInstance The handsontable instance.
-     */
-
-  }]);
-
+  /**
+   * @param {object} hotInstance The handsontable instance.
+   */
   function MultipleSelectionHandles(hotInstance) {
     var _this2;
 
@@ -96235,6 +95985,16 @@ var MultipleSelectionHandles = /*#__PURE__*/function (_BasePlugin) {
     value: function isDragged() {
       return this.dragged.length > 0;
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return MultipleSelectionHandles;
 }(_base.BasePlugin);
@@ -96275,9 +96035,9 @@ exports.MultiColumnSorting = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get3 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get3 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -96369,18 +96129,6 @@ var MultiColumnSorting = /*#__PURE__*/function (_ColumnSorting) {
   (0, _inherits2.default)(MultiColumnSorting, _ColumnSorting);
 
   var _super = _createSuper(MultiColumnSorting);
-
-  (0, _createClass2.default)(MultiColumnSorting, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function MultiColumnSorting(hotInstance) {
     var _this;
@@ -96614,6 +96362,16 @@ var MultiColumnSorting = /*#__PURE__*/function (_ColumnSorting) {
         }
       }
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return MultiColumnSorting;
 }(_columnSorting.ColumnSorting);
@@ -96695,21 +96453,13 @@ var _console = __webpack_require__(66);
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Plugins `columnSorting` and `multiColumnSorting` should not be enabled simultaneously. \n    Only `multiColumnSorting` will work."], ["Plugins \\`columnSorting\\` and \\`multiColumnSorting\\` should not be enabled simultaneously. \n    Only \\`multiColumnSorting\\` will work."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 /**
  * Warn users about problems when using `columnSorting` and `multiColumnSorting` plugins simultaneously.
  */
 function warnAboutPluginsConflict() {
-  (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject()));
+  (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Plugins `columnSorting` and `multiColumnSorting` should not be enabled simultaneously. \n    Only `multiColumnSorting` will work."], ["Plugins \\`columnSorting\\` and \\`multiColumnSorting\\` should not be enabled simultaneously. \n    Only \\`multiColumnSorting\\` will work."]))));
 }
 
 /***/ }),
@@ -96807,9 +96557,9 @@ exports.ObserveChanges = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -96857,18 +96607,6 @@ var ObserveChanges = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ObserveChanges, _BasePlugin);
 
   var _super = _createSuper(ObserveChanges);
-
-  (0, _createClass2.default)(ObserveChanges, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ObserveChanges(hotInstance) {
     var _this;
@@ -97109,6 +96847,16 @@ var ObserveChanges = /*#__PURE__*/function (_BasePlugin) {
       delete hot.pauseObservingChanges;
       delete hot.resumeObservingChanges;
       delete hot.isPausedObservingChanges;
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return ObserveChanges;
@@ -98204,9 +97952,9 @@ var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(23));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -98283,18 +98031,6 @@ var Search = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(Search, _BasePlugin);
 
   var _super = _createSuper(Search);
-
-  (0, _createClass2.default)(Search, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function Search(hotInstance) {
     var _this;
@@ -98572,6 +98308,16 @@ var Search = /*#__PURE__*/function (_BasePlugin) {
     value: function destroy() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(Search.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return Search;
 }(_base.BasePlugin);
@@ -98610,9 +98356,9 @@ exports.TouchScroll = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -98647,18 +98393,6 @@ var TouchScroll = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(TouchScroll, _BasePlugin);
 
   var _super = _createSuper(TouchScroll);
-
-  (0, _createClass2.default)(TouchScroll, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function TouchScroll(hotInstance) {
     var _this;
@@ -98864,6 +98598,16 @@ var TouchScroll = /*#__PURE__*/function (_BasePlugin) {
         scrollbar.resetFixedPosition();
       });
       this.hot.view.wt.wtOverlays.syncScrollWithMaster();
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return TouchScroll;
@@ -99943,9 +99687,9 @@ exports.BindRowsWithHeaders = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = voi
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -99993,18 +99737,6 @@ var BindRowsWithHeaders = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(BindRowsWithHeaders, _BasePlugin);
 
   var _super = _createSuper(BindRowsWithHeaders);
-
-  (0, _createClass2.default)(BindRowsWithHeaders, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function BindRowsWithHeaders(hotInstance) {
     var _this;
@@ -100092,6 +99824,16 @@ var BindRowsWithHeaders = /*#__PURE__*/function (_BasePlugin) {
     value: function destroy() {
       this.hot.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
       (0, _get2.default)((0, _getPrototypeOf2.default)(BindRowsWithHeaders.prototype), "destroy", this).call(this);
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return BindRowsWithHeaders;
@@ -100329,9 +100071,9 @@ var _taggedTemplateLiteral2 = _interopRequireDefault(__webpack_require__(64));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -100347,15 +100089,7 @@ var _endpoints = _interopRequireDefault(__webpack_require__(727));
 
 var _templateLiteralTag = __webpack_require__(65);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["ColumnSummary plugin: cell at (", ", ", ") is not in a \n          numeric format. Cannot do the calculation."], ["ColumnSummary plugin: cell at (", ", ", ") is not in a\\x20\n          numeric format. Cannot do the calculation."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -100405,18 +100139,6 @@ var ColumnSummary = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(ColumnSummary, _BasePlugin);
 
   var _super = _createSuper(ColumnSummary);
-
-  (0, _createClass2.default)(ColumnSummary, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function ColumnSummary(hotInstance) {
     var _this;
@@ -100809,7 +100531,7 @@ var ColumnSummary = /*#__PURE__*/function (_BasePlugin) {
 
       if (isNaN(cellValue)) {
         if (!this.endpoints.currentEndpoint.suppressDataTypeErrors) {
-          throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject(), row, col));
+          throw new Error((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["ColumnSummary plugin: cell at (", ", ", ") is not in a \n          numeric format. Cannot do the calculation."], ["ColumnSummary plugin: cell at (", ", ", ") is not in a\\x20\n          numeric format. Cannot do the calculation."])), row, col));
         }
       }
 
@@ -100856,6 +100578,16 @@ var ColumnSummary = /*#__PURE__*/function (_BasePlugin) {
     value: function onAfterRowMove(rows, finalIndex) {
       this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
       this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return ColumnSummary;
@@ -101684,11 +101416,11 @@ exports.DropdownMenu = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -101780,34 +101512,6 @@ var DropdownMenu = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(DropdownMenu, _BasePlugin);
 
   var _super = _createSuper(DropdownMenu);
-
-  (0, _createClass2.default)(DropdownMenu, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }, {
-    key: "PLUGIN_DEPS",
-    get: function get() {
-      return ['plugin:AutoColumnSize'];
-    }
-    /**
-     * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
-     *
-     * @returns {Array}
-     */
-
-  }, {
-    key: "DEFAULT_ITEMS",
-    get: function get() {
-      return [_predefinedItems.COLUMN_LEFT, _predefinedItems.COLUMN_RIGHT, _predefinedItems.SEPARATOR, _predefinedItems.REMOVE_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.CLEAR_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.READ_ONLY, _predefinedItems.SEPARATOR, _predefinedItems.ALIGNMENT];
-    }
-  }]);
 
   function DropdownMenu(hotInstance) {
     var _this;
@@ -102219,6 +101923,32 @@ var DropdownMenu = /*#__PURE__*/function (_BasePlugin) {
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(DropdownMenu.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
+  }, {
+    key: "PLUGIN_DEPS",
+    get: function get() {
+      return ['plugin:AutoColumnSize'];
+    }
+    /**
+     * Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
+     *
+     * @returns {Array}
+     */
+
+  }, {
+    key: "DEFAULT_ITEMS",
+    get: function get() {
+      return [_predefinedItems.COLUMN_LEFT, _predefinedItems.COLUMN_RIGHT, _predefinedItems.SEPARATOR, _predefinedItems.REMOVE_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.CLEAR_COLUMN, _predefinedItems.SEPARATOR, _predefinedItems.READ_ONLY, _predefinedItems.SEPARATOR, _predefinedItems.ALIGNMENT];
+    }
   }]);
   return DropdownMenu;
 }(_base.BasePlugin);
@@ -102345,14 +102075,14 @@ var ExportFile = /*#__PURE__*/function (_BasePlugin) {
 
   (0, _createClass2.default)(ExportFile, [{
     key: "isEnabled",
-
+    value:
     /**
      * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
      * hook and if it returns `true` than the {@link ExportFile#enablePlugin} method is called.
      *
      * @returns {boolean}
      */
-    value: function isEnabled() {
+    function isEnabled() {
       return true;
     }
     /**
@@ -102821,13 +102551,13 @@ var Csv = /*#__PURE__*/function (_BaseType) {
 
   (0, _createClass2.default)(Csv, [{
     key: "export",
-
+    value:
     /**
      * Create string body in desired format.
      *
      * @returns {string}
      */
-    value: function _export() {
+    function _export() {
       var _this = this;
 
       var options = this.options;
@@ -102889,13 +102619,13 @@ var Csv = /*#__PURE__*/function (_BaseType) {
     }
   }], [{
     key: "DEFAULT_OPTIONS",
-
+    get:
     /**
      * Default options for exporting CSV format.
      *
      * @returns {object}
      */
-    get: function get() {
+    function get() {
       return {
         mimeType: 'text/csv',
         fileExtension: 'csv',
@@ -102938,30 +102668,6 @@ var _string = __webpack_require__(72);
  * @private
  */
 var BaseType = /*#__PURE__*/function () {
-  (0, _createClass2.default)(BaseType, null, [{
-    key: "DEFAULT_OPTIONS",
-
-    /**
-     * Default options.
-     *
-     * @returns {object}
-     */
-    get: function get() {
-      return {
-        mimeType: 'text/plain',
-        fileExtension: 'txt',
-        filename: 'Handsontable [YYYY]-[MM]-[DD]',
-        encoding: 'utf-8',
-        bom: false,
-        columnHeaders: false,
-        rowHeaders: false,
-        exportHiddenColumns: false,
-        exportHiddenRows: false,
-        range: []
-      };
-    }
-  }]);
-
   function BaseType(dataProvider, options) {
     (0, _classCallCheck2.default)(this, BaseType);
 
@@ -103003,6 +102709,28 @@ var BaseType = /*#__PURE__*/function () {
       });
       return _options;
     }
+  }], [{
+    key: "DEFAULT_OPTIONS",
+    get:
+    /**
+     * Default options.
+     *
+     * @returns {object}
+     */
+    function get() {
+      return {
+        mimeType: 'text/plain',
+        fileExtension: 'txt',
+        filename: 'Handsontable [YYYY]-[MM]-[DD]',
+        encoding: 'utf-8',
+        bom: false,
+        columnHeaders: false,
+        rowHeaders: false,
+        exportHiddenColumns: false,
+        exportHiddenRows: false,
+        range: []
+      };
+    }
   }]);
   return BaseType;
 }();
@@ -103033,9 +102761,9 @@ exports.Filters = _filters.Filters;
 "use strict";
 
 
-var _interopRequireWildcard = __webpack_require__(13);
-
 var _interopRequireDefault = __webpack_require__(0);
+
+var _interopRequireWildcard = __webpack_require__(13);
 
 __webpack_require__(18);
 
@@ -103068,11 +102796,11 @@ var _slicedToArray2 = _interopRequireDefault(__webpack_require__(17));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -103120,15 +102848,7 @@ var _translations = __webpack_require__(49);
 
 __webpack_require__(771);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["The filter conditions have been applied properly, but couldn\u2019t be displayed visually. \n        The overall amount of conditions exceed the capability of the dropdown menu. \n        For more details see the documentation."], ["The filter conditions have been applied properly, but couldn\u2019t be displayed visually.\\x20\n        The overall amount of conditions exceed the capability of the dropdown menu.\\x20\n        For more details see the documentation."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -103164,23 +102884,6 @@ var Filters = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(Filters, _BasePlugin);
 
   var _super = _createSuper(Filters);
-
-  (0, _createClass2.default)(Filters, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }, {
-    key: "PLUGIN_DEPS",
-    get: function get() {
-      return ['plugin:DropdownMenu', 'plugin:HiddenRows', 'cell-type:checkbox'];
-    }
-  }]);
 
   function Filters(hotInstance) {
     var _this;
@@ -104018,7 +103721,7 @@ var Filters = /*#__PURE__*/function (_BasePlugin) {
       });
 
       if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
-        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject()));
+        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["The filter conditions have been applied properly, but couldn\u2019t be displayed visually. \n        The overall amount of conditions exceed the capability of the dropdown menu. \n        For more details see the documentation."], ["The filter conditions have been applied properly, but couldn\u2019t be displayed visually.\\x20\n        The overall amount of conditions exceed the capability of the dropdown menu.\\x20\n        For more details see the documentation."]))));
       } else {
         var operationType = this.conditionCollection.getOperation(column);
         this.components.get('filter_by_condition').updateState(conditionsWithoutByValue[0], column);
@@ -104149,6 +103852,21 @@ var Filters = /*#__PURE__*/function (_BasePlugin) {
       }
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(Filters.prototype), "destroy", this).call(this);
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
+  }, {
+    key: "PLUGIN_DEPS",
+    get: function get() {
+      return ['plugin:DropdownMenu', 'plugin:HiddenRows', 'cell-type:checkbox'];
     }
   }]);
   return Filters;
@@ -105305,11 +105023,11 @@ exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -105343,16 +105061,6 @@ var SelectUI = /*#__PURE__*/function (_BaseUI) {
   (0, _inherits2.default)(SelectUI, _BaseUI);
 
   var _super = _createSuper(SelectUI);
-
-  (0, _createClass2.default)(SelectUI, null, [{
-    key: "DEFAULTS",
-    get: function get() {
-      return (0, _object.clone)({
-        className: 'htUISelect',
-        wrapIt: false
-      });
-    }
-  }]);
 
   function SelectUI(hotInstance, options) {
     var _this;
@@ -105579,6 +105287,14 @@ var SelectUI = /*#__PURE__*/function (_BaseUI) {
 
       (0, _get2.default)((0, _getPrototypeOf2.default)(SelectUI.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "DEFAULTS",
+    get: function get() {
+      return (0, _object.clone)({
+        className: 'htUISelect',
+        wrapIt: false
+      });
+    }
   }]);
   return SelectUI;
 }(_base.default);
@@ -105632,15 +105348,7 @@ var _disjunctionWithExtraCondition = __webpack_require__(461);
 
 var _radioInput = _interopRequireDefault(__webpack_require__(762));
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Radio button with index ", " doesn't exist."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -105744,7 +105452,7 @@ var OperatorsComponent = /*#__PURE__*/function (_BaseComponent) {
     key: "setChecked",
     value: function setChecked(searchedIndex) {
       if (this.elements.length < searchedIndex) {
-        throw Error((0, _templateLiteralTag.toSingleLine)(_templateObject(), searchedIndex));
+        throw Error((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Radio button with index ", " doesn't exist."])), searchedIndex));
       }
 
       (0, _array.arrayEach)(this.elements, function (element, index) {
@@ -105870,11 +105578,11 @@ exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -105900,18 +105608,6 @@ var RadioInputUI = /*#__PURE__*/function (_BaseUI) {
   (0, _inherits2.default)(RadioInputUI, _BaseUI);
 
   var _super = _createSuper(RadioInputUI);
-
-  (0, _createClass2.default)(RadioInputUI, null, [{
-    key: "DEFAULTS",
-    get: function get() {
-      return (0, _object.clone)({
-        type: 'radio',
-        tagName: 'input',
-        className: 'htUIRadio',
-        label: {}
-      });
-    }
-  }]);
 
   function RadioInputUI(hotInstance, options) {
     var _this;
@@ -105990,6 +105686,16 @@ var RadioInputUI = /*#__PURE__*/function (_BaseUI) {
       if (this.isBuilt()) {
         privatePool.get(this).input.focus();
       }
+    }
+  }], [{
+    key: "DEFAULTS",
+    get: function get() {
+      return (0, _object.clone)({
+        type: 'radio',
+        tagName: 'input',
+        className: 'htUIRadio',
+        label: {}
+      });
     }
   }]);
   return RadioInputUI;
@@ -106324,11 +106030,11 @@ var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(23));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -106374,16 +106080,6 @@ var MultipleSelectUI = /*#__PURE__*/function (_BaseUI) {
   (0, _inherits2.default)(MultipleSelectUI, _BaseUI);
 
   var _super = _createSuper(MultipleSelectUI);
-
-  (0, _createClass2.default)(MultipleSelectUI, null, [{
-    key: "DEFAULTS",
-    get: function get() {
-      return (0, _object.clone)({
-        className: 'htUIMultipleSelect',
-        value: []
-      });
-    }
-  }]);
 
   function MultipleSelectUI(hotInstance, options) {
     var _this;
@@ -106734,6 +106430,14 @@ var MultipleSelectUI = /*#__PURE__*/function (_BaseUI) {
       });
       this.itemsBox.setSourceDataAtCell(changes);
     }
+  }], [{
+    key: "DEFAULTS",
+    get: function get() {
+      return (0, _object.clone)({
+        className: 'htUIMultipleSelect',
+        value: []
+      });
+    }
   }]);
   return MultipleSelectUI;
 }(_base.default);
@@ -106800,11 +106504,11 @@ exports.default = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -106830,16 +106534,6 @@ var LinkUI = /*#__PURE__*/function (_BaseUI) {
   (0, _inherits2.default)(LinkUI, _BaseUI);
 
   var _super = _createSuper(LinkUI);
-
-  (0, _createClass2.default)(LinkUI, null, [{
-    key: "DEFAULTS",
-    get: function get() {
-      return (0, _object.clone)({
-        href: '#',
-        tagName: 'a'
-      });
-    }
-  }]);
 
   function LinkUI(hotInstance, options) {
     var _this;
@@ -106873,6 +106567,14 @@ var LinkUI = /*#__PURE__*/function (_BaseUI) {
       }
 
       privatePool.get(this).link.textContent = this.translateIfPossible(this.options.textContent);
+    }
+  }], [{
+    key: "DEFAULTS",
+    get: function get() {
+      return (0, _object.clone)({
+        href: '#',
+        tagName: 'a'
+      });
     }
   }]);
   return LinkUI;
@@ -106982,18 +106684,6 @@ var ActionBarComponent = /*#__PURE__*/function (_BaseComponent) {
   (0, _inherits2.default)(ActionBarComponent, _BaseComponent);
 
   var _super = _createSuper(ActionBarComponent);
-
-  (0, _createClass2.default)(ActionBarComponent, null, [{
-    key: "BUTTON_OK",
-    get: function get() {
-      return 'ok';
-    }
-  }, {
-    key: "BUTTON_CANCEL",
-    get: function get() {
-      return 'cancel';
-    }
-  }]);
 
   function ActionBarComponent(hotInstance, options) {
     var _this;
@@ -107107,6 +106797,16 @@ var ActionBarComponent = /*#__PURE__*/function (_BaseComponent) {
       } else {
         this.cancel();
       }
+    }
+  }], [{
+    key: "BUTTON_OK",
+    get: function get() {
+      return 'ok';
+    }
+  }, {
+    key: "BUTTON_CANCEL",
+    get: function get() {
+      return 'cancel';
     }
   }]);
   return ActionBarComponent;
@@ -107440,11 +107140,11 @@ var _slicedToArray2 = _interopRequireDefault(__webpack_require__(17));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -107489,18 +107189,6 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(Formulas, _BasePlugin);
 
   var _super = _createSuper(Formulas);
-
-  (0, _createClass2.default)(Formulas, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function Formulas(hotInstance) {
     var _this;
@@ -108017,6 +107705,16 @@ var Formulas = /*#__PURE__*/function (_BasePlugin) {
       this.sheet.destroy();
       this.sheet = null;
       (0, _get2.default)((0, _getPrototypeOf2.default)(Formulas.prototype), "destroy", this).call(this);
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return Formulas;
@@ -112749,13 +112447,13 @@ var CellReference = /*#__PURE__*/function (_BaseCell) {
 
   (0, _createClass2.default)(CellReference, [{
     key: "toString",
-
+    value:
     /**
      * Stringify object.
      *
      * @returns {string}
      */
-    value: function toString() {
+    function toString() {
       return (0, _hotFormulaParser.toLabel)({
         index: this.row,
         isAbsolute: false
@@ -114361,9 +114059,9 @@ exports.HeaderTooltips = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -114419,18 +114117,6 @@ var HeaderTooltips = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(HeaderTooltips, _BasePlugin);
 
   var _super = _createSuper(HeaderTooltips);
-
-  (0, _createClass2.default)(HeaderTooltips, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function HeaderTooltips(hotInstance) {
     var _this;
@@ -114581,6 +114267,16 @@ var HeaderTooltips = /*#__PURE__*/function (_BasePlugin) {
       this.settings = null;
       (0, _get2.default)((0, _getPrototypeOf2.default)(HeaderTooltips.prototype), "destroy", this).call(this);
     }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
+    }
   }]);
   return HeaderTooltips;
 }(_base.BasePlugin);
@@ -114669,25 +114365,7 @@ var _ghostTable = _interopRequireDefault(__webpack_require__(821));
 
 __webpack_require__(822);
 
-function _templateObject2() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Your Nested Headers plugin setup contains overlapping headers. This kind of configuration \n                        is currently not supported."], ["Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\\x20\n                        is currently not supported."]);
-
-  _templateObject2 = function _templateObject2() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Your Nested Headers plugin configuration is invalid. The settings has to be \n                        passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]"], ["Your Nested Headers plugin configuration is invalid. The settings has to be\\x20\n                        passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]"]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject, _templateObject2;
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
@@ -114754,13 +114432,13 @@ var NestedHeaders = /*#__PURE__*/function (_BasePlugin) {
 
   (0, _createClass2.default)(NestedHeaders, [{
     key: "isEnabled",
-
+    value:
     /**
      * Check if plugin is enabled.
      *
      * @returns {boolean}
      */
-    value: function isEnabled() {
+    function isEnabled() {
       return !!this.hot.getSettings()[PLUGIN_KEY];
     }
     /**
@@ -114780,7 +114458,7 @@ var NestedHeaders = /*#__PURE__*/function (_BasePlugin) {
           nestedHeaders = _this$hot$getSettings.nestedHeaders;
 
       if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
-        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject()));
+        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Your Nested Headers plugin configuration is invalid. The settings has to be \n                        passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]"], ["Your Nested Headers plugin configuration is invalid. The settings has to be\\x20\n                        passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]"]))));
       }
 
       this.addHook('init', function () {
@@ -114829,7 +114507,7 @@ var NestedHeaders = /*#__PURE__*/function (_BasePlugin) {
       }
 
       if (this.detectedOverlappedHeaders) {
-        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject2()));
+        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject2 || (_templateObject2 = (0, _taggedTemplateLiteral2.default)(["Your Nested Headers plugin setup contains overlapping headers. This kind of configuration \n                        is currently not supported."], ["Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\\x20\n                        is currently not supported."]))));
       }
 
       this.ghostTable.buildWidthsMapper();
@@ -115439,7 +115117,7 @@ var StateManager = /*#__PURE__*/function () {
 
   (0, _createClass2.default)(StateManager, [{
     key: "setState",
-
+    value:
     /**
      * Sets a new state for the nested headers plugin based on settings passed
      * directly to the plugin.
@@ -115447,7 +115125,7 @@ var StateManager = /*#__PURE__*/function () {
      * @param {Array[]} nestedHeadersSettings The user-defined settings.
      * @returns {boolean} Returns `true` if the settings are processed correctly, `false` otherwise.
      */
-    value: function setState(nestedHeadersSettings) {
+    function setState(nestedHeadersSettings) {
       (0, _classPrivateFieldGet4.default)(this, _sourceSettings).setData(nestedHeadersSettings);
       var hasError = false;
 
@@ -115827,14 +115505,14 @@ var SourceSettings = /*#__PURE__*/function () {
 
   (0, _createClass2.default)(SourceSettings, [{
     key: "setColumnsLimit",
-
+    value:
     /**
      * Sets columns limit to the source settings will be trimmed. All headers which
      * overlap the column limit will be reduced to keep the structure solid.
      *
      * @param {number} columnsCount The number of columns to limit to.
      */
-    value: function setColumnsLimit(columnsCount) {
+    function setColumnsLimit(columnsCount) {
       (0, _classPrivateFieldSet2.default)(this, _columnsLimit, columnsCount);
     }
     /**
@@ -116802,7 +116480,7 @@ var NodeModifiers = /*#__PURE__*/function () {
 
   (0, _createClass2.default)(NodeModifiers, [{
     key: "collapseNode",
-
+    value:
     /* eslint-disable jsdoc/require-description-complete-sentence */
 
     /**
@@ -116826,7 +116504,7 @@ var NodeModifiers = /*#__PURE__*/function () {
      */
 
     /* eslint-enable jsdoc/require-description-complete-sentence */
-    value: function collapseNode(nodeToProcess) {
+    function collapseNode(nodeToProcess) {
       var _getFirstChildPropert,
           _this = this;
 
@@ -117520,14 +117198,14 @@ var CollapsibleColumns = /*#__PURE__*/function (_BasePlugin) {
 
   (0, _createClass2.default)(CollapsibleColumns, [{
     key: "isEnabled",
-
+    value:
     /**
      * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
      * hook and if it returns `true` than the {@link CollapsibleColumns#enablePlugin} method is called.
      *
      * @returns {boolean}
      */
-    value: function isEnabled() {
+    function isEnabled() {
       return !!this.hot.getSettings()[PLUGIN_KEY];
     }
     /**
@@ -118024,11 +117702,11 @@ var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(23));
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
+var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
 var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(27));
 
 var _get2 = _interopRequireDefault(__webpack_require__(15));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(2));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -118072,18 +117750,6 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(NestedRows, _BasePlugin);
 
   var _super = _createSuper(NestedRows);
-
-  (0, _createClass2.default)(NestedRows, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function NestedRows(hotInstance) {
     var _this;
@@ -118599,6 +118265,16 @@ var NestedRows = /*#__PURE__*/function (_BasePlugin) {
     value: function onBeforeLoadData(data) {
       this.dataManager.setData(data);
       this.dataManager.rewriteCache();
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return NestedRows;
@@ -120349,15 +120025,7 @@ var _templateLiteralTag = __webpack_require__(65);
 
 var _src = __webpack_require__(34);
 
-function _templateObject() {
-  var data = (0, _taggedTemplateLiteral2.default)(["Since version 8.0.0 of the Handsontable the 'moveRows' method isn't used for moving rows \n      when the NestedRows plugin is enabled. Please use the 'dragRows' method instead."], ["Since version 8.0.0 of the Handsontable the 'moveRows' method isn't used for moving rows\\x20\n      when the NestedRows plugin is enabled. Please use the 'dragRows' method instead."]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
+var _templateObject;
 
 /**
  * Helper class for the row-move-related operations.
@@ -120486,7 +120154,7 @@ var RowMoveController = /*#__PURE__*/function () {
       var shouldTerminate = false;
 
       if ((0, _mixed.isUndefined)(dropIndex)) {
-        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject())); // TODO: Trying to mock real work of the `ManualRowMove` plugin. It was blocked by returning `false` below.
+        (0, _console.warn)((0, _templateLiteralTag.toSingleLine)(_templateObject || (_templateObject = (0, _taggedTemplateLiteral2.default)(["Since version 8.0.0 of the Handsontable the 'moveRows' method isn't used for moving rows \n      when the NestedRows plugin is enabled. Please use the 'dragRows' method instead."], ["Since version 8.0.0 of the Handsontable the 'moveRows' method isn't used for moving rows\\x20\n      when the NestedRows plugin is enabled. Please use the 'dragRows' method instead."])))); // TODO: Trying to mock real work of the `ManualRowMove` plugin. It was blocked by returning `false` below.
 
         this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, false);
         shouldTerminate = true;
@@ -120884,14 +120552,14 @@ var HiddenColumns = /*#__PURE__*/function (_BasePlugin) {
 
   (0, _createClass2.default)(HiddenColumns, [{
     key: "isEnabled",
-
+    value:
     /**
      * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
      * hook and if it returns `true` than the {@link HiddenColumns#enablePlugin} method is called.
      *
      * @returns {boolean}
      */
-    value: function isEnabled() {
+    function isEnabled() {
       return !!this.hot.getSettings()[PLUGIN_KEY];
     }
     /**
@@ -121761,14 +121429,14 @@ var HiddenRows = /*#__PURE__*/function (_BasePlugin) {
 
   (0, _createClass2.default)(HiddenRows, [{
     key: "isEnabled",
-
+    value:
     /**
      * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
      * hook and if it returns `true` than the {@link HiddenRows#enablePlugin} method is called.
      *
      * @returns {boolean}
      */
-    value: function isEnabled() {
+    function isEnabled() {
       return !!this.hot.getSettings()[PLUGIN_KEY];
     }
     /**
@@ -122473,9 +122141,9 @@ exports.TrimRows = exports.PLUGIN_PRIORITY = exports.PLUGIN_KEY = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(1));
 
-var _get2 = _interopRequireDefault(__webpack_require__(15));
-
 var _createClass2 = _interopRequireDefault(__webpack_require__(2));
+
+var _get2 = _interopRequireDefault(__webpack_require__(15));
 
 var _inherits2 = _interopRequireDefault(__webpack_require__(5));
 
@@ -122545,18 +122213,6 @@ var TrimRows = /*#__PURE__*/function (_BasePlugin) {
   (0, _inherits2.default)(TrimRows, _BasePlugin);
 
   var _super = _createSuper(TrimRows);
-
-  (0, _createClass2.default)(TrimRows, null, [{
-    key: "PLUGIN_KEY",
-    get: function get() {
-      return PLUGIN_KEY;
-    }
-  }, {
-    key: "PLUGIN_PRIORITY",
-    get: function get() {
-      return PLUGIN_PRIORITY;
-    }
-  }]);
 
   function TrimRows(hotInstance) {
     var _this;
@@ -122826,6 +122482,16 @@ var TrimRows = /*#__PURE__*/function (_BasePlugin) {
     value: function destroy() {
       this.hot.rowIndexMapper.unregisterMap('trimRows');
       (0, _get2.default)((0, _getPrototypeOf2.default)(TrimRows.prototype), "destroy", this).call(this);
+    }
+  }], [{
+    key: "PLUGIN_KEY",
+    get: function get() {
+      return PLUGIN_KEY;
+    }
+  }, {
+    key: "PLUGIN_PRIORITY",
+    get: function get() {
+      return PLUGIN_PRIORITY;
     }
   }]);
   return TrimRows;
