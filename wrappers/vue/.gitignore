@@ -1,0 +1,11 @@
+.DS_Store
+.idea/
+node_modules/
+test/dist/
+es
+commonjs
+dist
+.rpt2_cache
+npm-debug.log
+/*.d.ts
+

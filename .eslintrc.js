@@ -141,6 +141,22 @@ module.exports = {
       "**/validators",
       "**/validators/?(index)",
     ],
+    // TODO: To be reviewed:
+    'operator-linebreak': 'off',
+    'object-curly-newline': 'off',
+    'prefer-destructuring': 'off',
+    'implicit-arrow-linebreak': 'off',
+    'function-paren-newline': 'off',
+    'max-classes-per-file': 'off',
+    'import/no-useless-path-segments': 'off',
+    'lines-between-class-members': 'off',
+    'semi-style': 'off',
+    'no-else-return': 'off',
+    'import/no-cycle': 'off',
+    'no-lone-blocks': 'off',
+    'getter-return': 'off',
+    'switch-colon-spacing': 'off',
+    'operator-assignment': 'off',
   },
   "overrides": [
     {
@@ -168,6 +184,21 @@ module.exports = {
         "jsdoc/require-returns": "off",
         "handsontable/restricted-module-imports": "off",
       }
-    }
+    },
+    {
+      "files": ["scripts/**"],
+      "rules": {
+        "no-restricted-globals": "off",
+        "import/extensions": "off",
+        "no-console": "off",
+        "no-await-in-loop": "off",
+        "no-restricted-syntax": [
+          'error',
+          'ForInStatement',
+          'LabeledStatement',
+          'WithStatement',
+        ]
+      }
+    },
   ],
 }

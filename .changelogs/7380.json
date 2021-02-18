@@ -1,0 +1,7 @@
+{
+  "title": "Introduced the monorepo to this repository. From now on, `handsontable`, `@handsontable/angular`, `@handsontable/react` and `@handsontable/vue` will all be developed in the same repo - `handsontable`.",
+  "type": "added",
+  "issue": 7380,
+  "breaking": false,
+  "framework": "none"
+}

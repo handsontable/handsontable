@@ -1,5 +1,5 @@
-const fse = require('fs-extra');
-const path = require('path');
+import fse from 'fs-extra';
+import path from 'path';
 
 const TARGET_PATH = './tmp';
 const filesToMove = [
