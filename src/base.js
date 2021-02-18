@@ -5,6 +5,9 @@ import './css/mobile.handsontable.css';
 
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
+
+// FIXME: Bug in eslint-plugin-import: https://github.com/benmosher/eslint-plugin-import/issues/1883
+/* eslint-disable import/named */
 import {
   dictionaryKeys,
   getTranslatedPhrase,
@@ -12,6 +15,7 @@ import {
   getLanguagesDictionaries,
   getLanguageDictionary
 } from './i18n/registry';
+/* eslint-enable import/named */
 import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 
