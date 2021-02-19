@@ -179,7 +179,7 @@ export async function scheduleRelease(version, releaseDate) {
       message: 'Enter the custom version number.',
       when: answers => answers.changeType === 'custom',
       validate: (value) => {
-        if (!!semver.valid(value)) {
+        if (isVersionValid(value)) {
           return true;
         }
 
@@ -214,6 +214,8 @@ Are the version number and release date above correct?`,
       default: true,
     },
   ];
+  let finalVersion = null;
+  let finalReleaseDate = null;
 
   // Version and release date were passed as arguments.
   if (version && releaseDate) {
@@ -247,26 +249,35 @@ Are the version number and release date above correct?`,
       `\nChanging the version number to ${newVersion}, to be released on ${releaseDate}. \n`
     );
 
+    finalVersion = newVersion;
+    finalReleaseDate = releaseDate;
+
     setVersion(newVersion, workspacePackages);
     setReleaseDate(releaseDate);
 
   } else {
-    await inquirer.prompt(questions).then(async (answers) => {
-      const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY', true);
+    const answers = await inquirer.prompt(questions);
+    const releaseDateObj = moment(answers.releaseDate, 'DD/MM/YYYY', true);
+    const newVersion =
+      answers.changeType !== 'custom' ?
+        getVersionFromReleaseType(answers.changeType, currentVersion) :
+        answers.customVersion;
+    const confirmationAnswers = await inquirer.prompt(
+      getConfirmationQuestion(newVersion, releaseDateObj.format('DD MMMM YYYY'))
+    );
 
-      const newVersion =
-        answers.changeType !== 'custom' ?
-          getVersionFromReleaseType(answers.changeType, currentVersion) :
-          answers.customVersion;
+    if (confirmationAnswers.isReleaseDateConfirmed) {
 
-      await inquirer.prompt(
-        getConfirmationQuestion(newVersion, releaseDateObj.format('DD MMMM YYYY'))
-      ).then((confirmationAnswers) => {
-        if (confirmationAnswers.isReleaseDateConfirmed) {
-          setVersion(newVersion);
-          setReleaseDate(answers.releaseDate);
-        }
-      });
-    });
+      finalVersion = newVersion;
+      finalReleaseDate = answers.releaseDate;
+
+      setVersion(newVersion);
+      setReleaseDate(answers.releaseDate);
+    }
   }
+
+  return {
+    version: finalVersion,
+    releaseDate: finalReleaseDate
+  };
 }

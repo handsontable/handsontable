@@ -8,7 +8,6 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { spawnProcess } from './utils/index.mjs';
 
-// eslint-disable-next-line no-unused-expressions
 const argv = yargs(hideBin(process.argv))
   .alias('e', 'exclude')
   .array('e')
@@ -19,9 +18,9 @@ const argv = yargs(hideBin(process.argv))
   const [command] = process.argv.slice(2);
   const ORDER = [
     'handsontable',
-    'angular-handsontable',
-    'react-handsontable',
-    'vue-handsontable'
+    'angular',
+    'react',
+    'vue'
   ];
 
   /* eslint-disable no-await-in-loop,no-restricted-syntax */

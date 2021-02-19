@@ -13,23 +13,25 @@ import {
 
 displaySeparator();
 
-// Initial verification prompt
-inquirer.prompt([
-  {
-    type: 'confirm',
-    name: 'continueRelease',
-    message: 'This script will take the current state of the release branch and merge, commit and push it to the' +
-      ' `master` branch (as well as the tags).\nContinue?',
-    default: true,
-  }
-]).then(async(answers) => {
+(async() => {
+  // Initial verification prompt
+  const answers = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'continueRelease',
+      message: 'This script will take the current state of the release branch and merge, commit and push it to the' +
+        ' `master` branch (as well as the tags).\nContinue?',
+      default: true,
+    }
+  ]);
+
   if (!answers.continueRelease) {
-    return;
+    process.exit(0);
   }
 
   // Check if all the files are committed.
   {
-    const processInfo = await spawnProcess('git status -s', true);
+    const processInfo = await spawnProcess('git status -s', { silent: true });
     const output = processInfo.stdout.toString();
 
     // If there are any uncommitted changes, kill the script.
@@ -41,7 +43,7 @@ inquirer.prompt([
   }
   {
     // Check if we're on a release branch.
-    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', true);
+    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true });
     const branchName = processInfo.stdout.toString();
 
     if (!branchName.startsWith('release/')) {
@@ -67,4 +69,4 @@ inquirer.prompt([
       await spawnProcess('git push --tags');
     }
   }
-});
+})();

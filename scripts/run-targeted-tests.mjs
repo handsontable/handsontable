@@ -31,6 +31,7 @@ const IGNORED_PATHS = [
 
 const argv = yargs(hideBin(process.argv))
   .alias('p', 'pipeline')
+  .number('p')
   .describe('p', 'Define the pipeline number the tests will be triggered on.' +
     '\n If HOT was modified or the tests are triggered on a full-test branch:' +
     '\n - pipeline 1: `production` tests for Handsontable and package tests.' +
@@ -55,7 +56,7 @@ const touchedProjects = [];
  */
 async function distributeBetweenPipelines(modifiedProjects) {
   const pipelineCount = 2;
-  const pipeline = parseInt(argv.pipeline, 10);
+  const pipeline = argv.pipeline;
   const isHandsontableTouched = modifiedProjects.includes('handsontable');
 
   switch (pipeline) {
@@ -64,14 +65,12 @@ async function distributeBetweenPipelines(modifiedProjects) {
         await spawnProcess('npm run in handsontable test:production');
       }
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const projectName of modifiedProjects) {
         if (
           (!isHandsontableTouched &&
             modifiedProjects.indexOf(projectName) < Math.floor(modifiedProjects.length / pipelineCount)) ||
           (isHandsontableTouched && projectName !== 'handsontable')
         ) {
-          // eslint-disable-next-line no-await-in-loop
           await spawnProcess(`npm run in ${projectName} test`);
         }
       }
@@ -85,22 +84,18 @@ async function distributeBetweenPipelines(modifiedProjects) {
         await spawnProcess('npm run in handsontable test:e2e');
       }
 
-      // eslint-disable-next-line no-restricted-syntax
       for (const projectName of modifiedProjects) {
         if (
           !isHandsontableTouched &&
           modifiedProjects.indexOf(projectName) >= Math.floor(modifiedProjects.length / pipelineCount)
         ) {
-          // eslint-disable-next-line no-await-in-loop
           await spawnProcess(`npm run in ${projectName} test`);
         }
       }
 
       break;
     default:
-      // eslint-disable-next-line no-restricted-syntax
       for (const projectName of modifiedProjects) {
-        // eslint-disable-next-line no-await-in-loop
         await spawnProcess(`npm run in ${projectName} test`);
       }
   }
@@ -116,17 +111,9 @@ async function distributeBetweenPipelines(modifiedProjects) {
   const fullTestBranchRegex = new RegExp('^(master|develop|release\/.{5,})$');
   const configPathsRegex = new RegExp(`^(${CONFIG_PATHS.join('|').replace(/\./g,'\\.')})`);
   const fullTestBranchMatch = fullTestBranchRegex.test(currentBranch);
-  let configPathMatched = false;
-
   filesModifiedInLastCommit.shift();
 
-  filesModifiedInLastCommit.some((fileUrl) => {
-    if (configPathsRegex.test(fileUrl)) {
-      configPathMatched = true;
-    }
-
-    return configPathMatched;
-  });
+  const configPathMatched = filesModifiedInLastCommit.some(fileUrl => configPathsRegex.test(fileUrl));
 
   // Tests triggered on the `master`, `develop` and `release/` branches.
   if (fullTestBranchMatch || configPathMatched) {
@@ -184,7 +171,7 @@ async function distributeBetweenPipelines(modifiedProjects) {
 
   // If there was anything touched except for handsontable, build handsontable for it to be
   // available for import in the other projects.
-  if (touchedProjects.length > 1 || touchedProjects[0] !== 'handsontable') {
+  if (touchedProjects.length > 1 || (touchedProjects.length === 1 && touchedProjects[0] !== 'handsontable')) {
     await spawnProcess('npm run in handsontable build');
   }
 

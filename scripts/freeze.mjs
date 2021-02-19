@@ -19,22 +19,24 @@ const [version, releaseDate] = process.argv.slice(2);
 
 displaySeparator();
 
-// Initial verification prompt
-inquirer.prompt([
-  {
-    type: 'confirm',
-    name: 'continueFreeze',
-    message: 'This script will create and commit a code-freeze of the entire repo. \nContinue?',
-    default: true,
-  }
-]).then(async(answers) => {
+(async() => {
+  // Initial verification prompt
+  const answers = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'continueFreeze',
+      message: 'This script will create and commit a code-freeze of the entire repo. \nContinue?',
+      default: true,
+    }
+  ]);
+
   if (!answers.continueFreeze) {
-    return;
+    process.exit(0);
   }
 
   // Check if we're using the minimum required npm version.
   {
-    const processInfo = await spawnProcess('npm --version', true);
+    const processInfo = await spawnProcess('npm --version', { silent: true });
     const npmVersion = processInfo.stdout.toString();
 
     if (!semver.satisfies(npmVersion, '>=7.2.0')) {
@@ -45,7 +47,7 @@ inquirer.prompt([
 
   // Check if we're on a release branch.
   {
-    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', true,);
+    const processInfo = await spawnProcess('git rev-parse --abbrev-ref HEAD', { silent: true });
     const branchName = processInfo.stdout.toString();
 
     if (!branchName.startsWith('release/')) {
@@ -58,7 +60,7 @@ inquirer.prompt([
 
   // Check if `git flow` is installed.
   try {
-    await spawnProcess('git flow version', true);
+    await spawnProcess('git flow version', { silent: true });
 
   } catch (error) {
     displayErrorMessage('Git flow not installed.');
@@ -68,7 +70,7 @@ inquirer.prompt([
 
   // Check if all the files are committed.
   {
-    const processInfo = await spawnProcess('git status -s', true);
+    const processInfo = await spawnProcess('git status -s', { silent: true });
     const output = processInfo.stdout.toString();
 
     // If there are any uncommitted changes, kill the script.
@@ -80,7 +82,7 @@ inquirer.prompt([
   }
 
   // Bump the version in all packages.
-  await scheduleRelease(version, releaseDate);
+  const { version: finalVersion } = await scheduleRelease(version, releaseDate);
 
   // Clear the projects' node_modules nad lock files.
   cleanNodeModules();
@@ -100,12 +102,16 @@ inquirer.prompt([
   // Verify if the bundles have the same (and correct) version.
   await spawnProcess('node --experimental-json-modules ./scripts/verify-bundles.mjs');
 
+  // Generate the CHANGELOG.md file.
+  await spawnProcess('npm run changelog consume', { stdin: 'pipe' });
+
   // Commit the changes to the release branch.
   await spawnProcess('git add .');
 
-  const { default: hotPackageJson } = await import('../package.json');
+  // Commit the changes to the release branch.
+  await spawnProcess('git add .');
 
-  await spawnProcess(`git commit -m "${hotPackageJson.version}"`);
+  await spawnProcess(`git commit -m "${finalVersion}"`);
 
-  await spawnProcess(`git flow release publish ${hotPackageJson.version}`);
-});
+  await spawnProcess(`git flow release publish ${finalVersion}`);
+})();
