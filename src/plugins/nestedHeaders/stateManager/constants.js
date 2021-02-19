@@ -22,31 +22,31 @@ export const HEADER_DEFAULT_SETTINGS = {
    * @type {number}
    */
   origColspan: 1,
-  offset: 0,
+  // offset: 0,
   /**
-   * The flag which determines whether the node is collapsible (can be collpased/expanded).
+   * The flag determines whether the node is collapsible (can be collpased/expanded).
    *
    * @type {boolean}
    */
   collapsible: false,
   /**
-   * The flag which determines whether the node was collapsed.
+   * The flag determines whether the node is collapsed.
    *
    * @type {boolean}
    */
   isCollapsed: false,
   /**
-   * The flag which determines whether the column header should be rendered as hidden (display: none).
+   * The flag determines whether the column header should be rendered as hidden (display: none).
    *
    * @type {boolean}
    */
   isHidden: false,
   /**
-   * The flag which determines whether the column header settings is accually not renderable. That kind
-   * of objects are generated after colspaned header to fill an array to correct size.
+   * The flag determines whether the column header settings are actually not renderable.
+   * That kind of objects are generated after colspaned header to fill an array to correct size.
    *
-   * For example for header with colspan = 8 the 7 blank objects are generated to fil an array settings
-   * to length = 8.
+   * For example, for the header with colspan = 8 the 7 blank objects are generated to fil
+   * array settings to length = 8.
    *
    * @type {boolean}
    */

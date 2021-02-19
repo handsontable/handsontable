@@ -439,8 +439,6 @@ export class NestedRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap('nestedRows');
-
     super.destroy();
   }
 

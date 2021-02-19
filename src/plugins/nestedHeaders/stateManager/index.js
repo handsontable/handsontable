@@ -1,7 +1,7 @@
 import { arrayMap, arrayReduce } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
-import NodeModifiers from './nodeModifiers';
+import { triggerNodeModification } from './nodeModifiers';
 import { HEADER_DEFAULT_SETTINGS } from './constants';
 import { generateMatrix } from './matrixGenerator';
 
@@ -42,13 +42,6 @@ export default class StateManager {
    * @type {SourceSettings}
    */
   #sourceSettings = new SourceSettings();
-  /**
-   * The instance of the collapsible modifier class.
-   *
-   * @private
-   * @type {NodeModifiers}
-   */
-  #nodeModifiers = new NodeModifiers();
   /**
    * The instance of the headers tree. The tree is generated after setting new configuration data.
    *
@@ -162,7 +155,7 @@ export default class StateManager {
   }
 
   /**
-   * Triggers an action (it can be "collapse" or "expand") from the NodeModifiers module. The module
+   * Triggers an action (e.g. "collapse") from the NodeModifiers module. The module
    * modifies a tree structure in such a way as to obtain the correct structure consistent with the
    * called action.
    *
@@ -180,7 +173,7 @@ export default class StateManager {
     let actionResult;
 
     if (nodeToProcess) {
-      actionResult = this.#nodeModifiers.triggerAction(action, nodeToProcess);
+      actionResult = triggerNodeModification(action, nodeToProcess);
 
       this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
     }

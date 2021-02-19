@@ -23,7 +23,7 @@ import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
-import { IndexMapper } from './translations';
+import { IndexMapper, createIndexMap } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { CellCoords, ViewportColumnsCalculator } from './3rdparty/walkontable/src';
 import Hooks from './pluginHooks';
@@ -1374,6 +1374,54 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     validateChanges(changes, changeSource, () => {
       applyChanges(changes, changeSource);
     });
+  };
+
+  /**
+   * Creates and register the new IndexMap for specified IndexMapper instance.
+   *
+   * @private
+   * @param {IndexMapper} indexMapper The IndexMapper to which the new IndexMap will be registered.
+   * @param {string} indexName The uniq index name.
+   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {*} [initValueOrFn=null] The initial value for the index map.
+   * @returns {IndexMap}
+   */
+  function createAndRegisterIndexMap(indexMapper, indexName, mapType, initValueOrFn = null) {
+    const indexMap = createIndexMap(mapType, initValueOrFn);
+
+    indexMapper.registerMap(indexName, indexMap);
+
+    return indexMap;
+  }
+
+  /**
+   * Creates and register new IndexMap for rows.
+   *
+   * @memberof Core#
+   * @since 9.0.0
+   * @function createAndRegisterRowIndexMap
+   * @param {string} indexName The uniq index name.
+   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {*} [initValueOrFn=null] The initial value for the index map.
+   * @returns {IndexMap}
+   */
+  this.createAndRegisterRowIndexMap = function(indexName, mapType, initValueOrFn = null) {
+    return createAndRegisterIndexMap(this.rowIndexMapper, indexName, mapType, initValueOrFn);
+  };
+
+  /**
+   * Creates and register new IndexMap for columns.
+   *
+   * @memberof Core#
+   * @since 9.0.0
+   * @function createAndRegisterColumnIndexMap
+   * @param {string} indexName The uniq index name.
+   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {*} [initValueOrFn=null] The initial value for the index map.
+   * @returns {IndexMap}
+   */
+  this.createAndRegisterColumnIndexMap = function(indexName, mapType, initValueOrFn = null) {
+    return createAndRegisterIndexMap(this.columnIndexMapper, indexName, mapType, initValueOrFn);
   };
 
   /**
@@ -3986,6 +4034,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // The plugin's `destroy` method is called as a consequence and it should handle
     // unregistration of plugin's maps. Some unregistered maps reset the cache.
     instance.batchExecution(() => {
+      instance.rowIndexMapper.unregisterAll();
+      instance.columnIndexMapper.unregisterAll();
+
       pluginsRegistry
         .getItems()
         .forEach(([, plugin]) => {
@@ -4017,8 +4068,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.destroy();
     }
 
-    instance.rowIndexMapper = null;
-    instance.columnIndexMapper = null;
     datamap = null;
     grid = null;
     selection = null;

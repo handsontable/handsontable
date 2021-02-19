@@ -1,3 +1,10 @@
+/**
+ * An array diff implementation.
+ *
+ * @param {Array} baseArray The base array to diff from.
+ * @param {Array} newArray The new array to compare with.
+ * @returns {Array}
+ */
 export function arrayDiff(baseArray, newArray) {
   const changes = [];
   let i = 0;

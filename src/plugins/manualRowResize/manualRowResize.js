@@ -577,8 +577,6 @@ export class ManualRowResize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-
     super.destroy();
   }
 }

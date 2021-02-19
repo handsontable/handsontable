@@ -6,7 +6,7 @@ const SUPPORTED_CHANGES_TYPES = ['multiple', 'single'];
 
 class ChangesObservable {
   #observers = new Map();
-  #observersCount = 0;
+  #globalObserversCount = 0;
 
   #collectedChanges = new Map();
 
@@ -26,18 +26,18 @@ class ChangesObservable {
     const observerCollection = this.#observers.get(collectionName);
 
     observerCollection.add(observer);
-    this.#observersCount += 1;
+    this.#globalObserversCount += 1;
 
     observer.addLocalHook('destroy', () => {
       observerCollection.delete(observer);
-      this.#observersCount -= 1;
+      this.#globalObserversCount -= 1;
     });
 
     return observer;
   }
 
   collect(collectionName, mapName, changes) {
-    if (this.#observersCount === 0 ||
+    if (this.#globalObserversCount === 0 ||
         !SUPPORTED_COLLECTION_NAMES.includes(collectionName) ||
         !SUPPORTED_CHANGES_TYPES.includes(changes.changeType)) {
       return;
@@ -56,7 +56,7 @@ class ChangesObservable {
   }
 
   flush() {
-    if (this.#observersCount === 0) {
+    if (this.#globalObserversCount === 0) {
       return;
     }
 
@@ -65,21 +65,27 @@ class ChangesObservable {
         return;
       }
 
+      const rawChanges = this.#collectedChanges.get(collectionName);
+
+      if (rawChanges.size === 0) {
+        return;
+      }
+
       observers.forEach((observer) => {
-        const changes = this._generateChanges(collectionName);
+        const changes = this._generateChanges(rawChanges);
 
         observer.write(changes);
       });
 
-      this._clearCollectedChanges(collectionName);
+      this.#collectedChanges.get(collectionName).clear();
     });
   }
 
-  _generateChanges(collectionName) {
+  _generateChanges(rawChanges) {
     const diff = [];
 
-    this.#collectedChanges.get(collectionName).forEach((a) => {
-      const { changeType, oldValue, newValue } = a;
+    rawChanges.forEach(({ changes }) => {
+      const { changeType, oldValue, newValue } = changes;
 
       if (changeType === 'multiple') {
         diff.push(...arrayDiff(oldValue, newValue));
@@ -95,10 +101,6 @@ class ChangesObservable {
     });
 
     return diff;
-  }
-
-  _clearCollectedChanges(collectionName) {
-    this.#collectedChanges.get(collectionName).clear();
   }
 }
 

@@ -6,7 +6,7 @@ import localHooks from '../../mixins/localHooks';
 /**
  * Map for storing mappings from an index to a value.
  */
-class IndexMap {
+export class IndexMap {
   constructor(initValueOrFn = null) {
     /**
      * List of values for particular indexes.
@@ -80,12 +80,13 @@ class IndexMap {
    */
   setValueAtIndex(index, value) {
     if (index < this.indexedValues.length) {
+      const oldValue = this.indexedValues[index];
+
       this.indexedValues[index] = value;
 
       this.runLocalHooks('change', {
         changeType: 'single',
-        // oldValue: { index, value: oldValue },
-        oldValue: { index, value: 'x' },
+        oldValue: { index, value: oldValue },
         newValue: { index, value },
       });
 
@@ -157,12 +158,16 @@ class IndexMap {
    * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @private
+   * @param {number} insertionIndex Position inside the list.
+   * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
     this.runLocalHooks('change', {
       changeType: 'insert',
-      oldValue: void 0,
-      newValue: { index: insertionIndex, value: insertedIndexes },
+      newValue: {
+        index: insertionIndex,
+        value: insertedIndexes,
+      },
     });
   }
 
@@ -172,15 +177,20 @@ class IndexMap {
    * Note: Please keep in mind that `change` hook triggered by the method may not update cache of a collection immediately.
    *
    * @private
+   * @param {Array} removedIndexes List of removed indexes.
    */
   remove(removedIndexes) {
     this.runLocalHooks('change', {
       changeType: 'remove',
-      oldValue: void 0,
-      newValue: { value: removedIndexes },
+      newValue: {
+        value: removedIndexes,
+      },
     });
   }
 
+  /**
+   * Destroys the Map instance.
+   */
   destroy() {
     this.runLocalHooks('change', {
       changeType: 'destroy',
@@ -195,5 +205,3 @@ class IndexMap {
 }
 
 mixin(IndexMap, localHooks);
-
-export default IndexMap;

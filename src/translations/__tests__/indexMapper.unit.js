@@ -1,5 +1,5 @@
-import IndexMapper from 'handsontable/translations/indexMapper';
 import {
+  IndexMapper,
   TrimmingMap,
   HidingMap,
   PhysicalIndexToValueMap as PIndexToValueMap,

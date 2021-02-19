@@ -37,21 +37,30 @@ export function generateMatrix(headerRoots) {
 
   arrayEach(headerRoots, (rootNode) => {
     rootNode.walkDown((node) => {
-      const { colspan, origColspan, label, isHidden, offset, headerLevel, collapsible, isCollapsed } = node.data;
+      const {
+        colspan,
+        origColspan,
+        label,
+        isHidden,
+        // offset,
+        headerLevel,
+        collapsible,
+        isCollapsed,
+      } = node.data;
       const colspanHeaderLayer = createNestedArrayIfNecessary(matrix, headerLevel);
 
-      if (offset > 0) {
-        for (let i = 0; i < offset; i++) {
-          colspanHeaderLayer.push({
-            ...HEADER_DEFAULT_SETTINGS,
-            origColspan,
-            isHidden: true,
-            isBlank: true,
-
-            offset,
-          });
-        }
-      }
+      // if (offset > 0) {
+      //   for (let i = 0; i < offset; i++) {
+      //     colspanHeaderLayer.push({
+      //       ...HEADER_DEFAULT_SETTINGS,
+      //       origColspan,
+      //       isHidden: true,
+      //       isBlank: true,
+      //
+      //       offset,
+      //     });
+      //   }
+      // }
 
       colspanHeaderLayer.push({
         label,
@@ -62,18 +71,19 @@ export function generateMatrix(headerRoots) {
         isHidden,
         isBlank: false,
 
-        offset,
+        // offset,
       });
 
       if (origColspan > 1) {
-        for (let i = 0; i < origColspan - offset - 1; i++) {
+        // for (let i = 0; i < origColspan - offset - 1; i++) {
+        for (let i = 0; i < origColspan - 1; i++) {
           colspanHeaderLayer.push({
             ...HEADER_DEFAULT_SETTINGS,
             origColspan,
             isHidden: true,
             isBlank: true,
 
-            offset,
+            // offset,
           });
         }
       }

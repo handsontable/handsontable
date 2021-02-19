@@ -459,7 +459,6 @@ export class HiddenRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.#settings = null;
     this.#hiddenRowsMap = null;
 

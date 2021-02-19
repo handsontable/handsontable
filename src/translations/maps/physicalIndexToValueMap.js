@@ -1,4 +1,4 @@
-import IndexMap from './indexMap';
+import { IndexMap } from './indexMap';
 import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physicallyIndexed';
 
 /**
@@ -6,7 +6,7 @@ import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physi
  *
  * Does not update stored values on remove/add row or column action.
  */
-class PhysicalIndexToValueMap extends IndexMap {
+export class PhysicalIndexToValueMap extends IndexMap {
   /**
    * Add values to list and reorganize.
    *
@@ -37,5 +37,3 @@ class PhysicalIndexToValueMap extends IndexMap {
     super.remove(removedIndexes);
   }
 }
-
-export default PhysicalIndexToValueMap;

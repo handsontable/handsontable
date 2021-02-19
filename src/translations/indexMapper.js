@@ -1,10 +1,15 @@
 import { arrayMap } from '../helpers/array';
-import { getListWithRemovedItems, getListWithInsertedItems } from './maps/utils/indexesSequence';
-import IndexesSequence from './maps/indexesSequence';
-import TrimmingMap from './maps/trimmingMap';
-import HidingMap from './maps/hidingMap';
-import MapCollection from './mapCollections/mapCollection';
-import AggregatedCollection from './mapCollections/aggregatedCollection';
+import {
+  getListWithInsertedItems,
+  getListWithRemovedItems,
+  HidingMap,
+  IndexesSequence,
+  TrimmingMap,
+} from './maps';
+import {
+  AggregatedCollection,
+  MapCollection,
+} from './mapCollections';
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
@@ -26,9 +31,8 @@ import ChangesObservable from './changesObservable/observable';
  *
  * These are: {@link to IndexesSequence}, {@link to PhysicalIndexToValueMap}, {@link to HidingMap}, and {@link to TrimmingMap}.
  */
-class IndexMapper {
+export class IndexMapper {
   constructor() {
-    this.changesObservable = new ChangesObservable();
     /**
      * Map for storing the sequence of indexes.
      *
@@ -63,6 +67,16 @@ class IndexMapper {
      * @type {MapCollection}
      */
     this.variousMapsCollection = new MapCollection();
+    /**
+     * The class instance collects row and column index changes that happen while the Handsontable
+     * is running. The object allows creating observers that trigger the "change" events.
+     * Each event represents the index change (e.g., insert, removing, change index value),
+     * which can be consumed by a developer to update its logic.
+     *
+     * @private
+     * @type {ChangesObservable}
+     */
+    this.changesObservable = new ChangesObservable();
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
@@ -140,8 +154,7 @@ class IndexMapper {
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.trimmingMapsCollection.addLocalHook('change', (mapName, changedMap, changes) => {
-      this.changesObservable.collect('trimming', mapName, changes);
+    this.trimmingMapsCollection.addLocalHook('change', (mapName, changedMap) => {
       this.trimmedIndexesChanged = true;
 
       // Number of trimmed indexes might change.
@@ -183,6 +196,16 @@ class IndexMapper {
     this.updateCache();
   }
 
+  /**
+   * It creates and returns the new instance of the ChangesObserver object. The object
+   * allows listening to the index changes that happen while the Handsontable is running.
+   * The changes are triggered incrementally.
+   *
+   * @param {object} observerOptions The Observer options.
+   * @param {string} observerOptions.collectionName The collection name which we want to observe.
+   *                                                Currently, the 'hiding' indexes are observable.
+   * @returns {ChangesObserver}
+   */
   createChangesListener({ collectionName, ...observerOptions }) {
     return this.changesObservable.createObserver(collectionName, observerOptions);
   }
@@ -235,6 +258,15 @@ class IndexMapper {
     this.trimmingMapsCollection.unregister(name);
     this.hidingMapsCollection.unregister(name);
     this.variousMapsCollection.unregister(name);
+  }
+
+  /**
+   * Unregisters all collected index map instances from all map collection types.
+   */
+  unregisterAll() {
+    this.trimmingMapsCollection.unregisterAll();
+    this.hidingMapsCollection.unregisterAll();
+    this.variousMapsCollection.unregisterAll();
   }
 
   /**
@@ -607,6 +639,8 @@ class IndexMapper {
       this.cacheFromPhysicalToVisualIndexes();
       this.cacheFromVisualToRenderabIendexes();
 
+      // this.changesObservable.flush();
+
       this.runLocalHooks(
         'cacheUpdated',
         this.indexesSequenceChanged,
@@ -660,5 +694,3 @@ class IndexMapper {
 }
 
 mixin(IndexMapper, localHooks);
-
-export default IndexMapper;

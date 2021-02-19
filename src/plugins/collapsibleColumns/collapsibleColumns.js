@@ -491,7 +491,6 @@ export class CollapsibleColumns extends BasePlugin {
    */
   destroy() {
     this.#collapsedColumnsMap = null;
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
 
     super.destroy();
   }
