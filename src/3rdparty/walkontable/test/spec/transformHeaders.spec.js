@@ -45,7 +45,7 @@ describe('selection width under scale transform', () => {
     expect(bottom.offsetWidth).toEqual(49);
   });
 
-  fit('scale(0.75)', async function() {
+  it('scale(0.75)', async function() {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -76,7 +76,7 @@ describe('selection width under scale transform', () => {
     expect(bottom.offsetWidth).toEqual(49);
   });
 
-  fit('scale(1.5)', async function() {
+  it('scale(1.5)', async function() {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
