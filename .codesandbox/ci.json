@@ -1,12 +1,13 @@
 {
-  "packages": ["tmp"],
+  "buildCommand": "build",
+  "packages": [
+    "tmp"
+  ],
   "publishDirectory": {
     "handsontable": "tmp"
   },
   "sandboxes": [
-    "github/handsontable/examples/tree/master/vanilla/pull-request", 
-    "github/handsontable/examples/tree/master/vue/pull-request", 
-    "github/handsontable/examples/tree/master/react/pull-request",
-    "github/handsontable/examples/tree/master/angular/pull-request"
-  ]
+    "github/handsontable/examples/tree/master/vanilla/pull-request"
+  ],
+  "node": "14"
 }

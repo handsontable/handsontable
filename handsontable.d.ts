@@ -1656,7 +1656,7 @@ declare namespace Handsontable {
     columns?: ColumnSettings[] | ((index: number) => ColumnSettings);
     columnSorting?: boolean | columnSorting.Settings;
     columnSummary?: columnSummary.Settings[] | (() => columnSummary.Settings[]);
-    colWidths?: number | number[] | string | string[] | ((index: number) => string | number);
+    colWidths?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
     commentedCellClassName?: string;
     comments?: boolean | comments.Settings | comments.CommentConfig[];
     contextMenu?: boolean | contextMenu.PredefinedMenuItemKey[] | contextMenu.Settings;
@@ -1728,7 +1728,7 @@ declare namespace Handsontable {
     renderer?: RendererType | string | renderers.Base;
     rowHeaders?: boolean | string[] | ((index: number) => string);
     rowHeaderWidth?: number | number[];
-    rowHeights?: number | number[] | string | string[] | ((index: number) => string | number);
+    rowHeights?: number | string | number[] | string[] | undefined[] | (number | string | undefined)[] | ((index: number) => string | number | undefined);
     search?: boolean | search.Settings;
     selectionMode?: 'single' | 'range' | 'multiple';
     selectOptions?: string[];
