@@ -864,4 +864,69 @@ describe('Comments', () => {
       expect(plugin.getComment()).toEqual('Bar');
     });
   });
+
+  describe('Destroying the plugin with two instances of Handsontable', () => {
+    it('should create two containers for comments for two HOT instances', () => {
+      const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } },
+          { row: 1, col: 2, comment: { value: 'Yes!' } }
+        ],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const commentContainers = document.querySelectorAll('.htCommentsContainer');
+
+      expect(commentContainers.length).toEqual(2);
+
+      // cleanup HOT instances
+      container1.handsontable('destroy');
+      container2.handsontable('destroy');
+    });
+
+    it('should delete one container when one HOT instance is destroyed', () => {
+      const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } },
+          { row: 1, col: 2, comment: { value: 'Yes!' } }
+        ],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      container2.handsontable('destroy');
+
+      const commentContainers = document.querySelectorAll('.htCommentsContainer');
+
+      expect(commentContainers.length).toEqual(1);
+
+      // cleanup HOT instance
+      container1.handsontable('destroy');
+    });
+  });
 });
