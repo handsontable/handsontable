@@ -795,7 +795,8 @@ export function computeScaleX(element) {
   const dummyRect = dummy.getBoundingClientRect();
   const scaleX = dummyRect.width / factor;
 
-  dummy.remove();
+  // IE doesn't support `HTMLElement#remove()`
+  dummy.parentNode.removeChild(dummy);
 
   return scaleX;
 }
