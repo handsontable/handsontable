@@ -13,7 +13,7 @@ describe('selection width under scale transform', () => {
   });
 
   afterEach(function() {
-    this.$wrapper.remove();
+    this.$root.remove();
     this.wotInstance.destroy();
   });
 
