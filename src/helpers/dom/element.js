@@ -771,16 +771,15 @@ export function outerWidth(element) {
 }
 
 /**
- * Returns the element's outer width rounded up to the nearest integer,
- * accounting for any scale transforms on parent elements. This function is
- * much more costly than `outerWidth`, use sparingly.
+ * Calculates the current `transform` `scaleX` property value for the passed in
+ * element, relative to the root document. Involves adding a dummy element of a
+ * constant size to the DOM, be cautious about performance.
  *
- * @param {HTMLElement} element An element to get the width from.
- * @returns {number} Element's outer width.
+ * @param {HTMLElement} element An element to get the `scaleX` from.
+ * @returns {number} `scaleX` value.
  */
-export function preciseOuterWidth(element) {
+export function computeScaleX(element) {
   // A dummy element with a constant size, used to calculate the `scale`.
-
   const $dummy = element.ownerDocument.createElement('div');
   const factor = 100;
 
@@ -798,9 +797,20 @@ export function preciseOuterWidth(element) {
 
   $dummy.remove();
 
-  const elRect = element.getBoundingClientRect();
+  return scaleX;
+}
 
-  return Math.ceil(elRect.width / scaleX);
+/**
+ * Returns the element's outer width rounded up to the nearest integer,
+ * accounting for any scale transforms on parent elements. This function is
+ * much more costly than `outerWidth`, use sparingly.
+ *
+ * @param {HTMLElement} element An element to get the width from.
+ * @param {number} scaleX The current `transform` `scaleX` value (@see {computeScaleX}).
+ * @returns {number} Element's outer width.
+ */
+export function preciseOuterWidth(element, scaleX) {
+  return Math.ceil(element.getBoundingClientRect().width / scaleX);
 }
 
 /**

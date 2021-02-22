@@ -1,4 +1,4 @@
-import { addClass, outerHeight, preciseOuterWidth } from './../helpers/dom/element';
+import { addClass, outerHeight, computeScaleX, preciseOuterWidth } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 
 /**
@@ -161,6 +161,9 @@ class GhostTable {
     if (!this.injected) {
       this.injectTable();
     }
+
+    const scaleX = computeScaleX(this.table.table);
+
     arrayEach(this.columns, (column) => {
       // The reason why `preciseOuterWidth` is here instead of just `outerWidth` is because on Safari, for whatever
       // reason, using just `outerWidth` does not give enough pixels for all the text to render.  `outerWidth`
@@ -171,7 +174,7 @@ class GhostTable {
       // (`getBoundingClientRect` on its own returns the width already rendered on the screen, which is usually useless
       // when we want to reuse that measurement in some sibling/child element size, hence the need for `scaleX`
       // calculation)
-      callback(column.col, preciseOuterWidth(column.table));
+      callback(column.col, preciseOuterWidth(column.table, scaleX));
     });
   }
 
