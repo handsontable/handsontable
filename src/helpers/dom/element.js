@@ -781,8 +781,7 @@ export function outerWidth(element) {
 export function preciseOuterWidth(element) {
   // A dummy element with a constant size, used to calculate the `scale`.
 
-  // @reviewer, how do I fix the eslint error here?
-  const $dummy = document.createElement('div');
+  const $dummy = element.ownerDocument.createElement('div');
   const factor = 100;
 
   $dummy.style.width = `${factor}px`;
@@ -797,7 +796,6 @@ export function preciseOuterWidth(element) {
   const dummyRect = $dummy.getBoundingClientRect();
   const scaleX = dummyRect.width / factor;
 
-  // @reviewer, Maybe keep the element for performance?
   $dummy.remove();
 
   const elRect = element.getBoundingClientRect();
