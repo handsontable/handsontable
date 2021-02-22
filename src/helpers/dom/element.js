@@ -780,6 +780,7 @@ export function outerWidth(element) {
  */
 export function preciseOuterWidth(element) {
   // A dummy element with a constant size, used to calculate the `scale`.
+
   const $dummy = element.ownerDocument.createElement('div');
   const factor = 100;
 
