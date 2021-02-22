@@ -780,22 +780,22 @@ export function outerWidth(element) {
  */
 export function computeScaleX(element) {
   // A dummy element with a constant size, used to calculate the `scale`.
-  const $dummy = element.ownerDocument.createElement('div');
+  const dummy = element.ownerDocument.createElement('div');
   const factor = 100;
 
-  $dummy.style.width = `${factor}px`;
-  $dummy.style.display = 'inline-block';
-  $dummy.style.position = 'absolute';
-  $dummy.style.left = '0';
-  $dummy.style.top = '0';
-  $dummy.style.visibility = 'hidden';
+  dummy.style.width = `${factor}px`;
+  dummy.style.display = 'inline-block';
+  dummy.style.position = 'absolute';
+  dummy.style.left = '0';
+  dummy.style.top = '0';
+  dummy.style.visibility = 'hidden';
 
-  element.appendChild($dummy);
+  element.appendChild(dummy);
 
-  const dummyRect = $dummy.getBoundingClientRect();
+  const dummyRect = dummy.getBoundingClientRect();
   const scaleX = dummyRect.width / factor;
 
-  $dummy.remove();
+  dummy.remove();
 
   return scaleX;
 }
