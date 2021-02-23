@@ -1,6 +1,6 @@
 describe('settings', () => {
 
-  xdescribe('fragmentSelection', () => {
+  describe('fragmentSelection', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
@@ -71,7 +71,10 @@ describe('settings', () => {
 
         selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
 
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
+        // Simulating native selection of DOM elements.
+        mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
+        mouseOver(spec().$container.find('tr:eq(0) td:eq(3)'));
+        selectElementText(spec().$container.find('td')[1], 3);
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
         const sel = getSelected();
@@ -86,9 +89,11 @@ describe('settings', () => {
           fragmentSelection: true
         });
 
+        // Simulating native selection of DOM elements.
         mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
+        mouseOver(spec().$container.find('tr:eq(0) td:eq(3)'));
         selectElementText(spec().$container.find('td')[1], 3);
+        mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
         let sel = getSelected();
         sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
@@ -105,8 +110,8 @@ describe('settings', () => {
         const $TD = spec().$container.find('tr:eq(0) td:eq(1)');
 
         mouseDown($TD);
-        mouseUp($TD);
         selectElementText($TD[0], 1);
+        mouseUp($TD);
 
         expect(getSelected().replace(/\s/g, '')).toEqual('B1');
       });
@@ -116,10 +121,10 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
-        selectElementText(spec().$container.find('td')[1], 1);
 
         mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
         mouseOver(spec().$container.find('tr:eq(0) td:eq(2)'));
+        selectElementText(spec().$container.find('td')[1], 1);
         mouseMove(spec().$container.find('tr:eq(0) td:eq(2)'));
         mouseUp(spec().$container.find('tr:eq(0) td:eq(2)'));
 
@@ -163,32 +168,34 @@ describe('settings', () => {
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
-        // updateSettings({ fragmentSelection: false });
-        selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
+
+        updateSettings({ fragmentSelection: false });
 
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
+        selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
         const sel = getSelected();
         expect(sel).toEqual(' '); // copyPaste has selected space in textarea
       });
 
-      xit('should allow fragmentSelection when set to true', () => {
-        // We have to try another way to simulate text selection.
+      it('should allow fragmentSelection when set to true', () => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
+
         updateSettings({ fragmentSelection: true });
-        selectElementText(spec().$container.find('td')[1], 3);
 
         mouseDown(spec().$container.find('tr:eq(0) td:eq(3)'));
+        selectElementText(spec().$container.find('tr:eq(0) td:eq(1)')[0], 3);
         mouseUp(spec().$container.find('tr:eq(0) td:eq(3)'));
 
-        let sel = getSelected();
-        sel = sel.replace(/\s/g, ''); // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
+        // tabs and spaces between <td>s are inconsistent in browsers, so let's ignore them
+        const sel = getSelected().replace(/\s/g, '');
+
         expect(sel).toEqual('B1C1D1');
       });
     });
-  }).pend('Temporarily disabled, due to #6083, needs to be rewritten to work properly.');
+  });
 });
