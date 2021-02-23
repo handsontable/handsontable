@@ -894,7 +894,9 @@ describe('Comments', () => {
 
       // cleanup HOT instances
       container1.handsontable('destroy');
+      expect(commentContainers.length).toEqual(1);
       container2.handsontable('destroy');
+      expect(commentContainers.length).toEqual(0);
     });
 
     it('should delete one container when one HOT instance is destroyed', () => {
@@ -927,6 +929,7 @@ describe('Comments', () => {
 
       // cleanup HOT instance
       container1.handsontable('destroy');
+      expect(commentContainers.length).toEqual(0);
     });
   });
 });

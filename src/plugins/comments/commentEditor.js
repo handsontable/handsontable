@@ -150,7 +150,6 @@ class CommentEditor {
   createEditor() {
     const editor = this.rootDocument.createElement('div');
     const textArea = this.rootDocument.createElement('textarea');
-    this.container = this.rootDocument.querySelector(`.${CommentEditor.CLASS_EDITOR_CONTAINER}`);
 
     this.container = this.rootDocument.createElement('div');
     addClass(this.container, CommentEditor.CLASS_EDITOR_CONTAINER);
