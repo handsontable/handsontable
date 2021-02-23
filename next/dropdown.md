@@ -1,15 +1,17 @@
 ---
-id: dropdown
 title: Dropdown
-sidebar_label: Dropdown
-slug: /dropdown
+permalink: /next/dropdown
+canonicalUrl: /dropdown
 ---
+
+# {{ $frontmatter.title }}
 
 This example shows the usage of the Dropdown feature. Dropdown is based on [Autocomplete](autocomplete.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
 
 Internally, cell `{type: 'dropdown'}` is equivalent to cell `{type: 'autocomplete', strict: true, filter: false}`. Therefore you can think of `dropdown` as a searchable `<select>`.
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var
     container = document.getElementById('example1'),
     hot;
@@ -36,3 +38,4 @@ var
     ]
   });
 ```
+:::

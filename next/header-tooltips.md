@@ -1,23 +1,26 @@
 ---
-id: header-tooltips
 title: Header tooltips [deprecated]
-sidebar_label: Header tooltips [deprecated]
-slug: /header-tooltips
+permalink: /next/header-tooltips
+canonicalUrl: /next/header-tooltips
 ---
 
-:::warning Deprecated plugin
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+::: warning Deprecated plugin
 This plugin is deprecated and will be removed in the next major release.
 :::
 
-### Overview
+## Overview
 
 The _headerTooltips_ plugin allows adding tooltips to the table headers. These tooltips contain the header's label. It a useful feature when the label is wider than the header that is holding it.
 
-### Quick setup
+## Quick setup
 
 To enable the plugin, you simply need to set the `headerTooltips` property to `true` in Handsontable configuration. This will enable the the tooltips for both rows and columns.
 
-### Available options
+## Available options
 
 Instead of setting the `headerTooltips` property to `true`, you can define it as an object containing these options:
 
@@ -27,11 +30,12 @@ Instead of setting the `headerTooltips` property to `true`, you can define it as
 
 See the examples for a live preview. Hover a mouse cursor over the header to see the tooltip.
 
-### Live examples
+## Live examples
 
-#### Tooltips displayed for both row and column headers
+### Tooltips displayed for both row and column headers
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var hot1 = new Handsontable(example1, {
   data: Handsontable.helper.createSpreadsheetData(5,10),
@@ -42,10 +46,12 @@ var hot1 = new Handsontable(example1, {
   headerTooltips: true
 });
 ```
+:::
 
-#### Tooltips displayed only for column headers, and only if their content's width exceeds the header width
+### Tooltips displayed only for column headers, and only if their content's width exceeds the header width
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example2 = document.getElementById('example2');
 var hot2 = new Handsontable(example2, {
   data: Handsontable.helper.createSpreadsheetData(4,7),
@@ -61,3 +67,4 @@ var hot2 = new Handsontable(example2, {
   }
 });
 ```
+:::

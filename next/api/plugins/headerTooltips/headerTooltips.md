@@ -1,9 +1,12 @@
 ---
-id: header-tooltips
 title: HeaderTooltips
-sidebar_label: HeaderTooltips
-slug: /api/header-tooltips
+permalink: /next/api/header-tooltips
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

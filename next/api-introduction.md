@@ -1,8 +1,7 @@
 ---
-id: api-introduction
 title: Introduction
-sidebar_label: Introduction
-slug: /api/
+permalink: /next/api/
+canonicalUrl: /api/
 ---
 
 This is API Introduction

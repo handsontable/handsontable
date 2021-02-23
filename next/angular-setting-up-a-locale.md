@@ -1,9 +1,10 @@
 ---
-id: angular-setting-up-a-locale
 title: Setting up a locale
-sidebar_label: Setting up a locale
-slug: /angular-setting-up-a-locale
+permalink: /next/angular-setting-up-a-locale
+canonicalUrl: /angular-setting-up-a-locale
 ---
+
+# {{ $frontmatter.title }}
 
 An example of Handsontable with locales setup in Angular.
 

@@ -1,9 +1,12 @@
 ---
-id: observe-changes
 title: ObserveChanges
-sidebar_label: ObserveChanges
-slug: /api/observe-changes
+permalink: /next/api/observe-changes
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

@@ -1,9 +1,10 @@
 ---
-id: resizing
 title: Resizing
-sidebar_label: Resizing
-slug: /resizing
+permalink: /next/resizing
+canonicalUrl: /resizing
 ---
+
+# {{ $frontmatter.title }}
 
 To enable these features, use settings `manualColumnResize: true` and `manualRowResize: true`
 
@@ -16,7 +17,8 @@ Double click on the resize handle automatically adjusts size of the row or colum
 
 For the selected rows or columns works simultaneously resizing.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var container = document.getElementById('example1');
 var hot1 = new Handsontable(container, {
   data: Handsontable.helper.createSpreadsheetData(200, 10),
@@ -30,3 +32,4 @@ var hot1 = new Handsontable(container, {
   manualRowResize: true
 });
 ```
+:::

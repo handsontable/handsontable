@@ -1,11 +1,14 @@
 ---
-id: using-callbacks
 title: Using callbacks
-sidebar_label: Using callbacks
-slug: /using-callbacks
+permalink: /next/using-callbacks
+canonicalUrl: /using-callbacks
 ---
 
-### Callbacks
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Callbacks
 
 This page shows usage of some callbacks available in Handsontable. If you require a new callback to be added, please [open an issue](https://github.com/handsontable/handsontable/issues/new). Note that some callbacks are checked on this page by default.
 
@@ -13,7 +16,8 @@ This page shows usage of some callbacks available in Handsontable. If you requir
 
 * **select all**
 
-```js title="index.js" hot-preview=example1,hot
+::: example #example1
+```js
 var data = [
   ['', 'Tesla', 'Mazda', 'Mercedes', 'Mini', 'Mitsubishi'],
   ['2017', 0, 2941, 4303, 354, 5814],
@@ -118,8 +122,9 @@ $('#hooksList input[type=checkbox]').click(function () {
   }
 });
 ```
+:::
 
-### Definition for `source` argument
+## Definition for `source` argument
 
 It's worth to mention that some of the hooks are triggered from the inside of the Handsontable (Core) and some from the plugins. In some situations it is helpful to know what triggered the callback (if it was done by Handsontable itself, triggered from external code or a user action). That's why in crucial hooks Handsontable delivers `source` as an argument which informs you about who've triggered the action. Thanks to `source` you can create additional conditions based on that information.
 
@@ -163,14 +168,15 @@ List of callback that operates on `source` parameter:
 * [beforeCreateRow](api/pluginHooks.md#beforecreaterow)
 * [beforeValidate](api/pluginHooks.md#beforevalidate)
 
-### `beforeKeyDown` use case
+## `beforeKeyDown` use case
 
 The following demo uses `beforeKeyDown` callback to modify some key bindings:
 
 * Pressing DELETE or BACKSPACE on a cell deletes the cell and shifts all cells beneath it in the column up resulting in the cursor (which doesn't move) having the value previously beneath it, now in the current cell.
 * Pressing ENTER in a cell (not changing the value) results in pushing all the cells in the column beneath this cell down one row (including current cell) resulting in a blank cell under the cursor (which hasn't moved).
 
-```js title="index.js" hot-preview=example2,hot2
+::: example #example2
+```js
 var data = [
   ['Tesla', 2017, 'black', 'black'],
   ['Nissan', 2018, 'blue', 'blue'],
@@ -217,3 +223,4 @@ hot2.updateSettings({
   }
 });
 ```
+:::

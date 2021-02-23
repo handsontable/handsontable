@@ -1,9 +1,10 @@
 ---
-id: react-custom-context-menu-example
 title: Custom Context Menu example
-sidebar_label: Custom Context Menu example
-slug: /react-custom-context-menu-example
+permalink: /next/react-custom-context-menu-example
+canonicalUrl: /react-custom-context-menu-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/react` component with a custom Context Menu added.
 

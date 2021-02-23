@@ -1,16 +1,16 @@
 ---
-id: vue-custom-renderer-example
 title: Custom renderer example
-sidebar_label: Custom renderer example
-slug: /vue-custom-renderer-example
+permalink: /next/vue-custom-renderer-example
+canonicalUrl: /vue-custom-renderer-example
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 You can declare a custom renderer for the `HotTable` component either by declaring it as a function in the Handsontable options, or create a rendering component.
 
-* [Declaring a renderer as a function](#declaring-a-renderer-as-a-function)
-* [Declaring a renderer as a component](vue-hot-column.md#declaring-a-custom-renderer-as-a-component)
-
-### Declaring a renderer as a function
+## Declaring a renderer as a function
 
 ```html
 <div id="example1" class="hot">

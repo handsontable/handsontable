@@ -1,13 +1,16 @@
 ---
-id: comments
 title: Comments
-sidebar_label: Comments
-slug: /comments
+permalink: /next/comments
+canonicalUrl: /comments
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 The _Comments_ plugin makes it possible to easily add, edit and remove comments in Handsontable.
 
-### Enabling the plugin
+## Enabling the plugin
 
 To use the plugin, you'll need to set the `comments` property to `true`. It'll enable the plugin and add all the needed context menu items. For example:
 
@@ -18,7 +21,7 @@ let hot = new Handsontable(container, {
 });
 ```
 
-### Adding the comments via the Context Menu
+## Adding the comments via the Context Menu
 
 After you've enabled the plugin, the [Context Menu](context-menu.md) gains a few new items:
 
@@ -28,7 +31,7 @@ After you've enabled the plugin, the [Context Menu](context-menu.md) gains a few
 
 I think all of them are pretty self-explanatory.
 
-### Setting up pre-set comments
+## Setting up pre-set comments
 
 You can also pre-define comments for your table. As comments are stored in the table's/column's/cell's meta data object, you can declare it as any other property of that type.
 For example:
@@ -41,13 +44,14 @@ cell: [
 
 In this example we're adding a "Hello world!" comment to a cell at (1,1).
 
-### API
+## API
 
 You can add, remove and modify most of the comment-related information using the API. For More info, head to [our Comments documentation](comments.md).
 
-### Example implementation
+## Example implementation
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var container = document.getElementById('example1'),
   hot1;
 
@@ -70,3 +74,4 @@ hot1 = new Handsontable(container, {
   ]
 });
 ```
+:::

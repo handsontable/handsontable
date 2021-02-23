@@ -1,25 +1,28 @@
 ---
-id: migration-guide
 title: Migration guide
-sidebar_label: Migration guide
-slug: /migration-guide
+permalink: /next/migration-guide
+canonicalUrl: /migration-guide
 ---
 
-### Migrating from 7 to 8
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Migrating from 7 to 8
 
 The purpose of the following guide is to facilitate a smoother update to the 8.0.0 version of Handsontable. We strongly recommend an upgrade to make use of all beneficial changes and fixes brought by the introduction of the completely new architecture for row and column management.
 
-### Context
+## Context
 
 In prior versions of the Handsontable component, the calculation between physical and visual indexes was based on callbacks between hooks. With time, when the component got more feature, it slowly led to inconsistencies and the calculation was imperfect in some cases due to growing complexity. To fix that there was a major change in the whole system of mapping the indexes. This version introduces index mapper that stores, manages, and registers the indexes globally. Under the hood, it is indirectly responsible for managing both rows and columns, as a single source of truth to refer to. This modification is a major rewrite of the core feature and may result in breaking changes in your application.
 
-### General guidelines
+## General guidelines
 
 * Check if you use any of the features listed in the **Keywords** section, you need to address them first after the **installation**.
 * Be sure to test the proposed solutions for keeping backward compatibility, if you experience any problems do not hesitate to reach out to us.
 * You can also check the release notes for a complete list of all changes.
 
-### Keywords (alphabetically)
+## Keywords (alphabetically)
 
 * `afterFilter`
 * `afterLoadData`
@@ -62,7 +65,7 @@ In prior versions of the Handsontable component, the calculation between physica
 * `unmodifyCol`
 * `unmodifyRow`
 
-### Installation
+## Installation
 
 Use the following command to update the **Handsontable** to 8th version:
 
@@ -70,7 +73,7 @@ Use the following command to update the **Handsontable** to 8th version:
 npm install handsontable@8
 ```
 
-#### Using with wrappers
+### Using with wrappers
 
 When you use the wrapper you need to update it as well. Run the following command, respectively:
 
@@ -94,11 +97,11 @@ npm install handsontable@8 @handsontable/angular@6
 
 ## Breaking changes of 8.0.0
 
-### Removals of hooks
+## Removals of hooks
 
 Hooks related to the visual and physical indexes were removed since new architecture for indexes management was introduced. To achieve the same functionality we suggest using the API. What is more, internal calls in the component's code to these hooks were removed and replaced with corresponding API methods. The following examples show how to preserve previous functionality.
 
-#### `modifyRow`, `unmodifyRow`, `modifyCol`, `unmodifyCol`
+### `modifyRow`, `unmodifyRow`, `modifyCol`, `unmodifyCol`
 
 `modify*` and `unmodify*` hooks for rows and columns were removed. The actions to be taken are similar for both rows and columns.
 
@@ -150,7 +153,7 @@ customTrimmingMap.setValueAtIndex(0, true); // trimming index 0
 hotInstance.render();
 ```
 
-#### `hiddenRow, hiddenColumn`
+### `hiddenRow, hiddenColumn`
 
 If you used `hiddenColumn` or `hiddenColumn` in your application you need do an update and use a correspinging index mapper:
 
@@ -180,7 +183,7 @@ Now
 hot.rowIndexMapper.isHidden(hot.toPhysicalRow(visualRow));
 ```
 
-### Removing redundant `render()` from `after*` hooks
+## Removing redundant `render()` from `after*` hooks
 
 The sequence of `after...` hooks changed, for example: `afterLoadData`, `afterFilter`, `afterUnmergeCells` are now called **before the render**. In the previous versions, you had to call `render` to apply changes made with `after...` hooks. In some cases, depending on the number of hooks registered, it led to rendering all the cells multiple times. Many of these operations were redundant and unnecessary, resulting only in a performance bottleneck.
 
@@ -193,7 +196,7 @@ instance.addHook('afterFilter', function () {
 });
 ```
 
-### Plugins no longer enable other plugins
+## Plugins no longer enable other plugins
 
 From version 8.0.0 you can set plugins separately. They no longer rely on each other tightly in terms of functionality, so it is up to the developer to use them simultaneously when needed. You can avoid unwanted "extra" functionality switched on by a supporting plugin.
 
@@ -262,7 +265,7 @@ collapsibleColumns: true,
 hiddenColumns: true
 ```
 
-### Data reference and ObserveChanges plugin
+## Data reference and ObserveChanges plugin
 
 Modifying the table’s data by reference and calling `render` is no longer feasible. Now all the data-related operations need to be performed using the API methods such as `populateFromArray` or `setDataAtCell`.
 
@@ -306,7 +309,7 @@ hot.setDataAtRowProp(0, 'available', true) // This usage will throw an error in 
 hot.setSourceDataAtCell(0, 'available', true) // This usage will set a new property in 8.0.0`
 ```
 
-### Changes in ManualRowMove and ManualColumnMove plugins behavior
+## Changes in ManualRowMove and ManualColumnMove plugins behavior
 
 Both plugins has been adapted to work with Index Mappers.
 
@@ -318,21 +321,21 @@ Methods `moveColumn`, `moveColumns`, `moveRow`, and `moveRows` have their argume
 
 The "drag" methods comes with the `dropIndex` parameter. It directs where to **place** the dragged elements. The place you intend to drag the element is managed by **drop indexes**. You can imagine some sort of a drop zone between actual indexes of elements:
 
-![drag_action](../static/img/drag_action.svg)
+![drag_action](/img/drag_action.svg)
 
 The "move" methods comes with the `finalIndex` parameter. It tells where to **overlap** the first element from the moved ones. The place you intend to move the element is managed by **visual indexes**.
 
-![move_action](../static/img/move_action.svg)
+![move_action](/img/move_action.svg)
 
 Please note that in case of "move" methods some move actions are limited. For example, if you initiate a move of **more than one element** to the **last position** (visual index = the number of items - 1) the operation will be canceled. The first element in the collection you would like to move will try to reach the last position (`finalIndex`) which is feasible. However, the next ones will attempt to reach the position exceeding the number of all items.
 
 You can find the plugin's isMovePossible API method useful when you want to determine if the move action is possible. `movePossible` parameter of `beforeRowMove`, `afterRowMove`, `beforeColumnMove`, and `afterColumnMove` hooks may be helpful as well.
 
-### Changes in ManualColumnFreeze plugin behavior
+## Changes in ManualColumnFreeze plugin behavior
 
 The `ManualColumnFreeze` plugin itself also works differently. Before the **v8.0.0** frozen columns attempted to go back to original positions upon the unfreeze. Currently, the original position is **not calculated**. It unfreezes the column just after the "line of freeze". The functionality changed because after several actions like **moving** the former position was rather estimated than determined.
 
-### Using minSpareRows option with TrimRows plugin
+## Using minSpareRows option with TrimRows plugin
 
 Another breaking change is related to `minSpareRows` and `minRows`. The difference is visible when the data is being trimmed (i.e. by the `TrimRows` plugin) and the options are set. In previous versions the data which was supposed to be trimmed **included** `minSpareRows` and `minRows` which resulted in trimming them along with other rows. In version 8.0.0 **spare rows** are always present and cannot be removed by trimming.
 
@@ -348,11 +351,11 @@ const hotInstance = new Handsontable(container, {
 
 The results before:
 
-![before_8](../static/img/spare_before_8.svg)
+![before_8](/img/spare_before_8.svg)
 
 The results after:
 
-![after_8](../static/img/spare_after_8.svg)
+![after_8](/img/spare_after_8.svg)
 
 To ensure your application works as expected you should review it and search the use cases of `minSpareRows` or `minRows`, if the application relied on this mechanism you may need to adapt it. For example, in prior versions the following code:
 
@@ -381,7 +384,7 @@ const hotInstance = new Handsontable(container, {
 });
 ```
 
-### Custom editors
+## Custom editors
 
 Custom editors will now use data attribute to recognize the input as an editor. Before this change, Handsontable depended on the CSS `className`. And it had to be `handsontableInput`. Now it is an attribute - `data-hot-input`. Focusable and editable elements must have this attribute set up to work properly. `ClassNames` were freed from restrictive names.
 
@@ -406,7 +409,7 @@ createElements() {
 }
 ```
 
-### Indexes that exceed the data length
+## Indexes that exceed the data length
 
 Also, the methods `toVisualRow`, `toVisualColumn` and `toPhysicalRow`, `toPhysicalColumn` used to return index numbers that exceeded the overall length. For example:
 
@@ -432,7 +435,7 @@ const physicalRow = hotInstance.toPhysicalRow(visualRow) ?? visualRow;
 // physicalRow === 20
 ```
 
-### RecordTranslator in plugins
+## RecordTranslator in plugins
 
 The `RecordTranslator` object was removed, as a consequence, `t` property is no longer available in the plugins. This alias could be used to translate between visual and physical indexes with four methods: `t.toVisualRow`, `t.toPhysicalRow`, `t.toVisualColumn`, `t.toPhysicalColumn`. It is advised to call the following methods directly on the instance: `hotInstance.toVisualRow`, `hotInstance.toPhysicalRow`, `hotInstance.toVisualColumn`, `hotInstance.toPhysicalColumn`. The mappers can be accessed using `hotInstance.rowIndexMapper` and `hotInstance.columnIndexMapper` properties.
 
@@ -450,17 +453,17 @@ After the change:
 const physicalColumn = this.hot.toPhysicalColumn(column);
 ```
 
-### Selecting data
+## Selecting data
 
 **Left mouse button** click on the corner will select all cells with headers in 8.0.0.
 
 It used to select just one cell:
 
-![LMB_was](../static/img/LMB_was.gif)
+![LMB_was](/img/LMB_was.gif)
 
 Now the expected behavior is to select all cells:
 
-![LMB_is](../static/img/LMB_is.gif)
+![LMB_is](/img/LMB_is.gif)
 
 To keep the previous behavior you need to use the following workaround:
 
@@ -481,7 +484,7 @@ beforeOnCellMouseDown(event, coords) {
 }
 ```
 
-### Load data hooks arguments order
+## Load data hooks arguments order
 
 Hook `afterLoadData` has been changed. Its first argument will present a **data source** that was set during the **load data** action. Now, a flag informing whether a load of data was done during initialization is the second argument. Also, a new corresponding hook, `beforeLoadData`, has been introduced, it is called before loading data.
 
@@ -503,7 +506,7 @@ afterLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
 beforeLoadData?: (sourceData: object | void, initialLoad: boolean) => void;
 ```
 
-### Column and row resizing hooks arguments order
+## Column and row resizing hooks arguments order
 
 `after*` and `before*` hooks related to resizing changed in terms of the order of arguments. Now the first argument is a `newSize` of a row or column and the second argument is `column` or `row`. "Current" prefix was dropped because this hook might not always be called on selection.
 
@@ -527,7 +530,7 @@ beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) =
 beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
 ```
 
-### Selection range have negative indexes
+## Selection range have negative indexes
 
 From `v8.0.0` selecting columns or rows with headers will include headers as a part of the selection range. We see headers as positioned relatively to the dataset. If the beggining of the dataset is at possition `(0, 0)` then headers will always have negative indexes. That makes them distingushable from the dataset and they can be easily filtered out if not needed.
 
@@ -545,7 +548,7 @@ Selection Range object has a new method `normalize` that will do this for you:
 hotInstance.getSelectedRangeLast().from.clone().normalize()
 ```
 
-### Removals
+## Removals
 
 Hook `skipLengthCache` was removed because `indexMapper` is now responsible for the cache and length.
 

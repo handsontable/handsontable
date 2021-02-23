@@ -1,9 +1,12 @@
 ---
-id: copy-paste
 title: CopyPaste
-sidebar_label: CopyPaste
-slug: /api/copy-paste
+permalink: /next/api/copy-paste
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

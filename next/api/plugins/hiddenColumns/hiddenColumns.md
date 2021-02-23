@@ -1,9 +1,12 @@
 ---
-id: hidden-columns
 title: HiddenColumns
-sidebar_label: HiddenColumns
-slug: /api/hidden-columns
+permalink: /next/api/hidden-columns
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

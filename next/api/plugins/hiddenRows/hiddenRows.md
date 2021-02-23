@@ -1,9 +1,12 @@
 ---
-id: hidden-rows
 title: HiddenRows
-sidebar_label: HiddenRows
-slug: /api/hidden-rows
+permalink: /next/api/hidden-rows
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

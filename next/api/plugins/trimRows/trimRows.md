@@ -1,9 +1,12 @@
 ---
-id: trim-rows
 title: TrimRows
-sidebar_label: TrimRows
-slug: /api/trim-rows
+permalink: /next/api/trim-rows
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

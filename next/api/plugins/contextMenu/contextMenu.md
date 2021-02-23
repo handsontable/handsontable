@@ -1,9 +1,12 @@
 ---
-id: context-menu
 title: ContextMenu
-sidebar_label: ContextMenu
-slug: /api/context-menu
+permalink: /next/api/context-menu
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

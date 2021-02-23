@@ -1,9 +1,12 @@
 ---
-id: auto-row-size
 title: AutoRowSize
-sidebar_label: AutoRowSize
-slug: /api/auto-row-size
+permalink: /next/api/auto-row-size
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

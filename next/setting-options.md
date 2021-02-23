@@ -1,11 +1,14 @@
 ---
-id: setting-options
 title: Setting options
-sidebar_label: Setting options
-slug: /setting-options
+permalink: /next/setting-options
+canonicalUrl: /setting-options
 ---
 
-### Introduction to cell options
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Introduction to cell options
 
 Any constructor or column option may be overwritten for a particular cell (row/column combination), using `cell` array passed to the Handsontable constructor. Example:
 ```js
@@ -27,7 +30,7 @@ var hot = new Handsontable(document.getElementById('example'), {
   }
 })
 ```
-### How does the Cascading Configuration work?
+## How does the Cascading Configuration work?
 
 Handsontable is using Cascading Configuration, which is a fast way to provide configuration options for the whole table, along with its columns and particular cells.
 
@@ -51,7 +54,7 @@ var hot = new Handsontable(document.getElementById('example'), {
 ```
 The above notation will result in all TDs being read only, except for first column TDs which will be editable, except for the TD in top left corner which will still be read only.
 
-### The cascading configuration model
+## The cascading configuration model
 
 The Cascading Configuration model is based on prototypal inheritance. It is much faster and memory efficient compared to the previous model that used jQuery extend. See it yourself: [http://jsperf.com/extending-settings](http://jsperf.com/extending-settings)
 

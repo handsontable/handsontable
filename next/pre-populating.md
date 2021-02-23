@@ -1,13 +1,15 @@
 ---
-id: pre-populating
 title: Pre-populating rows
-sidebar_label: Pre-populating rows
-slug: /pre-populating
+permalink: /next/pre-populating
+canonicalUrl: /pre-populating
 ---
+
+# {{ $frontmatter.title }}
 
 Below example shows how cell renderers can be used to present the template values for empty rows. When a cell in the empty row is edited, the **beforeChange** callback fills the row with the template values.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var
   tpl = ['one', 'two', 'three'],
   data = [
@@ -90,3 +92,4 @@ hot1 = new Handsontable(container, {
 
 hot1.loadData(data);
 ```
+:::

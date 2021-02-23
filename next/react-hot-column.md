@@ -1,14 +1,20 @@
 ---
-id: react-hot-column
 title: Using the HotColumn component
-sidebar_label: Using the HotColumn component
-slug: /react-hot-column
+permalink: /next/react-hot-column
+canonicalUrl: /react-hot-column
 ---
 
-#### Version `3.1.0` of the `@handsontable/react` wrapper introduces a new feature - a `HotColumn` component.
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+::: tip
+Version `3.1.0` of the `@handsontable/react` wrapper introduces a new feature - a `HotColumn` component.
+:::
 
 It doesn't only allow to configure the column-related settings using the `HotColumn` component's attributes, but also create custom renderers and editors using React components.
-### Declaring column settings
+
+## Declaring column settings
 
 To declare column-specific settings, simply pass the settings as `HotColumn` props (either separately or wrapped as a `settings` prop, exactly as you would with `HotTable`).
 
@@ -20,14 +26,14 @@ To declare column-specific settings, simply pass the settings as `HotColumn` pro
   overflow: 'hidden',
 }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-### Declaring a custom renderer as a component
+## Declaring a custom renderer as a component
 
 The wrapper allows creating custom renderers using React components.
 Although it's possible to use class-based react components for this purpose, **we strongly suggest** using functional components, as the `state` of a class-based component would re-initialize on every Handsontable render.
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
-:::caution
+::: warning
 Because the Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 **Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results (note that `autoColumnSize` is enabled by default).**
 :::
@@ -40,7 +46,7 @@ Because the Handsontable's `autoRowSize` and `autoColumnSize` options require ca
   overflow: 'hidden',
 }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-### Object data source
+## Object data source
 
 When you use object data binding for `HotColumn` you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in props as `data`, for example, `<HotColumn data="id" />` .
 
@@ -54,7 +60,7 @@ You can read more on this topic on the [data source page](data-sources.md#page-o
   overflow: 'hidden',
 }} title="Object data source" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-### Declaring a custom editor as a component
+## Declaring a custom editor as a component
 
 You can also utilize the React components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/react`.
 
@@ -71,7 +77,7 @@ To prevent that, `mousedown` event on the editor container must call `event.stop
   overflow: 'hidden',
 }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-### Using the renderer/editor components with React's Context
+## Using the renderer/editor components with React's Context
 
 It this example we're using React's Context to pass the information available in the main app component all the way to the renderer. In this case we're using just the renderer, but the same principle works with editors just as well.
 
@@ -83,7 +89,7 @@ It this example we're using React's Context to pass the information available in
   overflow: 'hidden',
 }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-### A more advanced example
+## A more advanced example
 
 In this example we will create a custom editor component with an external dependency, which will act as both renderer and editor. Information from that component will be used by another component (first column renderer) to change the way it behaves.
 The information will be passed using Redux and `react-redux`'s `connect` method.

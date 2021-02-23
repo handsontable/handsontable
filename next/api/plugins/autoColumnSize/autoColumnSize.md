@@ -1,11 +1,13 @@
 ---
-id: auto-column-size
 title: AutoColumnSize
-sidebar_label: AutoColumnSize
-slug: /api/auto-column-size
+permalink: /next/api/auto-column-size
 ---
-## Description
 
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Description
 
 This plugin allows to set column widths based on their widest cells.
 

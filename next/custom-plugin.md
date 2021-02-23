@@ -1,9 +1,10 @@
 ---
-id: custom-plugin
 title: Custom plugin
-sidebar_label: Custom plugin
-slug: /custom-plugin
+permalink: /next/custom-plugin
+canonicalUrl: /custom-plugin
 ---
+
+# {{ $frontmatter.title }}
 
 A plugin contains one or more features that can be easily plugged in to Handsontable. Writing a new plugin is not a difficult task, simply cloning the [Skeleton template](https://github.com/handsontable/handsontable-skeleton) will give you a good starting point.
 

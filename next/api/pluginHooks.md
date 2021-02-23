@@ -1,10 +1,13 @@
 ---
-id: plugin-hooks
 title: Hooks
-sidebar_label: Hooks
-slug: /api/hooks
+permalink: /next/api/hooks
 ---
-### createEmptyBucket
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## createEmptyBucket
 `hooks.createEmptyBucket() ⇒ object`
 
 Returns a new object with empty handlers related to every registered hook name.
@@ -24,7 +27,7 @@ beforeInit: [],
 }
 ```
 
-### getBucket
+## getBucket
 `hooks.getBucket([context]) ⇒ object`
 
 Get hook bucket based on the context of the object or if argument is `undefined`, get the global hook bucket.
@@ -37,7 +40,7 @@ Get hook bucket based on the context of the object or if argument is `undefined`
 
 **Returns**: <code>object</code> - Returns a global or Handsontable instance bucket.  
 
-### add
+## add
 `hooks.add(key, callback, [context]) ⇒ Hooks`
 
 Adds a listener (globally or locally) to a specified hook name.
@@ -71,7 +74,7 @@ Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback], hotInstance)
 Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
 ```
 
-### once
+## once
 `hooks.once(key, callback, [context])`
 
 Adds a listener to a specified hook. After the hook runs this listener will be automatically removed from the bucket.
@@ -90,7 +93,7 @@ Adds a listener to a specified hook. After the hook runs this listener will be a
 Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
 ```
 
-### remove
+## remove
 `hooks.remove(key, callback, [context]) ⇒ boolean`
 
 Removes a listener from a hook with a given name. If the `context` argument is provided, it removes a listener from a local hook assigned to the given Handsontable instance.
@@ -110,7 +113,7 @@ Removes a listener from a hook with a given name. If the `context` argument is p
 Handsontable.hooks.remove('beforeInit', myCallback);
 ```
 
-### has
+## has
 `hooks.has(key, [context]) ⇒ boolean`
 
 Checks whether there are any registered listeners for the provided hook name.
@@ -125,7 +128,7 @@ If the `context` parameter is provided, it only checks for listeners assigned to
 
 **Returns**: <code>boolean</code> - `true` for success, `false` otherwise.  
 
-### run
+## run
 `hooks.run(context, key, [p1], [p2], [p3], [p4], [p5], [p6]) ⇒ \*`
 
 Runs all local and global callbacks assigned to the hook identified by the `key` parameter.
@@ -151,7 +154,7 @@ It returns either a return value from the last called callback or the first para
 Handsontable.hooks.run(hot, 'beforeInit');
 ```
 
-### destroy
+## destroy
 `hooks.destroy([context])`
 
 Destroy all listeners connected to the context. If no context is provided, the global listeners will be destroyed.
@@ -171,7 +174,7 @@ Handsontable.hooks.destroy();
 Handsontable.hooks.destroy(hotInstance);
 ```
 
-### register
+## register
 `hooks.register(key)`
 
 Registers a hook name (adds it to the list of the known hook names). Used by plugins.
@@ -189,7 +192,7 @@ the `getRegistered` method. (which itself is used in the demo https://handsontab
 Handsontable.hooks.register('myHook');
 ```
 
-### deregister
+## deregister
 `hooks.deregister(key)`
 
 Deregisters a hook name (removes it from the list of known hook names).
@@ -205,7 +208,7 @@ Deregisters a hook name (removes it from the list of known hook names).
 Handsontable.hooks.deregister('myHook');
 ```
 
-### isDeprecated
+## isDeprecated
 `hooks.isDeprecated(hookName) ⇒ boolean`
 
 Returns a boolean value depending on if a hook by such name has been removed or deprecated.
@@ -226,7 +229,7 @@ Handsontable.hooks.isDeprecated('skipLengthCache');
 true
 ```
 
-### isRegistered
+## isRegistered
 `hooks.isRegistered(hookName) ⇒ boolean`
 
 Returns a boolean depending on if a hook by such name has been registered.
@@ -246,7 +249,7 @@ Handsontable.hooks.isRegistered('beforeInit');
 true
 ```
 
-### getRegistered
+## getRegistered
 `hooks.getRegistered() ⇒ Array`
 
 Returns an array of registered hooks.
@@ -269,14 +272,14 @@ Handsontable.hooks.getRegistered();
 ]
 ```
 
-### afterCellMetaReset
+## afterCellMetaReset
 `"afterCellMetaReset"`
 
 Fired after resetting a cell's meta. This happens when the [Core#updateSettings](core#updatesettings) method is called.
 
 
 
-### afterChange
+## afterChange
 `"afterChange"(changes, [source])`
 
 Fired after one or more cells has been changed. The changes are triggered in any situation when the
@@ -302,7 +305,7 @@ new Handsontable(element, {
 })
 ```
 
-### afterChangesObserved
+## afterChangesObserved
 `"afterChangesObserved"`
 
 Fired by [ObserveChanges](observe-changes) plugin after detecting changes in the data source. This hook is fired when
@@ -310,7 +313,7 @@ Fired by [ObserveChanges](observe-changes) plugin after detecting changes in the
 
 
 
-### afterContextMenuDefaultOptions
+## afterContextMenuDefaultOptions
 `"afterContextMenuDefaultOptions"(predefinedItems)`
 
 Fired each time user opens [ContextMenu](context-menu) and after setting up the Context Menu's default options. These options are a collection
@@ -323,7 +326,7 @@ which user can select by setting an array of keys or an array of objects in [Opt
 
 
 
-### beforeContextMenuSetItems
+## beforeContextMenuSetItems
 `"beforeContextMenuSetItems"(menuItems)`
 
 Fired each time user opens [ContextMenu](context-menu) plugin before setting up the Context Menu's items but after filtering these options by
@@ -337,7 +340,7 @@ one of the menu item to by always visible.
 
 
 
-### afterDropdownMenuDefaultOptions
+## afterDropdownMenuDefaultOptions
 `"afterDropdownMenuDefaultOptions"(predefinedItems)`
 
 Fired by [DropdownMenu](dropdown-menu) plugin after setting up the Dropdown Menu's default options. These options are a
@@ -351,7 +354,7 @@ option.
 
 
 
-### beforeDropdownMenuSetItems
+## beforeDropdownMenuSetItems
 `"beforeDropdownMenuSetItems"(menuItems)`
 
 Fired by [DropdownMenu](dropdown-menu) plugin before setting up the Dropdown Menu's items but after filtering these options
@@ -365,7 +368,7 @@ up one of the menu item to by always visible.
 
 
 
-### afterContextMenuHide
+## afterContextMenuHide
 `"afterContextMenuHide"(context)`
 
 Fired by [ContextMenu](context-menu) plugin after hiding the Context Menu. This hook is fired when [Options#contextMenu](options#contextmenu)
@@ -378,7 +381,7 @@ option is enabled.
 
 
 
-### beforeContextMenuShow
+## beforeContextMenuShow
 `"beforeContextMenuShow"(context)`
 
 Fired by [ContextMenu](context-menu) plugin before opening the Context Menu. This hook is fired when [Options#contextMenu](options#context-menu)
@@ -391,7 +394,7 @@ option is enabled.
 
 
 
-### afterContextMenuShow
+## afterContextMenuShow
 `"afterContextMenuShow"(context)`
 
 Fired by [ContextMenu](context-menu) plugin after opening the Context Menu. This hook is fired when [Options#contextMenu](options#contextmenu)
@@ -404,7 +407,7 @@ option is enabled.
 
 
 
-### afterCopyLimit
+## afterCopyLimit
 `"afterCopyLimit"(selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit)`
 
 Fired by [CopyPaste](copy-paste) plugin after reaching the copy limit while copying data. This hook is fired when
@@ -420,7 +423,7 @@ Fired by [CopyPaste](copy-paste) plugin after reaching the copy limit while copy
 
 
 
-### beforeCreateCol
+## beforeCreateCol
 `"beforeCreateCol"(index, amount, [source]) ⇒ \*`
 
 Fired before created a new column.
@@ -444,7 +447,7 @@ new Handsontable(element, {
 });
 ```
 
-### afterCreateCol
+## afterCreateCol
 `"afterCreateCol"(index, amount, [source])`
 
 Fired after created a new column.
@@ -458,7 +461,7 @@ Fired after created a new column.
 
 
 
-### beforeCreateRow
+## beforeCreateRow
 `"beforeCreateRow"(index, amount, [source]) ⇒ \* | boolean`
 
 Fired before created a new row.
@@ -473,7 +476,7 @@ Fired before created a new row.
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### afterCreateRow
+## afterCreateRow
 `"afterCreateRow"(index, amount, [source])`
 
 Fired after created a new row.
@@ -487,21 +490,21 @@ Fired after created a new row.
 
 
 
-### afterDeselect
+## afterDeselect
 `"afterDeselect"`
 
 Fired after the current cell is deselected.
 
 
 
-### afterDestroy
+## afterDestroy
 `"afterDestroy"`
 
 Fired after destroying the Handsontable instance.
 
 
 
-### afterDocumentKeyDown
+## afterDocumentKeyDown
 `"afterDocumentKeyDown"(event)`
 
 General hook which captures `keydown` events attached to the document body. These events are delegated to the
@@ -514,7 +517,7 @@ hooks system and consumed by Core and internal modules (e.g plugins, editors).
 
 
 
-### afterDrawSelection
+## afterDrawSelection
 `"afterDrawSelection"(currentRow, currentColumn, cornersOfSelection, layerLevel) ⇒ string | undefined`
 
 Fired inside the Walkontable's selection `draw` method. Can be used to add additional class names to cells, depending on the current selection.
@@ -531,7 +534,7 @@ Fired inside the Walkontable's selection `draw` method. Can be used to add addit
 
 **Returns**: <code>string</code> \| <code>undefined</code> - Can return a `String`, which will act as an additional `className` to be added to the currently processed cell.  
 
-### beforeRemoveCellClassNames
+## beforeRemoveCellClassNames
 `"beforeRemoveCellClassNames" ⇒ Array.<string> | undefined`
 
 Fired inside the Walkontable's `refreshSelections` method. Can be used to remove additional class names from all cells in the table.
@@ -540,7 +543,7 @@ Fired inside the Walkontable's `refreshSelections` method. Can be used to remove
 
 **Returns**: <code>Array.&lt;string&gt;</code> \| <code>undefined</code> - Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.  
 
-### afterGetCellMeta
+## afterGetCellMeta
 `"afterGetCellMeta"(row, column, cellProperties)`
 
 Fired after getting the cell settings.
@@ -554,7 +557,7 @@ Fired after getting the cell settings.
 
 
 
-### afterGetColHeader
+## afterGetColHeader
 `"afterGetColHeader"(column, TH)`
 
 Fired after retrieving information about a column header and appending it to the table header.
@@ -567,7 +570,7 @@ Fired after retrieving information about a column header and appending it to the
 
 
 
-### afterGetRowHeader
+## afterGetRowHeader
 `"afterGetRowHeader"(row, TH)`
 
 Fired after retrieving information about a row header and appending it to the table header.
@@ -580,14 +583,14 @@ Fired after retrieving information about a row header and appending it to the ta
 
 
 
-### afterInit
+## afterInit
 `"afterInit"`
 
 Fired after the Handsontable instance is initiated.
 
 
 
-### afterLoadData
+## afterLoadData
 `"afterLoadData"(sourceData, initialLoad)`
 
 Fired after new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
@@ -600,14 +603,14 @@ Fired after new data is loaded (by `loadData` or `updateSettings` method) into t
 
 
 
-### afterMomentumScroll
+## afterMomentumScroll
 `"afterMomentumScroll"`
 
 Fired after a scroll event, which is identified as a momentum scroll (e.g. On an iPad).
 
 
 
-### afterOnCellCornerMouseDown
+## afterOnCellCornerMouseDown
 `"afterOnCellCornerMouseDown"(event)`
 
 Fired after a `mousedown` event is triggered on the cell corner (the drag handle).
@@ -619,7 +622,7 @@ Fired after a `mousedown` event is triggered on the cell corner (the drag handle
 
 
 
-### afterOnCellCornerDblClick
+## afterOnCellCornerDblClick
 `"afterOnCellCornerDblClick"(event)`
 
 Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
@@ -631,7 +634,7 @@ Fired after a `dblclick` event is triggered on the cell corner (the drag handle)
 
 
 
-### afterOnCellMouseDown
+## afterOnCellMouseDown
 `"afterOnCellMouseDown"(event, coords, TD)`
 
 Fired after clicking on a cell or row/column header. In case the row/column header was clicked, the coordinate
@@ -649,7 +652,7 @@ with coordinates `{row: 0, col: -1}`.
 
 
 
-### afterOnCellMouseUp
+## afterOnCellMouseUp
 `"afterOnCellMouseUp"(event, coords, TD)`
 
 Fired after clicking on a cell or row/column header. In case the row/column header was clicked, the coordinate
@@ -667,7 +670,7 @@ with coordinates `{row: 0, col: -1}`.
 
 
 
-### afterOnCellContextMenu
+## afterOnCellContextMenu
 `"afterOnCellContextMenu"(event, coords, TD)`
 
 Fired after clicking right mouse button on a cell or row/column header.
@@ -685,7 +688,7 @@ with coordinates `{row: 0, col: -1}`.
 
 
 
-### afterOnCellMouseOver
+## afterOnCellMouseOver
 `"afterOnCellMouseOver"(event, coords, TD)`
 
 Fired after hovering a cell or row/column header with the mouse cursor. In case the row/column header was
@@ -703,7 +706,7 @@ with coords `{row: 0, col: -1}`.
 
 
 
-### afterOnCellMouseOut
+## afterOnCellMouseOut
 `"afterOnCellMouseOut"(event, coords, TD)`
 
 Fired after leaving a cell or row/column header with the mouse cursor.
@@ -717,7 +720,7 @@ Fired after leaving a cell or row/column header with the mouse cursor.
 
 
 
-### afterRemoveCol
+## afterRemoveCol
 `"afterRemoveCol"(index, amount, physicalColumns, [source])`
 
 Fired after one or more columns are removed.
@@ -732,7 +735,7 @@ Fired after one or more columns are removed.
 
 
 
-### afterRemoveRow
+## afterRemoveRow
 `"afterRemoveRow"(index, amount, physicalRows, [source])`
 
 Fired after one or more rows are removed.
@@ -747,7 +750,7 @@ Fired after one or more rows are removed.
 
 
 
-### afterRender
+## afterRender
 `"afterRender"(isForced)`
 
 Fired after the Handsontable table is rendered.
@@ -759,7 +762,7 @@ Fired after the Handsontable table is rendered.
 
 
 
-### beforeRenderer
+## beforeRenderer
 `"beforeRenderer"(TD, row, column, prop, value, cellProperties)`
 
 Fired before starting rendering the cell.
@@ -776,7 +779,7 @@ Fired before starting rendering the cell.
 
 
 
-### afterRenderer
+## afterRenderer
 `"afterRenderer"(TD, row, column, prop, value, cellProperties)`
 
 Fired after finishing rendering the cell (after the renderer finishes).
@@ -793,21 +796,21 @@ Fired after finishing rendering the cell (after the renderer finishes).
 
 
 
-### afterScrollHorizontally
+## afterScrollHorizontally
 `"afterScrollHorizontally"`
 
 Fired after the horizontal scroll event.
 
 
 
-### afterScrollVertically
+## afterScrollVertically
 `"afterScrollVertically"`
 
 Fired after the vertical scroll event.
 
 
 
-### afterSelection
+## afterSelection
 `"afterSelection"(row, column, row2, column2, preventScrolling, selectionLayerLevel)`
 
 Fired after one or more cells are selected (e.g. During mouse move).
@@ -833,7 +836,7 @@ new Handsontable(element, {
 })
 ```
 
-### afterSelectionByProp
+## afterSelectionByProp
 `"afterSelectionByProp"(row, prop, row2, prop2, preventScrolling, selectionLayerLevel)`
 
 Fired after one or more cells are selected.
@@ -861,7 +864,7 @@ new Handsontable(element, {
 })
 ```
 
-### afterSelectionEnd
+## afterSelectionEnd
 `"afterSelectionEnd"(row, column, row2, column2, selectionLayerLevel)`
 
 Fired after one or more cells are selected (e.g. On mouse up).
@@ -877,7 +880,7 @@ Fired after one or more cells are selected (e.g. On mouse up).
 
 
 
-### afterSelectionEndByProp
+## afterSelectionEndByProp
 `"afterSelectionEndByProp"(row, prop, row2, prop2, selectionLayerLevel)`
 
 Fired after one or more cells are selected (e.g. On mouse up).
@@ -895,7 +898,7 @@ The `prop` and `prop2` arguments represent the source object property name inste
 
 
 
-### afterSetCellMeta
+## afterSetCellMeta
 `"afterSetCellMeta"(row, column, key, value)`
 
 Fired after cell meta is changed.
@@ -910,7 +913,7 @@ Fired after cell meta is changed.
 
 
 
-### afterRemoveCellMeta
+## afterRemoveCellMeta
 `"afterRemoveCellMeta"(row, column, key, value)`
 
 Fired after cell meta is removed.
@@ -925,7 +928,7 @@ Fired after cell meta is removed.
 
 
 
-### afterSetDataAtCell
+## afterSetDataAtCell
 `"afterSetDataAtCell"(changes, [source])`
 
 Fired after cell data was changed.
@@ -938,7 +941,7 @@ Fired after cell data was changed.
 
 
 
-### afterSetDataAtRowProp
+## afterSetDataAtRowProp
 `"afterSetDataAtRowProp"(changes, [source])`
 
 Fired after cell data was changed.
@@ -952,7 +955,7 @@ Called only when `setDataAtRowProp` was executed.
 
 
 
-### afterSetSourceDataAtCell
+## afterSetSourceDataAtCell
 `"afterSetSourceDataAtCell"(changes, [source])`
 
 Fired after cell source data was changed.
@@ -966,7 +969,7 @@ Fired after cell source data was changed.
 
 
 
-### afterUpdateSettings
+## afterUpdateSettings
 `"afterUpdateSettings"(newSettings)`
 
 Fired after calling the `updateSettings` method.
@@ -978,7 +981,7 @@ Fired after calling the `updateSettings` method.
 
 
 
-### afterValidate
+## afterValidate
 `"afterValidate"(isValid, value, row, prop, [source]) ⇒ void | boolean`
 
 A plugin hook executed after validator function, only if validator function is defined.
@@ -998,7 +1001,7 @@ __Returning false from the callback will mark the cell as invalid__.
 
 **Returns**: <code>void</code> \| <code>boolean</code> - If `false` the cell will be marked as invalid, `true` otherwise.  
 
-### beforeLanguageChange
+## beforeLanguageChange
 `"beforeLanguageChange"(languageCode)`
 
 Fired before successful change of language (when proper language code was set).
@@ -1011,7 +1014,7 @@ Fired before successful change of language (when proper language code was set).
 
 
 
-### afterLanguageChange
+## afterLanguageChange
 `"afterLanguageChange"(languageCode)`
 
 Fired after successful change of language (when proper language code was set).
@@ -1024,7 +1027,7 @@ Fired after successful change of language (when proper language code was set).
 
 
 
-### beforeAutofill
+## beforeAutofill
 `"beforeAutofill"(start, end, data) ⇒ \* | boolean`
 
 Fired by [Autofill](autofill) plugin before populating the data in the autofill feature. This hook is fired when
@@ -1040,7 +1043,7 @@ Fired by [Autofill](autofill) plugin before populating the data in the autofill 
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### afterAutofill
+## afterAutofill
 `"afterAutofill"(start, end, data)`
 
 Fired by [Autofill](autofill) plugin after populating the data in the autofill feature. This hook is fired when
@@ -1056,7 +1059,7 @@ Fired by [Autofill](autofill) plugin after populating the data in the autofill f
 
 
 
-### beforeCellAlignment
+## beforeCellAlignment
 `"beforeCellAlignment"(stateBefore, range, type, alignmentClass)`
 
 Fired before aligning the cell contents.
@@ -1071,7 +1074,7 @@ Fired before aligning the cell contents.
 
 
 
-### beforeChange
+## beforeChange
 `"beforeChange"(changes, [source]) ⇒ void | boolean`
 
 Fired before one or more cells is changed. Its main purpose is to alter changes silently after input and before
@@ -1110,7 +1113,7 @@ new Handsontable(element, {
 });
 ```
 
-### beforeChangeRender
+## beforeChangeRender
 `"beforeChangeRender"(changes, [source])`
 
 Fired right before rendering the changes.
@@ -1123,7 +1126,7 @@ Fired right before rendering the changes.
 
 
 
-### beforeDrawBorders
+## beforeDrawBorders
 `"beforeDrawBorders"(corners, borderClassName)`
 
 Fired before drawing the borders.
@@ -1136,7 +1139,7 @@ Fired before drawing the borders.
 
 
 
-### beforeGetCellMeta
+## beforeGetCellMeta
 `"beforeGetCellMeta"(row, column, cellProperties)`
 
 Fired before getting cell settings.
@@ -1150,7 +1153,7 @@ Fired before getting cell settings.
 
 
 
-### beforeRemoveCellMeta
+## beforeRemoveCellMeta
 `"beforeRemoveCellMeta"(row, column, key, value) ⇒ \* | boolean`
 
 Fired before cell meta is removed.
@@ -1166,14 +1169,14 @@ Fired before cell meta is removed.
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### beforeInit
+## beforeInit
 `"beforeInit"`
 
 Fired before the Handsontable instance is initiated.
 
 
 
-### beforeInitWalkontable
+## beforeInitWalkontable
 `"beforeInitWalkontable"(walkontableConfig)`
 
 Fired before the Walkontable instance is initiated.
@@ -1185,7 +1188,7 @@ Fired before the Walkontable instance is initiated.
 
 
 
-### beforeLoadData
+## beforeLoadData
 `"beforeLoadData"(sourceData, initialLoad)`
 
 Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
@@ -1199,7 +1202,7 @@ Fired before new data is loaded (by `loadData` or `updateSettings` method) into 
 
 
 
-### beforeKeyDown
+## beforeKeyDown
 `"beforeKeyDown"(event)`
 
 Fired before keydown event is handled. It can be used to overwrite default key bindings.
@@ -1214,7 +1217,7 @@ handler.
 
 
 
-### beforeOnCellMouseDown
+## beforeOnCellMouseDown
 `"beforeOnCellMouseDown"(event, coords, TD, controller)`
 
 Fired after the user clicked a cell, but before all the calculations related with it.
@@ -1229,7 +1232,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 
 
-### beforeOnCellMouseUp
+## beforeOnCellMouseUp
 `"beforeOnCellMouseUp"(event, coords, TD)`
 
 Fired after the user clicked a cell.
@@ -1243,7 +1246,7 @@ Fired after the user clicked a cell.
 
 
 
-### beforeOnCellContextMenu
+## beforeOnCellContextMenu
 `"beforeOnCellContextMenu"(event, coords, TD)`
 
 Fired after the user clicked a cell, but before all the calculations related with it.
@@ -1258,7 +1261,7 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 
 
-### beforeOnCellMouseOver
+## beforeOnCellMouseOver
 `"beforeOnCellMouseOver"(event, coords, TD, controller)`
 
 Fired after the user moved cursor over a cell, but before all the calculations related with it.
@@ -1273,7 +1276,7 @@ Fired after the user moved cursor over a cell, but before all the calculations r
 
 
 
-### beforeOnCellMouseOut
+## beforeOnCellMouseOut
 `"beforeOnCellMouseOut"(event, coords, TD)`
 
 Fired after the user moved cursor out from a cell, but before all the calculations related with it.
@@ -1287,7 +1290,7 @@ Fired after the user moved cursor out from a cell, but before all the calculatio
 
 
 
-### beforeRemoveCol
+## beforeRemoveCol
 `"beforeRemoveCol"(index, amount, physicalColumns, [source]) ⇒ \* | boolean`
 
 Fired before one or more columns are about to be removed.
@@ -1303,7 +1306,7 @@ Fired before one or more columns are about to be removed.
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### beforeRemoveRow
+## beforeRemoveRow
 `"beforeRemoveRow"(index, amount, physicalRows, [source]) ⇒ \* | boolean`
 
 Fired when one or more rows are about to be removed.
@@ -1319,7 +1322,7 @@ Fired when one or more rows are about to be removed.
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### beforeRender
+## beforeRender
 `"beforeRender"(isForced, skipRender)`
 
 Fired before the Handsontable table is rendered.
@@ -1332,7 +1335,7 @@ Fired before the Handsontable table is rendered.
 
 
 
-### beforeSetCellMeta
+## beforeSetCellMeta
 `"beforeSetCellMeta"(row, column, key, value) ⇒ \* | boolean`
 
 Fired before cell meta is changed.
@@ -1349,7 +1352,7 @@ Fired before cell meta is changed.
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### beforeSetRangeStartOnly
+## beforeSetRangeStartOnly
 `"beforeSetRangeStartOnly"(coords)`
 
 Fired before setting range is started but not finished yet.
@@ -1361,7 +1364,7 @@ Fired before setting range is started but not finished yet.
 
 
 
-### beforeSetRangeStart
+## beforeSetRangeStart
 `"beforeSetRangeStart"(coords)`
 
 Fired before setting range is started.
@@ -1373,7 +1376,7 @@ Fired before setting range is started.
 
 
 
-### beforeSetRangeEnd
+## beforeSetRangeEnd
 `"beforeSetRangeEnd"(coords)`
 
 Fired before setting range is ended.
@@ -1385,14 +1388,14 @@ Fired before setting range is ended.
 
 
 
-### beforeTouchScroll
+## beforeTouchScroll
 `"beforeTouchScroll"`
 
 Fired before the logic of handling a touch scroll, when user started scrolling on a touch-enabled device.
 
 
 
-### beforeValidate
+## beforeValidate
 `"beforeValidate"(value, row, prop, [source])`
 
 Fired before cell validation, only if validator function is defined. This can be used to manipulate the value
@@ -1410,7 +1413,7 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 
 
 
-### beforeValueRender
+## beforeValueRender
 `"beforeValueRender"(value, cellProperties)`
 
 Fired before cell value is rendered into the DOM (through renderer function). This can be used to manipulate the
@@ -1424,21 +1427,21 @@ value which is passed to the renderer without modifying the renderer itself.
 
 
 
-### construct
+## construct
 `"construct"`
 
 Fired after Handsontable instance is constructed (using `new` operator).
 
 
 
-### init
+## init
 `"init"`
 
 Fired after Handsontable instance is initiated but before table is rendered.
 
 
 
-### modifyColHeader
+## modifyColHeader
 `"modifyColHeader"(column)`
 
 Fired when a column header index is about to be modified by a callback function.
@@ -1450,7 +1453,7 @@ Fired when a column header index is about to be modified by a callback function.
 
 
 
-### modifyColWidth
+## modifyColWidth
 `"modifyColWidth"(width, column)`
 
 Fired when a column width is about to be modified by a callback function.
@@ -1463,7 +1466,7 @@ Fired when a column width is about to be modified by a callback function.
 
 
 
-### modifyRowHeader
+## modifyRowHeader
 `"modifyRowHeader"(row)`
 
 Fired when a row header index is about to be modified by a callback function.
@@ -1475,7 +1478,7 @@ Fired when a row header index is about to be modified by a callback function.
 
 
 
-### modifyRowHeight
+## modifyRowHeight
 `"modifyRowHeight"(height, row)`
 
 Fired when a row height is about to be modified by a callback function.
@@ -1488,7 +1491,7 @@ Fired when a row height is about to be modified by a callback function.
 
 
 
-### modifyData
+## modifyData
 `"modifyData"(row, column, valueHolder, ioMode)`
 
 Fired when a data was retrieved or modified.
@@ -1503,7 +1506,7 @@ Fired when a data was retrieved or modified.
 
 
 
-### modifySourceData
+## modifySourceData
 `"modifySourceData"(row, column, valueHolder, ioMode)`
 
 Fired when a data was retrieved or modified from the source data set.
@@ -1519,7 +1522,7 @@ Fired when a data was retrieved or modified from the source data set.
 
 
 
-### modifyRowData
+## modifyRowData
 `"modifyRowData"(row)`
 
 Fired when a data was retrieved or modified.
@@ -1531,7 +1534,7 @@ Fired when a data was retrieved or modified.
 
 
 
-### modifyGetCellCoords
+## modifyGetCellCoords
 `"modifyGetCellCoords"(row, column, topmost)`
 
 Used to modify the cell coordinates when using the `getCell` method, opening editor, getting value from the editor
@@ -1547,7 +1550,7 @@ and saving values from the closed editor.
 
 
 
-### persistentStateLoad
+## persistentStateLoad
 `"persistentStateLoad"(key, valuePlaceholder)`
 
 Fired by [PersistentState](persistent-state) plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
@@ -1561,7 +1564,7 @@ Fired by [PersistentState](persistent-state) plugin, after loading value, saved 
 
 
 
-### persistentStateReset
+## persistentStateReset
 `"persistentStateReset"([key])`
 
 Fired by [PersistentState](persistent-state) plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
@@ -1574,7 +1577,7 @@ This hook is fired when [Options#persistentState](options#persistentstate) optio
 
 
 
-### persistentStateSave
+## persistentStateSave
 `"persistentStateSave"(key, value)`
 
 Fired by [PersistentState](persistent-state) plugin, after saving value under given key in browser local storage. This hook is fired when
@@ -1588,7 +1591,7 @@ Fired by [PersistentState](persistent-state) plugin, after saving value under gi
 
 
 
-### beforeColumnSort
+## beforeColumnSort
 `"beforeColumnSort"(currentSortConfig, destinationSortConfigs) ⇒ boolean | void`
 
 Fired by [ColumnSorting](column-sorting) and [MultiColumnSorting](multi-column-sorting) plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
@@ -1605,7 +1608,7 @@ This hook is fired when [Options#columnSorting](options#columnsorting) or [Optio
 
 **Returns**: <code>boolean</code> \| <code>void</code> - If `false` the column will not be sorted, `true` otherwise.  
 
-### afterColumnSort
+## afterColumnSort
 `"afterColumnSort"(currentSortConfig, destinationSortConfigs)`
 
 Fired by [ColumnSorting](column-sorting) and [MultiColumnSorting](multi-column-sorting) plugins after sorting the column. This hook is fired when [Options#columnSorting](options#columnsorting)
@@ -1619,7 +1622,7 @@ or [Options#multiColumnSorting](options#multicolumnsorting) option is enabled.
 
 
 
-### modifyAutofillRange
+## modifyAutofillRange
 `"modifyAutofillRange"(startArea, entireArea)`
 
 Fired by [Autofill](autofill) plugin after setting range of autofill. This hook is fired when [Options#fillHandle](options#fillhandle)
@@ -1633,7 +1636,7 @@ option is enabled.
 
 
 
-### modifyCopyableRange
+## modifyCopyableRange
 `"modifyCopyableRange"(copyableRanges)`
 
 Fired to allow modifying the copyable range with a callback function.
@@ -1645,7 +1648,7 @@ Fired to allow modifying the copyable range with a callback function.
 
 
 
-### beforeCut
+## beforeCut
 `"beforeCut"(data, coords) ⇒ \*`
 
 Fired by [CopyPaste](copy-paste) plugin before copying the values into clipboard and before clearing values of
@@ -1678,7 +1681,7 @@ new Handsontable(element, {
 });
 ```
 
-### afterCut
+## afterCut
 `"afterCut"(data, coords)`
 
 Fired by [CopyPaste](copy-paste) plugin after data was cut out from the table. This hook is fired when
@@ -1692,7 +1695,7 @@ Fired by [CopyPaste](copy-paste) plugin after data was cut out from the table. T
 
 
 
-### beforeCopy
+## beforeCopy
 `"beforeCopy"(data, coords) ⇒ \*`
 
 Fired before values are copied into clipboard.
@@ -1729,7 +1732,7 @@ new Handsontable(document.getElementById('example'), {
 ...
 ```
 
-### afterCopy
+## afterCopy
 `"afterCopy"(data, coords)`
 
 Fired by [CopyPaste](copy-paste) plugin after data are pasted into table. This hook is fired when [Options#copyPaste](options#copypaste)
@@ -1743,7 +1746,7 @@ option is enabled.
 
 
 
-### beforePaste
+## beforePaste
 `"beforePaste"(data, coords) ⇒ \*`
 
 Fired by [CopyPaste](copy-paste) plugin before values are pasted into table. This hook is fired when
@@ -1776,7 +1779,7 @@ new Handsontable(example, {
 });
 ```
 
-### afterPaste
+## afterPaste
 `"afterPaste"(data, coords)`
 
 Fired by [CopyPaste](copy-paste) plugin after values are pasted into table. This hook is fired when
@@ -1790,7 +1793,7 @@ Fired by [CopyPaste](copy-paste) plugin after values are pasted into table. This
 
 
 
-### beforeColumnMove
+## beforeColumnMove
 `"beforeColumnMove"(movedColumns, finalIndex, dropIndex, movePossible) ⇒ void | boolean`
 
 Fired by [ManualColumnMove](manual-column-move) plugin before change order of the visual indexes. This hook is fired when
@@ -1807,7 +1810,7 @@ Fired by [ManualColumnMove](manual-column-move) plugin before change order of th
 
 **Returns**: <code>void</code> \| <code>boolean</code> - If `false` the column will not be moved, `true` otherwise.  
 
-### afterColumnMove
+## afterColumnMove
 `"afterColumnMove"(movedColumns, finalIndex, dropIndex, movePossible, orderChanged)`
 
 Fired by [ManualColumnMove](manual-column-move) plugin after changing order of the visual indexes. This hook is fired when
@@ -1824,7 +1827,7 @@ Fired by [ManualColumnMove](manual-column-move) plugin after changing order of t
 
 
 
-### beforeRowMove
+## beforeRowMove
 `"beforeRowMove"(movedRows, finalIndex, dropIndex, movePossible) ⇒ \* | boolean`
 
 Fired by [ManualRowMove](manual-row-move) plugin before changing the order of the visual indexes. This hook is fired when
@@ -1841,7 +1844,7 @@ Fired by [ManualRowMove](manual-row-move) plugin before changing the order of th
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### afterRowMove
+## afterRowMove
 `"afterRowMove"(movedRows, finalIndex, dropIndex, movePossible, orderChanged)`
 
 Fired by [ManualRowMove](manual-row-move) plugin after changing the order of the visual indexes. This hook is fired when
@@ -1858,7 +1861,7 @@ Fired by [ManualRowMove](manual-row-move) plugin after changing the order of the
 
 
 
-### beforeColumnResize
+## beforeColumnResize
 `"beforeColumnResize"(newSize, column, isDoubleClick) ⇒ number`
 
 Fired by [ManualColumnResize](manual-column-resize) plugin before rendering the table with modified column sizes. This hook is
@@ -1874,7 +1877,7 @@ fired when [Options#manualColumnResize](options#manualcolumnresize) option is en
 
 **Returns**: <code>number</code> - Returns a new column size or `undefined`, if column size should be calculated automatically.  
 
-### afterColumnResize
+## afterColumnResize
 `"afterColumnResize"(newSize, column, isDoubleClick)`
 
 Fired by [ManualColumnResize](manual-column-resize) plugin after rendering the table with modified column sizes. This hook is
@@ -1889,7 +1892,7 @@ fired when [Options#manualColumnResize](options#manualcolumnresize) option is en
 
 
 
-### beforeRowResize
+## beforeRowResize
 `"beforeRowResize"(newSize, row, isDoubleClick) ⇒ number`
 
 Fired by [ManualRowResize](manual-row-resize) plugin before rendering the table with modified row sizes. This hook is
@@ -1905,7 +1908,7 @@ fired when [Options#manualRowResize](options#manualrowresize) option is enabled.
 
 **Returns**: <code>number</code> - Returns the new row size or `undefined` if row size should be calculated automatically.  
 
-### afterRowResize
+## afterRowResize
 `"afterRowResize"(newSize, row, isDoubleClick)`
 
 Fired by [ManualRowResize](manual-row-resize) plugin after rendering the table with modified row sizes. This hook is
@@ -1920,7 +1923,7 @@ fired when [Options#manualRowResize](options#manualrowresize) option is enabled.
 
 
 
-### afterGetColumnHeaderRenderers
+## afterGetColumnHeaderRenderers
 `"afterGetColumnHeaderRenderers"(renderers)`
 
 Fired after getting the column header renderers.
@@ -1932,7 +1935,7 @@ Fired after getting the column header renderers.
 
 
 
-### afterGetRowHeaderRenderers
+## afterGetRowHeaderRenderers
 `"afterGetRowHeaderRenderers"(renderers)`
 
 Fired after getting the row header renderers.
@@ -1944,7 +1947,7 @@ Fired after getting the row header renderers.
 
 
 
-### beforeStretchingColumnWidth
+## beforeStretchingColumnWidth
 `"beforeStretchingColumnWidth"(stretchedWidth, column) ⇒ number`
 
 Fired before applying stretched column width to column.
@@ -1958,7 +1961,7 @@ Fired before applying stretched column width to column.
 
 **Returns**: <code>number</code> - Returns new width which will be applied to the column element.  
 
-### beforeFilter
+## beforeFilter
 `"beforeFilter"(conditionsStack) ⇒ boolean`
 
 Fired by [Filters](filters) plugin before applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
@@ -1972,7 +1975,7 @@ Fired by [Filters](filters) plugin before applying [filtering](https://handsonta
 
 **Returns**: <code>boolean</code> - If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).  
 
-### afterFilter
+## afterFilter
 `"afterFilter"(conditionsStack)`
 
 Fired by [Filters](filters) plugin after applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
@@ -1985,14 +1988,14 @@ Fired by [Filters](filters) plugin after applying [filtering](https://handsontab
 
 
 
-### modifyColumnHeaderHeight
+## modifyColumnHeaderHeight
 `"modifyColumnHeaderHeight"`
 
 Fired while retrieving the column header height.
 
 
 
-### beforeUndo
+## beforeUndo
 `"beforeUndo"(action) ⇒ \* | boolean`
 
 Fired by [UndoRedo](undo-redo) plugin before the undo action. Contains information about the action that is being undone.
@@ -2006,7 +2009,7 @@ This hook is fired when [Options#undo](options#undo) option is enabled.
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### afterUndo
+## afterUndo
 `"afterUndo"(action)`
 
 Fired by [UndoRedo](undo-redo) plugin after the undo action. Contains information about the action that is being undone.
@@ -2019,7 +2022,7 @@ This hook is fired when [Options#undo](options#undo) option is enabled.
 
 
 
-### beforeRedo
+## beforeRedo
 `"beforeRedo"(action) ⇒ \* | boolean`
 
 Fired by [UndoRedo](undo-redo) plugin before the redo action. Contains information about the action that is being redone.
@@ -2033,7 +2036,7 @@ This hook is fired when [Options#undo](options#undo) option is enabled.
 
 **Returns**: <code>\*</code> \| <code>boolean</code> - If false is returned the action is canceled.  
 
-### afterRedo
+## afterRedo
 `"afterRedo"(action)`
 
 Fired by [UndoRedo](undo-redo) plugin after the redo action. Contains information about the action that is being redone.
@@ -2046,7 +2049,7 @@ This hook is fired when [Options#undo](options#undo) option is enabled.
 
 
 
-### modifyRowHeaderWidth
+## modifyRowHeaderWidth
 `"modifyRowHeaderWidth"(rowHeaderWidth)`
 
 Fired while retrieving the row header width.
@@ -2058,7 +2061,7 @@ Fired while retrieving the row header width.
 
 
 
-### beforeAutofillInsidePopulate
+## beforeAutofillInsidePopulate
 `"beforeAutofillInsidePopulate"(index, direction, input, deltas)`
 
 Fired from the `populateFromArray` method during the `autofill` process. Fired for each "autofilled" cell individually.
@@ -2073,7 +2076,7 @@ Fired from the `populateFromArray` method during the `autofill` process. Fired f
 
 
 
-### modifyTransformStart
+## modifyTransformStart
 `"modifyTransformStart"(delta)`
 
 Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
@@ -2085,7 +2088,7 @@ Fired when the start of the selection is being modified (e.g. Moving the selecti
 
 
 
-### modifyTransformEnd
+## modifyTransformEnd
 `"modifyTransformEnd"(delta)`
 
 Fired when the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
@@ -2097,7 +2100,7 @@ Fired when the end of the selection is being modified (e.g. Moving the selection
 
 
 
-### afterModifyTransformStart
+## afterModifyTransformStart
 `"afterModifyTransformStart"(coords, rowTransformDir, colTransformDir)`
 
 Fired after the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
@@ -2111,7 +2114,7 @@ Fired after the start of the selection is being modified (e.g. Moving the select
 
 
 
-### afterModifyTransformEnd
+## afterModifyTransformEnd
 `"afterModifyTransformEnd"(coords, rowTransformDir, colTransformDir)`
 
 Fired after the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
@@ -2125,7 +2128,7 @@ Fired after the end of the selection is being modified (e.g. Moving the selectio
 
 
 
-### afterViewportRowCalculatorOverride
+## afterViewportRowCalculatorOverride
 `"afterViewportRowCalculatorOverride"(calc)`
 
 Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the row calculator parameters.
@@ -2137,7 +2140,7 @@ Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the ro
 
 
 
-### afterViewportColumnCalculatorOverride
+## afterViewportColumnCalculatorOverride
 `"afterViewportColumnCalculatorOverride"(calc)`
 
 Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the row calculator parameters.
@@ -2149,7 +2152,7 @@ Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the
 
 
 
-### afterPluginsInitialized
+## afterPluginsInitialized
 `"afterPluginsInitialized"`
 
 Fired after initializing all the plugins.
@@ -2161,7 +2164,7 @@ This hook should be added before Handsontable is initialized.
 Handsontable.hooks.add('afterPluginsInitialized', myCallback);
 ```
 
-### beforeHideRows
+## beforeHideRows
 `"beforeHideRows"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
 Fired by [HiddenRows](hidden-rows) plugin before marking the rows as hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
@@ -2177,7 +2180,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the hiding action will not be completed.  
 
-### afterHideRows
+## afterHideRows
 `"afterHideRows"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
 Fired by [HiddenRows](hidden-rows) plugin after marking the rows as hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
@@ -2192,7 +2195,7 @@ Fired by [HiddenRows](hidden-rows) plugin after marking the rows as hidden. Fire
 
 
 
-### beforeUnhideRows
+## beforeUnhideRows
 `"beforeUnhideRows"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
 Fired by [HiddenRows](hidden-rows) plugin before marking the rows as not hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
@@ -2208,7 +2211,7 @@ Returning `false` in the callback will prevent the row revealing action from com
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the revealing action will not be completed.  
 
-### afterUnhideRows
+## afterUnhideRows
 `"afterUnhideRows"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
 Fired by [HiddenRows](hidden-rows) plugin after marking the rows as not hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
@@ -2223,7 +2226,7 @@ Fired by [HiddenRows](hidden-rows) plugin after marking the rows as not hidden. 
 
 
 
-### beforeHideColumns
+## beforeHideColumns
 `"beforeHideColumns"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
 Fired by [HiddenColumns](hidden-columns) plugin before marking the columns as hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
@@ -2239,7 +2242,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the hiding action will not be completed.  
 
-### afterHideColumns
+## afterHideColumns
 `"afterHideColumns"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
 Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
@@ -2254,7 +2257,7 @@ Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as hid
 
 
 
-### beforeUnhideColumns
+## beforeUnhideColumns
 `"beforeUnhideColumns"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
 Fired by [HiddenColumns](hidden-columns) plugin before marking the columns as not hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
@@ -2270,7 +2273,7 @@ Returning `false` in the callback will prevent the column revealing action from 
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the hiding action will not be completed.  
 
-### afterUnhideColumns
+## afterUnhideColumns
 `"afterUnhideColumns"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
 Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as not hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
@@ -2285,7 +2288,7 @@ Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as not
 
 
 
-### beforeTrimRow
+## beforeTrimRow
 `"beforeTrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean`
 
 Fired by [TrimRows](trim-rows) plugin before trimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
@@ -2300,7 +2303,7 @@ Fired by [TrimRows](trim-rows) plugin before trimming rows. This hook is fired w
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the trimming action will not be completed.  
 
-### afterTrimRow
+## afterTrimRow
 `"afterTrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean`
 
 Fired by [TrimRows](trim-rows) plugin after trimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
@@ -2316,7 +2319,7 @@ Fired by [TrimRows](trim-rows) plugin after trimming rows. This hook is fired wh
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the trimming action will not be completed.  
 
-### beforeUntrimRow
+## beforeUntrimRow
 `"beforeUntrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean`
 
 Fired by [TrimRows](trim-rows) plugin before untrimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
@@ -2331,7 +2334,7 @@ Fired by [TrimRows](trim-rows) plugin before untrimming rows. This hook is fired
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the untrimming action will not be completed.  
 
-### afterUntrimRow
+## afterUntrimRow
 `"afterUntrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean`
 
 Fired by [TrimRows](trim-rows) plugin after untrimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
@@ -2347,7 +2350,7 @@ Fired by [TrimRows](trim-rows) plugin after untrimming rows. This hook is fired 
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the untrimming action will not be completed.  
 
-### beforeDropdownMenuShow
+## beforeDropdownMenuShow
 `"beforeDropdownMenuShow"(dropdownMenu)`
 
 Fired by [DropdownMenu](dropdown-menu) plugin before opening the dropdown menu. This hook is fired when [Options#dropdownMenu](options#dropdownmenu)
@@ -2360,7 +2363,7 @@ option is enabled.
 
 
 
-### afterDropdownMenuShow
+## afterDropdownMenuShow
 `"afterDropdownMenuShow"(dropdownMenu)`
 
 Fired by [DropdownMenu](dropdown-menu) plugin after opening the Dropdown Menu. This hook is fired when [Options#dropdownMenu](options#dropdownmenu)
@@ -2373,7 +2376,7 @@ option is enabled.
 
 
 
-### afterDropdownMenuHide
+## afterDropdownMenuHide
 `"afterDropdownMenuHide"(instance)`
 
 Fired by [DropdownMenu](dropdown-menu) plugin after hiding the Dropdown Menu. This hook is fired when [Options#dropdownMenu](options#dropdownmenu)
@@ -2386,7 +2389,7 @@ option is enabled.
 
 
 
-### beforeAddChild
+## beforeAddChild
 `"beforeAddChild"(parent, element, index)`
 
 Fired by [NestedRows](nested-rows) plugin before adding a children to the NestedRows structure. This hook is fired when
@@ -2401,7 +2404,7 @@ Fired by [NestedRows](nested-rows) plugin before adding a children to the Nested
 
 
 
-### afterAddChild
+## afterAddChild
 `"afterAddChild"(parent, element, index)`
 
 Fired by [NestedRows](nested-rows) plugin after adding a children to the NestedRows structure. This hook is fired when
@@ -2416,7 +2419,7 @@ Fired by [NestedRows](nested-rows) plugin after adding a children to the NestedR
 
 
 
-### beforeDetachChild
+## beforeDetachChild
 `"beforeDetachChild"(parent, element)`
 
 Fired by [NestedRows](nested-rows) plugin before detaching a child from its parent. This hook is fired when
@@ -2430,7 +2433,7 @@ Fired by [NestedRows](nested-rows) plugin before detaching a child from its pare
 
 
 
-### afterDetachChild
+## afterDetachChild
 `"afterDetachChild"(parent, element)`
 
 Fired by [NestedRows](nested-rows) plugin after detaching a child from its parent. This hook is fired when
@@ -2444,7 +2447,7 @@ Fired by [NestedRows](nested-rows) plugin after detaching a child from its paren
 
 
 
-### afterBeginEditing
+## afterBeginEditing
 `"afterBeginEditing"(row, column)`
 
 Fired after the editor is opened and rendered.
@@ -2457,7 +2460,7 @@ Fired after the editor is opened and rendered.
 
 
 
-### beforeMergeCells
+## beforeMergeCells
 `"beforeMergeCells"(cellRange, [auto])`
 
 Fired by [MergeCells](merge-cells) plugin before cell merging. This hook is fired when [Options#mergeCells](options#mergecells)
@@ -2471,7 +2474,7 @@ option is enabled.
 
 
 
-### afterMergeCells
+## afterMergeCells
 `"afterMergeCells"(cellRange, mergeParent, [auto])`
 
 Fired by [MergeCells](merge-cells) plugin after cell merging. This hook is fired when [Options#mergeCells](options#mergecells)
@@ -2486,7 +2489,7 @@ option is enabled.
 
 
 
-### beforeUnmergeCells
+## beforeUnmergeCells
 `"beforeUnmergeCells"(cellRange, [auto])`
 
 Fired by [MergeCells](merge-cells) plugin before unmerging the cells. This hook is fired when [Options#mergeCells](options#mergecells)
@@ -2500,7 +2503,7 @@ option is enabled.
 
 
 
-### afterUnmergeCells
+## afterUnmergeCells
 `"afterUnmergeCells"(cellRange, [auto])`
 
 Fired by [MergeCells](merge-cells) plugin after unmerging the cells. This hook is fired when [Options#mergeCells](options#mergecells)
@@ -2514,7 +2517,7 @@ option is enabled.
 
 
 
-### afterListen
+## afterListen
 `"afterListen"`
 
 Fired after the table was switched into listening mode. This allows Handsontable to capture keyboard events and
@@ -2522,7 +2525,7 @@ respond in the right way.
 
 
 
-### afterUnlisten
+## afterUnlisten
 `"afterUnlisten"`
 
 Fired after the table was switched off from the listening mode. This makes the Handsontable inert for any
@@ -2530,7 +2533,7 @@ keyboard events.
 
 
 
-### afterRefreshDimensions
+## afterRefreshDimensions
 `"afterRefreshDimensions"(previousDimensions, currentDimensions, stateChanged)`
 
 Fired after the window was resized.
@@ -2544,7 +2547,7 @@ Fired after the window was resized.
 
 
 
-### beforeRefreshDimensions
+## beforeRefreshDimensions
 `"beforeRefreshDimensions"(previousDimensions, currentDimensions, actionPossible) ⇒ undefined | boolean`
 
 Cancellable hook, called after resizing a window, but before redrawing a table.
@@ -2559,7 +2562,7 @@ Cancellable hook, called after resizing a window, but before redrawing a table.
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the refresh action will not be completed.  
 
-### beforeColumnCollapse
+## beforeColumnCollapse
 `"beforeColumnCollapse"(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible) ⇒ undefined | boolean`
 
 Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.
@@ -2575,7 +2578,7 @@ Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collaps
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the collapsing action will not be completed.  
 
-### afterColumnCollapse
+## afterColumnCollapse
 `"afterColumnCollapse"(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible, successfullyCollapsed)`
 
 Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.
@@ -2591,7 +2594,7 @@ Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collaps
 
 
 
-### beforeColumnExpand
+## beforeColumnExpand
 `"beforeColumnExpand"(currentCollapsedColumns, destinationCollapsedColumns, expandPossible) ⇒ undefined | boolean`
 
 Fired by [CollapsibleColumns](collapsible-columns) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.
@@ -2607,7 +2610,7 @@ Fired by [CollapsibleColumns](collapsible-columns) plugin before columns expand.
 
 **Returns**: <code>undefined</code> \| <code>boolean</code> - If the callback returns `false`, the expanding action will not be completed.  
 
-### afterColumnExpand
+## afterColumnExpand
 `"afterColumnExpand"(currentCollapsedColumns, destinationCollapsedColumns, expandPossible, successfullyExpanded)`
 
 Fired by [CollapsibleColumns](collapsible-columns) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.

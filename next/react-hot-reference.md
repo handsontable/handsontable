@@ -1,9 +1,10 @@
 ---
-id: react-hot-reference
 title: Referencing the Handsontable instance
-sidebar_label: Referencing the Handsontable instance
-slug: /react-hot-reference
+permalink: /next/react-hot-reference
+canonicalUrl: /react-hot-reference
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/react` explaining how to reference the Handsontable instance from the wrapper component.
 

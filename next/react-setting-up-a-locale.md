@@ -1,9 +1,10 @@
 ---
-id: react-setting-up-a-locale
 title: Setting up a locale
-sidebar_label: Setting up a locale
-slug: /react-setting-up-a-locale
+permalink: /next/react-setting-up-a-locale
+canonicalUrl: /react-setting-up-a-locale
 ---
+
+# {{ $frontmatter.title }}
 
 An example of Handsontable with locales setup in React.
 

@@ -1,9 +1,10 @@
 ---
-id: numeric
 title: Numeric
-sidebar_label: Numeric
-slug: /numeric
+permalink: /next/numeric
+canonicalUrl: /numeric
 ---
+
+# {{ $frontmatter.title }}
 
 By default, Handsontable treats all cell values as `string` type. This is because `<textarea>` returns a string as its value. In many cases you will prefer cell values to be treated as `number` type. This allows to format displayed numbers nicely and sort them correctly.
 
@@ -13,7 +14,8 @@ You can format the displayed values of the entered numbers. It can be done using
 
 Note that all the positive and negative integers whose magnitude is no greater than 253 (+/- 9007199254740991) are representable in the `Number` type (safe integer). Any calculations that are performed on bigger numbers won't be calculated precisely due to JavaScript limitation (more at [w3schools](http://www.w3schools.com/js/js_numbers.asp)).
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var container = document.getElementById('example1'),
     hot;
 
@@ -57,3 +59,4 @@ hot = new Handsontable(container, {
   ]
 });
 ```
+:::

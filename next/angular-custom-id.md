@@ -1,9 +1,10 @@
 ---
-id: angular-custom-id
 title: Custom ID
-sidebar_label: Custom ID
-slug: /angular-custom-id
+permalink: /next/angular-custom-id
+canonicalUrl: /angular-custom-id
 ---
+
+# {{ $frontmatter.title }}
 
 You can easily pass `id` and other attributes to the `hot-table` wrapper element.
 It will be applied to the root Handsontable element, allowing further customization of the table.

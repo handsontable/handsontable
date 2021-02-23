@@ -1,9 +1,12 @@
 ---
-id: cell-function
 title: Cell function
-sidebar_label: Cell function
-slug: /cell-function
+permalink: /next/cell-function
+canonicalUrl: /cell-function
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 With every cell in the Handsontable there are 3 associated functions:
 

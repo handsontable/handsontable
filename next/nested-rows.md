@@ -1,19 +1,22 @@
 ---
-id: nested-rows
 title: Nested rows
-sidebar_label: Nested rows
-slug: /nested-rows
+permalink: /next/nested-rows
+canonicalUrl: /nested-rows
 ---
 
-:::warning
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+::: warning
 Sorting and filtering in Nested rows is currently not supported.
 :::
 
-### Overview
+## Overview
 
 The **_Nested Rows_** plugin extends Handsontable with a new functionality - displaying nested structures in a two-dimensional data table.
 
-### Quick Setup
+## Quick Setup
 
 To enable the plugin, simply set the `nestedRows` property to `true`.
 
@@ -28,7 +31,7 @@ var hot = new Handsontable(container, {
 
 Note that using all the functionalities provided by the plugin requires setting `rowHeaders` (enables the row headers) and `contextMenu` (enables the Handsontable’s context menu) to `true`, as the _collapse_ / _expand_ buttons are located in the row headers and row modification options (_add row_, _insert child_ etc.) are in the Context Menu.
 
-### Preparing the data source
+## Preparing the data source
 
 The data source has to have a certain structure to be used with the _Nested Rows_ plugin.
 
@@ -37,7 +40,8 @@ If an entry has any child entries, we need to declare them (again) as an _array 
 
 Take a look at this example:
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var sourceDataObject = [
   {
     category: 'Best Rock Performance',
@@ -170,22 +174,23 @@ hot = new Handsontable(container, {
   contextMenu: true,
 });
 ```
+:::
 
 In the example above we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. As you can see, each _0-level_ entry declares a category, while their children declare nominees - they’re assigned under the `__children` properties.
 
 Another thing to mention - the **first** 0-level object in the array needs to have all columns defined to display the table properly. They can be declared as `null` or `''` (an empty string), but they need to be defined. This is optional for the other objects.
 
-### User interface
+## User interface
 
 The _Nested Rows_ plugin user interface is placed in the row headers and the Handsontable’s context menu.
 
-#### Row headers
+### Row headers
 
 Each _parent_ row header contains a `+`/`-` button. It is used to collapse or expand its child rows.
 
 Moreover, the child rows’ headers had been given a bigger indentation, so the user can clearly recognize the child and parent elements.
 
-#### Context Menu
+### Context Menu
 
 The context menu has been extended with a few Nested Rows-related options, such as:
 

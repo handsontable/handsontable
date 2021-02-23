@@ -1,9 +1,12 @@
 ---
-id: drag-to-scroll
 title: DragToScroll
-sidebar_label: DragToScroll
-slug: /api/drag-to-scroll
+permalink: /next/api/drag-to-scroll
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

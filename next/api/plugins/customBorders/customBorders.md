@@ -1,9 +1,12 @@
 ---
-id: custom-borders
 title: CustomBorders
-sidebar_label: CustomBorders
-slug: /api/custom-borders
+permalink: /next/api/custom-borders
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

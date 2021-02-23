@@ -1,11 +1,14 @@
 ---
-id: data-validation
 title: Data validation
-sidebar_label: Data validation
-slug: /data-validation
+permalink: /next/data-validation
+canonicalUrl: /data-validation
 ---
 
-### Registering a validator
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Registering a validator
 
 When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
 
@@ -50,7 +53,7 @@ Handsontable.validators.registerValidator('my.credit-card', creditCardValidator)
 // That's better.
 ```
 
-### Using an alias
+## Using an alias
 
 The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual validator function is.
 
@@ -83,7 +86,7 @@ var hot = new Handsontable(document.getElementById('container'), {
 });
 ```
 
-### Full featured example
+## Full featured example
 
 Use the **validator** (see [options page](api/dataMap/metaManager/metaSchema.md#validator)) method to easily validate synchronous or asynchronous changes to a cell. If you need more control, **beforeValidate** and **afterValidate** plugin hooks are available (see [hooks page](api/pluginHooks.md#beforevalidate)). In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
 
@@ -106,7 +109,8 @@ columns: [
 
 <pre id="example1console"></pre>
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var people = [
   {id: 1, name: {first: 'Joe', last: 'Fabiano'}, ip: '0.0.0.1', email: 'Joe.Fabiano@ex.com'},
   {id: 2, name: {first: 'Fred', last: 'Wecler'}, ip: '0.0.0.1', email: 'Fred.Wecler@ex.com'},
@@ -177,6 +181,7 @@ settings1 = {
 
 var hot = new Handsontable(example1, settings1);
 ```
+:::
 
 Callback console: `[[row, col, oldValue, newValue], ...]`
 

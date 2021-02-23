@@ -1,9 +1,12 @@
 ---
-id: manual-column-move
 title: ManualColumnMove
-sidebar_label: ManualColumnMove
-slug: /api/manual-column-move
+permalink: /next/api/manual-column-move
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

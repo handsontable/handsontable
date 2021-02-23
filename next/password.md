@@ -1,15 +1,19 @@
 ---
-id: password
 title: Password
-sidebar_label: Password
-slug: /password
+permalink: /next/password
+canonicalUrl: /password
 ---
 
-### Password cell type
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Password cell type
 
 This kind of cell behaves like a text cell with a difference that it masks its value using asterisk in cell renderer. For the cell editor, a `<input type="password">` field is used. Data is stored in the data source as plain text.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var
   example1 = document.getElementById('example1'),
   hot1;
@@ -29,12 +33,14 @@ hot1 = new Handsontable(example1, {
   ]
 });
 ```
+:::
 
-### Fixed hash length
+## Fixed hash length
 
 By default every hash has length equal to the length of value that it corresponds with. Use option `hashLength` to set fixed hash length.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example2 = document.getElementById('example2'),
   hot2;
 
@@ -53,12 +59,14 @@ hot2 = new Handsontable(example2, {
   ]
 });
 ```
+:::
 
-### Custom hash symbol
+## Custom hash symbol
 
 By default every hash consists of asterisks `*`. Use option `hashSymbol` to set custom hash symbol. You can use any character, entity or event HTML. Note that you can't change symbol used by the input field due to browsers limitations.
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 var example3 = document.getElementById('example3'),
   hot3;
 
@@ -77,3 +85,4 @@ hot3 = new Handsontable(example3, {
   ]
 });
 ```
+:::

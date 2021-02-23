@@ -1,9 +1,12 @@
 ---
-id: dropdown-menu
 title: DropdownMenu
-sidebar_label: DropdownMenu
-slug: /api/dropdown-menu
+permalink: /next/api/dropdown-menu
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

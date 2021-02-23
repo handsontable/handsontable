@@ -1,19 +1,22 @@
 ---
-id: sorting
 title: Sorting
-sidebar_label: Sorting
-slug: /sorting
+permalink: /next/sorting
+canonicalUrl: /sorting
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 The column sorting plugin works as a proxy between the datasource and the Handsontable rendering module. It can map indices of displayed rows (called “visual indices”) to the indices of corresponding rows in the datasource (called “physical indices”) and vice versa. This way you can alter the order of rows which are being presented to a user, without changing the datasource’s internal structure. The sort operation is performed using a [stable sort alghoritm](https://en.wikipedia.org/wiki/Sorting_algorithm#Stability) regardless of the browser you use and the size of the data set which you sort.
 
-:::info
+::: tip
 **Please keep in mind that you shouldn't enable both the `columnSorting` and `multiColumnSorting` plugins simultaneously.**
 :::
 
-### Basic plugin configuration
+## Basic plugin configuration
 
 The simplest way to enable the plugin is to just set the `columnSorting` key to `true`. You will then be able to **use [the API methods](#api)** and **click on the header to sort**, as you can see in the example below. What's more, by default:
 
@@ -22,7 +25,8 @@ The simplest way to enable the plugin is to just set the `columnSorting` key to 
 * empty cells won't be sorted,
 * the sort method will use default compare functions (read more about them [here](#default-compare-functions)).
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var hot1 = new Handsontable(example1, {
   data: [
@@ -43,8 +47,9 @@ var hot1 = new Handsontable(example1, {
   columnSorting: true
 });
 ```
+:::
 
-### Extended plugin configuration
+## Extended plugin configuration
 
 You can customize plugin options by providing configuration as an `object`. Here is the list of possible options to set:
 
@@ -58,7 +63,8 @@ You can customize plugin options by providing configuration as an `object`. Here
 
 Please take a look at the example plugin configuration below.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example2 = document.getElementById('example2');
 var hot2 = new Handsontable(example2, {
   data: [
@@ -86,16 +92,18 @@ var hot2 = new Handsontable(example2, {
   }
 });
 ```
+:::
 
 Please keep in mind that options defined by the `columnSorting` key in the main Handsontable settings apply to the entire table. Most of them can also be set for a particular column, as described in [this section](#column-options).
 
-### Default compare functions (sorting different kinds of data)
+## Default compare functions (sorting different kinds of data)
 
 As in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) method, our internal sorting alghoritm uses the **compare function** (also known as **comparator**). Different kinds of cells (like [`date, numeric, text`](cell-types.md)) are treated in a different way. Each of them have their own comparator for sorting a particular data type.
 
 As a result, you can see that different types of data are sorted properly. `Handsontable` simply needs the declared data type for the column, as you can see in the example below.
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 var example3 = document.getElementById('example3');
 var hot3 = new Handsontable(example3, {
   data: [
@@ -145,8 +153,9 @@ var hot3 = new Handsontable(example3, {
   columnSorting: true
 });
 ```
+:::
 
-### Custom compare functions
+## Custom compare functions
 
 You can provide your own compare function to the sorting algorithm. This function should look the same as an argument in the native [`Array.sort`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Parameters) method (read the [description here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#Description)). It is handled by the plugin when `compareFunctionFactory` is defined in the configuration. Something which we call a **compare function factory** must be placed under this key. The factory takes as parameters `sortOrder` and `columnMeta` and returns the compare function.
 
@@ -162,11 +171,12 @@ function compareFunctionFactory(sortOrder, columnMeta) {
 
 In the next section we’ll take a look how it may be used just for certain columns.
 
-### Plugin options for certain columns only
+## Plugin options for certain columns only
 
 The plugin's options, such as `compareFunctionFactory`, `sortEmptyCells`, `headerAction`, `indicator` may be set just for a particular column. This can be done through the use of the [columns](api/dataMap/metaManager/metaSchema.md#columns) option. The example below demonstrates how to disable the indicator and **completely block sorting action for the first column**.
 
-```js hot-preview=example4,hot4
+::: example #example4
+```js
 var example4 = document.getElementById('example4');
 var hot4 = new Handsontable(example4, {
   data: [
@@ -224,8 +234,9 @@ var hot4 = new Handsontable(example4, {
   columnSorting: true
 });
 ```
+:::
 
-### Custom sort implementation
+## Custom sort implementation
 
 The plugin exposes the `setSortConfig` method, which was designed for the purpose of setting the internal sort state. Please keep in mind that the data set **won't be sorted** just by using this method. However, the `isSorted` and `getSortConfig` methods will return results corresponding to the previously set configuration. To use a custom sort implementation you have to:
 
@@ -249,7 +260,7 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 }
 ```
 
-### Plugin hooks
+## Plugin hooks
 
 The plugin provides two hooks:
 
@@ -258,7 +269,7 @@ The plugin provides two hooks:
 
 Please keep in mind that hooks are also run when you use the `clearSort` method or provide a configuration that won't be processed (validation will fail).
 
-### Plugin API
+## Plugin API
 
 List of methods exposed by the plugin:
 

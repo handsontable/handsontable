@@ -1,0 +1,142 @@
+body div {
+    user-select: initial;
+}
+
+.hot {
+    position: relative;
+    z-index: 0;
+}
+
+.iframe-container {
+    overflow: hidden;
+    // aspect ration of the video (for 16:9 it is 9/16= 0.5625)
+    padding-top: 56.25%;
+    position: relative;
+}
+
+.iframe-container iframe {
+    border: 0;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+/*
+    TODO: It's workaround, and it should be removed. It seems that there is no option to disable title for a custom
+    containers: https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers
+ */
+.custom-block-title {
+    display: none;
+}
+
+/*
+    TODO: It's workaround, and it should be removed. It seems that there is no option to disable title for a custom
+    containers: https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers
+ */
+.custom-block.tip {
+    border-color: #2456f2;
+}
+
+/* Larger bottom gap of H1, H2, H3 */
+h1 {
+    margin-bottom: 3rem!important;
+}
+
+h2 {
+    margin-bottom: 2rem!important;
+    font-size: 1.55rem;
+}
+
+h3 {
+    margin-bottom: 1rem!important;
+}
+
+.page {
+    ul, ol {
+        padding-left: 2.2em;
+    }
+    ul {
+        list-style-type: square;
+    }
+}
+
+a {
+    color: #3d84ff;
+}
+
+.sidebar {
+    background-color: #fbfbfb;
+
+    a.sidebar-link.active, a.sidebar-link:hover {
+        color: #3d84ff;
+    }
+
+    .sidebar-sub-headers a.sidebar-link {
+        color: #4d6379
+    }
+}
+
+table {
+    width: 100%;
+    display: table;
+
+    tr {
+        border-top: none;
+    }
+
+    th, td {
+        border: none;
+        border-bottom: 1px solid #dfe2e5;
+        line-height: 1.7;
+        text-align: left;
+    }
+}
+
+// floating sidebar should be inline on mobile, and float on wider screens
+@media (min-width: 1200px) {
+    .page {
+        .page-edit
+        .page-nav
+        .theme-default-content {
+            margin: 0 300px 0 0;
+        }
+
+        .toc-container-header {
+            font-weight bold
+            padding: 1em 1.2rem;
+        }
+
+        .table-of-contents {
+            font-size: 0.8em;
+            position: fixed;
+            right: 0;
+            top: 100px;
+            width: 250px;
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-left: 1px solid #eaecef;
+
+            ul {
+                padding: 0;
+                margin: 0;
+                list-style-type: none;
+            }
+
+            a {
+                font-weight: 400;
+                line-height: 1.4;
+                padding: 0.35rem 1rem;
+                color: #2c3e50;
+                display: block;
+            }
+
+            a:hover {
+                color: #3d84ff;
+                text-decoration: none;
+            }
+        }
+    }
+}

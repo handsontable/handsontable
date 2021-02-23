@@ -1,26 +1,30 @@
 ---
-id: trimming-rows
 title: Trimming rows
-sidebar_label: Trimming rows
-slug: /trimming-rows
+permalink: /next/trimming-rows
+canonicalUrl: /trimming-rows
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 The _Trim Rows_ plugin allows trimming specific rows from the table. Rows being trimmed **aren't included** in a `DataMap` (gets by the [getData](api/core.md#getData) method) and they **aren't rendered**.
 
 **Note:** If you need to exclude some rows from rendering, but keep them in a `DataMap` use the [HiddenRows](hiding-rows.md) plugin.
 
-### Setup
+## Setup
 
 To enable the plugin, you need to set the `trimRows` property to an array of row indexes.
 See the [examples](#example) section for a live demo.
 
-### Example
+## Example
 
 Notice, that the second, third and sixth rows are missing.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var hot1 = new Handsontable(example1, {
     data: Handsontable.helper.createSpreadsheetData(10, 4),
@@ -29,8 +33,9 @@ var hot1 = new Handsontable(example1, {
     trimRows: [1, 2, 5]
 });
 ```
+:::
 
-### API examples
+## API examples
 
 You can access the plugin instance by calling
 

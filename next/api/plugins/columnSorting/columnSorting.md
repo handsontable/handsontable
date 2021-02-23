@@ -1,9 +1,12 @@
 ---
-id: column-sorting
 title: ColumnSorting
-sidebar_label: ColumnSorting
-slug: /api/column-sorting
+permalink: /next/api/column-sorting
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

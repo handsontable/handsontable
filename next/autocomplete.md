@@ -1,17 +1,21 @@
 ---
-id: autocomplete
 title: Autocomplete
-sidebar_label: Autocomplete
-slug: /autocomplete
+permalink: /next/autocomplete
+canonicalUrl: /autocomplete
 ---
 
-### Autocomplete lazy mode
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Autocomplete lazy mode
 
 This example shows the usage of the Autocomplete feature in the default **lazy mode**. In this mode, user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
 In this mode, the mouse and keyboard bindings are identical as in [Handsontable cell type.](handsontable.md) The options are rendered from the `source` property which can be an array, or a function that returns an array.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var
   example1 = document.getElementById('example1'),
   hot1;
@@ -46,8 +50,9 @@ hot1 = new Handsontable(example1, {
   ]
 });
 ```
+:::
 
-### Autocomplete strict mode
+## Autocomplete strict mode
 
 This is the same example as above with a difference that autocomplete now runs in **strict mode**. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical as in [Handsontable cell type](handsontable.md) with the below differences:
 
@@ -59,7 +64,8 @@ In strict mode, the **allowInvalid** option determines the behaviour in case of 
 * `allowInvalid: true` (optional) - allows manual input of value that does not exist in the `source`. In this case, the field background highlight becomes red and the selection advances to the next cell
 * `allowInvalid: false` - does not allow manual input of value that does not exist in the `source`. In this case, the <kbd>ENTER</kbd> key is ignored and the editor field remains opened.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var
   example2 = document.getElementById('example2'),
   hot2;
@@ -95,12 +101,14 @@ hot2 = new Handsontable(example2, {
   ]
 });
 ```
+:::
 
-### Autocomplete strict mode (Ajax)
+## Autocomplete strict mode (Ajax)
 
 Autocomplete can be also used with Ajax data source. In the below example, suggestions for the "Car" column are loaded from server. To load data from remote (asynchronous) source, assign a function to the 'source' property. Function should perform the server side request and call the callback function when the result is available.
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 var
   example3 = document.getElementById('example3'),
   hot3;
@@ -129,3 +137,4 @@ hot3 = new Handsontable(example3, {
   ]
 });
 ```
+:::

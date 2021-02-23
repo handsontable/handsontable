@@ -1,22 +1,25 @@
 ---
-id: export-file
 title: Export to file
-sidebar_label: Export to file
-slug: /export-file
+permalink: /next/export-file
+canonicalUrl: /export-file
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 The _ExportFile_ plugin allows you to export table content to a `file`, `blob` or `string`.
 The plugin is always enabled, so there is no additional configuration involved. Learn more about [](#how-it-works)how it works under the hood.
 
-### How it works
+## How it works
 
 The plugin allows you to export data from Handsontable into a `CSV` file.
 
 For the list of methods you can use to accomplish this, see [available methods](#methods).
 
-### Available methods
+## Available methods
 
 The plugin exposes the following methods to export data.
 
@@ -26,19 +29,19 @@ The plugin exposes the following methods to export data.
 
 All of them accept the same arguments:
 
-#### format `String`
+### format `String`
 
 This is required to prepare a predefined settings object. We currently allow for only `'csv'` to be used.
 
-#### options `Object`
+### options `Object`
 
 This is an optional argument. It contains a set of supported options and extends the predefined `CSV` configuration. For the complete list of options that you can use, see [available options](#available-options-in-the-export-configuration).
 
-### Available options in the export configuration
+## Available options in the export configuration
 
 Below you can find all supported options:
 
-#### bom `Boolean`
+### bom `Boolean`
 
 Allows you to export data with a BOM signature.
 
@@ -48,7 +51,7 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `true`
 
-#### columnDelimiter `String`
+### columnDelimiter `String`
 
 Allows you to define the columns delimiter.
 
@@ -56,7 +59,7 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `','`
 
-#### columnHeaders `Boolean`
+### columnHeaders `Boolean`
 
 Allows to export data with their column header.
 
@@ -64,7 +67,7 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `false`
 
-#### exportHiddenColumns `Boolean`
+### exportHiddenColumns `Boolean`
 
 Allows you to export data from hidden columns.
 
@@ -72,7 +75,7 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `false`
 
-#### exportHiddenRows `Boolean`
+### exportHiddenRows `Boolean`
 
 Allows you to export data from hidden rows.
 
@@ -80,7 +83,7 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `false`
 
-#### fileExtension `String`
+### fileExtension `String`
 
 Allows you to define the file extension.
 
@@ -88,7 +91,7 @@ You can use this property in the **downloadFile** method.
 
 Default value: `'csv'`
 
-#### filename `String`
+### filename `String`
 
 Allows you to define the file name.
 
@@ -98,7 +101,7 @@ You can use this property in the **downloadFile** method.
 
 Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
 
-#### mimeType `String`
+### mimeType `String`
 
 Allows you to define the MIME type.
 
@@ -106,7 +109,7 @@ You can use this property in the **downloadFile** and **exportAsBlob** methods.
 
 Default value: `'text/csv'`
 
-#### range `Array`
+### range `Array`
 
 Allows you to define a range of dataset to export. It's represented by an array of numeric, visual indexes `[startRow, startColumn, endRow, endColumn]`.
 
@@ -114,7 +117,7 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `'text/csv'`
 
-#### rowDelimiter `String`
+### rowDelimiter `String`
 
 Allows you to define rows delimiter.
 
@@ -122,7 +125,7 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `'\r\n'`
 
-#### rowHeaders `Boolean`
+### rowHeaders `Boolean`
 
 Allows you to export data with their row header.
 
@@ -130,13 +133,14 @@ You can use this property in all of the [available methods](#methods).
 
 Default value: `false`
 
-### Live examples
+## Live examples
 
-#### Export to file
+### Export to file
 
 <button id="export-file">Download CSV</button>
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var container1 = document.getElementById('example1');
 var hot1 = new Handsontable(container1, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
@@ -163,14 +167,16 @@ button1.addEventListener('click', function() {
   });
 });
 ```
+:::
 
-#### Export as a JavaScript Blob object
+### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for above example.
 
 <button id="export-blob">Export as a Blob</button>
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var container2 = document.getElementById('example2');
 var hot2 = new Handsontable(container2, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
@@ -197,14 +203,16 @@ button2.addEventListener('click', function() {
   console.log(exportedBlob);
 });
 ```
+:::
 
-#### Export as a string
+### Export as a string
 
 Open a console in browser developer tools to see the result for above example.
 
 <button id="export-string">Export as a string</button>
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 var container3 = document.getElementById('example3');
 var hot3 = new Handsontable(container3, {
   data: Handsontable.helper.createSpreadsheetData(7, 7),
@@ -230,3 +238,4 @@ button3.addEventListener('click', function() {
   console.log(exportedString);
 });
 ```
+:::

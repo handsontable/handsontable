@@ -1,6 +1,6 @@
-FROM node:14 as build
+FROM node:15 as build
 # enable development features, comment to disable
-ENV NODE_ENV=development
+ENV NODE_ENV=production
 
 WORKDIR app
 
@@ -10,13 +10,11 @@ RUN yarn
 
 # app
 COPY . ./
-RUN yarn build
-
-
+RUN npm run build
 
 # server image
 FROM nginx:alpine
 
 # set up static content
 WORKDIR /usr/share/nginx
-COPY --from=build ./app/build ./html
+COPY --from=build ./app/.vuepress/dist ./html

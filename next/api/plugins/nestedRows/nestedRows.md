@@ -1,9 +1,12 @@
 ---
-id: nested-rows
 title: NestedRows
-sidebar_label: NestedRows
-slug: /api/nested-rows
+permalink: /next/api/nested-rows
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

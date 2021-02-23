@@ -1,10 +1,13 @@
 ---
-id: manual-column-freeze
 title: ManualColumnFreeze
-sidebar_label: ManualColumnFreeze
-slug: /api/manual-column-freeze
+permalink: /next/api/manual-column-freeze
 ---
-### isEnabled
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## isEnabled
 `manualColumnFreeze.isEnabled() ⇒ boolean`
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](Hooks#beforeInit)
@@ -12,28 +15,28 @@ hook and if it returns `true` than the [enablePlugin](#ManualColumnFreeze+enable
 
 
 
-### enablePlugin
+## enablePlugin
 `manualColumnFreeze.enablePlugin()`
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
-### disablePlugin
+## disablePlugin
 `manualColumnFreeze.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
-### updatePlugin
+## updatePlugin
 `manualColumnFreeze.updatePlugin()`
 
 Updates the plugin state. This method is executed when [Core#updateSettings](Core#updateSettings) is invoked.
 
 
 
-### freezeColumn
+## freezeColumn
 `manualColumnFreeze.freezeColumn(column)`
 
 Freezes the given column (add it to fixed columns).
@@ -45,7 +48,7 @@ Freezes the given column (add it to fixed columns).
 
 
 
-### unfreezeColumn
+## unfreezeColumn
 `manualColumnFreeze.unfreezeColumn(column)`
 
 Unfreezes the given column (remove it from fixed columns and bring to it's previous position).

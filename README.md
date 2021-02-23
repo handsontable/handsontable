@@ -27,7 +27,7 @@ npm run docs:start # It opens a browser automatically
     - version-[TheLatestVersionNumber]-sidebars.json    # Sidebars for the latest documentation
     - version-*-sidebars.json   # Sidebars for previous documentations
 - docusaurus.config.js          # Configuration file
-- sidebars.js                   # Sidebars configuration for the Next version
+- _sidebars.js                   # Sidebars configuration for the Next version
 - versions.json                 # List of released versions
 ...
 
@@ -80,7 +80,7 @@ Each markdown file with a content starts by Admonitions:
 id: api-introduction
 title: Introduction
 sidebar_label: Introduction
-slug: /api/
+permalink: /next/api/
 ---
 ```
 

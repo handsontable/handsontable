@@ -1,11 +1,14 @@
 ---
-id: react-simple-examples
 title: Basic examples
-sidebar_label: Basic examples
-slug: /react-simple-examples
+permalink: /next/react-simple-examples
+canonicalUrl: /react-simple-examples
 ---
 
-### An implementation of the `@handsontable/react` wrapper.
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## An implementation of the `@handsontable/react` wrapper.
 
 ```html
 <!-- a root div where the component is rendered -->
@@ -38,7 +41,7 @@ class App extends React.Component {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 
-### An implementation of the component using a single-property (`settings`) configuration.
+## An implementation of the component using a single-property (`settings`) configuration.
 
 ```html
 <!-- a root div where the component is rendered -->
@@ -71,7 +74,7 @@ class App extends React.Component {
 ReactDOM.render(<App />, document.getElementById('example2'));
 ```
 
-### An interactive implementation using external checkboxes which control the table behavior.
+## An interactive implementation using external checkboxes which control the table behavior.
 
 ```css
 .controllers {

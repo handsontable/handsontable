@@ -1,11 +1,14 @@
 ---
-id: selecting-ranges
 title: Selecting ranges
-sidebar_label: Selecting ranges
-slug: /selecting-ranges
+permalink: /next/selecting-ranges
+canonicalUrl: /selecting-ranges
 ---
 
-### Basic configuration
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Basic configuration
 
 With this feature, you can select single cells or ranges of cells across a spreadsheet. The coordinates of the selected cells can be easily retrieved to clear or change the cells' content.
 
@@ -13,7 +16,7 @@ This functionality is a part of Handsontable Core.
 
 Use <kbd>CMD</kbd> on Mac or <kbd>CTRL</kbd> on Windows to select non-contiguous ranges of cells.
 
-### Selecting ranges
+## Selecting ranges
 
 There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells and multiple ranges of non-contiguous cells.
 
@@ -26,17 +29,15 @@ Possible values of `selectionMode`:
 Single selection Range selection Multiple selection
 
 <div>
-  <select id="selectOption" style={{
-    width: 'auto',
-    marginTop: 16
-  }}>
+  <select id="selectOption" style="width: 'auto';marginTop: 16px">
     <option>Single selection</option>
     <option>Range selection</option>
     <option selected="selected">Multiple selection</option>
   </select>
 </div>
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var selectOption = document.getElementById('selectOption');
 var settings1 = {
@@ -60,21 +61,19 @@ selectOption.addEventListener('change', function(event) {
   });
 });
 ```
+:::
 
-### Getting data from the selected ranges
+## Getting data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you should use `getSelected()` or `getSelectedRange()` methods.
 
-<textarea style={{
-  margin: '16px 0 7px',
-  width: 350,
-  height: 87
-}} id="output"></textarea>
+<textarea style="margin: '16px 0 7px'; width: 350px; height: 87px" id="output"></textarea>
 <div>
   <button id="getButton">Get data</button>
 </div>
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example2 = document.getElementById('example2');
 var output = document.getElementById('output');
 var getButton = document.getElementById('getButton');
@@ -104,17 +103,19 @@ getButton.addEventListener('click', function(event) {
   output.value = JSON.stringify(data);
 });
 ```
+:::
 
-### Modifying the selected cells
+## Modifying the selected cells
 
 You may want to delete, format or otherwise change the selected cells. For instance, you can change value or add CSS classes to the all selected cells using the demo below.
 
-<div id="buttons" style={{ marginTop: 10 }}>
+<div id="buttons" style="margin-top: 10px">
   <button id="setButton">Set data</button>
   <button id="addButton">Add class</button>
 </div>
 
-```js hot-preview=example3, hot3
+::: example #example3
+```js
 var example3 = document.getElementById('example3');
 var buttons = document.getElementById('buttons');
 var settings3 = {
@@ -156,10 +157,10 @@ buttons.addEventListener('click', function(event) {
 
   hot3.render();
 });
-
 ```
+:::
 
-### Styling the selection area
+## Styling the selection area
 
 The background color can be easily changed using CSS styles. The main, light blue background color, is defined in the `.area` class.
 

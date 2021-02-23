@@ -1,21 +1,25 @@
 ---
-id: disabled-editing
 title: Disabled editing
-sidebar_label: Disabled editing
-slug: /disabled-editing
+permalink: /next/disabled-editing
+canonicalUrl: /disabled-editing
 ---
 
-### Read-only cells vs non-editable cells
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Read-only cells vs non-editable cells
 
 Non-editable cells behave like any other cells apart from preventing you from manually changing their values. You are still allowed to copy-paste or drag-to-fill the data. There is no additional CSS class added.
 
-### Non-editable columns
+## Non-editable columns
 
 In many cases you will need to configure a certain column to be non-editable. Doing it does not change it's basic behaviour (apart from editing), which means you are still available to use keyboard navigation, <kbd>CTRL+C</kbd> and <kbd>CTRL+V</kbd> functionalities, drag-to-fill etc.
 
 To make a column non-editable, declare it in the `columns` setting. You can also define a special renderer function that will dim the `editor` value.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var container1 = document.getElementById('example1'),
   hot1;
 
@@ -47,12 +51,14 @@ hot1 = new Handsontable(container1, {
   ]
 });
 ```
+:::
 
-### Non-editable specific cells
+## Non-editable specific cells
 
 The following example shows the table with non-editable cells containing the word "Nissan". This property of the cell is optional and can be easily set in the configuration of Handsontable.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var container2 = document.getElementById('example2'),
     hot2;
 
@@ -79,3 +85,4 @@ hot2.updateSettings({
   }
 });
 ```
+:::

@@ -1,0 +1,75 @@
+{{#if signatures}}
+
+{{#each signatures}}
+
+{{> member.signature hideSources=true }}
+
+{{/each}}
+
+{{/if}}
+
+{{#if indexSignature}}
+
+{{> member.indexSignatures}}
+
+{{/if}}
+
+{{#ifIsLiteralType true}}
+
+{{{literal}}}
+
+{{/ifIsLiteralType}}
+
+{{#ifIsLiteralType false}}
+
+{{#each children}}
+
+{{#if signatures}}
+
+{{#if flags.isRest}}...{{/if}} {{{ name}}} {{#if isOptional}}?{{/if}}: function
+
+{{#each signatures}}
+
+{{> member.signature}}
+
+{{/each}}
+
+{{else}}
+
+{{{parameterNameAndType}}}
+
+{{> comment}}
+
+{{#if children}}
+
+{{> parameter}}
+
+{{/if}}
+
+{{#if type.declaration}}
+
+{{#with type.declaration}}
+
+## type.declaration
+
+{{#ifIsLiteralType true}}
+
+{{{literal}}}
+
+{{/ifIsLiteralType}}
+
+{{#ifIsLiteralType false}}
+
+{{> parameter}}
+
+{{/ifIsLiteralType}}
+
+{{/with}}
+
+{{/if}}
+
+{{/if}}
+
+{{/each}}
+
+{{/ifIsLiteralType}}

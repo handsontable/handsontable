@@ -1,55 +1,21 @@
 {
-  "name": "docs-md",
-  "version": "0.0.0",
-  "private": true,
+  "name": "ttsa",
+  "version": "0.0.1",
+  "description": "ttsa",
+  "main": "index.js",
+  "authors": {
+    "name": "ads",
+    "email": "asd"
+  },
+  "repository": "ads/ttsa",
   "scripts": {
-    "docs:docusaurus": "docusaurus",
-    "docs:version": "npm run docs:docusaurus docs:version",
-    "docs:start": "docusaurus start --no-open",
-    "docs:build": "docusaurus build",
-    "docs:swizzle": "docusaurus swizzle",
-    "docs:deploy": "docusaurus deploy",
-    "docs:serve": "docusaurus serve",
-    "docs:clear": "docusaurus clear",
-    "docs:jsdoc": "cd src/jsdoc-convert && node jsdoc.js",
-    "docs:lint": "npm run docs:lint:code && npm run docs:lint:docs",
-    "docs:lint:fix": "npm run docs:lint:code:fix && npm run docs:lint:docs:fix",
-    "docs:lint:code": "eslint --ext .js,.jsx ./src ./*.js",
-    "docs:lint:code:fix": "eslint --ext .js,.jsx --fix ./src ./*.js",
-    "docs:lint:docs": "eslint --ext .md ./next ./versioned_docs ./*.md",
-    "docs:lint:docs:fix": "eslint --ext .md --fix ./next ./versioned_docs ./*.md"
+    "dev": "vuepress dev ./",
+    "build": "vuepress build ./"
   },
+  "license": "MIT",
   "dependencies": {
-    "@docusaurus/core": "2.0.0-alpha.70",
-    "@docusaurus/preset-classic": "2.0.0-alpha.70",
-    "@docusaurus/theme-live-codeblock": "2.0.0-alpha.70",
-    "@mdx-js/react": "^1.6.21",
-    "clsx": "^1.1.1",
-    "fs-extra": "^9.0.1",
-    "jsdoc-to-markdown": "^6.0.1",
-    "prop-types": "^15.7.2",
-    "react": "^16.8.4",
-    "react-dom": "^16.8.4"
-  },
-  "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "eslint": "^7.17.0",
-    "eslint-config-airbnb": "^18.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsx-a11y": "^6.4.1",
-    "eslint-plugin-md": "^1.0.19",
-    "eslint-plugin-react": "^7.22.0",
-    "eslint-plugin-react-hooks": "^4.2.0"
+    "@vuepress/plugin-active-header-links": "^1.8.1",
+    "markdown-it-regex": "^0.2.0",
+    "vuepress": "^1.8.1"
   }
 }

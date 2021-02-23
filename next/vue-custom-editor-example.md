@@ -1,18 +1,18 @@
 ---
-id: vue-custom-editor-example
 title: Custom editor example
-sidebar_label: Custom editor example
-slug: /vue-custom-editor-example
+permalink: /next/vue-custom-editor-example
+canonicalUrl: /vue-custom-editor-example
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 You can declare a custom editor for the `HotTable` component either by declaring it as a class and passing it to the Handsontable options, or create an editor component.
 
-* [Declaring a renderer as a function](#declaring-a-renderer-as-a-function)
-* [Declaring an editor as a component](vue-hot-column.md#declaring-a-custom-editor-as-a-component)
-
 Since version 5.1.0 of the Vue wrapper, you can declare a custom editor for the `HotTable` component and use it many times and with different props. To differenciate between editor instances pass a `key` attribute.
 
-### Declaring an editor as a class
+## Declaring an editor as a class
 
 An implementation of the `@handsontable/vue` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
 

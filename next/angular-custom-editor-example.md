@@ -1,9 +1,10 @@
 ---
-id: angular-custom-editor-example
 title: Custom editor example
-sidebar_label: Custom editor example
-slug: /angular-custom-editor-example
+permalink: /next/angular-custom-editor-example
+canonicalUrl: /angular-custom-editor-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
 

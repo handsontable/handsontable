@@ -1,23 +1,27 @@
 ---
-id: filtering
 title: Filtering
-sidebar_label: Filtering
-slug: /filtering
+permalink: /next/filtering
+canonicalUrl: /filtering
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 The _Filters_ plugin allows filtering the data in the table's columns using a range of pre-defined conditions.
 
-:::info
+::: tip
 Please keep in mind that filtered rows **are** excluded from a `DataMap` (gets by the [getData](api/core.md#getData) method) and they **aren't** rendered.
 :::
 
-### Quick setup
+## Quick setup
 
 To enable the plugin you need to set the `filters` property to `true` and enable the filters dependency, which is the [dropdownMenu](dropdown-menu.md) plugin.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var hot = new Handsontable(example1, {
   data: [
@@ -41,12 +45,14 @@ var hot = new Handsontable(example1, {
   filters: true
 });
 ```
+:::
 
-### Custom dropdown menu
+## Custom dropdown menu
 
 To only display filters while hiding the other elements in the dropdown menu, pass the elements to be displayed as an array in the configuration.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example2 = document.getElementById('example2');
 var hot2 = new Handsontable(example2, {
   data: [
@@ -70,18 +76,20 @@ var hot2 = new Handsontable(example2, {
   dropdownMenu: ['filter_by_condition', 'filter_action_bar']
 });
 ```
+:::
 
-### Custom implementations
+## Custom implementations
 
 The examples below will give you a good idea on how to adjust the Filter plugin to your needs. That includes customizing the UI components, changing the default behavior and using filters from the outside of the table.
 
-#### Filter as you type
+### Filter as you type
 
 We placed a basic `input` element inside a column’s header (A, B, C…), right below the label of the column. For a better visibility it is separated with a horizontal line. The data is being filtered as you type - with a 200 ms delay. The filter element has been excluded from the selection event so when you click on it, the column doesn’t get selected.
 
 Please note that this demo uses a Handsontable API to a great extent.
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 // Event for `keydown` event. Add condition after delay of 200 ms which is counted from time of last pressed key.
 var debounceFn = Handsontable.helper.debounce(function (colIndex, event) {
   var filtersPlugin = hot3.getPlugin('filters');
@@ -148,8 +156,9 @@ var hot3 = new Handsontable(example3, {
   beforeOnCellMouseDown: doNotSelectColumn
 });
 ```
+:::
 
-#### Filter from the outside the table
+### Filter from the outside the table
 
 The external Filter component is controlling the main table by passing values for particular columns. Only a fraction of the code is related with Handsontable API (e.g. `addConditionsByValue`, `filter`, `removeConditions`). A significantly more glue code handles the Filter component itself.
 
@@ -177,7 +186,8 @@ Please mind that selecting a column in the Filter component resets the state of 
   </div>
 </div>
 
-```js hot-preview=example4,hot4
+::: example #example4
+```js
 const arrayEach = Handsontable.helper.arrayEach;
 const curry = Handsontable.helper.curry;
 
@@ -441,3 +451,4 @@ var hot4 = new Handsontable(example4, {
   }
 });
 ```
+:::

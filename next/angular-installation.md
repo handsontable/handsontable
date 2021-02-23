@@ -1,9 +1,10 @@
 ---
-id: angular-installation
 title: Installation
-sidebar_label: Installation
-slug: /angular-installation
+permalink: /next/angular-installation
+canonicalUrl: /angular-installation
 ---
+
+# {{ $frontmatter.title }}
 
 **Handsontable for Angular** is the official wrapper for Handsontable, a JavaScript data grid component with a spreadsheet look & feel. It easily integrates with any data source and comes with lots of useful features like data binding, validation, sorting or powerful context menu.
 

@@ -1,11 +1,14 @@
 ---
-id: cell-types
 title: Cell types
-sidebar_label: Cell types
-slug: /cell-types
+permalink: /next/cell-types
+canonicalUrl: /cell-types
 ---
 
-### Registering a cell-type
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Registering a cell-type
 
 When you create a custom cell type, a good idea is to assign it as an alias that will refer to this particular type definition. Handsontable defines 9 aliases by default:
 
@@ -66,7 +69,7 @@ Handsontable.cellTypes.registerCellType('my.copyable-password', {
 // That's better.`
 ```
 
-### Using an alias
+## Using an alias
 
 The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual cell type object is.
 
@@ -113,7 +116,7 @@ var hot = new Handsontable(document.getElementById('container'), {
 });
 ```
 
-### Preview of built-in and custom cell types
+## Preview of built-in and custom cell types
 
 The below example shows some of the built-in cell types (in other words, combinations of cell renderers and editors) available in Handsontable:
 
@@ -130,7 +133,8 @@ The below example shows some of the built-in cell types (in other words, combina
 
 The same example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
 
-```js title="index.js" hot-preview=example1,hot1
+::: example #example1
+```js
 var data = [
   { id: 1, name: 'Ted', isActive: true, color: 'orange', date: '2015-01-01' },
   { id: 2, name: 'John', isActive: false, color: 'black', date: null },
@@ -176,8 +180,9 @@ hot1 = new Handsontable(container, {
   }
 });
 ```
+:::
 
-### Anatomy of a cell type
+## Anatomy of a cell type
 
 A cell type is a predefined set of cell properties. Cell type defines what renderer, editor or validator should be used for a cell. They can also define any different cell property that will be assumed for each matching cell.
 

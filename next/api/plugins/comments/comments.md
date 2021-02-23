@@ -1,9 +1,12 @@
 ---
-id: comments
 title: Comments
-sidebar_label: Comments
-slug: /api/comments
+permalink: /next/api/comments
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

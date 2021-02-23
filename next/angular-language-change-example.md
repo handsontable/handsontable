@@ -1,9 +1,10 @@
 ---
-id: angular-language-change-example
 title: Language change example
-sidebar_label: Language change example
-slug: /angular-language-change-example
+permalink: /next/angular-language-change-example
+canonicalUrl: /angular-language-change-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/angular` component with an option to change the Context Menu language. Select a language from the selector above the table and open the Context Menu to see the result.
 

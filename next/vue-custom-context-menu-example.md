@@ -1,9 +1,10 @@
 ---
-id: vue-custom-context-menu-example
 title: Custom Context Menu example
-sidebar_label: Custom Context Menu example
-slug: /vue-custom-context-menu-example
+permalink: /next/vue-custom-context-menu-example
+canonicalUrl: /vue-custom-context-menu-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/vue` component with a custom Context Menu added.
 

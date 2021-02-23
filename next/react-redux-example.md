@@ -1,9 +1,10 @@
 ---
-id: react-redux-example
 title: Redux example
-sidebar_label: Redux example
-slug: /react-redux-example
+permalink: /next/react-redux-example
+canonicalUrl: /react-redux-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager implemented.
 

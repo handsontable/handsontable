@@ -1,13 +1,17 @@
 ---
-id: select
 title: Select
-sidebar_label: Select
-slug: /select
+permalink: /next/select
+canonicalUrl: /select
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 Select editor should be considered an example how to write editors rather than used as a fully featured editor. It is a much simpler form of the [Dropdown editor](dropdown.md). It is suggested to use the latter in your projects.
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var
     container = document.getElementById("example1"),
     hot;
@@ -30,3 +34,4 @@ var
     ]
   });
 ```
+:::

@@ -1,21 +1,21 @@
 ---
-id: context-menu
 title: Context menu
-sidebar_label: Context menu
-slug: /context-menu
+permalink: /next/context-menu
+canonicalUrl: /context-menu
 ---
 
-* [Context menu with default options](#page-default)
-* [Context menu with specific options](#page-specific)
-* [Context menu with fully custom configuration](#page-custom)
+# {{ $frontmatter.title }}
 
-### Context menu with default options
+[[toc]]
+
+## Context menu with default options
 
 To run the basic configuration of the Context Menu, just set the contextMenu option to `true`.
 
 From version `0.11`, context menu also works for row and column headers. When the context menu for the row header is opened, the column options are disabled. Likewise, when the context menu for the column header is opened, the row options are disabled
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var settings1 = {
   data: [
@@ -33,8 +33,9 @@ var settings1 = {
 
 var hot1 = new Handsontable(example1, settings1);
 ```
+:::
 
-### Context menu with specific options
+## Context menu with specific options
 
 You can limit options available in the context menu using contextMenu option as an array of keys which are strings:
 
@@ -72,7 +73,8 @@ You can limit options available in the context menu using contextMenu option as 
 | `filter_by_value` | Value select element | Plugin [Filters](api/plugins/filters/filters.md) turned on |
 | `filter_action_bar` | Action bar element | Plugin [Filters](api/plugins/filters/filters.md) turned on |
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example2 = document.getElementById('example2');
 var settings2 = {
   data: [
@@ -90,8 +92,9 @@ var settings2 = {
 
 var hot2 = new Handsontable(example2, settings2);
 ```
+:::
 
-### Context menu with fully custom configuration
+## Context menu with fully custom configuration
 
 This example shows how to:
 
@@ -101,7 +104,8 @@ This example shows how to:
 * add own custom option
 * add callback for specific option
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 var example3 = document.getElementById('example3');
 var settings3 = {
   data: [
@@ -184,3 +188,4 @@ var settings3 = {
 
 var hot3 = new Handsontable(example3, settings3);
 ```
+:::

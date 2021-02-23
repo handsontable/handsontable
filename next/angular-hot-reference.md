@@ -1,9 +1,10 @@
 ---
-id: angular-hot-reference
 title: Referencing the Handsontable instance
-sidebar_label: Referencing the Handsontable instance
-slug: /angular-hot-reference
+permalink: /next/angular-hot-reference
+canonicalUrl: /angular-hot-reference
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/angular` explaining how to reference the Handsontable instance from the wrapper component.
 

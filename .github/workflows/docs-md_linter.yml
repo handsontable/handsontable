@@ -1,38 +1,38 @@
-name: docs-md
-
-on:
-  push:
-  workflow_dispatch:
-
-defaults:
-  run:
-    working-directory: ./ # todo change this when merging into monorepo
-
-jobs:
-  linter-docs:
-    name: Linter Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
-
-      - name: Install dependencies
-        run: |
-          npm ci
-
-      - name: Run Docs linter
-        run: |
-          npm run lint:docs
-
-  linter-code:
-    name: Linter Code
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
-
-      - name: Install dependencies
-        run: |
-          npm ci
-
-      - name: Run Code linter
-        run: |
-          npm run lint:code
+#name: docs-md
+#
+#on:
+#  push:
+#  workflow_dispatch:
+#
+#defaults:
+#  run:
+#    working-directory: ./ # todo change this when merging into monorepo
+#
+#jobs:
+#  linter-docs:
+#    name: Linter Documentation
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
+#
+#      - name: Install dependencies
+#        run: |
+#          npm ci
+#
+#      - name: Run Docs linter
+#        run: |
+#          npm run lint:docs
+#
+#  linter-code:
+#    name: Linter Code
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
+#
+#      - name: Install dependencies
+#        run: |
+#          npm ci
+#
+#      - name: Run Code linter
+#        run: |
+#          npm run lint:code

@@ -1,10 +1,14 @@
 ---
-id: load-and-save
 title: Load and save
-sidebar_label: Load and save
-slug: /load-and-save
+permalink: /next/load-and-save
+canonicalUrl: /load-and-save
 ---
-### Saving data using afterChange callback
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Saving data using afterChange callback
 
 Use the **afterChange** callback to track changes made in the table. In the example below, `AJAX` is used to load and save grid data. Note that this is just a mockup. Nothing is actually saved. You have to implement the server-side part by yourself.
 
@@ -19,7 +23,8 @@ Use the **afterChange** callback to track changes made in the table. In the exam
 
 <pre id="example1console" className="console">Click "Load" to load data from server</pre>
 
-```js title="index.js" hot-preview=example1,hot
+::: example #example1
+```js
 var $$ = function(id) {
   return document.getElementById(id);
 },
@@ -115,10 +120,10 @@ function ajax(url, method, params, callback) {
 
   return obj;
 }
-
 ```
+:::
 
-### Saving data locally
+## Saving data locally
 
 You can save any sort of data in local storage to preserve the table state after page reloads. In order to enable the data storage mechanism, the `persistentState` option must be set to `true` (you can set it either during the Handsontable initialization or using the updateSettings method).
 
@@ -128,7 +133,7 @@ When `persistentState` is enabled it exposes 3 hooks listed below:
 * [persistentStateLoad](api/pluginHooks.md#persistentstateload)
 * [persistentStateReset](api/pluginHooks.md#persistentstatereset)
 
-### Why should I use persistentState rather than regular LocalStorage API?
+## Why should I use persistentState rather than regular LocalStorage API?
 
 The main reason behind using `persistentState` hooks rather than a regular LocalStorage API is that it ensures separation of data stored by multiple Handsontable instances. In other words, if you have two (or more) instances of Handsontable on one page, data saved by one instance will be inaccessible to the second instance. Those two instances can store data under the same key and no data would be overwritten.
 

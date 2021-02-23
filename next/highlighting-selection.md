@@ -1,13 +1,15 @@
 ---
-id: highlighting-selection
 title: Highlighting selection
-sidebar_label: Highlighting selection
-slug: /highlighting-selection
+permalink: /next/highlighting-selection
+canonicalUrl: /highlighting-selection
 ---
+
+# {{ $frontmatter.title }}
 
 Use options `currentRowClassName` and `currentColumnClassName`
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var
   data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
@@ -30,3 +32,4 @@ hot = Handsontable(container, {
 
 hot.selectCell(2,2);
 ```
+:::

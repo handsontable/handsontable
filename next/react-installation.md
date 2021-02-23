@@ -1,13 +1,16 @@
 ---
-id: react-installation
 title: Installation
-sidebar_label: Installation
-slug: /react-installation
+permalink: /next/react-installation
+canonicalUrl: /react-installation
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 **Handsontable for React** is the official wrapper for Handsontable, a JavaScript data grid component with a spreadsheet look & feel. It easily integrates with any data source and comes with lots of useful features like data binding, validation, sorting or powerful context menu.
 
-### Installation
+## Installation
 
 This component needs the Handsontable library to work. We suggest using [npm](https://www.npmjs.com/package/@handsontable/react) to install the package.
 
@@ -15,7 +18,7 @@ This component needs the Handsontable library to work. We suggest using [npm](ht
 npm install handsontable @handsontable/react
 ```
 
-### Basic usage
+## Basic usage
 
 Import the Handsontable styles to your project
 
@@ -50,6 +53,6 @@ class App extends React.Component {
 }
 ```
 
-### License
+## License
 
 Handsontable for React wrapper is released under [the MIT license](https://github.com/handsontable/react-handsontable/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](licensing.md). You can either use it for free in all your non-commercial projects or purchase a commercial license.

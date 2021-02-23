@@ -1,9 +1,12 @@
 ---
-id: filters
 title: Filters
-sidebar_label: Filters
-slug: /api/filters
+permalink: /next/api/filters
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

@@ -1,9 +1,10 @@
 ---
-id: fixing
 title: Fixing
-sidebar_label: Fixing
-slug: /fixing
+permalink: /next/fixing
+canonicalUrl: /fixing
 ---
+
+# {{ $frontmatter.title }}
 
 Specify two fixed rows with `fixedRowsTop: 2` and two fixed columns with `fixedColumnsLeft: 2` option.
 
@@ -11,7 +12,8 @@ Specify two fixed rows with `fixedRowsTop: 2` and two fixed columns with `fixedC
 
 _If you're looking for an option to manually fix columns, see the [Freezing](freezing.md) section of this documentation._
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example = document.getElementById('example1');
 var hot1 = new Handsontable(example, {
   data: Handsontable.helper.createSpreadsheetData(100, 50),
@@ -24,3 +26,4 @@ var hot1 = new Handsontable(example, {
   fixedColumnsLeft: 2
 });
 ```
+:::

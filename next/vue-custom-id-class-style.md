@@ -1,9 +1,10 @@
 ---
-id: vue-custom-id-class-style
 title: Custom ID, Class, Style and other attributes
-sidebar_label: Custom ID, Class, Style and other attributes
-slug: /vue-custom-id-class-style
+permalink: /next/vue-custom-id-class-style
+canonicalUrl: /vue-custom-id-class-style
 ---
+
+# {{ $frontmatter.title }}
 
 You can easily pass `id`, `class`, `style` and other attributes to the `hot-table` wrapper element.
 Each of them will be applied to the root Handsontable element, allowing further customization of the table.

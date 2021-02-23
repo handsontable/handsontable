@@ -1,9 +1,12 @@
 ---
-id: export-file
 title: ExportFile
-sidebar_label: ExportFile
-slug: /api/export-file
+permalink: /next/api/export-file
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

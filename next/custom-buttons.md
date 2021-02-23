@@ -1,9 +1,10 @@
 ---
-id: custom-buttons
 title: Custom buttons
-sidebar_label: Custom buttons
-slug: /custom-buttons
+permalink: /next/custom-buttons
+canonicalUrl: /custom-buttons
 ---
+
+# {{ $frontmatter.title }}
 
 The **[alter](api/core.md#alter)** method can be used if you want to insert or remove rows and columns using external buttons. You can programmatically select a cell using the **[selectCell](api/core.md#selectCell)** and load new data by **[loadData](api/core.md#loadData)** function. The below button implements it.
 
@@ -14,7 +15,8 @@ The **[alter](api/core.md#alter)** method can be used if you want to insert or r
   <button id="resetState">Reset state</button>
 </p>
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var data = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -50,3 +52,4 @@ Handsontable.dom.addEvent(resetState, 'click', function () {
   hot.loadData(JSON.parse(JSON.stringify(data)));
 });
 ```
+:::

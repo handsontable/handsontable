@@ -1,9 +1,12 @@
 ---
-id: cell-editor
 title: Cell editor
-sidebar_label: Cell editor
-slug: /cell-editor
+permalink: /next/cell-editor
+canonicalUrl: /cell-editor
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 Handsontable separates the process of displaying the cell value from the process of changing the value. Renderers are responsible for presenting the data and Editors for altering it. As a renderer has only one simple task: _get actual value of the cell and return its representation as a HTML code_ they can be a single function. Editors, however, need to handle user input (that is, mouse and keyboard events), validate data and behave according to validation results, so putting all those functionalities into a single function wouldn't be a good idea. That's why Handsontable editors are represented by editor classes.
 

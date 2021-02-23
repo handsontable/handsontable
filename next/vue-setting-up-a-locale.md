@@ -1,9 +1,10 @@
 ---
-id: vue-setting-up-a-locale
 title: Setting up a locale
-sidebar_label: Setting up a locale
-slug: /vue-setting-up-a-locale
+permalink: /next/vue-setting-up-a-locale
+canonicalUrl: /vue-setting-up-a-locale
 ---
+
+# {{ $frontmatter.title }}
 
 An example of Handsontable with locales setup in Vue.
 

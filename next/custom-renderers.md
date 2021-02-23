@@ -1,11 +1,14 @@
 ---
-id: custom-renderers
 title: Custom renderers
-sidebar_label: Custom renderers
-slug: /custom-renderers
+permalink: /next/custom-renderers
+canonicalUrl: /custom-renderers
 ---
 
-### Registering a renderer
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Registering a renderer
 
 When you create a renderer, a good idea is to assign it as an alias that will refer to this particular renderer function. Handsontable defines 10 aliases by default:
 
@@ -54,7 +57,7 @@ Handsontable.renderers.registerRenderer('my.asterix', asterixDecoratorRenderer);
 // That's better.`
 ```
 
-### Using an alias
+## Using an alias
 
 The final touch is to using the registered aliases, so that users can easily refer to it without the need to now the actual renderer function is.
 
@@ -88,7 +91,7 @@ var hot = new Handsontable(document.getElementById('container'), {
 });
 ```
 
-### Rendering custom HTML in cells
+## Rendering custom HTML in cells
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
 
@@ -97,7 +100,8 @@ This example shows how to use custom cell renderers to display HTML content in a
 * **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 * **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var data = [
   {
     title: "<a href='http://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691'>Professional JavaScript for Web Developers</a>",
@@ -161,8 +165,9 @@ function coverRenderer(instance, td, row, col, prop, value, cellProperties) {
   }
 }
 ```
+:::
 
-### Rendering custom HTML in header
+## Rendering custom HTML in header
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 

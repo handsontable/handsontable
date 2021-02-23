@@ -1,9 +1,12 @@
 ---
-id: bind-rows-with-headers
 title: BindRowsWithHeaders
-sidebar_label: BindRowsWithHeaders
-slug: /api/bind-rows-with-headers
+permalink: /next/api/bind-rows-with-headers
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

@@ -1,15 +1,20 @@
 ---
-id: vue-hot-column
 title: Using the hot-column component
-sidebar_label: Using the hot-column component
-slug: /vue-hot-column
+permalink: /next/vue-hot-column
+canonicalUrl: /vue-hot-column
 ---
 
-#### Version `4.1.0` of the `@handsontable/vue` wrapper introduces a new feature - a `hot-column` component.
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+::: tip
+Version `4.1.0` of the `@handsontable/vue` wrapper introduces a new feature - a `hot-column` component.
+:::
 
 It doesn't only allow to configure the column-related settings using the `hot-column` component's attributes, but also create custom renderers and editors using Vue components.
 
-### Declaring column settings
+## Declaring column settings
 
 To declare column-specific settings, simply pass the settings as `hot-column` props (either separately or wrapped as a `settings` prop, exactly as you would for `hot-table`).
 
@@ -44,7 +49,7 @@ new Vue({
 });
 ```
 
-### Object data source
+## Object data source
 
 To work with an array of objects for the `hot-column` component you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in props as `data`.
 
@@ -86,13 +91,13 @@ new Vue({
 });
 ```
 
-### Declaring a custom renderer as a component
+## Declaring a custom renderer as a component
 
 The wrapper allows creating custom renderers using Vue components. The data you would normally get as arguments of the rendering function will be injected into the rendering component's `$data` object.
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
-:::caution
+::: warning
 Because the Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
 **Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results.**
 :::
@@ -158,7 +163,7 @@ By default, the number of entries available for the cache is set to `3000`, whic
 
 To prevent this problem, it is possible to pass the `**wrapperRendererCacheSize**` option to the `HotTable` component and set it to a number of entries to be available in the renderer cache.
 
-### Declaring a custom editor as a component
+## Declaring a custom editor as a component
 
 You can also utilize the Vue components to create custom editors. To do so, you'll need to create a component compatible with Handsontable's editor class structure. The easiest way to do so is to extend `BaseEditorComponent` - a base editor component exported from `@handsontable/vue`.
 
@@ -287,7 +292,7 @@ const App = new Vue({
 });
 ```
 
-### Using the renderer/editor components with `v-model`
+## Using the renderer/editor components with `v-model`
 
 You can obviously use Vue's `v-model` with the renderer and editor components.
 
@@ -356,7 +361,7 @@ const App = new Vue({
 });
 ```
 
-### A more advanced example
+## A more advanced example
 
 In this example, we'll be combining several capabilities of the wrapper:
 
@@ -374,7 +379,7 @@ Due to the complexity of this example, I've decided to split the components to d
   overflow: 'hidden',
 }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-#### 1. Editor component with an external dependency, which will act as both renderer and editor
+### 1. Editor component with an external dependency, which will act as both renderer and editor
 
 To use an external editor component with Handsontable, you'll need to create an addition "bridge" component, to connect your dependency's and Handsontable's API. In this example, we'll use an external color-picker component, [vue-color](https://github.com/xiaokaike/vue-color).
 
@@ -393,7 +398,7 @@ This component contains some Vuex state logic, but ignore it for now, we'll get 
   overflow: 'hidden',
 }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-#### 2. Using `v-for` for column declaration
+### 2. Using `v-for` for column declaration
 
 Let's use `v-for` to declare the second and third column in a loop. Obviously, you can bind the loop to your data and get the settings from there.
 
@@ -408,7 +413,7 @@ Let's use `v-for` to declare the second and third column in a loop. Obviously, y
 </hot-table>
 ```
 
-#### 3. Binding the state between components.
+### 3. Binding the state between components.
 
 As you can see in our first editor/renderer component, we're already commiting all of the changes into the applications `$store`. This way, we can easily bind the state of our new component (based on a star-rating component dependency) to the data in the second and third column.
 

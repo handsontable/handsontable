@@ -1,9 +1,12 @@
 ---
-id: multi-column-sorting
 title: MultiColumnSorting
-sidebar_label: MultiColumnSorting
-slug: /api/multi-column-sorting
+permalink: /next/api/multi-column-sorting
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

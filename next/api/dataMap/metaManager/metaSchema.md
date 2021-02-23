@@ -1,11 +1,13 @@
 ---
-id: meta-schema
 title: Options
-sidebar_label: Options
-slug: /api/options
+permalink: /next/api/options
 ---
-## Description
 
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Description
 
 Constructor options are applied using an object literal passed as a second argument to the Handsontable constructor.
 

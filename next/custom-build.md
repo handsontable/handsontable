@@ -1,9 +1,12 @@
 ---
-id: custom-build
 title: Custom build
-sidebar_label: Custom build
-slug: /custom-build
+permalink: /next/custom-build
+canonicalUrl: /custom-build
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 The build process is using [Webpack](https://webpack.js.org/), [Babel](https://babeljs.io/) and as well as npm tasks listed in [package.json](https://github.com/handsontable/handsontable/blob/master/package.json). During this process, the source located in the `src/*` directory are transformed into the output files:
 
@@ -17,7 +20,7 @@ The build process is using [Webpack](https://webpack.js.org/), [Babel](https://b
 
 More info about dist packages can be found [here](https://github.com/handsontable/handsontable/blob/master/dist/README.md). It is advised that you never modify the above-mentioned files but rather make changes in the `src/` directory and then run a proper build. This is especially important if you want to contribute your changes back to Handsontable by making a pull request.
 
-### NPM tasks
+## NPM tasks
 
 Currently, the following tasks are available for building Handsontable:
 
@@ -37,7 +40,7 @@ Currently, the following tasks are available for building Handsontable:
   * `npm run build:languages.min` - creates the minified bundles containing language sets (i.e. `dist/languages/de-DE.min.js`, `dist/languages/all.min.js`) which are compatible with UMD (Universal Module Definition). More information about languages can be found [here](internationalization.md).
 * `npm run watch` - watches for changes in source directory and runs a build when a change is observed. For faster rebuild when a change is observed, the watcher triggers the file-building task without minify.
 
-### Running your first build
+## Running your first build
 
 To run your own build, follow the below steps:
 

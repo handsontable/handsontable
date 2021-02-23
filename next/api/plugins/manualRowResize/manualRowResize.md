@@ -1,9 +1,12 @@
 ---
-id: manual-row-resize
 title: ManualRowResize
-sidebar_label: ManualRowResize
-slug: /api/manual-row-resize
+permalink: /next/api/manual-row-resize
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

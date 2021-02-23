@@ -1,9 +1,12 @@
 ---
-id: merge-cells
 title: MergeCells
-sidebar_label: MergeCells
-slug: /api/merge-cells
+permalink: /next/api/merge-cells
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

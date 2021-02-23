@@ -1,6 +1,8 @@
 ---
-id: touch-scroll
 title: TouchScroll
-sidebar_label: TouchScroll
-slug: /api/touch-scroll
+permalink: /next/api/touch-scroll
 ---
+
+# {{ $frontmatter.title }}
+
+

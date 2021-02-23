@@ -1,21 +1,24 @@
 ---
-id: licensing
 title: Licensing
-sidebar_label: Licensing
-slug: /licensing
+permalink: /next/licensing
+canonicalUrl: /licensing
 ---
 
-### Handsontable Non-Commercial License
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Handsontable Non-Commercial License
 
 It allows you to use this software for such non-commercial purposes as, but not limited to, research, private study, and evaluation. Your use in commercial settings is strictly limited to evaluation, development and testing tier of a software deployment architecture. In other words, you can’t enter the production stage if your project is anyhow connected with your commercial activity.
 
 * [Handsontable Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v2/handsontable-non-commercial-license.pdf) (v2 released on October 10, 2019)
 
-### Handsontable Commercial License
+## Handsontable Commercial License
 
 * [General Software License Terms](https://handsontable.com/static/licenses/v4.1/handsontable-general-terms.pdf) (v4.1 released on February 19, 2019)
 
-### Third-party software components
+## Third-party software components
 
 * **numbro.js** (handles numeric data)<br/>
     Author: Benjamin Van Ryseghem<br/>
@@ -66,7 +69,7 @@ It allows you to use this software for such non-commercial purposes as, but not 
     License: Open source (Apache 2.0)<br/>
     [https://github.com/cure53/DOMPurify](https://github.com/cure53/DOMPurify)
 
-### Trademarks
+## Trademarks
 
 **Handsontable** is a registered trademark of Handsoncode sp. z o.o.
 All other trademarks belong to their respective owners.

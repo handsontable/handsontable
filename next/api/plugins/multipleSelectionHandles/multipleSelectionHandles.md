@@ -1,6 +1,8 @@
 ---
-id: multiple-selection-handles
 title: MultipleSelectionHandles
-sidebar_label: MultipleSelectionHandles
-slug: /api/multiple-selection-handles
+permalink: /next/api/multiple-selection-handles
 ---
+
+# {{ $frontmatter.title }}
+
+

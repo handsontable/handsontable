@@ -1,11 +1,14 @@
 ---
-id: keyboard-navigation
 title: Keyboard navigation
-sidebar_label: Keyboard navigation
-slug: /keyboard-navigation
+permalink: /next/keyboard-navigation
+canonicalUrl: /keyboard-navigation
 ---
 
-### Navigation
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Navigation
 
 * <kbd>Arrow Up ↑</kbd> – move to the cell above current active cell (if exists)
 * <kbd>Arrow Down ↓</kbd> – move to cell underneath current active cell (if exists)
@@ -18,7 +21,7 @@ slug: /keyboard-navigation
 * <kbd>Ctrl + Home</kbd> – move to the first cell in a column
 * <kbd>Ctrl + End</kbd> – move to the last cell in a column
 
-### Selection
+## Selection
 
 * <kbd>Ctrl + A</kbd> – select all
 * <kbd>Shift + Arrow Up ↑</kbd> – extend selection of the cell above
@@ -30,7 +33,7 @@ slug: /keyboard-navigation
 * <kbd>Ctrl + Shift + Home</kbd> – select all cells in the column to the top including the current cell
 * <kbd>Ctrl + Shift + End</kbd> – select all cells in the column to the bottom including the current cell
 
-### Editor
+## Editor
 
 * <kbd>Enter</kbd> – open/close cell editor
 * <kbd>F2</kbd> – open cell editor
@@ -44,12 +47,12 @@ slug: /keyboard-navigation
 * <kbd>Ctrl + Z</kbd> – undo
 * <kbd>Ctrl + Y</kbd> – redo
 
-### Context menu
+## Context menu
 
 * <kbd>Arrow Down ↓</kbd> – move to the next option in context menu
 * <kbd>Arrow Up ↑</kbd> – move to the previous option in context menu
 * <kbd>Enter</kbd> – select option from context menu
 
-### Merge cells
+## Merge cells
 
 * <kbd>Ctrl + M</kbd> – merge/unmerge selected cells

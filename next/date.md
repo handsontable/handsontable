@@ -1,9 +1,10 @@
 ---
-id: date
 title: Date
-sidebar_label: Date
-slug: /date
+permalink: /next/date
+canonicalUrl: /date
 ---
+
+# {{ $frontmatter.title }}
 
 To trigger the Date cell type, use the option `type: 'date'` in `columns` array or `cells` function. The Date cell uses [Pikaday datepicker](https://github.com/dbushell/Pikaday) as the UI control. Pikaday uses [Moment.js](https://github.com/moment/moment) as a date formatter.
 
@@ -15,7 +16,8 @@ Note that Date cell requires additional files in your `<head>` :
 
 All data entered to the data-typed cells are validated agains the default date format ([`DD/MM/YYYY`](http://momentjs.com/docs/#/parsing/) "Click here to find how to use different date format"), unless another format is provided. If you enable the `correctFormat` config item, the dates will be automatically formatted to match the desired format.
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var container = document.getElementById('example1'),
     hot;
 
@@ -63,3 +65,4 @@ hot = new Handsontable(container, {
   ]
 });
 ```
+:::

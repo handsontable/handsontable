@@ -1,9 +1,12 @@
 ---
-id: formulas
 title: Formulas
-sidebar_label: Formulas
-slug: /api/formulas
+permalink: /next/api/formulas
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ### isEnabled
 `formulas.isEnabled() ⇒ boolean`
 

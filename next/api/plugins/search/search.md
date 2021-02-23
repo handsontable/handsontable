@@ -1,9 +1,12 @@
 ---
-id: search
 title: Search
-sidebar_label: Search
-slug: /api/search
+permalink: /next/api/search
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

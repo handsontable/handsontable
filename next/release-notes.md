@@ -1,15 +1,18 @@
 ---
-id: release-notes
 title: Release notes
-sidebar_label: Release notes
-slug: /release-notes
+permalink: /next/release-notes
+canonicalUrl: /release-notes
 ---
 
-### 8.3.1
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## 8.3.1
 **Fixed**
 
 * Fixed an issue where the CSS files could be eliminated during tree-shaking [#7516](https://github.com/handsontable/handsontable/issues/7516)
-### 8.3.0
+## 8.3.0
 
 **Added**
 
@@ -39,7 +42,7 @@ slug: /release-notes
 * Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issues/7375)
 * Optimized the performance of rendering the table with numerous spare rows (for `minSpareRows`, `minSpareCols`, `minRows`, and `minCols` options). [#7439](https://github.com/handsontable/handsontable/issues/7439)
 
-### 8.2.0
+## 8.2.0
 
 Released on 12th of November, 2020
 
@@ -61,7 +64,7 @@ Released on 12th of November, 2020
 * Fixed a problem with the inconsistent behavior of the Context Menu's "Clear column" disabled status. ([#7003](https://github.com/handsontable/handsontable/issues/7003))
 * Fixed an issue with parsing multiline cells on pasting `text/html` mime-type. ([#7369](https://github.com/handsontable/handsontable/issues/7369))
 
-### 8.1.0
+## 8.1.0
 
 Released on 1st of October, 2020
 
@@ -92,7 +95,7 @@ Released on 1st of October, 2020
 * Fixed an issue with adding an unnecessary extra empty line in cells on Safari. ([#7262](https://github.com/handsontable/handsontable/issues/7262))
 * Fixed an issue with clipped column headers when they were changed before or within usage of `updateSettings`. ([#6004](https://github.com/handsontable/handsontable/issues/6004))
 
-### 8.0.0
+## 8.0.0
 
 Released on 5th of August, 2020
 
@@ -386,7 +389,7 @@ The existing features were adapted to benefit from the new architecture. Apart f
 * Fixed an issue where Handsontable was missing rows when `preventOverflow` with `updateSettings` were used. [#4303](https://github.com/handsontable/handsontable/issues/4303)
 * Adding properties which were not defined on initialization or by `updateSettings` to the source data is possible only by the usage of `setSourceDataAtCell`. [#6664](https://github.com/handsontable/handsontable/issues/6664).
 
-### 7.4.2
+## 7.4.2
 
 Released on 19th of February, 2020
 
@@ -396,7 +399,7 @@ Released on 19th of February, 2020
 * Fixed an issue where white lines appeared at the bottom of cell headers. ([#6459](https://github.com/handsontable/handsontable/issues/6459))
 * Fixed a bug, where resizing the window (while using Angular) would result in Handsontable not stretching properly and throwing an error. ([#6710](https://github.com/handsontable/handsontable/issues/6710))
 
-### 7.4.1
+## 7.4.1
 
 Released on 19th of February, 2020
 
@@ -404,7 +407,7 @@ Due to technical issues, version 7.4.2 patch needed to be released.
 
 **All the changes from 7.4.1 are included in the 7.4.2 release.**
 
-### 7.4.0
+## 7.4.0
 
 Released on 12th of February, 2020
 
@@ -417,7 +420,7 @@ Released on 12th of February, 2020
 * Extended the Babel config with the possibility to use private methods, optional chaining and nullish coalescing operator. ([#6308](https://github.com/handsontable/handsontable/issues/6308))
 * Updated some of the internal configs, updated dev-dependencies, housekeeping etc. ([#6560](https://github.com/handsontable/handsontable/issues/6560), [#6609](https://github.com/handsontable/handsontable/issues/6609), [#6612](https://github.com/handsontable/handsontable/issues/6612), [#6629](https://github.com/handsontable/handsontable/issues/6629), [#6574](https://github.com/handsontable/handsontable/issues/6574), [#6565](https://github.com/handsontable/handsontable/issues/6565))
 
-### 7.3.0
+## 7.3.0
 
 Released on 12th of December, 2019
 
@@ -440,7 +443,7 @@ Released on 12th of December, 2019
 * Fixed a test case for Context Menu's scrolling. ([#6449](https://github.com/handsontable/handsontable/issues/6449))
 * Modified the container size in the the tests' DOM helper file. ([#6446](https://github.com/handsontable/handsontable/issues/6446))
 
-### 7.2.2
+## 7.2.2
 
 Released on 23rd of October, 2019
 
@@ -449,7 +452,7 @@ Released on 23rd of October, 2019
 * Rolled back backward-incompatible changes in the TypeScript definition file introduced in `7.2.0`. ([#6351](https://github.com/handsontable/handsontable/issues/6351))
 * Fixed a problem, where the `Handsontable.helper.htmlToGridSettings` threw an error on IE11, when the target table was a part of an `iframe`. ([#6350](https://github.com/handsontable/handsontable/issues/6350))
 
-### 7.2.1
+## 7.2.1
 
 Released on 16th of October, 2019
 
@@ -457,7 +460,7 @@ Released on 16th of October, 2019
 
 * Fix a problem caused by [#6269](https://github.com/handsontable/handsontable/issues/6269), which made the move/resize handles hidden under the headers. ([#6341](https://github.com/handsontable/handsontable/issues/6341))
 
-### 7.2.0
+## 7.2.0
 
 Released on 15th of October, 2019
 
@@ -482,7 +485,7 @@ Released on 15th of October, 2019
 * Removed the unused `check-es3-syntax-cli` package to fix Github's security alert. ([#6319](https://github.com/handsontable/handsontable/issues/6319))
 * Updated the dependencies to fix errors thrown by `npm audit` ([#6318](https://github.com/handsontable/handsontable/issues/6318))
 
-### 7.1.1
+## 7.1.1
 
 Released on 12th of August, 2019
 
@@ -510,7 +513,7 @@ Released on 12th of August, 2019
 * Fixed a bug, where the table height increased every time the window had been resized. ([#3433](https://github.com/handsontable/handsontable/issues/3433))
 * Corrected some minor mistakes in the JSDocs and Typescript definitions. ([#6123](https://github.com/handsontable/handsontable/issues/6123), [#6125](https://github.com/handsontable/handsontable/issues/6125), [#6142](https://github.com/handsontable/handsontable/issues/6142), [#6152](https://github.com/handsontable/handsontable/issues/6152), [#6158](https://github.com/handsontable/handsontable/issues/6158), [#6160](https://github.com/handsontable/handsontable/issues/6160), [#6129](https://github.com/handsontable/handsontable/issues/6129))
 
-### 7.1.0
+## 7.1.0
 
 Released on 11th of June, 2019
 
@@ -536,7 +539,7 @@ Released on 11th of June, 2019
 * Fixed a bug, where the `getCell` method, when used with the `topmost` argument set to `true`, did not return the correct cell elements from the bottom overlay. ([#5896](https://github.com/handsontable/handsontable/issues/5896))
 * Added a possibility to return `false` from the `beforeCreateCol` hook to stop the column creation. ([#5691](https://github.com/handsontable/handsontable/issues/5691))
 
-### 7.0.3
+## 7.0.3
 
 Released on 13th of May, 2019
 
@@ -549,7 +552,7 @@ Released on 13th of May, 2019
 * Updated some of the dependencies to get rid of the security vulnerabilities thrown by `npm audit`. ([#5995](https://github.com/handsontable/handsontable/issues/5995))
 * Removed `eval()` from the `formula-parser` module to fulfill the _Content-Security-Policy_. ([#5990](https://github.com/handsontable/handsontable/issues/5990))
 
-### 7.0.2
+## 7.0.2
 
 Released on 9th of April, 2019
 
@@ -557,7 +560,7 @@ Released on 9th of April, 2019
 
 * Fixed a bug from `7.0.1`, which made the scrolling on overlays (fixed rows/columns, headers) work improperly. ([#5938](https://github.com/handsontable/handsontable/pull/5938))
 
-### 7.0.1
+## 7.0.1
 
 Released on 8th of April, 2019
 
@@ -572,7 +575,7 @@ Released on 8th of April, 2019
 * Fixed a bug, where the editor was visible despite not being open, when the table was positioned using CSS `transform`. ([#5886](https://github.com/handsontable/handsontable/issues/5886))
 * Fixed a bug, where the table scrolled up after clicking a cell when Handsontable was implemented inside of an `iframe`. ([#5910](https://github.com/handsontable/handsontable/issues/5910))
 
-### 7.0.0
+## 7.0.0
 
 Released on 6th of March, 2019
 
@@ -639,7 +642,7 @@ Released on 6th of March, 2019
 * Fixed a bug where the Trim Rows plugin passed an unwanted value from the `beforeCreateRow` hook callback. ([#5585](https://github.com/handsontable/handsontable/issues/5585))
 * Fixed a problem with the context menu displaying an empty box when no available menu items were provided. ([#3865](https://github.com/handsontable/handsontable/issues/3865))
 
-### 6.2.2
+## 6.2.2
 
 Released on 19th of December, 2018
 
@@ -648,7 +651,7 @@ Released on 19th of December, 2018
 * Fixed a bug, where it was impossible to use mouse selection on a device which supported both mouse and touch events. ([#5669](https://github.com/handsontable/handsontable/issues/5669))
 * Fixed a bug, where the per-cell validation information was not shifted after removing rows. ([#5674](https://github.com/handsontable/handsontable/issues/5674))
 
-### 6.2.1
+## 6.2.1
 
 Released on 12th of December, 2018
 
@@ -667,7 +670,7 @@ Released on 12th of December, 2018
 * Fixed a problem with the scientific notation not being supported in the numeric editor. ([#2030](https://github.com/handsontable/handsontable/issues/#2030))
 * Fixed a bug, where setting `enterBeginsEditing` to `false` allowed changing the state of `checkbox`\-typed cells using the `ENTER` key. ([#4162](https://github.com/handsontable/handsontable/issues/#4162))
 
-### 6.2.0
+## 6.2.0
 
 Released on 14th of November, 2018
 
@@ -692,7 +695,7 @@ Released on 14th of November, 2018
 * Fixed some unstable tests, which caused the CI to fail frequently. ([#5562](https://github.com/handsontable/handsontable/issues/5562))
 * Fixed the `ERR_ADDRESS_INVALID` error when running e2e tests. ([#5558](https://github.com/handsontable/handsontable/issues/5558))
 
-### 6.1.1
+## 6.1.1
 
 Released on 23rd of October, 2018
 
@@ -701,7 +704,7 @@ Released on 23rd of October, 2018
 * Fixed a bug, where the Context Menu's `copy` and `cut` options did not work.([#5535](https://github.com/handsontable/handsontable/issues/5535))
 * Removed the unneeded `yarn` entry from the dependencies section in `package.json`
 
-### 6.1.0
+## 6.1.0
 
 Released on 17th of October, 2018
 
@@ -734,7 +737,7 @@ Released on 17th of October, 2018
 
 The corresponding Handsontable CE version is [6.1.0](https://github.com/handsontable/handsontable/releases/6.1.0).
 
-### 6.0.1
+## 6.0.1
 
 Released on 2nd of October, 2018
 
@@ -748,7 +751,7 @@ Released on 2nd of October, 2018
 
 The corresponding Handsontable CE version is [6.0.1](https://github.com/handsontable/handsontable/releases/6.0.1).
 
-### 6.0.0
+## 6.0.0
 
 Released on 27th of September, 2018
 
@@ -791,7 +794,7 @@ Apart from the breaking changes above, this release introduces some additional c
 
 The corresponding Handsontable CE version is [6.0.0](https://github.com/handsontable/handsontable/releases/6.0.0).
 
-### 5.0.2
+## 5.0.2
 
 Released on 12th of September, 2018
 
@@ -837,7 +840,7 @@ Released on 12th of September, 2018
 
 The corresponding Handsontable version is [5.0.2](https://github.com/handsontable/handsontable/releases/5.0.2).
 
-### 5.0.1
+## 5.0.1
 
 Released on 16th of August, 2018
 
@@ -858,7 +861,7 @@ Released on 16th of August, 2018
 
 The corresponding Handsontable version is [5.0.1](https://github.com/handsontable/handsontable/releases/5.0.1).
 
-### 5.0.0
+## 5.0.0
 
 Released on 11th of July, 2018
 
@@ -877,7 +880,7 @@ Released on 11th of July, 2018
 
 The corresponding Handsontable version is [5.0.0](https://github.com/handsontable/handsontable/releases/5.0.0).
 
-### 4.0.0
+## 4.0.0
 
 Released on 13th of June, 2018
 
@@ -903,7 +906,7 @@ Released on 13th of June, 2018
 
 The corresponding Handsontable version is [4.0.0](https://github.com/handsontable/handsontable/releases/4.0.0).
 
-### 3.0.0
+## 3.0.0
 
 Released on 16th of May, 2018
 
@@ -933,7 +936,7 @@ The Gantt Chart plugin had its API refactored, to allow generating year-related 
 
 The corresponding Handsontable CE version is [3.0.0](https://github.com/handsontable/handsontable/releases/3.0.0).
 
-### 2.0.0
+## 2.0.0
 
 Released on 11th of April, 2018
 
@@ -974,7 +977,7 @@ These plugins will no longer be available from the main Handsontable instance. T
 
 The corresponding Handsontable CE version is [2.0.0](https://github.com/handsontable/handsontable/releases/2.0.0).
 
-### 1.18.1
+## 1.18.1
 
 Released on 20th of March, 2018
 
@@ -985,7 +988,7 @@ Released on 20th of March, 2018
 
 The corresponding Handsontable CE version is [0.38.1](https://github.com/handsontable/handsontable/releases/0.38.1).
 
-### 1.18.0
+## 1.18.0
 
 Released on 14th of March, 2018
 
@@ -1007,7 +1010,7 @@ Released on 14th of March, 2018
 
 The corresponding Handsontable CE version is [0.38.0](https://github.com/handsontable/handsontable/releases/tag/0.38.0).
 
-### 1.17.0
+## 1.17.0
 
 Released on 1st of March, 2018
 
@@ -1035,7 +1038,7 @@ Released on 1st of March, 2018
 
 The corresponding Handsontable CE version is [0.37.0](https://github.com/handsontable/handsontable/releases/tag/0.37.0).
 
-### 1.16.0
+## 1.16.0
 
 Released on 16th of February, 2018
 
@@ -1087,7 +1090,7 @@ We've added a `selectionLayerLevel` argument for all the hooks listed above. The
 
 The corresponding Handsontable CE version is [0.36.0](https://github.com/handsontable/handsontable/releases/tag/0.36.0).
 
-### 1.15.1
+## 1.15.1
 
 Released on 25th of January, 2018
 
@@ -1099,7 +1102,7 @@ Released on 25th of January, 2018
 
 The corresponding Handsontable CE version is `0.35.1`.
 
-### 1.15.0
+## 1.15.0
 
 Released on 6th of December, 2017
 
@@ -1142,7 +1145,7 @@ Take a look at our documentation for more insight:
 
 The corresponding Handsontable CE version is [0.35.0](https://github.com/handsontable/handsontable/releases/tag/0.35.0).
 
-### 1.14.3
+## 1.14.3
 
 Released on 12th of October, 2017
 
@@ -1152,7 +1155,7 @@ Released on 12th of October, 2017
 
 The corresponding Handsontable CE version is `0.34.5`.
 
-### 1.14.2
+## 1.14.2
 
 Released on 13th of September, 2017
 
@@ -1162,7 +1165,7 @@ Released on 13th of September, 2017
 
 The corresponding Handsontable CE version is `0.34.4`.
 
-### 1.14.1
+## 1.14.1
 
 Released on 12th of September, 2017
 
@@ -1172,7 +1175,7 @@ Released on 12th of September, 2017
 
 The corresponding Handsontable CE version is `0.34.3`.
 
-### 1.14.0
+## 1.14.0
 
 Released on 12th of September, 2017
 
@@ -1183,7 +1186,7 @@ Released on 12th of September, 2017
 
 The corresponding Handsontable CE version is `0.34.2`.
 
-### 1.13.1
+## 1.13.1
 
 Released on 6th of September, 2017
 
@@ -1199,7 +1202,7 @@ Released on 6th of September, 2017
 
 The corresponding Handsontable CE version is `0.34.1`.
 
-### 1.13.0
+## 1.13.0
 
 Released on 2nd of August, 2017
 
@@ -1219,7 +1222,7 @@ Released on 2nd of August, 2017
 
 The corresponding Handsontable CE version is `0.34.0`.
 
-### 1.12.0
+## 1.12.0
 
 Released on 11th of July, 2017
 
@@ -1246,7 +1249,7 @@ Released on 11th of July, 2017
 
 The corresponding Handsontable CE version is `0.33.0`.
 
-### 1.11.0
+## 1.11.0
 
 Released on 31th of May, 2017
 
@@ -1370,7 +1373,7 @@ We're now using Babel to transpile our code. That means that we had to make brea
 
 The corresponding Handsontable CE version is `0.32.0`.
 
-### 1.11.0-beta2
+## 1.11.0-beta2
 
 Released on 24th of May, 2017
 
@@ -1415,7 +1418,7 @@ Released on 24th of May, 2017
 
 The corresponding Handsontable CE version is `0.32.0-beta2`.
 
-### 1.11.0-beta1
+## 1.11.0-beta1
 
 Released on 17th of May, 2017
 
@@ -1508,7 +1511,7 @@ We're now using Babel to transpile our code. That means that we had to make brea
 
 The corresponding Handsontable CE version is `0.32.0-beta1`.
 
-### 1.10.1
+## 1.10.1
 
 Released on 7th of March, 2017
 
@@ -1518,7 +1521,7 @@ Released on 7th of March, 2017
 * Fixed a problem with the Nested Headers' `collapseAll` method.
 * Updated Handsontable CE to `0.31.1`.
 
-### 1.10.0
+## 1.10.0
 
 Released on 14th of February, 2017
 
@@ -1533,7 +1536,7 @@ Released on 14th of February, 2017
 * Fixed a bug with `grunt test-pro` wasn't working properly.
 * Updated Handsontable CE version to `0.31.0`.
 
-### 1.9.1
+## 1.9.1
 
 Released on 17st of January, 2017
 
@@ -1542,7 +1545,7 @@ Released on 17st of January, 2017
 * Fixed a problem with copying/pasting values when `fixedRowsBottom` is enabled.
 * Updated the Handsontable version to `0.30.1`.
 
-### 1.9.0
+## 1.9.0
 
 Released on 11th of January, 2017
 
@@ -1558,7 +1561,7 @@ Released on 11th of January, 2017
 * Fixed a problem with building the Pro version with a different Handsontable branch than `master`
 * Updated Handsontable to version `0.29.0`.
 
-### 1.8.2
+## 1.8.2
 
 Released on 21st of December, 2016
 
@@ -1568,7 +1571,7 @@ Released on 21st of December, 2016
 * Fix a problem with selection and keyboard navigation when using the `hiddenRows` plugin.
 * Updated the Handsontable version to `0.29.2`.
 
-### 1.8.1
+## 1.8.1
 
 Released on 13th of December, 2016
 
@@ -1577,7 +1580,7 @@ Released on 13th of December, 2016
 * Refactored the `columnSummary` plugin, introducing a feature which allows providing custom functions to the plugin configuration.
 * Updated Handsontable to version `0.29.1`.
 
-### 1.8.0
+## 1.8.0
 
 Released on 8th of November, 2016
 
@@ -1594,7 +1597,7 @@ Released on 8th of November, 2016
 * Fixed a problem with updating the `fixedRowsBottom` option.
 * Updated Handsontable to the latest version. (`0.29.0`).
 
-### 1.7.4
+## 1.7.4
 
 Released on 13th of October, 2016
 
@@ -1602,7 +1605,7 @@ Released on 13th of October, 2016
 
 * Updated Handsontable to the latest version. (`0.28.4`).
 
-### 1.7.3
+## 1.7.3
 
 Released on 5th of October, 2016
 
@@ -1610,7 +1613,7 @@ Released on 5th of October, 2016
 
 * Updated Handsontable to the latest version. (`0.28.3`).
 
-### 1.7.2
+## 1.7.2
 
 Released on 4th of October, 2016
 
@@ -1619,7 +1622,7 @@ Released on 4th of October, 2016
 * Fixed a problem where hiding the first column would also hide its border.
 * Updated Handsontable to the latest version. (0.28.2)
 
-### 1.7.1
+## 1.7.1
 
 Released on 29th of September, 2016
 
@@ -1632,7 +1635,7 @@ Released on 29th of September, 2016
 * Fixed a problem with the Formulas and Column Sorting plugins being used together.
 * Updated to the latest Handsontable version (`0.28.1`)
 
-### 1.7.0
+## 1.7.0
 
 Released on 15th of September, 2016
 
@@ -1649,7 +1652,7 @@ After updating to this version, please check if any changes need to made in your
 * Added missing dependencies to `bower.json`.
 * Updated to the latest Handsontable version (`0.28.0`).
 
-### 1.6.0
+## 1.6.0
 
 Released on 2nd of September, 2016
 
@@ -1664,7 +1667,7 @@ Released on 2nd of September, 2016
 * Added support for the refactored Manual Row Move plugin in the Hidden Rows plugin.
 * Updated Handsontable to the latest version, which is 0.27.0. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.27.0)).
 
-### 1.5.1
+## 1.5.1
 
 Released on 27th of July, 2016
 
@@ -1673,7 +1676,7 @@ Released on 27th of July, 2016
 * Improved rendering performance of GanttChart plugin.
 * Updated Handsontable to the latest version, which is 0.26.1. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.26.1)).
 
-### 1.5.0
+## 1.5.0
 
 Released on 27th of June, 2016
 
@@ -1686,7 +1689,7 @@ Released on 27th of June, 2016
 
 * Fixed a bug where hovering over the `Filter by value` items would throw errors.
 
-### 1.4.1
+## 1.4.1
 
 Released on 6th of June, 2016
 
@@ -1697,7 +1700,7 @@ Released on 6th of June, 2016
 * Fixed problems with filtering blank cells.
 * Updated Handsontable to the latest version, which is 0.25.1. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.25.1)).
 
-### 1.4.0
+## 1.4.0
 
 Released on 25th of May, 2016
 
@@ -1707,7 +1710,7 @@ Released on 25th of May, 2016
 * New feature: Added "show" and "hide column" to the Context Menu.
 * Upgraded Handsontable to the latest version, which is 0.25.0. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.25.0)).
 
-### 1.3.4
+## 1.3.4
 
 Released on 28th of April, 2016
 
@@ -1715,7 +1718,7 @@ Released on 28th of April, 2016
 
 * Upgraded Handsontable to the latest version, which is 0.24.3. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.24.3)).
 
-### 1.3.3
+## 1.3.3
 
 Released on 11th of April, 2016
 
@@ -1727,7 +1730,7 @@ Released on 11th of April, 2016
 * Added support for node environment.
 * Upgraded Handsontable to the latest version, which is 0.24.2. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.24.2)).
 
-### 1.3.2
+## 1.3.2
 
 Released on 18th of March, 2016
 
@@ -1735,7 +1738,7 @@ Released on 18th of March, 2016
 
 * Update with a working `handsontable.full.js` build. The `.full` build from `1.3.1` had major problems with the date and time cells.
 
-### 1.3.1
+## 1.3.1
 
 Released on 16th of March, 2016
 
@@ -1743,7 +1746,7 @@ Released on 16th of March, 2016
 
 * Upgraded Handsontable to the latest version, which is 0.24.1. ([See changes](https://github.com/handsontable/handsontable/releases/tag/0.24.1)).
 
-### 1.3.0
+## 1.3.0
 
 Released on 15th of March, 2016
 
@@ -1759,7 +1762,7 @@ Released on 15th of March, 2016
 * Extended the Filters functionality by adding the "filter by value" component.
 * Added a possibility to undo/redo filtering.
 
-### 1.2.0
+## 1.2.0
 
 Released on 19th of February, 2016
 
@@ -1773,14 +1776,14 @@ Released on 19th of February, 2016
 * Improvements to the Context/Dropdown menu, mainly a better UI handling.
 * The Filter Data plugin is not shrinking the table anymore when there is no results.
 
-### 1.1.1
+## 1.1.1
 
 Released on 4th of February, 2016
 
 * Added a possibility to set up server-side filtering by adding the `beforeFilter` hook.
 * Added cell meta cache'ing to the Gantt Chart plugin in order to properly use the `updateSettings` method.
 
-### 1.1.0
+## 1.1.0
 
 Released on 3th of February, 2016
 
@@ -1790,7 +1793,7 @@ Released on 3th of February, 2016
 * Fixed an error with selecting a row, with the last column being hidden.
 * Fixed a memory leak problem with the GanttChart plugin.
 
-### 1.0.0
+## 1.0.0
 
 Released on 20th of January, 2016
 
@@ -1806,14 +1809,14 @@ Released on 20th of January, 2016
 * Fixed problems with filtering the fixed rows.
 * Fixed problem with filter options missing after filtering out all rows.
 
-### 1.0.0-beta3
+## 1.0.0-beta3
 
 Released on 11th of January, 2016
 
 * Fixed problem with the `columnSummary` plugin, which wasn't updating the calculation results when an object-based dataset was provided to the Handsontable instance.
 * Prevent displaying the dropdown header buttons in higher levels of headers (for example, when using the nested headers plugin).
 
-### 1.0.0-beta2
+## 1.0.0-beta2
 
 Released on 8th of January, 2016
 

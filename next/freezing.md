@@ -1,9 +1,10 @@
 ---
-id: freezing
 title: Freezing columns
-sidebar_label: Freezing columns
-slug: /freezing
+permalink: /next/freezing
+canonicalUrl: /freezing
 ---
+
+# {{ $frontmatter.title }}
 
 In order to manually freeze a column (in another words - make it fixed), you need to set the `manualColumnFreeze` config item to `true` in Handsontable initialization. When the Manual Column Freeze plugin is enabled, you can freeze any non-fixed column and unfreeze any fixed column in your Handsontable instance using the Context Menu.
 
@@ -13,7 +14,8 @@ In order to manually freeze a column (in another words - make it fixed), you nee
 
 _If you're looking for an option to programmatically fix rows or columns, see the [Fixing](fixing.md) section of this documentation._
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var
   myData = Handsontable.helper.createSpreadsheetData(100, 26),
   container = document.getElementById('example1'),
@@ -31,3 +33,4 @@ hot = new Handsontable(container, {
   manualColumnFreeze: true
 });
 ```
+:::

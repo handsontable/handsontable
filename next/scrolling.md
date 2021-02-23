@@ -1,9 +1,10 @@
 ---
-id: scrolling
 title: Scrolling
-sidebar_label: Scrolling
-slug: /scrolling
+permalink: /next/scrolling
+canonicalUrl: /scrolling
 ---
+
+# {{ $frontmatter.title }}
 
 To make the grid scrollable, set constant width and height to the container holding Handsontable and set the `overflow` property to `hidden` in the container's stylesheet. Then, if the table contains enough rows or columns, you can scroll through it.
 
@@ -18,7 +19,8 @@ The overall scrolling performance depends mainly on these four factors:
 
 This demo below shows a table of 1 million cells (1000 x 1000):
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example = document.getElementById('example1');
 var hot1 = new Handsontable(example, {
   data: Handsontable.helper.createSpreadsheetData(1000, 1000),
@@ -30,3 +32,4 @@ var hot1 = new Handsontable(example, {
   colHeaders: true
 });
 ```
+:::

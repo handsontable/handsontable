@@ -1,10 +1,12 @@
 ---
-id: data-binding
 title: Data binding
-sidebar_label: Data binding
-slug: /data-binding
+permalink: /next/data-binding
+canonicalUrl: /data-binding
 ---
-### Understand binding as a reference
+
+# {{ $frontmatter.title }}
+
+## Understand binding as a reference
 
 Handsontable binds to your [data source](data-sources.md) (list of arrays or list of objects) by reference (not by values, we don't copy input dataset; we rely on the way how JavaScript handle objects). Therefore, all the data entered in the grid will alter the original data source.
 
@@ -12,7 +14,8 @@ Handsontable binds to your [data source](data-sources.md) (list of arrays or lis
 
 If you have to avoid that, [copy the data](#page-copy) before you pass it to the grid. To change the data from outside Handsontable you can use our API methods, f.e. a change being made will be displayed immediately on the screen after calling [setDataAtCell](api/core.md#setDataAtCell) method.
 
-```js title="index.js" hot-preview=example1,hot1
+::: example #example1
+```js
 var data1 = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -29,12 +32,14 @@ hot1 = new Handsontable(container1, settings1);
 
 hot1.setDataAtCell(0, 1, 'Ford');
 ```
+:::
 
-### Working with copy of data
+## Working with copy of data
 
 In case you want to keep a separate working copy of data for Handsontable, it is suggested to clone the data source before loading it into Handsontable. This can be done with `JSON.parse(JSON.stringify(data))` or another deep-cloning function.
 
-```js title="index.js" hot-preview=example2,hot2
+::: example #example2
+```js
 var data2 = [
   ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
   ['2017', 10, 11, 12, 13, 15, 16],
@@ -50,3 +55,4 @@ hot2 = new Handsontable(container2, {
   data: JSON.parse(JSON.stringify(data2))
 });
 ```
+:::

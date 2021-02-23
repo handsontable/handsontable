@@ -1,9 +1,12 @@
 ---
-id: autofill
 title: Autofill
-sidebar_label: Autofill
-slug: /api/autofill
+permalink: /next/api/autofill
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

@@ -1,16 +1,14 @@
 ---
-id: formula-support
 title: Formula support
-sidebar_label: Formula support
-slug: /formula-support
+permalink: /next/formula-support
+canonicalUrl: /formula-support
 ---
 
-* [Overview](#overview)
-* [Quick setup](#setup)
-* [Custom variables](#custom-variables)
-* [Advanced example](#advanced-example)
+# {{ $frontmatter.title }}
 
-### Overview
+[[toc]]
+
+## Overview
 
 The _Formulas_ plugin allows Handsontable to process formula expressions defined in the provided data. This plugin uses a [formula-parser](https://github.com/handsontable/formula-parser) library which takes most of functions from [formula.js](https://github.com/handsontable/formula.js).
 
@@ -35,11 +33,12 @@ The _Formulas_ plugin allows Handsontable to process formula expressions defined
 * Not working with filtering and column sorting;
 * Not working with trimming rows.
 
-### Quick setup
+## Quick setup
 
 To enable the plugin you need to set the `formulas` property to `true`. Cells that are dependent on the edited value will be dynamically recalculated.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var data = [
   ['=$B$2', "Maserati", "Mazda", "Mercedes", "Mini", "=A$1"],
   [2009, 0, 2941, 4303, 354, 5814],
@@ -57,12 +56,14 @@ var hot1 = new Handsontable(example1, {
   formulas: true
 });
 ```
+:::
 
-### Custom variables
+## Custom variables
 
 You can pass your custom variables which can be ready to use in your formula expressions. To set custom variables pass an object with key:value pairs to the `formulas` property.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var data = [
   ['Anderson', '92', '=IF(B1<RANGE_F, "F", IF(B1<RANGE_D, "D", IF(B1<RANGE_C, "C", IF(B1<RANGE_B, "B", "A"))))', '', '', '0-63', 'F'],
   ['Bautista', '85', '=IF(B2<RANGE_F, "F", IF(B2<RANGE_D, "D", IF(B2<RANGE_C, "C", IF(B2<RANGE_B, "B", "A"))))', '', '', '64-72', 'D'],
@@ -90,6 +91,7 @@ var hot2 = new Handsontable(example2, {
   },
 });
 ```
+:::
 
 **Updating custom variables**
 
@@ -98,7 +100,8 @@ At some point, you may want to update the custom variable's value. To do so, you
 <input id="calculate-field" name="calculate-field" title="Extra cost" type="number" placeholder="Extra cost"/>
 <button id="calculate" className="intext-btn">Calculate price</button>
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 var data = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
   ['154', 'Rome', 400, '=ROUND(ADDITIONAL_COST+C2;0)'],
@@ -131,12 +134,14 @@ Handsontable.dom.addEvent(calculateButton, 'click', function() {
   formulasPlugin.recalculateFull();
 });
 ```
+:::
 
-### Advanced example
+## Advanced example
 
 The advanced example shows how to manage nested formulas. Also you can see how to set dependencies between different types of formulas.
 
-```js hot-preview=example4,hot4
+::: example #example4
+```js
 var data = [
   ['Example #1 (looking for particular words in a sentence)', '', '', '', '', '', '', ''],
   ['Text', 'yellow', 'red', 'blue', 'green', 'pink', 'gray'],
@@ -174,3 +179,4 @@ var hot4 = new Handsontable(example4, {
   ],
 });
 ```
+:::

@@ -6,7 +6,7 @@ env:
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, vuepress ]
   workflow_dispatch:
 
 defaults:
@@ -20,12 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
 
-## monorepo required
-#      - name: Api Reference
-#        working-directory: ./src/utils/jsdoc-convert/
-#        run: |
-#          npm install
-#          npm run jsdoc2md
+      ## monorepo required
+      #      - name: Api Reference
+      #        working-directory: ./src/utils/jsdoc-convert/
+      #        run: |
+      #          npm install
+      #          npm run jsdoc2md
 
       - name: Docker login into GHCR
         run: |
@@ -34,16 +34,16 @@ jobs:
       - name: Docker build
         run: |
           docker build -t docs-md .
-      
+
       - name: Docker tags
         run: |
           docker tag docs-md $GHA_DOCKER_TAG
           docker tag docs-md $GHA_DOCKER_TAG_SHA
 
-      - name: Docker push  latest into GHCR
+      - name: Docker push latest into GHCR
         run: |
           docker push ${GHA_DOCKER_TAG}
-          
+
       - name: Docker push SHA tagged into GHCR
         run: |
           docker push ${GHA_DOCKER_TAG_SHA}

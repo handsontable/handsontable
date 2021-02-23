@@ -1,9 +1,10 @@
 ---
-id: react-custom-renderer-example
 title: Custom renderer example
-sidebar_label: Custom renderer example
-slug: /react-custom-renderer-example
+permalink: /next/react-custom-renderer-example
+canonicalUrl: /react-custom-renderer-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/react` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
 

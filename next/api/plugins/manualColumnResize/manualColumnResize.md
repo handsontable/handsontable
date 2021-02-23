@@ -1,9 +1,12 @@
 ---
-id: manual-column-resize
 title: ManualColumnResize
-sidebar_label: ManualColumnResize
-slug: /api/manual-column-resize
+permalink: /next/api/manual-column-resize
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

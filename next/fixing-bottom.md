@@ -1,15 +1,17 @@
 ---
-id: fixing-bottom
 title: Fixing bottom rows
-sidebar_label: Fixing bottom rows
-slug: /fixing-bottom
+permalink: /next/fixing-bottom
+canonicalUrl: /fixing-bottom
 ---
+
+# {{ $frontmatter.title }}
 
 You can fix the bottom rows of the table, by using the `fixedRowsBottom` config option. This way, when you're scrolling the table, the fixed rows will stay at the bottom edge of the table's container.
 
 Example below shows a table with two bottom rows fixed.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var
   myData = Handsontable.helper.createSpreadsheetData(100, 50),
   container = document.getElementById('example1'),
@@ -22,3 +24,4 @@ hot1 = new Handsontable(container, {
   fixedRowsBottom: 2
 });
 ```
+:::

@@ -1,9 +1,12 @@
 ---
-id: manual-row-move
 title: ManualRowMove
-sidebar_label: ManualRowMove
-slug: /api/manual-row-move
+permalink: /next/api/manual-row-move
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

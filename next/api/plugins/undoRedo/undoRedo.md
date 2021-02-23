@@ -1,9 +1,12 @@
 ---
-id: undo-redo
 title: UndoRedo
-sidebar_label: UndoRedo
-slug: /api/undo-redo
+permalink: /next/api/undo-redo
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

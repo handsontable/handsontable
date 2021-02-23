@@ -1,15 +1,18 @@
 ---
-id: vue-vuex-example
 title: Vuex example
-sidebar_label: Vuex example
-slug: /vue-vuex-example
+permalink: /next/vue-vuex-example
+canonicalUrl: /vue-vuex-example
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 An implementation of the `@handsontable/vue` component with a `readOnly` toggle switch and the Vuex state manager implemented.
 
  Toggle `readOnly` for the entire table
 
-#### Vuex store dump:
+## Vuex store dump:
 
 ```html
 <div id="example1">

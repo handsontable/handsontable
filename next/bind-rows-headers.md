@@ -1,21 +1,26 @@
 ---
-id: bind-rows-headers
 title: Bind rows with headers
-sidebar_label: Bind rows with headers
-slug: /bind-rows-headers
+permalink: /next/bind-rows-headers
+canonicalUrl: /bind-rows-headers
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 The _Bind rows with headers_ plugin allows, as it's name suggests, binding the table rows with their headers.
 If the plugin is enabled, the table row headers will "stick" to the rows. For example, if you move a row, the header content will move with it. Basically, if at the initialization row `0` has a header titled `"A"`, it will be attached to it, no matter what you do with the table.
 
-### Quick setup
+## Quick setup
 
 To enable the plugin, simply set the `bindRowsWithHeaders` property to `true`, when initializing Handsontable.
 Try moving the rows in the example below, to see what this plugin actually does.
 
-```js hot-preview=example1,hot1
+
+::: example #example1
+```js
 var generateDataObj = function(rows, columns) {
   var data = [];
   var number = 0;
@@ -51,3 +56,4 @@ var hot1 = new Handsontable(example1, {
   bindRowsWithHeaders: 'strict'
 });
 ```
+:::

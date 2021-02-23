@@ -1,9 +1,12 @@
 ---
-id: nested-headers
 title: NestedHeaders
-sidebar_label: NestedHeaders
-slug: /api/nested-headers
+permalink: /next/api/nested-headers
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

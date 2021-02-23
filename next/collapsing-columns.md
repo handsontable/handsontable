@@ -1,11 +1,14 @@
 ---
-id: collapsing-columns
 title: Collapsing columns
-sidebar_label: Collapsing columns
-slug: /collapsing-columns
+permalink: /next/collapsing-columns
+canonicalUrl: /collapsing-columns
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 The _Collapsible Columns_ plugin enables collapsing columns, covered by a header with the `colspan` property defined.
 The plugin adds a "expand/collapse" button multi-column headers (created with the Nested Headers plugin). Clicking these buttons will collapse (or expands) all "child" headers, leaving the first one visible.
@@ -14,7 +17,7 @@ The plugin adds a "expand/collapse" button multi-column headers (created with th
 
 **Note:** Please keep in mind that collapsed rows **are included** in a `DataMap` (gets by the [getData](api/core.md#getData) method), but they **aren't rendered**.
 
-### Setup and configuration
+## Setup and configuration
 
 To enable the Collapsible Columns plugin, you can either set the `collapsibleColumns` property to:
 
@@ -28,9 +31,10 @@ To enable the Collapsible Columns plugin, you can either set the `collapsibleCol
   ]
   ```
 
-### Example
+## Example
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var hot1 = new Handsontable(example1, {
   data: Handsontable.helper.createSpreadsheetData(5,10),
@@ -51,3 +55,4 @@ var hot1 = new Handsontable(example1, {
   ]
 });
 ```
+:::

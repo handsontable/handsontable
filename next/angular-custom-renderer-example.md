@@ -1,9 +1,10 @@
 ---
-id: angular-custom-renderer-example
 title: Custom renderer example
-sidebar_label: Custom renderer example
-slug: /angular-custom-renderer-example
+permalink: /next/angular-custom-renderer-example
+canonicalUrl: /angular-custom-renderer-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/angular` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
 

@@ -1,9 +1,10 @@
 ---
-id: alignment
 title: Alignment
-sidebar_label: Alignment
-slug: /alignment
+permalink: /next/alignment
+canonicalUrl: /alignment
 ---
+
+# {{ $frontmatter.title }}
 
 To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details in form of a grid, `columns` or `cell` setting (see code sample below).
 
@@ -14,7 +15,8 @@ Available classNames:
 
 Alignment changes can be tracked using `afterSetCellMeta` hook callback.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var container = document.getElementById('example1'),
   hot1;
 
@@ -39,3 +41,4 @@ hot1 = new Handsontable(container, {
   }
 });
 ```
+:::

@@ -1,9 +1,12 @@
 ---
-id: copy-paste
 title: Copy & Paste
-sidebar_label: Copy & Paste
-slug: /copy-paste
+permalink: /next/copy-paste
+canonicalUrl: /copy-paste
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 ## Copy & Cut
 
@@ -30,7 +33,8 @@ When the context menu is enabled, it includes default items among which you will
 
 [You can use them in the same way as the rest of the predefined items](context-menu.md#page-custom). These operations are executed by `document.execCommand()`.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var container2 = document.getElementById('example2');
 var hot2 = new Handsontable(container2, {
   data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -39,6 +43,7 @@ var hot2 = new Handsontable(container2, {
   contextMenu: ['copy', 'cut'],
 });
 ```
+:::
 
 ### Trigger copy & cut programmatically
 
@@ -58,7 +63,8 @@ The _CopyPaste_ plugin listens to the browser's `cop` and `cut` events, so if th
 <button id="copy">Select and copy cell B2</button>
 <button id="cut">Select and cut cell B2</button>
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var container = document.getElementById('example1');
 var copyBtn = document.getElementById('copy');
 var cutBtn = document.getElementById('cut');
@@ -86,6 +92,7 @@ Handsontable.dom.addEvent(cutBtn, 'click', function () {
   document.execCommand('cut');
 });
 ```
+:::
 
 **Note:** Not all selection-related Handsontable methods result in it gaining focus. Make sure your table instance is focused by calling [`hot.isListening();`](api/core.md#isListening) before copying or pasting data.
 

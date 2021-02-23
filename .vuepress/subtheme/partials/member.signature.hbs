@@ -1,0 +1,99 @@
+{{{signatureTitle true }}}
+
+{{#unless hideSources}}
+
+{{> member.sources}}
+
+{{/unless}}
+
+{{> comment}}
+
+{{#if typeParameters}}
+
+**Type parameters:**
+
+{{> typeParameters}}
+
+{{/if}}
+
+{{#if parameters}}
+
+**Parameters:**
+
+{{#ifHasTypeDeclarations true}}
+
+{{#each parameters}}
+
+{{{parameterNameAndType}}}
+
+{{> comment}}
+
+{{#if type.declaration}}
+
+{{#if type.declaration.children}}
+
+{{#with type.declaration.children}}
+
+{{{parameterTable}}}
+
+{{/with}}
+
+{{/if}}
+
+{{#if type.declaration.signatures}}
+
+{{#with type.declaration}}
+
+{{> parameter}}
+
+{{/with}}
+
+{{/if}}
+
+{{/if}}
+
+{{/each}}
+
+{{/ifHasTypeDeclarations}}
+
+{{#ifHasTypeDeclarations false}}
+
+{{#with parameters}}
+
+{{{parameterTable}}}
+
+{{/with}}
+
+{{/ifHasTypeDeclarations}}
+
+{{/if}}
+
+{{#if type}}
+
+{{#unless hideSources}}
+
+**Returns:** {{#with type}}*{{{type}}}*{{/with}}
+
+{{#if comment.returns}}
+
+{{#with comment.returns}}
+
+{{{comment}}}
+
+{{/with}}
+
+{{/if}}
+
+{{/unless}}
+
+{{#if type.declaration}}
+
+{{#with type.declaration}}
+
+{{> parameter}}
+
+{{/with}}
+
+{{/if}}
+
+{{/if}}

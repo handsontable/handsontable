@@ -1,9 +1,9 @@
 ---
-id: angular-custom-context-menu-example
 title: Custom Context Menu example
-sidebar_label: Custom Context Menu example
-slug: /angular-custom-context-menu-example
+permalink: /next/angular-custom-context-menu-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/angular` component with a custom Context Menu added.
 

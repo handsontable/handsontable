@@ -1,36 +1,18 @@
 ---
-id: summary-calculations
 title: Summary calculations
-sidebar_label: Summary calculations
-slug: /summary-calculations
+permalink: /next/summary-calculations
+canonicalUrl: /summary-calculations
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 The Column Summary plugin allows making pre-defined calculations on the cell values and display the results within Handsontable.
 You can think of this plugin as pre-defined formulas.
 
-#### [The basic setup.](#basic-setup)
-
-1. [Setting the destination cell](#destination)
-2. [Setting the calculation range](#calculation-range)
-3. [Providing the settings as a function](#function-config)
-
-#### Available calculations:
-
-1. [Sum](#sum)
-2. [Min](#min)
-3. [Max](#max)
-4. [Count](#count)
-5. [Average](#average)
-6. [Custom](#custom)
-
-#### Additional options:
-
-1. [Forcing numeric values](#force-numeric)
-2. [Throwing datatype errors](#datatype-errors)
-3. [Making destination cells read-only](#read-only)
-4. [Rounding values after the decimal point](#round)
-
-```js hot-preview=example1, hot
+::: example #example1
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -88,8 +70,9 @@ var hot = new Handsontable(example1, {
   ]
 });
 ```
+:::
 
-### Basic setup
+## Basic setup
 
 To initialize the _columnSummary_ plugin, you need to properly set a property in the Handsontable initial config.
 The `columnSummary` property should be declared as an array of objects, where each object represents a single _endpoint_ (the "output" cell, or a single calculation).
@@ -111,13 +94,14 @@ columnSummary: [
 ]
 ```
 
-### Setting the destination cell
+## Setting the destination cell
 
 The columnSummary plugin requires the user to provide the destination coordinates (row and column number) for the cell to display the calculations results in.
 
 To do that, you need to set two properties in the Handsontable config object:
 
-```js hot-preview=example7,hot7
+::: example #example7
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -163,12 +147,14 @@ var hot7 = new Handsontable(container, {
   ]
 });
 ```
+:::
 
 If the destination cell should be closer to the bottom of the table, you might find the `reversedRowCoords` useful. What it does is counting the rows from the _bottom_, not the top, as it usually does.
 
 So, for example, defining the plugin like this puts the calculation result in a cell in the 5th column (we're counting from 0) and 2nd row from the bottom of the table.
 
-```js hot-preview=example8,hot8
+::: example #example8
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -215,8 +201,9 @@ var hot8 = new Handsontable(container, {
   ]
 });
 ```
+:::
 
-### Setting the calculation range
+## Setting the calculation range
 
 By default, the plugin makes calculations on data from all rows in the endpoint's destination column. However, you can specify it differently (both column and row-wise).
 
@@ -226,7 +213,8 @@ The properties responsible for this are `ranges` and `sourceColumn`.
 
     For example, this configuration would do the calculations for rows: `0`, `1`, `2`, `3`, `4`, `6`, `8` and `9`.
 
-    ```js hot-preview=example9,hot9
+   ::: example #example9
+   ```js
     var generateDataObj = function(rows, columns, additionalRows) {
       if (additionalRows === void 0) {
         additionalRows = true;
@@ -277,12 +265,14 @@ The properties responsible for this are `ranges` and `sourceColumn`.
       ]
     });
     ```
+   :::
 
 3. `**sourceColumn**` option specifies the column to work on.
 
     For example, this will make operations on the 3rd column (again, we're counting from 0):
 
-    ```js hot-preview=example10,hot10
+   ::: example #example10
+   ```js
     var generateDataObj = function(rows, columns, additionalRows) {
       if (additionalRows === void 0) {
         additionalRows = true;
@@ -331,14 +321,16 @@ The properties responsible for this are `ranges` and `sourceColumn`.
       ]
     });
     ```
+   :::
 
-### Providing the settings as a function
+## Providing the settings as a function
 
 Since version `1.8.1`, you can provide a function instead of an array as the config item. The function has to return an array of objects, similarly to a traditional setup method.
 
 Take a look at the example below:
 
-```js hot-preview=example11,hot11
+::: example #example11
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -392,12 +384,14 @@ var hot11 = new Handsontable(container, {
   }
 });
 ```
+:::
 
 This allows many possible usages: for example, you can easily calculate a total for a group in a group parent combining this plugin with the [Nested Rows plugin](nested-rows.md).
 
 Take a look at this simple demo:
 
-```js hot-preview=example12,hot12
+::: example #example12
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -494,10 +488,11 @@ var hot12 = new Handsontable(container, {
   }
 });
 ```
+:::
 
 ##Available calculations
 
-### Sum
+## Sum
 
 Calculates a sum of values in the specified column and row range.
 
@@ -512,7 +507,7 @@ columnSummary: [
 ]
 ```
 
-### Min
+## Min
 
 Finds the lowest value in the specified column and row range.
 
@@ -525,7 +520,7 @@ columnSummary: [
 ]
 ```
 
-### Max
+## Max
 
 Finds the highest value in the specified column and row range.
 
@@ -538,7 +533,7 @@ columnSummary: [
 ]
 ```
 
-### Count
+## Count
 
 Counts the non-empty values in the specified column and row range.
 
@@ -551,7 +546,7 @@ columnSummary: [
 ]
 ```
 
-### Average
+## Average
 
 Calculates the average from the values in the specified column and row range.
 
@@ -564,7 +559,7 @@ columnSummary: [
 ]
 ```
 
-### Custom
+## Custom
 
 Takes a custom function and applies ot to the values in the specified column and row range.
 
@@ -582,9 +577,10 @@ columnSummary: [
 ]
 ```
 
-### Example:
+## Example:
 
-```js hot-preview=example13,hot13
+::: example #example13
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -698,10 +694,11 @@ var hot13 = new Handsontable(container, {
     ]
   });
 ```
+:::
 
 ## Additional options
 
-### Forcing numeric values
+## Forcing numeric values
 
 If your table doesn't contain only numeric data, you can try to force the values to be numeric in the calculations. For example, _9a_ can be treated as _9_. To enable this feature, you'll need to set the `forceNumeric` property to `true`.
 
@@ -709,7 +706,8 @@ Enabling this option might sometimes be a good idea, as text-based Handsontable 
 
 By default this option is **disabled**.
 
-```js hot-preview=example14,hot14
+::: example #example14
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -768,8 +766,9 @@ var hot14 = new Handsontable(container, {
   ]
 });
 ```
+:::
 
-### Throwing datatype errors
+## Throwing datatype errors
 
 If your table doesn't contain only numeric data, you can either skip the non-numeric entries in the calculation, throw an error or try to parse them to float using the forceNumeric option.
 If you choose to throw the errors, you need to set the `suppressDataTypeErrors` property to `false`.
@@ -785,18 +784,19 @@ columnSummary: [
 ]
 ```
 
-### Making the endpoint cells read-only
+## Making the endpoint cells read-only
 
 You can make the the cells with the calculation results read-only by setting the `readOnly` option to `true`.
 
 This option is `true` by default.
 
-### Rounding values after the decimal point
+## Rounding values after the decimal point
 
 If you wish to round the calculation result to a specific number of digits after the decimal point, you need to use the `roundFloat` parameter.
 It's value will result in rounding the result to the appropriate amount of digits.
 
-```js hot-preview=example15,hot15
+::: example #example15
+```js
 var generateDataObj = function(rows, columns, additionalRows) {
   if (additionalRows === void 0) {
     additionalRows = true;
@@ -855,3 +855,4 @@ var hot15 = new Handsontable(container, {
   ]
 });
 ```
+:::

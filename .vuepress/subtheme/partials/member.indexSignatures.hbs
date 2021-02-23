@@ -1,0 +1,17 @@
+* \[{{#each indexSignature.parameters}}{{parameterNameAndType false}}{{/each}}\]: {{#with indexSignature.type}}{{{type}}}{{/with}}
+
+{{#with indexSignature}}
+
+{{> comment}}
+
+{{/with}}
+
+{{#if indexSignature.type.declaration}}
+
+{{#with indexSignature.type.declaration}}
+
+{{> parameter}}
+
+{{/with}}
+
+{{/if}}

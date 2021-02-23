@@ -1,11 +1,13 @@
 ---
-id: core
 title: Core
-sidebar_label: Core
-slug: /api/core
+permalink: /next/api/
 ---
-## Description
 
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Description
 
 After Handsontable is constructed, you can modify the grid behavior using the available public methods.
 

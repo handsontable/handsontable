@@ -1,24 +1,13 @@
-# Dependencies
+pids
+logs
 node_modules
-#/next/api
-#/src/utils/jsdoc-convert/sidebar.js
-
-# Production
-/build
-
-# Generated files
-.docusaurus
-.cache-loader
-
-# Misc
+npm-debug.log
+coverage/
+run
+dist
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
+.nyc_output
+.basement
+config.local.js
+basement_dist
 .idea

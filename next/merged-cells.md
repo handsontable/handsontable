@@ -1,13 +1,15 @@
 ---
-id: merged-cells
 title: Merged cells
-sidebar_label: Merged cells
-slug: /merged-cells
+permalink: /next/merged-cells
+canonicalUrl: /merged-cells
 ---
+
+# {{ $frontmatter.title }}
 
 To enable the merge cells feature, set the `mergeCells` option to be `true` or an array. To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]`
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var container = document.getElementById('example1'),
   hot;
 
@@ -25,3 +27,4 @@ hot = new Handsontable(container, {
   ]
 });
 ```
+:::

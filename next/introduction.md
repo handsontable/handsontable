@@ -1,11 +1,14 @@
 ---
-id: introduction
 title: Introduction
-sidebar_label: Introduction
-slug: /
+permalink: /next/
+canonicalUrl: /
 ---
 
-### About Handsontable
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## About Handsontable
 
 **Handsontable** is a data grid with spreadsheet features and look&feel. Handsontable is written in JavaScript and works with the most popular frameworks such as Angular, Vue and React. It can be easily modified or extended with custom plugins. It binds to any data source using the JSON format and handles large amounts of records. It supports operations like filtering, sorting and **CRUD** (Create, Read, Update, Delete), and advanced ones - multi-column sorting, creating custom cell types and adding data summaries.
 
@@ -18,7 +21,7 @@ Handsontable is loved by users because it gives them the same experience as Goog
 * Sales reporting
 * Financial analysis
 
-### Troubleshooting
+## Troubleshooting
 
 There are several way to get help if you stumble across any issues.
 

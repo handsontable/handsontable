@@ -1,9 +1,12 @@
 ---
-id: collapsible-columns
 title: CollapsibleColumns
-sidebar_label: CollapsibleColumns
-slug: /api/collapsible-columns
+permalink: /next/api/collapsible-columns
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

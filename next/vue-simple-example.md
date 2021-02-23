@@ -1,9 +1,10 @@
 ---
-id: vue-simple-example
 title: Basic example
-sidebar_label: Basic example
-slug: /vue-simple-example
+permalink: /next/vue-simple-example
+canonicalUrl: /vue-simple-example
 ---
+
+# {{ $frontmatter.title }}
 
 A simple implementation of the `@handsontable/vue` component.
 

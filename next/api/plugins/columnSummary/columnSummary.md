@@ -1,9 +1,12 @@
 ---
-id: column-summary
 title: ColumnSummary
-sidebar_label: ColumnSummary
-slug: /api/column-summary
+permalink: /next/api/column-summary
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

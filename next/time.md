@@ -1,9 +1,10 @@
 ---
-id: time
 title: Time
-sidebar_label: Time
-slug: /time
+permalink: /next/time
+canonicalUrl: /time
 ---
+
+# {{ $frontmatter.title }}
 
 To use the Time cell type, set the `type: 'time'` option in the `columns` array or the `cells` function.
 The Time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, so be sure to add an additional file in your `<head>` :
@@ -15,7 +16,8 @@ If you enable the `correctFormat` config item, the values will be automatically 
 
 By default, the values entered to the time-typed column are **not** validated, so if you want them to display in the proper format, remember to call `hot.validateCells()` after the table initialization.
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var container = document.getElementById('example1'),
     hot;
 
@@ -58,3 +60,4 @@ hot = new Handsontable(container, {
 
 hot.validateCells();
 ```
+:::

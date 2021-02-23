@@ -1,9 +1,11 @@
 ---
-id: vue-hot-reference
 title: Referencing the Handsontable instance
-sidebar_label: Referencing the Handsontable instance
-slug: /vue-hot-reference
+permalink: /next/vue-hot-reference
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 An implementation of the `@handsontable/vue` explaining how to reference the Handsontable instance from the wrapper component.
 

@@ -1,9 +1,10 @@
 ---
-id: angular-simple-example
 title: Basic example
-sidebar_label: Basic example
-slug: /angular-simple-example
+permalink: /next/angular-simple-example
+canonicalUrl: /angular-simple-example
 ---
+
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/angular` wrapper.
 

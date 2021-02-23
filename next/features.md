@@ -1,9 +1,10 @@
 ---
-id: features
 title: Features
-sidebar_label: Features
-slug: /features
+permalink: /next/features
+canonicalUrl: /features
 ---
+
+# {{ $frontmatter.title }}
 
 | Name | Description |
 |----|----|

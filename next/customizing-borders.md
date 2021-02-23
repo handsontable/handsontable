@@ -1,9 +1,10 @@
 ---
-id: customizing-borders
 title: Customizing borders
-sidebar_label: Customizing borders
-slug: /customizing-borders
+permalink: /next/customizing-borders
+canonicalUrl: /customizing-borders
 ---
+
+# {{ $frontmatter.title }}
 
 To enable the custom borders feature, set the `customBorders` option. It could be set as `true` or initialized as an array with predefined setup.
 
@@ -16,7 +17,8 @@ To initialize Handsontable with predefined custom borders, provide cells coordin
 
 Edit Log to console
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var container = document.getElementById('example1'),
   hot;
 
@@ -70,3 +72,4 @@ hot = Handsontable(container, {
   ]
 });
 ```
+:::

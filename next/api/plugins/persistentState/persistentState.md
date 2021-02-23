@@ -1,9 +1,12 @@
 ---
-id: persistent-state
 title: PersistentState
-sidebar_label: PersistentState
-slug: /api/persistent-state
+permalink: /next/api/persistent-state
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
+
 ## Description
 
 

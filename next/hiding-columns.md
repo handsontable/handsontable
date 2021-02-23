@@ -1,21 +1,24 @@
 ---
-id: hiding-columns
 title: Hiding columns
-sidebar_label: Hiding columns
-slug: /hiding-columns
+permalink: /next/hiding-columns
+canonicalUrl: /hiding-columns
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 The _Hidden Columns_ plugin allows hiding specific columns from the table. Columns being hidden **are included** in a `DataMap` (gets by the [getData](api/core.md#getData) method), but they **aren't rendered**.
 
-### Quick setup
+## Quick setup
 
 The `hiddenColumns` parameter accepts an object. To provide the columns to hide, you need to specify the `columns` property for the object - it should be defined as an array of numbers, which represent the indexes of columns that need to be hidden.
 
 See [the examples section](#example) for more details.
 
-### Additional options
+## Additional options
 
 The plugin allows displaying hidden column indicators in the headers, to notify the user which columns have been hidden.
 To enable them, set the `indicators` property in the plugin's configuration object to `true`.
@@ -30,9 +33,10 @@ You can show/hide certain columns straight from the [Context menu](context-menu.
 
 See [the examples section](#example) for more details.
 
-### Example
+## Example
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var hot1 = new Handsontable(example1, {
   data: Handsontable.helper.createSpreadsheetData(5,12),
@@ -45,8 +49,9 @@ var hot1 = new Handsontable(example1, {
   }
 });
 ```
+:::
 
-### API examples
+## API examples
 
 You can access the plugin instance by calling
 

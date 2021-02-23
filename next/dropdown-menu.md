@@ -1,20 +1,24 @@
 ---
-id: dropdown-menu
 title: Dropdown menu
-sidebar_label: Dropdown menu
-slug: /dropdown-menu
+permalink: /next/dropdown-menu
+canonicalUrl: /dropdown-menu
 ---
 
-### Overview
+# {{ $frontmatter.title }}
+
+[[toc]]
+
+## Overview
 
 This plugin allows adding a configurable dropdown menu to the table's column headers.
 The dropdown menu acts like the **Context Menu**, but is triggered by clicking the button in the header.
 
-### Quick setup
+## Quick setup
 
 To enable the plugin, simply set the `dropdownMenu` property to `true`, when initializing Handsontable.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1');
 var hot1 = new Handsontable(example1, {
   data: Handsontable.helper.createSpreadsheetData(3, 7),
@@ -22,12 +26,14 @@ var hot1 = new Handsontable(example1, {
   dropdownMenu: true
 });
 ```
+:::
 
-### Plugin configuration
+## Plugin configuration
 
 You can use the default dropdown contents by setting it to `true`, but if you'd like to customize it a little you can set it to use a custom list of actions. For the entry options reference, see the [Context Menu demo](context-menu.md#page-specific).
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example2 = document.getElementById('example2');
 var hot2 = new Handsontable(example2, {
   data: Handsontable.helper.createSpreadsheetData(3, 7),
@@ -41,3 +47,4 @@ var hot2 = new Handsontable(example2, {
   ]
 });
 ```
+:::

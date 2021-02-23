@@ -1,9 +1,10 @@
 ---
-id: handsontable
 title: Handsontable
-sidebar_label: Handsontable
-slug: /handsontable
+permalink: /next/handsontable
+canonicalUrl: /handsontable
 ---
+
+# {{ $frontmatter.title }}
 
 This page shows using Handsontable as a cell editor in Handsontable (sometimes referred as **HOT-in-HOT**). Please **note** that although the functionality of **HOT-in-HOT** is similar to this of the Handsontable, it may not support all of its features.
 
@@ -29,7 +30,8 @@ Mouse click outside of the editor or on one of the cells in HOT-in-HOT applies c
 
 **\*apply change** means: The value of the cell highlighted or clicked in HOT-in-HOT is applied as new cell value in the main HOT. If no cell in HOT-in-HOT is selected, the value of the text field is used instead.
 
-```js hot-preview=example1,hot
+::: example #example1
+```js
 var carData = [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -96,3 +98,4 @@ hot = new Handsontable(container, {
   ]
 });
 ```
+:::

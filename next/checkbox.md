@@ -1,19 +1,23 @@
 ---
-id: checkbox
 title: Checkbox
-sidebar_label: Checkbox
-slug: /checkbox
+permalink: /next/checkbox
+canonicalUrl: /checkbox
 ---
+
+# {{ $frontmatter.title }}
+
+[[toc]]
 
 Data in such cells will be rendered as checkbox and can be easily changed by checking/unchecking the checkbox.
 
 Checking and unchecking can be performed using mouse or by pressing <kbd>SPACE</kbd>. You can change the state of multiple cells at once. Simply select cells you want to change and press <kbd>SPACE</kbd>.
 
-### Checkbox true/false values
+## Checkbox true/false values
 
 This is default usage scenario when columns data have `true` or `false` value and we want to display only checkboxes.
 
-```js hot-preview=example1,hot1
+::: example #example1
+```js
 var example1 = document.getElementById('example1'),
     hot1;
 
@@ -41,12 +45,14 @@ hot1 = new Handsontable(example1, {
   ]
 });
 ```
+:::
 
-### Checkbox template
+## Checkbox template
 
 If you want use other values than `true` and `false`, you have to provide this information using `checkedTemplate` and `uncheckedTemplate`. Handsontable will then update your data using appropriate template.
 
-```js hot-preview=example2,hot2
+::: example #example2
+```js
 var example1 = document.getElementById('example2'),
     hot2;
 
@@ -76,12 +82,14 @@ hot2 = new Handsontable(example2, {
   ]
 });
 ```
+:::
 
-### Checkbox labels
+## Checkbox labels
 
 If you want to add label to the checkbox you can use `label` option. With this option you can declare where label will be injected (before or after checkbox element) and from what data source label text will be updated.
 
-```js hot-preview=example3,hot3
+::: example #example3
+```js
 var example1 = document.getElementById('example3'),
     hot3;
 
@@ -119,3 +127,4 @@ hot3 = new Handsontable(example3, {
   ]
 });
 ```
+:::
