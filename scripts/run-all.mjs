@@ -21,7 +21,8 @@ const argv = yargs(hideBin(process.argv))
     'handsontable',
     'angular-handsontable',
     'react-handsontable',
-    'vue-handsontable'
+    'vue-handsontable',
+    'examples'
   ];
 
   /* eslint-disable no-await-in-loop,no-restricted-syntax */

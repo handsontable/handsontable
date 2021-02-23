@@ -12,9 +12,9 @@
   },
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
-    "start": "BROWSER=none PORT=8080 react-scripts start",
-    "build": "PUBLIC_URL=. react-scripts build && node post-build.js",
-    "eject": "react-scripts eject",
+    "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
+    "build": "cross-env SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build && node post-build.js",
+    "eject": "react-app-rewired eject",
     "jasmine": "node spec/support/jasmine.config.js",
     "test": "start-server-and-test 'http-server ./dist -c-1' 8080 'npm run jasmine'"
   },
@@ -23,14 +23,16 @@
     "handsontable": "latest",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-scripts": "4.0.1"
+    "react-scripts": "4.0.2"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "http-server": "^0.12.3",
     "jasmine": "^3.6.4",
     "jasmine-console-reporter": "^3.1.0",
     "puppeteer": "^7.0.1",
-    "start-server-and-test": "^1.12.0"
+    "start-server-and-test": "^1.12.0",
+    "react-app-rewired": "^2.1.8"
   },
   "license": "MIT",
   "eslintConfig": {

@@ -28,4 +28,6 @@ export default {
 };
 </script>
 
-<style src="../../node_modules/handsontable/dist/handsontable.full.css"></style>
+<style>
+@import "~handsontable/dist/handsontable.full.css";
+</style>

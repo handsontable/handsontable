@@ -19,6 +19,7 @@
   "scripts": {
     "in": "node --experimental-json-modules scripts/delegate-command.mjs",
     "all": "node --experimental-json-modules scripts/run-all.mjs",
+    "clean:node_modules": "node --experimental-json-modules scripts/clean-node-modules.mjs",
     "clean": "rimraf commonjs es coverage tmp",
     "lint": "npm run eslint && npm run stylelint",
     "lint:fix": "npm run eslint:fix && npm run stylelint:fix",

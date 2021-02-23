@@ -36,7 +36,6 @@ if (pkgName && PACKAGE_LOCATIONS.has(pkgName)) {
   linkPackage(pkgName, PACKAGE_LOCATIONS.get(pkgName));
 
 } else if (!pkgName) {
-  // eslint-disable-next-line no-restricted-syntax
   for (const [packageName, packageLocation] of PACKAGE_LOCATIONS) {
     linkPackage(packageName, packageLocation);
   }

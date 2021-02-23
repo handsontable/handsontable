@@ -18,29 +18,38 @@ const [shellCommand, hotVersion] = process.argv.slice(2);
 
 // Function search recursively in the provided `dirPath` for the package.json file
 // and gets the project directory path.
-const getExamplesFolders = (dirPath, exampleFolders) => {
+const getExamplesFolders = (dirPath, exampleFolders, onlyWorkspaceConfigs = false) => {
   const files = fs.readdirSync(dirPath);
 
   exampleFolders = exampleFolders || [];
 
   files.forEach((file) => {
     if (file !== 'node_modules' && fs.statSync(path.join(dirPath, file)).isDirectory()) {
-      exampleFolders = getExamplesFolders(path.join(dirPath, file), exampleFolders);
+      exampleFolders = getExamplesFolders(path.join(dirPath, file), exampleFolders, onlyWorkspaceConfigs);
       return;
     }
 
     if (file === 'package.json') {
-      exampleFolders.push(dirPath);
+      // Check whether the found package.json file is a meant as a workspace config only.
+      const isWorkspaceConfig = !!fs.readJsonSync(`${dirPath}/${file}`).workspaces;
+
+      if (onlyWorkspaceConfigs === isWorkspaceConfig) {
+        exampleFolders.push(dirPath);
+      }
     }
   });
 
   return exampleFolders;
 };
 
+const getWorkspaceConfigFolders = (dirPath, exampleFolders) => {
+  return getExamplesFolders(dirPath, exampleFolders, true);
+}
+
 const getHotWrapperName = (packageJson) => {
   const { dependencies } = packageJson;
 
-  return HOT_WRAPPERS.find(wrapper => Object.keys(dependencies).find(dependency => dependency === wrapper));
+  return HOT_WRAPPERS.find(wrapper => Object.keys(dependencies).includes(wrapper));
 };
 
 const updatePackageJsonWithVersion = (projectDir, version) => {
@@ -60,8 +69,17 @@ const updatePackageJsonWithVersion = (projectDir, version) => {
   fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
 };
 
+const updateFrameworkWorkspacesNames = (projectDir, version) => {
+  const packageJsonPath = path.join(projectDir, 'package.json');
+  const packageJson = fs.readJsonSync(packageJsonPath);
+
+  packageJson.name += `-${version}`;
+  packageJson.version = version;
+
+  fs.writeJsonSync(packageJsonPath, packageJson, { spaces: 2 });
+};
+
 const runNpmCommandInExample = (exampleDir, command) => {
-  // eslint-disable-next-line
   console.log(chalk.cyan(`"${command}" STARTED IN DIRECTORY "${exampleDir}"`));
 
   try {
@@ -70,8 +88,8 @@ const runNpmCommandInExample = (exampleDir, command) => {
       stdio: 'inherit',
       shell: true
     });
+
   } catch (error) {
-    // eslint-disable-next-line
     console.error(error);
     process.exit(error.exitCode);
   }
@@ -88,46 +106,41 @@ const versionedExamplesExist = fs.existsSync(versionedDir);
 
 switch (shellCommand) {
   case 'version': { // npm run examples:version <version_number>
-
     if (versionedExamplesExist) {
       throw Error(`Examples already exist: ${path.join('examples', hotVersion)}.`);
     }
 
-    const nextExamplesFolders = getExamplesFolders(NEXT_EXAMPLES_DIR);
+    rimraf.sync(`${NEXT_EXAMPLES_DIR}/node_modules`);
 
-    nextExamplesFolders.forEach((nextDir) => {
-      rimraf.sync(path.join(nextDir, 'node_modules'));
-    });
+    rimraf.sync(`${NEXT_EXAMPLES_DIR}/**/node_modules`);
 
     fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
 
     const versionedExamplesFolders = getExamplesFolders(versionedDir);
+    const workspaceConfigFolders = getWorkspaceConfigFolders(versionedDir);
 
     versionedExamplesFolders.forEach((versionedExampleDir) => {
       updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
+    });
+
+    workspaceConfigFolders.forEach((frameworkFolder) => {
+      updateFrameworkWorkspacesNames(frameworkFolder, hotVersion);
     });
 
     break;
   }
 
   case 'install': { // npm run examples:install <version_number>
-
     if (!versionedExamplesExist) {
       throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
 
-    const examplesFolders = getExamplesFolders(versionedDir);
-
-    examplesFolders.forEach((exampleDir) => {
-      rimraf.sync(path.join(exampleDir, 'node_modules'));
-      runNpmCommandInExample(exampleDir, 'npm install');
-    });
+    runNpmCommandInExample(versionedDir, `npm run install:version ${hotVersion}`)
 
     break;
   }
 
   case 'build': { // npm run examples:build <version_number>
-
     if (!versionedExamplesExist) {
       throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
@@ -149,7 +162,6 @@ switch (shellCommand) {
   }
 
   case 'test': { // npm run examples:test <version_number>
-
     if (!versionedExamplesExist) {
       throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
