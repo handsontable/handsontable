@@ -1,7 +1,7 @@
 /**
  * Delegate the provided command to a sub-project.
  * For example:
- * `npm run in vue-handsontable build` or `run in vue build`
+ * `run in vue build`
  * will run the `build` command from the directory of the provided project.
  */
 import execa from 'execa';
@@ -12,9 +12,6 @@ import { displayErrorMessage } from './utils/index.mjs';
 const [project, command, ...args] = process.argv.slice(2);
 const workspacePackages = hotPackageJson.workspaces.packages;
 const PROJECT_ALIASES = {
-  angular: 'angular-handsontable',
-  react: 'react-handsontable',
-  vue: 'vue-handsontable',
   handsontable: '.',
 };
 const commandArray = [

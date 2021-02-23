@@ -4,20 +4,19 @@ import execa from 'execa';
  * Spawn a process.
  *
  * @param {string} command The command to spawn.
- * @param {boolean} [silent] `true` if there's supposed to be no output to the console.
+ * @param {object} [options] Options object to be passed to the child process.
  */
-export async function spawnProcess(command, silent = false) {
+export async function spawnProcess(command, options = {}) {
   const cmdSplit = command.split(' ');
   const mainCmd = cmdSplit[0];
-  const spawnOptions = {
-    silent
-  };
 
   cmdSplit.shift();
 
-  if (!spawnOptions.silent) {
-    spawnOptions.stdio = 'inherit';
+  if (!options.silent) {
+    options.stdin = options.stdin ?? 'inherit';
+    options.stdout = options.stdout ?? 'inherit';
+    options.stderr = options.stderr ?? 'inherit';
   }
 
-  return execa(mainCmd, cmdSplit, spawnOptions);
+  return execa(mainCmd, cmdSplit, options);
 }

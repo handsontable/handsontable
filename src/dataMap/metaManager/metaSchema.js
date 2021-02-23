@@ -287,8 +287,14 @@ export default () => {
      * (if you want to define column width separately for each column) or a function (if you want to set column width
      * dynamically on each render).
      *
+     * The default width for columns in the rendering process equals 50px.
+     *
+     * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
+     *
+     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
+     *
      * @memberof Options#
-     * @type {number|number[]|string|string[]|Function}
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      *
      * @example
@@ -299,8 +305,8 @@ export default () => {
      * // as a string, for each column.
      * colWidths: '100px',
      *
-     * // as an array, based on visual indexes. The rest of the columns have a default width.
-     * colWidths: [100, 120, 90],
+     * // as an array, based on visual indexes. Unspecified columns have a default width.
+     * colWidths: [100, 120, undefined, 90],
      *
      * // as a function, based on visual indexes.
      * colWidths: function(index) {
@@ -318,10 +324,13 @@ export default () => {
      * If the {@link ManualRowResize} or {@link AutoRowSize} plugins are enabled, this is also the minimum height that can
      * be set via either of those two plugins.
      *
+     * The default height for rows in the rendering process equals 23px.
      * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
      *
+     * An `undefined` value is for detection in {@link Hooks#modifyRowHeight} hook if plugin or setting changed the default size.
+     *
      * @memberof Options#
-     * @type {number|number[]|string|string[]|Function}
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      *
      * @example
@@ -2286,6 +2295,8 @@ export default () => {
      * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
+     *
+     * Note: Using {@link Core#colWidths} option will forcely disable {@link AutoColumnSize}.
      *
      * @memberof Options#
      * @type {object|boolean}

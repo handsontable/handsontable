@@ -868,5 +868,163 @@ describe('HiddenRows', () => {
         });
       });
     });
+
+    describe('should go to the closest not hidden cell while navigating', () => {
+      it('by HOME key', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [0, 1, 3],
+          },
+        });
+
+        selectCell(4, 4);
+
+        keyDownUp('home');
+
+        expect(`
+        |   :   :   :   :   |
+        | # :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[4, 0, 4, 0]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(4);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(4);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(0);
+      });
+
+      it('by ctrl + HOME key', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [0, 1, 3],
+          },
+        });
+
+        selectCell(4, 4);
+
+        keyDown('ctrl');
+        keyDownUp('home', { ctrlKey: true });
+
+        expect(`
+        |   :   :   :   : A |
+        |   :   :   :   : 0 |
+        `).toBeMatchToSelectionPattern();
+
+        expect(getSelected()).toEqual([[4, 4, 4, 4], [2, 4, 2, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(2);
+        expect(getSelectedRangeLast().highlight.col).toBe(4);
+        expect(getSelectedRangeLast().from.row).toBe(2);
+        expect(getSelectedRangeLast().from.col).toBe(4);
+        expect(getSelectedRangeLast().to.row).toBe(2);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+      });
+
+      it('by shift + HOME key', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [0, 1, 3],
+          },
+        });
+
+        selectCell(4, 4);
+
+        keyDown('shift');
+        keyDownUp('home', { shiftKey: true });
+
+        expect(`
+        |   :   :   :   :   |
+        | 0 : 0 : 0 : 0 : A |
+        `).toBeMatchToSelectionPattern();
+
+        expect(getSelected()).toEqual([[4, 4, 4, 0]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(4);
+        expect(getSelectedRangeLast().highlight.col).toBe(4);
+        expect(getSelectedRangeLast().from.row).toBe(4);
+        expect(getSelectedRangeLast().from.col).toBe(4);
+        expect(getSelectedRangeLast().to.row).toBe(4);
+        expect(getSelectedRangeLast().to.col).toBe(0);
+      });
+
+      it('by END key', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [1, 3, 4],
+          },
+        });
+
+        selectCell(0, 0);
+
+        keyDownUp('end');
+
+        expect(`
+        |   :   :   :   : # |
+        |   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 4, 0, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(4);
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(4);
+        expect(getSelectedRangeLast().to.row).toBe(0);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+      });
+
+      it('by ctrl + END key', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [1, 3, 4],
+          },
+        });
+
+        selectCell(0, 0);
+
+        keyDown('ctrl');
+        keyDownUp('end', { ctrlKey: true });
+
+        expect(`
+        | 0 :   :   :   :   |
+        | A :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 0, 0, 0], [2, 0, 2, 0]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(2);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(2);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(2);
+        expect(getSelectedRangeLast().to.col).toBe(0);
+      });
+
+      it('by shift + END key', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          hiddenRows: {
+            rows: [1, 3, 4],
+          },
+        });
+
+        selectCell(0, 0);
+
+        keyDown('shift');
+        keyDownUp('end', { shiftKey: true });
+
+        expect(`
+        | A : 0 : 0 : 0 : 0 |
+        |   :   :   :   :   |
+        `).toBeMatchToSelectionPattern();
+        expect(getSelected()).toEqual([[0, 0, 0, 4]]);
+        expect(getSelectedRangeLast().highlight.row).toBe(0);
+        expect(getSelectedRangeLast().highlight.col).toBe(0);
+        expect(getSelectedRangeLast().from.row).toBe(0);
+        expect(getSelectedRangeLast().from.col).toBe(0);
+        expect(getSelectedRangeLast().to.row).toBe(0);
+        expect(getSelectedRangeLast().to.col).toBe(4);
+      });
+    });
   });
 });

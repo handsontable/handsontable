@@ -188,7 +188,16 @@ module.exports = {
     {
       "files": ["scripts/**"],
       "rules": {
+        "no-restricted-globals": "off",
         "import/extensions": "off",
+        "no-console": "off",
+        "no-await-in-loop": "off",
+        "no-restricted-syntax": [
+          'error',
+          'ForInStatement',
+          'LabeledStatement',
+          'WithStatement',
+        ]
       }
     },
   ],
