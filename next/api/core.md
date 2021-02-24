@@ -9,6 +9,7 @@ permalink: /next/api/
 
 ## Description
 
+
 After Handsontable is constructed, you can modify the grid behavior using the available public methods.
 
 ## How to call methods.

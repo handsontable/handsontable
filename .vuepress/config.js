@@ -189,7 +189,7 @@ module.exports = {
     lastUpdated: true,
     smoothScroll: false,
     searchPlaceholder: 'Search...',
-    nav: [
+    nav: [ //todo link to latest, not next
       { text: 'Guide', link: '/next/' },
       { text: 'API Reference', link: '/next/api/' },
     ],
@@ -201,12 +201,12 @@ module.exports = {
       '/next/api/': [
         "core",
         "pluginHooks",
-        "dataMap/metaManager/metaSchema",
+        "metaSchema",
         {
           title: "Plugins",
           collapsable: false,
           children: fs.readdirSync(path.join(__dirname, '../next/api/plugins'))
-            .map(f => `plugins/${f}/${f}`)
+            .map(f => `plugins/${f}`)
         },
       ],
       '/next/': [

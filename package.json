@@ -15,6 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@vuepress/plugin-active-header-links": "^1.8.1",
+    "jsdoc-to-markdown": "^6.0.1",
     "markdown-it-regex": "^0.2.0",
     "vuepress": "^1.8.1"
   }
