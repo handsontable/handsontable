@@ -23,7 +23,3 @@ export default {
   },
 };
 </script>
-
-<style>
-@import "~handsontable/dist/handsontable.full.css";
-</style>
