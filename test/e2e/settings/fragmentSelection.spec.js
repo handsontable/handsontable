@@ -34,36 +34,30 @@ describe('settings', () => {
 
     /**
      * Selects a <fromEl> node at as many siblings as given in the <cells> value
-     * Note: IE8 fallback assumes that a node contains exactly one word.
      *
      * @param {HTMLElement} fromEl An element from the selection starts.
      * @param {number} siblings The number of siblings to process.
      */
     function selectElementText(fromEl, siblings) {
-      const doc = window.document;
       let element = fromEl;
       let numOfSiblings = siblings;
-      let sel;
-      let range;
 
-      if (window.getSelection && doc.createRange) { // standards
-        sel = window.getSelection();
-        range = doc.createRange();
-        range.setStartBefore(element, 0);
+      const sel = window.getSelection();
+      const range = window.document.createRange();
+      range.setStartBefore(element, 0);
 
-        while (numOfSiblings > 1) {
-          element = element.nextSibling;
-          numOfSiblings -= 1;
-        }
-
-        range.setEndAfter(element, 0);
-        sel.removeAllRanges();
-        sel.addRange(range);
+      while (numOfSiblings > 1) {
+        element = element.nextSibling;
+        numOfSiblings -= 1;
       }
+
+      range.setEndAfter(element, 0);
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
 
     describe('constructor', () => {
-      it('should disallow fragmentSelection when set to false', () => {
+      it('should disallow fragmentSelection when set to false', async() => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(4, 4),
           fragmentSelection: false
