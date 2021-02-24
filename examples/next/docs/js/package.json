@@ -4,7 +4,7 @@
   "private": true,
   "workspaces": {
     "packages": [
-      "@(!(node_modules))"
+      "@(!(node_modules))/"
     ]
   }
 }

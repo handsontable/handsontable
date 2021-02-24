@@ -6,6 +6,8 @@
 </template>
 
 <script>
+import "handsontable/dist/handsontable.full.css";
+
 import { HotTable, HotColumn } from "@handsontable/vue";
 import Handsontable from 'handsontable';
 
@@ -27,7 +29,3 @@ export default {
   },
 };
 </script>
-
-<style>
-@import "~handsontable/dist/handsontable.full.css";
-</style>

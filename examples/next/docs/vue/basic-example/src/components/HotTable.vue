@@ -3,6 +3,8 @@
 </template>
 
 <script>
+import "handsontable/dist/handsontable.full.css";
+
 import { HotTable } from "@handsontable/vue";
 import Handsontable from "handsontable";
 

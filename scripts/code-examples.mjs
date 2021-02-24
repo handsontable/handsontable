@@ -153,7 +153,7 @@ switch (shellCommand) {
       runNpmCommandInExample(exampleDir, 'npm run build');
 
       const prodOutputDir = path.join(exampleDir, 'dist');
-      const deployDir = path.join(TMP_DIR, exampleDir.split('examples')[1]);
+      const deployDir = path.join(REPO_ROOT_DIR, TMP_DIR, exampleDir.split('examples')[1]);
 
       fs.mkdirSync(deployDir, { recursive: true });
       fs.copySync(prodOutputDir, deployDir);
