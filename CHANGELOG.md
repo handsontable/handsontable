@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where the dropdown cell type would not work on Safari 14+. [#7413](https://github.com/handsontable/handsontable/issues/7413)
 - Fixed a bug where the `AutoRowSize` plugin would break the table when placed in an iframe. [#7424](https://github.com/handsontable/handsontable/issues/7424)
 - Fixed bugs in navigation by `HOME` and `END` keys with hidden rows/columns enabled. [#7454](https://github.com/handsontable/handsontable/issues/7454)
-- Fixed a regression caused by the `trimWhitespace` option not working properly and made it work as specified in the documentation. [#7458](https://github.com/handsontable/handsontable/issues/7458)
+- Fixed a bug with the `trimWhitespace` option not working properly. [#7458](https://github.com/handsontable/handsontable/issues/7458)
 - Fixed an issue with inconsistent documentation and TypeScript definitions for `colWidths` and `rowHeights` options. [#7507](https://github.com/handsontable/handsontable/issues/7507)
 
 ### Added
