@@ -7,9 +7,6 @@
     "build": "node ../scripts/code-examples.mjs build next",
     "install:version": "node --experimental-json-modules ./scripts/install-subpackages.mjs"
   },
-  "devDependencies": {
-    "rimraf": "^3.0.2"
-  },
   "eslintConfig": {
     "root": true,
     "env": {
