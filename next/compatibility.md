@@ -6,9 +6,7 @@ canonicalUrl: /compatibility
 
 # {{ $frontmatter.title }}
 
-import { Version } from '../src/components/version';
-
-Handsontable is compatible with modern browsers such as Chrome, Firefox, Safari, Opera, and Edge. It also supports Internet Explorer 9 to 11 but with limited performance. This version (<Version/>) was tested in the following browser versions:
+Handsontable is compatible with modern browsers such as Chrome, Firefox, Safari, Opera, and Edge. It also supports Internet Explorer 9 to 11 but with limited performance. This version ({{ $page.currentVersion }}) was tested in the following browser versions:
 
 | Firefox | Chrome | Internet Explorer\* | Edge | Safari | Opera |
 | ---- | ----| ---- | ---- | ---- | ---- |

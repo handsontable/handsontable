@@ -1,5 +1,6 @@
-export default ({ router }) => {
-  router.addRoutes([
-    { path: '/guide/', redirect: '/' }
-  ])
+import RouterLink from './theme/components/RouterLink.vue';
+
+export default ({ Vue, options, router, siteData, isServer }) => {
+  // replace RouterLink component with ours
+  // Vue.component('RouterLink', RouterLink);
 }
