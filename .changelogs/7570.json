@@ -1,0 +1,7 @@
+{
+  "title": "Fixed bug with autocomplete on Firefox in Win10",
+  "type": "fixed",
+  "issue": 7570,
+  "breaking": false,
+  "framework": "none"
+}
