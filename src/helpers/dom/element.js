@@ -798,6 +798,9 @@ export function computeScaleX(element) {
   const dummyRect = dummy.getBoundingClientRect();
   const scaleX = dummyRect.width / factor;
 
+  // IE doesn't support `HTMLElement#remove()`
+  dummy.parentNode.removeChild(dummy);
+
   // On certain browsers (ehm, IE11 and below) if it is attempted to add
   // the dummy element to a `<table>` element, the browser won't treat is
   // as a proper element, as in `document.body.contains(dummy) === true`,
