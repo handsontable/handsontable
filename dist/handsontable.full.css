@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 8.3.1
- * Release date: 10/02/2021 (built at 09/02/2021 09:19:07)
+ * Version: 8.3.2
+ * Release date: 04/03/2021 (built at 25/02/2021 10:24:48)
  */
 /**
  * Fix for bootstrap styles
@@ -78,7 +78,7 @@
 .handsontable .table > thead > tr > td,
 .handsontable .table > thead > tr > th {
   line-height: 21px;
-  padding: 0 4px;
+  padding: 0;
 }
 
 .col-lg-1.handsontable, .col-lg-10.handsontable, .col-lg-11.handsontable, .col-lg-12.handsontable,
@@ -182,8 +182,7 @@
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
-  white-space: pre-line;
-  /* preserve new line character in cell */
+  white-space: pre-wrap;
 }
 
 .handsontable th:last-child {
@@ -352,6 +351,10 @@ innerBorderBottom - Property controlled by bottom overlay
 .ht_clone_left .wtHolder,
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
+}
+
+.handsontable {
+  touch-action: manipulation;
 }
 
 .handsontable.htAutoSize {

@@ -1,7 +1,0 @@
-{
-  "title": "Fixed bugs in navigation by HOME and END keys when there are some hidden rows/columns",
-  "type": "fixed",
-  "issue": 7454,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,7 +1,0 @@
-{
-  "title": "The `AutoRowSize` plugin won't break the table in specific case",
-  "type": "fixed",
-  "issue": 7424,
-  "breaking": false,
-  "framework": "none"
-}
