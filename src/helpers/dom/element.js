@@ -775,6 +775,9 @@ export function outerWidth(element) {
  * element, relative to the root document. Involves adding a dummy element of a
  * constant size to the DOM, be cautious about performance.
  *
+ * Note that this will always return `1` on IE, see the lengthy comment
+ * inside the function body.
+ *
  * @param {HTMLElement} element An element to get the `scaleX` from.
  * @returns {number} `scaleX` value.
  */
@@ -795,8 +798,19 @@ export function computeScaleX(element) {
   const dummyRect = dummy.getBoundingClientRect();
   const scaleX = dummyRect.width / factor;
 
-  // IE doesn't support `HTMLElement#remove()`
-  dummy.parentNode.removeChild(dummy);
+  // On certain browsers (ehm, IE11 and below) if it is attempted to add
+  // the dummy element to a `<table>` element, the browser won't treat is
+  // as a proper element, as in `document.body.contains(dummy) === true`,
+  // but `dummy.getBoundingClientRect().width === 0`, always.
+  //
+  // The workaround will set the `scaleX` constant to 1, as on IE
+  // `.getBoundingClientRect()` doesn't need to be adjusted for any
+  // transforms since the browser already does it for us (in contrast to
+  // normal browsers where `.getBoundingClientRect()` always returns
+  // dimensions relative to the whole viewport).
+  if (scaleX === 0) {
+    return 1;
+  }
 
   return scaleX;
 }
