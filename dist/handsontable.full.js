@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.3.2
- * Release date: 04/03/2021 (built at 25/02/2021 10:24:48)
+ * Release date: 04/03/2021 (built at 25/02/2021 15:39:22)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -1193,8 +1193,6 @@ exports.getStyle = getStyle;
 exports.matchesCSSRules = matchesCSSRules;
 exports.getComputedStyle = getComputedStyle;
 exports.outerWidth = outerWidth;
-exports.computeScaleX = computeScaleX;
-exports.preciseOuterWidth = preciseOuterWidth;
 exports.outerHeight = outerHeight;
 exports.innerHeight = innerHeight;
 exports.innerWidth = innerWidth;
@@ -2063,55 +2061,13 @@ function getComputedStyle(element) {
 /**
  * Returns the element's outer width.
  *
- * @see {preciseOuterWidth}
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's outer width.
  */
 
 
 function outerWidth(element) {
-  return element.offsetWidth;
-}
-/**
- * Calculates the current `transform` `scaleX` property value for the passed in
- * element, relative to the root document. Involves adding a dummy element of a
- * constant size to the DOM, be cautious about performance.
- *
- * @param {HTMLElement} element An element to get the `scaleX` from.
- * @returns {number} `scaleX` value.
- */
-
-
-function computeScaleX(element) {
-  // A dummy element with a constant size, used to calculate the `scale`.
-  var dummy = element.ownerDocument.createElement('div');
-  var factor = 100;
-  dummy.style.width = "".concat(factor, "px");
-  dummy.style.display = 'inline-block';
-  dummy.style.position = 'absolute';
-  dummy.style.left = '0';
-  dummy.style.top = '0';
-  dummy.style.visibility = 'hidden';
-  element.appendChild(dummy);
-  var dummyRect = dummy.getBoundingClientRect();
-  var scaleX = dummyRect.width / factor; // IE doesn't support `HTMLElement#remove()`
-
-  dummy.parentNode.removeChild(dummy);
-  return scaleX;
-}
-/**
- * Returns the element's outer width rounded up to the nearest integer,
- * accounting for any scale transforms on parent elements. This function is
- * much more costly than `outerWidth`, use sparingly.
- *
- * @param {HTMLElement} element An element to get the width from.
- * @param {number} scaleX The current `transform` `scaleX` value (@see {computeScaleX}).
- * @returns {number} Element's outer width.
- */
-
-
-function preciseOuterWidth(element, scaleX) {
-  return Math.ceil(element.getBoundingClientRect().width / scaleX);
+  return Math.ceil(element.getBoundingClientRect().width);
 }
 /**
  * Returns the element's outer height.
@@ -26911,18 +26867,8 @@ var GhostTable = /*#__PURE__*/function () {
         this.injectTable();
       }
 
-      var scaleX = (0, _element.computeScaleX)(this.table.table);
       (0, _array.arrayEach)(this.columns, function (column) {
-        // The reason why `preciseOuterWidth` is here instead of just `outerWidth` is because on Safari, for whatever
-        // reason, using just `outerWidth` does not give enough pixels for all the text to render.  `outerWidth`
-        // internally uses `offsetWidth`, which is always rounded to the nearest integer, whereas `preciseOuterWidth` uses
-        // `getBoundingClientRect`, calculates the current `scaleX` transform value, and rounds it up, always giving
-        // enough space for all the text to render on each line properly.
-        //
-        // (`getBoundingClientRect` on its own returns the width already rendered on the screen, which is usually useless
-        // when we want to reuse that measurement in some sibling/child element size, hence the need for `scaleX`
-        // calculation)
-        callback(column.col, (0, _element.preciseOuterWidth)(column.table, scaleX));
+        callback(column.col, (0, _element.outerWidth)(column.table));
       });
     }
     /**
@@ -39762,11 +39708,12 @@ var MasterTable = /*#__PURE__*/function (_Table) {
         var trimmingOverflow = (0, _element.getStyle)(trimmingElement, 'overflow', rootWindow);
         var holderStyle = this.holder.style;
         var scrollWidth = trimmingElement.scrollWidth,
-            scrollHeight = trimmingElement.scrollHeight,
-            offsetWidth = trimmingElement.offsetWidth,
-            offsetHeight = trimmingElement.offsetHeight;
-        var width = offsetWidth;
-        var height = offsetHeight;
+            scrollHeight = trimmingElement.scrollHeight;
+
+        var _trimmingElement$getB = trimmingElement.getBoundingClientRect(),
+            width = _trimmingElement$getB.width,
+            height = _trimmingElement$getB.height;
+
         var overflow = ['auto', 'hidden', 'scroll'];
 
         if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
@@ -58414,7 +58361,7 @@ Handsontable.Core = function (rootElement) {
 };
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "25/02/2021 10:24:48";
+Handsontable.buildDate = "25/02/2021 15:39:22";
 Handsontable.version = "8.3.2";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
