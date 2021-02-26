@@ -1,14 +1,26 @@
 import { HyperFormula } from 'hyperformula/es/index';
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
-import { registerPlugin } from '../../plugins';
 import parseErrorObject from './utils/utils';
 import sequenceToMoveOperations from './utils/columnSorting';
 
-staticRegister('formulas').register('hyperformula', HyperFormula.buildEmpty());
+staticRegister('formulas').register('hyperformula', HyperFormula.buildEmpty({
+  licenseKey: 'agpl-v3'
+}));
 staticRegister('formulas').register('sheetMapping', new Map());
 
-class Formulas extends BasePlugin {
+export const PLUGIN_KEY = 'formulas';
+export const PLUGIN_PRIORITY = 260;
+
+export class Formulas extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -253,10 +265,15 @@ class Formulas extends BasePlugin {
   onAfterLoadData() {
     if (this.isEnabled()) {
 
-      // TODO: temporary solution for no `clearSheet` HF API method
-      this.hyperformula.removeSheet(this.sheetName);
-      this.sheetName = this.hyperformula.addSheet(this.settings.sheetName || void 0);
-      this.sheetId = this.hyperformula.getSheetId(this.sheetName);
+      // TODO: temporary solution for `clearSheet` not shrinking sheet dimensions
+      const currentRowCount = this.hyperformula.getSheetDimensions(this.sheetId).height;
+
+      if (currentRowCount > 0) {
+        this.hyperformula.removeRows(
+          this.sheetId,
+          [0, currentRowCount]
+        );
+      }
       //
 
       this.hyperformula.setCellContents({
@@ -338,7 +355,10 @@ class Formulas extends BasePlugin {
    * @private
    */
   onAfterColumnSort() {
-    const HFmoveActionList = sequenceToMoveOperations(this.currentSortOrderSequence, this.hot.rowIndexMapper.getNotSkippedIndexes());
+    const HFmoveActionList = sequenceToMoveOperations(
+      this.currentSortOrderSequence,
+      this.hot.rowIndexMapper.getNotSkippedIndexes()
+    );
 
     this.hyperformula.batch(() => {
       HFmoveActionList.forEach((moveAction) => {
@@ -352,7 +372,3 @@ class Formulas extends BasePlugin {
     this.currentSortOrderSequence = this.hot.rowIndexMapper.getNotSkippedIndexes();
   }
 }
-
-registerPlugin('formulas', Formulas);
-
-export default Formulas;
