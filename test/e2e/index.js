@@ -12,19 +12,13 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
   }
 }
 
-const ignoredPaths = ['./mobile'];
-
 [
-  require.context('.', true, /\.spec\.js$/),
-  require.context('./../../src/plugins', true, /\.e2e\.js$/),
+  require.context('.', true, /^(?:(?!mobile).)*\.spec\.js$/),
+  require.context('./../../src/', true, /^(?:(?!3rdparty).)*\.spec\.js$/),
 ].forEach((req) => {
   req.keys().forEach((filePath) => {
-    const hasIgnoredPath = ignoredPaths.some(path => filePath.includes(path));
-
-    if (!hasIgnoredPath) {
-      if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
-        req(filePath);
-      }
+    if (testPathRegExp === null || (testPathRegExp instanceof RegExp && testPathRegExp.test(filePath))) {
+      req(filePath);
     }
   });
 });

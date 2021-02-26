@@ -6,7 +6,27 @@ import { arrayEach } from './../../../helpers/array';
 import { isKey } from './../../../helpers/unicode';
 import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
-import Overlay from './overlay/_base';
+import {
+  CLONE_BOTTOM_LEFT_CORNER,
+  CLONE_BOTTOM,
+  CLONE_LEFT,
+  CLONE_TOP_LEFT_CORNER,
+  CLONE_TOP,
+  LeftOverlay,
+  TopOverlay,
+  TopLeftCornerOverlay,
+  BottomOverlay,
+  BottomLeftCornerOverlay,
+  registerOverlayOnce,
+  createOverlay,
+  hasOverlay,
+} from './overlay';
+
+registerOverlayOnce(BottomLeftCornerOverlay);
+registerOverlayOnce(BottomOverlay);
+registerOverlayOnce(LeftOverlay);
+registerOverlayOnce(TopLeftCornerOverlay);
+registerOverlayOnce(TopOverlay);
 
 /**
  * @class Overlays
@@ -40,7 +60,8 @@ class Overlays {
     this.wot.update('scrollbarWidth', this.scrollbarSize);
     this.wot.update('scrollbarHeight', this.scrollbarSize);
 
-    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden';
+    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow') === 'hidden';
 
     this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
@@ -83,16 +104,16 @@ class Overlays {
     if (this.topOverlay) {
       syncScroll = this.topOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.topOverlay = Overlay.createOverlay(Overlay.CLONE_TOP, this.wot);
+      this.topOverlay = createOverlay(CLONE_TOP, this.wot);
     }
 
-    if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM)) {
+    if (!hasOverlay(CLONE_BOTTOM)) {
       this.bottomOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => false,
       };
     }
-    if (!Overlay.hasOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    if (!hasOverlay(CLONE_BOTTOM_LEFT_CORNER)) {
       this.bottomLeftCornerOverlay = {
         needFullRender: false,
         updateStateOfRendering: () => false,
@@ -102,20 +123,20 @@ class Overlays {
     if (this.bottomOverlay) {
       syncScroll = this.bottomOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.bottomOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM, this.wot);
+      this.bottomOverlay = createOverlay(CLONE_BOTTOM, this.wot);
     }
 
     if (this.leftOverlay) {
       syncScroll = this.leftOverlay.updateStateOfRendering() || syncScroll;
     } else {
-      this.leftOverlay = Overlay.createOverlay(Overlay.CLONE_LEFT, this.wot);
+      this.leftOverlay = createOverlay(CLONE_LEFT, this.wot);
     }
 
     if (this.topOverlay.needFullRender && this.leftOverlay.needFullRender) {
       if (this.topLeftCornerOverlay) {
         syncScroll = this.topLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       } else {
-        this.topLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_TOP_LEFT_CORNER, this.wot);
+        this.topLeftCornerOverlay = createOverlay(CLONE_TOP_LEFT_CORNER, this.wot);
       }
     }
 
@@ -123,12 +144,8 @@ class Overlays {
       if (this.bottomLeftCornerOverlay) {
         syncScroll = this.bottomLeftCornerOverlay.updateStateOfRendering() || syncScroll;
       } else {
-        this.bottomLeftCornerOverlay = Overlay.createOverlay(Overlay.CLONE_BOTTOM_LEFT_CORNER, this.wot);
+        this.bottomLeftCornerOverlay = createOverlay(CLONE_BOTTOM_LEFT_CORNER, this.wot);
       }
-    }
-
-    if (this.wot.getSetting('debug') && !this.debug) {
-      this.debug = Overlay.createOverlay(Overlay.CLONE_DEBUG, this.wot);
     }
 
     return syncScroll;
@@ -172,10 +189,19 @@ class Overlays {
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
-    this.eventManager.addEventListener(topOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true });
+    this.eventManager.addEventListener(
+      topOverlayScrollableElement,
+      'scroll', event => this.onTableScroll(event),
+      { passive: true }
+    );
 
     if (topOverlayScrollableElement !== leftOverlayScrollableElement) {
-      this.eventManager.addEventListener(leftOverlayScrollableElement, 'scroll', event => this.onTableScroll(event), { passive: true });
+      this.eventManager.addEventListener(
+        leftOverlayScrollableElement,
+        'scroll',
+        event => this.onTableScroll(event),
+        { passive: true }
+      );
     }
 
     const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
@@ -184,7 +210,12 @@ class Overlays {
     const wheelEventOptions = { passive: isScrollOnWindow };
 
     if (preventWheel || isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(this.wot.wtTable.wtRootElement, 'wheel', event => this.onCloneWheel(event, preventWheel), wheelEventOptions);
+      this.eventManager.addEventListener(
+        this.wot.wtTable.wtRootElement,
+        'wheel',
+        event => this.onCloneWheel(event, preventWheel),
+        wheelEventOptions
+      );
     }
 
     const overlays = [
@@ -198,7 +229,13 @@ class Overlays {
     overlays.forEach((overlay) => {
       if (overlay && overlay.needFullRender) {
         const { holder } = overlay.clone.wtTable;
-        this.eventManager.addEventListener(holder, 'wheel', event => this.onCloneWheel(event, preventWheel), wheelEventOptions);
+
+        this.eventManager.addEventListener(
+          holder,
+          'wheel',
+          event => this.onCloneWheel(event, preventWheel),
+          wheelEventOptions
+        );
       }
     });
 
@@ -263,8 +300,10 @@ class Overlays {
 
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
-    const shouldNotWheelVertically = masterVertical !== rootWindow && target !== rootWindow && !target.contains(masterVertical);
-    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow && target !== rootWindow && !target.contains(masterHorizontal);
+    const shouldNotWheelVertically = masterVertical !== rootWindow &&
+      target !== rootWindow && !target.contains(masterVertical);
+    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
+      target !== rootWindow && !target.contains(masterHorizontal);
 
     if (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally)) {
       return;
@@ -444,9 +483,6 @@ class Overlays {
       this.bottomLeftCornerOverlay.destroy();
     }
 
-    if (this.debug) {
-      this.debug.destroy();
-    }
     this.destroyed = true;
   }
 
@@ -456,16 +492,14 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    if (this.topOverlay.areElementSizesAdjusted && this.leftOverlay.areElementSizesAdjusted) {
-      const container = this.wot.wtTable.wtRootElement.parentNode || this.wot.wtTable.wtRootElement;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+    const spreader = this.wot.wtTable.spreader;
+    const width = spreader.clientWidth;
+    const height = spreader.clientHeight;
 
-      if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
-        this.spreaderLastSize.width = width;
-        this.spreaderLastSize.height = height;
-        this.adjustElementsSize();
-      }
+    if (width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height) {
+      this.spreaderLastSize.width = width;
+      this.spreaderLastSize.height = height;
+      this.adjustElementsSize();
     }
 
     if (this.bottomOverlay.clone) {
@@ -481,10 +515,6 @@ class Overlays {
 
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
       this.bottomLeftCornerOverlay.refresh(fastDraw);
-    }
-
-    if (this.debug) {
-      this.debug.refresh(fastDraw);
     }
   }
 
@@ -539,10 +569,6 @@ class Overlays {
       return;
     }
 
-    if (!this.topOverlay.areElementSizesAdjusted || !this.leftOverlay.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
-
     this.topOverlay.applyToDOM();
 
     if (this.bottomOverlay.clone) {
@@ -583,6 +609,29 @@ class Overlays {
     });
 
     return result;
+  }
+
+  /**
+   * Synchronize the class names between the main overlay table and the tables on the other overlays.
+   *
+   */
+  syncOverlayTableClassNames() {
+    const masterTable = this.instance.wtTable.TABLE;
+    const overlays = [
+      this.topOverlay,
+      this.leftOverlay,
+      this.bottomOverlay,
+      this.topLeftCornerOverlay,
+      this.bottomLeftCornerOverlay
+    ];
+
+    arrayEach(overlays, (elem) => {
+      if (!elem) {
+        return;
+      }
+
+      elem.clone.wtTable.TABLE.className = masterTable.className;
+    });
   }
 }
 

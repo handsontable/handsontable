@@ -1,6 +1,6 @@
 import { IndexMap, alterUtilsFactory, getDecreasedIndexes, getIncreasedIndexes } from '../../../translations';
 
-const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('physically');
+const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('physicallyIndexed');
 
 /**
  * Map from physical index to another index.
@@ -18,7 +18,7 @@ class LooseBindsMap extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertionIndex, insertedIndexes);
+    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertedIndexes);
 
     this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes, this.initValueOrFn);
 

@@ -134,18 +134,18 @@ class DataProvider {
    * @returns {boolean}
    */
   _isHiddenRow(row) {
-    return this.hot.hasHook('hiddenRow') && this.hot.runHooks('hiddenRow', row);
+    return this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row));
   }
 
   /**
    * Check if column at specified column index is hidden.
    *
    * @private
-   * @param {number} column Column index.
+   * @param {number} column Visual column index.
    * @returns {boolean}
    */
   _isHiddenColumn(column) {
-    return this.hot.hasHook('hiddenColumn') && this.hot.runHooks('hiddenColumn', column);
+    return this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column));
   }
 }
 

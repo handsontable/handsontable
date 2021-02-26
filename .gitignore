@@ -18,3 +18,5 @@ npm-debug.log
 node_modules/
 commonjs/
 es/
+coverage/
+tmp/

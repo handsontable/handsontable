@@ -46,14 +46,16 @@ describe('RowHeader', () => {
     expect(cloneTop.height()).toBeLessThan(masterHolder.height());
   });
 
-  it('should show row headers numbered 1-10 by default', () => {
+  it('should show row headers numbered from `0` to `n` by default (where `n` is number of rows)', () => {
     const startRows = 5;
+
     handsontable({
-      startRows,
+      startRows: 5,
       rowHeaders: true
     });
 
     const ths = getLeftClone().find('tbody th');
+
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('1');
     expect($.trim(ths.eq(1).text())).toEqual('2');
@@ -179,6 +181,30 @@ describe('RowHeader', () => {
 
   });
 
+  it('should remove the row-headers-related css class from the Handsontable container after disabling the' +
+    ' `rowHeaders` option using the updateSettings method and add the same css class after re-enabling the option in' +
+    ' the same way', () => {
+    handsontable({
+      startCols: 2,
+      startRows: 2,
+      rowHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htRowHeaders');
+
+    hot().updateSettings({
+      rowHeaders: false
+    });
+
+    expect(hot().rootElement.className).not.toContain('htRowHeaders');
+
+    hot().updateSettings({
+      rowHeaders: true
+    });
+
+    expect(hot().rootElement.className).toContain('htRowHeaders');
+  });
+
   it('should allow defining custom row header width using the rowHeaderWidth config option', () => {
     handsontable({
       startCols: 3,
@@ -216,10 +242,34 @@ describe('RowHeader', () => {
     });
     hot.render();
 
-    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth()).toEqual(66);
-    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth()).toEqual(96);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth())
+      .toEqual(66);
+    expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(2)').outerWidth())
+      .toEqual(96);
 
     expect(spec().$container.find('col').first().css('width')).toEqual('66px');
     expect(spec().$container.find('col').eq(1).css('width')).toEqual('96px');
+  });
+
+  it('should trigger `afterGetRowHeader` hook for all displayed rows on init', () => {
+    const afterGetRowHeader = jasmine.createSpy('afterGetRowHeader');
+
+    handsontable({
+      startRows: 5,
+      startCols: 5,
+      rowHeaders: true,
+      afterGetRowHeader,
+    });
+
+    expect(afterGetRowHeader).toHaveBeenCalledWith(0,
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(1) th')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetRowHeader).toHaveBeenCalledWith(1,
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(2) th')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetRowHeader).toHaveBeenCalledWith(2,
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(3) th')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetRowHeader).toHaveBeenCalledWith(3,
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(4) th')[0], void 0, void 0, void 0, void 0);
+    expect(afterGetRowHeader).toHaveBeenCalledWith(4,
+      spec().$container.find('.ht_clone_left tbody tr:nth-child(5) th')[0], void 0, void 0, void 0, void 0);
   });
 });

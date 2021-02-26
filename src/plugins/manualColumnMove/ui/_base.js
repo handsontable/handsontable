@@ -1,4 +1,4 @@
-import { isNumeric } from './../../../helpers/number';
+import { isNumeric } from '../../../helpers/number';
 
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;

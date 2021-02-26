@@ -1,4 +1,4 @@
-import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
+import { addClass, outerHeight, computeScaleX, preciseOuterWidth } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 
 /**
@@ -98,7 +98,9 @@ class GhostTable {
       this.table = this.createTable(this.hot.table.className);
 
       this.table.colGroup.appendChild(this.createColGroupsCol());
-      this.table.tHead.appendChild(this.createColumnHeadersRow());
+
+      this.appendColumnHeadersRow();
+
       this.container.container.appendChild(this.table.fragment);
 
       rowObject.table = this.table.table;
@@ -125,6 +127,8 @@ class GhostTable {
     this.table = this.createTable(this.hot.table.className);
 
     if (this.getSetting('useHeaders') && this.hot.getColHeader(column) !== null) {
+      // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
+      // We render all columns.
       this.hot.view.appendColHeader(column, this.table.th);
     }
     this.table.tBody.appendChild(this.createCol(column));
@@ -157,8 +161,20 @@ class GhostTable {
     if (!this.injected) {
       this.injectTable();
     }
+
+    const scaleX = computeScaleX(this.table.table);
+
     arrayEach(this.columns, (column) => {
-      callback(column.col, outerWidth(column.table));
+      // The reason why `preciseOuterWidth` is here instead of just `outerWidth` is because on Safari, for whatever
+      // reason, using just `outerWidth` does not give enough pixels for all the text to render.  `outerWidth`
+      // internally uses `offsetWidth`, which is always rounded to the nearest integer, whereas `preciseOuterWidth` uses
+      // `getBoundingClientRect`, calculates the current `scaleX` transform value, and rounds it up, always giving
+      // enough space for all the text to render on each line properly.
+      //
+      // (`getBoundingClientRect` on its own returns the width already rendered on the screen, which is usually useless
+      // when we want to reuse that measurement in some sibling/child element size, hence the need for `scaleX`
+      // calculation)
+      callback(column.col, preciseOuterWidth(column.table, scaleX));
     });
   }
 
@@ -268,28 +284,40 @@ class GhostTable {
     return fragment;
   }
 
-  createColumnHeadersRow() {
+  /**
+   * Creates DOM elements for headers and appends them to the THEAD element of the table.
+   */
+  appendColumnHeadersRow() {
     const { rootDocument } = this.hot;
-    const fragment = rootDocument.createDocumentFragment();
+    const domFragment = rootDocument.createDocumentFragment();
+    const columnHeaders = [];
 
     if (this.hot.hasRowHeaders()) {
       const th = rootDocument.createElement('th');
-      this.hot.view.appendColHeader(-1, th);
-      fragment.appendChild(th);
+
+      columnHeaders.push([-1, th]);
+      domFragment.appendChild(th);
     }
 
     this.samples.forEach((sample) => {
       arrayEach(sample.strings, (string) => {
         const column = string.col;
-
         const th = rootDocument.createElement('th');
 
-        this.hot.view.appendColHeader(column, th);
-        fragment.appendChild(th);
+        columnHeaders.push([column, th]);
+        domFragment.appendChild(th);
       });
     });
 
-    return fragment;
+    // Appending DOM elements for headers
+    this.table.tHead.appendChild(domFragment);
+
+    arrayEach(columnHeaders, (columnHeader) => {
+      const [column, th] = columnHeader;
+
+      // Using source method for filling a header with value.
+      this.hot.view.appendColHeader(column, th);
+    });
   }
 
   /**

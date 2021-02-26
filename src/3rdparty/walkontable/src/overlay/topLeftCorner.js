@@ -1,4 +1,3 @@
-
 import {
   outerHeight,
   outerWidth,
@@ -6,18 +5,25 @@ import {
   resetCssTransform
 } from './../../../../helpers/dom/element';
 import TopLeftCornerOverlayTable from './../table/topLeftCorner';
-import Overlay from './_base';
+import { Overlay } from './_base';
+import {
+  CLONE_TOP_LEFT_CORNER,
+} from './constants';
 
 /**
  * @class TopLeftCornerOverlay
  */
-class TopLeftCornerOverlay extends Overlay {
+export class TopLeftCornerOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_TOP_LEFT_CORNER;
+  }
+
   /**
    * @param {Walkontable} wotInstance The Walkontable instance.
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_TOP_LEFT_CORNER);
+    this.clone = this.makeClone(CLONE_TOP_LEFT_CORNER);
   }
 
   /**
@@ -38,12 +44,14 @@ class TopLeftCornerOverlay extends Overlay {
    */
   shouldBeRendered() {
     const { wot } = this;
-    return !!((wot.getSetting('fixedRowsTop') || wot.getSetting('columnHeaders').length) &&
-        (wot.getSetting('fixedColumnsLeft') || wot.getSetting('rowHeaders').length));
+
+    return wot.getSetting('shouldRenderTopOverlay') && wot.getSetting('shouldRenderLeftOverlay');
   }
 
   /**
    * Updates the corner overlay position.
+   *
+   * @returns {boolean}
    */
   resetFixedPosition() {
     this.updateTrimmingContainer();
@@ -52,15 +60,17 @@ class TopLeftCornerOverlay extends Overlay {
       // removed from DOM
       return;
     }
+
     const overlayRoot = this.clone.wtTable.holder.parentNode;
     const preventOverflow = this.wot.getSetting('preventOverflow');
 
     if (this.trimmingContainer === this.wot.rootWindow) {
-      const box = this.wot.wtTable.hider.getBoundingClientRect();
-      const top = Math.ceil(box.top);
-      const left = Math.ceil(box.left);
-      const bottom = Math.ceil(box.bottom);
-      const right = Math.ceil(box.right);
+      const { wtTable } = this.wot;
+      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const top = Math.ceil(hiderRect.top);
+      const left = Math.ceil(hiderRect.left);
+      const bottom = Math.ceil(hiderRect.bottom);
+      const right = Math.ceil(hiderRect.right);
       let finalLeft = '0';
       let finalTop = '0';
 
@@ -89,9 +99,7 @@ class TopLeftCornerOverlay extends Overlay {
 
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;
+
+    return false;
   }
 }
-
-Overlay.registerOverlay(Overlay.CLONE_TOP_LEFT_CORNER, TopLeftCornerOverlay);
-
-export default TopLeftCornerOverlay;

@@ -1,6 +1,6 @@
 import { IndexMap, alterUtilsFactory } from '../../../translations';
 
-const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('physically');
+const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('physicallyIndexed');
 
 /**
  * Map from physical index to another index.
@@ -18,7 +18,8 @@ class StrictBindsMap extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    this.indexedValues = getListWithInsertedItems(this.indexedValues, insertionIndex, insertedIndexes, (_, ordinalNumber) => this.getNextValue(ordinalNumber));
+    this.indexedValues = getListWithInsertedItems(this.indexedValues, insertionIndex, insertedIndexes,
+      (_, ordinalNumber) => this.getNextValue(ordinalNumber));
 
     super.insert(insertionIndex, insertedIndexes);
   }

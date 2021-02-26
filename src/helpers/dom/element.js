@@ -5,6 +5,7 @@ import {
   isGetComputedStyleSupported,
 } from '../feature';
 import { isSafari, isIE9 } from '../browser';
+import { sanitize } from '../string';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -208,20 +209,11 @@ let _removeClass;
  * @returns {string[]}
  */
 function filterEmptyClassNames(classNames) {
-  const result = [];
-
   if (!classNames || !classNames.length) {
-    return result;
+    return [];
   }
 
-  let len = 0;
-
-  while (classNames[len]) {
-    result.push(classNames[len]);
-    len += 1;
-  }
-
-  return result;
+  return classNames.filter(x => !!x);
 }
 
 if (isClassListSupported()) {
@@ -267,6 +259,7 @@ if (isClassListSupported()) {
   };
 
   _removeClass = function(element, classes) {
+    const rootDocument = element.ownerDocument;
     let className = classes;
 
     if (typeof className === 'string') {
@@ -276,7 +269,7 @@ if (isClassListSupported()) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         element.classList.remove(...className);
 
       } else {
@@ -301,24 +294,26 @@ if (isClassListSupported()) {
   };
 
   _addClass = function(element, classes) {
-    let len = 0;
     let _className = element.className;
     let className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
+
     if (_className === '') {
       _className = className.join(' ');
 
     } else {
-      while (className && className[len]) {
-        if (!createClassNameRegExp(className[len]).test(_className)) {
+      for (let len = 0; len < className.length; len++) {
+        if (className[len] && !createClassNameRegExp(className[len]).test(_className)) {
           _className += ` ${className[len]}`;
         }
-        len += 1;
       }
     }
+
     element.className = _className;
   };
 
@@ -330,6 +325,9 @@ if (isClassListSupported()) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
+
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
@@ -410,10 +408,11 @@ export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
+ * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
  */
-export function fastInnerHTML(element, content) {
+export function fastInnerHTML(element, content, sanitizeContent = true) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = content;
+    element.innerHTML = sanitizeContent ? sanitize(content) : content;
   } else {
     fastInnerText(element, content);
   }
@@ -676,7 +675,9 @@ export function getTrimmingContainer(base) {
     const propertyY = computedStyle.getPropertyValue('overflow-y');
     const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-    if (allowedProperties.includes(property) || allowedProperties.includes(propertyY) || allowedProperties.includes(propertyX)) {
+    if (allowedProperties.includes(property) ||
+        allowedProperties.includes(propertyY) ||
+        allowedProperties.includes(propertyX)) {
       return el;
     }
 
@@ -761,11 +762,56 @@ export function getComputedStyle(element, rootWindow = window) {
 /**
  * Returns the element's outer width.
  *
+ * @see {preciseOuterWidth}
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
   return element.offsetWidth;
+}
+
+/**
+ * Calculates the current `transform` `scaleX` property value for the passed in
+ * element, relative to the root document. Involves adding a dummy element of a
+ * constant size to the DOM, be cautious about performance.
+ *
+ * @param {HTMLElement} element An element to get the `scaleX` from.
+ * @returns {number} `scaleX` value.
+ */
+export function computeScaleX(element) {
+  // A dummy element with a constant size, used to calculate the `scale`.
+  const dummy = element.ownerDocument.createElement('div');
+  const factor = 100;
+
+  dummy.style.width = `${factor}px`;
+  dummy.style.display = 'inline-block';
+  dummy.style.position = 'absolute';
+  dummy.style.left = '0';
+  dummy.style.top = '0';
+  dummy.style.visibility = 'hidden';
+
+  element.appendChild(dummy);
+
+  const dummyRect = dummy.getBoundingClientRect();
+  const scaleX = dummyRect.width / factor;
+
+  // IE doesn't support `HTMLElement#remove()`
+  dummy.parentNode.removeChild(dummy);
+
+  return scaleX;
+}
+
+/**
+ * Returns the element's outer width rounded up to the nearest integer,
+ * accounting for any scale transforms on parent elements. This function is
+ * much more costly than `outerWidth`, use sparingly.
+ *
+ * @param {HTMLElement} element An element to get the width from.
+ * @param {number} scaleX The current `transform` `scaleX` value (@see {computeScaleX}).
+ * @returns {number} Element's outer width.
+ */
+export function preciseOuterWidth(element, scaleX) {
+  return Math.ceil(element.getBoundingClientRect().width / scaleX);
 }
 
 /**
@@ -1112,4 +1158,14 @@ export function selectElementIfAllowed(element) {
   if (!isOutsideInput(activeElement)) {
     element.select();
   }
+}
+
+/**
+ * Check if the provided element is detached from DOM.
+ *
+ * @param {HTMLElement} element HTML element to be checked.
+ * @returns {boolean} `true` if the element is detached, `false` otherwise.
+ */
+export function isDetached(element) {
+  return !element.parentNode;
 }

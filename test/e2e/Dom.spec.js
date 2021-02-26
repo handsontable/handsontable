@@ -135,8 +135,9 @@ describe('Handsontable.Dom', () => {
 
   describe('outerHeight', () => {
     it('should return correct outerHeight for table', () => {
-      const $table = $('<table style="border-width: 0;"><tbody><tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td>' +
-                     '</tr></tbody></table>').appendTo('body');
+      const $table = $('<table style="border-width: 0;"><tbody><tr><td style="border: 1px solid black">' +
+                      '<div style="height: 30px">test</div></td>' +
+                      '</tr></tbody></table>').appendTo('body');
 
       expect(Handsontable.dom.outerHeight($table[0])).toBe(38); // this is according to current stylesheet
       expect($table.outerHeight()).toBe(38); // jQuery check to confirm
@@ -145,8 +146,10 @@ describe('Handsontable.Dom', () => {
     });
 
     xit('should return correct outerHeight for table (with caption)', () => {
-      const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody>' +
-                     '<tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
+      const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0">' +
+                       '<div style="height: 30px">caption</div></caption><tbody>' +
+                       '<tr><td style="border: 1px solid black">' +
+                       '<div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
 
       expect(Handsontable.dom.outerHeight($table[0])).toBe(68); // this is according to current stylesheet
 
@@ -154,9 +157,82 @@ describe('Handsontable.Dom', () => {
     });
   });
 
+  describe('outerWidth', () => {
+    let element;
+
+    beforeEach(() => {
+      element = $('<div/>').appendTo('body');
+    });
+
+    afterEach(() => {
+      element.remove();
+      element = null;
+    });
+
+    it('should properly calculate element\'s width if it\'s an integer value', () => {
+      element.css({ width: '10px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(10);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (less than x.5)', () => {
+      element.css({ width: '10.25px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(10);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (equal or greater than x.5)', () => {
+      element.css({ width: '10.5px' });
+
+      expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
+    });
+  });
+
+  describe('preciseOuterWidth', () => {
+    let element;
+    let container;
+
+    beforeEach(() => {
+      container = $('<div/>').appendTo('body');
+      container.css('scaleX', '0.75');
+      element = $('<div/>').appendTo(container);
+    });
+
+    afterEach(() => {
+      container.remove();
+      element.remove();
+
+      container = null;
+      element = null;
+    });
+
+    it('should properly calculate element\'s width if it\'s an integer value', () => {
+      element.css({ width: '10px' });
+
+      const scaleX = Handsontable.dom.computeScaleX(element[0]);
+      expect(Handsontable.dom.preciseOuterWidth(element[0], scaleX)).toBe(10);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (less than x.5)', () => {
+      element.css({ width: '10.25px' });
+
+      const scaleX = Handsontable.dom.computeScaleX(element[0]);
+      expect(Handsontable.dom.preciseOuterWidth(element[0], scaleX)).toBe(11);
+    });
+
+    it('should properly calculate element\'s width if it\'s a floating value (equal or greater than x.5)', () => {
+      element.css({ width: '10.5px' });
+
+      const scaleX = Handsontable.dom.computeScaleX(element[0]);
+      expect(Handsontable.dom.preciseOuterWidth(element[0], scaleX)).toBe(11);
+    });
+  });
+
   xit('should return correct offset for table cell (table with caption)', () => {
-    const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0"><div style="height: 30px">caption</div></caption><tbody>' +
-                   '<tr><td style="border: 1px solid black"><div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
+    const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0">' +
+                     '<div style="height: 30px">caption</div></caption><tbody>' +
+                     '<tr><td style="border: 1px solid black">' +
+                     '<div style="height: 30px">test</div></td></tr></tbody></table>').appendTo('body');
 
     const tableOffset = Handsontable.dom.offset($table[0]);
     const tdOffset = Handsontable.dom.offset($table.find('td')[0]);
@@ -168,7 +244,8 @@ describe('Handsontable.Dom', () => {
   });
 
   it('should return font size', () => {
-    const $html = $('<style>.bigText{font: 12px serif;}</style><div class="bigText"><span id="testable"></span></div>').appendTo('body');
+    const $html = $('<style>.bigText{font: 12px serif;}</style><div class="bigText"><span id="testable"></span></div>')
+      .appendTo('body');
 
     const span = document.getElementById('testable');
     const compStyle = Handsontable.dom.getComputedStyle(span);
@@ -179,7 +256,8 @@ describe('Handsontable.Dom', () => {
   });
 
   it('should return top border width', () => {
-    const $html = $('<style>.redBorder{border: 10px solid red;}</style><div class="redBorder" id="testable"></div>').appendTo('body');
+    const $html = $('<style>.redBorder{border: 10px solid red;}</style><div class="redBorder" id="testable"></div>')
+      .appendTo('body');
 
     const div = document.getElementById('testable');
     const compStyle = Handsontable.dom.getComputedStyle(div);
@@ -204,7 +282,8 @@ describe('Handsontable.Dom', () => {
 
   it('should set the immediatePropagation properties properly for given event', () => {
     const event = document.createEvent('MouseEvents');
-    event.initMouseEvent('mousedown', true, true, window, null, null, null, null, null, null, null, null, null, null, null);
+    event.initMouseEvent('mousedown', true, true, window, null, null, null, null, null,
+      null, null, null, null, null, null);
 
     Handsontable.dom.stopImmediatePropagation(event);
 
@@ -248,8 +327,10 @@ describe('Handsontable.Dom', () => {
 
     it('should return scrollable element with \'auto\' value of \'overflow\' or \'overflowX\' property', () => {
       const $html = $([
-        '<div style="overflow: auto; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
-        '<div style="overflow-x: auto; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="overflow: auto; width: 50px; height: 10px">' +
+          '<div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="overflow-x: auto; width: 50px; height: 10px">' +
+          '<div class="knob" style="width: 100px; height: 5px"></div></div>',
         '<div style="overflow-x: auto; width: 50px; height: 10px">',
         '<div>',
         '<div class="knob" style="width: 100px; height: 5px"></div>',
@@ -266,7 +347,8 @@ describe('Handsontable.Dom', () => {
 
     it('should return window object as scrollable element', () => {
       const $html = $([
-        '<div style="overflow: hidden; width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>',
+        '<div style="overflow: hidden; width: 50px; height: 10px">' +
+          '<div class="knob" style="width: 100px; height: 5px"></div></div>',
         '<div style="width: 50px; height: 10px"><div class="knob" style="width: 100px; height: 5px"></div></div>'
       ].join('')).appendTo('body');
 

@@ -19,7 +19,8 @@ describe('settings', () => {
       const info = spec().$container[0].nextSibling;
       expect(info.innerText).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
-        'Alternatively, you can activate Handsontable to use for non-commercial purposes by passing the key: \'non-commercial-and-evaluation\'. ',
+        'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
+        'by passing the key: \'non-commercial-and-evaluation\'. ',
         'Read more about it in the documentation or contact us at support@handsontable.com.',
       ].join(''));
     });

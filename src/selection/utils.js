@@ -10,7 +10,12 @@ export const SELECTION_TYPES = [
   SELECTION_TYPE_OBJECT,
   SELECTION_TYPE_ARRAY,
 ];
-const ARRAY_TYPE_PATTERN = [['number'], ['number', 'string'], ['number', 'undefined'], ['number', 'string', 'undefined']];
+const ARRAY_TYPE_PATTERN = [
+  ['number'],
+  ['number', 'string'],
+  ['number', 'undefined'],
+  ['number', 'string', 'undefined']
+];
 const rootCall = Symbol('root');
 const childCall = Symbol('child');
 
@@ -138,9 +143,10 @@ export function transformSelectionToColumnDistance(selectionRanges) {
   // Iterate through all ranges and collect all column indexes which are not saved yet.
   arrayEach(selectionRanges, (selection) => {
     const [, columnStart,, columnEnd] = selectionSchemaNormalizer(selection);
-    const amount = columnEnd - columnStart + 1;
+    const columnNonHeaderStart = Math.max(columnStart, 0);
+    const amount = columnEnd - columnNonHeaderStart + 1;
 
-    arrayEach(Array.from(new Array(amount), (_, i) => columnStart + i), (index) => {
+    arrayEach(Array.from(new Array(amount), (_, i) => columnNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {
         unorderedIndexes.add(index);
       }
@@ -188,9 +194,10 @@ export function transformSelectionToRowDistance(selectionRanges) {
   // Iterate through all ranges and collect all column indexes which are not saved yet.
   arrayEach(selectionRanges, (selection) => {
     const [rowStart,, rowEnd] = selectionSchemaNormalizer(selection);
-    const amount = rowEnd - rowStart + 1;
+    const rowNonHeaderStart = Math.max(rowStart, 0);
+    const amount = rowEnd - rowNonHeaderStart + 1;
 
-    arrayEach(Array.from(new Array(amount), (_, i) => rowStart + i), (index) => {
+    arrayEach(Array.from(new Array(amount), (_, i) => rowNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {
         unorderedIndexes.add(index);
       }

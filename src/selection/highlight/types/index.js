@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import staticRegister from './../../../utils/staticRegister';
 
 import activeHeaderHighlight from './activeHeader';
@@ -26,7 +25,10 @@ register('header', headerHighlight);
  * @returns {Selection}
  */
 function createHighlight(highlightType, options) {
-  return getItem(highlightType)(options);
+  return getItem(highlightType)({
+    type: highlightType,
+    ...options
+  });
 }
 
 export {

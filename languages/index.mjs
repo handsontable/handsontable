@@ -1,0 +1,17 @@
+import deCH from "./de-CH.mjs";
+import deDE from "./de-DE.mjs";
+import enUS from "./en-US.mjs";
+import esMX from "./es-MX.mjs";
+import frFR from "./fr-FR.mjs";
+import itIT from "./it-IT.mjs";
+import jaJP from "./ja-JP.mjs";
+import koKR from "./ko-KR.mjs";
+import lvLV from "./lv-LV.mjs";
+import nbNO from "./nb-NO.mjs";
+import nlNL from "./nl-NL.mjs";
+import plPL from "./pl-PL.mjs";
+import ptBR from "./pt-BR.mjs";
+import ruRU from "./ru-RU.mjs";
+import zhCN from "./zh-CN.mjs";
+import zhTW from "./zh-TW.mjs";
+export { deCH, deDE, enUS, esMX, frFR, itIT, jaJP, koKR, lvLV, nbNO, nlNL, plPL, ptBR, ruRU, zhCN, zhTW };

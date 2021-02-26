@@ -1,13 +1,18 @@
 import {
   outerWidth
 } from '../../helpers/dom/element';
-import { registerPlugin } from '../../plugins';
+import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
+
+export const PLUGIN_KEY = 'headerTooltips';
+export const PLUGIN_PRIORITY = 270;
+let isDeprecationMessageShowed = false;
 
 /**
  * @plugin HeaderTooltips
  *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * Allows to add a tooltip to the table headers.
  *
@@ -20,7 +25,7 @@ import BasePlugin from '../_base';
  * ```js
  * const container = document.getElementById('example');
  * const hot = new Handsontable(container, {
- *   date: getData(),
+ *   data: getData(),
  *   // enable and configure header tooltips
  *   headerTooltips: {
  *     rows: true,
@@ -30,7 +35,15 @@ import BasePlugin from '../_base';
  * });
  * ```
  */
-class HeaderTooltips extends BasePlugin {
+export class HeaderTooltips extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -50,7 +63,7 @@ class HeaderTooltips extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().headerTooltips;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -61,7 +74,12 @@ class HeaderTooltips extends BasePlugin {
       return;
     }
 
-    this.settings = this.hot.getSettings().headerTooltips;
+    if (!isDeprecationMessageShowed) {
+      isDeprecationMessageShowed = true;
+      warn('The Header Tooltips plugin is deprecated and will be removed in the next major release');
+    }
+
+    this.settings = this.hot.getSettings()[PLUGIN_KEY];
 
     this.parseSettings();
 
@@ -161,7 +179,3 @@ class HeaderTooltips extends BasePlugin {
   }
 
 }
-
-registerPlugin('headerTooltips', HeaderTooltips);
-
-export default HeaderTooltips;

@@ -6,19 +6,20 @@ import {
   offset,
   outerWidth,
   outerHeight
-} from './../../helpers/dom/element';
-import { deepClone, deepExtend, isObject } from './../../helpers/object';
-import EventManager from './../../eventManager';
-import { CellCoords } from './../../3rdparty/walkontable/src';
-import { registerPlugin } from './../../plugins';
-import BasePlugin from './../_base';
+} from '../../helpers/dom/element';
+import { deepClone, deepExtend, isObject } from '../../helpers/object';
+import EventManager from '../../eventManager';
+import { CellCoords } from '../../3rdparty/walkontable/src';
+import { BasePlugin } from '../base';
 import CommentEditor from './commentEditor';
-import { checkSelectionConsistency, markLabelAsSelected } from './../contextMenu/utils';
+import { checkSelectionConsistency, markLabelAsSelected } from '../contextMenu/utils';
 import DisplaySwitch from './displaySwitch';
-import * as C from './../../i18n/constants';
+import * as C from '../../i18n/constants';
 
 import './comments.css';
 
+export const PLUGIN_KEY = 'comments';
+export const PLUGIN_PRIORITY = 60;
 const privatePool = new WeakMap();
 const META_COMMENT = 'comment';
 const META_COMMENT_VALUE = 'value';
@@ -27,6 +28,7 @@ const META_READONLY = 'readOnly';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * @class Comments
  * @plugin Comments
  *
  * @description
@@ -36,7 +38,7 @@ const META_READONLY = 'readOnly';
  * To enable the plugin, you'll need to set the comments property of the config object to `true`:
  * ```js
  * comments: true
- * ```.
+ * ```
  *
  * or an object with extra predefined plugin config:
  *
@@ -44,7 +46,7 @@ const META_READONLY = 'readOnly';
  * comments: {
  *   displayDelay: 1000
  * }
- * ```.
+ * ```
  *
  * To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
  *
@@ -52,7 +54,7 @@ const META_READONLY = 'readOnly';
  *
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
+ *   data: getData(),
  *   comments: true,
  *   cell: [
  *     {row: 1, col: 1, comment: {value: 'Foo'}},
@@ -76,7 +78,15 @@ const META_READONLY = 'readOnly';
  * ```
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-class Comments extends BasePlugin {
+export class Comments extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -135,7 +145,7 @@ class Comments extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().comments;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -159,7 +169,8 @@ class Comments extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions', options => this.addToContextMenu(options));
-    this.addHook('afterRenderer', (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
+    this.addHook('afterRenderer',
+      (TD, row, col, prop, value, cellProperties) => this.onAfterRenderer(TD, cellProperties));
     this.addHook('afterScrollHorizontally', () => this.hide());
     this.addHook('afterScrollVertically', () => this.hide());
     this.addHook('afterBeginEditing', () => this.onAfterBeginEditing());
@@ -202,8 +213,10 @@ class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mousedown', event => this.onMouseDown(event));
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.onMouseUp());
     this.eventManager.addEventListener(this.editor.getInputElement(), 'blur', () => this.onEditorBlur());
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
-    this.eventManager.addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
+    this.eventManager
+      .addEventListener(this.editor.getInputElement(), 'mousedown', event => this.onEditorMouseDown(event));
+    this.eventManager
+      .addEventListener(this.editor.getInputElement(), 'mouseup', event => this.onEditorMouseUp(event));
   }
 
   /**
@@ -349,7 +362,15 @@ class Comments extends BasePlugin {
   show() {
     if (!this.range.from) {
       throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+
     }
+
+    const { from: { row, col } } = this.range;
+
+    if (row < 0 || row > this.hot.countSourceRows() - 1 || col < 0 || col > this.hot.countSourceCols() - 1) {
+      return false;
+    }
+
     const meta = this.hot.getCellMeta(this.range.from.row, this.range.from.col);
 
     this.refreshEditor(true);
@@ -395,15 +416,44 @@ class Comments extends BasePlugin {
     if (!force && (!this.range.from || !this.editor.isVisible())) {
       return;
     }
-    const { rootWindow } = this.hot;
-    const { wtTable, wtOverlays, wtViewport } = this.hot.view.wt;
+
+    const { rowIndexMapper, columnIndexMapper } = this.hot;
+    const { row: visualRow, col: visualColumn } = this.range.from;
+
+    let renderableRow = rowIndexMapper.getRenderableFromVisualIndex(visualRow);
+    let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
+    // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
+    const targetingPreviousRow = renderableRow === null;
+
+    if (renderableRow === null) {
+      renderableRow = rowIndexMapper
+        .getRenderableFromVisualIndex(rowIndexMapper.getFirstNotHiddenIndex(visualRow, -1));
+    }
+
+    if (renderableColumn === null) {
+      renderableColumn = columnIndexMapper
+        .getRenderableFromVisualIndex(columnIndexMapper.getFirstNotHiddenIndex(visualColumn, -1));
+    }
+
+    const isBeforeRenderedRows = renderableRow === null;
+    const isBeforeRenderedColumns = renderableColumn === null;
+
+    renderableRow = renderableRow ?? 0;
+    renderableColumn = renderableColumn ?? 0;
+
+    const { rootWindow, view: { wt } } = this.hot;
+    const { wtTable, wtOverlays, wtViewport } = wt;
     const scrollableElement = wtOverlays.scrollableElement;
-    const TD = wtTable.getCell(this.range.from);
-    const row = this.range.from.row;
-    const column = this.range.from.col;
+
+    const TD = wtTable.getCell({
+      row: renderableRow,
+      col: renderableColumn,
+    });
+
     const cellOffset = offset(TD);
-    const lastColWidth = wtTable.getStretchedColumnWidth(column);
-    let cellTopOffset = cellOffset.top < 0 ? 0 : cellOffset.top;
+    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getStretchedColumnWidth(renderableColumn);
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
+    let cellTopOffset = cellOffset.top;
     let cellLeftOffset = cellOffset.left;
 
     if (wtViewport.hasVerticalScroll() && scrollableElement !== rootWindow) {
@@ -415,13 +465,14 @@ class Comments extends BasePlugin {
     }
 
     const x = cellLeftOffset + lastColWidth;
-    const y = cellTopOffset;
+    const y = cellTopOffset + lastRowHeight;
 
-    const commentStyle = this.getCommentMeta(row, column, META_STYLE);
-    const readOnly = this.getCommentMeta(row, column, META_READONLY);
+    const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
+    const readOnly = this.getCommentMeta(visualRow, visualColumn, META_READONLY);
 
     if (commentStyle) {
       this.editor.setSize(commentStyle.width, commentStyle.height);
+
     } else {
       this.editor.resetSize();
     }
@@ -443,8 +494,9 @@ class Comments extends BasePlugin {
     if (!selected) {
       return false;
     }
+
     let hasComment = false;
-    const cell = selected.from; // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
+    const cell = selected.getTopLeftCorner(); // IN EXCEL THERE IS COMMENT ONLY FOR TOP LEFT CELL IN SELECTION
 
     if (this.getCommentMeta(cell.row, cell.col, META_COMMENT_VALUE)) {
       hasComment = true;
@@ -511,9 +563,14 @@ class Comments extends BasePlugin {
 
       if (eventCell) {
         coordinates = this.hot.view.wt.wtTable.getCoords(eventCell);
+        coordinates = {
+          row: this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
+          col: this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
+        };
       }
 
-      if (!eventCell || ((this.range.from && coordinates) && (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
+      if (!eventCell || ((this.range.from && coordinates) &&
+          (this.range.from.row !== coordinates.row || this.range.from.col !== coordinates.col))) {
         this.hide();
       }
     }
@@ -540,7 +597,10 @@ class Comments extends BasePlugin {
     if (this.targetIsCellWithComment(event)) {
       const coordinates = this.hot.view.wt.wtTable.getCoords(event.target);
       const range = {
-        from: new CellCoords(coordinates.row, coordinates.col)
+        from: new CellCoords(
+          this.hot.rowIndexMapper.getVisualFromRenderableIndex(coordinates.row),
+          this.hot.columnIndexMapper.getVisualFromRenderableIndex(coordinates.col)
+        )
       };
 
       this.displaySwitch.show(range);
@@ -607,7 +667,8 @@ class Comments extends BasePlugin {
     const currentWidth = outerWidth(event.target);
     const currentHeight = outerHeight(event.target);
 
-    if (currentWidth !== priv.tempEditorDimensions.width + 1 || currentHeight !== priv.tempEditorDimensions.height + 2) {
+    if (currentWidth !== priv.tempEditorDimensions.width + 1 ||
+        currentHeight !== priv.tempEditorDimensions.height + 2) {
       this.updateCommentMeta(this.range.from.row, this.range.from.col, {
         [META_STYLE]: {
           width: currentWidth,
@@ -624,13 +685,15 @@ class Comments extends BasePlugin {
    */
   onContextMenuAddComment() {
     this.displaySwitch.cancelHiding();
+
     const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
     this.setRange({
-      from: coords.from
+      from: coords.highlight,
     });
     this.show();
+
     setTimeout(() => {
       if (this.hot) {
         this.hot.deselectCell();
@@ -645,15 +708,15 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuRemoveComment() {
-    const { from, to } = this.hot.getSelectedRangeLast();
+    const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
 
-    for (let i = from.row; i <= to.row; i++) {
-      for (let j = from.col; j <= to.col; j++) {
-        this.removeCommentAtCell(i, j, false);
+    coords.forAll((row, column) => {
+      if (row >= 0 && column >= 0) {
+        this.removeCommentAtCell(row, column, false);
       }
-    }
+    });
 
     this.hot.render();
   }
@@ -664,17 +727,17 @@ class Comments extends BasePlugin {
    * @private
    */
   onContextMenuMakeReadOnly() {
-    const { from, to } = this.hot.getSelectedRangeLast();
+    const coords = this.hot.getSelectedRangeLast();
 
     this.contextMenuEvent = true;
 
-    for (let i = from.row; i <= to.row; i++) {
-      for (let j = from.col; j <= to.col; j++) {
-        const currentState = !!this.getCommentMeta(i, j, META_READONLY);
+    coords.forAll((row, column) => {
+      if (row >= 0 && column >= 0) {
+        const currentState = !!this.getCommentMeta(row, column, META_READONLY);
 
-        this.updateCommentMeta(i, j, { [META_READONLY]: !currentState });
+        this.updateCommentMeta(row, column, { [META_READONLY]: !currentState });
       }
-    }
+    });
   }
 
   /**
@@ -684,6 +747,11 @@ class Comments extends BasePlugin {
    * @param {object} defaultOptions The menu options.
    */
   addToContextMenu(defaultOptions) {
+    const isThereAnyCellRendered = () => {
+      return this.hot.rowIndexMapper.getRenderableIndexesLength() > 0 &&
+             this.hot.columnIndexMapper.getRenderableIndexesLength() > 0;
+    };
+
     defaultOptions.items.push(
       {
         name: '---------',
@@ -698,8 +766,12 @@ class Comments extends BasePlugin {
           return this.hot.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT);
         },
         callback: () => this.onContextMenuAddComment(),
-        disabled() {
-          return !(this.getSelectedLast() && !this.selection.isSelectedByCorner());
+        disabled: () => {
+          if (!isThereAnyCellRendered()) {
+            return true;
+          }
+
+          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner());
         }
       },
       {
@@ -708,7 +780,13 @@ class Comments extends BasePlugin {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
         },
         callback: () => this.onContextMenuRemoveComment(),
-        disabled: () => this.hot.selection.isSelectedByCorner()
+        disabled: () => {
+          if (!isThereAnyCellRendered()) {
+            return true;
+          }
+
+          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner());
+        }
       },
       {
         key: 'commentsReadOnly',
@@ -716,6 +794,7 @@ class Comments extends BasePlugin {
           let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
           const hasProperty = checkSelectionConsistency(this.getSelectedRangeLast(), (row, col) => {
             let readOnlyProperty = this.getCellMeta(row, col)[META_COMMENT];
+
             if (readOnlyProperty) {
               readOnlyProperty = readOnlyProperty[META_READONLY];
             }
@@ -732,7 +811,14 @@ class Comments extends BasePlugin {
           return label;
         },
         callback: () => this.onContextMenuMakeReadOnly(),
-        disabled: () => this.hot.selection.isSelectedByCorner() || !this.checkSelectionCommentsConsistency()
+        disabled: () => {
+          if (!isThereAnyCellRendered()) {
+            return true;
+          }
+
+          return !(this.hot.getSelectedLast() && !this.hot.selection.isSelectedByCorner()) ||
+                 !this.checkSelectionCommentsConsistency();
+        }
       }
     );
   }
@@ -744,7 +830,7 @@ class Comments extends BasePlugin {
    * @returns {number|undefined}
    */
   getDisplayDelaySetting() {
-    const commentSetting = this.hot.getSettings().comments;
+    const commentSetting = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(commentSetting)) {
       return commentSetting.displayDelay;
@@ -777,7 +863,3 @@ class Comments extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('comments', Comments);
-
-export default Comments;

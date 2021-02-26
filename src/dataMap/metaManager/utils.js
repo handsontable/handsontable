@@ -1,5 +1,5 @@
-import { hasOwnProperty, isObject, objectEach } from '../../helpers/object';
-import { getCellType } from '../../cellTypes';
+import { hasOwnProperty, isObject, objectEach, inherit } from '../../helpers/object';
+import { getCellType } from '../../cellTypes/registry';
 
 /**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets
@@ -22,7 +22,8 @@ export function expandMetaType(type, metaObject) {
   const expandedType = {};
 
   objectEach(validType, (value, property) => {
-    if (!preventSourceOverwrite || preventSourceOverwrite && !hasOwnProperty(metaObject, property)) {
+    if (property !== 'CELL_TYPE' && (!preventSourceOverwrite
+        || preventSourceOverwrite && !hasOwnProperty(metaObject, property))) {
       expandedType[property] = value;
     }
   });
@@ -40,7 +41,15 @@ export function expandMetaType(type, metaObject) {
  * @returns {ColumnMeta} Returns constructor ready to initialize with `new` operator.
  */
 export function columnFactory(TableMeta, conflictList = []) {
-  class ColumnMeta extends TableMeta {}
+  // Do not use ES6 "class extends" syntax here. It seems that the babel produces code
+  // which drastically decreases the performance of the ColumnMeta class creation.
+
+  /**
+   * Base "class" for column meta.
+   */
+  function ColumnMeta() {}
+
+  inherit(ColumnMeta, TableMeta);
 
   // Clear conflict settings
   for (let i = 0; i < conflictList.length; i++) {

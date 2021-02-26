@@ -70,9 +70,21 @@ describe('Core.spliceCol', () => {
 
     hot.spliceCol(2, 1, 3, 'X1');
 
-    expect(spyBefore.calls.argsFor(0)[0]).toEqual([[1, 2, 'C2', 'X1'], [2, 2, 'C3', 'C5'], [3, 2, 'C4', null], [4, 2, 'C5', null], [5, 2, null, null]]);
+    expect(spyBefore.calls.argsFor(0)[0]).toEqual([
+      [1, 2, 'C2', 'X1'],
+      [2, 2, 'C3', 'C5'],
+      [3, 2, 'C4', null],
+      [4, 2, 'C5', null],
+      [5, 2, null, null]
+    ]);
     expect(spyBefore.calls.argsFor(0)[1]).toBe('spliceCol');
-    expect(spyAfter.calls.argsFor(1)[0]).toEqual([[1, 2, 'C2', 'X1'], [2, 2, 'C3', 'C5'], [3, 2, 'C4', null], [4, 2, 'C5', null], [5, 2, null, null]]);
+    expect(spyAfter.calls.argsFor(1)[0]).toEqual([
+      [1, 2, 'C2', 'X1'],
+      [2, 2, 'C3', 'C5'],
+      [3, 2, 'C4', null],
+      [4, 2, 'C5', null],
+      [5, 2, null, null]
+    ]);
     expect(spyAfter.calls.argsFor(1)[1]).toBe('spliceCol');
   });
 

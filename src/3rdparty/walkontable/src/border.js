@@ -52,6 +52,8 @@ class Border {
       borderStyle: 'solid',
       borderColor: '#FFF'
     };
+    // Offset to moving the corner to be centered relative to the grid.
+    this.cornerCenterPointOffset = -(parseInt(this.cornerDefaultStyle.width, 10) / 2);
     this.corner = null;
     this.cornerStyle = null;
 
@@ -69,7 +71,10 @@ class Border {
     this.eventManager.addEventListener(documentBody, 'mouseup', () => this.onMouseUp());
 
     for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
-      this.eventManager.addEventListener(this.main.childNodes[c], 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
+      const element = this.main.childNodes[c];
+
+      this.eventManager
+        .addEventListener(element, 'mouseenter', event => this.onMouseEnter(event, this.main.childNodes[c]));
     }
   }
 
@@ -168,9 +173,12 @@ class Border {
         div.className += ' hidden';
       }
       style = div.style;
-      style.backgroundColor = (this.settings[position] && this.settings[position].color) ? this.settings[position].color : settings.border.color;
-      style.height = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
-      style.width = (this.settings[position] && this.settings[position].width) ? `${this.settings[position].width}px` : `${settings.border.width}px`;
+      style.backgroundColor = (this.settings[position] && this.settings[position].color) ?
+        this.settings[position].color : settings.border.color;
+      style.height = (this.settings[position] && this.settings[position].width) ?
+        `${this.settings[position].width}px` : `${settings.border.width}px`;
+      style.width = (this.settings[position] && this.settings[position].width) ?
+        `${this.settings[position].width}px` : `${settings.border.width}px`;
 
       this.main.appendChild(div);
     }
@@ -330,7 +338,8 @@ class Border {
       this.selectionHandles.styles.bottomRightHitArea.display = 'none';
     }
 
-    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') || col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
+    if (row === this.wot.wtSettings.getSetting('fixedRowsTop') ||
+        col === this.wot.wtSettings.getSetting('fixedColumnsLeft')) {
       this.selectionHandles.styles.topLeft.zIndex = '9999';
       this.selectionHandles.styles.topLeftHitArea.zIndex = '9999';
     } else {
@@ -474,7 +483,8 @@ class Border {
     this.rightStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
-    cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ? cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
+    cornerVisibleSetting = typeof cornerVisibleSetting === 'function' ?
+      cornerVisibleSetting(this.settings.layerLevel) : cornerVisibleSetting;
 
     const hookResult = this.wot.getSetting('onModifyGetCellCoords', toRow, toColumn);
     let [checkRow, checkCol] = [toRow, toColumn];
@@ -487,8 +497,8 @@ class Border {
       this.cornerStyle.display = 'none';
 
     } else {
-      this.cornerStyle.top = `${top + height - 4}px`;
-      this.cornerStyle.left = `${left + width - 4}px`;
+      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - 1}px`;
+      this.cornerStyle.left = `${left + width + this.cornerCenterPointOffset - 1}px`;
       this.cornerStyle.borderRightWidth = this.cornerDefaultStyle.borderWidth;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
 
@@ -508,7 +518,7 @@ class Border {
         const cornerOverlappingContainer = cornerRightEdge >= innerWidth(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.left = `${Math.floor(left + width - 3 - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`;
+          this.cornerStyle.left = `${Math.floor(left + width + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.width, 10) / 2))}px`; // eslint-disable-line max-len
           this.cornerStyle.borderRightWidth = 0;
         }
       }
@@ -519,7 +529,7 @@ class Border {
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle.top = `${Math.floor(top + height - 3 - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`;
+          this.cornerStyle.top = `${Math.floor(top + height + this.cornerCenterPointOffset - (parseInt(this.cornerDefaultStyle.height, 10) / 2))}px`; // eslint-disable-line max-len
           this.cornerStyle.borderBottomWidth = 0;
         }
       }
@@ -541,7 +551,8 @@ class Border {
    * @returns {boolean}
    */
   isEntireColumnSelected(startRowIndex, endRowIndex) {
-    return startRowIndex === this.wot.wtTable.getFirstRenderedRow() && endRowIndex === this.wot.wtTable.getLastRenderedRow();
+    return startRowIndex === this.wot.wtTable.getFirstRenderedRow() &&
+      endRowIndex === this.wot.wtTable.getLastRenderedRow();
   }
 
   /**
@@ -553,7 +564,8 @@ class Border {
    * @returns {boolean}
    */
   isEntireRowSelected(startColumnIndex, endColumnIndex) {
-    return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() && endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
+    return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() &&
+      endColumnIndex === this.wot.wtTable.getLastRenderedColumn();
   }
 
   /**

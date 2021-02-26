@@ -1,4 +1,4 @@
-import { arrayEach } from './../../helpers/array';
+import { arrayEach } from '../../helpers/array';
 
 /**
  * @class Storage

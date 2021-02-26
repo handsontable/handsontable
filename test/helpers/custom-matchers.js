@@ -71,10 +71,12 @@ beforeEach(function() {
           const margin = diff || 1;
 
           const pass = actual >= expected - margin && actual <= expected + margin;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
+          let message = `Expected ${actual} to be around ${expected} (between ${expected - margin}
+ and ${expected + margin})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin} and ${expected + margin})`;
+            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - margin}
+ and ${expected + margin})`;
           }
 
           return {
@@ -214,7 +216,8 @@ beforeEach(function() {
             message = 'Non-empty list should be passed as expect parameter.';
 
           } else if (containsUndefined) {
-            message = `List ${redColor}${checkedArray.join(', ')}${resetColor} contains ${redColor}undefined${resetColor} value.`;
+            message = `List ${redColor}${checkedArray.join(', ')}${resetColor}
+contains ${redColor}undefined${resetColor} value.`;
 
           } else if (elementNotFulfillingCondition !== undefined) {
             let entityValue = elementNotFulfillingCondition;
@@ -223,7 +226,8 @@ beforeEach(function() {
               entityValue = `"${elementNotFulfillingCondition}"`;
             }
 
-            message = `Entity ${redColor}${entityValue}${resetColor}, from list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the condition.`;
+            message = `Entity ${redColor}${entityValue}${resetColor}, from
+list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the condition.`;
           }
 
           return {
@@ -272,6 +276,10 @@ beforeEach(function() {
      *       a background of the first layer and `H` as the latest layer (most dark).
      * '#' - The hash symbol indicates the currently selected cell without changed background color.
      *
+     * The meaning of the symbol used to describe headers:
+     * '*' - The asterisk symbol indicates selected header.
+     * '-' - The single hyphen symbol indicates highlighted header.
+     *
      * The meaning of the symbol used to describe the table:
      * ':'   - Column separator (only for better visual looks).
      * '║'   - This symbol separates the row headers from the table content.
@@ -314,7 +322,8 @@ beforeEach(function() {
           }, []);
 
           const actualAsciiTable = normalizedPattern.join('\n');
-          const message = `Expected the pattern selection \n${actualAsciiTable}\nto match to the visual state of the rendered selection \n${asciiTable}\n`;
+          const message = `Expected the pattern selection \n${actualAsciiTable}\nto
+match to the visual state of the rendered selection \n${asciiTable}\n`;
 
           return {
             pass: asciiTable === actualAsciiTable,

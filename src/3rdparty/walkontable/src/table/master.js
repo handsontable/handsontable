@@ -29,8 +29,11 @@ class MasterTable extends Table {
       const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
       const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
       const holderStyle = this.holder.style;
-      const { scrollWidth, scrollHeight } = trimmingElement;
-      let { width, height } = trimmingElement.getBoundingClientRect();
+
+      const { scrollWidth, scrollHeight, offsetWidth, offsetHeight } = trimmingElement;
+      let width = offsetWidth;
+      let height = offsetHeight;
+
       const overflow = ['auto', 'hidden', 'scroll'];
 
       if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
@@ -82,7 +85,7 @@ class MasterTable extends Table {
       const columnCount = this.getRenderedColumnsCount();
 
       for (let i = 0; i < columnHeadersCount; i++) {
-        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) {
+        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) { // eslint-disable-line max-len
           this.markIfOversizedColumnHeader(renderedColumnIndex);
         }
       }
