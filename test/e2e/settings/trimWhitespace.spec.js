@@ -21,9 +21,9 @@ describe('settings', () => {
         ],
       });
 
-      const outerTextOfCell = getCell(0, 0).outerText;
+      const innerTextOfCell = getCell(0, 0).innerText;
 
-      expect(outerTextOfCell).toEqual('text    with    spaces');
+      expect(innerTextOfCell).toEqual('text    with    spaces');
     });
 
     it('should preserve whitespaces when trimWhitespace options is false', () => {
@@ -34,9 +34,9 @@ describe('settings', () => {
         ],
       });
 
-      const outerTextOfCell = getCell(0, 0).outerText;
+      const innerTextOfCell = getCell(0, 0).innerText;
 
-      expect(outerTextOfCell).toEqual('    text    with    spaces  ');
+      expect(innerTextOfCell).toEqual('    text    with    spaces  ');
     });
   });
 });
