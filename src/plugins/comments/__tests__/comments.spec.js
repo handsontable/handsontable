@@ -888,15 +888,19 @@ describe('Comments', () => {
         licenseKey: 'non-commercial-and-evaluation'
       });
 
-      const commentContainers = document.querySelectorAll('.htCommentsContainer');
+      let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
 
-      expect(commentContainers.length).toEqual(2);
+      expect(commentContainersLength).toEqual(2);
 
-      // cleanup HOT instances
+      // cleanup first HOT instance
       container1.handsontable('destroy');
-      expect(commentContainers.length).toEqual(1);
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(1);
+
+      // cleanup second HOT instance
       container2.handsontable('destroy');
-      expect(commentContainers.length).toEqual(0);
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(0);
     });
 
     it('should delete one container when one HOT instance is destroyed', () => {
@@ -923,13 +927,14 @@ describe('Comments', () => {
 
       container2.handsontable('destroy');
 
-      const commentContainers = document.querySelectorAll('.htCommentsContainer');
+      let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
 
-      expect(commentContainers.length).toEqual(1);
+      expect(commentContainersLength).toEqual(1);
 
       // cleanup HOT instance
       container1.handsontable('destroy');
-      expect(commentContainers.length).toEqual(0);
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(0);
     });
   });
 });
