@@ -26,6 +26,8 @@ Within the `/examples` directory, there are all the examples created. A path to 
 
 An example path to the code example: `examples/8.1.0/docs/angular/custom-id`
 
+It's worth noting, that the `examples` directory is defined as a `npm workspace`, as well as each of the `<framework>` directories within it. This allows installing shared dependencies for all the framework-specific examples.
+
 ### Live on production
 
 All code examples are available online. The base URL for the code examples is https://handsontable.github.io/handsontable/ and after the slash comes the path to the built project. 
@@ -61,8 +63,11 @@ You can launch the `http-server` or any other server if you want to test and che
 
 To see code examples in action run these commands:
 
-1. `npm run examples:build <version_number>` - will build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
-2. `npm run examples:start` - it will start the `http-server` right in the `/examples/tmp` on PORT `8080`. So the URL to the specific code example would be `http://localhost:8080/8.1.0/docs/angular/custom-context-menu/`. The URL follows the same convention as mentioned in the [Live on production](#live-on-production) section.
+**Important:** As the `next` directory of the examples uses the local builds of `handsontable` and the wrappers, for the `next` build process to work, all the root-level packages need to be built (for example, bu running `npm run all build`) before running the examples build script.
+
+1. `npm examples:install <version_number>` - will install the dependencies of all the examples matching the `<version_number>`, utilizing the `examples`' internal workspace logic.
+2. `npm run examples:build <version_number>` - will build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
+3. `npm run examples:start` - it will start the `http-server` right in the `/examples/tmp` on PORT `8080`. So the URL to the specific code example would be `http://localhost:8080/8.1.0/docs/angular/custom-context-menu/`. The URL follows the same convention as mentioned in the [Live on production](#live-on-production) section.
 
 #### How to run the arbitrary code example
 
