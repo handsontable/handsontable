@@ -3,7 +3,7 @@
     <ParentLayout>
       <template #page-top>
         <div v-if="show" class="page-top">
-          <div class="custom-block tip">
+          <div class="version-alert">
             <p v-if="isNext">This is unreleased documentation for Handsontable <strong>Next</strong> version.</p>
             <p v-else-if="!isLatest">You're viewing a documentation of a previous version of Handsontable.</p>
           </div>
@@ -17,12 +17,14 @@
 <script>
 import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import LayoutFooter from '@theme/components/LayoutFooter.vue';
+import NavLinks from '@theme/components/NavLinks.vue';
 
 export default {
   name: 'Layout',
   components: {
     ParentLayout,
-    LayoutFooter
+    LayoutFooter,
+    NavLinks
   },
   computed: {
     isLatest() {
@@ -43,4 +45,15 @@ export default {
 <style lang="stylus">
 .layout-container
   min-height 100%
+
+.version-alert
+  background #104bcd
+  margin-top 40px
+  padding 30px 20px
+  border-radius 12px
+  color #ffffff
+  p
+    padding 0
+    margin 0
+    line-height 1
 </style>

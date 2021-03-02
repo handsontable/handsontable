@@ -13,9 +13,6 @@ body div {
 }
 
 /* Layout */
-.navbar .repo-link {
-    display: none;
-}
 
 .page {
     padding-top: 3.6rem;
@@ -128,45 +125,45 @@ table {
         .theme-default-content {
             margin: 0;
         }
+    }
+}
+@media (min-width: 1380px) {
+    .toc-container-header {
+        font-weight: 600;
+        padding: 1.2em 1rem;
+    }
 
-        .toc-container-header {
-            font-weight: 600;
-            padding: 1.2em 1rem;
+    .table-of-contents {
+        font-size: 0.8em;
+        position: fixed;
+        right: 0;
+        top: 100px;
+        width: 250px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border-left: 1px solid #eaecef;
+
+        ul {
+            padding: 0;
+            margin: 0;
+            list-style-type: none;
+
+            ul{
+                padding-left: 1em;
+            }
         }
 
-        .table-of-contents {
-            font-size: 0.8em;
-            position: fixed;
-            right: 0;
-            top: 100px;
-            width: 250px;
-            max-height: 400px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            border-left: 1px solid #eaecef;
+        a {
+            font-weight: 400;
+            line-height: 1.4;
+            padding: 0.35rem 1rem;
+            color: #2c3e50;
+            display: block;
+        }
 
-            ul {
-                padding: 0;
-                margin: 0;
-                list-style-type: none;
-
-                ul{
-                    padding-left: 1em;
-                }
-            }
-
-            a {
-                font-weight: 400;
-                line-height: 1.4;
-                padding: 0.35rem 1rem;
-                color: #2c3e50;
-                display: block;
-            }
-
-            a:hover {
-                color: #3d84ff;
-                text-decoration: none;
-            }
+        a:hover {
+            color: #3d84ff;
+            text-decoration: none;
         }
     }
 }
@@ -186,5 +183,15 @@ div.js-fiddle-link {
     }
     button:hover{
         background: #454554;
+    }
+}
+
+.search-box{
+    margin-right: 24px;
+}
+
+.home-link{
+    img{
+        margin-top: 2px;
     }
 }
