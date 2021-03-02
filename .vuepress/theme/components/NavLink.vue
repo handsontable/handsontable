@@ -92,7 +92,8 @@ export default {
       return this.isBlankTarget ? 'noopener noreferrer' : null
     },
     isInactive() {
-      if ((this.link === '/' || this.link === '/next/') && window.location.pathname.match(/\/docs\/([^/]*\/)?api\//)) {
+      console.log();
+      if ((this.link === '/' || this.link === '/next/') && this.$route.fullPath.match(/([^/]*\/)?api\//)) {
         return true;
       }
       return false;
