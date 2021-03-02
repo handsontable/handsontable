@@ -38,6 +38,8 @@ if (!version) {
     }
   }
 
-  // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the examples).
-  await spawnProcess('node --experimental-json-modules ./scripts/link-packages.mjs -f js angular react vue');
+  if (version === 'next') {
+    // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the examples).
+    await spawnProcess('node --experimental-json-modules ./scripts/link-packages.mjs -f js angular react vue');
+  }
 })();
