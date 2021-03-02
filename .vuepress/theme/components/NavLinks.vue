@@ -23,7 +23,7 @@
 
 <script>
 import DropdownLink from '@theme/components/DropdownLink.vue'
-import { resolveNavLinkItem } from './navLinksUtil'
+import { resolveNavLinkItem } from './util'
 import NavLink from '@theme/components/NavLink.vue'
 
 export default {
@@ -33,7 +33,6 @@ export default {
     NavLink,
     DropdownLink
   },
-
   computed: {
     userNav () {
       return this.$themeLocaleConfig.nav || this.$site.themeConfig.nav || []

@@ -18,13 +18,15 @@
 import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import LayoutFooter from '@theme/components/LayoutFooter.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
+import NavLink from '@theme/components/NavLink.vue';
 
 export default {
   name: 'Layout',
   components: {
     ParentLayout,
     LayoutFooter,
-    NavLinks
+    NavLinks,
+    NavLink
   },
   computed: {
     isLatest() {
