@@ -1,6 +1,6 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach } from '../../../helpers/array';
-import { HEADER_DEFAULT_SETTINGS } from './constants';
+import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './constants';
 
 /**
  * A function that dump a tree structure into multidimensional array. That structure is
@@ -37,54 +37,27 @@ export function generateMatrix(headerRoots) {
 
   arrayEach(headerRoots, (rootNode) => {
     rootNode.walkDown((node) => {
+      const nodeData = node.data;
       const {
-        colspan,
         origColspan,
-        label,
-        isHidden,
-        // offset,
+        columnIndex,
         headerLevel,
-        collapsible,
-        isCollapsed,
-      } = node.data;
+        crossHiddenColumns,
+      } = nodeData;
       const colspanHeaderLayer = createNestedArrayIfNecessary(matrix, headerLevel);
+      let isRootSettingsFilled = false;
 
-      // if (offset > 0) {
-      //   for (let i = 0; i < offset; i++) {
-      //     colspanHeaderLayer.push({
-      //       ...HEADER_DEFAULT_SETTINGS,
-      //       origColspan,
-      //       isHidden: true,
-      //       isBlank: true,
-      //
-      //       offset,
-      //     });
-      //   }
-      // }
+      for (let i = columnIndex; i < columnIndex + origColspan; i++) {
+        const isColumnHidden = crossHiddenColumns.includes(i);
 
-      colspanHeaderLayer.push({
-        label,
-        colspan,
-        origColspan,
-        collapsible,
-        isCollapsed,
-        isHidden,
-        isBlank: false,
-
-        // offset,
-      });
-
-      if (origColspan > 1) {
-        // for (let i = 0; i < origColspan - offset - 1; i++) {
-        for (let i = 0; i < origColspan - 1; i++) {
-          colspanHeaderLayer.push({
-            ...HEADER_DEFAULT_SETTINGS,
-            origColspan,
-            isHidden: true,
-            isBlank: true,
-
-            // offset,
-          });
+        if (isColumnHidden || isRootSettingsFilled) {
+          colspanHeaderLayer.push(createPlaceholderHeaderSettings(nodeData));
+        } else {
+          colspanHeaderLayer.push(createDefaultHeaderSettings({
+            ...nodeData,
+            isRoot: true,
+          }));
+          isRootSettingsFilled = true;
         }
       }
     });

@@ -20,12 +20,18 @@ const availableModifiers = new Map([
  *
  * @param {string} actionName An action name to trigger.
  * @param {TreeNode} nodeToProcess A tree node to process.
+ * @param {number} gridColumnIndex The visual column index that comes from the nested headers grid.
+ *                                 The index, as opposed to the `columnIndex` in the tree node
+ *                                 (which describes the column index of the root node of the header
+ *                                 element), describes the index passed from the grid. Hence, the
+ *                                 index can be between the column index of the node and its colspan
+ *                                 width.
  * @returns {object}
  */
-export function triggerNodeModification(actionName, nodeToProcess) {
+export function triggerNodeModification(actionName, nodeToProcess, gridColumnIndex) {
   if (!availableModifiers.has(actionName)) {
     throw new Error(`The node modifier action ("${actionName}") does not exist.`);
   }
 
-  return availableModifiers.get(actionName)(nodeToProcess);
+  return availableModifiers.get(actionName)(nodeToProcess, gridColumnIndex);
 }

@@ -639,7 +639,7 @@ export class IndexMapper {
       this.cacheFromPhysicalToVisualIndexes();
       this.cacheFromVisualToRenderabIendexes();
 
-      // this.changesObservable.flush();
+      this.changesObservable.flush();
 
       this.runLocalHooks(
         'cacheUpdated',

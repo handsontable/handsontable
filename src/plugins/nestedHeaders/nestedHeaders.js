@@ -94,15 +94,12 @@ export class NestedHeaders extends BasePlugin {
     // this.hot.columnIndexMapper
     //   .createChangesListener({ collectionName: 'hiding', mapsToExclude: ['CollapsibleColumns'] })
     //   .addLocalHook('change', (changes) => {
-    //     changes.forEach(({ op, index, newValue: isHidden }, i) => {
-    //       console.log('NestedHeaders changes', changes[i]);
+    //     changes.forEach(({ op, index: columnIndex, oldValue, newValue }, i) => {
     //
-    //       if (op === 'replace') {
-    //         if (isHidden) {
-    //           this.#stateManager.triggerNodeModification('hide-column', -1, index);
-    //         } else {
-    //           this.#stateManager.triggerNodeModification('show-column', -1, index);
-    //         }
+    //       if (op === 'replace' && oldValue !== newValue) {
+    //         const actionName = newValue ? 'hide-column' : 'show-column';
+    //
+    //         this.#stateManager.triggerColumnModification(actionName, columnIndex);
     //       }
     //     });
     //   });
@@ -289,9 +286,14 @@ export class NestedHeaders extends BasePlugin {
       TH.removeAttribute('colspan');
       removeClass(TH, 'hiddenHeader');
 
-      const { colspan, label, isHidden } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex);
+      const {
+        colspan,
+        label,
+        isHidden,
+        isPlaceholder,
+      } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex) ?? {};
 
-      if (isHidden === true) {
+      if (isPlaceholder || isHidden) {
         addClass(TH, 'hiddenHeader');
 
       } else if (colspan > 1) {
@@ -361,14 +363,18 @@ export class NestedHeaders extends BasePlugin {
       for (let column = columnFrom; column <= columnTo; column++) {
         // Traverse header layers from bottom to top.
         for (let level = layersCount - 1; level > -1; level--) {
-          const { colspan, isHidden } = this.#stateManager.getHeaderSettings(level, column);
+          const {
+            colspan,
+            isHidden,
+            isPlaceholder
+          } = this.#stateManager.getHeaderSettings(level, column) ?? { isPlaceholder: true };
           const isFirstLayer = level === layersCount - 1;
           const isOutOfRange = !isFirstLayer && (columnCursor + colspan) > columnSelectionWidth;
 
           const THs = this.getColumnHeaders(column, level);
 
           arrayEach(THs, (TH) => {
-            if (isOutOfRange || isHidden) {
+            if (isOutOfRange || isHidden || isPlaceholder) {
               // Reset CSS classes state (workaround for WoT issue which can not render that classes
               // for nested header structure properly).
               activeHeaderChanges.set(TH, activeHeader(TH, removeClass));
@@ -406,7 +412,7 @@ export class NestedHeaders extends BasePlugin {
    * @param {CellCoords} coords Clicked cell coords.
    */
   onAfterOnCellMouseDown(event, coords) {
-    if (coords.row < 0) {
+    if (coords.row < 0 && coords.col >= 0) {
       const { origColspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
 
       if (origColspan > 1) {

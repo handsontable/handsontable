@@ -1,6 +1,29 @@
 /* eslint max-len: ["error", { "code": 150 }] */
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 
+function createRootColspanSettings(overwriteProps = {}) {
+  return {
+    label: '',
+    colspan: 1,
+    origColspan: 1,
+    crossHiddenColumns: [],
+    isHidden: false,
+    isCollapsed: false,
+    collapsible: false,
+    isRoot: false,
+    isPlaceholder: false,
+    ...overwriteProps,
+  };
+}
+
+function createPlaceholder() {
+  return {
+    label: '',
+    isHidden: false,
+    isPlaceholder: true,
+  };
+}
+
 describe('SourceSettings', () => {
   describe('constructor', () => {
     it('should normalize user-defined settings into known uniform structure data (simple settings)', () => {
@@ -14,91 +37,19 @@ describe('SourceSettings', () => {
 
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: 'B2',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '4',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
+          createRootColspanSettings({ label: 'B2' }),
+          createRootColspanSettings({ label: '4' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -117,37 +68,13 @@ describe('SourceSettings', () => {
 
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -165,91 +92,19 @@ describe('SourceSettings', () => {
 
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: 'B2',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '4',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
+          createRootColspanSettings({ label: 'B2' }),
+          createRootColspanSettings({ label: '4' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -267,91 +122,19 @@ describe('SourceSettings', () => {
 
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: 'B2',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '4',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
+          createRootColspanSettings({ label: 'B2' }),
+          createRootColspanSettings({ label: '4' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -377,91 +160,19 @@ describe('SourceSettings', () => {
 
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: true,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1', collapsible: true }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: 'B2_mod',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '4',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
+          createRootColspanSettings({ label: 'B2_mod' }),
+          createRootColspanSettings({ label: '4' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -485,91 +196,19 @@ describe('SourceSettings', () => {
 
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: 'B2',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '4',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
+          createRootColspanSettings({ label: 'B2' }),
+          createRootColspanSettings({ label: '4' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -597,91 +236,19 @@ describe('SourceSettings', () => {
       expect(mapSpy).toHaveBeenCalledTimes(9);
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: true,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1', collapsible: true }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: 'B2',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '4',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
+          createRootColspanSettings({ label: 'B2' }),
+          createRootColspanSettings({ label: '4' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -698,7 +265,12 @@ describe('SourceSettings', () => {
 
       mapSpy.and.callFake((headerSettings) => {
         if (headerSettings.label === 'A1') {
-          return { colspan: 3, test: 'a', isCollapsed: true, origColspan: 99, isBlank: true };
+          return {
+            colspan: 3,
+            test: 'a',
+            isCollapsed: true,
+            origColspan: 99,
+          };
         }
       });
 
@@ -707,91 +279,19 @@ describe('SourceSettings', () => {
       expect(mapSpy).toHaveBeenCalledTimes(9);
       expect(settings.getData()).toEqual([
         [
-          {
-            label: 'A1',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'A1' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
         [
-          {
-            label: 'true',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: 'B2',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '4',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: 'true' }),
+          createRootColspanSettings({ label: 'B2' }),
+          createRootColspanSettings({ label: '4' }),
         ],
         [
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
-          {
-            label: '',
-            colspan: 1,
-            origColspan: 1,
-            isHidden: false,
-            isCollapsed: false,
-            collapsible: false,
-            isBlank: false,
-          },
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
+          createRootColspanSettings({ label: '' }),
         ],
       ]);
     });
@@ -846,51 +346,19 @@ describe('SourceSettings', () => {
         ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
       ]);
 
-      expect(settings.getHeaderSettings(0, 0)).toEqual({
-        label: 'A',
-        colspan: 1,
-        origColspan: 1,
-        isHidden: false,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: false,
-      });
-      expect(settings.getHeaderSettings(0, 1)).toEqual({
+      expect(settings.getHeaderSettings(0, 0)).toEqual(createRootColspanSettings({ label: 'A' }));
+      expect(settings.getHeaderSettings(0, 1)).toEqual(createRootColspanSettings({
         label: 'B',
         colspan: 8,
         origColspan: 8,
-        isHidden: false,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: false,
-      });
-      expect(settings.getHeaderSettings(0, 2)).toEqual({
-        label: '',
-        colspan: 1,
-        origColspan: 1,
-        isHidden: true,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: true,
-      });
-      expect(settings.getHeaderSettings(2, 5)).toEqual({
+      }));
+      expect(settings.getHeaderSettings(0, 2)).toEqual(createPlaceholder());
+      expect(settings.getHeaderSettings(2, 5)).toEqual(createRootColspanSettings({
         label: 'K',
         colspan: 2,
         origColspan: 2,
-        isHidden: false,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: false,
-      });
-      expect(settings.getHeaderSettings(2, 6)).toEqual({
-        label: '',
-        colspan: 1,
-        origColspan: 1,
-        isHidden: true,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: true,
-      });
+      }));
+      expect(settings.getHeaderSettings(2, 6)).toEqual(createPlaceholder());
     });
   });
 
@@ -934,70 +402,22 @@ describe('SourceSettings', () => {
       ]);
 
       expect(settings.getHeadersSettings(0, 0)).toEqual([
-        {
-          label: 'A',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'A' })
       ]);
       expect(settings.getHeadersSettings(1, 0)).toEqual([
-        {
-          label: 'D',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'D' })
       ]);
       expect(settings.getHeadersSettings(2, 0)).toEqual([
-        {
-          label: 'H',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'H' })
       ]);
       expect(settings.getHeadersSettings(3, 0)).toEqual([
-        {
-          label: 'N',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'N' })
       ]);
       expect(settings.getHeadersSettings(0, 1, 8)).toEqual([
-        {
-          label: 'B',
-          colspan: 8,
-          origColspan: 8,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'B', colspan: 8, origColspan: 8 })
       ]);
       expect(settings.getHeadersSettings(0, 9)).toEqual([
-        {
-          label: 'C',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'C' })
       ]);
     });
 
@@ -1012,113 +432,25 @@ describe('SourceSettings', () => {
       ]);
 
       expect(settings.getHeadersSettings(0, 0, 9)).toEqual([
-        {
-          label: 'A',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
-        {
-          label: 'B',
-          colspan: 8,
-          origColspan: 8,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'A' }),
+        createRootColspanSettings({ label: 'B', colspan: 8, origColspan: 8 }),
       ]);
       expect(settings.getHeadersSettings(1, 1, 4)).toEqual([
-        {
-          label: 'E',
-          colspan: 4,
-          origColspan: 4,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'E', colspan: 4, origColspan: 4 }),
       ]);
       expect(settings.getHeadersSettings(1, 1, 8)).toEqual([
-        {
-          label: 'E',
-          colspan: 4,
-          origColspan: 4,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
-        {
-          label: 'F',
-          colspan: 4,
-          origColspan: 4,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'E', colspan: 4, origColspan: 4 }),
+        createRootColspanSettings({ label: 'F', colspan: 4, origColspan: 4 }),
       ]);
       expect(settings.getHeadersSettings(2, 5, 5)).toEqual([
-        {
-          label: 'K',
-          colspan: 2,
-          origColspan: 2,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
-        {
-          label: 'L',
-          colspan: 2,
-          origColspan: 2,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
-        {
-          label: 'M',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'K', colspan: 2, origColspan: 2 }),
+        createRootColspanSettings({ label: 'L', colspan: 2, origColspan: 2 }),
+        createRootColspanSettings({ label: 'M' })
       ]);
       expect(settings.getHeadersSettings(3, 5, 3)).toEqual([
-        {
-          label: 'S',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
-        {
-          label: 'T',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
-        {
-          label: 'U',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isCollapsed: false,
-          collapsible: false,
-          isBlank: false,
-        },
+        createRootColspanSettings({ label: 'S' }),
+        createRootColspanSettings({ label: 'T' }),
+        createRootColspanSettings({ label: 'U' }),
       ]);
     });
 
