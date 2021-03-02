@@ -191,40 +191,40 @@
       "require": "./cellTypes/registry.js"
     },
     "./cellTypes/autocompleteType": {
-      "import": "./editors/autocompleteType/index.mjs",
-      "require": "./editors/autocompleteType/index.js"
+      "import": "./cellTypes/autocompleteType/index.mjs",
+      "require": "./cellTypes/autocompleteType/index.js"
     },
     "./cellTypes/checkboxType": {
-      "import": "./editors/checkboxType/index.mjs",
-      "require": "./editors/checkboxType/index.js"
+      "import": "./cellTypes/checkboxType/index.mjs",
+      "require": "./cellTypes/checkboxType/index.js"
     },
     "./cellTypes/dateType": {
-      "import": "./editors/dateType/index.mjs",
-      "require": "./editors/dateType/index.js"
+      "import": "./cellTypes/dateType/index.mjs",
+      "require": "./cellTypes/dateType/index.js"
     },
     "./cellTypes/dropdownType": {
-      "import": "./editors/dropdownType/index.mjs",
-      "require": "./editors/dropdownType/index.js"
+      "import": "./cellTypes/dropdownType/index.mjs",
+      "require": "./cellTypes/dropdownType/index.js"
     },
     "./cellTypes/handsontableType": {
-      "import": "./editors/handsontableType/index.mjs",
-      "require": "./editors/handsontableType/index.js"
+      "import": "./cellTypes/handsontableType/index.mjs",
+      "require": "./cellTypes/handsontableType/index.js"
     },
     "./cellTypes/numericType": {
-      "import": "./editors/numericType/index.mjs",
-      "require": "./editors/numericType/index.js"
+      "import": "./cellTypes/numericType/index.mjs",
+      "require": "./cellTypes/numericType/index.js"
     },
     "./cellTypes/passwordType": {
-      "import": "./editors/passwordType/index.mjs",
-      "require": "./editors/passwordType/index.js"
+      "import": "./cellTypes/passwordType/index.mjs",
+      "require": "./cellTypes/passwordType/index.js"
     },
     "./cellTypes/textType": {
-      "import": "./editors/textType/index.mjs",
-      "require": "./editors/textType/index.js"
+      "import": "./cellTypes/textType/index.mjs",
+      "require": "./cellTypes/textType/index.js"
     },
     "./cellTypes/timeType": {
-      "import": "./editors/timeType/index.mjs",
-      "require": "./editors/timeType/index.js"
+      "import": "./cellTypes/timeType/index.mjs",
+      "require": "./cellTypes/timeType/index.js"
     },
     "./editors": {
       "import": "./editors/index.mjs",
