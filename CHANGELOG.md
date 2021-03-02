@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed bugs in navigation by `HOME` and `END` keys with hidden rows/columns enabled. [#7454](https://github.com/handsontable/handsontable/issues/7454)
 - Fixed a bug with the `trimWhitespace` option not working properly. [#7458](https://github.com/handsontable/handsontable/issues/7458)
 - Fixed an issue with inconsistent documentation and TypeScript definitions for `colWidths` and `rowHeights` options. [#7507](https://github.com/handsontable/handsontable/issues/7507)
+- Fixed the incorrect `cellTypes` module paths in the `exports` entry of the `package.json` file. [#7597](https://github.com/handsontable/handsontable/issues/7597)
 
 ### Added
 - Introduced the monorepo to this repository. From now on, `handsontable`, `@handsontable/angular`, `@handsontable/react`, and `@handsontable/vue` will all be developed in the same repo - `handsontable`. [#7380](https://github.com/handsontable/handsontable/issues/7380)

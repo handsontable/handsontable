@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 8.3.2
- * Release date: 04/03/2021 (built at 25/02/2021 15:39:22)
+ * Release date: 04/03/2021 (built at 02/03/2021 15:10:11)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -39834,7 +39834,7 @@ Handsontable.Core = function (rootElement) {
 };
 
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "25/02/2021 15:39:22";
+Handsontable.buildDate = "02/03/2021 15:10:11";
 Handsontable.version = "8.3.2";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
