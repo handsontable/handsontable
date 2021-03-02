@@ -71,29 +71,32 @@ workspaces.forEach((packagesLocation) => {
   const subdirs = glob.sync(`./${packagesLocation}`);
 
   subdirs.forEach((packageLocation) => {
-    const frameworkName = packageLocation.split('/').pop();
+    // Currently linking the live dependencies only for the 'next' directory.
+    if (packageLocation.startsWith(`./next`)) {
+      const frameworkName = packageLocation.split('/').pop();
 
-    if (
-      (argv.framework && argv.framework.includes(frameworkName)) ||
-      !argv.framework
-    ) {
-      packagesToLink.forEach((packageName) => {
-        linkPackage(packageName, packageLocation);
-      });
+      if (
+        (argv.framework && argv.framework.includes(frameworkName)) ||
+        !argv.framework
+      ) {
+        packagesToLink.forEach((packageName) => {
+          linkPackage(packageName, packageLocation);
+        });
 
-      // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
-      if (frameworkName === `angular`) {
-        const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
+        // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
+        if (frameworkName === `angular`) {
+          const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
 
-        angularPackageJson?.workspaces?.packages.forEach((angularPackagesLocation) => {
-          const subdirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
+          angularPackageJson?.workspaces?.packages.forEach((angularPackagesLocation) => {
+            const subdirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
 
-          subdirs.forEach((packageLocation) => {
-            packagesToLink.forEach((packageName) => {
-              linkPackage(packageName, packageLocation);
+            subdirs.forEach((packageLocation) => {
+              packagesToLink.forEach((packageName) => {
+                linkPackage(packageName, packageLocation);
+              });
             });
           });
-        });
+        }
       }
     }
   });
