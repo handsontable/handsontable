@@ -19,6 +19,7 @@ import ParentLayout from '@parent-theme/layouts/Layout.vue';
 import LayoutFooter from '@theme/components/LayoutFooter.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
+import Sidebar from '@theme/components/Sidebar.vue';
 
 export default {
   name: 'Layout',
@@ -26,7 +27,8 @@ export default {
     ParentLayout,
     LayoutFooter,
     NavLinks,
-    NavLink
+    NavLink,
+    Sidebar
   },
   computed: {
     isLatest() {
