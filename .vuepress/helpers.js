@@ -24,8 +24,8 @@ module.exports = {
     versions.forEach(version => {
       const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
+      sidebars[`/${version}/api/`] = s.api;
       sidebars[`/${version}/`] = s.guide;
-      sidebars[`/${version}/api`] = s.api;
     });
 
     return sidebars;
