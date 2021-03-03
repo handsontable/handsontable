@@ -1,5 +1,25 @@
-import { createDefaultHeaderSettings } from 'handsontable/plugins/nestedHeaders/stateManager/constants';
 import StateManager from 'handsontable/plugins/nestedHeaders/stateManager';
+
+function createRootColspanSettings(overwriteProps = {}) {
+  return {
+    label: '',
+    colspan: 1,
+    origColspan: 1,
+    isHidden: false,
+    isCollapsed: false,
+    collapsible: false,
+    isRoot: true,
+    isPlaceholder: false,
+    ...overwriteProps,
+  };
+}
+
+function createPlaceholder() {
+  return {
+    label: '',
+    isPlaceholder: true,
+  };
+}
 
 describe('StateManager', () => {
   describe('setState', () => {
@@ -26,42 +46,18 @@ describe('StateManager', () => {
       ]);
 
       expect(isError).toBe(false);
-      expect(state.getHeaderSettings(0, 0)).toEqual({
+      expect(state.getHeaderSettings(0, 0)).toEqual(createRootColspanSettings({
         label: 'A1',
-        colspan: 1,
-        origColspan: 1,
-        isHidden: false,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: false,
-      });
-      expect(state.getHeaderSettings(0, 1)).toEqual({
+      }));
+      expect(state.getHeaderSettings(0, 1)).toEqual(createRootColspanSettings({
         label: 'A2',
         colspan: 4,
         origColspan: 4,
-        isHidden: false,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: false,
-      });
-      expect(state.getHeaderSettings(0, 2)).toEqual({
-        label: '',
-        colspan: 1,
-        origColspan: 4,
-        isHidden: true,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: true,
-      });
-      expect(state.getHeaderSettings(-1, 1)).toEqual({
+      }));
+      expect(state.getHeaderSettings(0, 2)).toEqual(createPlaceholder());
+      expect(state.getHeaderSettings(-1, 1)).toEqual(createRootColspanSettings({
         label: 'D2',
-        colspan: 1,
-        origColspan: 1,
-        isHidden: false,
-        isCollapsed: false,
-        collapsible: false,
-        isBlank: false,
-      });
+      }));
       expect(state.getLayersCount()).toBe(4);
       expect(state.getColumnsCount()).toBe(7);
     });
@@ -88,14 +84,11 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      const defaultHeaderSettings = createDefaultHeaderSettings();
-
       expect(isError).toBe(true);
-      expect(state.getHeaderSettings(0, 0)).not.toBe(defaultHeaderSettings);
-      expect(state.getHeaderSettings(0, 0)).toEqual(expect.objectContaining(defaultHeaderSettings));
-      expect(state.getHeaderSettings(1, 0)).toEqual(expect.objectContaining(defaultHeaderSettings));
-      expect(state.getHeaderSettings(2, 0)).toEqual(expect.objectContaining(defaultHeaderSettings));
-      expect(state.getHeaderSettings(1, 3)).toEqual(expect.objectContaining(defaultHeaderSettings));
+      expect(state.getHeaderSettings(0, 0)).toBe(null);
+      expect(state.getHeaderSettings(1, 0)).toBe(null);
+      expect(state.getHeaderSettings(2, 0)).toBe(null);
+      expect(state.getHeaderSettings(3, 3)).toBe(null);
       expect(state.getLayersCount()).toBe(0);
       expect(state.getColumnsCount()).toBe(0);
     });
@@ -431,62 +424,30 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      {
-        const headerSettings = {
-          label: 'A1',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isBlank: false,
-          isCollapsed: false,
-          collapsible: false,
-        };
-
-        expect(state.getHeaderSettings(0, 0)).toEqual(headerSettings);
-        expect(state.getHeaderSettings(-4, 0)).toEqual(headerSettings);
-      }
-      {
-        const headerSettings = {
-          label: 'A2',
-          colspan: 4,
-          origColspan: 4,
-          isHidden: false,
-          isBlank: false,
-          isCollapsed: false,
-          collapsible: false,
-        };
-
-        expect(state.getHeaderSettings(0, 1)).toEqual(headerSettings);
-        expect(state.getHeaderSettings(-4, 1)).toEqual(headerSettings);
-      }
-      {
-        const headerSettings = {
-          label: '',
-          colspan: 1,
-          origColspan: 4,
-          isHidden: true,
-          isBlank: true,
-          isCollapsed: false,
-          collapsible: false,
-        };
-
-        expect(state.getHeaderSettings(0, 2)).toEqual(headerSettings);
-        expect(state.getHeaderSettings(-4, 2)).toEqual(headerSettings);
-      }
-      {
-        const headerSettings = {
-          label: 'D2',
-          colspan: 1,
-          origColspan: 1,
-          isHidden: false,
-          isBlank: false,
-          isCollapsed: false,
-          collapsible: false,
-        };
-
-        expect(state.getHeaderSettings(3, 1)).toEqual(headerSettings);
-        expect(state.getHeaderSettings(-1, 1)).toEqual(headerSettings);
-      }
+      expect(state.getHeaderSettings(0, 0)).toEqual(createRootColspanSettings({
+        label: 'A1',
+      }));
+      expect(state.getHeaderSettings(-4, 0)).toEqual(createRootColspanSettings({
+        label: 'A1',
+      }));
+      expect(state.getHeaderSettings(0, 1)).toEqual(createRootColspanSettings({
+        label: 'A2',
+        colspan: 4,
+        origColspan: 4,
+      }));
+      expect(state.getHeaderSettings(-4, 1)).toEqual(createRootColspanSettings({
+        label: 'A2',
+        colspan: 4,
+        origColspan: 4,
+      }));
+      expect(state.getHeaderSettings(0, 2)).toEqual(createPlaceholder());
+      expect(state.getHeaderSettings(-4, 2)).toEqual(createPlaceholder());
+      expect(state.getHeaderSettings(3, 1)).toEqual(createRootColspanSettings({
+        label: 'D2',
+      }));
+      expect(state.getHeaderSettings(-1, 1)).toEqual(createRootColspanSettings({
+        label: 'D2',
+      }));
     });
 
     it('should return null when header level is higher than passed nested header configuration', () => {
@@ -499,11 +460,10 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      expect(state.getHeaderSettings(4, 0))
-        .toEqual(expect.objectContaining(createDefaultHeaderSettings()));
+      expect(state.getHeaderSettings(4, 0)).toBe(null);
     });
 
-    it('should return default settings when column index exceeds total columns defined in the nested header configuration', () => {
+    it('should return null when column index exceeds total columns defined in the nested header configuration', () => {
       const state = new StateManager();
 
       state.setState([
@@ -513,27 +473,8 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      const columnSettings = state.getHeaderSettings(0, 100);
-
-      expect(columnSettings).toEqual({
-        label: '',
-        colspan: 1,
-        origColspan: 1,
-        isHidden: false,
-        isBlank: false,
-        isCollapsed: false,
-        collapsible: false,
-      });
-      expect(state.getHeaderSettings(0, 101)).toEqual({
-        label: '',
-        colspan: 1,
-        origColspan: 1,
-        isHidden: false,
-        isBlank: false,
-        isCollapsed: false,
-        collapsible: false,
-      });
-      expect(state.getHeaderSettings(0, 101)).not.toBe(columnSettings);
+      expect(state.getHeaderSettings(0, 100)).toBe(null);
+      expect(state.getHeaderSettings(0, 101)).toBe(null);
     });
   });
 
@@ -685,8 +626,7 @@ describe('StateManager', () => {
 
       state.clear();
 
-      expect(state.getHeaderSettings(0, 0))
-        .toEqual(expect.objectContaining(createDefaultHeaderSettings()));
+      expect(state.getHeaderSettings(0, 0)).toBe(null);
       expect(state.getLayersCount()).toBe(0);
       expect(state.getColumnsCount()).toBe(0);
     });

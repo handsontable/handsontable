@@ -45,19 +45,19 @@ export function generateMatrix(headerRoots) {
         crossHiddenColumns,
       } = nodeData;
       const colspanHeaderLayer = createNestedArrayIfNecessary(matrix, headerLevel);
-      let isRootSettingsFilled = false;
+      let isRootSettingsFound = false;
 
       for (let i = columnIndex; i < columnIndex + origColspan; i++) {
         const isColumnHidden = crossHiddenColumns.includes(i);
 
-        if (isColumnHidden || isRootSettingsFilled) {
+        if (isColumnHidden || isRootSettingsFound) {
           colspanHeaderLayer.push(createPlaceholderHeaderSettings(nodeData));
         } else {
-          colspanHeaderLayer.push(createDefaultHeaderSettings({
-            ...nodeData,
-            isRoot: true,
-          }));
-          isRootSettingsFilled = true;
+          const headerRootSettings = createDefaultHeaderSettings(nodeData);
+
+          headerRootSettings.isRoot = true;
+          colspanHeaderLayer.push(headerRootSettings);
+          isRootSettingsFound = true;
         }
       }
     });

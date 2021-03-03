@@ -1,3 +1,5 @@
+import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+
 /**
  * @param {TreeNode} nodeToProcess A tree node to process.
  * @param {number} gridColumnIndex The visual column index that triggers the node modification.
@@ -15,7 +17,6 @@ the last node, the show column modification can be applied.`);
   }
 
   const {
-    isHidden,
     crossHiddenColumns,
   } = nodeToProcess.data;
 

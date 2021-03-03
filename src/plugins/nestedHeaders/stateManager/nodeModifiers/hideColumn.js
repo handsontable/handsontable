@@ -17,15 +17,12 @@ the last node, the hide column modification can be applied.`);
   }
 
   const {
-    isHidden,
     crossHiddenColumns,
   } = nodeToProcess.data;
 
   if (crossHiddenColumns.includes(gridColumnIndex)) {
     return;
   }
-
-  // console.log('hideColumn', nodeToProcess, gridColumnIndex);
 
   nodeToProcess.walkUp((node) => {
     const { data } = node;

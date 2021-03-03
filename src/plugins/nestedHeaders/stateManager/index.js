@@ -2,7 +2,6 @@ import { arrayMap, arrayReduce } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
-import { createPlaceholderHeaderSettings } from './constants';
 import { generateMatrix } from './matrixGenerator';
 
 /**
@@ -189,9 +188,9 @@ export default class StateManager {
   }
 
   /**
-   * Triggers an action (e.g. "hide-column") from the NodeModifiers module. The action is triggered
-   * starting from the lowest lowest header. The module modifies a tree structure in such a way
-   * as to obtain the correct structure consistent with the called action.
+   * Triggers an action (e.g. "hide-column") from the NodeModifiers module. The action is
+   * triggered starting from the lowest header. The module modifies a tree structure in
+   * such a way as to obtain the correct structure consistent with the called action.
    *
    * @param {string} action An action name to trigger.
    * @param {number} columnIndex A visual column index.
@@ -276,7 +275,7 @@ export default class StateManager {
    *
    * @param {number} headerLevel Header level (there is support for negative and positive values).
    * @param {number} columnIndex A visual column index.
-   * @returns {object}
+   * @returns {object|null}
    */
   getHeaderSettings(headerLevel, columnIndex) {
     if (headerLevel < 0) {
@@ -284,11 +283,10 @@ export default class StateManager {
     }
 
     if (headerLevel >= this.getLayersCount()) {
-      return;
+      return null;
     }
 
-    // return this.#stateMatrix[headerLevel]?.[columnIndex] ?? createPlaceholderHeaderSettings();
-    return this.#stateMatrix[headerLevel]?.[columnIndex];
+    return this.#stateMatrix[headerLevel]?.[columnIndex] ?? null;
   }
 
   /**

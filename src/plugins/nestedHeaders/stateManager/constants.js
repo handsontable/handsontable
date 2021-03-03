@@ -10,7 +10,6 @@ export function createDefaultHeaderSettings({
   collapsible = false,
   isCollapsed = false,
   isHidden = false,
-  crossHiddenColumns = [],
   isRoot = false,
   isPlaceholder = false,
 } = {}) {
@@ -53,12 +52,6 @@ export function createDefaultHeaderSettings({
      */
     isHidden,
     /**
-     * The list of visual column indexes which indicates that the specified columns are hidden.
-     *
-     * @type {number[]}
-     */
-    crossHiddenColumns,
-    /**
      * The flag which determines whether the column header settings is accually not renderable. That kind
      * of objects are generated after colspaned header to fill an array to correct size.
      *
@@ -68,19 +61,15 @@ export function createDefaultHeaderSettings({
      * @type {boolean}
      */
     isRoot,
-
     isPlaceholder,
   };
 }
 
-export function createPlaceholderHeaderSettings(initialValues) {
-  const headerSettings = createDefaultHeaderSettings(initialValues);
-
+export function createPlaceholderHeaderSettings() {
   return {
-    label: headerSettings.label,
-    isHidden: headerSettings.isHidden,
+    label: '',
     isPlaceholder: true,
-  }
+  };
 }
 
 /**

@@ -186,8 +186,25 @@ export default class HeadersTree {
     arrayEach(columnsSettings, (columnSettings) => {
       const nodeData = {
         ...columnSettings,
+        /**
+         * The header level (tree node depth level).
+         *
+         * @type {number}
+         */
         headerLevel: headerLevel - 1,
+        /**
+         * A visual column index.
+         *
+         * @type {number}
+         */
         columnIndex,
+        /**
+         * The list of visual column indexes which indicates that the specified columns within
+         * the node (including its colspan width) are hidden.
+         *
+         * @type {number[]}
+         */
+        crossHiddenColumns: [],
       };
       let node;
 
