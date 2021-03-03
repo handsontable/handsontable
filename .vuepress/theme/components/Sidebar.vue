@@ -22,7 +22,7 @@ export default {
     offset:0
   }),
   components: { SidebarLinks, NavLinks },
-  created() {
+  mounted() {
     if(window) {
       window.addEventListener('scroll', this.handleScroll);
     }
