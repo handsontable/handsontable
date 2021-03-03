@@ -40,7 +40,11 @@ module.exports = {
           .highlight(highlight)
           .end()
       },
-    }
+    },
+    ['@vuepress/search', {
+      searchPlaceholder: 'Search...',
+      test: helpers.getLatestVersion().replace('.','\\.') // todo make sensible for currentVersion
+    }]
   ],
   extendPageData ($page) {
     $page.versions = helpers.getVersions();
@@ -59,7 +63,6 @@ module.exports = {
     editLinkText: 'Help us improve this page',
     lastUpdated: true,
     smoothScroll: false,
-    searchPlaceholder: 'Search...',
     nav: [
       { text: 'Demo', link: 'https://handsontable.com/examples' },
       { text: 'Support', items: [

@@ -22,7 +22,7 @@ export default {
       required: true
     }
   },
-  watch:{$route:()=>{}}, // force re render on route changed
+  watch: { $route(){ } }, // force rerender on route changed
   computed: {
     link () {
       return ensureExt(this.item.link)
