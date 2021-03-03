@@ -1,18 +1,6 @@
 <template>
   <RouterLink
-    v-if="isInternal && isInactive"
-    class="nav-link"
-    :to="link"
-    :exact="exact"
-    active-class="inactive"
-    exact-path-active-class="inactive"
-    exact-active-class="inactive"
-    @focusout.native="focusoutAction"
-  >
-    {{ item.text }}
-  </RouterLink>
-  <RouterLink
-    v-else-if="isInternal"
+    v-if="isInternal"
     class="nav-link"
     :to="link"
     :exact="exact"
@@ -92,12 +80,6 @@ export default {
       return this.isBlankTarget ? 'noopener noreferrer' : null
     },
 
-    isInactive() {
-      if ((this.link === '/' || this.link === '/next/') && this.$route.fullPath.match(/([^/]*\/)?api\//)) {
-        return true;
-      }
-      return false;
-    },
   },
   methods: {
     focusoutAction () {

@@ -1,9 +1,15 @@
 <template>
   <nav
-    v-if="userLinks.length"
     class="nav-links"
   >
     <!-- user links -->
+
+    <div class="nav-item">
+      <NavVersionedLink :item="guideLink"/>
+    </div>
+    <div class="nav-item">
+      <NavVersionedLink :item="apiLink"/>
+    </div>
     <div
       v-for="item in userLinks"
       :key="item.link"
@@ -25,15 +31,29 @@
 import DropdownLink from '@theme/components/DropdownLink.vue'
 import { resolveNavLinkItem } from './util'
 import NavLink from '@theme/components/NavLink.vue'
+import NavVersionedLink from '@theme/components/NavVersionedLink.vue'
 
 export default {
   name: 'NavLinks',
 
   components: {
     NavLink,
-    DropdownLink
+    DropdownLink,
+    NavVersionedLink
   },
   computed: {
+    guideLink(){
+      return {
+        link: '/',
+        text: 'Guide'
+      }
+    },
+    apiLink(){
+      return {
+        link: '/api/',
+        text: 'Api Reference'
+      }
+    },
     userNav () {
       return this.$themeLocaleConfig.nav || this.$site.themeConfig.nav || []
     },

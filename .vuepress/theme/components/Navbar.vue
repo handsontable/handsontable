@@ -32,7 +32,7 @@
           :options="algolia"
       />
       <SearchBox v-else-if="$site.themeConfig.search !== false && $page.frontmatter.search !== false" />
-      <NavLinks class="can-hide" :key="randomKey()" />
+      <NavLinks class="can-hide" />
     </div>
   </header>
 </template>
@@ -55,11 +55,6 @@ export default {
   data () {
     return {
       linksWrapMaxWidth: null
-    }
-  },
-  methods: {
-    randomKey(){ // TODO invent how to better handle this state
-      return 'a'+Math.random();
     }
   },
   computed: {

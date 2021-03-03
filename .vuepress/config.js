@@ -45,7 +45,7 @@ module.exports = {
   extendPageData ($page) {
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
-    $page.currentVersion = $page.path.split('/')[1] || $page.latestVersion;
+    $page.currentVersion = $page.path.split('/')[1] || $page.latestVersion; //todo will it work ok for the latest api page?
   },
   themeConfig: {
     logo: '/logo.png',
@@ -60,9 +60,7 @@ module.exports = {
     lastUpdated: true,
     smoothScroll: false,
     searchPlaceholder: 'Search...',
-    nav: [ //todo link to latest, not next
-      { text: 'Guide', link: '/next/' },
-      { text: 'API Reference', link: '/next/api/' },
+    nav: [
       { text: 'Demo', link: 'https://handsontable.com/examples' },
       { text: 'Support', items: [
           { text: 'Forum', link: 'https://forum.handsontable.com' },
