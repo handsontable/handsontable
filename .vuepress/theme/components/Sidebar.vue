@@ -35,8 +35,9 @@ export default {
   watch:{},
   methods: {
     handleScroll(){
-      const offset = (window.innerHeight || document.documentElement.clientHeight) - document.querySelector('footer.footer').getBoundingClientRect().top;
-      this.offset = Math.max(0,offset);
+      const offset =  Math.max(0,(window.innerHeight || document.documentElement.clientHeight) - document.querySelector('footer.footer').getBoundingClientRect().top);
+      this.$el.scrollBy(0,offset-this.offset);
+      this.offset = offset;
     }
   },
 

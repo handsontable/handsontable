@@ -69,4 +69,11 @@ export default {
 
   .icon.outbound
     display none
+
+
+@media (min-width: 719px)
+  .nav-versions
+    .dropdown-wrapper .nav-dropdown
+      right: initial!important;
+      left: -22px;
 </style>

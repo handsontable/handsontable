@@ -142,10 +142,18 @@ table {
         overflow-y: auto;
         overflow-x: hidden;
         border-left: 1px solid #eaecef;
+        max-height: 100%;
+
+        .toc-container-header {
+            position: fixed;
+            width: 100%;
+            background: #fff;
+            z-index: 10;
+        }
 
         ul {
             padding: 0;
-            margin: 0;
+            margin: 46px 0 0 0;
             list-style-type: none;
 
             ul{
