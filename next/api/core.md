@@ -1,6 +1,7 @@
 ---
 title: Core
-permalink: /next/api/
+permalink: /next/api/core
+canonicalUrl: /api/core
 ---
 
 # {{ $frontmatter.title }}
@@ -130,7 +131,7 @@ Destroys the current editor, render the table and prepares the editor of the new
 Populate cells at position with 2D input array (e.g. `[[1, 2], [3, 4]]`). Use `endRow`, `endCol` when you
 want to cut input when a certain row is reached.
 
-Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](options#pastemode)).
+Optional `method` argument has the same effect as pasteMode option (see [Options#pasteMode](./options/#pastemode)).
 
 
 | Param | Type | Default | Description |
@@ -240,7 +241,7 @@ Erases content from cells that have been selected in the table.
 ### isRenderSuspended
 `core.isRenderSuspended() ⇒ boolean`
 
-Checks if the table rendering process was suspended. See explanation in [Core#suspendRender](core#suspendrender).
+Checks if the table rendering process was suspended. See explanation in [Core#suspendRender](./core/#suspendrender).
 
 **Since**: 8.3.0  
 
@@ -254,8 +255,8 @@ once in the end. As a result, it improves the performance of wrapped operations.
 When the table is in the suspend state, most operations will have no visual
 effect until the rendering state is resumed. Resuming the state automatically
 invokes the table rendering. To make sure that after executing all operations,
-the table will be rendered, it's highly recommended to use the [Core#batchRender](core#batchrender)
-method or [Core#batch](core#batch), which additionally aggregates the logic execution
+the table will be rendered, it's highly recommended to use the [Core#batchRender](./core/#batchrender)
+method or [Core#batch](./core/#batch), which additionally aggregates the logic execution
 that happens behind the table.
 
 The method is intended to be used by advanced users. Suspending the rendering
@@ -280,7 +281,7 @@ hot.resumeRender(); // It re-renders the table internally
 ### resumeRender
 `core.resumeRender()`
 
-Resumes the rendering process. In combination with the [Core#suspendRender](core#suspendrender)
+Resumes the rendering process. In combination with the [Core#suspendRender](./core/#suspendrender)
 method it allows aggregating the table render cycles triggered by API calls or UI
 actions (or both) and calls the "render" once in the end. When the table is in
 the suspend state, most operations will have no visual effect until the rendering
@@ -351,7 +352,7 @@ hot.batchRender(() => {
 `core.isExecutionSuspended() ⇒ boolean`
 
 Checks if the table indexes recalculation process was suspended. See explanation
-in [Core#suspendExecution](core#suspendexecution).
+in [Core#suspendExecution](./core/#suspendexecution).
 
 **Since**: 8.3.0  
 
@@ -382,7 +383,7 @@ hot.resumeExecution(); // It updates the cache internally
 ### resumeExecution
 `core.resumeExecution([forceFlushChanges])`
 
-Resumes the execution process. In combination with the [Core#suspendExecution](core#suspendexecution)
+Resumes the execution process. In combination with the [Core#suspendExecution](./core/#suspendexecution)
 method it allows aggregating the table logic changes after which the cache is
 updated. Resuming the state automatically invokes the table cache updating process.
 
@@ -393,7 +394,7 @@ process could cause visual glitches caused by not updated the internal table cac
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [forceFlushChanges] | <code>boolean</code> | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](core#batchexecution) calls, it can be desire to recalculate the table after each batch. |
+| [forceFlushChanges] | <code>boolean</code> | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](./core/#batchexecution) calls, it can be desire to recalculate the table after each batch. |
 
 
 **Example**  
@@ -503,7 +504,7 @@ Since 8.0.0 loading new data also resets states corresponding to rows and column
 
 Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
 unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
-If that's the case - use the [Core#getSourceData](core#getsourcedata) method.).
+If that's the case - use the [Core#getSourceData](./core/#getsourcedata) method.).
 
 Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
 
@@ -581,7 +582,7 @@ Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| settings | <code>object</code> |  | New settings object (see [Options](options)). |
+| settings | <code>object</code> |  | New settings object (see [Options](./options/)). |
 | [init] | <code>boolean</code> | <code>false</code> | `optional` Internally used for in initialization mode. |
 
 
@@ -1075,7 +1076,7 @@ Returns the cell renderer function by given `row` and `column` arguments.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> \| <code>object</code> | Visual row index or cell meta object (see [Core#getCellMeta](core#getcellmeta)). |
+| row | <code>number</code> \| <code>object</code> | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
 | column | <code>number</code> | Visual column index. |
 
 
@@ -1096,7 +1097,7 @@ Returns the cell editor class by the provided `row` and `column` arguments.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index or cell meta object (see [Core#getCellMeta](core#getcellmeta)). |
+| row | <code>number</code> | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
 | column | <code>number</code> | Visual column index. |
 
 
@@ -1117,7 +1118,7 @@ Returns the cell validator by `row` and `column`.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> \| <code>object</code> | Visual row index or cell meta object (see [Core#getCellMeta](core#getcellmeta)). |
+| row | <code>number</code> \| <code>object</code> | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
 | column | <code>number</code> | Visual column index. |
 
 
@@ -1593,7 +1594,7 @@ Adds listener to the specified hook name (only for this Handsontable instance).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Hook name (see [Hooks](hooks)). |
+| key | <code>string</code> | Hook name (see [Hooks](./hooks/)). |
 | callback | <code>function</code> \| <code>Array</code> | Function or array of functions. |
 
 
@@ -1606,7 +1607,7 @@ hot.addHook('beforeInit', myCallback);
 `core.hasHook(key) ⇒ boolean`
 
 Check if for a specified hook name there are added listeners (only for this Handsontable instance). All available
-hooks you will find [Hooks](hooks).
+hooks you will find [Hooks](./hooks/).
 
 **See**: Hooks#has  
 
@@ -1630,7 +1631,7 @@ it will be automatically removed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Hook name (see [Hooks](hooks)). |
+| key | <code>string</code> | Hook name (see [Hooks](./hooks/)). |
 | callback | <code>function</code> \| <code>Array</code> | Function or array of functions. |
 
 
@@ -1642,14 +1643,14 @@ hot.addHookOnce('beforeInit', myCallback);
 ### removeHook
 `core.removeHook(key, callback)`
 
-Removes the hook listener previously registered with [Core#addHook](core#addhook).
+Removes the hook listener previously registered with [Core#addHook](./core/#addhook).
 
 **See**: Hooks#remove  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | key | <code>string</code> | Hook name. |
-| callback | <code>function</code> | Reference to the function which has been registered using [Core#addHook](core#addhook). |
+| callback | <code>function</code> | Reference to the function which has been registered using [Core#addHook](./core/#addhook). |
 
 
 **Example**  

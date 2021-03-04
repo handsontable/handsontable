@@ -1,6 +1,7 @@
 ---
 title: Hooks
 permalink: /next/api/hooks
+canonicalUrl: /api/plugin-hooks
 ---
 
 # {{ $frontmatter.title }}
@@ -275,7 +276,7 @@ Handsontable.hooks.getRegistered();
 ### afterCellMetaReset
 `"afterCellMetaReset"`
 
-Fired after resetting a cell's meta. This happens when the [Core#updateSettings](core#updatesettings) method is called.
+Fired after resetting a cell's meta. This happens when the [Core#updateSettings](./core/#updatesettings) method is called.
 
 
 
@@ -308,16 +309,16 @@ new Handsontable(element, {
 ### afterChangesObserved
 `"afterChangesObserved"`
 
-Fired by [ObserveChanges](observe-changes) plugin after detecting changes in the data source. This hook is fired when
-[Options#observeChanges](options#observechanges) option is enabled.
+Fired by [ObserveChanges](./observe-changes/) plugin after detecting changes in the data source. This hook is fired when
+[Options#observeChanges](./options/#observechanges) option is enabled.
 
 
 
 ### afterContextMenuDefaultOptions
 `"afterContextMenuDefaultOptions"(predefinedItems)`
 
-Fired each time user opens [ContextMenu](context-menu) and after setting up the Context Menu's default options. These options are a collection
-which user can select by setting an array of keys or an array of objects in [Options#contextMenu](options#contextmenu) option.
+Fired each time user opens [ContextMenu](./context-menu/) and after setting up the Context Menu's default options. These options are a collection
+which user can select by setting an array of keys or an array of objects in [Options#contextMenu](./options/#contextmenu) option.
 
 
 | Param | Type | Description |
@@ -329,7 +330,7 @@ which user can select by setting an array of keys or an array of objects in [Opt
 ### beforeContextMenuSetItems
 `"beforeContextMenuSetItems"(menuItems)`
 
-Fired each time user opens [ContextMenu](context-menu) plugin before setting up the Context Menu's items but after filtering these options by
+Fired each time user opens [ContextMenu](./context-menu/) plugin before setting up the Context Menu's items but after filtering these options by
 user (`contextMenu` option). This hook can by helpful to determine if user use specified menu item or to set up
 one of the menu item to by always visible.
 
@@ -343,8 +344,8 @@ one of the menu item to by always visible.
 ### afterDropdownMenuDefaultOptions
 `"afterDropdownMenuDefaultOptions"(predefinedItems)`
 
-Fired by [DropdownMenu](dropdown-menu) plugin after setting up the Dropdown Menu's default options. These options are a
-collection which user can select by setting an array of keys or an array of objects in [Options#dropdownMenu](options#dropdownmenu)
+Fired by [DropdownMenu](./dropdown-menu/) plugin after setting up the Dropdown Menu's default options. These options are a
+collection which user can select by setting an array of keys or an array of objects in [Options#dropdownMenu](./options/#dropdownmenu)
 option.
 
 
@@ -357,7 +358,7 @@ option.
 ### beforeDropdownMenuSetItems
 `"beforeDropdownMenuSetItems"(menuItems)`
 
-Fired by [DropdownMenu](dropdown-menu) plugin before setting up the Dropdown Menu's items but after filtering these options
+Fired by [DropdownMenu](./dropdown-menu/) plugin before setting up the Dropdown Menu's items but after filtering these options
 by user (`dropdownMenu` option). This hook can by helpful to determine if user use specified menu item or to set
 up one of the menu item to by always visible.
 
@@ -371,7 +372,7 @@ up one of the menu item to by always visible.
 ### afterContextMenuHide
 `"afterContextMenuHide"(context)`
 
-Fired by [ContextMenu](context-menu) plugin after hiding the Context Menu. This hook is fired when [Options#contextMenu](options#contextmenu)
+Fired by [ContextMenu](./context-menu/) plugin after hiding the Context Menu. This hook is fired when [Options#contextMenu](./options/#contextmenu)
 option is enabled.
 
 
@@ -384,7 +385,7 @@ option is enabled.
 ### beforeContextMenuShow
 `"beforeContextMenuShow"(context)`
 
-Fired by [ContextMenu](context-menu) plugin before opening the Context Menu. This hook is fired when [Options#contextMenu](options#context-menu)
+Fired by [ContextMenu](./context-menu/) plugin before opening the Context Menu. This hook is fired when [Options#contextMenu](./options/#context-menu)
 option is enabled.
 
 
@@ -397,7 +398,7 @@ option is enabled.
 ### afterContextMenuShow
 `"afterContextMenuShow"(context)`
 
-Fired by [ContextMenu](context-menu) plugin after opening the Context Menu. This hook is fired when [Options#contextMenu](options#contextmenu)
+Fired by [ContextMenu](./context-menu/) plugin after opening the Context Menu. This hook is fired when [Options#contextMenu](./options/#contextmenu)
 option is enabled.
 
 
@@ -410,8 +411,8 @@ option is enabled.
 ### afterCopyLimit
 `"afterCopyLimit"(selectedRows, selectedColumns, copyRowsLimit, copyColumnsLimit)`
 
-Fired by [CopyPaste](copy-paste) plugin after reaching the copy limit while copying data. This hook is fired when
-[Options#copyPaste](options#copypaste) option is enabled.
+Fired by [CopyPaste](./copy-paste/) plugin after reaching the copy limit while copying data. This hook is fired when
+[Options#copyPaste](./options/#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -1030,8 +1031,8 @@ Fired after successful change of language (when proper language code was set).
 ### beforeAutofill
 `"beforeAutofill"(start, end, data) ⇒ \* | boolean`
 
-Fired by [Autofill](autofill) plugin before populating the data in the autofill feature. This hook is fired when
-[Options#fillHandle](options#fillhandle) option is enabled.
+Fired by [Autofill](./autofill/) plugin before populating the data in the autofill feature. This hook is fired when
+[Options#fillHandle](./options/#fillhandle) option is enabled.
 
 
 | Param | Type | Description |
@@ -1046,8 +1047,8 @@ Fired by [Autofill](autofill) plugin before populating the data in the autofill 
 ### afterAutofill
 `"afterAutofill"(start, end, data)`
 
-Fired by [Autofill](autofill) plugin after populating the data in the autofill feature. This hook is fired when
-[Options#fillHandle](options#fillhandle) option is enabled.
+Fired by [Autofill](./autofill/) plugin after populating the data in the autofill feature. This hook is fired when
+[Options#fillHandle](./options/#fillhandle) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -1553,8 +1554,8 @@ and saving values from the closed editor.
 ### persistentStateLoad
 `"persistentStateLoad"(key, valuePlaceholder)`
 
-Fired by [PersistentState](persistent-state) plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
-[Options#persistentState](options#persistentstate) option is enabled.
+Fired by [PersistentState](./persistent-state/) plugin, after loading value, saved under given key, from browser local storage. This hook is fired when
+[Options#persistentState](./options/#persistentstate) option is enabled.
 
 
 | Param | Type | Description |
@@ -1567,8 +1568,8 @@ Fired by [PersistentState](persistent-state) plugin, after loading value, saved 
 ### persistentStateReset
 `"persistentStateReset"([key])`
 
-Fired by [PersistentState](persistent-state) plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
-This hook is fired when [Options#persistentState](options#persistentstate) option is enabled.
+Fired by [PersistentState](./persistent-state/) plugin after resetting data from local storage. If no key is given, all values associated with table will be cleared.
+This hook is fired when [Options#persistentState](./options/#persistentstate) option is enabled.
 
 
 | Param | Type | Description |
@@ -1580,8 +1581,8 @@ This hook is fired when [Options#persistentState](options#persistentstate) optio
 ### persistentStateSave
 `"persistentStateSave"(key, value)`
 
-Fired by [PersistentState](persistent-state) plugin, after saving value under given key in browser local storage. This hook is fired when
-[Options#persistentState](options#persistentstate) option is enabled.
+Fired by [PersistentState](./persistent-state/) plugin, after saving value under given key in browser local storage. This hook is fired when
+[Options#persistentState](./options/#persistentstate) option is enabled.
 
 
 | Param | Type | Description |
@@ -1594,10 +1595,10 @@ Fired by [PersistentState](persistent-state) plugin, after saving value under gi
 ### beforeColumnSort
 `"beforeColumnSort"(currentSortConfig, destinationSortConfigs) ⇒ boolean | void`
 
-Fired by [ColumnSorting](column-sorting) and [MultiColumnSorting](multi-column-sorting) plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
+Fired by [ColumnSorting](./column-sorting/) and [MultiColumnSorting](./multi-column-sorting/) plugins before sorting the column. If you return `false` value inside callback for hook, then sorting
 will be not applied by the Handsontable (useful for server-side sorting).
 
-This hook is fired when [Options#columnSorting](options#columnsorting) or [Options#multiColumnSorting](options#multicolumnsorting) option is enabled.
+This hook is fired when [Options#columnSorting](./options/#columnsorting) or [Options#multiColumnSorting](./options/#multicolumnsorting) option is enabled.
 
 
 | Param | Type | Description |
@@ -1611,8 +1612,8 @@ This hook is fired when [Options#columnSorting](options#columnsorting) or [Optio
 ### afterColumnSort
 `"afterColumnSort"(currentSortConfig, destinationSortConfigs)`
 
-Fired by [ColumnSorting](column-sorting) and [MultiColumnSorting](multi-column-sorting) plugins after sorting the column. This hook is fired when [Options#columnSorting](options#columnsorting)
-or [Options#multiColumnSorting](options#multicolumnsorting) option is enabled.
+Fired by [ColumnSorting](./column-sorting/) and [MultiColumnSorting](./multi-column-sorting/) plugins after sorting the column. This hook is fired when [Options#columnSorting](./options/#columnsorting)
+or [Options#multiColumnSorting](./options/#multicolumnsorting) option is enabled.
 
 
 | Param | Type | Description |
@@ -1625,7 +1626,7 @@ or [Options#multiColumnSorting](options#multicolumnsorting) option is enabled.
 ### modifyAutofillRange
 `"modifyAutofillRange"(startArea, entireArea)`
 
-Fired by [Autofill](autofill) plugin after setting range of autofill. This hook is fired when [Options#fillHandle](options#fillhandle)
+Fired by [Autofill](./autofill/) plugin after setting range of autofill. This hook is fired when [Options#fillHandle](./options/#fillhandle)
 option is enabled.
 
 
@@ -1651,8 +1652,8 @@ Fired to allow modifying the copyable range with a callback function.
 ### beforeCut
 `"beforeCut"(data, coords) ⇒ \*`
 
-Fired by [CopyPaste](copy-paste) plugin before copying the values into clipboard and before clearing values of
-the selected cells. This hook is fired when [Options#copyPaste](options#copypaste) option is enabled.
+Fired by [CopyPaste](./copy-paste/) plugin before copying the values into clipboard and before clearing values of
+the selected cells. This hook is fired when [Options#copyPaste](./options/#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -1684,8 +1685,8 @@ new Handsontable(element, {
 ### afterCut
 `"afterCut"(data, coords)`
 
-Fired by [CopyPaste](copy-paste) plugin after data was cut out from the table. This hook is fired when
-[Options#copyPaste](options#copypaste) option is enabled.
+Fired by [CopyPaste](./copy-paste/) plugin after data was cut out from the table. This hook is fired when
+[Options#copyPaste](./options/#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -1735,7 +1736,7 @@ new Handsontable(document.getElementById('example'), {
 ### afterCopy
 `"afterCopy"(data, coords)`
 
-Fired by [CopyPaste](copy-paste) plugin after data are pasted into table. This hook is fired when [Options#copyPaste](options#copypaste)
+Fired by [CopyPaste](./copy-paste/) plugin after data are pasted into table. This hook is fired when [Options#copyPaste](./options/#copypaste)
 option is enabled.
 
 
@@ -1749,8 +1750,8 @@ option is enabled.
 ### beforePaste
 `"beforePaste"(data, coords) ⇒ \*`
 
-Fired by [CopyPaste](copy-paste) plugin before values are pasted into table. This hook is fired when
-[Options#copyPaste](options#copypaste) option is enabled.
+Fired by [CopyPaste](./copy-paste/) plugin before values are pasted into table. This hook is fired when
+[Options#copyPaste](./options/#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -1782,8 +1783,8 @@ new Handsontable(example, {
 ### afterPaste
 `"afterPaste"(data, coords)`
 
-Fired by [CopyPaste](copy-paste) plugin after values are pasted into table. This hook is fired when
-[Options#copyPaste](options#copypaste) option is enabled.
+Fired by [CopyPaste](./copy-paste/) plugin after values are pasted into table. This hook is fired when
+[Options#copyPaste](./options/#copypaste) option is enabled.
 
 
 | Param | Type | Description |
@@ -1796,8 +1797,8 @@ Fired by [CopyPaste](copy-paste) plugin after values are pasted into table. This
 ### beforeColumnMove
 `"beforeColumnMove"(movedColumns, finalIndex, dropIndex, movePossible) ⇒ void | boolean`
 
-Fired by [ManualColumnMove](manual-column-move) plugin before change order of the visual indexes. This hook is fired when
-[Options#manualColumnMove](options#manualcolumnmove) option is enabled.
+Fired by [ManualColumnMove](./manual-column-move/) plugin before change order of the visual indexes. This hook is fired when
+[Options#manualColumnMove](./options/#manualcolumnmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -1813,8 +1814,8 @@ Fired by [ManualColumnMove](manual-column-move) plugin before change order of th
 ### afterColumnMove
 `"afterColumnMove"(movedColumns, finalIndex, dropIndex, movePossible, orderChanged)`
 
-Fired by [ManualColumnMove](manual-column-move) plugin after changing order of the visual indexes. This hook is fired when
-[Options#manualColumnMove](options#manualcolumnmove) option is enabled.
+Fired by [ManualColumnMove](./manual-column-move/) plugin after changing order of the visual indexes. This hook is fired when
+[Options#manualColumnMove](./options/#manualcolumnmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -1830,8 +1831,8 @@ Fired by [ManualColumnMove](manual-column-move) plugin after changing order of t
 ### beforeRowMove
 `"beforeRowMove"(movedRows, finalIndex, dropIndex, movePossible) ⇒ \* | boolean`
 
-Fired by [ManualRowMove](manual-row-move) plugin before changing the order of the visual indexes. This hook is fired when
-[Options#manualRowMove](options#manualrowmove) option is enabled.
+Fired by [ManualRowMove](./manual-row-move/) plugin before changing the order of the visual indexes. This hook is fired when
+[Options#manualRowMove](./options/#manualrowmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -1847,8 +1848,8 @@ Fired by [ManualRowMove](manual-row-move) plugin before changing the order of th
 ### afterRowMove
 `"afterRowMove"(movedRows, finalIndex, dropIndex, movePossible, orderChanged)`
 
-Fired by [ManualRowMove](manual-row-move) plugin after changing the order of the visual indexes. This hook is fired when
-[Options#manualRowMove](options#manualrowmove) option is enabled.
+Fired by [ManualRowMove](./manual-row-move/) plugin after changing the order of the visual indexes. This hook is fired when
+[Options#manualRowMove](./options/#manualrowmove) option is enabled.
 
 
 | Param | Type | Description |
@@ -1864,8 +1865,8 @@ Fired by [ManualRowMove](manual-row-move) plugin after changing the order of the
 ### beforeColumnResize
 `"beforeColumnResize"(newSize, column, isDoubleClick) ⇒ number`
 
-Fired by [ManualColumnResize](manual-column-resize) plugin before rendering the table with modified column sizes. This hook is
-fired when [Options#manualColumnResize](options#manualcolumnresize) option is enabled.
+Fired by [ManualColumnResize](./manual-column-resize/) plugin before rendering the table with modified column sizes. This hook is
+fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -1880,8 +1881,8 @@ fired when [Options#manualColumnResize](options#manualcolumnresize) option is en
 ### afterColumnResize
 `"afterColumnResize"(newSize, column, isDoubleClick)`
 
-Fired by [ManualColumnResize](manual-column-resize) plugin after rendering the table with modified column sizes. This hook is
-fired when [Options#manualColumnResize](options#manualcolumnresize) option is enabled.
+Fired by [ManualColumnResize](./manual-column-resize/) plugin after rendering the table with modified column sizes. This hook is
+fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -1895,8 +1896,8 @@ fired when [Options#manualColumnResize](options#manualcolumnresize) option is en
 ### beforeRowResize
 `"beforeRowResize"(newSize, row, isDoubleClick) ⇒ number`
 
-Fired by [ManualRowResize](manual-row-resize) plugin before rendering the table with modified row sizes. This hook is
-fired when [Options#manualRowResize](options#manualrowresize) option is enabled.
+Fired by [ManualRowResize](./manual-row-resize/) plugin before rendering the table with modified row sizes. This hook is
+fired when [Options#manualRowResize](./options/#manualrowresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -1911,8 +1912,8 @@ fired when [Options#manualRowResize](options#manualrowresize) option is enabled.
 ### afterRowResize
 `"afterRowResize"(newSize, row, isDoubleClick)`
 
-Fired by [ManualRowResize](manual-row-resize) plugin after rendering the table with modified row sizes. This hook is
-fired when [Options#manualRowResize](options#manualrowresize) option is enabled.
+Fired by [ManualRowResize](./manual-row-resize/) plugin after rendering the table with modified row sizes. This hook is
+fired when [Options#manualRowResize](./options/#manualrowresize) option is enabled.
 
 
 | Param | Type | Description |
@@ -1964,8 +1965,8 @@ Fired before applying stretched column width to column.
 ### beforeFilter
 `"beforeFilter"(conditionsStack) ⇒ boolean`
 
-Fired by [Filters](filters) plugin before applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
-[Options#filters](options#filters) option is enabled.
+Fired by [Filters](./filters/) plugin before applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
+[Options#filters](./options/#filters) option is enabled.
 
 
 | Param | Type | Description |
@@ -1978,8 +1979,8 @@ Fired by [Filters](filters) plugin before applying [filtering](https://handsonta
 ### afterFilter
 `"afterFilter"(conditionsStack)`
 
-Fired by [Filters](filters) plugin after applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
-[Options#filters](options#filters) option is enabled.
+Fired by [Filters](./filters/) plugin after applying [filtering](https://handsontable.com/docs/demo-filtering.html). This hook is fired when
+[Options#filters](./options/#filters) option is enabled.
 
 
 | Param | Type | Description |
@@ -1998,8 +1999,8 @@ Fired while retrieving the column header height.
 ### beforeUndo
 `"beforeUndo"(action) ⇒ \* | boolean`
 
-Fired by [UndoRedo](undo-redo) plugin before the undo action. Contains information about the action that is being undone.
-This hook is fired when [Options#undo](options#undo) option is enabled.
+Fired by [UndoRedo](./undo-redo/) plugin before the undo action. Contains information about the action that is being undone.
+This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -2012,8 +2013,8 @@ This hook is fired when [Options#undo](options#undo) option is enabled.
 ### afterUndo
 `"afterUndo"(action)`
 
-Fired by [UndoRedo](undo-redo) plugin after the undo action. Contains information about the action that is being undone.
-This hook is fired when [Options#undo](options#undo) option is enabled.
+Fired by [UndoRedo](./undo-redo/) plugin after the undo action. Contains information about the action that is being undone.
+This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -2025,8 +2026,8 @@ This hook is fired when [Options#undo](options#undo) option is enabled.
 ### beforeRedo
 `"beforeRedo"(action) ⇒ \* | boolean`
 
-Fired by [UndoRedo](undo-redo) plugin before the redo action. Contains information about the action that is being redone.
-This hook is fired when [Options#undo](options#undo) option is enabled.
+Fired by [UndoRedo](./undo-redo/) plugin before the redo action. Contains information about the action that is being redone.
+This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -2039,8 +2040,8 @@ This hook is fired when [Options#undo](options#undo) option is enabled.
 ### afterRedo
 `"afterRedo"(action)`
 
-Fired by [UndoRedo](undo-redo) plugin after the redo action. Contains information about the action that is being redone.
-This hook is fired when [Options#undo](options#undo) option is enabled.
+Fired by [UndoRedo](./undo-redo/) plugin after the redo action. Contains information about the action that is being redone.
+This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 
 | Param | Type | Description |
@@ -2167,7 +2168,7 @@ Handsontable.hooks.add('afterPluginsInitialized', myCallback);
 ### beforeHideRows
 `"beforeHideRows"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
-Fired by [HiddenRows](hidden-rows) plugin before marking the rows as hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
+Fired by [HiddenRows](./hidden-rows/) plugin before marking the rows as hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 Returning `false` in the callback will prevent the hiding action from completing.
 
 
@@ -2183,7 +2184,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 ### afterHideRows
 `"afterHideRows"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
-Fired by [HiddenRows](hidden-rows) plugin after marking the rows as hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
+Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2198,7 +2199,7 @@ Fired by [HiddenRows](hidden-rows) plugin after marking the rows as hidden. Fire
 ### beforeUnhideRows
 `"beforeUnhideRows"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
-Fired by [HiddenRows](hidden-rows) plugin before marking the rows as not hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
+Fired by [HiddenRows](./hidden-rows/) plugin before marking the rows as not hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 Returning `false` in the callback will prevent the row revealing action from completing.
 
 
@@ -2214,7 +2215,7 @@ Returning `false` in the callback will prevent the row revealing action from com
 ### afterUnhideRows
 `"afterUnhideRows"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
-Fired by [HiddenRows](hidden-rows) plugin after marking the rows as not hidden. Fired only if the [Options#hiddenRows](options#hiddenrows) option is enabled.
+Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as not hidden. Fired only if the [Options#hiddenRows](./options/#hiddenrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2229,7 +2230,7 @@ Fired by [HiddenRows](hidden-rows) plugin after marking the rows as not hidden. 
 ### beforeHideColumns
 `"beforeHideColumns"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
-Fired by [HiddenColumns](hidden-columns) plugin before marking the columns as hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](./hidden-columns/) plugin before marking the columns as hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 Returning `false` in the callback will prevent the hiding action from completing.
 
 
@@ -2245,7 +2246,7 @@ Returning `false` in the callback will prevent the hiding action from completing
 ### afterHideColumns
 `"afterHideColumns"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
-Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 
 
 | Param | Type | Description |
@@ -2260,7 +2261,7 @@ Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as hid
 ### beforeUnhideColumns
 `"beforeUnhideColumns"(currentHideConfig, destinationHideConfig, actionPossible) ⇒ undefined | boolean`
 
-Fired by [HiddenColumns](hidden-columns) plugin before marking the columns as not hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](./hidden-columns/) plugin before marking the columns as not hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 Returning `false` in the callback will prevent the column revealing action from completing.
 
 
@@ -2276,7 +2277,7 @@ Returning `false` in the callback will prevent the column revealing action from 
 ### afterUnhideColumns
 `"afterUnhideColumns"(currentHideConfig, destinationHideConfig, actionPossible, stateChanged)`
 
-Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as not hidden. Fired only if the [Options#hiddenColumns](options#hiddencolumns) option is enabled.
+Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as not hidden. Fired only if the [Options#hiddenColumns](./options/#hiddencolumns) option is enabled.
 
 
 | Param | Type | Description |
@@ -2291,7 +2292,7 @@ Fired by [HiddenColumns](hidden-columns) plugin after marking the columns as not
 ### beforeTrimRow
 `"beforeTrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean`
 
-Fired by [TrimRows](trim-rows) plugin before trimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
+Fired by [TrimRows](./trim-rows/) plugin before trimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2306,7 +2307,7 @@ Fired by [TrimRows](trim-rows) plugin before trimming rows. This hook is fired w
 ### afterTrimRow
 `"afterTrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean`
 
-Fired by [TrimRows](trim-rows) plugin after trimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
+Fired by [TrimRows](./trim-rows/) plugin after trimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2322,7 +2323,7 @@ Fired by [TrimRows](trim-rows) plugin after trimming rows. This hook is fired wh
 ### beforeUntrimRow
 `"beforeUntrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible) ⇒ undefined | boolean`
 
-Fired by [TrimRows](trim-rows) plugin before untrimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
+Fired by [TrimRows](./trim-rows/) plugin before untrimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2337,7 +2338,7 @@ Fired by [TrimRows](trim-rows) plugin before untrimming rows. This hook is fired
 ### afterUntrimRow
 `"afterUntrimRow"(currentTrimConfig, destinationTrimConfig, actionPossible, stateChanged) ⇒ undefined | boolean`
 
-Fired by [TrimRows](trim-rows) plugin after untrimming rows. This hook is fired when [Options#trimRows](options#trimrows) option is enabled.
+Fired by [TrimRows](./trim-rows/) plugin after untrimming rows. This hook is fired when [Options#trimRows](./options/#trimrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2353,7 +2354,7 @@ Fired by [TrimRows](trim-rows) plugin after untrimming rows. This hook is fired 
 ### beforeDropdownMenuShow
 `"beforeDropdownMenuShow"(dropdownMenu)`
 
-Fired by [DropdownMenu](dropdown-menu) plugin before opening the dropdown menu. This hook is fired when [Options#dropdownMenu](options#dropdownmenu)
+Fired by [DropdownMenu](./dropdown-menu/) plugin before opening the dropdown menu. This hook is fired when [Options#dropdownMenu](./options/#dropdownmenu)
 option is enabled.
 
 
@@ -2366,7 +2367,7 @@ option is enabled.
 ### afterDropdownMenuShow
 `"afterDropdownMenuShow"(dropdownMenu)`
 
-Fired by [DropdownMenu](dropdown-menu) plugin after opening the Dropdown Menu. This hook is fired when [Options#dropdownMenu](options#dropdownmenu)
+Fired by [DropdownMenu](./dropdown-menu/) plugin after opening the Dropdown Menu. This hook is fired when [Options#dropdownMenu](./options/#dropdownmenu)
 option is enabled.
 
 
@@ -2379,7 +2380,7 @@ option is enabled.
 ### afterDropdownMenuHide
 `"afterDropdownMenuHide"(instance)`
 
-Fired by [DropdownMenu](dropdown-menu) plugin after hiding the Dropdown Menu. This hook is fired when [Options#dropdownMenu](options#dropdownmenu)
+Fired by [DropdownMenu](./dropdown-menu/) plugin after hiding the Dropdown Menu. This hook is fired when [Options#dropdownMenu](./options/#dropdownmenu)
 option is enabled.
 
 
@@ -2392,8 +2393,8 @@ option is enabled.
 ### beforeAddChild
 `"beforeAddChild"(parent, element, index)`
 
-Fired by [NestedRows](nested-rows) plugin before adding a children to the NestedRows structure. This hook is fired when
-[Options#nestedRows](options#nestedrows) option is enabled.
+Fired by [NestedRows](./nested-rows/) plugin before adding a children to the NestedRows structure. This hook is fired when
+[Options#nestedRows](./options/#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2407,8 +2408,8 @@ Fired by [NestedRows](nested-rows) plugin before adding a children to the Nested
 ### afterAddChild
 `"afterAddChild"(parent, element, index)`
 
-Fired by [NestedRows](nested-rows) plugin after adding a children to the NestedRows structure. This hook is fired when
-[Options#nestedRows](options#nestedrows) option is enabled.
+Fired by [NestedRows](./nested-rows/) plugin after adding a children to the NestedRows structure. This hook is fired when
+[Options#nestedRows](./options/#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2422,8 +2423,8 @@ Fired by [NestedRows](nested-rows) plugin after adding a children to the NestedR
 ### beforeDetachChild
 `"beforeDetachChild"(parent, element)`
 
-Fired by [NestedRows](nested-rows) plugin before detaching a child from its parent. This hook is fired when
-[Options#nestedRows](options#nestedrows) option is enabled.
+Fired by [NestedRows](./nested-rows/) plugin before detaching a child from its parent. This hook is fired when
+[Options#nestedRows](./options/#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2436,8 +2437,8 @@ Fired by [NestedRows](nested-rows) plugin before detaching a child from its pare
 ### afterDetachChild
 `"afterDetachChild"(parent, element)`
 
-Fired by [NestedRows](nested-rows) plugin after detaching a child from its parent. This hook is fired when
-[Options#nestedRows](options#nestedrows) option is enabled.
+Fired by [NestedRows](./nested-rows/) plugin after detaching a child from its parent. This hook is fired when
+[Options#nestedRows](./options/#nestedrows) option is enabled.
 
 
 | Param | Type | Description |
@@ -2463,7 +2464,7 @@ Fired after the editor is opened and rendered.
 ### beforeMergeCells
 `"beforeMergeCells"(cellRange, [auto])`
 
-Fired by [MergeCells](merge-cells) plugin before cell merging. This hook is fired when [Options#mergeCells](options#mergecells)
+Fired by [MergeCells](./merge-cells/) plugin before cell merging. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
 
 
@@ -2477,7 +2478,7 @@ option is enabled.
 ### afterMergeCells
 `"afterMergeCells"(cellRange, mergeParent, [auto])`
 
-Fired by [MergeCells](merge-cells) plugin after cell merging. This hook is fired when [Options#mergeCells](options#mergecells)
+Fired by [MergeCells](./merge-cells/) plugin after cell merging. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
 
 
@@ -2492,7 +2493,7 @@ option is enabled.
 ### beforeUnmergeCells
 `"beforeUnmergeCells"(cellRange, [auto])`
 
-Fired by [MergeCells](merge-cells) plugin before unmerging the cells. This hook is fired when [Options#mergeCells](options#mergecells)
+Fired by [MergeCells](./merge-cells/) plugin before unmerging the cells. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
 
 
@@ -2506,7 +2507,7 @@ option is enabled.
 ### afterUnmergeCells
 `"afterUnmergeCells"(cellRange, [auto])`
 
-Fired by [MergeCells](merge-cells) plugin after unmerging the cells. This hook is fired when [Options#mergeCells](options#mergecells)
+Fired by [MergeCells](./merge-cells/) plugin after unmerging the cells. This hook is fired when [Options#mergeCells](./options/#mergecells)
 option is enabled.
 
 
@@ -2565,7 +2566,7 @@ Cancellable hook, called after resizing a window, but before redrawing a table.
 ### beforeColumnCollapse
 `"beforeColumnCollapse"(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible) ⇒ undefined | boolean`
 
-Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -2581,7 +2582,7 @@ Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collaps
 ### afterColumnCollapse
 `"afterColumnCollapse"(currentCollapsedColumns, destinationCollapsedColumns, collapsePossible, successfullyCollapsed)`
 
-Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns collapse. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -2597,7 +2598,7 @@ Fired by [CollapsibleColumns](collapsible-columns) plugin before columns collaps
 ### beforeColumnExpand
 `"beforeColumnExpand"(currentCollapsedColumns, destinationCollapsedColumns, expandPossible) ⇒ undefined | boolean`
 
-Fired by [CollapsibleColumns](collapsible-columns) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 
@@ -2613,7 +2614,7 @@ Fired by [CollapsibleColumns](collapsible-columns) plugin before columns expand.
 ### afterColumnExpand
 `"afterColumnExpand"(currentCollapsedColumns, destinationCollapsedColumns, expandPossible, successfullyExpanded)`
 
-Fired by [CollapsibleColumns](collapsible-columns) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](options#collapsiblecolumns) option is enabled.
+Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expand. This hook is fired when [Options#collapsibleColumns](./options/#collapsiblecolumns) option is enabled.
 
 **Since**: 8.0.0  
 

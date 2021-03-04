@@ -20,25 +20,29 @@ const seo = {
     },
     'core.js': {
         title: 'Core',
-        permalink: '/next/api/'
+        permalink: '/next/api/core'
     }
 }
 /// paths construction
 const source = (file) => path.join(__dirname, pathToSource, file);
 
-const flat = (path) => path.replace(/^(\/?[^/\n]*)(\/?[^/\n]*)*/,"$1$2") // Keep only root directory, rest remove ( `plugins/autoColumnSize/autoColumnSize.md` -> `plugins/autoColumnSize.md` )
-    .replace('dataMap/', ''); // remove 'dataMap' from the path
+const flat = (path) => path.split('/').pop();
 
 const dist = (file) => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.js/, "$1.md")));
 
+/// fix links to works with vuepress
+const fixLinks = (text) => text
+    .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, "[$1](./$2/$3)") // @see https://regexr.com/5nqqr
+    .replace(/\.\/\//g, '');
+
 /// jsdoc2md integration
-const parse = (file) => jsdoc2md.renderSync({
+const parse = (file) => fixLinks(jsdoc2md.renderSync({
     files: source(file),
     'no-cache': true,
     'partial': path.join(__dirname, 'dmd/partials/**/*.hbs'),
     'template': '{{>hot-main~}}'
 
-});
+}));
 
 const genSeoTitle = (file) => file
     .replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, "$2") // Get first filename segment (to the first dot) without full path
@@ -52,10 +56,13 @@ const genSeoPermalink = (file) => '/'+prefix+file
     .toLowerCase();
 const seoPermalink = (file) => seo[file] && seo[file].permalink || genSeoPermalink(file);
 
+const seoCanonicalUrl = (file) => genSeoPermalink(file).replace('/next','');
+
 const header = (file) =>
     `---
 title: ${seoTitle(file)}
 permalink: ${seoPermalink(file)}
+canonicalUrl: ${seoCanonicalUrl(file)}
 ---
 
 # {{ $frontmatter.title }}

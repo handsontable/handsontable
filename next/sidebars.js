@@ -133,16 +133,19 @@ const appearanceItems = [
 const formulasItems = [
   'formula-support',
 ];
-
-const API = [
+const apiHighLevelPages = [
+  'introduction',
   'core',
   'pluginHooks',
-  'metaSchema',
+  'metaSchema'
+]
+const API = [
+  ...apiHighLevelPages,
   {
     title: 'Plugins',
     collapsable: false,
-    children: fs.readdirSync(path.join(__dirname, 'api/plugins'))
-      .map(f => `plugins/${f}`),
+    children: fs.readdirSync(path.join(__dirname, 'api/'))
+        .filter(f=>!apiHighLevelPages.includes(f))
   },
 ];
 
