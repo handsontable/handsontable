@@ -8,7 +8,7 @@ import { partial } from './../../../helpers/function';
 import { isTouchSupported } from './../../../helpers/feature';
 import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
-import {isDefined} from '../../../helpers/mixed';
+import { isDefined } from '../../../helpers/mixed';
 
 const privatePool = new WeakMap();
 
@@ -310,7 +310,7 @@ class Event {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
-    const isHeader = isDefined(parentCellCoords) && (parentCellCoords.row < 0 || parentCellCoords.col < 0);  
+    const isHeader = isDefined(parentCellCoords) && (parentCellCoords.row < 0 || parentCellCoords.col < 0);
 
     // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
     // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
