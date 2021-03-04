@@ -1994,11 +1994,11 @@ describe('UndoRedo', () => {
         it('should undo removal row with readonly column', () => {
           const HOT = handsontable({
             data: createObjectData().slice(0, 2),
-            cells: function(row, col) {
+            cells(row, col) {
               if (col === 1) {
-                return { readOnly: true }
+                return { readOnly: true };
               }
-              return {}
+              return {};
             }
           });
 
@@ -2023,7 +2023,7 @@ describe('UndoRedo', () => {
           expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
           expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
           expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
-        })
+        });
       });
 
       describe('redo', () => {
