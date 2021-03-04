@@ -24,8 +24,8 @@ value will be saved in `saveTo.value`.
 with table will be cleared.
 
 
+## Functions:
 
-## Members
 ### isEnabled
 `persistentState.isEnabled() ⇒ boolean`
 
@@ -97,6 +97,5 @@ Resets the data or all data from local storage.
 `persistentState.destroy()`
 
 Destroys the plugin instance.
-
 
 

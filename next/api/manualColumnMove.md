@@ -28,8 +28,8 @@ The plugin creates additional components to make moving possibly using user inte
 - guideline - line which shows where columns has been moved.
 
 
+## Functions:
 
-## Members
 ### isEnabled
 `manualColumnMove.isEnabled() ⇒ boolean`
 
@@ -132,6 +132,5 @@ Indicates if it's possible to move columns to the desired position. Some of the 
 `manualColumnMove.destroy()`
 
 Destroys the plugin instance.
-
 
 

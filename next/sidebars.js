@@ -145,7 +145,7 @@ const API = [
     title: 'Plugins',
     collapsable: false,
     children: fs.readdirSync(path.join(__dirname, 'api/'))
-        .filter(f=>!apiHighLevelPages.includes(f))
+        .filter(f=>!apiHighLevelPages.includes(f.split('.').shift()))
   },
 ];
 

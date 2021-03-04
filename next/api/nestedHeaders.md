@@ -33,8 +33,8 @@ const hot = new Handsontable(container, {
     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
  ],
 ```
+## Members:
 
-## Members
 ### detectedOverlappedHeaders
 `nestedHeaders.detectedOverlappedHeaders : boolean`
 
@@ -42,6 +42,7 @@ The flag which determines that the nested header settings contains overlapping h
 configuration.
 
 
+## Functions:
 
 ### isEnabled
 `nestedHeaders.isEnabled() ⇒ boolean`
@@ -75,6 +76,5 @@ Disables the plugin functionality for this Handsontable instance.
 `nestedHeaders.destroy()`
 
 Destroys the plugin instance.
-
 
 

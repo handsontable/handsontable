@@ -26,8 +26,8 @@ const hot = new Handsontable(container, {
   bindRowsWithHeaders: true
 });
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `bindRowsWithHeaders.isEnabled() ⇒ boolean`
 
@@ -54,6 +54,5 @@ Disables the plugin functionality for this Handsontable instance.
 `bindRowsWithHeaders.destroy()`
 
 Destroys the plugin instance.
-
 
 

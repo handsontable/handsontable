@@ -57,8 +57,8 @@ columns: [{
     }
   }
 }]```
+## Functions:
 
-## Members
 ### isEnabled
 `multiColumnSorting.isEnabled() ⇒ boolean`
 
@@ -159,4 +159,3 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 
   return false; // The blockade for the default sort action.
 }```
-

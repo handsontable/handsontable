@@ -13,7 +13,7 @@ Available classNames:
 * Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
 * Vertical: `htTop`, `htMiddle`, `htBottom`.
 
-Alignment changes can be tracked śusing `afterSetCellMeta` hook callback.
+Alignment changes can be tracked using `afterSetCellMeta` hook callback.
 
 ::: example #example1
 ```js

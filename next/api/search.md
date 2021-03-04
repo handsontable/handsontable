@@ -37,8 +37,8 @@ searchPlugin.setQueryMethod(myNewQueryMethod);
 // Set search result cells class programmatically:
 searchPlugin.setSearchResultClass(customClass);
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `search.isEnabled() ⇒ boolean`
 
@@ -147,6 +147,5 @@ Sets search result cells class name. This class name will be added to each cell 
 `search.destroy()`
 
 Destroys the plugin instance.
-
 
 

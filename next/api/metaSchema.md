@@ -1,7 +1,7 @@
 ---
 title: Options
 permalink: /next/api/options
-canonicalUrl: /api/meta-schema
+canonicalUrl: /api/options
 ---
 
 # {{ $frontmatter.title }}
@@ -76,8 +76,8 @@ compared to the previous model that used jQuery extend. See: [http://jsperf.com/
 __Important notice:__ In order for the data separation to work properly, make sure that each instance of Handsontable has a unique `id`.
 
 
+## Members:
 
-## Members
 ### licenseKey
 `options.licenseKey : string`
 
@@ -2566,6 +2566,7 @@ See [quick setup of the Nested rows](https://handsontable.com/docs/demo-nested-r
 ```js
 nestedRows: true,
 ```
+## Functions:
 
 ### isEmptyRow
 `options.isEmptyRow(row) ⇒ boolean`
@@ -2604,4 +2605,3 @@ isEmptyCol: function(column) {
    return false;
 },
 ```
-

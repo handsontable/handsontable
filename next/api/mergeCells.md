@@ -24,8 +24,8 @@ const hot = new Handsontable(document.getElementById('example'), {
    {row: 4, col: 8, rowspan: 3, colspan: 3}
  ],
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `mergeCells.isEnabled() ⇒ boolean`
 
@@ -115,6 +115,5 @@ Unmerges the merged cell in the provided range.
 | startColumn | <code>number</code> | Start column of the merged cell. |
 | endRow | <code>number</code> | End row of the merged cell. |
 | endColumn | <code>number</code> | End column of the merged cell. |
-
 
 

@@ -7,6 +7,7 @@ canonicalUrl: /api/manual-column-freeze
 # {{ $frontmatter.title }}
 
 [[toc]]
+## Functions:
 
 ### isEnabled
 `manualColumnFreeze.isEnabled() ⇒ boolean`
@@ -58,6 +59,5 @@ Unfreezes the given column (remove it from fixed columns and bring to it's previ
 | Param | Type | Description |
 | --- | --- | --- |
 | column | <code>number</code> | Visual column index. |
-
 
 

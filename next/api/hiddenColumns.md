@@ -56,8 +56,8 @@ hiddenColumnsPlugin.hideColumns([1, 2, 9]);
 // rerender the table to see all changes
 hot.render();
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `hiddenColumns.isEnabled() ⇒ boolean`
 
@@ -170,6 +170,5 @@ Get if trim config is valid. Check whether all of the provided column indexes ar
 `hiddenColumns.destroy()`
 
 Destroys the plugin instance.
-
 
 

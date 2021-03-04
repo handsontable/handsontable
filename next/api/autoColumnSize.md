@@ -49,8 +49,8 @@ if (plugin.isEnabled()) {
   // code...
 }
 ```
+## Members:
 
-## Members
 ### inProgress
 `autoColumnSize.inProgress : boolean`
 
@@ -64,6 +64,7 @@ if (plugin.isEnabled()) {
 Number of already measured columns (we already know their sizes).
 
 
+## Functions:
 
 ### isEnabled
 `autoColumnSize.isEnabled() ⇒ boolean`
@@ -197,6 +198,5 @@ Checks if all widths were calculated. If not then return `true` (need recalculat
 `autoColumnSize.destroy()`
 
 Destroys the plugin instance.
-
 
 

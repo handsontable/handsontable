@@ -20,14 +20,15 @@ square in the corner.
 "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
 
 
+## Members:
 
-## Members
 ### autoInsertRow
 `autofill.autoInsertRow : boolean`
 
 Specifies if can insert new rows if needed.
 
 
+## Functions:
 
 ### isEnabled
 `autofill.isEnabled() ⇒ boolean`
@@ -61,6 +62,5 @@ Disables the plugin functionality for this Handsontable instance.
 `autofill.destroy()`
 
 Destroys the plugin instance.
-
 
 

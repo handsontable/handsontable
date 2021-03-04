@@ -57,8 +57,8 @@ hiddenRowsPlugin.hideRows([1, 2, 9]);
 // rerender the table to see all changes
 hot.render();
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `hiddenRows.isEnabled() ⇒ boolean`
 
@@ -171,6 +171,5 @@ Checks whether all of the provided row indexes are within the bounds of the tabl
 `hiddenRows.destroy()`
 
 Destroys the plugin instance.
-
 
 

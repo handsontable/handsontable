@@ -44,8 +44,16 @@ contextMenu: true
 // as a array
 contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 ```
+## Members:
 
-## Members
+### DEFAULT_ITEMS
+`ContextMenu.DEFAULT\_ITEMS ⇒ Array.<string>`
+
+Context menu default items order when `contextMenu` options is set as `true`.
+
+
+## Functions:
+
 ### isEnabled
 `contextMenu.isEnabled() ⇒ boolean`
 
@@ -131,13 +139,5 @@ Or you can execute command registered in settings where `key` is your command na
 `contextMenu.destroy()`
 
 Destroys the plugin instance.
-
-
-
-### DEFAULT_ITEMS
-`ContextMenu.DEFAULT\_ITEMS ⇒ Array.<string>`
-
-Context menu default items order when `contextMenu` options is set as `true`.
-
 
 

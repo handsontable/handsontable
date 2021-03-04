@@ -32,8 +32,8 @@ const hot = new Handsontable(container, {
   }
 });
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `headerTooltips.isEnabled() ⇒ boolean`
 
@@ -60,6 +60,5 @@ Disables the plugin functionality for this Handsontable instance.
 `headerTooltips.destroy()`
 
 Destroys the plugin instance.
-
 
 

@@ -19,8 +19,8 @@ The plugin creates additional components to make resizing possibly using user in
 - guide - the helper guide that shows the desired height as a horizontal guide.
 
 
+## Functions:
 
-## Members
 ### isEnabled
 `manualRowResize.isEnabled() ⇒ boolean`
 
@@ -86,6 +86,5 @@ Sets the new height for specified row index.
 `manualRowResize.destroy()`
 
 Destroys the plugin instance.
-
 
 

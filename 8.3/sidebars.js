@@ -133,16 +133,19 @@ const appearanceItems = [
 const formulasItems = [
   'formula-support',
 ];
-
-const API = [
+const apiHighLevelPages = [
+  'introduction',
   'core',
   'pluginHooks',
-  'dataMap/metaManager/metaSchema',
+  'metaSchema'
+]
+const API = [
+  ...apiHighLevelPages,
   {
     title: 'Plugins',
     collapsable: false,
-    children: fs.readdirSync(path.join(__dirname, 'api/plugins'))
-      .map(f => `plugins/${f}/${f}`),
+    children: fs.readdirSync(path.join(__dirname, 'api/'))
+        .filter(f=>!apiHighLevelPages.includes(f.split('.').shift()))
   },
 ];
 
@@ -151,16 +154,20 @@ module.exports = {
     { title: 'Getting started', children: gettingStartedItems },
     { title: 'Basic usage', children: basicUsageItems },
     { title: 'Developer guide', children: developerGuideItems },
-    { title: 'Wrapper for React', children: wrapperForReactItems },
-    { title: 'Wrapper for Angular', children: wrapperForAngularItems },
-    { title: 'Wrapper for Vue', children: wrapperForVueItems },
-    { title: 'Rows and columns', children: rowsAndColumnsItems },
-    { title: 'Data operations', children: dataOperationsItems },
-    { title: 'Cell features', children: cellFeaturesItems },
-    { title: 'Cell types', children: cellTypesItems },
-    { title: 'Utilities', children: utilitiesItems },
-    { title: 'Appearance', children: appearanceItems },
-    { title: 'Formulas', children: formulasItems },
+    { title: 'Wrappers', children:[
+      { title: 'Wrapper for React', children: wrapperForReactItems },
+      { title: 'Wrapper for Angular', children: wrapperForAngularItems },
+      { title: 'Wrapper for Vue', children: wrapperForVueItems },
+    ]},
+    { title: 'Demos', children:[
+      { title: 'Rows and columns', children: rowsAndColumnsItems },
+      { title: 'Data operations', children: dataOperationsItems },
+      { title: 'Cell features', children: cellFeaturesItems },
+      { title: 'Cell types', children: cellTypesItems },
+      { title: 'Utilities', children: utilitiesItems },
+      { title: 'Appearance', children: appearanceItems },
+      { title: 'Formulas', children: formulasItems },
+    ]}
   ],
   api: API,
 };

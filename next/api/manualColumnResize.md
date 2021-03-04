@@ -19,8 +19,8 @@ The plugin creates additional components to make resizing possibly using user in
 - guide - the helper guide that shows the desired width as a vertical guide.
 
 
+## Functions:
 
-## Members
 ### isEnabled
 `manualColumnResize.isEnabled() ⇒ boolean`
 
@@ -96,6 +96,5 @@ Clears the cache for the specified column index.
 `manualColumnResize.destroy()`
 
 Destroys the plugin instance.
-
 
 

@@ -58,8 +58,8 @@ customBorders: [
   }
 ],
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `customBorders.isEnabled() ⇒ boolean`
 
@@ -166,6 +166,5 @@ customBordersPlugin.clearBorders();
 `customBorders.destroy()`
 
 Destroys the plugin instance.
-
 
 

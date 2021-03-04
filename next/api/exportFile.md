@@ -46,8 +46,25 @@ exportPlugin.exportAsString('csv', {
   range: [1, 1, 6, 6]         // [startRow, endRow, startColumn, endColumn]
 });
 ```
+## Members:
 
-## Members
+### ExportOptions
+`ExportFile.ExportOptions : object`
+
+
+**Properties**
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| [exportHiddenRows] | <code>boolean</code> | <code>false</code> | Include hidden rows in the exported file. |
+| [exportHiddenColumns] | <code>boolean</code> | <code>false</code> | Include hidden columns in the exported file. |
+| [columnHeaders] | <code>boolean</code> | <code>false</code> | Include column headers in the exported file. |
+| [rowHeaders] | <code>boolean</code> | <code>false</code> | Include row headers in the exported file. |
+| [columnDelimiter] | <code>string</code> | <code>&quot;&#x27;,&#x27;&quot;</code> | Column delimiter. |
+| [range] | <code>string</code> | <code>&quot;[]&quot;</code> | Cell range that will be exported to file. |
+
+## Functions:
+
 ### isEnabled
 `exportFile.isEnabled() ⇒ boolean`
 
@@ -92,22 +109,5 @@ Exports table data as a downloadable file.
 | --- | --- | --- |
 | format | <code>string</code> | Export format type eq. `'csv'`. |
 | options | <code>ExportOptions</code> | Export options. |
-
-
-
-### ExportOptions
-`ExportFile.ExportOptions : object`
-
-
-**Properties**
-
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| [exportHiddenRows] | <code>boolean</code> | <code>false</code> | Include hidden rows in the exported file. |
-| [exportHiddenColumns] | <code>boolean</code> | <code>false</code> | Include hidden columns in the exported file. |
-| [columnHeaders] | <code>boolean</code> | <code>false</code> | Include column headers in the exported file. |
-| [rowHeaders] | <code>boolean</code> | <code>false</code> | Include row headers in the exported file. |
-| [columnDelimiter] | <code>string</code> | <code>&quot;&#x27;,&#x27;&quot;</code> | Column delimiter. |
-| [range] | <code>string</code> | <code>&quot;[]&quot;</code> | Cell range that will be exported to file. |
 
 

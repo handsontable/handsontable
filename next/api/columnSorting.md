@@ -55,8 +55,8 @@ columns: [{
   }
 }]
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `columnSorting.isEnabled() ⇒ boolean`
 
@@ -155,6 +155,5 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
 `columnSorting.destroy()`
 
 Destroys the plugin instance.
-
 
 

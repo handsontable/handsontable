@@ -47,14 +47,15 @@ const hot = new Handsontable(container, {
   ],
 });
 ```
+## Members:
 
-## Members
 ### headerStateManager
 `collapsibleColumns.headerStateManager : StateManager`
 
 The NestedHeaders plugin StateManager instance.
 
 
+## Functions:
 
 ### isEnabled
 `collapsibleColumns.isEnabled() ⇒ boolean`
@@ -153,6 +154,5 @@ Collapses/Expands a section.
 `collapsibleColumns.destroy()`
 
 Destroys the plugin instance.
-
 
 

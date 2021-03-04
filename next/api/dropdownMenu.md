@@ -42,8 +42,16 @@ const hot = new Handsontable(container, {
   dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
 });
 ```
+## Members:
 
-## Members
+### DEFAULT_ITEMS
+`DropdownMenu.DEFAULT\_ITEMS ⇒ Array`
+
+Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
+
+
+## Functions:
+
 ### isEnabled
 `dropdownMenu.isEnabled() ⇒ boolean`
 
@@ -131,13 +139,5 @@ Or you can execute command registered in settings where `key` is your command na
 `dropdownMenu.destroy()`
 
 Destroys the plugin instance.
-
-
-
-### DEFAULT_ITEMS
-`DropdownMenu.DEFAULT\_ITEMS ⇒ Array`
-
-Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
-
 
 

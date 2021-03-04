@@ -31,8 +31,8 @@ $('#example1').handsontable('setDataAtCell', 0, 0, 'new value');
 ```
 
 
+## Members:
 
-## Members
 ### isDestroyed
 `core.isDestroyed : boolean`
 
@@ -54,6 +54,7 @@ Instance of index mapper which is responsible for managing the column indexes.
 Instance of index mapper which is responsible for managing the row indexes.
 
 
+## Functions:
 
 ### setDataAtCell
 `core.setDataAtCell(row, [column], [value], [source])`
@@ -1713,6 +1714,7 @@ Converts instance into HTMLTableElement.
 
 **Since**: 7.1.0  
 
+## Functions:
 
 ### done
 `validateCell~done(valid, [canBeValidated])`
@@ -1722,6 +1724,5 @@ Converts instance into HTMLTableElement.
 | --- | --- | --- | --- |
 | valid | <code>boolean</code> |  | Indicates if the validation was successful. |
 | [canBeValidated] | <code>boolean</code> | <code>true</code> | `optional` Flag which controls the validation process. |
-
 
 

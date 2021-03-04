@@ -14,8 +14,8 @@ canonicalUrl: /api/drag-to-scroll
 Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
 
 
+## Members:
 
-## Members
 ### boundaries
 `dragToScroll.boundaries : DOMRect`
 
@@ -23,6 +23,7 @@ Size of an element and its position relative to the viewport,
 e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
 
 
+## Functions:
 
 ### isEnabled
 `dragToScroll.isEnabled() ⇒ boolean`
@@ -95,6 +96,5 @@ between passed boundaries.
 `dragToScroll.destroy()`
 
 Destroys the plugin instance.
-
 
 

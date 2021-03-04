@@ -7,6 +7,7 @@ canonicalUrl: /api/formulas
 # {{ $frontmatter.title }}
 
 [[toc]]
+## Functions:
 
 ### isEnabled
 `formulas.isEnabled() ⇒ boolean`
@@ -106,6 +107,5 @@ Returns variable name.
 `formulas.destroy()`
 
 Destroys the plugin instance.
-
 
 

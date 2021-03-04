@@ -7,4 +7,3 @@ canonicalUrl: /api/multiple-selection-handles
 # {{ $frontmatter.title }}
 
 [[toc]]
-

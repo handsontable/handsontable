@@ -14,8 +14,8 @@ canonicalUrl: /api/nested-rows
 Plugin responsible for displaying and operating on data sources with nested structures.
 
 
+## Functions:
 
-## Members
 ### isEnabled
 `nestedRows.isEnabled() ⇒ boolean`
 
@@ -64,6 +64,5 @@ Disable the modify hook skipping flag.
 `nestedRows.destroy()`
 
 Destroys the plugin instance.
-
 
 

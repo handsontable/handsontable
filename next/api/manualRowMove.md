@@ -28,8 +28,8 @@ The plugin creates additional components to make moving possibly using user inte
 - guideline - line which shows where rows has been moved.
 
 
+## Functions:
 
-## Members
 ### isEnabled
 `manualRowMove.isEnabled() ⇒ boolean`
 
@@ -132,6 +132,5 @@ Indicates if it's possible to move rows to the desired position. Some of the act
 `manualRowMove.destroy()`
 
 Destroys the plugin instance.
-
 
 

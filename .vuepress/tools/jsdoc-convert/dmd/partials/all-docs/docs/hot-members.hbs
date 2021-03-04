@@ -1,3 +1,13 @@
-{{#children inherited=undefined ~}}
+{{#children inherited=undefined ~}}{{#if (isConstructor)}}
 {{>hot-docs~}}
-{{/children~}}
+{{/if}}{{/children~}}
+
+## Members:
+{{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#unless (isFunction)}}
+{{>hot-docs~}}
+{{/unless}}{{/unless}}{{/children~}}
+
+## Functions:
+{{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#if (isFunction)}}
+{{>hot-docs~}}
+{{/if}}{{/unless}}{{/children~}}

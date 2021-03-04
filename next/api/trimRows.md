@@ -49,8 +49,8 @@ trimRowsPlugin.untrimRows([1, 2, 9]);
 // rerender table to see the changes
 hot.render();
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `trimRows.isEnabled() ⇒ boolean`
 
@@ -173,6 +173,5 @@ Get if trim config is valid. Check whether all of the provided row indexes are w
 `trimRows.destroy()`
 
 Destroys the plugin instance.
-
 
 

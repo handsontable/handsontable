@@ -43,8 +43,8 @@ const hot = new Handsontable(container, {
   ]
 });
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `columnSummary.isEnabled() ⇒ boolean`
 
@@ -64,6 +64,5 @@ Enables the plugin functionality for this Handsontable instance.
 `columnSummary.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
-
 
 

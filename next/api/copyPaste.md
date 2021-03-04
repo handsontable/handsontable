@@ -38,8 +38,8 @@ copyPaste: {
   uiContainer: document.body,
 },
 ```
+## Members:
 
-## Members
 ### columnsLimit
 `copyPaste.columnsLimit : number`
 
@@ -80,6 +80,7 @@ Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <
 UI container for the secondary focusable element.
 
 
+## Functions:
 
 ### isEnabled
 `copyPaste.isEnabled() ⇒ boolean`
@@ -174,6 +175,5 @@ Prepares copyable text from the cells selection in the invisible textarea.
 `copyPaste.destroy()`
 
 Destroys the plugin instance.
-
 
 

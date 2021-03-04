@@ -55,14 +55,15 @@ commentsPlugin.setComment('Comment contents');
 commentsPlugin.show();
 commentsPlugin.removeComment();
 ```
+## Members:
 
-## Members
 ### range
 `comments.range : object`
 
 Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
 
 
+## Functions:
 
 ### isEnabled
 `comments.isEnabled() ⇒ boolean`
@@ -259,6 +260,5 @@ Gets the comment related meta information.
 `comments.destroy()`
 
 Destroys the plugin instance.
-
 
 

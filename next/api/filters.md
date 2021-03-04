@@ -27,8 +27,8 @@ const hot = new Handsontable(container, {
   filters: true
 });
 ```
+## Functions:
 
-## Members
 ### isEnabled
 `filters.isEnabled() ⇒ boolean`
 
@@ -182,6 +182,5 @@ Returns handsontable source data with cell meta based on current selection.
 `filters.destroy()`
 
 Destroys the plugin instance.
-
 
 

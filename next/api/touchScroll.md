@@ -7,4 +7,3 @@ canonicalUrl: /api/touch-scroll
 # {{ $frontmatter.title }}
 
 [[toc]]
-

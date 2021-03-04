@@ -30,13 +30,23 @@ const flat = (path) => path.split('/').pop();
 
 const dist = (file) => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.js/, "$1.md")));
 
-/// fix links to works with vuepress
+/// post processing generated markdown
 const fixLinks = (text) => text
     .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, "[$1](./$2/$3)") // @see https://regexr.com/5nqqr
     .replace(/\.\/\//g, '');
 
+const clearEmptyMembersHeaders = (text) => text.replace(/## Members:\n## Functions:/g, '## Functions:');
+const clearEmptyFunctionsHeaders = (text) => text.replace(/(## Functions:\n)+$/g, "\n");
+
+const postProcessors = [
+    fixLinks,
+    clearEmptyMembersHeaders,
+    clearEmptyFunctionsHeaders
+];
+const postProcess = (initialText) => postProcessors.reduce((text, postProcessor)=>postProcessor(text), initialText)
+
 /// jsdoc2md integration
-const parse = (file) => fixLinks(jsdoc2md.renderSync({
+const parse = (file) => postProcess(jsdoc2md.renderSync({
     files: source(file),
     'no-cache': true,
     'partial': path.join(__dirname, 'dmd/partials/**/*.hbs'),
@@ -56,7 +66,7 @@ const genSeoPermalink = (file) => '/'+prefix+file
     .toLowerCase();
 const seoPermalink = (file) => seo[file] && seo[file].permalink || genSeoPermalink(file);
 
-const seoCanonicalUrl = (file) => genSeoPermalink(file).replace('/next','');
+const seoCanonicalUrl = (file) => seoPermalink(file).replace('/next','');
 
 const header = (file) =>
     `---
@@ -68,7 +78,6 @@ canonicalUrl: ${seoCanonicalUrl(file)}
 # {{ $frontmatter.title }}
 
 [[toc]]
-
 `
 
 /// main logic

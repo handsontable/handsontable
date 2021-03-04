@@ -20,8 +20,8 @@ __Note__, that not all actions are currently undo-able. The UndoRedo plugin is e
 ```js
 undo: true
 ```
+## Functions:
 
-## Members
 ### done
 `undoRedo.done(action)`
 

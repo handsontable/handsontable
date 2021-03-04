@@ -23,8 +23,8 @@ observeChanges: true,
 ```
 
 To configure this plugin see [Options#observeChanges](./Options/#observeChanges).
+## Functions:
 
-## Members
 ### isEnabled
 `observeChanges.isEnabled() ⇒ boolean`
 
@@ -51,6 +51,5 @@ Disables the plugin functionality for this Handsontable instance.
 `observeChanges.destroy()`
 
 Destroys the plugin instance.
-
 
 

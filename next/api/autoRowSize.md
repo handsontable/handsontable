@@ -55,8 +55,8 @@ if (plugin.isEnabled()) {
   // code...
 }
 ```
+## Members:
 
-## Members
 ### inProgress
 `autoRowSize.inProgress : boolean`
 
@@ -70,6 +70,7 @@ if (plugin.isEnabled()) {
 Number of already measured rows (we already know their sizes).
 
 
+## Functions:
 
 ### isEnabled
 `autoRowSize.isEnabled() ⇒ boolean`
@@ -201,6 +202,5 @@ Checks if all heights were calculated. If not then return `true` (need recalcula
 `autoRowSize.destroy()`
 
 Destroys the plugin instance.
-
 
 
