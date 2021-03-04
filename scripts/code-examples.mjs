@@ -135,7 +135,7 @@ switch (shellCommand) {
       throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
     }
 
-    runNpmCommandInExample(versionedDir, `npm run install:version ${hotVersion}`)
+    runNpmCommandInExample(versionedDir, `npm run install:version ${hotVersion}`);
 
     break;
   }

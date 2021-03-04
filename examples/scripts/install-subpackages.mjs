@@ -17,29 +17,29 @@ if (!version) {
   process.exit(1);
 }
 
-(async () => {
+(async() => {
   // Clean node_modules, package-lock and /dist/ for the versioned subpackages.
   await spawnProcess(`node ./scripts/clean-subpackages.mjs ${version}`);
-
-  console.log(`\nRunning npm install for the examples workspace:\n`);
-  // Run `npm i` for the examples workspace.
-  await spawnProcess(`npm i`);
 
   // Run `npm i` for all the examples in the versioned directory.
   for (const frameworkPackage of thisPackageJson.workspaces.packages) {
     const frameworkUrls = glob.sync(`${frameworkPackage}`);
 
     for (const frameworkUrl of frameworkUrls) {
-      if ((version && frameworkUrl.startsWith(version)) || !version) {
+      if ((version && frameworkUrl.startsWith(version))) {
         console.log(`\nRunning npm install for ${frameworkUrl}:\n`);
 
-        await execa('npm', ['install'], { cwd: frameworkUrl, stdio: 'inherit' });
+        await execa('npm', ['install'], {
+          cwd: frameworkUrl,
+          stdio: 'inherit'
+        });
       }
     }
-  }
 
-  if (version === 'next') {
-    // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the examples).
-    await spawnProcess('node --experimental-json-modules ./scripts/link-packages.mjs -f js angular react vue');
+    // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the
+    // examples).
+    await spawnProcess(
+      `node --experimental-json-modules ./scripts/link-packages.mjs --f js angular react vue --examples-version ${version}`
+    );
   }
 })();

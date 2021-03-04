@@ -6,10 +6,17 @@ import path from 'path';
 import glob from 'glob';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { displayConfirmationMessage, displayErrorMessage, displayWarningMessage } from "../../scripts/utils/index.mjs";
+import { fileURLToPath } from 'url';
+import {
+  displayConfirmationMessage,
+  displayErrorMessage,
+  displayWarningMessage
+} from '../../scripts/utils/index.mjs';
 import examplesPackageJson from '../package.json';
 import hotPackageJson from '../../package.json';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const workspaces = examplesPackageJson.workspaces.packages;
 const hotWorkspaces = hotPackageJson.workspaces.packages;
 const isPackageRequired = (packageName, packageLocation) => {
@@ -25,16 +32,16 @@ const isPackageRequired = (packageName, packageLocation) => {
   );
 };
 const packagesToLink = [];
-const linkPackage = (packageName, packageLocation) => {
-  if (isPackageRequired(packageName, packageLocation)) {
+const linkPackage = (sourceLocation, linkLocation, packageName, exampleDir = false) => {
+  if (isPackageRequired(packageName, linkLocation)) {
     try {
       fse.removeSync(
-        path.resolve(`./${packageLocation}/node_modules/${packageName}`),
+        path.resolve(`${linkLocation}/${packageName}`),
       );
 
       fse.ensureSymlinkSync(
-        path.resolve(`../node_modules/${packageName}`),
-        path.resolve(`./${packageLocation}/node_modules/${packageName}`)
+        path.resolve(`${sourceLocation}/${packageName}`),
+        path.resolve(`${linkLocation}/${packageName}`)
       );
 
     } catch (e) {
@@ -43,10 +50,12 @@ const linkPackage = (packageName, packageLocation) => {
       process.exit(1);
     }
 
-    displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);
+    displayConfirmationMessage(`${exampleDir ? '\t' : ''}Symlink created for ${packageName} in ${
+      linkLocation.replace(path.resolve(__dirname, '..'), '').replace('/node_modules', '')}.`);
   }
 };
 const argv = yargs(hideBin(process.argv))
+  .describe('examples-version', 'Version of the examples package to do the linking in.')
   .alias('f', 'framework')
   .array('f')
   .describe('f', 'Target framework to the linking to take place in. Defaults to none.')
@@ -63,7 +72,7 @@ for (const hotPackageGlob of hotWorkspaces) {
   for (const mainPackageUrl of mainPackages) {
     const { default: packagePackageJson } = await import(`../${mainPackageUrl}/package.json`);
     const packageName = packagePackageJson.name;
-    packagesToLink.push(packageName)
+    packagesToLink.push(packageName);
   }
 }
 
@@ -71,32 +80,43 @@ workspaces.forEach((packagesLocation) => {
   const subdirs = glob.sync(`./${packagesLocation}`);
 
   subdirs.forEach((packageLocation) => {
-    // Currently linking the live dependencies only for the 'next' directory.
-    if (packageLocation.startsWith(`./next`)) {
-      const frameworkName = packageLocation.split('/').pop();
+    const frameworkName = packageLocation.split('/').pop();
 
-      if (
-        (argv.framework && argv.framework.includes(frameworkName)) ||
-        !argv.framework
-      ) {
+    if (
+      packageLocation.startsWith(`./${argv.examplesVersion}`) &&
+      ((argv.framework && argv.framework.includes(frameworkName)) ||
+      !argv.framework)
+    ) {
+
+      // Currently linking the live dependencies only for the 'next' directory.
+      if (argv.examplesVersion === 'next') {
         packagesToLink.forEach((packageName) => {
-          linkPackage(packageName, packageLocation);
+          linkPackage(
+            path.resolve('../node_modules'),
+            path.resolve(packageLocation, './node_modules'),
+            packageName
+          );
         });
+      }
 
-        // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
-        if (frameworkName === `angular`) {
-          const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
+      // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
+      if (frameworkName === `angular`) {
+        const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
 
-          angularPackageJson?.workspaces?.packages.forEach((angularPackagesLocation) => {
-            const subdirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
+        angularPackageJson?.workspaces?.packages.forEach((angularPackagesLocation) => {
+          const angularPackageDirs = glob.sync(`${packageLocation}/${angularPackagesLocation}`);
 
-            subdirs.forEach((packageLocation) => {
-              packagesToLink.forEach((packageName) => {
-                linkPackage(packageName, packageLocation);
-              });
+          angularPackageDirs.forEach((angularPackageLocation) => {
+            packagesToLink.forEach((packageName) => {
+              linkPackage(
+                path.resolve(angularPackageLocation, '../node_modules'),
+                path.resolve(angularPackageLocation, './node_modules'),
+                packageName,
+                true
+              );
             });
           });
-        }
+        });
       }
     }
   });
