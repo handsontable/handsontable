@@ -90,7 +90,7 @@ describe('Events', () => {
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
     location.hash = ''; // Resetting after test.
-    
+
     const anotherCell = getCell(1, 0);
 
     // First touch
@@ -123,5 +123,5 @@ describe('Events', () => {
     simulateTouch(dropDownIndicator);
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
-  })
+  });
 });
