@@ -1,6 +1,6 @@
 ---
 title: Quick start
-permalink: /next/quick-start
+permalink: /quick-start
 canonicalUrl: /quick-start
 ---
 
@@ -39,8 +39,8 @@ After the installation process is finished, embed this code inside your HTML fil
 Alternatively, use a CDN:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/handsontable@{##VERSION}/dist/handsontable.full.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/handsontable@{##VERSION}/dist/handsontable.full.min.css" rel="stylesheet" media="screen">
+<script src="https://cdn.jsdelivr.net/npm/handsontable@9.0/dist/handsontable.full.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/handsontable@9.0/dist/handsontable.full.min.css" rel="stylesheet" media="screen">
 ```
 ## Step 2: Create
 

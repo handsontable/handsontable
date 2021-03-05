@@ -10,15 +10,18 @@
   "repository": "ads/ttsa",
   "scripts": {
     "dev": "vuepress dev ./",
-    "build": "vuepress build ./"
+    "build": "vuepress build ./",
+    "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js"
   },
   "license": "MIT",
   "dependencies": {
     "@vuepress/plugin-active-header-links": "^1.8.1",
     "@vuepress/plugin-search": "^1.8.2",
     "dmd": "^6.0.0",
+    "fs-extra": "^9.1.0",
     "jsdoc-to-markdown": "^6.0.1",
     "markdown-it-regex": "^0.2.0",
+    "replace-in-files": "^3.0.0",
     "semver": "^5.7.1",
     "vue-router": "^3.5.1",
     "vuepress": "^1.8.1"
