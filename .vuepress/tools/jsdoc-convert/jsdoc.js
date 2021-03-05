@@ -1,5 +1,6 @@
 /// requires
 const jsdoc2md = require('jsdoc-to-markdown')
+const dmd = require('dmd')
 const path = require('path')
 const fs = require('fs')
 
@@ -30,7 +31,7 @@ const flat = (path) => path.split('/').pop();
 
 const dist = (file) => path.join(__dirname, pathToDist, flat(file.replace(/(.*)\.js/, "$1.md")));
 
-/// post processing generated markdown
+/// post processing after markdown was generated
 const fixLinks = (text) => text
     .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, "[$1](./$2/$3)") // @see https://regexr.com/5nqqr
     .replace(/\.\/\//g, '');
@@ -43,17 +44,37 @@ const postProcessors = [
     clearEmptyMembersHeaders,
     clearEmptyFunctionsHeaders
 ];
+
 const postProcess = (initialText) => postProcessors.reduce((text, postProcessor)=>postProcessor(text), initialText)
 
+/// post processing before markdown will be generated and after jsdoc was parsed
+const sort = (data) => data.sort((m,p)=>{
+    if(m.kind==='constructor' || m.kind==='class') return -1;
+    if(p.kind==='constructor' || p.kind==='class') return 1;
+    return m.name.localeCompare(p.name);
+})
+
+const preProcessors = [
+    sort
+]
+
+const preProcess = (initialData) => preProcessors.reduce((data, preProcessor)=>preProcessor(data), initialData)
+
 /// jsdoc2md integration
-const parse = (file) => postProcess(jsdoc2md.renderSync({
+const fromJsdoc = (file) => jsdoc2md.getTemplateDataSync({
     files: source(file),
     'no-cache': true,
+});
+
+const toMd = (data) => dmd(data, {
+    'noCache': true,
     'partial': path.join(__dirname, 'dmd/partials/**/*.hbs'),
     'template': '{{>hot-main~}}'
+});
 
-}));
+const parse = (file) => postProcess(toMd(preProcess(fromJsdoc(file))));
 
+/// seo
 const genSeoTitle = (file) => file
     .replace(/(^.*\/)?(.*?)\.[.a-zA-Z]*$/, "$2") // Get first filename segment (to the first dot) without full path
     // .replace(/([A-Z]+)/g, " $1") // Add spaces before each word

@@ -72,25 +72,16 @@ Number of already measured rows (we already know their sizes).
 
 ## Functions:
 
-### isEnabled
-`autoRowSize.isEnabled() ⇒ boolean`
+### calculateAllRowsHeight
+`autoRowSize.calculateAllRowsHeight(colRange)`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
-hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
-
-
-
-### enablePlugin
-`autoRowSize.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Calculate all rows heights. The calculated row will be cached in the [AutoRowSize#heights](./auto-row-size/#heights) property.
+To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-size/#getrowheight) method.
 
 
-
-### disablePlugin
-`autoRowSize.disablePlugin()`
-
-Disables the plugin functionality for this Handsontable instance.
+| Param | Type | Description |
+| --- | --- | --- |
+| colRange | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
 
 
 
@@ -108,44 +99,43 @@ Calculate a given rows height.
 
 
 
-### calculateAllRowsHeight
-`autoRowSize.calculateAllRowsHeight(colRange)`
+### clearCache
+`autoRowSize.clearCache()`
 
-Calculate all rows heights. The calculated row will be cached in the [AutoRowSize#heights](./auto-row-size/#heights) property.
-To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-size/#getrowheight) method.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| colRange | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+Clears cached heights.
 
 
 
-### recalculateAllRowsHeight
-`autoRowSize.recalculateAllRowsHeight()`
+### clearCacheByRange
+`autoRowSize.clearCacheByRange(range)`
 
-Recalculates all rows height (overwrite cache values).
-
-
-
-### getSyncCalculationLimit
-`autoRowSize.getSyncCalculationLimit() ⇒ number`
-
-Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
-asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](./options/#autorowsize)).
-
-
-
-### getRowHeight
-`autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number`
-
-Gets the calculated row height.
+Clears cache by range.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| [defaultHeight] | <code>number</code> | `optional` Default row height. It will be picked up if no calculated height found. |
+| range | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+
+
+
+### destroy
+`autoRowSize.destroy()`
+
+Destroys the plugin instance.
+
+
+
+### disablePlugin
+`autoRowSize.disablePlugin()`
+
+Disables the plugin functionality for this Handsontable instance.
+
+
+
+### enablePlugin
+`autoRowSize.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
 
 
 
@@ -172,22 +162,32 @@ Gets the last visible row.
 
 **Returns**: <code>number</code> - Returns row index or -1 if table is not rendered.  
 
-### clearCache
-`autoRowSize.clearCache()`
+### getRowHeight
+`autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number`
 
-Clears cached heights.
-
-
-
-### clearCacheByRange
-`autoRowSize.clearCacheByRange(range)`
-
-Clears cache by range.
+Gets the calculated row height.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| range | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+| row | <code>number</code> | Visual row index. |
+| [defaultHeight] | <code>number</code> | `optional` Default row height. It will be picked up if no calculated height found. |
+
+
+
+### getSyncCalculationLimit
+`autoRowSize.getSyncCalculationLimit() ⇒ number`
+
+Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
+asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](./options/#autorowsize)).
+
+
+
+### isEnabled
+`autoRowSize.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
+hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
 
 
 
@@ -198,9 +198,9 @@ Checks if all heights were calculated. If not then return `true` (need recalcula
 
 
 
-### destroy
-`autoRowSize.destroy()`
+### recalculateAllRowsHeight
+`autoRowSize.recalculateAllRowsHeight()`
 
-Destroys the plugin instance.
+Recalculates all rows height (overwrite cache values).
 
 

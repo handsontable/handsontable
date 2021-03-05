@@ -82,35 +82,6 @@ UI container for the secondary focusable element.
 
 ## Functions:
 
-### isEnabled
-`copyPaste.isEnabled() ⇒ boolean`
-
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`copyPaste.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`copyPaste.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
-
-
-
-### disablePlugin
-`copyPaste.disablePlugin()`
-
-Disables the plugin functionality for this Handsontable instance.
-
-
-
 ### copy
 `copyPaste.copy()`
 
@@ -122,6 +93,27 @@ Copies the selected cell into the clipboard.
 `copyPaste.cut()`
 
 Cuts the selected cell into the clipboard.
+
+
+
+### destroy
+`copyPaste.destroy()`
+
+Destroys the plugin instance.
+
+
+
+### disablePlugin
+`copyPaste.disablePlugin()`
+
+Disables the plugin functionality for this Handsontable instance.
+
+
+
+### enablePlugin
+`copyPaste.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
 
 
 
@@ -151,6 +143,14 @@ Creates copyable text releated to range objects.
 
 **Returns**: <code>Array.&lt;Array&gt;</code> - Returns array of arrays which will be copied into clipboard.  
 
+### isEnabled
+`copyPaste.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) method is called.
+
+
+
 ### paste
 `copyPaste.paste(pastableText, [pastableHtml])`
 
@@ -171,9 +171,9 @@ Prepares copyable text from the cells selection in the invisible textarea.
 
 
 
-### destroy
-`copyPaste.destroy()`
+### updatePlugin
+`copyPaste.updatePlugin()`
 
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

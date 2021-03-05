@@ -26,18 +26,10 @@ const hot = new Handsontable(document.getElementById('example'), {
 ```
 ## Functions:
 
-### isEnabled
-`mergeCells.isEnabled() ⇒ boolean`
+### clearCollections
+`mergeCells.clearCollections()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#MergeCells+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`mergeCells.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Clears the merged cells from the merged cell container.
 
 
 
@@ -48,41 +40,18 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### updatePlugin
-`mergeCells.updatePlugin()`
+### enablePlugin
+`mergeCells.enablePlugin()`
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
-
-
-
-### clearCollections
-`mergeCells.clearCollections()`
-
-Clears the merged cells from the merged cell container.
+Enables the plugin functionality for this Handsontable instance.
 
 
 
-### mergeSelection
-`mergeCells.mergeSelection([cellRange])`
+### isEnabled
+`mergeCells.isEnabled() ⇒ boolean`
 
-Merges the selection provided as a cell range.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| [cellRange] | <code>CellRange</code> | `optional` Selection cell range. |
-
-
-
-### unmergeSelection
-`mergeCells.unmergeSelection([cellRange])`
-
-Unmerges the selection provided as a cell range.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| [cellRange] | <code>CellRange</code> | `optional` Selection cell range. |
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#MergeCells+enablePlugin) method is called.
 
 
 
@@ -102,6 +71,18 @@ Merges the specified range.
 
 
 
+### mergeSelection
+`mergeCells.mergeSelection([cellRange])`
+
+Merges the selection provided as a cell range.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [cellRange] | <code>CellRange</code> | `optional` Selection cell range. |
+
+
+
 ### unmerge
 `mergeCells.unmerge(startRow, startColumn, endRow, endColumn)`
 
@@ -115,5 +96,24 @@ Unmerges the merged cell in the provided range.
 | startColumn | <code>number</code> | Start column of the merged cell. |
 | endRow | <code>number</code> | End row of the merged cell. |
 | endColumn | <code>number</code> | End column of the merged cell. |
+
+
+
+### unmergeSelection
+`mergeCells.unmergeSelection([cellRange])`
+
+Unmerges the selection provided as a cell range.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [cellRange] | <code>CellRange</code> | `optional` Selection cell range. |
+
+
+
+### updatePlugin
+`mergeCells.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

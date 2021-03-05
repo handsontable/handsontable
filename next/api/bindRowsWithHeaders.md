@@ -28,18 +28,10 @@ const hot = new Handsontable(container, {
 ```
 ## Functions:
 
-### isEnabled
-`bindRowsWithHeaders.isEnabled() ⇒ boolean`
+### destroy
+`bindRowsWithHeaders.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#BindRowsWithHeaders+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`bindRowsWithHeaders.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Destroys the plugin instance.
 
 
 
@@ -50,9 +42,17 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### destroy
-`bindRowsWithHeaders.destroy()`
+### enablePlugin
+`bindRowsWithHeaders.enablePlugin()`
 
-Destroys the plugin instance.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`bindRowsWithHeaders.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#BindRowsWithHeaders+enablePlugin) method is called.
 
 

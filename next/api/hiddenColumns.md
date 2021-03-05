@@ -58,25 +58,10 @@ hot.render();
 ```
 ## Functions:
 
-### isEnabled
-`hiddenColumns.isEnabled() ⇒ boolean`
+### destroy
+`hiddenColumns.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#HiddenColumns+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`hiddenColumns.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`hiddenColumns.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -87,22 +72,24 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### showColumns
-`hiddenColumns.showColumns(columns)`
+### enablePlugin
+`hiddenColumns.enablePlugin()`
 
-Shows the provided columns.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| columns | <code>Array.&lt;number&gt;</code> | Array of visual column indexes. |
+Enables the plugin functionality for this Handsontable instance.
 
 
 
-### showColumn
-`hiddenColumns.showColumn(...column)`
+### getHiddenColumns
+`hiddenColumns.getHiddenColumns() ⇒ Array.<number>`
 
-Shows a single column.
+Returns an array of visual indexes of hidden columns.
+
+
+
+### hideColumn
+`hiddenColumns.hideColumn(...column)`
+
+Hides a single column.
 
 
 | Param | Type | Description |
@@ -123,22 +110,11 @@ Hides the columns provided in the array.
 
 
 
-### hideColumn
-`hiddenColumns.hideColumn(...column)`
+### isEnabled
+`hiddenColumns.isEnabled() ⇒ boolean`
 
-Hides a single column.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| ...column | <code>number</code> | Visual column index. |
-
-
-
-### getHiddenColumns
-`hiddenColumns.getHiddenColumns() ⇒ Array.<number>`
-
-Returns an array of visual indexes of hidden columns.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#HiddenColumns+enablePlugin) method is called.
 
 
 
@@ -166,9 +142,33 @@ Get if trim config is valid. Check whether all of the provided column indexes ar
 
 
 
-### destroy
-`hiddenColumns.destroy()`
+### showColumn
+`hiddenColumns.showColumn(...column)`
 
-Destroys the plugin instance.
+Shows a single column.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...column | <code>number</code> | Visual column index. |
+
+
+
+### showColumns
+`hiddenColumns.showColumns(columns)`
+
+Shows the provided columns.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| columns | <code>Array.&lt;number&gt;</code> | Array of visual column indexes. |
+
+
+
+### updatePlugin
+`hiddenColumns.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

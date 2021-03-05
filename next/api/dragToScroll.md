@@ -25,11 +25,31 @@ e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y
 
 ## Functions:
 
-### isEnabled
-`dragToScroll.isEnabled() ⇒ boolean`
+### check
+`dragToScroll.check(x, y)`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin) method is called.
+Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
+between passed boundaries.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| x | <code>number</code> | Mouse X coordinate to check. |
+| y | <code>number</code> | Mouse Y coordinate to check. |
+
+
+
+### destroy
+`dragToScroll.destroy()`
+
+Destroys the plugin instance.
+
+
+
+### disablePlugin
+`dragToScroll.disablePlugin()`
+
+Disables the plugin functionality for this Handsontable instance.
 
 
 
@@ -40,17 +60,11 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 
-### updatePlugin
-`dragToScroll.updatePlugin()`
+### isEnabled
+`dragToScroll.isEnabled() ⇒ boolean`
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
-
-
-
-### disablePlugin
-`dragToScroll.disablePlugin()`
-
-Disables the plugin functionality for this Handsontable instance.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin) method is called.
 
 
 
@@ -78,23 +92,9 @@ Changes callback function.
 
 
 
-### check
-`dragToScroll.check(x, y)`
+### updatePlugin
+`dragToScroll.updatePlugin()`
 
-Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
-between passed boundaries.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| x | <code>number</code> | Mouse X coordinate to check. |
-| y | <code>number</code> | Mouse Y coordinate to check. |
-
-
-
-### destroy
-`dragToScroll.destroy()`
-
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

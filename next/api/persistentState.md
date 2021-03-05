@@ -26,18 +26,10 @@ with table will be cleared.
 
 ## Functions:
 
-### isEnabled
-`persistentState.isEnabled() ⇒ boolean`
+### destroy
+`persistentState.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#PersistentState+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`persistentState.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Destroys the plugin instance.
 
 
 
@@ -48,10 +40,18 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### updatePlugin
-`persistentState.updatePlugin()`
+### enablePlugin
+`persistentState.enablePlugin()`
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`persistentState.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#PersistentState+enablePlugin) method is called.
 
 
 
@@ -68,6 +68,18 @@ Loads the value from local storage.
 
 
 
+### resetValue
+`persistentState.resetValue(key)`
+
+Resets the data or all data from local storage.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| key | <code>string</code> | [optional] Storage key. |
+
+
+
 ### saveValue
 `persistentState.saveValue(key, value)`
 
@@ -81,21 +93,9 @@ Saves the data to local storage.
 
 
 
-### resetValue
-`persistentState.resetValue(key)`
+### updatePlugin
+`persistentState.updatePlugin()`
 
-Resets the data or all data from local storage.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | [optional] Storage key. |
-
-
-
-### destroy
-`persistentState.destroy()`
-
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

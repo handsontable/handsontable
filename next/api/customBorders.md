@@ -60,18 +60,33 @@ customBorders: [
 ```
 ## Functions:
 
-### isEnabled
-`customBorders.isEnabled() ⇒ boolean`
+### clearBorders
+`customBorders.clearBorders(selectionRanges)`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugin) method is called.
-
+Clear custom borders.
 
 
-### enablePlugin
-`customBorders.enablePlugin()`
+| Param | Type | Description |
+| --- | --- | --- |
+| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
 
-Enables the plugin functionality for this Handsontable instance.
+
+**Example**  
+```js
+const customBordersPlugin = hot.getPlugin('customBorders');
+
+// Using an array of arrays (produced by `.getSelected()` method).
+customBordersPlugin.clearBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
+// Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+customBordersPlugin.clearBorders(hot.getSelectedRange());
+// Using without param - clear all customBorders.
+customBordersPlugin.clearBorders();
+```
+
+### destroy
+`customBorders.destroy()`
+
+Destroys the plugin instance.
 
 
 
@@ -82,10 +97,42 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### updatePlugin
-`customBorders.updatePlugin()`
+### enablePlugin
+`customBorders.enablePlugin()`
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### getBorders
+`customBorders.getBorders(selectionRanges) ⇒ Array.<object>`
+
+Get custom borders.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
+
+
+**Returns**: <code>Array.&lt;object&gt;</code> - Returns array of border objects.  
+**Example**  
+```js
+const customBordersPlugin = hot.getPlugin('customBorders');
+
+// Using an array of arrays (produced by `.getSelected()` method).
+customBordersPlugin.getBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
+// Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+customBordersPlugin.getBorders(hot.getSelectedRange());
+// Using without param - return all customBorders.
+customBordersPlugin.getBorders();
+```
+
+### isEnabled
+`customBorders.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugin) method is called.
 
 
 
@@ -115,56 +162,9 @@ hot.selectCell(0, 0, 2, 2);
 customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
 ```
 
-### getBorders
-`customBorders.getBorders(selectionRanges) ⇒ Array.<object>`
+### updatePlugin
+`customBorders.updatePlugin()`
 
-Get custom borders.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
-
-
-**Returns**: <code>Array.&lt;object&gt;</code> - Returns array of border objects.  
-**Example**  
-```js
-const customBordersPlugin = hot.getPlugin('customBorders');
-
-// Using an array of arrays (produced by `.getSelected()` method).
-customBordersPlugin.getBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
-// Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-customBordersPlugin.getBorders(hot.getSelectedRange());
-// Using without param - return all customBorders.
-customBordersPlugin.getBorders();
-```
-
-### clearBorders
-`customBorders.clearBorders(selectionRanges)`
-
-Clear custom borders.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
-
-
-**Example**  
-```js
-const customBordersPlugin = hot.getPlugin('customBorders');
-
-// Using an array of arrays (produced by `.getSelected()` method).
-customBordersPlugin.clearBorders([[1, 1, 2, 2], [6, 2, 0, 2]]);
-// Using an array of CellRange objects (produced by `.getSelectedRange()` method).
-customBordersPlugin.clearBorders(hot.getSelectedRange());
-// Using without param - clear all customBorders.
-customBordersPlugin.clearBorders();
-```
-
-### destroy
-`customBorders.destroy()`
-
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

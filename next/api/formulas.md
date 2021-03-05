@@ -9,18 +9,10 @@ canonicalUrl: /api/formulas
 [[toc]]
 ## Functions:
 
-### isEnabled
-`formulas.isEnabled() ⇒ boolean`
+### destroy
+`formulas.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#Formulas+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`formulas.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Destroys the plugin instance.
 
 
 
@@ -28,6 +20,13 @@ Enables the plugin functionality for this Handsontable instance.
 `formulas.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
+
+
+
+### enablePlugin
+`formulas.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
 
 
 
@@ -44,6 +43,18 @@ Returns cell value (evaluated from formula expression) at specified cell coords.
 
 
 
+### getVariable
+`formulas.getVariable(name) ⇒ \*`
+
+Returns variable name.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>string</code> | Variable name. |
+
+
+
 ### hasComputedCellValue
 `formulas.hasComputedCellValue(row, column) ⇒ boolean`
 
@@ -54,6 +65,14 @@ Checks if there are any formula evaluations made under specific cell coords.
 | --- | --- | --- |
 | row | <code>number</code> | Row index. |
 | column | <code>number</code> | Column index. |
+
+
+
+### isEnabled
+`formulas.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#Formulas+enablePlugin) method is called.
 
 
 
@@ -88,24 +107,5 @@ Sets predefined variable name which can be visible while parsing formula express
 | --- | --- | --- |
 | name | <code>string</code> | Variable name. |
 | value | <code>\*</code> | Variable value. |
-
-
-
-### getVariable
-`formulas.getVariable(name) ⇒ \*`
-
-Returns variable name.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| name | <code>string</code> | Variable name. |
-
-
-
-### destroy
-`formulas.destroy()`
-
-Destroys the plugin instance.
 
 

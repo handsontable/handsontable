@@ -21,25 +21,10 @@ The plugin creates additional components to make resizing possibly using user in
 
 ## Functions:
 
-### isEnabled
-`manualRowResize.isEnabled() ⇒ boolean`
+### destroy
+`manualRowResize.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ManualRowResize+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`manualRowResize.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`manualRowResize.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -50,13 +35,19 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### saveManualRowHeights
-`manualRowResize.saveManualRowHeights()`
+### enablePlugin
+`manualRowResize.enablePlugin()`
 
-Saves the current sizes using the persistentState plugin (the [Options#persistentState](./Options/#persistentState) option has to be
-enabled).
+Enables the plugin functionality for this Handsontable instance.
 
-**Emits**: <code>Hooks#event:persistentStateSave</code>  
+
+
+### isEnabled
+`manualRowResize.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#ManualRowResize+enablePlugin) method is called.
+
 
 
 ### loadManualRowHeights
@@ -66,6 +57,15 @@ Loads the previously saved sizes using the persistentState plugin (the [Options#
 has be enabled).
 
 **Emits**: <code>Hooks#event:persistentStateLoad</code>  
+
+
+### saveManualRowHeights
+`manualRowResize.saveManualRowHeights()`
+
+Saves the current sizes using the persistentState plugin (the [Options#persistentState](./Options/#persistentState) option has to be
+enabled).
+
+**Emits**: <code>Hooks#event:persistentStateSave</code>  
 
 
 ### setManualSize
@@ -82,9 +82,9 @@ Sets the new height for specified row index.
 
 **Returns**: <code>number</code> - Returns new height.  
 
-### destroy
-`manualRowResize.destroy()`
+### updatePlugin
+`manualRowResize.updatePlugin()`
 
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

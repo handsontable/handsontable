@@ -30,25 +30,10 @@ The plugin creates additional components to make moving possibly using user inte
 
 ## Functions:
 
-### isEnabled
-`manualRowMove.isEnabled() ⇒ boolean`
+### destroy
+`manualRowMove.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ManualRowMove+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`manualRowMove.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`manualRowMove.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -56,34 +41,6 @@ Updates the plugin state. This method is executed when [Core#updateSettings](./C
 `manualRowMove.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
-
-
-
-### moveRow
-`manualRowMove.moveRow(row, finalIndex) ⇒ boolean`
-
-Moves a single row.
-
-**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| row | <code>number</code> | Visual row index to be moved. |
-| finalIndex | <code>number</code> | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-
-
-
-### moveRows
-`manualRowMove.moveRows(rows, finalIndex) ⇒ boolean`
-
-Moves a multiple rows.
-
-**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| rows | <code>Array</code> | Array of visual row indexes to be moved. |
-| finalIndex | <code>number</code> | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
 
 
 
@@ -115,6 +72,21 @@ Drag multiple rows to drop index position.
 
 
 
+### enablePlugin
+`manualRowMove.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`manualRowMove.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#ManualRowMove+enablePlugin) method is called.
+
+
+
 ### isMovePossible
 `manualRowMove.isMovePossible(movedRows, finalIndex) ⇒ boolean`
 
@@ -128,9 +100,37 @@ Indicates if it's possible to move rows to the desired position. Some of the act
 
 
 
-### destroy
-`manualRowMove.destroy()`
+### moveRow
+`manualRowMove.moveRow(row, finalIndex) ⇒ boolean`
 
-Destroys the plugin instance.
+Moves a single row.
+
+**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| row | <code>number</code> | Visual row index to be moved. |
+| finalIndex | <code>number</code> | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+
+
+
+### moveRows
+`manualRowMove.moveRows(rows, finalIndex) ⇒ boolean`
+
+Moves a multiple rows.
+
+**Emits**: <code>Hooks#event:beforeRowMove</code>, <code>Hooks#event:afterRowMove</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| rows | <code>Array</code> | Array of visual row indexes to be moved. |
+| finalIndex | <code>number</code> | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+
+
+
+### updatePlugin
+`manualRowMove.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

@@ -16,32 +16,10 @@ Plugin responsible for displaying and operating on data sources with nested stru
 
 ## Functions:
 
-### isEnabled
-`nestedRows.isEnabled() ⇒ boolean`
+### destroy
+`nestedRows.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#NestedRows+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`nestedRows.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### disablePlugin
-`nestedRows.disablePlugin()`
-
-Disables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`nestedRows.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -53,6 +31,13 @@ modifications.
 
 
 
+### disablePlugin
+`nestedRows.disablePlugin()`
+
+Disables the plugin functionality for this Handsontable instance.
+
+
+
 ### enableCoreAPIModifiers
 `nestedRows.enableCoreAPIModifiers()`
 
@@ -60,9 +45,24 @@ Disable the modify hook skipping flag.
 
 
 
-### destroy
-`nestedRows.destroy()`
+### enablePlugin
+`nestedRows.enablePlugin()`
 
-Destroys the plugin instance.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`nestedRows.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#NestedRows+enablePlugin) method is called.
+
+
+
+### updatePlugin
+`nestedRows.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

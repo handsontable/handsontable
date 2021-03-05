@@ -59,25 +59,10 @@ hot.render();
 ```
 ## Functions:
 
-### isEnabled
-`hiddenRows.isEnabled() ⇒ boolean`
+### destroy
+`hiddenRows.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`hiddenRows.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`hiddenRows.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -88,22 +73,24 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### showRows
-`hiddenRows.showRows(rows)`
+### enablePlugin
+`hiddenRows.enablePlugin()`
 
-Shows the rows provided in the array.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| rows | <code>Array.&lt;number&gt;</code> | Array of visual row indexes. |
+Enables the plugin functionality for this Handsontable instance.
 
 
 
-### showRow
-`hiddenRows.showRow(...row)`
+### getHiddenRows
+`hiddenRows.getHiddenRows() ⇒ Array.<number>`
 
-Shows the row provided as row index (counting from 0).
+Returns an array of visual indexes of hidden rows.
+
+
+
+### hideRow
+`hiddenRows.hideRow(...row)`
+
+Hides the row provided as row index (counting from 0).
 
 
 | Param | Type | Description |
@@ -124,22 +111,11 @@ Hides the rows provided in the array.
 
 
 
-### hideRow
-`hiddenRows.hideRow(...row)`
+### isEnabled
+`hiddenRows.isEnabled() ⇒ boolean`
 
-Hides the row provided as row index (counting from 0).
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| ...row | <code>number</code> | Visual row index. |
-
-
-
-### getHiddenRows
-`hiddenRows.getHiddenRows() ⇒ Array.<number>`
-
-Returns an array of visual indexes of hidden rows.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) method is called.
 
 
 
@@ -167,9 +143,33 @@ Checks whether all of the provided row indexes are within the bounds of the tabl
 
 
 
-### destroy
-`hiddenRows.destroy()`
+### showRow
+`hiddenRows.showRow(...row)`
 
-Destroys the plugin instance.
+Shows the row provided as row index (counting from 0).
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...row | <code>number</code> | Visual row index. |
+
+
+
+### showRows
+`hiddenRows.showRows(rows)`
+
+Shows the rows provided in the array.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| rows | <code>Array.&lt;number&gt;</code> | Array of visual row indexes. |
+
+
+
+### updatePlugin
+`hiddenRows.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

@@ -57,18 +57,17 @@ columns: [{
 ```
 ## Functions:
 
-### isEnabled
-`columnSorting.isEnabled() ⇒ boolean`
+### clearSort
+`columnSorting.clearSort()`
 
-Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ColumnSorting+enablePlugin) method is called.
-
+Clear the sort performed on the table.
 
 
-### enablePlugin
-`columnSorting.enablePlugin()`
 
-Enables the plugin functionality for this Handsontable instance.
+### destroy
+`columnSorting.destroy()`
+
+Destroys the plugin instance.
 
 
 
@@ -79,35 +78,10 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### sort
-`columnSorting.sort(sortConfig)`
+### enablePlugin
+`columnSorting.enablePlugin()`
 
-Sorts the table by chosen columns and orders.
-
-**Emits**: <code>Hooks#event:beforeColumnSort</code>, <code>Hooks#event:afterColumnSort</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| sortConfig | <code>undefined</code> \| <code>object</code> | Single column sort configuration. The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains sort order (`asc` for ascending, `desc` for descending). **Note**: Please keep in mind that every call of `sort` function set an entirely new sort order. Previous sort configs aren't preserved. |
-
-
-**Example**  
-```js
-// sort ascending first visual column
-hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
-```
-
-### clearSort
-`columnSorting.clearSort()`
-
-Clear the sort performed on the table.
-
-
-
-### isSorted
-`columnSorting.isSorted() ⇒ boolean`
-
-Checks if the table is sorted (any column have to be sorted).
+Enables the plugin functionality for this Handsontable instance.
 
 
 
@@ -122,6 +96,21 @@ Get sort configuration for particular column or for all sorted columns. Objects 
 | Param | Type | Description |
 | --- | --- | --- |
 | [column] | <code>number</code> | `optional` Visual column index. |
+
+
+
+### isEnabled
+`columnSorting.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the Handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#ColumnSorting+enablePlugin) method is called.
+
+
+
+### isSorted
+`columnSorting.isSorted() ⇒ boolean`
+
+Checks if the table is sorted (any column have to be sorted).
 
 
 
@@ -151,9 +140,20 @@ beforeColumnSort: function(currentSortConfig, destinationSortConfigs) {
   return false; // The blockade for the default sort action.
 }```
 
-### destroy
-`columnSorting.destroy()`
+### sort
+`columnSorting.sort(sortConfig)`
 
-Destroys the plugin instance.
+Sorts the table by chosen columns and orders.
+
+**Emits**: <code>Hooks#event:beforeColumnSort</code>, <code>Hooks#event:afterColumnSort</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| sortConfig | <code>undefined</code> \| <code>object</code> | Single column sort configuration. The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains sort order (`asc` for ascending, `desc` for descending). **Note**: Please keep in mind that every call of `sort` function set an entirely new sort order. Previous sort configs aren't preserved. |
 
 
+**Example**  
+```js
+// sort ascending first visual column
+hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+```

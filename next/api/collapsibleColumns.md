@@ -57,44 +57,10 @@ The NestedHeaders plugin StateManager instance.
 
 ## Functions:
 
-### isEnabled
-`collapsibleColumns.isEnabled() ⇒ boolean`
+### collapseAll
+`collapsibleColumns.collapseAll()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#CollapsibleColumns+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`collapsibleColumns.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`collapsibleColumns.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
-
-
-
-### disablePlugin
-`collapsibleColumns.disablePlugin()`
-
-Disables the plugin functionality for this Handsontable instance.
-
-
-
-### expandSection
-`collapsibleColumns.expandSection(coords)`
-
-Expands section at the provided coords.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| coords | <code>object</code> | Contains coordinates information. (`coords.row`, `coords.col`). |
+Collapses all collapsible sections.
 
 
 
@@ -110,6 +76,54 @@ Collapses section at the provided coords.
 
 
 
+### destroy
+`collapsibleColumns.destroy()`
+
+Destroys the plugin instance.
+
+
+
+### disablePlugin
+`collapsibleColumns.disablePlugin()`
+
+Disables the plugin functionality for this Handsontable instance.
+
+
+
+### enablePlugin
+`collapsibleColumns.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### expandAll
+`collapsibleColumns.expandAll()`
+
+Expands all collapsible sections.
+
+
+
+### expandSection
+`collapsibleColumns.expandSection(coords)`
+
+Expands section at the provided coords.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| coords | <code>object</code> | Contains coordinates information. (`coords.row`, `coords.col`). |
+
+
+
+### isEnabled
+`collapsibleColumns.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#CollapsibleColumns+enablePlugin) method is called.
+
+
+
 ### toggleAllCollapsibleSections
 `collapsibleColumns.toggleAllCollapsibleSections(action)`
 
@@ -119,20 +133,6 @@ Collapses or expand all collapsible sections, depending on the action parameter.
 | Param | Type | Description |
 | --- | --- | --- |
 | action | <code>string</code> | 'collapse' or 'expand'. |
-
-
-
-### collapseAll
-`collapsibleColumns.collapseAll()`
-
-Collapses all collapsible sections.
-
-
-
-### expandAll
-`collapsibleColumns.expandAll()`
-
-Expands all collapsible sections.
 
 
 
@@ -150,9 +150,9 @@ Collapses/Expands a section.
 
 
 
-### destroy
-`collapsibleColumns.destroy()`
+### updatePlugin
+`collapsibleColumns.updatePlugin()`
 
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

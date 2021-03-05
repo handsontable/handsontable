@@ -30,25 +30,10 @@ The plugin creates additional components to make moving possibly using user inte
 
 ## Functions:
 
-### isEnabled
-`manualColumnMove.isEnabled() ⇒ boolean`
+### destroy
+`manualColumnMove.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeInit)
-hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-column-move/#enableplugin) method is called.
-
-
-
-### enablePlugin
-`manualColumnMove.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`manualColumnMove.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./core/#updatesettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -56,34 +41,6 @@ Updates the plugin state. This method is executed when [Core#updateSettings](./c
 `manualColumnMove.disablePlugin()`
 
 Disables the plugin functionality for this Handsontable instance.
-
-
-
-### moveColumn
-`manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean`
-
-Moves a single column.
-
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| column | <code>number</code> | Visual column index to be moved. |
-| finalIndex | <code>number</code> | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
-
-
-
-### moveColumns
-`manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean`
-
-Moves a multiple columns.
-
-**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| columns | <code>Array</code> | Array of visual column indexes to be moved. |
-| finalIndex | <code>number</code> | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
 
 
 
@@ -115,6 +72,21 @@ Drag multiple columns to drop index position.
 
 
 
+### enablePlugin
+`manualColumnMove.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`manualColumnMove.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeInit)
+hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-column-move/#enableplugin) method is called.
+
+
+
 ### isMovePossible
 `manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean`
 
@@ -128,9 +100,37 @@ Indicates if it's possible to move columns to the desired position. Some of the 
 
 
 
-### destroy
-`manualColumnMove.destroy()`
+### moveColumn
+`manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean`
 
-Destroys the plugin instance.
+Moves a single column.
+
+**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| column | <code>number</code> | Visual column index to be moved. |
+| finalIndex | <code>number</code> | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
+
+
+
+### moveColumns
+`manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean`
+
+Moves a multiple columns.
+
+**Emits**: <code>Hooks#event:beforeColumnMove</code>, <code>Hooks#event:afterColumnMove</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| columns | <code>Array</code> | Array of visual column indexes to be moved. |
+| finalIndex | <code>number</code> | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check the visualization of the final index, please take a look at [documentation](https://handsontable.com/docs/demo-moving.html#manualColumnMove). |
+
+
+
+### updatePlugin
+`manualColumnMove.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./core/#updatesettings) is invoked.
 
 

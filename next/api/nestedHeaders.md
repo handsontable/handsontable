@@ -44,24 +44,10 @@ configuration.
 
 ## Functions:
 
-### isEnabled
-`nestedHeaders.isEnabled() ⇒ boolean`
+### destroy
+`nestedHeaders.destroy()`
 
-Check if plugin is enabled.
-
-
-
-### enablePlugin
-`nestedHeaders.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`nestedHeaders.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -72,9 +58,23 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### destroy
-`nestedHeaders.destroy()`
+### enablePlugin
+`nestedHeaders.enablePlugin()`
 
-Destroys the plugin instance.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`nestedHeaders.isEnabled() ⇒ boolean`
+
+Check if plugin is enabled.
+
+
+
+### updatePlugin
+`nestedHeaders.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

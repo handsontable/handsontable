@@ -65,18 +65,10 @@ exportPlugin.exportAsString('csv', {
 
 ## Functions:
 
-### isEnabled
-`exportFile.isEnabled() ⇒ boolean`
+### downloadFile
+`exportFile.downloadFile(format, options)`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
-hook and if it returns `true` than the [ExportFile#enablePlugin](./export-file/#enableplugin) method is called.
-
-
-
-### exportAsString
-`exportFile.exportAsString(format, options) ⇒ string`
-
-Exports table data as a string.
+Exports table data as a downloadable file.
 
 
 | Param | Type | Description |
@@ -99,15 +91,23 @@ Exports table data as a blob object.
 
 
 
-### downloadFile
-`exportFile.downloadFile(format, options)`
+### exportAsString
+`exportFile.exportAsString(format, options) ⇒ string`
 
-Exports table data as a downloadable file.
+Exports table data as a string.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
 | format | <code>string</code> | Export format type eq. `'csv'`. |
 | options | <code>ExportOptions</code> | Export options. |
+
+
+
+### isEnabled
+`exportFile.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
+hook and if it returns `true` than the [ExportFile#enablePlugin](./export-file/#enableplugin) method is called.
 
 

@@ -45,11 +45,10 @@ const hot = new Handsontable(container, {
 ```
 ## Functions:
 
-### isEnabled
-`columnSummary.isEnabled() ⇒ boolean`
+### disablePlugin
+`columnSummary.disablePlugin()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ColumnSummary+enablePlugin) method is called.
+Disables the plugin functionality for this Handsontable instance.
 
 
 
@@ -60,9 +59,10 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 
-### disablePlugin
-`columnSummary.disablePlugin()`
+### isEnabled
+`columnSummary.isEnabled() ⇒ boolean`
 
-Disables the plugin functionality for this Handsontable instance.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#ColumnSummary+enablePlugin) method is called.
 
 

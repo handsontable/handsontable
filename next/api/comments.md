@@ -65,25 +65,17 @@ Current cell range, an object with `from` property, with `row` and `col` propert
 
 ## Functions:
 
-### isEnabled
-`comments.isEnabled() ⇒ boolean`
+### clearRange
+`comments.clearRange()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#Comments+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`comments.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Clears the currently selected cell.
 
 
 
-### updatePlugin
-`comments.updatePlugin()`
+### destroy
+`comments.destroy()`
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -94,48 +86,73 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### setRange
-`comments.setRange(range)`
+### enablePlugin
+`comments.enablePlugin()`
 
-Sets the current cell range to be able to use general methods like [setComment](#Comments+setComment), [removeComment](#Comments+removeComment), [show](#Comments+show).
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| range | <code>object</code> | Object with `from` property, each with `row` and `col` properties. |
+Enables the plugin functionality for this Handsontable instance.
 
 
 
-### clearRange
-`comments.clearRange()`
+### getComment
+`comments.getComment() ⇒ string | undefined`
 
-Clears the currently selected cell.
-
-
-
-### setComment
-`comments.setComment(value)`
-
-Sets a comment for a cell according to the previously set range (see [setRange](#Comments+setRange)).
+Gets comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
 
 
-| Param | Type | Description |
-| --- | --- | --- |
-| value | <code>string</code> | Comment contents. |
+**Returns**: <code>string</code> \| <code>undefined</code> - Returns a content of the comment.  
 
+### getCommentAtCell
+`comments.getCommentAtCell(row, column) ⇒ string | undefined`
 
-
-### setCommentAtCell
-`comments.setCommentAtCell(row, column, value)`
-
-Sets a comment for a specified cell.
+Gets comment from a cell at the provided coordinates.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
 | row | <code>number</code> | Visual row index. |
 | column | <code>number</code> | Visual column index. |
-| value | <code>string</code> | Comment contents. |
+
+
+**Returns**: <code>string</code> \| <code>undefined</code> - Returns a content of the comment.  
+
+### getCommentMeta
+`comments.getCommentMeta(row, column, property) ⇒ Mixed`
+
+Gets the comment related meta information.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| row | <code>number</code> | Visual row index. |
+| column | <code>number</code> | Visual column index. |
+| property | <code>string</code> | Cell meta property. |
+
+
+
+### hide
+`comments.hide()`
+
+Hides the comment editor.
+
+
+
+### isEnabled
+`comments.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#Comments+enablePlugin) method is called.
+
+
+
+### refreshEditor
+`comments.refreshEditor([force])`
+
+Refreshes comment editor position and styling.
+
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [force] | <code>boolean</code> | <code>false</code> | `optional` If `true` then recalculation will be forced. |
 
 
 
@@ -165,27 +182,43 @@ Removes a comment from a specified cell.
 
 
 
-### getComment
-`comments.getComment() ⇒ string | undefined`
+### setComment
+`comments.setComment(value)`
 
-Gets comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
+Sets a comment for a cell according to the previously set range (see [setRange](#Comments+setRange)).
 
 
-**Returns**: <code>string</code> \| <code>undefined</code> - Returns a content of the comment.  
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>string</code> | Comment contents. |
 
-### getCommentAtCell
-`comments.getCommentAtCell(row, column) ⇒ string | undefined`
 
-Gets comment from a cell at the provided coordinates.
+
+### setCommentAtCell
+`comments.setCommentAtCell(row, column, value)`
+
+Sets a comment for a specified cell.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
 | row | <code>number</code> | Visual row index. |
 | column | <code>number</code> | Visual column index. |
+| value | <code>string</code> | Comment contents. |
 
 
-**Returns**: <code>string</code> \| <code>undefined</code> - Returns a content of the comment.  
+
+### setRange
+`comments.setRange(range)`
+
+Sets the current cell range to be able to use general methods like [setComment](#Comments+setComment), [removeComment](#Comments+removeComment), [show](#Comments+show).
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| range | <code>object</code> | Object with `from` property, each with `row` and `col` properties. |
+
+
 
 ### show
 `comments.show() ⇒ boolean`
@@ -209,25 +242,6 @@ Shows comment editor according to cell coordinates.
 
 **Returns**: <code>boolean</code> - Returns `true` if comment editor was shown.  
 
-### hide
-`comments.hide()`
-
-Hides the comment editor.
-
-
-
-### refreshEditor
-`comments.refreshEditor([force])`
-
-Refreshes comment editor position and styling.
-
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [force] | <code>boolean</code> | <code>false</code> | `optional` If `true` then recalculation will be forced. |
-
-
-
 ### updateCommentMeta
 `comments.updateCommentMeta(row, column, metaObject)`
 
@@ -242,23 +256,9 @@ Sets or update the comment-related cell meta.
 
 
 
-### getCommentMeta
-`comments.getCommentMeta(row, column, property) ⇒ Mixed`
+### updatePlugin
+`comments.updatePlugin()`
 
-Gets the comment related meta information.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| property | <code>string</code> | Cell meta property. |
-
-
-
-### destroy
-`comments.destroy()`
-
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

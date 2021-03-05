@@ -54,25 +54,17 @@ Context menu default items order when `contextMenu` options is set as `true`.
 
 ## Functions:
 
-### isEnabled
-`contextMenu.isEnabled() ⇒ boolean`
+### close
+`contextMenu.close()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`contextMenu.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Closes the menu.
 
 
 
-### updatePlugin
-`contextMenu.updatePlugin()`
+### destroy
+`contextMenu.destroy()`
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -83,22 +75,10 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### open
-`contextMenu.open(event)`
+### enablePlugin
+`contextMenu.enablePlugin()`
 
-Opens menu and re-position it based on the passed coordinates.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| event | <code>Event</code> | The mouse event object. |
-
-
-
-### close
-`contextMenu.close()`
-
-Closes the menu.
+Enables the plugin functionality for this Handsontable instance.
 
 
 
@@ -135,9 +115,29 @@ Or you can execute command registered in settings where `key` is your command na
 
 
 
-### destroy
-`contextMenu.destroy()`
+### isEnabled
+`contextMenu.isEnabled() ⇒ boolean`
 
-Destroys the plugin instance.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin) method is called.
+
+
+
+### open
+`contextMenu.open(event)`
+
+Opens menu and re-position it based on the passed coordinates.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| event | <code>Event</code> | The mouse event object. |
+
+
+
+### updatePlugin
+`contextMenu.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

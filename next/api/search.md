@@ -39,18 +39,10 @@ searchPlugin.setSearchResultClass(customClass);
 ```
 ## Functions:
 
-### isEnabled
-`search.isEnabled() ⇒ boolean`
+### destroy
+`search.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
-
-
-
-### enablePlugin
-`search.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Destroys the plugin instance.
 
 
 
@@ -61,10 +53,42 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### updatePlugin
-`search.updatePlugin()`
+### enablePlugin
+`search.enablePlugin()`
 
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### getCallback
+`search.getCallback() ⇒ function`
+
+Gets the callback function.
+
+
+**Returns**: <code>function</code> - Return the callback function.  
+
+### getQueryMethod
+`search.getQueryMethod() ⇒ function`
+
+Gets the query method function.
+
+
+**Returns**: <code>function</code> - Return the query method.  
+
+### getSearchResultClass
+`search.getSearchResultClass() ⇒ string`
+
+Gets search result cells class name.
+
+
+**Returns**: <code>string</code> - Return the cell class name.  
+
+### isEnabled
+`search.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
 
 
 
@@ -83,14 +107,6 @@ Makes the query.
 
 **Returns**: <code>Array.&lt;object&gt;</code> - Return an array of objects with `row`, `col`, `data` properties or empty array.  
 
-### getCallback
-`search.getCallback() ⇒ function`
-
-Gets the callback function.
-
-
-**Returns**: <code>function</code> - Return the callback function.  
-
 ### setCallback
 `search.setCallback(newCallback)`
 
@@ -102,14 +118,6 @@ Sets the callback function. This function will be called during querying for eac
 | newCallback | <code>function</code> | A callback function. |
 
 
-
-### getQueryMethod
-`search.getQueryMethod() ⇒ function`
-
-Gets the query method function.
-
-
-**Returns**: <code>function</code> - Return the query method.  
 
 ### setQueryMethod
 `search.setQueryMethod(newQueryMethod)`
@@ -123,14 +131,6 @@ Sets the query method function. The function is responsible for determining whet
 
 
 
-### getSearchResultClass
-`search.getSearchResultClass() ⇒ string`
-
-Gets search result cells class name.
-
-
-**Returns**: <code>string</code> - Return the cell class name.  
-
 ### setSearchResultClass
 `search.setSearchResultClass(newElementClass)`
 
@@ -143,9 +143,9 @@ Sets search result cells class name. This class name will be added to each cell 
 
 
 
-### destroy
-`search.destroy()`
+### updatePlugin
+`search.updatePlugin()`
 
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

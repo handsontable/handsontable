@@ -25,18 +25,10 @@ observeChanges: true,
 To configure this plugin see [Options#observeChanges](./Options/#observeChanges).
 ## Functions:
 
-### isEnabled
-`observeChanges.isEnabled() ⇒ boolean`
+### destroy
+`observeChanges.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#ObserveChanges+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`observeChanges.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
+Destroys the plugin instance.
 
 
 
@@ -47,9 +39,17 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### destroy
-`observeChanges.destroy()`
+### enablePlugin
+`observeChanges.enablePlugin()`
 
-Destroys the plugin instance.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`observeChanges.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#ObserveChanges+enablePlugin) method is called.
 
 

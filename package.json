@@ -16,6 +16,7 @@
   "dependencies": {
     "@vuepress/plugin-active-header-links": "^1.8.1",
     "@vuepress/plugin-search": "^1.8.2",
+    "dmd": "^6.0.0",
     "jsdoc-to-markdown": "^6.0.1",
     "markdown-it-regex": "^0.2.0",
     "semver": "^5.7.1",

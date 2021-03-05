@@ -29,28 +29,6 @@ const hot = new Handsontable(container, {
 ```
 ## Functions:
 
-### isEnabled
-`filters.isEnabled() ⇒ boolean`
-
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#Filters+enablePlugin) method is called.
-
-
-
-### enablePlugin
-`filters.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### disablePlugin
-`filters.disablePlugin()`
-
-Disables the plugin functionality for this Handsontable instance.
-
-
-
 ### addCondition
 `filters.addCondition(column, name, args, [operationId])`
 
@@ -123,18 +101,6 @@ filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
 filtersPlugin.filter();
 ```
 
-### removeConditions
-`filters.removeConditions(column)`
-
-Removes conditions at specified column index.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
-
-
-
 ### clearConditions
 `filters.clearConditions([column])`
 
@@ -148,6 +114,27 @@ was not passed, clear the conditions for all columns.
 
 
 
+### destroy
+`filters.destroy()`
+
+Destroys the plugin instance.
+
+
+
+### disablePlugin
+`filters.disablePlugin()`
+
+Disables the plugin functionality for this Handsontable instance.
+
+
+
+### enablePlugin
+`filters.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
+
+
+
 ### filter
 `filters.filter()`
 
@@ -155,15 +142,6 @@ Filters data based on added filter conditions.
 
 **Emits**: <code>Hooks#event:beforeFilter</code>, <code>Hooks#event:afterFilter</code>  
 
-
-### getSelectedColumn
-`filters.getSelectedColumn() ⇒ object | null`
-
-Gets last selected column index.
-
-
-**Returns**: <code>object</code> \| <code>null</code> - Return `null` when column isn't selected otherwise
-object containing information about selected column with keys `visualIndex` and `physicalIndex`.  
 
 ### getDataMapAtColumn
 `filters.getDataMapAtColumn([column]) ⇒ Array`
@@ -178,9 +156,31 @@ Returns handsontable source data with cell meta based on current selection.
 
 **Returns**: <code>Array</code> - Returns array of objects where keys as row index.  
 
-### destroy
-`filters.destroy()`
+### getSelectedColumn
+`filters.getSelectedColumn() ⇒ object | null`
 
-Destroys the plugin instance.
+Gets last selected column index.
+
+
+**Returns**: <code>object</code> \| <code>null</code> - Return `null` when column isn't selected otherwise
+object containing information about selected column with keys `visualIndex` and `physicalIndex`.  
+
+### isEnabled
+`filters.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#Filters+enablePlugin) method is called.
+
+
+
+### removeConditions
+`filters.removeConditions(column)`
+
+Removes conditions at specified column index.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| column | <code>number</code> | Visual column index. |
 
 

@@ -51,25 +51,10 @@ hot.render();
 ```
 ## Functions:
 
-### isEnabled
-`trimRows.isEnabled() ⇒ boolean`
+### destroy
+`trimRows.destroy()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
-
-
-
-### enablePlugin
-`trimRows.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`trimRows.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -80,6 +65,13 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
+### enablePlugin
+`trimRows.enablePlugin()`
+
+Enables the plugin functionality for this Handsontable instance.
+
+
+
 ### getTrimmedRows
 `trimRows.getTrimmedRows() ⇒ Array`
 
@@ -87,6 +79,50 @@ Get list of trimmed rows.
 
 
 **Returns**: <code>Array</code> - Physical rows.  
+
+### isEnabled
+`trimRows.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
+
+
+
+### isTrimmed
+`trimRows.isTrimmed(physicalRow) ⇒ boolean`
+
+Checks if given row is hidden.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| physicalRow | <code>number</code> | Physical row index. |
+
+
+
+### isValidConfig
+`trimRows.isValidConfig(trimmedRows) ⇒ boolean`
+
+Get if trim config is valid. Check whether all of the provided row indexes are within source data.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| trimmedRows | <code>Array</code> | List of physical row indexes. |
+
+
+
+### trimRow
+`trimRows.trimRow(...row)`
+
+Trims the row provided as physical row index (counting from 0).
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...row | <code>number</code> | Physical row index. |
+
+
 
 ### trimRows
 `trimRows.trimRows(rows)`
@@ -101,10 +137,17 @@ Trims the rows provided in the array.
 
 
 
-### trimRow
-`trimRows.trimRow(...row)`
+### untrimAll
+`trimRows.untrimAll()`
 
-Trims the row provided as physical row index (counting from 0).
+Untrims all trimmed rows.
+
+
+
+### untrimRow
+`trimRows.untrimRow(...row)`
+
+Untrims the row provided as row index (counting from 0).
 
 
 | Param | Type | Description |
@@ -126,52 +169,9 @@ Untrims the rows provided in the array.
 
 
 
-### untrimRow
-`trimRows.untrimRow(...row)`
+### updatePlugin
+`trimRows.updatePlugin()`
 
-Untrims the row provided as row index (counting from 0).
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| ...row | <code>number</code> | Physical row index. |
-
-
-
-### isTrimmed
-`trimRows.isTrimmed(physicalRow) ⇒ boolean`
-
-Checks if given row is hidden.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| physicalRow | <code>number</code> | Physical row index. |
-
-
-
-### untrimAll
-`trimRows.untrimAll()`
-
-Untrims all trimmed rows.
-
-
-
-### isValidConfig
-`trimRows.isValidConfig(trimmedRows) ⇒ boolean`
-
-Get if trim config is valid. Check whether all of the provided row indexes are within source data.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| trimmedRows | <code>Array</code> | List of physical row indexes. |
-
-
-
-### destroy
-`trimRows.destroy()`
-
-Destroys the plugin instance.
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

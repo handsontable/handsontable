@@ -30,24 +30,10 @@ Specifies if can insert new rows if needed.
 
 ## Functions:
 
-### isEnabled
-`autofill.isEnabled() ⇒ boolean`
+### destroy
+`autofill.destroy()`
 
-Checks if the plugin is enabled in the Handsontable settings.
-
-
-
-### enablePlugin
-`autofill.enablePlugin()`
-
-Enables the plugin functionality for this Handsontable instance.
-
-
-
-### updatePlugin
-`autofill.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -58,9 +44,23 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### destroy
-`autofill.destroy()`
+### enablePlugin
+`autofill.enablePlugin()`
 
-Destroys the plugin instance.
+Enables the plugin functionality for this Handsontable instance.
+
+
+
+### isEnabled
+`autofill.isEnabled() ⇒ boolean`
+
+Checks if the plugin is enabled in the Handsontable settings.
+
+
+
+### updatePlugin
+`autofill.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

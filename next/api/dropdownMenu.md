@@ -52,26 +52,17 @@ Default menu items order when `dropdownMenu` is enabled by setting the config it
 
 ## Functions:
 
-### isEnabled
-`dropdownMenu.isEnabled() ⇒ boolean`
+### close
+`dropdownMenu.close()`
 
-Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
-hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin) method is called.
-
+Closes dropdown menu.
 
 
-### enablePlugin
-`dropdownMenu.enablePlugin()`
 
-Enables the plugin functionality for this Handsontable instance.
+### destroy
+`dropdownMenu.destroy()`
 
-**Emits**: <code>Hooks#event:afterDropdownMenuDefaultOptions</code>, <code>Hooks#event:beforeDropdownMenuSetItems</code>  
-
-
-### updatePlugin
-`dropdownMenu.updatePlugin()`
-
-Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
+Destroys the plugin instance.
 
 
 
@@ -82,24 +73,12 @@ Disables the plugin functionality for this Handsontable instance.
 
 
 
-### open
-`dropdownMenu.open(position)`
+### enablePlugin
+`dropdownMenu.enablePlugin()`
 
-Opens menu and re-position it based on the passed coordinates.
+Enables the plugin functionality for this Handsontable instance.
 
-**Emits**: <code>Hooks#event:beforeDropdownMenuShow</code>, <code>Hooks#event:afterDropdownMenuShow</code>  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| position | <code>object</code> \| <code>Event</code> | An object with `pageX` and `pageY` properties which contains values relative to                                the top left of the fully rendered content area in the browser or with `clientX`                                and `clientY`  properties which contains values relative to the upper left edge                                of the content area (the viewport) of the browser window. This object is structurally                                compatible with native mouse event so it can be used either. |
-
-
-
-### close
-`dropdownMenu.close()`
-
-Closes dropdown menu.
-
+**Emits**: <code>Hooks#event:afterDropdownMenuDefaultOptions</code>, <code>Hooks#event:beforeDropdownMenuSetItems</code>  
 
 
 ### executeCommand
@@ -135,9 +114,30 @@ Or you can execute command registered in settings where `key` is your command na
 
 
 
-### destroy
-`dropdownMenu.destroy()`
+### isEnabled
+`dropdownMenu.isEnabled() ⇒ boolean`
 
-Destroys the plugin instance.
+Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
+hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin) method is called.
+
+
+
+### open
+`dropdownMenu.open(position)`
+
+Opens menu and re-position it based on the passed coordinates.
+
+**Emits**: <code>Hooks#event:beforeDropdownMenuShow</code>, <code>Hooks#event:afterDropdownMenuShow</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| position | <code>object</code> \| <code>Event</code> | An object with `pageX` and `pageY` properties which contains values relative to                                the top left of the fully rendered content area in the browser or with `clientX`                                and `clientY`  properties which contains values relative to the upper left edge                                of the content area (the viewport) of the browser window. This object is structurally                                compatible with native mouse event so it can be used either. |
+
+
+
+### updatePlugin
+`dropdownMenu.updatePlugin()`
+
+Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 
