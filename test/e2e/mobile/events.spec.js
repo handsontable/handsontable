@@ -76,17 +76,15 @@ describe('Events', () => {
     location.hash = ''; // Resetting before test.
 
     // First touch
-    triggerTouchEvent('touchstart', linkElement);
-    triggerTouchEvent('touchend', linkElement);
+    simulateTouch(linkElement);
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-    await sleep(600); // To prevents double-click detection (emulation)
+    await sleep(100); // To prevents double-click detection (emulation)
 
     // Second touch
-    triggerTouchEvent('touchstart', linkElement);
-    triggerTouchEvent('touchend', linkElement);
+    simulateTouch(linkElement);
 
     expect(location.hash).toBe('#justForTest');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -96,26 +94,23 @@ describe('Events', () => {
     const anotherCell = getCell(1, 0);
 
     // First touch
-    triggerTouchEvent('touchstart', anotherCell);
-    triggerTouchEvent('touchend', anotherCell);
+    simulateTouch(anotherCell);
 
-    await sleep(600); // To prevents double-click detection (emulation)
+    await sleep(100); // To prevents double-click detection (emulation)
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
     // Second touch
-    triggerTouchEvent('touchstart', anotherCell);
-    triggerTouchEvent('touchend', anotherCell);
+    simulateTouch(anotherCell);
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
     location.hash = ''; // Resetting after test.
   });
-  
-  // Test doesn't work.
-  xit('touch on button inside header should not block default action  ' +
+
+  it('touch on button inside header should not block default action  ' +
     '(header does not have to be selected at first)', async() => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 7),
@@ -125,8 +120,7 @@ describe('Events', () => {
 
     const dropDownIndicator = $(hot.getCell(-1, 2)).find('button')[0];
 
-    triggerTouchEvent('touchstart', dropDownIndicator);
-    triggerTouchEvent('touchend', dropDownIndicator);
+    simulateTouch(dropDownIndicator);
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
   })

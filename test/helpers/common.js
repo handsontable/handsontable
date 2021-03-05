@@ -870,7 +870,15 @@ export function swapDisplayedColumns(container, from, to) {
   $from.simulate('mouseup');
 }
 
-/* eventType is 'touchstart', 'touchmove', 'touchend'... */
+/**
+ * Creates touch event and dispatch it for handled element.
+ * 
+ * @param {number} pageX The page x coordinates.
+ * @param {number} pageY The page y coordinates.
+ * @param {HTMLElement} element An element for which event will be triggered.
+ * @param {string} eventType Type of touch event, ie. 'touchstart', 'touchmove', 'touchend'.
+ * @returns {boolean}
+ */
 function sendTouchEvent(x, y, element, eventType) {
   const touchObj = new Touch({
     identifier: Date.now(),
@@ -890,7 +898,7 @@ function sendTouchEvent(x, y, element, eventType) {
     shiftKey: false,
   });
 
-  element.dispatchEvent(touchEvent);
+  return element.dispatchEvent(touchEvent);
 }
 
 /**
@@ -904,7 +912,32 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
   const targetPageX = pageX || parseInt(targetCoords.left, 10) + 3;
   const targetPageY = pageY || parseInt(targetCoords.top, 10) + 3;
 
-  sendTouchEvent(targetPageX, targetPageY, target, type);
+  return sendTouchEvent(targetPageX, targetPageY, target, type);
+}
+
+/**
+ * Emulates touch on handled HTML element.
+ *
+ * Note: Please keep in mind that this method doesn't reflects fully "native" behaviour.
+ * Note: MDN docs (https://developer.mozilla.org/en-US/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent)
+ * says: "Browsers typically dispatch emulated mouse and click events when there is only a single active touch point.".
+ * This method is working similar.
+ * 
+ * @param {HTMLElement} element The target element from the event was triggered.
+ */
+export function simulateTouch(target) {
+  const touchStartRun = triggerTouchEvent('touchstart', target);
+  
+  if (touchStartRun === true) {
+    const touchEndRun = triggerTouchEvent('touchend', target);
+
+    // If the `preventDefault` is called for below event emulation doesn't reflects "native" behaviour.
+    if (touchEndRun === true) {
+      $(target).simulate('mousedown');
+      $(target).simulate('mouseup')
+      $(target).simulate('click');
+    }
+  }
 }
 
 /**
