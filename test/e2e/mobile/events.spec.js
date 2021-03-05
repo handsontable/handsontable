@@ -58,7 +58,7 @@ describe('Events', () => {
   });
 
   // Currently, this test is skipped. There is a problem with opening link from an anchor element using only simulated touch event.
-  xit('should block default action related to link touch and translate from the touch to click on a cell', async() => {
+  it('should block default action related to link touch and translate from the touch to click on a cell', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       rowHeaders: true,
@@ -98,9 +98,6 @@ describe('Events', () => {
     // First touch
     triggerTouchEvent('touchstart', anotherCell);
     triggerTouchEvent('touchend', anotherCell);
-    $(anotherCell).simulate('mousedown');
-    $(anotherCell).simulate('mouseup')
-    $(anotherCell).simulate('click');
 
     await sleep(600); // To prevents double-click detection (emulation)
 
@@ -110,9 +107,6 @@ describe('Events', () => {
     // Second touch
     triggerTouchEvent('touchstart', anotherCell);
     triggerTouchEvent('touchend', anotherCell);
-    $(anotherCell).simulate('mousedown');
-    $(anotherCell).simulate('mouseup')
-    $(anotherCell).simulate('click');
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
