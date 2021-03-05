@@ -870,6 +870,29 @@ export function swapDisplayedColumns(container, from, to) {
   $from.simulate('mouseup');
 }
 
+/* eventType is 'touchstart', 'touchmove', 'touchend'... */
+function sendTouchEvent(x, y, element, eventType) {
+  const touchObj = new Touch({
+    identifier: Date.now(),
+    target: element,
+    clientX: x,
+    clientY: y,
+    radiusX: 2.5,
+    radiusY: 2.5,
+  });
+
+  const touchEvent = new TouchEvent(eventType, {
+    cancelable: true,
+    bubbles: true,
+    touches: eventType === 'touchend' ? [] : [touchObj],
+    targetTouches: eventType === 'touchend' ? [] : [touchObj],
+    changedTouches: [touchObj],
+    shiftKey: false,
+  });
+
+  element.dispatchEvent(touchEvent);
+}
+
 /**
  * @param {string} type A name/type of the event.
  * @param {HTMLElement} target The target element from the event was triggered.
@@ -877,30 +900,11 @@ export function swapDisplayedColumns(container, from, to) {
  * @param {number} pageY The page y coordinates.
  */
 export function triggerTouchEvent(type, target, pageX, pageY) {
-  const e = document.createEvent('TouchEvent');
-
   const targetCoords = target.getBoundingClientRect();
-  const targetPageX = pageX || parseInt(targetCoords.left + 3, 10);
-  const targetPageY = pageY || parseInt(targetCoords.top + 3, 10);
-  let touches;
-  let targetTouches;
-  let changedTouches;
+  const targetPageX = pageX || parseInt(targetCoords.left, 10) + 3;
+  const targetPageY = pageY || parseInt(targetCoords.top, 10) + 3;
 
-  const touch = document.createTouch(window, target, 0, targetPageX, targetPageY, targetPageX, targetPageY);
-
-  if (type === 'touchend') {
-    touches = document.createTouchList();
-    targetTouches = document.createTouchList();
-    changedTouches = document.createTouchList(touch);
-  } else {
-    touches = document.createTouchList(touch);
-    targetTouches = document.createTouchList(touch);
-    changedTouches = document.createTouchList(touch);
-  }
-
-  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false,
-    touches, targetTouches, changedTouches, 1, 0);
-  target.dispatchEvent(e);
+  sendTouchEvent(targetPageX, targetPageY, target, type);
 }
 
 /**

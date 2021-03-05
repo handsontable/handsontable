@@ -57,7 +57,7 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
-  // Currently, this test is skipped. There is a problem for test canceling events from simulated events.
+  // Currently, this test is skipped. There is a problem with opening link from an anchor element using only simulated touch event.
   xit('should block default action related to link touch and translate from the touch to click on a cell', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
@@ -73,28 +73,67 @@ describe('Events', () => {
     });
 
     const linkElement = hot.getCell(0, 0).firstChild;
+    location.hash = ''; // Resetting before test.
 
-    hot.selectCell(0, 0);
-    location.hash = '';
-
-    await sleep(100);
-
-    triggerTouchEvent('touchstart', linkElement);
-    triggerTouchEvent('touchend', linkElement);
-
-    expect(location.hash).toBe('#justForTest');
-
-    await sleep(400); // To prevents double-click detection (emulation)
-
-    location.hash = '';
-    // selecting cell other than the one with link
-    hot.selectCell(1, 0);
-
-    await sleep(100);
-
+    // First touch
     triggerTouchEvent('touchstart', linkElement);
     triggerTouchEvent('touchend', linkElement);
 
     expect(location.hash).toBe('');
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    await sleep(600); // To prevents double-click detection (emulation)
+
+    // Second touch
+    triggerTouchEvent('touchstart', linkElement);
+    triggerTouchEvent('touchend', linkElement);
+
+    expect(location.hash).toBe('#justForTest');
+    expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    location.hash = ''; // Resetting after test.
+    
+    const anotherCell = getCell(1, 0);
+
+    // First touch
+    triggerTouchEvent('touchstart', anotherCell);
+    triggerTouchEvent('touchend', anotherCell);
+    $(anotherCell).simulate('mousedown');
+    $(anotherCell).simulate('mouseup')
+    $(anotherCell).simulate('click');
+
+    await sleep(600); // To prevents double-click detection (emulation)
+
+    expect(location.hash).toBe('');
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+
+    // Second touch
+    triggerTouchEvent('touchstart', anotherCell);
+    triggerTouchEvent('touchend', anotherCell);
+    $(anotherCell).simulate('mousedown');
+    $(anotherCell).simulate('mouseup')
+    $(anotherCell).simulate('click');
+
+    expect(location.hash).toBe('');
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
+
+    location.hash = ''; // Resetting after test.
   });
+  
+  // Test doesn't work.
+  xit('touch on button inside header should not block default action  ' +
+    '(header does not have to be selected at first)', async() => {
+    const hot = handsontable({
+      data: Handsontable.helper.createSpreadsheetData(3, 7),
+      colHeaders: true,
+      dropdownMenu: true
+    });
+
+    const dropDownIndicator = $(hot.getCell(-1, 2)).find('button')[0];
+
+    triggerTouchEvent('touchstart', dropDownIndicator);
+    triggerTouchEvent('touchend', dropDownIndicator);
+
+    expect($('.htDropdownMenu').is(':visible')).toBe(true);
+  })
 });
