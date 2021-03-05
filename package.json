@@ -9,8 +9,10 @@
   },
   "repository": "ads/ttsa",
   "scripts": {
-    "dev": "vuepress dev ./",
-    "build": "vuepress build ./",
+    "docs:start": "vuepress dev ./",
+    "docs:build": "npm run docs:build:staging",
+    "docs:build:staging": "docker build .",
+    "docs:build:production": "docker build --build-arg NODE_ENV=production .",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js"
   },
   "license": "MIT",

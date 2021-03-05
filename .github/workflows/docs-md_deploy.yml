@@ -33,7 +33,7 @@ jobs:
 
       - name: Docker build
         run: |
-          docker build -t docs-md .
+          npm run docs:build
 
       - name: Docker tags
         run: |

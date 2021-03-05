@@ -1,6 +1,6 @@
 FROM node:15 as build
-# enable development features, comment to disable
-ENV NODE_ENV=production
+ARG NODE_ENV
+ENV NODE_ENV=${NODE_ENV:-stage}
 
 WORKDIR app
 

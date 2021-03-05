@@ -7,9 +7,9 @@
 npm install
 
 # Run localhost
-npm run docs:start # It opens a browser automatically
+npm run docs:start 
 
-# The website is running at http://localhost:3001/docs/
+# The website is running at http://localhost:8080/docs/
 ```
 
 ## Directory structure
