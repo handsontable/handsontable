@@ -15,22 +15,26 @@ All new code examples should be added to the `/examples/next` directory. Based o
 
 In order to create new code examples with these templates, each new example must have certain features in the `package.json` file and updated `README.md` with an example's detailed information.
 
-#### Common features (the same for every new example)
+#### Common `package.json` features (the same for every new example)
 
-- `"version": "0.0.0"` (will be overwritten on new version created),
-- `"homepage": "https://handsontable.com/"`,
-- `"private": true`,
-- `"repository"` with properties:
-  - `"type": "git"`,
-  - `"url": "https://github.com/handsontable/handsontable.git"`
-- `"bugs"` with the property:
-  - `"url": "https://github.com/handsontable/handsontable/issues"`
-- `"author": "Handsoncode <hello@handsontable.com>"`,
-- `"license": "MIT"`,
-- `"dependencies"` with properties:
-  - `"handsontable": "latest"`
-  - `"@handsontable/{{ WRAPPER NAME }}: "latest"` (only for frameworks)
+``` json
+"version": "0.0.0" # will be overwritten on new version created,
+"homepage": "https://handsontable.com/",
+"private": true,
+"repository":
+  "type": "git",
+  "url": "https://github.com/handsontable/handsontable.git"
+"bugs":
+  "url": "https://github.com/handsontable/handsontable/issues"
+"author": "Handsoncode <hello@handsontable.com>",
+"license": "MIT",
+"dependencies":
+  "handsontable": "latest"
+  "@handsontable/{{ WRAPPER NAME }}": "latest" # only for frameworks
+```
+
+
 
 #### Don't touch
 
-Each example have its own scripts ***you should never modify or remove***: `npm run start`, `npm run build`, `npm run jasmine`, `npm run serve` (not every example have this script), `npm run test` and `npm run test:ci`.
+Each example have its own scripts ***you should never modify or remove***, because those scripts are used by our CI/CD pipeline : `npm run start`, `npm run build`, `npm run jasmine`, `npm run serve` (not every example have this script), `npm run test` and `npm run test:ci`.

@@ -1,5 +1,15 @@
 # Code examples
 
+This folder contains all code examples, that Handsontable uses for myriad reasons, such as documentation, blog, etc. Each code example is a separate project that uses Handsontable to present certain features.
+
+Code examples are structured by Handsontable version. Inside the version directory, examples are grouped by category, which can be anything. The most important category is "docs", which is used in the Handsontable documentation website.
+
+To see a deployed code example you can visit its URL. See [Live on production](#live-on-production) section to learn about the URL structure.
+
+To play around with the actual code under a specific code example you can open it on CodeSandbox. See [Preview on CodeSandbox](#preview-on-codesandbox) section to learn more.
+
+To run arbitrary code example locally on your machine go to [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example).
+
 ### Contents
 
 - [Folder structure](#folder-structure)
@@ -15,11 +25,11 @@
 
 ### Folder structure
 
-Within the `/examples` directory, there are all the examples created. A path to the example follow the undermentioned convention:
+Within the `/examples` directory, there are all the code examples created for specific Handsontable version and the `templates` folder, which contains base projects for creating new code examples. A path to the example follow the undermentioned convention:
 
 `/examples/<version_number>/<category>/<framework>/<example_path>`
 
-- `<version_number>` - the version of the Handsontable and Handsontable's wrapper - the value provided to the NPM scripts as the last argument.
+- `<version_number>` - the destributed version of the Handsontable and Handsontable's wrapper **OR** `next` - the value provided to the NPM scripts as the last argument.
 - `<category>` - category of the code examples. The main category is `docs` which means: code examples from the documentation.
 - `<framework>` - any supported framework's name (react, angular, vue, js).
 - `<example_path>` - path to the specific code example. A folder name of the code example will identify that code example - it will be used as a URL further. The folder name of the code example should be the same across all the frameworks.
@@ -30,19 +40,21 @@ It's worth noting, that the `examples` directory is defined as a `npm workspace`
 
 ### Live on production
 
-All code examples are available online. The base URL for the code examples is https://handsontable.github.io/handsontable/ and after the slash comes the path to the built project. 
+All code examples are available online. The base URL for the code examples is https://examples.handsontable.com/handsontable/ and after the slash comes the path to the built project. 
 
 URL to the specific project follow the undermentioned convention:
 
 `<version_number>/<category>/<framework>/<example_path>`
 
-An example URL to the live example: https://handsontable.github.io/handsontable/8.1.0/docs/js/settings
+An example URL to the live example: https://examples.handsontable.com/handsontable/8.1.0/docs/js/settings
 
 For more details see the [Folder structure](#folder-structure) section.
 
 ### Preview on CodeSandbox
 
-To preview the arbitary code example on CodeSandbox you must get the link to the project folder in the Gihub repo. For example: if the URL to the project is https://github.com/handsontable/handsontable/tree/master/examples/8.0.0/docs/js/settings you can preview that project on CodeSandbox adding the "box" word right after the "github" and before the ".com". The URL to the sandboxed project would be https://githubbox.com/handsontable/handsontable/tree/master/examples/8.0.0/docs/js/settings.
+To preview the arbitary code example on CodeSandbox you must get the link to the project folder in the Gihub repo. You will find all code examples in our repo https://github.com/handsontable/handsontable/tree/develop/examples.
+
+For example: if the URL to the project is: https://github.com/handsontable/handsontable/tree/develop/examples/8.0.0/docs/js/settings you can preview that project on CodeSandbox adding the "box" word right after the "github" and before the ".com". The URL to the sandboxed project would be https://githubbox.com/handsontable/handsontable/tree/develop/examples/8.0.0/docs/js/settings.
 
 ### Creating new examples
 
@@ -59,23 +71,17 @@ Sometimes you want to edit existing code examples that live in the `/examples/<v
 
 ### Development
 
-You can launch the `http-server` or any other server if you want to test and check code examples live.
-
 To see code examples in action run these commands:
-
-**Important:** As the `next` directory of the examples uses the local builds of `handsontable` and the wrappers, for the `next` build process to work, all the root-level packages need to be built (for example, bu running `npm run all build`) before running the examples build script.
 
 1. `npm examples:install <version_number>` - will install the dependencies of all the examples matching the `<version_number>`, utilizing the `examples`' internal workspace logic.
 2. `npm run examples:build <version_number>` - will build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
 3. `npm run examples:start` - it will start the `http-server` right in the `/examples/tmp` on PORT `8080`. So the URL to the specific code example would be `http://localhost:8080/8.1.0/docs/angular/custom-context-menu/`. The URL follows the same convention as mentioned in the [Live on production](#live-on-production) section.
 
+**Important:** As the `next` directory of the examples uses the local builds of `handsontable` and the wrappers, for the `next` build process to work, all the root-level packages need to be built (for example, bu running `npm run all build`) before running the examples build script.
+
 #### How to run the arbitrary code example
 
-You may want to launch an arbitrary code example instead of a whole folder with all code examples for a specific version. To do that you will need to copy the code example production output to the `/examples/tmp` directory. An example:
-
-To launch only one code example which path is `/examples/8.1.0/docs/angular/custom-context-menu` you must copy the `dist` folder from this example and paste it to the `/examples/tmp/<your_temporary_folder_name>`. After done this, you can run `npm run examples:start` and see your code example under the URL `http://localhost:8080/<your_temporary_folder_name>/`
-
-Also, each example has `npm run start` command which will start a development server. After this command is called visit http://localhost:8080.
+To launch only one code example, go to the project directory, run `npm install` and `npm run start`. This will instal all the project dependencies and start a development server. After this command is called visit http://localhost:8080.
 
 ### Testing
 
