@@ -1,17 +1,16 @@
 // import RouterLink from './theme/components/RouterLink.vue';
 
-const buildRegistryCleaner = (registry) => () => {
-    if(registry === undefined){
-        console.warn('The registry doesn\'t exists');
+const buildRegisterCleaner = (register) => () => {
+    if(register === undefined){
+        console.warn('The register doesn\'t exists');
         return;
     }
 
-    registry.forEach( instance => instance.destroy());
-    registry.clear();
+    register.destroyAll();
 }
 
 export default ({ Vue, options, router, siteData, isServer }) => {
-    router.afterEach(buildRegistryCleaner(handsotnableInstancesRegister));
+    router.afterEach(buildRegisterCleaner(handsotnableInstancesRegister));
     // replace RouterLink component with ours
     // Vue.component('RouterLink', RouterLink);
 }

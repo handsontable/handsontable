@@ -52,14 +52,14 @@ module.exports = {
     const token = tokens[index]
     const tokenNext = tokens[index + 1]
     const m = token.info.trim().match(exampleRegex);
+    const version = env.relativePath.split('/')[0];
 
     if (token.nesting === 1 && m) {
       let [full, tag, id, klass, content] = m;
       id = id ? id.substring(1): '';
       klass = klass ? klass.substring(1) : '';
       // opening tag
-      return `<div data-jsfiddle="${id}"><div id="${id}" class="hot ${klass}"></div></div><script data-jsfiddle="${id}">${tokenNext.content}</script><div class="codeLayout">${jsfiddle(id, tokenNext.content)}\n`;
-
+      return `<div data-jsfiddle="${id}"><div id="${id}" class="hot ${klass}"></div></div><script data-jsfiddle="${id}">useHandsontable('${version}', ()=>{${tokenNext.content}});</script><div class="codeLayout">${jsfiddle(id, tokenNext.content)}\n`;
     } else {
       // closing tag
       return `</div>\n`;

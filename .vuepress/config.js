@@ -21,9 +21,7 @@ module.exports = {
   description: 'Handsontable',
   base: '/docs/',
   head: [
-    ['script', { src: 'https://cdn.jsdelivr.net/npm/handsontable@8.3.1/dist/handsontable.full.min.js' }],
-    ['link', { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/handsontable@8.3.1/dist/handsontable.full.min.css' }],
-    ['script', { src: '/scripts/handsontable-instances-register.js' }],
+    ['script', { src: '/scripts/handsontable-manager.js' }],
     ...environmentHead
   ],
   markdown: {

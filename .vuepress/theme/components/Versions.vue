@@ -23,6 +23,13 @@ export default {
 
       return version;
     },
+    getLink(version){
+      if (version === this.$page.latestVersion) {
+        return '/';
+      }
+
+      return `/${version}/`;
+    },
     getLegacyVersions () {
       return [
         '8.3.0',
@@ -51,7 +58,7 @@ export default {
         text: this.addLatest(this.$page.currentVersion),
         items:
           [
-            ...this.$page.versions.map(v => ({ text: `${this.addLatest(v)}`, link: `/${v}/` })),
+            ...this.$page.versions.map(v => ({ text: `${this.addLatest(v)}`, link: this.getLink(v) })),
             ...this.getLegacyVersions()
           ]
       }

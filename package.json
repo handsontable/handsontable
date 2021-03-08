@@ -10,6 +10,7 @@
   "repository": "ads/ttsa",
   "scripts": {
     "docs:start": "vuepress dev ./",
+    "docs:start:no-cache": "vuepress dev --no-cache ./",
     "docs:build": "npm run docs:build:staging",
     "docs:build:staging": "docker build .",
     "docs:build:production": "docker build --build-arg NODE_ENV=production .",

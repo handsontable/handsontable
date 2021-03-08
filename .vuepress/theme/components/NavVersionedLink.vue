@@ -28,10 +28,14 @@ export default {
       return ensureExt(this.item.link)
     },
     versionedLink() {
-      return ensureExt('/'+this.$page.currentVersion+this.item.link)
+      if (this.$page.currentVersion === this.$page.latestVersion) {
+        return ensureExt(this.item.link);
+      } else {
+        return ensureExt('/' + this.$page.currentVersion + this.item.link);
+      }
     },
     exact() {
-      if ((this.link === '/' || this.link === '/next/') && this.$route.fullPath.match(/([^/]*\/)?api\//)) {
+      if(this.link === '/' && this.$route.fullPath.match(/([^/]*\/)?api\//)) {
         return true;
       }
       return false;

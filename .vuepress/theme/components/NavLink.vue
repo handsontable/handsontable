@@ -22,6 +22,7 @@
 </template>
 
 <script>
+//todo check if this overwrite is still required
 import { isExternal, isMailto, isTel, ensureExt } from './util'
 
 export default {
