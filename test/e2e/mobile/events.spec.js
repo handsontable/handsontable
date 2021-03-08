@@ -57,7 +57,6 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
-  // Currently, this test is skipped. There is a problem with opening link from an anchor element using only simulated touch event.
   it('should block default action related to link touch and translate from the touch to click on a cell', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
