@@ -44,7 +44,7 @@ jobs:
           if [ "$(git status --porcelain)" ]; then
             git add examples/${{ github.event.inputs.hotVersion }}
             git commit -m "Update code examples with version: ${{ github.event.inputs.hotVersion }}"
-            git push origin master
+            git push origin develop
           fi
       - name: Deploy
         uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501 # https://github.com/peaceiris/actions-gh-pages/releases/tag/v3.7.3
