@@ -62,7 +62,7 @@ Read the [Templates Guideline](./templates/README.md) for the detailed informati
 
 ### Editing existing examples
 
-Sometimes you want to edit existing code examples that live in the `/examples/<version_number>` directory.
+Sometimes you want to edit existing code examples that is live in the `/examples/<version_number>` directory.
 
 1. Edit code examples within the `/examples/<version_number>` directory.
 2. Commit and push the code examples to the repo.
