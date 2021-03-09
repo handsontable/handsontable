@@ -4,6 +4,7 @@ import execa from 'execa';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
+import { spawnProcess } from './utils/processes.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -167,6 +168,8 @@ switch (shellCommand) {
     }
 
     const examplesFolders = getExamplesFolders(versionedDir);
+
+    spawnProcess('http-server . - 8080');
 
     examplesFolders.forEach((exampleDir, i) => {
       if (i < examplesFolders.length) {
