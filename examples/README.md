@@ -29,7 +29,7 @@ Within the `/examples` directory, there are all the code examples created for sp
 
 `/examples/<version_number>/<category>/<framework>/<example_path>`
 
-- `<version_number>` - the destributed version of the Handsontable and Handsontable's wrapper **OR** `next` - the value provided to the NPM scripts as the last argument.
+- `<version_number>` - the destributed version of the Handsontable and Handsontable's wrapper or `next` - the value provided to the NPM scripts as the last argument.
 - `<category>` - category of the code examples. The main category is `docs` which means: code examples from the documentation.
 - `<framework>` - any supported framework's name (react, angular, vue, js).
 - `<example_path>` - path to the specific code example. A folder name of the code example will identify that code example - it will be used as a URL further. The folder name of the code example should be the same across all the frameworks.
@@ -91,15 +91,11 @@ Each code example has its own test specs, which lives in the `spec` directory.
 
 #### How to tun tests for arbitrary code example
 
-Each code example has its own test suites which you can run in two ways:
-
-1. Using development server:
- a. Run the `npm run start` command.
- b. After the app is launched on a server, run the `npm run jasmine` command which will launch tests specified to this code example.
-2. Running server on the production output folder:
- a. Run the` npm run test` command which will first build the project then start the `http-server` on the production output folder then launch test specs and finally close the server.
+Each code example has its own test suites which you can run using a development server:
+1. Run the `npm run start` command.
+2. After the app is launched on a server, run the `npm run jasmine` command which will launch tests specified to this code example.
 
 #### How to run tests for the versioned code examples locally
 
-1. Code examples **must** exist in the `examples/<version_number>` directory.
-2. `npm run examples:test <version_number>`. This command will run `npm run test` for each code example (to know what the `npm run test` command does check out the section above).
+1. Code examples **must** exist in the `examples/<version_number>` directory and be built using the command `npm run examples:build <version_number>`.
+3. `npm run examples:test <version_number>`. This command will run `npm run test` for each code example (to know what the `npm run test` command does check out the section above).
