@@ -10,7 +10,7 @@ RUN yarn
 
 # app
 COPY . ./
-RUN npm run build
+RUN npm run docs:build
 
 # server image
 FROM nginx:alpine
