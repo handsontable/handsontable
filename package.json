@@ -11,9 +11,10 @@
   "scripts": {
     "docs:start": "vuepress dev ./",
     "docs:start:no-cache": "vuepress dev --no-cache ./",
-    "docs:build": "npm run docs:build:staging",
-    "docs:build:staging": "docker build .",
-    "docs:build:production": "docker build --build-arg NODE_ENV=production .",
+    "docs:build": "vuepress build ./",
+    "docs:docker:build": "npm run docs:docker:build:staging",
+    "docs:docker:build:staging": "docker build .",
+    "docs:docker:build:production": "docker build --build-arg NODE_ENV=production .",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js"
   },
   "license": "MIT",
