@@ -44,7 +44,7 @@ const getExamplesFolders = (dirPath, exampleFolders, onlyWorkspaceConfigs = fals
 
 const getWorkspaceConfigFolders = (dirPath, exampleFolders) => {
   return getExamplesFolders(dirPath, exampleFolders, true);
-}
+};
 
 const getHotWrapperName = (packageJson) => {
   const { dependencies } = packageJson;
@@ -168,8 +168,14 @@ switch (shellCommand) {
 
     const examplesFolders = getExamplesFolders(versionedDir);
 
-    examplesFolders.forEach((exampleDir) => {
-      runNpmCommandInExample(exampleDir, 'npm run test');
+    examplesFolders.forEach((exampleDir, i) => {
+      if (i < examplesFolders.length) {
+        // this env is used in each `Smoke.spec.js` file inside code example directory
+        process.env.TEST_URL = `http://localhost:8080${exampleDir.split('handsontable')[1]}/dist`;
+        runNpmCommandInExample(exampleDir, 'npm run jasmine');
+      } else {
+        process.exit(0);
+      }
     });
 
     break;

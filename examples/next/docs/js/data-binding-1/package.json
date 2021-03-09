@@ -16,20 +16,16 @@
   "scripts": {
     "start": "parcel index.html --port 8080",
     "build": "parcel build index.html --public-url '.'",
-    "jasmine": "node spec/support/jasmine.config.js",
-    "serve": "http-server ./dist -c-1 -p 8080",
-    "test": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
+    "jasmine": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
     "handsontable": "latest"
   },
   "devDependencies": {
-    "http-server": "^0.12.3",
     "jasmine": "^3.6.4",
     "jasmine-console-reporter": "^3.1.0",
     "parcel-bundler": "1.12.3",
-    "puppeteer": "^7.0.1",
-    "start-server-and-test": "^1.12.0"
+    "puppeteer": "^7.0.1"
   },
   "license": "MIT"
 }

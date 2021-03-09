@@ -14,9 +14,7 @@
     "ng": "ng",
     "start": "ng serve --port 8080",
     "build": "ng build",
-    "serve": "http-server ./dist -c-1 --port 8080",
-    "jasmine": "node spec/support/jasmine.config.js",
-    "test": "start-server-and-test 'npm run serve' 8080 'npm run jasmine'"
+    "jasmine": "node spec/support/jasmine.config.js"
   },
   "private": true,
   "dependencies": {
@@ -40,13 +38,11 @@
     "@angular/compiler-cli": "^11.0.5",
     "@types/jasmine": "~3.6.0",
     "@types/node": "^12.11.1",
-    "http-server": "^0.12.3",
     "jasmine": "^3.6.4",
     "jasmine-console-reporter": "^3.1.0",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
     "puppeteer": "^7.0.1",
-    "start-server-and-test": "^1.12.0",
     "ts-node": "~8.3.0",
     "typescript": "~4.0.2"
   },

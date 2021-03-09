@@ -4,7 +4,7 @@ const puppeteer = require('puppeteer');
 describe('Smoke check', () => {
     let browser = null;
     let page = null;
-    const BASE_URL = 'http://localhost:8080';
+    const BASE_URL = process.env.TEST_URL || 'http://localhost:8080';
 
     beforeEach(async () => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = 100000;

@@ -69,7 +69,7 @@
     "examples:version": "node scripts/code-examples.mjs version",
     "examples:install": "node scripts/code-examples.mjs install",
     "examples:build": "node scripts/code-examples.mjs build",
-    "examples:test": "node scripts/code-examples.mjs test",
+    "examples:test": "http-server . & node scripts/code-examples.mjs test",
     "examples:start": "http-server ./examples/tmp"
   },
   "keywords": [
