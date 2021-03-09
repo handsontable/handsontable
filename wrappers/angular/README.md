@@ -1,33 +1,60 @@
 <div align="center">
-  
-![Handsontable for Angular](https://raw.githubusercontent.com/handsontable/static-files/master/Images/Logo/Handsontable/handsontable-angular.png)
 
-This is the official wrapper of [**Handsontable**](//github.com/handsontable/handsontable) data grid for Angular.<br>
-It provides data binding, data validation, filtering, sorting and more.<br>
+<a href="https://handsontable.com" rel="nofollow"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-blue.svg" alt="Handsontable - data grid for Angular" width="300"></a>
 
-[![npm](https://img.shields.io/npm/dt/@handsontable/angular.svg)](//npmjs.com/package/@handsontable/angular)
-[![npm](https://img.shields.io/npm/dm/@handsontable/angular.svg)](//npmjs.com/package/@handsontable/angular)
-![Build status](https://img.shields.io/codeship/1ec34290-ed0a-0131-911c-1a47c8fbcce0/master)
+# Data Grid for Angular <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="22" height="22">
+
+Handsontable's wrapper for Angular combines data grid features with spreadsheet-like UX. <br>
+It provides data binding, data validation, filtering, sorting, and CRUD operations.
+
+[![npm](https://img.shields.io/npm/dt/@handsontable/angular.svg)](https://npmjs.com/package/@handsontable/angular)
+[![npm](https://img.shields.io/npm/dm/@handsontable/angular.svg)](https://npmjs.com/package/@handsontable/angular)
+[![Build status](https://app.codeship.com/projects/1ec34290-ed0a-0131-911c-1a47c8fbcce0/status?branch=master)](https://app.codeship.com/projects/26649)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fhandsontable%2Fhandsontable?ref=badge_shield)
+[![Known Vulnerabilities](https://snyk.io/test/github/handsontable/handsontable/badge.svg?targetFile=package.json)](https://snyk.io/test/github/handsontable/handsontable?targetFile=package.json)
+
+---
+
+<a href="https://handsontable.com/examples"><img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-github-preview.png" alt="Handsontable data grid for Angular" width="805"/></a>
+
 </div>
 
-<br>
+## Features
 
-<div align="center">
-<a href="//handsontable.com/docs/frameworks-wrapper-for-angular-simple-example.html">
-<img src="https://raw.githubusercontent.com/handsontable/static-files/master/Images/Screenshots/handsontable-screenshot-new.png" align="center" alt="A screenshot of a data grid for Angular"/>
-</a>
-</div>
+The most popular features of Handsontable for Angular:
 
-<br>
+&nbsp;&nbsp;✓&nbsp; Multiple column sorting <br>
+&nbsp;&nbsp;✓&nbsp; Non-contiguous selection <br>
+&nbsp;&nbsp;✓&nbsp; Filtering data <br>
+&nbsp;&nbsp;✓&nbsp; Export to file <br>
+&nbsp;&nbsp;✓&nbsp; Validating data <br>
+&nbsp;&nbsp;✓&nbsp; Conditional formatting <br>
+&nbsp;&nbsp;✓&nbsp; Merging cells <br>
+&nbsp;&nbsp;✓&nbsp; Freezing rows/columns <br>
+&nbsp;&nbsp;✓&nbsp; Moving rows/columns <br>
+&nbsp;&nbsp;✓&nbsp; Resizing rows/columns <br>
+&nbsp;&nbsp;✓&nbsp; Hiding rows/columns <br>
+&nbsp;&nbsp;✓&nbsp; Context menu <br>
+&nbsp;&nbsp;✓&nbsp; Comments <br>
 
-## Installation
+## Documentation
 
-Use npm to install this wrapper together with Handsontable.
+- [Developer guides](https://handsontable.com/docs/frameworks-wrapper-for-angular-installation.html)
+- [API Reference](https://handsontable.com/docs/Core.html)
+- [Change log](https://handsontable.com/docs/tutorial-release-notes.html)
+- [Demo](https://handsontable.com/examples)
+
+<div id="installation"></div>
+
+## Get Started
+### Install with npm
+
+Run the following command in your terminal
 ```
 npm install handsontable @handsontable/angular
 ```
 
-You can load it directly from [jsDelivr](//jsdelivr.com/package/npm/@handsontable/angular) as well.
+You can load it directly from [jsDelivr](https://jsdelivr.com/package/npm/@handsontable/angular) as well.
 ```html
 <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@handsontable/angular/bundles/handsontable-angular.umd.min.js"></script>
@@ -37,9 +64,9 @@ You can load it directly from [jsDelivr](//jsdelivr.com/package/npm/@handsontabl
 
 The component will be available as `Handsontable.angular.HotTable`.
 
-## Usage
+### Usage
 
-Use this data grid as you would any other component in your application. [Options](//handsontable.com/docs/Options.html) can be set as `HotTable` props.
+Use this data grid as you would any other component in your application. [Options](https://handsontable.com/docs/Options.html) can be set as `HotTable` props.
 
 **Styles**
 ```css
@@ -89,104 +116,28 @@ export class AppComponent  {
 <hot-table [data]="data" [colHeaders]="true" [rowHeaders]="true" [width]="600" [height]="300"></hot-table>
 ```
 
-##### [See the live demo](//handsontable.com/docs/frameworks-wrapper-for-angular-simple-example.html)
+### [View live demo](https://handsontable.com/docs/frameworks-wrapper-for-angular-simple-example.html)
 
-## Features
+## Support
 
-A list of some of the most popular features:
+We provide support for developers working with commercial version via [contact form](https://handsontable.com/contact?category=technical_support)</a> or at support@handsontable.com.
 
-- Multiple column sorting
-- Non-contiguous selection
-- Filtering data
-- Export to file
-- Validating data
-- Conditional formatting
-- Merging cells
-- Custom cell types
-- Freezing rows/columns
-- Moving rows/columns
-- Resizing rows/columns
-- Hiding rows/columns
-- Context menu
-- Comments
-- Auto-fill option
-
-## Documentation
-
-- [Developer guides](//handsontable.com/docs/angular)
-- [API Reference](//handsontable.com/docs/Core.html)
-- [Release notes](//handsontable.com/docs/tutorial-release-notes.html)
-- [Twitter](//twitter.com/handsontable) (News and updates)
-
-## Support and contribution
-
-We provide support for all users through [GitHub issues](//github.com/handsontable/handsontable/issues). If you have a commercial license then you can add a new ticket through the [contact form](//handsontable.com/contact?category=technical_support).
-
-If you would like to contribute to this project, make sure you first read the [guide for contributors](//github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md).
-
-## Browser compatibility
-
-Handsontable is compatible with modern browsers such as Chrome, Firefox, Safari, Opera, and Edge. It also supports Internet Explorer 9 to 11 but with limited performance.
+If you use a non-commercial version then please ask your tagged question on [StackOverflow](https://stackoverflow.com/questions/tagged/handsontable).
 
 ## License
 
-This wrapper is released under [the MIT license](//github.com/handsontable/handsontable/blob/master/wrappers/angular-handsontable/LICENSE) but under the hood it uses [Handsontable](//github.com/handsontable/handsontable), which is dual-licensed. You can either use it for free in all your non-commercial projects or purchase a commercial license.
+Handsontable is a commercial software with two licenses available:
 
-<table>
-  <thead align="center">
-    <tr>
-      <th width="50%">Free license</th>
-      <th width="50%">Paid license</th>
-    </tr>    
-  </thead>
-  <tbody align="center">
-    <tr>
-      <td>For non-commercial purposes such as teaching, academic research, personal experimentation, and evaluating  on development and testing servers.</td>
-      <td>For all commercial purposes</td>
-    </tr>
-    <tr>
-      <td>All features are available</td>
-      <td>All features are available</td>
-    </tr>
-    <tr>
-      <td>Community support</td>
-      <td>Dedicated support</td>
-    </tr>    
-    <tr>
-      <td><a href="//github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf">Read the license</a></td>
-      <td><a href="//handsontable.com/pricing">See plans</a></td>
-    </tr>
-  </tbody>
-</table>
+- Free for non-commercial purposes such as teaching, academic research, and evaluation. [Read it here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
+- Commercial license with support and maintenance included. See [pricing plans](https://handsontable.com/pricing).
 
 ## License key
 
-**The license key is obligatory since [Handsontable 7.0.0](//github.com/handsontable/handsontable/releases/tag/7.0.0) (released in March 2019).**
+If you use Handsontable for Angular in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](https://handsontable.com/pricing).
 
-If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the phrase `'non-commercial-and-evaluation'`, as presented below. 
-
-You can pass it in the `settings` object: 
-
-```js
-settings: {
-  data: data,
-  rowHeaders: true,
-  colHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation'
-}
-```
-
-Alternatively, you can pass it to a `licenseKey` prop:
-
-```html
-<hot-table [settings]="settings" [licenseKey]="00000-00000-00000-00000-00000"></hot-table>
-```
-
-If, on the other hand, you use Handsontable in a project that supports your commercial activity, then you must purchase the license key at [handsontable.com](//handsontable.com/pricing).
-
-The license key is validated in an offline mode.  No connection is made to any server. [Learn more](//handsontable.com/docs/tutorial-license-key.html) about how it works.
+If you use the free for non-commercial license of Handsontable, then pass the phrase `'non-commercial-and-evaluation'`, as described in [this documentation](https://handsontable.com/docs/tutorial-license-key.html).
 
 <br>
 <br>
 
-Created by [Handsoncode](//handsoncode.net) with ❤ and ☕ in [Tricity](//en.wikipedia.org/wiki/Tricity,_Poland).
+Proudly created and maintained by the [Handsontable Team](https://handsontable.com/team).
