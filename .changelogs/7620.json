@@ -1,0 +1,7 @@
+{
+  "title": "Fixed Remote Code Execution vulnerability in the dev dependencies",
+  "type": "fixed",
+  "issue": 7620,
+  "breaking": false,
+  "framework": "vue"
+}
