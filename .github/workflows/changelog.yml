@@ -27,7 +27,7 @@ jobs:
           node-version: '15.x'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --no-audit
 
       - name: Assert that a new changelog was added, or that the check is skipped
         env:
