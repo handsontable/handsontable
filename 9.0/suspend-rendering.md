@@ -1,6 +1,6 @@
 ---
 title: Suspend rendering
-permalink: /suspend-rendering
+permalink: /9.0/suspend-rendering
 canonicalUrl: /suspend-rendering
 ---
 

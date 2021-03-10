@@ -1,6 +1,6 @@
 ---
 title: Custom buttons
-permalink: /custom-buttons
+permalink: /9.0/custom-buttons
 canonicalUrl: /custom-buttons
 ---
 

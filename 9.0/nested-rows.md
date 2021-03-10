@@ -1,6 +1,6 @@
 ---
 title: Nested rows
-permalink: /nested-rows
+permalink: /9.0/nested-rows
 canonicalUrl: /nested-rows
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Dropdown menu
-permalink: /dropdown-menu
+permalink: /9.0/dropdown-menu
 canonicalUrl: /dropdown-menu
 ---
 

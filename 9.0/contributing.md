@@ -1,6 +1,6 @@
 ---
 title: Contributing
-permalink: /contributing
+permalink: /9.0/contributing
 canonicalUrl: /contributing
 ---
 

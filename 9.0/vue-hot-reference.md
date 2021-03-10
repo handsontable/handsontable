@@ -1,6 +1,6 @@
 ---
 title: Referencing the Handsontable instance
-permalink: /vue-hot-reference
+permalink: /9.0/vue-hot-reference
 ---
 
 # {{ $frontmatter.title }}

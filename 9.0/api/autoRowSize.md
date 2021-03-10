@@ -1,6 +1,6 @@
 ---
 title: AutoRowSize
-permalink: /api/auto-row-size
+permalink: /9.0/api/auto-row-size
 canonicalUrl: /api/auto-row-size
 ---
 

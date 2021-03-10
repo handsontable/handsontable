@@ -1,6 +1,6 @@
 ---
 title: Password
-permalink: /password
+permalink: /9.0/password
 canonicalUrl: /password
 ---
 

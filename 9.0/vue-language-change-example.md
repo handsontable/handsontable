@@ -1,6 +1,6 @@
 ---
 title: Language change example
-permalink: /vue-language-change-example
+permalink: /9.0/vue-language-change-example
 canonicalUrl: /vue-language-change-example
 ---
 

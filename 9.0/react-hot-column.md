@@ -1,6 +1,6 @@
 ---
 title: Using the HotColumn component
-permalink: /react-hot-column
+permalink: /9.0/react-hot-column
 canonicalUrl: /react-hot-column
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Select
-permalink: /select
+permalink: /9.0/select
 canonicalUrl: /select
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Nested headers
-permalink: /nested-headers
+permalink: /9.0/nested-headers
 canonicalUrl: /nested-headers
 ---
 

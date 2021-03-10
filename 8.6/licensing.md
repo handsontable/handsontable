@@ -74,4 +74,4 @@ It allows you to use this software for such non-commercial purposes as, but not 
 **Handsontable** is a registered trademark of Handsoncode sp. z o.o.
 All other trademarks belong to their respective owners.
 
-**Copyright (c) 2015- Handsoncode sp. z o.o. All rights reserved.**
+**Copyright (c) 2015-{{new Date().getFullYear()}} Handsoncode sp. z o.o. All rights reserved.**

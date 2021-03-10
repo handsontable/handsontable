@@ -19,7 +19,8 @@
     "docs:docker:build": "npm run docs:docker:build:staging",
     "docs:docker:build:staging": "docker build -t docs-md .",
     "docs:docker:build:production": "docker build -t docs-md --build-arg BUILD_MODE=production .",
-    "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js"
+    "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js",
+    "docs:api": "cd .vuepress/tools/jsdoc-convert && node jsdoc.js"
   },
   "license": "MIT",
   "dependencies": {

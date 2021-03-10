@@ -1,6 +1,6 @@
 ---
 title: Hiding rows
-permalink: /hiding-rows
+permalink: /9.0/hiding-rows
 canonicalUrl: /hiding-rows
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: TouchScroll
-permalink: /api/touch-scroll
+permalink: /9.0/api/touch-scroll
 canonicalUrl: /api/touch-scroll
 ---
 

@@ -30,4 +30,8 @@ module.exports = {
 
     return sidebars;
   },
+
+  parseVersion(url){
+    return url.split('/')[1] || this.getLatestVersion();
+  }
 };

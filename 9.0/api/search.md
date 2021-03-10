@@ -1,6 +1,6 @@
 ---
 title: Search
-permalink: /api/search
+permalink: /9.0/api/search
 canonicalUrl: /api/search
 ---
 

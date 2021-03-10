@@ -1,6 +1,6 @@
 ---
 title: Selecting ranges
-permalink: /selecting-ranges
+permalink: /9.0/selecting-ranges
 canonicalUrl: /selecting-ranges
 ---
 

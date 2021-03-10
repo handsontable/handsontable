@@ -1,6 +1,6 @@
 ---
 title: Using the hot-column component
-permalink: /vue-hot-column
+permalink: /9.0/vue-hot-column
 canonicalUrl: /vue-hot-column
 ---
 

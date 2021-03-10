@@ -1,6 +1,6 @@
 ---
 title: Alignment
-permalink: /alignment
+permalink: /9.0/alignment
 canonicalUrl: /alignment
 ---
 

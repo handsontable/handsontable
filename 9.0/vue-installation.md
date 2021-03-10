@@ -1,6 +1,6 @@
 ---
 title: Installation
-permalink: /vue-installation
+permalink: /9.0/vue-installation
 canonicalUrl: /vue-installation
 ---
 

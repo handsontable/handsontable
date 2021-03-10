@@ -26,40 +26,19 @@ else if(fs.existsSync(path.join(workingDir,version)))
 {
     throw new Error('<version> should be unique.')
 }
+const replaceInFiles = require('replace-in-files');
+
 (async ()=> {
-    const replaceInFiles = require('replace-in-files');
-    const helpers = require('../../helpers');
-
-    const lastVersion = helpers.getLatestVersion();
-
-    /// * add `/${getLatestVersion()}/` before each permalink for files from `/${getLatestVersion()}/`
-    await replaceInFiles({
-        files: path.join(workingDir, lastVersion, '**/*.md'),
-        from: /permalink: \/([^0-9])/g,
-        to: `permalink: /${lastVersion}/$1`,
-    })
-        process.stdout.write(`Permalinks for previous latest (${lastVersion}) updated.\n`)
-
-
     /// * copy `/next/` to `/${version}/`
     fse.copySync(path.join(workingDir, 'next'), path.join(workingDir, version));
 
     /// * replace all `/next/` into `/` in dir `/${version}/`
     await replaceInFiles({
         files: path.join(workingDir, version, '**/*.md'),
-
         from: /permalink: \/next\//g,
-        to: `permalink: /`,
-    })
-        process.stdout.write(`Permalinks for current latest (${version}) updated.\n`)
-
-    /// * update installation guide
-    await replaceInFiles({
-        files: path.join(workingDir, version, '**/*.md'),
-        from: /{##VERSION}/g,
-        to: version,
-    })
-    process.stdout.write(`{##VERSION} replaced into current version (${version}) \n`)
+        to: `permalink: /${version}/`,
+    });
+    process.stdout.write(`Permalinks for current latest (${version}) updated.\n`);
 
     /// * print kind information, that version was been created.
     process.stdout.write(`Version: ${version} successfully created.\n`);

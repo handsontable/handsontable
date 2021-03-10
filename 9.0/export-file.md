@@ -1,6 +1,6 @@
 ---
 title: Export to file
-permalink: /export-file
+permalink: /9.0/export-file
 canonicalUrl: /export-file
 ---
 

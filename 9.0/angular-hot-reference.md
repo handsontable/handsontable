@@ -1,6 +1,6 @@
 ---
 title: Referencing the Handsontable instance
-permalink: /angular-hot-reference
+permalink: /9.0/angular-hot-reference
 canonicalUrl: /angular-hot-reference
 ---
 

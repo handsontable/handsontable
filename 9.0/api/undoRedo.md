@@ -1,6 +1,6 @@
 ---
 title: UndoRedo
-permalink: /api/undo-redo
+permalink: /9.0/api/undo-redo
 canonicalUrl: /api/undo-redo
 ---
 

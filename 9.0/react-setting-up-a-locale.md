@@ -1,6 +1,6 @@
 ---
 title: Setting up a locale
-permalink: /react-setting-up-a-locale
+permalink: /9.0/react-setting-up-a-locale
 canonicalUrl: /react-setting-up-a-locale
 ---
 

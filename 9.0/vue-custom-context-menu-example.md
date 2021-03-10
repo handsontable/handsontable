@@ -1,6 +1,6 @@
 ---
 title: Custom Context Menu example
-permalink: /vue-custom-context-menu-example
+permalink: /9.0/vue-custom-context-menu-example
 canonicalUrl: /vue-custom-context-menu-example
 ---
 

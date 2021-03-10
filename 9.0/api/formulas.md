@@ -1,6 +1,6 @@
 ---
 title: Formulas
-permalink: /api/formulas
+permalink: /9.0/api/formulas
 canonicalUrl: /api/formulas
 ---
 

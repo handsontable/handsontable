@@ -1,6 +1,6 @@
 ---
 title: Language change example
-permalink: /react-language-change-example
+permalink: /9.0/react-language-change-example
 canonicalUrl: /react-language-change-example
 ---
 

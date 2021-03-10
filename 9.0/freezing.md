@@ -1,6 +1,6 @@
 ---
 title: Freezing columns
-permalink: /freezing
+permalink: /9.0/freezing
 canonicalUrl: /freezing
 ---
 

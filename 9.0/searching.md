@@ -1,6 +1,6 @@
 ---
 title: Searching
-permalink: /searching
+permalink: /9.0/searching
 canonicalUrl: /searching
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Time
-permalink: /time
+permalink: /9.0/time
 canonicalUrl: /time
 ---
 

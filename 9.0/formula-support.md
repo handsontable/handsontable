@@ -1,6 +1,6 @@
 ---
 title: Formula support
-permalink: /formula-support
+permalink: /9.0/formula-support
 canonicalUrl: /formula-support
 ---
 

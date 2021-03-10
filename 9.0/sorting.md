@@ -1,6 +1,6 @@
 ---
 title: Sorting
-permalink: /sorting
+permalink: /9.0/sorting
 canonicalUrl: /sorting
 ---
 

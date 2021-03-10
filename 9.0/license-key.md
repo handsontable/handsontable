@@ -1,6 +1,6 @@
 ---
 title: License key
-permalink: /license-key
+permalink: /9.0/license-key
 canonicalUrl: /license-key
 ---
 

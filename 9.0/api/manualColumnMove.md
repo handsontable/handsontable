@@ -1,6 +1,6 @@
 ---
 title: ManualColumnMove
-permalink: /api/manual-column-move
+permalink: /9.0/api/manual-column-move
 canonicalUrl: /api/manual-column-move
 ---
 

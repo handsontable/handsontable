@@ -1,6 +1,6 @@
 ---
 title: Collapsing columns
-permalink: /collapsing-columns
+permalink: /9.0/collapsing-columns
 canonicalUrl: /collapsing-columns
 ---
 

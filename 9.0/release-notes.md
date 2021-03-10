@@ -1,6 +1,6 @@
 ---
 title: Release notes
-permalink: /release-notes
+permalink: /9.0/release-notes
 canonicalUrl: /release-notes
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Pre-populating rows
-permalink: /pre-populating
+permalink: /9.0/pre-populating
 canonicalUrl: /pre-populating
 ---
 

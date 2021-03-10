@@ -1,6 +1,6 @@
 ---
 title: Merged cells
-permalink: /merged-cells
+permalink: /9.0/merged-cells
 canonicalUrl: /merged-cells
 ---
 

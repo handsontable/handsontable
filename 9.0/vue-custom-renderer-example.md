@@ -1,6 +1,6 @@
 ---
 title: Custom renderer example
-permalink: /vue-custom-renderer-example
+permalink: /9.0/vue-custom-renderer-example
 canonicalUrl: /vue-custom-renderer-example
 ---
 

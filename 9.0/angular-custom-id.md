@@ -1,6 +1,6 @@
 ---
 title: Custom ID
-permalink: /angular-custom-id
+permalink: /9.0/angular-custom-id
 canonicalUrl: /angular-custom-id
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Custom editor example
-permalink: /angular-custom-editor-example
+permalink: /9.0/angular-custom-editor-example
 canonicalUrl: /angular-custom-editor-example
 ---
 

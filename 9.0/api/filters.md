@@ -1,6 +1,6 @@
 ---
 title: Filters
-permalink: /api/filters
+permalink: /9.0/api/filters
 canonicalUrl: /api/filters
 ---
 

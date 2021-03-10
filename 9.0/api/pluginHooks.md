@@ -1,6 +1,6 @@
 ---
 title: Hooks
-permalink: /api/hooks
+permalink: /9.0/api/hooks
 canonicalUrl: /api/hooks
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Stretching columns
-permalink: /stretching
+permalink: /9.0/stretching
 canonicalUrl: /stretching
 ---
 

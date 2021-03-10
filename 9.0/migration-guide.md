@@ -1,6 +1,6 @@
 ---
 title: Migration guide
-permalink: /migration-guide
+permalink: /9.0/migration-guide
 canonicalUrl: /migration-guide
 ---
 

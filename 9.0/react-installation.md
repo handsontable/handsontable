@@ -1,6 +1,6 @@
 ---
 title: Installation
-permalink: /react-installation
+permalink: /9.0/react-installation
 canonicalUrl: /react-installation
 ---
 

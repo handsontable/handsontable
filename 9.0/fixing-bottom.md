@@ -1,6 +1,6 @@
 ---
 title: Fixing bottom rows
-permalink: /fixing-bottom
+permalink: /9.0/fixing-bottom
 canonicalUrl: /fixing-bottom
 ---
 

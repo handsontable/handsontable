@@ -1,6 +1,6 @@
 ---
 title: Comments
-permalink: /api/comments
+permalink: /9.0/api/comments
 canonicalUrl: /api/comments
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Multi-column sorting
-permalink: /multicolumn-sorting
+permalink: /9.0/multicolumn-sorting
 canonicalUrl: /multicolumn-sorting
 ---
 

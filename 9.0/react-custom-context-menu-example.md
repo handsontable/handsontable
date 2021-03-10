@@ -1,6 +1,6 @@
 ---
 title: Custom Context Menu example
-permalink: /react-custom-context-menu-example
+permalink: /9.0/react-custom-context-menu-example
 canonicalUrl: /react-custom-context-menu-example
 ---
 

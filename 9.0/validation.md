@@ -1,6 +1,6 @@
 ---
 title: Data validation
-permalink: /data-validation
+permalink: /9.0/data-validation
 canonicalUrl: /data-validation
 ---
 

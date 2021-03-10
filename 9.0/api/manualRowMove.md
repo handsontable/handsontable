@@ -1,6 +1,6 @@
 ---
 title: ManualRowMove
-permalink: /api/manual-row-move
+permalink: /9.0/api/manual-row-move
 canonicalUrl: /api/manual-row-move
 ---
 

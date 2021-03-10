@@ -1,6 +1,6 @@
 ---
 title: Basic example
-permalink: /vue-simple-example
+permalink: /9.0/vue-simple-example
 canonicalUrl: /vue-simple-example
 ---
 

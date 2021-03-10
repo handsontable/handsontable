@@ -1,6 +1,6 @@
 ---
 title: Fixing
-permalink: /fixing
+permalink: /9.0/fixing
 canonicalUrl: /fixing
 ---
 

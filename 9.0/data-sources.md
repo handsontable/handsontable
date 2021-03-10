@@ -1,6 +1,6 @@
 ---
 title: Data sources
-permalink: /data-sources
+permalink: /9.0/data-sources
 canonicalUrl: /data-sources
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: NestedRows
-permalink: /api/nested-rows
+permalink: /9.0/api/nested-rows
 canonicalUrl: /api/nested-rows
 ---
 

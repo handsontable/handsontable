@@ -1,6 +1,6 @@
 ---
 title: Data binding
-permalink: /data-binding
+permalink: /9.0/data-binding
 canonicalUrl: /data-binding
 ---
 

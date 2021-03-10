@@ -1,6 +1,6 @@
 ---
 title: Setting up a locale
-permalink: /vue-setting-up-a-locale
+permalink: /9.0/vue-setting-up-a-locale
 canonicalUrl: /vue-setting-up-a-locale
 ---
 

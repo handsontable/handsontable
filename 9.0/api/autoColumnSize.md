@@ -1,6 +1,6 @@
 ---
 title: AutoColumnSize
-permalink: /api/auto-column-size
+permalink: /9.0/api/auto-column-size
 canonicalUrl: /api/auto-column-size
 ---
 

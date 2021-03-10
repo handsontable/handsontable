@@ -1,6 +1,6 @@
 ---
 title: Custom Context Menu example
-permalink: /angular-custom-context-menu-example
+permalink: /9.0/angular-custom-context-menu-example
 ---
 
 # {{ $frontmatter.title }}

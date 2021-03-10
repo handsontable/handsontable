@@ -1,6 +1,6 @@
 ---
 title: Options
-permalink: /api/options
+permalink: /9.0/api/options
 canonicalUrl: /api/options
 ---
 

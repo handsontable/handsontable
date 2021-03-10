@@ -1,6 +1,6 @@
 ---
 title: Read-only
-permalink: /read-only
+permalink: /9.0/read-only
 canonicalUrl: /read-only
 ---
 

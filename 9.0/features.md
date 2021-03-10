@@ -1,6 +1,6 @@
 ---
 title: Features
-permalink: /features
+permalink: /9.0/features
 canonicalUrl: /features
 ---
 

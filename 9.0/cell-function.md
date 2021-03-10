@@ -1,6 +1,6 @@
 ---
 title: Cell function
-permalink: /cell-function
+permalink: /9.0/cell-function
 canonicalUrl: /cell-function
 ---
 

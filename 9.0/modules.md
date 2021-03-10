@@ -1,6 +1,6 @@
 ---
 title: Modules
-permalink: /modules
+permalink: /9.0/modules
 canonicalUrl: /modules
 ---
 

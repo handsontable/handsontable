@@ -18,6 +18,7 @@ const environmentHead = process.env.BUILD_MODE === 'production' ?
   : [];
 
 module.exports = {
+  patterns: ['**/*.md', '!README*.md'], // to enable vue pages add: '**/*.vue'.
   description: 'Handsontable',
   base: '/docs/',
   head: [
@@ -53,7 +54,11 @@ module.exports = {
   extendPageData ($page) {
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
-    $page.currentVersion = $page.path.split('/')[1] || $page.latestVersion; //todo will it work ok for the latest api page?
+    $page.currentVersion = helpers.parseVersion($page.path)
+
+    if($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
+        $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//,'/');
+    }
   },
   themeConfig: {
     logo: '/logo.png',

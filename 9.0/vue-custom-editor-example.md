@@ -1,6 +1,6 @@
 ---
 title: Custom editor example
-permalink: /vue-custom-editor-example
+permalink: /9.0/vue-custom-editor-example
 canonicalUrl: /vue-custom-editor-example
 ---
 

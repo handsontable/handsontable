@@ -1,6 +1,6 @@
 ---
 title: ObserveChanges
-permalink: /api/observe-changes
+permalink: /9.0/api/observe-changes
 canonicalUrl: /api/observe-changes
 ---
 

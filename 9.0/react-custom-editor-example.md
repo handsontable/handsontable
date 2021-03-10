@@ -1,6 +1,6 @@
 ---
 title: Custom editor example
-permalink: /react-custom-editor-example
+permalink: /9.0/react-custom-editor-example
 canonicalUrl: /react-custom-editor-example
 ---
 

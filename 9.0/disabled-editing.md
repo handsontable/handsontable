@@ -1,6 +1,6 @@
 ---
 title: Disabled editing
-permalink: /disabled-editing
+permalink: /9.0/disabled-editing
 canonicalUrl: /disabled-editing
 ---
 

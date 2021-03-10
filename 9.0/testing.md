@@ -1,6 +1,6 @@
 ---
 title: Testing
-permalink: /testing
+permalink: /9.0/testing
 canonicalUrl: /testing
 ---
 

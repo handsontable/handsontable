@@ -1,6 +1,6 @@
 ---
 title: Customizing borders
-permalink: /customizing-borders
+permalink: /9.0/customizing-borders
 canonicalUrl: /customizing-borders
 ---
 

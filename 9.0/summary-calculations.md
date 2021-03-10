@@ -1,6 +1,6 @@
 ---
 title: Summary calculations
-permalink: /summary-calculations
+permalink: /9.0/summary-calculations
 canonicalUrl: /summary-calculations
 ---
 

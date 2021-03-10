@@ -1,6 +1,6 @@
 ---
 title: Date
-permalink: /date
+permalink: /9.0/date
 canonicalUrl: /date
 ---
 

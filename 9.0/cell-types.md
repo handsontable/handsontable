@@ -1,6 +1,6 @@
 ---
 title: Cell types
-permalink: /cell-types
+permalink: /9.0/cell-types
 canonicalUrl: /cell-types
 ---
 

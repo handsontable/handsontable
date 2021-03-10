@@ -1,6 +1,6 @@
 ---
 title: Hiding columns
-permalink: /hiding-columns
+permalink: /9.0/hiding-columns
 canonicalUrl: /hiding-columns
 ---
 

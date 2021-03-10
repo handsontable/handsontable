@@ -1,6 +1,6 @@
 ---
 title: Moving
-permalink: /moving
+permalink: /9.0/moving
 canonicalUrl: /moving
 ---
 

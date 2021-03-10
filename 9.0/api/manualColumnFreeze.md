@@ -1,6 +1,6 @@
 ---
 title: ManualColumnFreeze
-permalink: /api/manual-column-freeze
+permalink: /9.0/api/manual-column-freeze
 canonicalUrl: /api/manual-column-freeze
 ---
 

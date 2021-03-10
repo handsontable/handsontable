@@ -1,6 +1,6 @@
 ---
 title: Referencing the Handsontable instance
-permalink: /react-hot-reference
+permalink: /9.0/react-hot-reference
 canonicalUrl: /react-hot-reference
 ---
 

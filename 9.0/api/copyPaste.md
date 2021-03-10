@@ -1,6 +1,6 @@
 ---
 title: CopyPaste
-permalink: /api/copy-paste
+permalink: /9.0/api/copy-paste
 canonicalUrl: /api/copy-paste
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Autocomplete
-permalink: /autocomplete
+permalink: /9.0/autocomplete
 canonicalUrl: /autocomplete
 ---
 

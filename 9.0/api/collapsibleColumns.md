@@ -1,6 +1,6 @@
 ---
 title: CollapsibleColumns
-permalink: /api/collapsible-columns
+permalink: /9.0/api/collapsible-columns
 canonicalUrl: /api/collapsible-columns
 ---
 

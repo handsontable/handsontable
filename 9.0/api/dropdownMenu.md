@@ -1,6 +1,6 @@
 ---
 title: DropdownMenu
-permalink: /api/dropdown-menu
+permalink: /9.0/api/dropdown-menu
 canonicalUrl: /api/dropdown-menu
 ---
 

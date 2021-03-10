@@ -1,6 +1,6 @@
 ---
 title: HeaderTooltips
-permalink: /api/header-tooltips
+permalink: /9.0/api/header-tooltips
 canonicalUrl: /api/header-tooltips
 ---
 

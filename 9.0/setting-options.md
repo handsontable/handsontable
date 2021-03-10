@@ -1,6 +1,6 @@
 ---
 title: Setting options
-permalink: /setting-options
+permalink: /9.0/setting-options
 canonicalUrl: /setting-options
 ---
 

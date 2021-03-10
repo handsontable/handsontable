@@ -1,6 +1,6 @@
 ---
 title: Language change example
-permalink: /angular-language-change-example
+permalink: /9.0/angular-language-change-example
 canonicalUrl: /angular-language-change-example
 ---
 

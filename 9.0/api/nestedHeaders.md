@@ -1,6 +1,6 @@
 ---
 title: NestedHeaders
-permalink: /api/nested-headers
+permalink: /9.0/api/nested-headers
 canonicalUrl: /api/nested-headers
 ---
 

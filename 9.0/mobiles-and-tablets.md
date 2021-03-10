@@ -1,6 +1,6 @@
 ---
 title: Mobiles and tablets
-permalink: /mobiles-and-tablets
+permalink: /9.0/mobiles-and-tablets
 canonicalUrl: /mobiles-and-tablets
 ---
 

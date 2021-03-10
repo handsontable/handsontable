@@ -1,6 +1,6 @@
 ---
 title: Trimming rows
-permalink: /trimming-rows
+permalink: /9.0/trimming-rows
 canonicalUrl: /trimming-rows
 ---
 

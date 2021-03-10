@@ -1,6 +1,6 @@
 ---
 title: Checkbox
-permalink: /checkbox
+permalink: /9.0/checkbox
 canonicalUrl: /checkbox
 ---
 

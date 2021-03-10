@@ -1,6 +1,6 @@
 ---
 title: Conditional formatting
-permalink: /conditional-formatting
+permalink: /9.0/conditional-formatting
 canonicalUrl: /conditional-formatting
 ---
 

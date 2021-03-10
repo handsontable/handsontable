@@ -1,6 +1,6 @@
 ---
 title: Numeric
-permalink: /numeric
+permalink: /9.0/numeric
 canonicalUrl: /numeric
 ---
 

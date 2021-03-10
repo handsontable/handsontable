@@ -1,6 +1,6 @@
 ---
 title: ManualRowResize
-permalink: /api/manual-row-resize
+permalink: /9.0/api/manual-row-resize
 canonicalUrl: /api/manual-row-resize
 ---
 

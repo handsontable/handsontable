@@ -1,6 +1,6 @@
 ---
 title: Custom build
-permalink: /custom-build
+permalink: /9.0/custom-build
 canonicalUrl: /custom-build
 ---
 

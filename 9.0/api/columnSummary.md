@@ -1,6 +1,6 @@
 ---
 title: ColumnSummary
-permalink: /api/column-summary
+permalink: /9.0/api/column-summary
 canonicalUrl: /api/column-summary
 ---
 

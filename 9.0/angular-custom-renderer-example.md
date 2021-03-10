@@ -1,6 +1,6 @@
 ---
 title: Custom renderer example
-permalink: /angular-custom-renderer-example
+permalink: /9.0/angular-custom-renderer-example
 canonicalUrl: /angular-custom-renderer-example
 ---
 

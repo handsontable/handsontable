@@ -1,6 +1,6 @@
 ---
 title: Bind rows with headers
-permalink: /bind-rows-headers
+permalink: /9.0/bind-rows-headers
 canonicalUrl: /bind-rows-headers
 ---
 

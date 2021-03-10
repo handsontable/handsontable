@@ -1,6 +1,6 @@
 ---
 title: Vuex example
-permalink: /vue-vuex-example
+permalink: /9.0/vue-vuex-example
 canonicalUrl: /vue-vuex-example
 ---
 

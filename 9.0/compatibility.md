@@ -1,6 +1,6 @@
 ---
 title: Compatibility
-permalink: /compatibility
+permalink: /9.0/compatibility
 canonicalUrl: /compatibility
 ---
 

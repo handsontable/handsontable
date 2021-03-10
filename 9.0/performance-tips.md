@@ -1,6 +1,6 @@
 ---
 title: Performance tips
-permalink: /performance-tips
+permalink: /9.0/performance-tips
 canonicalUrl: /performance-tips
 ---
 

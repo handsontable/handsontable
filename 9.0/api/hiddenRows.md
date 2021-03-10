@@ -1,6 +1,6 @@
 ---
 title: HiddenRows
-permalink: /api/hidden-rows
+permalink: /9.0/api/hidden-rows
 canonicalUrl: /api/hidden-rows
 ---
 

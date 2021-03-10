@@ -1,6 +1,6 @@
 ---
 title: Highlighting selection
-permalink: /highlighting-selection
+permalink: /9.0/highlighting-selection
 canonicalUrl: /highlighting-selection
 ---
 

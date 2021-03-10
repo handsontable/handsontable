@@ -1,6 +1,6 @@
 ---
 title: Grid sizing
-permalink: /grid-sizing
+permalink: /9.0/grid-sizing
 canonicalUrl: /grid-sizing
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Custom renderer example
-permalink: /react-custom-renderer-example
+permalink: /9.0/react-custom-renderer-example
 canonicalUrl: /react-custom-renderer-example
 ---
 

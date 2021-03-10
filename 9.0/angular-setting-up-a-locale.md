@@ -1,6 +1,6 @@
 ---
 title: Setting up a locale
-permalink: /angular-setting-up-a-locale
+permalink: /9.0/angular-setting-up-a-locale
 canonicalUrl: /angular-setting-up-a-locale
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Resizing
-permalink: /resizing
+permalink: /9.0/resizing
 canonicalUrl: /resizing
 ---
 

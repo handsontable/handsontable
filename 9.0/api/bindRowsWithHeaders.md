@@ -1,6 +1,6 @@
 ---
 title: BindRowsWithHeaders
-permalink: /api/bind-rows-with-headers
+permalink: /9.0/api/bind-rows-with-headers
 canonicalUrl: /api/bind-rows-with-headers
 ---
 

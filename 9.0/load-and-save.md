@@ -1,6 +1,6 @@
 ---
 title: Load and save
-permalink: /load-and-save
+permalink: /9.0/load-and-save
 canonicalUrl: /load-and-save
 ---
 

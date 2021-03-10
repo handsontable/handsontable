@@ -1,6 +1,6 @@
 ---
 title: Handsontable
-permalink: /handsontable
+permalink: /9.0/handsontable
 canonicalUrl: /handsontable
 ---
 

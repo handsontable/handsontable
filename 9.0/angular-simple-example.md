@@ -1,6 +1,6 @@
 ---
 title: Basic example
-permalink: /angular-simple-example
+permalink: /9.0/angular-simple-example
 canonicalUrl: /angular-simple-example
 ---
 

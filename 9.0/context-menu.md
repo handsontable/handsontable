@@ -1,6 +1,6 @@
 ---
 title: Context menu
-permalink: /context-menu
+permalink: /9.0/context-menu
 canonicalUrl: /context-menu
 ---
 

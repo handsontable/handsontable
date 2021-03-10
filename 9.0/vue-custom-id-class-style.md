@@ -1,6 +1,6 @@
 ---
 title: Custom ID, Class, Style and other attributes
-permalink: /vue-custom-id-class-style
+permalink: /9.0/vue-custom-id-class-style
 canonicalUrl: /vue-custom-id-class-style
 ---
 

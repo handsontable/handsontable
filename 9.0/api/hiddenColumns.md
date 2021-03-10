@@ -1,6 +1,6 @@
 ---
 title: HiddenColumns
-permalink: /api/hidden-columns
+permalink: /9.0/api/hidden-columns
 canonicalUrl: /api/hidden-columns
 ---
 

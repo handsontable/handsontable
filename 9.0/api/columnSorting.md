@@ -1,6 +1,6 @@
 ---
 title: ColumnSorting
-permalink: /api/column-sorting
+permalink: /9.0/api/column-sorting
 canonicalUrl: /api/column-sorting
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Redux example
-permalink: /react-redux-example
+permalink: /9.0/react-redux-example
 canonicalUrl: /react-redux-example
 ---
 

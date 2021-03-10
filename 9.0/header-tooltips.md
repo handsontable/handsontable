@@ -1,6 +1,6 @@
 ---
 title: Header tooltips [deprecated]
-permalink: /header-tooltips
+permalink: /9.0/header-tooltips
 canonicalUrl: /next/header-tooltips
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: Spreadsheet icons
-permalink: /spreadsheet-icons
+permalink: /9.0/spreadsheet-icons
 canonicalUrl: /spreadsheet-icons
 ---
 

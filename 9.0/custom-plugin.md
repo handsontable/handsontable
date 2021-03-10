@@ -1,6 +1,6 @@
 ---
 title: Custom plugin
-permalink: /custom-plugin
+permalink: /9.0/custom-plugin
 canonicalUrl: /custom-plugin
 ---
 

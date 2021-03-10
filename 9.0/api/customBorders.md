@@ -1,6 +1,6 @@
 ---
 title: CustomBorders
-permalink: /api/custom-borders
+permalink: /9.0/api/custom-borders
 canonicalUrl: /api/custom-borders
 ---
 

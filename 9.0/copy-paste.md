@@ -1,6 +1,6 @@
 ---
 title: Copy & Paste
-permalink: /copy-paste
+permalink: /9.0/copy-paste
 canonicalUrl: /copy-paste
 ---
 

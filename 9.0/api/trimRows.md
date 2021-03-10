@@ -1,6 +1,6 @@
 ---
 title: TrimRows
-permalink: /api/trim-rows
+permalink: /9.0/api/trim-rows
 canonicalUrl: /api/trim-rows
 ---
 

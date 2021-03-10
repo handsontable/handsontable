@@ -1,7 +1,7 @@
 ---
 title: Core
-permalink: /api/core
-canonicalUrl: /api/core
+permalink: /9.0/api/
+canonicalUrl: /api/
 ---
 
 # {{ $frontmatter.title }}

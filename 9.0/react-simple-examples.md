@@ -1,6 +1,6 @@
 ---
 title: Basic examples
-permalink: /react-simple-examples
+permalink: /9.0/react-simple-examples
 canonicalUrl: /react-simple-examples
 ---
 

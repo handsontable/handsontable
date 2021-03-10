@@ -21,7 +21,7 @@ const seo = {
     },
     'core.js': {
         title: 'Core',
-        permalink: '/next/api/core'
+        permalink: '/next/api/'
     }
 }
 /// paths construction

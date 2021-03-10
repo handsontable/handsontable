@@ -1,6 +1,6 @@
 ---
 title: Internationalization
-permalink: /internationalization
+permalink: /9.0/internationalization
 canonicalUrl: /internationalization
 ---
 

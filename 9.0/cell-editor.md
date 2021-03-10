@@ -1,6 +1,6 @@
 ---
 title: Cell editor
-permalink: /cell-editor
+permalink: /9.0/cell-editor
 canonicalUrl: /cell-editor
 ---
 

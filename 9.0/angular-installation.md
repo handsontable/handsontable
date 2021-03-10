@@ -1,6 +1,6 @@
 ---
 title: Installation
-permalink: /angular-installation
+permalink: /9.0/angular-installation
 canonicalUrl: /angular-installation
 ---
 

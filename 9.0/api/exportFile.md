@@ -1,6 +1,6 @@
 ---
 title: ExportFile
-permalink: /api/export-file
+permalink: /9.0/api/export-file
 canonicalUrl: /api/export-file
 ---
 

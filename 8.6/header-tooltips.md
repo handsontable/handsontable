@@ -1,7 +1,7 @@
 ---
 title: Header tooltips [deprecated]
 permalink: /8.6/header-tooltips
-canonicalUrl: /header-tooltips
+canonicalUrl: /next/header-tooltips
 ---
 
 # {{ $frontmatter.title }}
