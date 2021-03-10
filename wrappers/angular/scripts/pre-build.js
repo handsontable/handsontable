@@ -1,7 +1,7 @@
 const fse = require('fs-extra');
 const path = require('path');
 
-const LICENSE = 'LICENSE';
+const LICENSE = 'LICENSE.txt';
 const README = 'README.md';
 const PACKAGE = 'package.json';
 
