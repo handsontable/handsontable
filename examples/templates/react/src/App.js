@@ -28,6 +28,7 @@ function App() {
         data={data}
         colHeaders={true}
         rowHeaders={true}
+        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );
