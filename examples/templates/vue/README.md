@@ -20,10 +20,7 @@ To start local development server call `npm run start`. Now you can visit http:/
 
 ### Testing
 
-In order to run tests for this project you have two options:
-
-1. Call `npm run start` which will launch the development server and after the server is running, call `npm run jasmine` to run test specs.
-2. Call `npm run test` which will build the project, then start the server on the production output folder, run test specs and close the server.
+In order to run tests for this project call `npm run start` which will launch the development server and after the server is running, call `npm run jasmine` to run test specs.
 
 ## License
 
