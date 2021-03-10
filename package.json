@@ -17,8 +17,8 @@
     "docs:start:no-cache": "vuepress dev --no-cache ./",
     "docs:build": "vuepress build ./",
     "docs:docker:build": "npm run docs:docker:build:staging",
-    "docs:docker:build:staging": "docker build .",
-    "docs:docker:build:production": "docker build --build-arg BUILD_MODE=production .",
+    "docs:docker:build:staging": "docker build -t docs-md .",
+    "docs:docker:build:production": "docker build -t docs-md --build-arg BUILD_MODE=production .",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js"
   },
   "license": "MIT",
