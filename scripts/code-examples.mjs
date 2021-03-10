@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
 import { spawnProcess } from './utils/processes.mjs';
+import { displayErrorMessage } from './utils/console.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -91,7 +92,7 @@ const runNpmCommandInExample = (exampleDir, command) => {
     });
 
   } catch (error) {
-    console.error(error);
+    displayErrorMessage(error);
     process.exit(error.exitCode);
   }
 };
@@ -99,7 +100,9 @@ const runNpmCommandInExample = (exampleDir, command) => {
 // EXECUTE SCRIPTS
 
 if (!hotVersion) {
-  throw Error('You must provide the version of the Handsontable as the last parameter to the script.');
+  displayErrorMessage('You must provide the version of the Handsontable as the last parameter to the script.');
+
+  process.exit(1);
 }
 
 const versionedDir = path.join(REPO_ROOT_DIR, 'examples', hotVersion);
@@ -108,7 +111,9 @@ const versionedExamplesExist = fs.existsSync(versionedDir);
 switch (shellCommand) {
   case 'version': { // npm run examples:version <version_number>
     if (versionedExamplesExist) {
-      throw Error(`Examples already exist: ${path.join('examples', hotVersion)}.`);
+      displayErrorMessage(`Examples already exist: ${path.join('examples', hotVersion)}.`);
+
+      process.exit(1);
     }
 
     rimraf.sync(`${NEXT_EXAMPLES_DIR}/node_modules`);
@@ -133,7 +138,9 @@ switch (shellCommand) {
 
   case 'install': { // npm run examples:install <version_number>
     if (!versionedExamplesExist) {
-      throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
+      displayErrorMessage('Examples don\'t exist! First, create a directory with versioned examples.');
+
+      process.exit(1);
     }
 
     runNpmCommandInExample(versionedDir, `npm run install:version ${hotVersion}`);
@@ -143,7 +150,9 @@ switch (shellCommand) {
 
   case 'build': { // npm run examples:build <version_number>
     if (!versionedExamplesExist) {
-      throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
+      displayErrorMessage('Examples don\'t exist! First, create a directory with versioned examples.');
+
+      process.exit(1);
     }
 
     const examplesFolders = getExamplesFolders(versionedDir);
@@ -164,7 +173,9 @@ switch (shellCommand) {
 
   case 'test': { // npm run examples:test <version_number>
     if (!versionedExamplesExist) {
-      throw Error('Examples don\'t exist! First, create a directory with versioned examples.');
+      displayErrorMessage('Examples don\'t exist! First, create a directory with versioned examples.');
+
+      process.exit(1);
     }
 
     const examplesFolders = getExamplesFolders(versionedDir);
@@ -186,5 +197,7 @@ switch (shellCommand) {
   }
 
   default:
-    throw Error('Command doesn\'t exist.');
+    displayErrorMessage('Command doesn\'t exist.');
+
+    process.exit(1);
 }
