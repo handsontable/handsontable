@@ -61,7 +61,7 @@
     "freeze": "node --experimental-json-modules scripts/freeze.mjs",
     "release": "node --experimental-json-modules scripts/release.mjs",
     "changelog": "bin/changelog",
-    "publish": "cd tmp && npm publish && cd ..",
+    "publish-package": "cd tmp && npm publish",
     "publish-all": "npm run all publish",
     "prein": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
     "preall": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
