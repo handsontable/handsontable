@@ -10,7 +10,7 @@ const buildRegisterCleaner = (register) => () => {
 }
 
 export default ({ Vue, options, router, siteData, isServer }) => {
-    router.afterEach(buildRegisterCleaner(handsotnableInstancesRegister));
-    // replace RouterLink component with ours
-    // Vue.component('RouterLink', RouterLink);
+    if(!isServer) {
+        router.afterEach(buildRegisterCleaner(handsotnableInstancesRegister));
+    }
 }

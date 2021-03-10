@@ -2,7 +2,7 @@ const highlight = require('./highlight');
 const helpers = require('./helpers');
 const examples = require('./examples');
 
-const environmentHead = process.env.NODE_ENV === 'production' ?
+const environmentHead = process.env.BUILD_MODE === 'production' ?
   [
     // Google Tag Manager, an extra element within the `ssr.html` file.
     ['script', {}, `

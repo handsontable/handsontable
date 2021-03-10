@@ -1,6 +1,6 @@
 FROM node:15 as build
-ARG NODE_ENV
-ENV NODE_ENV=${NODE_ENV:-stage}
+ARG BUILD_MODE
+ENV BUILD_MODE=${BUILD_MODE:-stage}
 
 WORKDIR app
 

@@ -1,6 +1,6 @@
 ---
 title: Introduction
-permalink: /
+permalink: /todo-homepage
 canonicalUrl: /
 ---
 

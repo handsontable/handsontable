@@ -1,20 +1,24 @@
 {
-  "name": "ttsa",
-  "version": "0.0.1",
-  "description": "ttsa",
+  "name": "handsontable-documentation",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Handsontable documentation",
   "main": "index.js",
   "authors": {
-    "name": "ads",
-    "email": "asd"
+    "name": "Paweł Siemienik",
+    "email": "siemienik.pawel@gmail.com"
   },
-  "repository": "ads/ttsa",
+  "repository": {
+    "url": "https://github.com/handsontable/handsontable",
+    "directory": "docs"
+  },
   "scripts": {
     "docs:start": "vuepress dev ./",
     "docs:start:no-cache": "vuepress dev --no-cache ./",
     "docs:build": "vuepress build ./",
     "docs:docker:build": "npm run docs:docker:build:staging",
     "docs:docker:build:staging": "docker build .",
-    "docs:docker:build:production": "docker build --build-arg NODE_ENV=production .",
+    "docs:docker:build:production": "docker build --build-arg BUILD_MODE=production .",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js"
   },
   "license": "MIT",
