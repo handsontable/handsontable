@@ -1,0 +1,18 @@
+version: '3.5'
+services:
+##  should be run once for whole server
+#  watchtower:
+#    image: containrrr/watchtower
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    command: --interval 30 --cleanup --label-enable # per 30minutes
+
+  docusarous:
+    image: docs-md:latest
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+## possible to set project level redirects / custom nginx conf
+#    volumes:
+#      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8080:80
