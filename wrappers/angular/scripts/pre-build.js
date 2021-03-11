@@ -1,14 +1,19 @@
 const fse = require('fs-extra');
 const path = require('path');
 
-const LICENSE = 'LICENSE';
+const LICENSE = 'LICENSE.txt';
 const README = 'README.md';
 const PACKAGE = 'package.json';
-
 const TARGET_PATH = './dist/hot-table';
 
-fse.copySync(path.resolve(`./${LICENSE}`), path.resolve(`${TARGET_PATH}/${LICENSE}`), { overwrite: true });
-fse.copySync(path.resolve(`./${README}`), path.resolve(`${TARGET_PATH}/${README}`), { overwrite: true });
+[
+  'LICENSE.txt',
+  'README.md',
+  'handsontable-general-terms.pdf',
+  'handsontable-non-commercial-license.pdf',
+].forEach((file) => {
+  fse.copySync(path.resolve(`./${file}`), path.resolve(`${TARGET_PATH}/${file}`), { overwrite: true });
+});
 
 const PACKAGE_BODY = fse.readJsonSync(path.resolve(`./${PACKAGE}`), { encoding: 'utf-8' });
 

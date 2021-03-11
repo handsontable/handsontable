@@ -4,7 +4,7 @@
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./commonjs/react-handsontable.js",
   "module": "./es/react-handsontable.js",
   "jsdelivr": "./dist/react-handsontable.min.js",
