@@ -134,7 +134,6 @@ const formulasItems = [
   'formula-support',
 ];
 const apiHighLevelPages = [
-  'introduction',
   'core',
   'pluginHooks',
   'metaSchema'
