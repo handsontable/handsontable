@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
 import { spawnProcess } from './utils/processes.mjs';
-import { displayErrorMessage } from './utils/console.mjs';
+import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from './utils/console.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -117,10 +117,15 @@ switch (shellCommand) {
     }
 
     rimraf.sync(`${NEXT_EXAMPLES_DIR}/node_modules`);
+    displayConfirmationMessage(`node_modules removed from: "${NEXT_EXAMPLES_DIR}/node_modules"`);
 
+    displayInfoMessage(`Start deleting node_modules from: "${NEXT_EXAMPLES_DIR}/**/node_modules"`);
     rimraf.sync(`${NEXT_EXAMPLES_DIR}/**/node_modules`);
+    displayConfirmationMessage(`node_modules removed from: "${NEXT_EXAMPLES_DIR}/**/node_modules"`);
 
+    displayInfoMessage(`Start copying examples to: "${versionedDir}"`);
     fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
+    displayConfirmationMessage(`Examples copied to: "${versionedDir}"`);
 
     const versionedExamplesFolders = getExamplesFolders(versionedDir);
     const workspaceConfigFolders = getWorkspaceConfigFolders(versionedDir);
@@ -128,10 +133,12 @@ switch (shellCommand) {
     versionedExamplesFolders.forEach((versionedExampleDir) => {
       updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
     });
+    displayConfirmationMessage('package.json updated for code examples');
 
     workspaceConfigFolders.forEach((frameworkFolder) => {
       updateFrameworkWorkspacesNames(frameworkFolder, hotVersion);
     });
+    displayConfirmationMessage('package.json updated for examples workspaces');
 
     break;
   }

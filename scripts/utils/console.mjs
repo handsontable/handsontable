@@ -28,6 +28,15 @@ export function displayConfirmationMessage(message) {
 }
 
 /**
+ * Display a default info message in the console.
+ *
+ * @param {string} message The message to be displayed.
+ */
+export function displayInfoMessage(message) {
+  console.log(chalk.white(`${message}`));
+}
+
+/**
  * Display a separator surrounded by empty lines. (useful to temporarily visually distance the output from the
  * `experimental` warnings).
  */
