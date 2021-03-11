@@ -6,9 +6,9 @@ Code examples are structured by Handsontable version. Inside the version directo
 
 To see a deployed code example you can visit its URL. See [Live on production](#live-on-production) section to learn about the URL structure.
 
-To play around with the actual code under a specific code example you can open it on CodeSandbox. See [Preview on CodeSandbox](#preview-on-codesandbox) section to learn more.
+To play around with the actual code for a specific code example you can open it on CodeSandbox. See [Preview on CodeSandbox](#preview-on-codesandbox) section to learn more.
 
-To run arbitrary code example locally on your machine go to [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example).
+To run arbitrary code example locally on your machine see [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example) section.
 
 ### Contents
 
