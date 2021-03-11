@@ -32,6 +32,9 @@ module.exports = {
     },
   },
   plugins: [
+    ['sitemap', {
+      hostname: 'https://handsontable.com'
+    }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
