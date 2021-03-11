@@ -93,7 +93,7 @@
     "build:es": "cross-env NODE_ENV=es rollup -c",
     "build:min": "cross-env NODE_ENV=min rollup -c",
     "clean": "del-cli ./es/ && del-cli ./commonjs/ && del-cli ./dist/ && del-cli ./*.d.ts",
-    "publish": "npm publish",
+    "publish-package": "npm publish",
     "test": "jest",
     "watch:commonjs": "cross-env NODE_ENV=cjs rollup -c --watch",
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch"

@@ -50,7 +50,7 @@
     "test": "ng test hot-table",
     "lint": "ng lint hot-table",
     "e2e": "ng e2e",
-    "publish": "cd dist/hot-table && npm publish",
+    "publish-package": "cd dist/hot-table && npm publish",
     "release": "npm run test && npm run publish"
   },
   "peerDependencies": {

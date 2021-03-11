@@ -93,7 +93,7 @@
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch",
     "watch:umd": "cross-env NODE_ENV=umd rollup -c --watch",
     "clean": "del-cli ./es/ && del-cli ./commonjs/ && del-cli ./dist/ && del-cli ./*.d.ts",
-    "publish": "npm publish",
+    "publish-package": "npm publish",
     "test": "jest"
   },
   "jest": {

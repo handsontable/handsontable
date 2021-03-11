@@ -62,7 +62,7 @@
     "release": "node --experimental-json-modules scripts/release.mjs",
     "changelog": "bin/changelog",
     "publish-package": "cd tmp && npm publish",
-    "publish-all": "npm run all publish",
+    "publish-all": "npm run all publish-package",
     "prein": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
     "preall": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
     "postbuild": "node ./scripts/prepare-package-for-publish.mjs && node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable"
