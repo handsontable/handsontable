@@ -23,14 +23,14 @@ docker push docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest
 
 ## From GH Action
 
-It happens automatically for each commit pushed into the `master` branch.
+It happens automatically for each commit pushed into the `develop` branch.
 
 ## Manually from GH Action
 
 It is able to run manually deployment from any branch. To perform a deployment manually:
 
 1. Go into `Actions` tab in a repo,
-2. On the left-hend side, select `docs-md`,
+2. On the left-hend side, select `documentation`,
 3. On the right-hand side, click `Run workflow`
 4. Select branch,
 5. Run workflow.
@@ -51,4 +51,4 @@ docker push docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest
 
 ## Production environment:
 
-Doesn't exists.
+Doesn't exists yet.

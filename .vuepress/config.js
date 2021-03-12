@@ -18,7 +18,7 @@ const environmentHead = process.env.BUILD_MODE === 'production' ?
   : [];
 
 module.exports = {
-  patterns: ['**/*.md', '!README.md'], // to enable vue pages add: '**/*.vue'.
+  patterns: ['**/*.md', '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
   description: 'Handsontable',
   base: '/docs/',
   head: [
