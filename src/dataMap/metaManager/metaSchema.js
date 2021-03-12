@@ -7,8 +7,6 @@ import { isObjectEqual } from '../../helpers/object';
  * @class Options
  * @description
  *
- * ## Constructor options.
- *
  * Constructor options are applied using an object literal passed as a second argument to the Handsontable constructor.
  *
  * ```js
@@ -321,7 +319,7 @@ export default () => {
      * (if you want to define row height separately for each row) or a function (if you want to set row height dynamically
      * on each render).
      *
-     * If the {@link ManualRowResize} or {@link AutoRowSize} plugins are enabled, this is also the minimum height that can
+     * If the {@link manual-row-resize ManualRowResize} or {@link auto-row-size AutoRowSize} plugins are enabled, this is also the minimum height that can
      * be set via either of those two plugins.
      *
      * The default height for rows in the rendering process equals 23px.
@@ -451,7 +449,7 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link Comments} plugin, which enables an option to apply cell comments through the context menu
+     * If `true`, enables the {@link comments Comments} plugin, which enables an option to apply cell comments through the context menu
      * (configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
      *
      * To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
@@ -490,7 +488,7 @@ export default () => {
 
     /**
      * @description
-     * If `true`, enables the {@link CustomBorders} plugin, which enables an option to apply custom borders through the context
+     * If `true`, enables the {@link custom-borders CustomBorders} plugin, which enables an option to apply custom borders through the context
      * menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
      * provide cell coordinates and border styles in a form of an array.
      *
@@ -1432,7 +1430,7 @@ export default () => {
 
     /**
      * @description
-     * Setting to `true` enables the {@link Search} plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
+     * Setting to `true` enables the {@link search Search} plugin (see [demo](https://docs.handsontable.com/demo-search-for-values.html)).
      *
      * @memberof Options#
      * @type {boolean}
@@ -2062,7 +2060,7 @@ export default () => {
     disableVisualSelection: false,
 
     /**
-     * Disables or enables {@link ManualColumnFreeze} plugin.
+     * Disables or enables {@link manual-column-freeze ManualColumnFreeze} plugin.
      *
      * @memberof Options#
      * @type {boolean}
@@ -2284,7 +2282,7 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`,
+     * Enables or disables the {@link auto-column-size AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`,
      * meaning, the `syncLimit` is set to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
      *
@@ -2317,7 +2315,7 @@ export default () => {
     autoColumnSize: void 0,
 
     /**
-     * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
+     * Enables or disables {@link auto-row-size AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
      * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
      *
      * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
@@ -2504,7 +2502,7 @@ export default () => {
 
     /**
      * @description
-     * Enables the functionality of the {@link BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
+     * Enables the functionality of the {@link bind-rows-with-headers BindRowsWithHeaders} plugin which allows binding the table rows with their headers.
      * If the plugin is enabled, the table row headers will "stick" to the rows, when they are hidden/moved. Basically,
      * if at the initialization row 0 has a header titled "A", it will have it no matter what you do with the table.
      *
@@ -2522,7 +2520,7 @@ export default () => {
 
     /**
      * @description
-     * The {@link CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
+     * The {@link collapsible-columns CollapsibleColumns} plugin allows collapsing of columns, covered by a header with the `colspan` property
      * defined.
      *
      * Clicking the "collapse/expand" button collapses (or expands) all "child" headers except the first one.
@@ -2593,7 +2591,7 @@ export default () => {
 
     /**
      * This plugin allows adding a configurable dropdown menu to the table's column headers. The dropdown menu acts like
-     * the {@link Options#contextMenu}, but is triggered by clicking the button in the header.
+     * the {@link options#contextmenu Options#contextMenu}, but is triggered by clicking the button in the header.
      *
      * @memberof Options#
      * @type {boolean|object|string[]}
@@ -2612,7 +2610,7 @@ export default () => {
     dropdownMenu: void 0,
 
     /**
-     * The {@link Filters} plugin allows filtering the table data either by the built-in component or with the API.
+     * The {@link filters Filters} plugin allows filtering the table data either by the built-in component or with the API.
      *
      * @memberof Options#
      * @type {boolean}
@@ -2627,7 +2625,7 @@ export default () => {
     filters: void 0,
 
     /**
-     * The {@link Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
+     * The {@link formulas Formulas} plugin allows Handsontable to process formula expressions defined in the provided data.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2679,7 +2677,7 @@ export default () => {
     headerTooltips: void 0,
 
     /**
-     * The {@link HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
+     * The {@link hidden-columns HiddenColumns} plugin allows hiding of certain columns. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `columns` - an array of rows that should be hidden on plugin initialization
      *  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -2705,7 +2703,7 @@ export default () => {
     hiddenColumns: void 0,
 
     /**
-     * The {@link HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
+     * The {@link hidden-rows HiddenRows} plugin allows hiding of certain rows. You can pass additional configuration with an
      * object notation. Options that are then available are:
      *  * `rows` - an array of rows that should be hidden on plugin initialization
      *  * `indicators` - enables small ui markers to indicate where are hidden columns.
@@ -2817,10 +2815,10 @@ export default () => {
 
     /**
      * @description
-     * Enables the {@link ObserveChanges} plugin switches table into one-way data binding where changes are applied into
+     * Enables the {@link observe-changes ObserveChanges} plugin switches table into one-way data binding where changes are applied into
      * data source (from outside table) will be automatically reflected in the table.
      *
-     * For every data change [afterChangesObserved](Hooks.html#event:afterChangesObserved) hook will be fired.
+     * For every data change [afterChangesObserved](hooks#afterchangesobserved) hook will be fired.
      *
      * @memberof Options#
      * @type {boolean}

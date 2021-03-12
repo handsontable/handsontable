@@ -40,7 +40,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * autoColumnSize: {syncLimit: '40%'},
  * ```
  *
- * To configure this plugin see {@link Options#autoColumnSize}.
+ * To configure this plugin see {@link options#autocolumnsize Options#autoColumnSize}.
  *
  * @example
  * ```js
@@ -89,14 +89,14 @@ export class AutoColumnSize extends BasePlugin {
       cachedColumnHeaders: [],
     });
     /**
-     * Instance of {@link GhostTable} for rows and columns size calculations.
+     * Instance of {@link ghost-table GhostTable} for rows and columns size calculations.
      *
      * @private
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
-     * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
+     * Instance of {@link samples-generator SamplesGenerator} for generating samples necessary for columns width calculations.
      *
      * @private
      * @type {SamplesGenerator}
@@ -164,8 +164,8 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` than the {@link AutoColumnSize#enablePlugin} method is called.
+   * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link hooks#beforeinit Hooks#beforeInit}
+   * hook and if it returns `true` than the {@link auto-column-size#enableplugin #enablePlugin} method is called.
    *
    * @returns {boolean}
    */
@@ -198,7 +198,7 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
+   * Updates the plugin state. This method is executed when {@link core#updatesettings Core#updateSettings} is invoked.
    */
   updatePlugin() {
     const changedColumns = this.findColumnsWhereHeaderWasChanged();
@@ -287,8 +287,8 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculates all columns width. The calculated column will be cached in the {@link AutoColumnSize#widths} property.
-   * To retrieve width for specified column use {@link AutoColumnSize#getColumnWidth} method.
+   * Calculates all columns width. The calculated column will be cached in the {@link auto-column-size#widths AutoColumnSize#widths} property.
+   * To retrieve width for specified column use {@link auto-column-size#getcolumnwidth AutoColumnSize#getColumnWidth} method.
    *
    * @param {object|number} rowRange Row index or an object with `from` and `to` properties which define row range.
    */
@@ -376,7 +376,7 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
-   * asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see {@link Options#autoColumnSize}).
+   * asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see {@link options#autocolumnsize Options#autoColumnSize}).
    *
    * @returns {number}
    */
