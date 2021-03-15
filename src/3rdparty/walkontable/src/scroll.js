@@ -196,39 +196,9 @@ class Scroll {
    * @returns {number}
    */
   getFirstVisibleColumn() {
-    const {
-      leftOverlay,
-      wtTable,
-      wtViewport,
-      totalColumns,
-    } = this._getVariables();
-    const rootWindow = this.wot.rootWindow;
+    const { wtTable } = this._getVariables();
 
-    let firstVisibleColumn = wtTable.getFirstVisibleColumn();
-
-    if (leftOverlay.mainTableScrollableElement === rootWindow) {
-      const rootElementOffset = offset(wtTable.wtRootElement);
-      const totalTableWidth = innerWidth(wtTable.hider);
-      const windowWidth = innerWidth(rootWindow);
-      const windowScrollLeft = getScrollLeft(rootWindow, rootWindow);
-
-      // Only calculate firstVisibleColumn when table didn't filled (from left) whole viewport space
-      if (rootElementOffset.left + totalTableWidth - windowWidth <= windowScrollLeft) {
-        let columnsWidth = wtViewport.getRowHeaderWidth();
-
-        for (let column = totalColumns; column > 0; column--) {
-          columnsWidth += leftOverlay.sumCellSizes(column - 1, column);
-
-          if (rootElementOffset.left + totalTableWidth - columnsWidth <= windowScrollLeft) {
-            // Return physical column + 1
-            firstVisibleColumn = column;
-            break;
-          }
-        }
-      }
-    }
-
-    return firstVisibleColumn;
+    return wtTable.getFirstVisibleColumn();
   }
 
   /**
