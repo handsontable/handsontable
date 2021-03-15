@@ -1915,7 +1915,7 @@ const REGISTERED_HOOKS = [
    * @since 8.4.0
    * @param {number|string|undefined} seed Seed ID, unique name to categorize samples.
    * @param {object} cellProperties Object containing the cell properties.
-   * @param {*} value Value of the cell.
+   * @param {*} cellValue Value of the cell.
    */
   'modifyAutoColumnSizeSeed',
 ];
