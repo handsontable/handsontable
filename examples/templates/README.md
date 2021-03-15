@@ -18,22 +18,25 @@ In order to create new code examples with these templates, each new example must
 #### Common `package.json` features (the same for every new example)
 
 ``` json
-"version": "0.0.0" # will be overwritten on new version created,
-"homepage": "https://handsontable.com/",
-"private": true,
-"repository":
-  "type": "git",
-  "url": "https://github.com/handsontable/handsontable.git"
-"bugs":
-  "url": "https://github.com/handsontable/handsontable/issues"
-"author": "Handsoncode <hello@handsontable.com>",
-"license": "MIT",
-"dependencies":
-  "handsontable": "latest"
-  "@handsontable/{{ WRAPPER NAME }}": "latest" # only for frameworks
+{
+  "version": "0.0.0", # will be overwritten on new version created,
+  "homepage": "https://handsontable.com/",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handsontable/handsontable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handsontable/handsontable/issues"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
+  "license": "MIT",
+  "dependencies": {
+    "handsontable": "latest",
+    "@handsontable/{{ WRAPPER NAME }}": "latest" # only for frameworks
+  }
+}
 ```
-
-
 
 #### Don't touch
 
