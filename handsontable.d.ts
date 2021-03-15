@@ -1944,10 +1944,22 @@ declare namespace Handsontable {
 
   type Bucket = {
     [P in keyof Hooks.Events]: Hooks.Events[P][];
+  };  type NumbroNumberFormat = {
+    average?: boolean;
+    base?: 'decimal' | 'binary' | 'general';
+    forceSign?: boolean;
+    mantissa?: number;
+    negative?: 'sign' | 'parenthesis';
+    optionalMantissa?: boolean;
+    output?: 'currency' | 'percent' | 'byte' | 'time' | 'ordinal' | 'number';
+    spaceSeparated?: boolean;
+    thousandSeparated?: boolean;
+    totalLength?: number;
+    trimMantissa?: boolean;
   };
 
   interface NumericFormatOptions {
-    pattern: string;
+    pattern: string | NumbroNumberFormat;
     culture?: string;
   }
 
