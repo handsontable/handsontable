@@ -1,0 +1,7 @@
+{
+  "title": "Introduced `modifyAutoColumnSizeSeed` hook to let developers overwrite an default behavior.",
+  "type": "added",
+  "issue": 3339,
+  "breaking": false,
+  "framework": "none"
+}

@@ -10,6 +10,7 @@ import { equalsIgnoreCase } from '../../helpers/string';
 import { isKey } from '../../helpers/unicode';
 
 import './checkboxRenderer.css';
+import Hooks from '../../pluginHooks';
 
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
@@ -17,6 +18,31 @@ const BAD_VALUE_CLASS = 'htBadValue';
 
 export const RENDERER_TYPE = 'checkbox';
 
+Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleCountSeed, cellMeta, cellValue) {
+  const { label, type, row, column, prop } = cellMeta;
+
+  if (type !== RENDERER_TYPE) {
+    return;
+  }
+
+  if (label) {
+    const { value: labelValue, property: labelProperty } = label;
+    let labelText = '';
+
+    if (labelValue) {
+      labelText = typeof labelValue === 'function' ?
+        labelValue(row, column, prop, cellValue) : labelValue;
+
+    } else if (labelProperty) {
+      const labelData = this.getDataAtRowProp(row, labelProperty);
+      labelText = labelData !== null ? labelData : '';
+    }
+
+    bundleCountSeed = labelText.length;
+  }
+
+  return bundleCountSeed;
+});
 /**
  * Checkbox renderer.
  *

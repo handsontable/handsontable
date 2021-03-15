@@ -1904,6 +1904,7 @@ declare namespace Handsontable {
       beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
       construct?: () => void;
       init?: () => void;
+      modifyAutoColumnSizeSeed?: (seed: number | string | void, cellProperties: CellProperties, cellValue: CellValue) => number | number | void;
       modifyAutofillRange?: (startArea: [number, number, number, number][], entireArea: [number, number, number, number][]) => void;
       modifyColHeader?: (column: number) => void;
       modifyColumnHeaderHeight?: () => void;

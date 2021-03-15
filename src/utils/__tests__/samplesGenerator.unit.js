@@ -1,6 +1,30 @@
-import SamplesGenerator from 'handsontable/utils/samplesGenerator';
+import SamplesGenerator from '../samplesGenerator';
 
 describe('SamplesGenerator', () => {
+  it('should throw an error if type is unsupported', () => {
+    const sg = new SamplesGenerator();
+
+    expect(() => {
+      sg.generateSample('unsupported');
+    }).toThrowError('Unsupported sample type');
+  });
+
+  it('should be possible to set samples count', () => {
+    const sg = new SamplesGenerator();
+
+    sg.setSampleCount(10);
+
+    expect(sg.getSampleCount()).toBe(10);
+  });
+
+  it('should be possible to allow using duplicates', () => {
+    const sg = new SamplesGenerator();
+
+    sg.setAllowDuplicates(true);
+
+    expect(sg.allowDuplicates).toBe(true);
+  });
+
   it('should internally call `generateSamples` when calling `generateRowSamples`', () => {
     const sg = new SamplesGenerator();
 
@@ -110,11 +134,10 @@ describe('SamplesGenerator', () => {
 
   it('should generate row sample controlled by `bundleCountSeed` (in case of collecting more samples despite their repeatability)', () => {
     let seedIndex = 0;
+    const data = [
+      [true, true, true, true, true, true, true, true, true, true],
+    ];
     const sg = new SamplesGenerator((row, col) => {
-      const data = [
-        [true, true, true, true, true, true, true, true, true, true],
-      ];
-
       seedIndex += 1;
 
       return {

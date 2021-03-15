@@ -140,30 +140,32 @@ class SamplesGenerator {
     rangeEach(range.from, range.to, (index) => {
       const { value, bundleCountSeed } = type === 'row' ?
         this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
-      const hasCustomBundleSeed = bundleCountSeed > 0;
-      let length;
+      const hasCustomBundleSeed = typeof bundleCountSeed === 'string'
+        ? bundleCountSeed
+        : bundleCountSeed > 0;
+      let seed;
 
       if (isObject(value)) {
-        length = Object.keys(value).length;
+        seed = Object.keys(value).length;
 
       } else if (Array.isArray(value)) {
-        length = value.length;
+        seed = value.length;
 
       } else {
-        length = stringify(value).length;
+        seed = stringify(value).length;
       }
 
       if (hasCustomBundleSeed) {
-        length += bundleCountSeed;
+        seed += bundleCountSeed;
       }
 
-      if (!samples.has(length)) {
-        samples.set(length, {
+      if (!samples.has(seed)) {
+        samples.set(seed, {
           needed: this.getSampleCount(),
           strings: [],
         });
       }
-      const sample = samples.get(length);
+      const sample = samples.get(seed);
 
       if (sample.needed) {
         const duplicate = sampledValues.indexOf(value) > -1;

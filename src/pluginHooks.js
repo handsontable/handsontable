@@ -1907,6 +1907,17 @@ const REGISTERED_HOOKS = [
    * @param {boolean} successfullyExpanded `true`, if the action affected any non-collapsible column, `false` otherwise.
    */
   'afterColumnExpand',
+
+  /**
+   * Fired by {@link AutoColumnSize} plugin within {@link SampleGenerator} utility.
+   *
+   * @event Hooks#modifyAutoColumnSizeSeed
+   * @since 8.4.0
+   * @param {number|string|undefined} seed Seed ID, unique name to categorize samples.
+   * @param {object} cellProperties Object containing the cell properties.
+   * @param {*} value Value of the cell.
+   */
+  'modifyAutoColumnSizeSeed',
 ];
 
 /**
