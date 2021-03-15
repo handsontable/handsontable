@@ -60,11 +60,12 @@
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ./hot.config.js webpack",
     "freeze": "node --experimental-json-modules scripts/freeze.mjs",
     "release": "node --experimental-json-modules scripts/release.mjs",
-    "postbuild": "node ./scripts/prepare-package-for-publish.mjs && node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
-    "postinstall": "npm link --no-audit --no-fund ./.config/plugin/eslint && npm link --no-audit --no-fund eslint-plugin-handsontable && node --experimental-json-modules ./scripts/swap-package-links.mjs",
     "changelog": "bin/changelog",
-    "publish": "cd tmp && npm publish && cd ..",
-    "publish-all": "npm run all publish"
+    "publish-package": "cd tmp && npm publish",
+    "publish-all": "npm run all publish",
+    "prein": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
+    "preall": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
+    "postbuild": "node ./scripts/prepare-package-for-publish.mjs && node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable"
   },
   "keywords": [
     "data",
@@ -121,6 +122,7 @@
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-handsontable": "file:.config/plugin/eslint",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsdoc": "^20.3.1",
     "execa": "^5.0.0",
