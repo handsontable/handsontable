@@ -23,43 +23,49 @@ square in the corner.
 ## Members:
 
 ### autoInsertRow
-`autofill.autoInsertRow : boolean`
+
+_autofill.autoInsertRow : boolean_
 
 Specifies if can insert new rows if needed.
 
 
-## Functions:
+## Methods:
 
 ### destroy
-`autofill.destroy()`
+
+_autofill.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`autofill.disablePlugin()`
+
+_autofill.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`autofill.enablePlugin()`
+
+_autofill.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
-`autofill.isEnabled() ⇒ boolean`
+
+_autofill.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the Handsontable settings.
 
 
 
 ### updatePlugin
-`autofill.updatePlugin()`
+
+_autofill.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

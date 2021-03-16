@@ -20,7 +20,6 @@ Possible plugin settings:
  * `rows` as `Array`
  * `indicators` as `Boolean` (default `false`).
 
-
 **Example**  
 ```js
 const container = document.getElementById('example');
@@ -57,38 +56,44 @@ hiddenRowsPlugin.hideRows([1, 2, 9]);
 // rerender the table to see all changes
 hot.render();
 ```
-## Functions:
+
+## Methods:
 
 ### destroy
-`hiddenRows.destroy()`
+
+_hiddenRows.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`hiddenRows.disablePlugin()`
+
+_hiddenRows.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`hiddenRows.enablePlugin()`
+
+_hiddenRows.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getHiddenRows
-`hiddenRows.getHiddenRows() ⇒ Array.<number>`
+
+_hiddenRows.getHiddenRows() ⇒ Array&lt;number&gt;_
 
 Returns an array of visual indexes of hidden rows.
 
 
 
 ### hideRow
-`hiddenRows.hideRow(...row)`
+
+_hiddenRows.hideRow(...row)_
 
 Hides the row provided as row index (counting from 0).
 
@@ -100,7 +105,8 @@ Hides the row provided as row index (counting from 0).
 
 
 ### hideRows
-`hiddenRows.hideRows(rows)`
+
+_hiddenRows.hideRows(rows)_
 
 Hides the rows provided in the array.
 
@@ -112,7 +118,8 @@ Hides the rows provided in the array.
 
 
 ### isEnabled
-`hiddenRows.isEnabled() ⇒ boolean`
+
+_hiddenRows.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) method is called.
@@ -120,7 +127,8 @@ hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) 
 
 
 ### isHidden
-`hiddenRows.isHidden(row) ⇒ boolean`
+
+_hiddenRows.isHidden(row) ⇒ boolean_
 
 Checks if the provided row is hidden.
 
@@ -132,7 +140,8 @@ Checks if the provided row is hidden.
 
 
 ### isValidConfig
-`hiddenRows.isValidConfig(hiddenRows) ⇒ boolean`
+
+_hiddenRows.isValidConfig(hiddenRows) ⇒ boolean_
 
 Checks whether all of the provided row indexes are within the bounds of the table.
 
@@ -144,7 +153,8 @@ Checks whether all of the provided row indexes are within the bounds of the tabl
 
 
 ### showRow
-`hiddenRows.showRow(...row)`
+
+_hiddenRows.showRow(...row)_
 
 Shows the row provided as row index (counting from 0).
 
@@ -156,7 +166,8 @@ Shows the row provided as row index (counting from 0).
 
 
 ### showRows
-`hiddenRows.showRows(rows)`
+
+_hiddenRows.showRows(rows)_
 
 Shows the rows provided in the array.
 
@@ -168,7 +179,8 @@ Shows the rows provided in the array.
 
 
 ### updatePlugin
-`hiddenRows.updatePlugin()`
+
+_hiddenRows.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

@@ -51,7 +51,7 @@ export default {
     apiLink(){
       return {
         link: '/api/',
-        text: 'Api Reference'
+        text: 'API Reference'
       }
     },
     userNav () {

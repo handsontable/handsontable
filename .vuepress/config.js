@@ -76,6 +76,7 @@ module.exports = {
     lastUpdated: true,
     smoothScroll: false,
     nav: [
+      // Guide & API Reference has defined in: theme/components/NavLinks.vue
       { text: 'Demo', link: 'https://handsontable.com/examples' },
       { text: 'Support', items: [
           { text: 'Forum', link: 'https://forum.handsontable.com' },

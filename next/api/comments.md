@@ -29,7 +29,6 @@ comments: {
 
 To add comments at the table initialization, define the `comment` property in the `cell` config array as in an example below.
 
-
 **Example**  
 ```js
 const hot = new Handsontable(document.getElementById('example'), {
@@ -55,54 +54,62 @@ commentsPlugin.setComment('Comment contents');
 commentsPlugin.show();
 commentsPlugin.removeComment();
 ```
+
 ## Members:
 
 ### range
-`comments.range : object`
+
+_comments.range : object_
 
 Current cell range, an object with `from` property, with `row` and `col` properties (e.q. `{from: {row: 1, col: 6}}`).
 
 
-## Functions:
+## Methods:
 
 ### clearRange
-`comments.clearRange()`
+
+_comments.clearRange()_
 
 Clears the currently selected cell.
 
 
 
 ### destroy
-`comments.destroy()`
+
+_comments.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`comments.disablePlugin()`
+
+_comments.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`comments.enablePlugin()`
+
+_comments.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getComment
-`comments.getComment() ⇒ string | undefined`
+
+_comments.getComment() ⇒ string | undefined_
 
 Gets comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
 
 
-**Returns**: <code>string</code> \| <code>undefined</code> - Returns a content of the comment.  
+**Returns**: string | undefined - Returns a content of the comment.  
 
 ### getCommentAtCell
-`comments.getCommentAtCell(row, column) ⇒ string | undefined`
+
+_comments.getCommentAtCell(row, column) ⇒ string | undefined_
 
 Gets comment from a cell at the provided coordinates.
 
@@ -113,10 +120,11 @@ Gets comment from a cell at the provided coordinates.
 | column | <code>number</code> | Visual column index. |
 
 
-**Returns**: <code>string</code> \| <code>undefined</code> - Returns a content of the comment.  
+**Returns**: string | undefined - Returns a content of the comment.  
 
 ### getCommentMeta
-`comments.getCommentMeta(row, column, property) ⇒ Mixed`
+
+_comments.getCommentMeta(row, column, property) ⇒ Mixed_
 
 Gets the comment related meta information.
 
@@ -130,14 +138,16 @@ Gets the comment related meta information.
 
 
 ### hide
-`comments.hide()`
+
+_comments.hide()_
 
 Hides the comment editor.
 
 
 
 ### isEnabled
-`comments.isEnabled() ⇒ boolean`
+
+_comments.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#Comments+enablePlugin) method is called.
@@ -145,7 +155,8 @@ hook and if it returns `true` than the [enablePlugin](#Comments+enablePlugin) me
 
 
 ### refreshEditor
-`comments.refreshEditor([force])`
+
+_comments.refreshEditor([force])_
 
 Refreshes comment editor position and styling.
 
@@ -157,7 +168,8 @@ Refreshes comment editor position and styling.
 
 
 ### removeComment
-`comments.removeComment([forceRender])`
+
+_comments.removeComment([forceRender])_
 
 Removes a comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
 
@@ -169,7 +181,8 @@ Removes a comment from a cell according to previously set range (see [setRange](
 
 
 ### removeCommentAtCell
-`comments.removeCommentAtCell(row, column, [forceRender])`
+
+_comments.removeCommentAtCell(row, column, [forceRender])_
 
 Removes a comment from a specified cell.
 
@@ -183,7 +196,8 @@ Removes a comment from a specified cell.
 
 
 ### setComment
-`comments.setComment(value)`
+
+_comments.setComment(value)_
 
 Sets a comment for a cell according to the previously set range (see [setRange](#Comments+setRange)).
 
@@ -195,7 +209,8 @@ Sets a comment for a cell according to the previously set range (see [setRange](
 
 
 ### setCommentAtCell
-`comments.setCommentAtCell(row, column, value)`
+
+_comments.setCommentAtCell(row, column, value)_
 
 Sets a comment for a specified cell.
 
@@ -209,7 +224,8 @@ Sets a comment for a specified cell.
 
 
 ### setRange
-`comments.setRange(range)`
+
+_comments.setRange(range)_
 
 Sets the current cell range to be able to use general methods like [setComment](#Comments+setComment), [removeComment](#Comments+removeComment), [show](#Comments+show).
 
@@ -221,15 +237,17 @@ Sets the current cell range to be able to use general methods like [setComment](
 
 
 ### show
-`comments.show() ⇒ boolean`
+
+_comments.show() ⇒ boolean_
 
 Shows the comment editor accordingly to the previously set range (see [setRange](#Comments+setRange)).
 
 
-**Returns**: <code>boolean</code> - Returns `true` if comment editor was shown.  
+**Returns**: boolean - Returns `true` if comment editor was shown.  
 
 ### showAtCell
-`comments.showAtCell(row, column) ⇒ boolean`
+
+_comments.showAtCell(row, column) ⇒ boolean_
 
 Shows comment editor according to cell coordinates.
 
@@ -240,10 +258,11 @@ Shows comment editor according to cell coordinates.
 | column | <code>number</code> | Visual column index. |
 
 
-**Returns**: <code>boolean</code> - Returns `true` if comment editor was shown.  
+**Returns**: boolean - Returns `true` if comment editor was shown.  
 
 ### updateCommentMeta
-`comments.updateCommentMeta(row, column, metaObject)`
+
+_comments.updateCommentMeta(row, column, metaObject)_
 
 Sets or update the comment-related cell meta.
 
@@ -257,7 +276,8 @@ Sets or update the comment-related cell meta.
 
 
 ### updatePlugin
-`comments.updatePlugin()`
+
+_comments.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

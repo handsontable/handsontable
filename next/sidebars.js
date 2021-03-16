@@ -138,13 +138,19 @@ const apiHighLevelPages = [
   'pluginHooks',
   'metaSchema'
 ]
+const nonPublicPages = [
+  'indexMapper',
+  'baseEditor',
+  'coords',
+  'focusableElement',
+]
 const API = [
   ...apiHighLevelPages,
   {
     title: 'Plugins',
     collapsable: false,
     children: fs.readdirSync(path.join(__dirname, 'api/'))
-        .filter(f=>!apiHighLevelPages.includes(f.split('.').shift()))
+        .filter(f=>![...nonPublicPages, ...apiHighLevelPages].includes(f.split('.').shift()))
   },
 ];
 

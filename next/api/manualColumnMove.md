@@ -28,24 +28,27 @@ The plugin creates additional components to make moving possibly using user inte
 - guideline - line which shows where columns has been moved.
 
 
-## Functions:
+## Methods:
 
 ### destroy
-`manualColumnMove.destroy()`
+
+_manualColumnMove.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`manualColumnMove.disablePlugin()`
+
+_manualColumnMove.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### dragColumn
-`manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean`
+
+_manualColumnMove.dragColumn(column, dropIndex) ⇒ boolean_
 
 Drag a single column to drop index position.
 
@@ -59,7 +62,8 @@ Drag a single column to drop index position.
 
 
 ### dragColumns
-`manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean`
+
+_manualColumnMove.dragColumns(columns, dropIndex) ⇒ boolean_
 
 Drag multiple columns to drop index position.
 
@@ -73,14 +77,16 @@ Drag multiple columns to drop index position.
 
 
 ### enablePlugin
-`manualColumnMove.enablePlugin()`
+
+_manualColumnMove.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
-`manualColumnMove.isEnabled() ⇒ boolean`
+
+_manualColumnMove.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeInit)
 hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-column-move/#enableplugin) method is called.
@@ -88,7 +94,8 @@ hook and if it returns `true` than the [ManualColumnMove#enablePlugin](./manual-
 
 
 ### isMovePossible
-`manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean`
+
+_manualColumnMove.isMovePossible(movedColumns, finalIndex) ⇒ boolean_
 
 Indicates if it's possible to move columns to the desired position. Some of the actions aren't possible, i.e. You can’t move more than one element to the last position.
 
@@ -101,7 +108,8 @@ Indicates if it's possible to move columns to the desired position. Some of the 
 
 
 ### moveColumn
-`manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean`
+
+_manualColumnMove.moveColumn(column, finalIndex) ⇒ boolean_
 
 Moves a single column.
 
@@ -115,7 +123,8 @@ Moves a single column.
 
 
 ### moveColumns
-`manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean`
+
+_manualColumnMove.moveColumns(columns, finalIndex) ⇒ boolean_
 
 Moves a multiple columns.
 
@@ -129,7 +138,8 @@ Moves a multiple columns.
 
 
 ### updatePlugin
-`manualColumnMove.updatePlugin()`
+
+_manualColumnMove.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./core/#updatesettings) is invoked.
 

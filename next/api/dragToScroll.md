@@ -17,16 +17,18 @@ Plugin used to scroll Handsontable by selecting a cell and dragging outside of t
 ## Members:
 
 ### boundaries
-`dragToScroll.boundaries : DOMRect`
+
+_dragToScroll.boundaries : DOMRect_
 
 Size of an element and its position relative to the viewport,
 e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
 
 
-## Functions:
+## Methods:
 
 ### check
-`dragToScroll.check(x, y)`
+
+_dragToScroll.check(x, y)_
 
 Checks if the mouse position (X, Y) is outside of the viewport and fires a callback with calculated X an Y diffs
 between passed boundaries.
@@ -40,28 +42,32 @@ between passed boundaries.
 
 
 ### destroy
-`dragToScroll.destroy()`
+
+_dragToScroll.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`dragToScroll.disablePlugin()`
+
+_dragToScroll.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`dragToScroll.enablePlugin()`
+
+_dragToScroll.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
-`dragToScroll.isEnabled() ⇒ boolean`
+
+_dragToScroll.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin) method is called.
@@ -69,7 +75,8 @@ hook and if it returns `true` than the [enablePlugin](#DragToScroll+enablePlugin
 
 
 ### setBoundaries
-`dragToScroll.setBoundaries(boundaries)`
+
+_dragToScroll.setBoundaries(boundaries)_
 
 Sets the value of the visible element.
 
@@ -81,7 +88,8 @@ Sets the value of the visible element.
 
 
 ### setCallback
-`dragToScroll.setCallback(callback)`
+
+_dragToScroll.setCallback(callback)_
 
 Changes callback function.
 
@@ -93,7 +101,8 @@ Changes callback function.
 
 
 ### updatePlugin
-`dragToScroll.updatePlugin()`
+
+_dragToScroll.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

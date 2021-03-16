@@ -15,8 +15,6 @@ To initialize Handsontable with predefined custom borders, provide cells coordin
 
 **See full example below:**
 
-Edit Log to console
-
 ::: example #example1
 ```js
 var container = document.getElementById('example1'),

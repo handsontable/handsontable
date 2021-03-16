@@ -19,7 +19,6 @@ of an array.
 
 See [Custom Borders](https://handsontable.com/docs/demo-customizing-borders.html) demo for more examples.
 
-
 **Example**  
 ```js
 customBorders: [
@@ -58,18 +57,14 @@ customBorders: [
   }
 ],
 ```
-## Functions:
+
+## Methods:
 
 ### clearBorders
-`customBorders.clearBorders(selectionRanges)`
+
+_customBorders.clearBorders(selectionRanges)_
 
 Clear custom borders.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
-
 
 **Example**  
 ```js
@@ -83,39 +78,42 @@ customBordersPlugin.clearBorders(hot.getSelectedRange());
 customBordersPlugin.clearBorders();
 ```
 
+| Param | Type | Description |
+| --- | --- | --- |
+| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
+
+
+
 ### destroy
-`customBorders.destroy()`
+
+_customBorders.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`customBorders.disablePlugin()`
+
+_customBorders.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`customBorders.enablePlugin()`
+
+_customBorders.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getBorders
-`customBorders.getBorders(selectionRanges) ⇒ Array.<object>`
+
+_customBorders.getBorders(selectionRanges) ⇒ Array&lt;object&gt;_
 
 Get custom borders.
 
-
-| Param | Type | Description |
-| --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
-
-
-**Returns**: <code>Array.&lt;object&gt;</code> - Returns array of border objects.  
 **Example**  
 ```js
 const customBordersPlugin = hot.getPlugin('customBorders');
@@ -128,8 +126,16 @@ customBordersPlugin.getBorders(hot.getSelectedRange());
 customBordersPlugin.getBorders();
 ```
 
+| Param | Type | Description |
+| --- | --- | --- |
+| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
+
+
+**Returns**: Array.&lt;object&gt; - Returns array of border objects.  
+
 ### isEnabled
-`customBorders.isEnabled() ⇒ boolean`
+
+_customBorders.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugin) method is called.
@@ -137,16 +143,10 @@ hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugi
 
 
 ### setBorders
-`customBorders.setBorders(selectionRanges, borderObject)`
+
+_customBorders.setBorders(selectionRanges, borderObject)_
 
 Set custom borders.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
-| borderObject | <code>object</code> | Object with `top`, `right`, `bottom` and `left` properties. |
-
 
 **Example**  
 ```js
@@ -162,8 +162,16 @@ hot.selectCell(0, 0, 2, 2);
 customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
 ```
 
+| Param | Type | Description |
+| --- | --- | --- |
+| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
+| borderObject | <code>object</code> | Object with `top`, `right`, `bottom` and `left` properties. |
+
+
+
 ### updatePlugin
-`customBorders.updatePlugin()`
+
+_customBorders.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

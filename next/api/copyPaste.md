@@ -25,7 +25,6 @@ or an object with values:
 
 See [the copy/paste demo](https://handsontable.com/docs/demo-copy-paste.html) for examples.
 
-
 **Example**  
 ```js
 // Enables the plugin with default values
@@ -38,10 +37,12 @@ copyPaste: {
   uiContainer: document.body,
 },
 ```
+
 ## Members:
 
 ### columnsLimit
-`copyPaste.columnsLimit : number`
+
+_copyPaste.columnsLimit : number_
 
 Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
 
@@ -49,14 +50,16 @@ Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> 
 
 
 ### focusableElement
-`copyPaste.focusableElement : FocusableWrapper`
+
+_copyPaste.focusableElement : [FocusableWrapper](./focusable-element/#3)_
 
 Provides focusable element to support IME and copy/paste/cut actions.
 
 
 
 ### pasteMode
-`copyPaste.pasteMode : string`
+
+_copyPaste.pasteMode : string_
 
 Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
 * Default value `"overwrite"` will paste clipboard value over current selection.
@@ -67,7 +70,8 @@ Defines paste (<kbd>CTRL</kbd> + <kbd>V</kbd>) behavior.
 
 
 ### rowsLimit
-`copyPaste.rowsLimit : number`
+
+_copyPaste.rowsLimit : number_
 
 Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <kbd>C</kbd>.
 
@@ -75,50 +79,57 @@ Maximum number of rows than can be copied to clipboard using <kbd>CTRL</kbd> + <
 
 
 ### uiContainer
-`copyPaste.uiContainer : HTMLElement`
+
+_copyPaste.uiContainer : HTMLElement_
 
 UI container for the secondary focusable element.
 
 
-## Functions:
+## Methods:
 
 ### copy
-`copyPaste.copy()`
+
+_copyPaste.copy()_
 
 Copies the selected cell into the clipboard.
 
 
 
 ### cut
-`copyPaste.cut()`
+
+_copyPaste.cut()_
 
 Cuts the selected cell into the clipboard.
 
 
 
 ### destroy
-`copyPaste.destroy()`
+
+_copyPaste.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`copyPaste.disablePlugin()`
+
+_copyPaste.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`copyPaste.enablePlugin()`
+
+_copyPaste.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getRangedCopyableData
-`copyPaste.getRangedCopyableData(ranges) ⇒ string`
+
+_copyPaste.getRangedCopyableData(ranges) ⇒ string_
 
 Creates copyable text releated to range objects.
 
@@ -128,10 +139,11 @@ Creates copyable text releated to range objects.
 | ranges | <code>Array.&lt;object&gt;</code> | Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`. |
 
 
-**Returns**: <code>string</code> - Returns string which will be copied into clipboard.  
+**Returns**: string - Returns string which will be copied into clipboard.  
 
 ### getRangedData
-`copyPaste.getRangedData(ranges) ⇒ Array.<Array>`
+
+_copyPaste.getRangedData(ranges) ⇒ Array&lt;Array&gt;_
 
 Creates copyable text releated to range objects.
 
@@ -141,10 +153,11 @@ Creates copyable text releated to range objects.
 | ranges | <code>Array.&lt;object&gt;</code> | Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`. |
 
 
-**Returns**: <code>Array.&lt;Array&gt;</code> - Returns array of arrays which will be copied into clipboard.  
+**Returns**: Array.&lt;Array&gt; - Returns array of arrays which will be copied into clipboard.  
 
 ### isEnabled
-`copyPaste.isEnabled() ⇒ boolean`
+
+_copyPaste.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) method is called.
@@ -152,7 +165,8 @@ hook and if it returns `true` than the [enablePlugin](#CopyPaste+enablePlugin) m
 
 
 ### paste
-`copyPaste.paste(pastableText, [pastableHtml])`
+
+_copyPaste.paste(pastableText, [pastableHtml])_
 
 Simulates the paste action.
 
@@ -165,14 +179,16 @@ Simulates the paste action.
 
 
 ### setCopyableText
-`copyPaste.setCopyableText()`
+
+_copyPaste.setCopyableText()_
 
 Prepares copyable text from the cells selection in the invisible textarea.
 
 
 
 ### updatePlugin
-`copyPaste.updatePlugin()`
+
+_copyPaste.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

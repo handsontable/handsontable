@@ -19,7 +19,6 @@ Possible plugin settings:
  * `columns` as `Array`
  * `indicators` as `Boolean` (default `false`).
 
-
 **Example**  
 ```js
 const container = document.getElementById('example');
@@ -56,38 +55,44 @@ hiddenColumnsPlugin.hideColumns([1, 2, 9]);
 // rerender the table to see all changes
 hot.render();
 ```
-## Functions:
+
+## Methods:
 
 ### destroy
-`hiddenColumns.destroy()`
+
+_hiddenColumns.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`hiddenColumns.disablePlugin()`
+
+_hiddenColumns.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`hiddenColumns.enablePlugin()`
+
+_hiddenColumns.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getHiddenColumns
-`hiddenColumns.getHiddenColumns() ⇒ Array.<number>`
+
+_hiddenColumns.getHiddenColumns() ⇒ Array&lt;number&gt;_
 
 Returns an array of visual indexes of hidden columns.
 
 
 
 ### hideColumn
-`hiddenColumns.hideColumn(...column)`
+
+_hiddenColumns.hideColumn(...column)_
 
 Hides a single column.
 
@@ -99,7 +104,8 @@ Hides a single column.
 
 
 ### hideColumns
-`hiddenColumns.hideColumns(columns)`
+
+_hiddenColumns.hideColumns(columns)_
 
 Hides the columns provided in the array.
 
@@ -111,7 +117,8 @@ Hides the columns provided in the array.
 
 
 ### isEnabled
-`hiddenColumns.isEnabled() ⇒ boolean`
+
+_hiddenColumns.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#HiddenColumns+enablePlugin) method is called.
@@ -119,7 +126,8 @@ hook and if it returns `true` than the [enablePlugin](#HiddenColumns+enablePlugi
 
 
 ### isHidden
-`hiddenColumns.isHidden(column) ⇒ boolean`
+
+_hiddenColumns.isHidden(column) ⇒ boolean_
 
 Checks if the provided column is hidden.
 
@@ -131,7 +139,8 @@ Checks if the provided column is hidden.
 
 
 ### isValidConfig
-`hiddenColumns.isValidConfig(hiddenColumns) ⇒ boolean`
+
+_hiddenColumns.isValidConfig(hiddenColumns) ⇒ boolean_
 
 Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
 
@@ -143,7 +152,8 @@ Get if trim config is valid. Check whether all of the provided column indexes ar
 
 
 ### showColumn
-`hiddenColumns.showColumn(...column)`
+
+_hiddenColumns.showColumn(...column)_
 
 Shows a single column.
 
@@ -155,7 +165,8 @@ Shows a single column.
 
 
 ### showColumns
-`hiddenColumns.showColumns(columns)`
+
+_hiddenColumns.showColumns(columns)_
 
 Shows the provided columns.
 
@@ -167,7 +178,8 @@ Shows the provided columns.
 
 
 ### updatePlugin
-`hiddenColumns.updatePlugin()`
+
+_hiddenColumns.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

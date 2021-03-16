@@ -16,7 +16,6 @@ CSV format.
 
 See [the export file demo](https://handsontable.com/docs/demo-export-file.html) for examples.
 
-
 **Example**  
 ```js
 const container = document.getElementById('example');
@@ -46,10 +45,12 @@ exportPlugin.exportAsString('csv', {
   range: [1, 1, 6, 6]         // [startRow, endRow, startColumn, endColumn]
 });
 ```
+
 ## Members:
 
 ### ExportOptions
-`ExportFile.ExportOptions : object`
+
+_ExportFile.ExportOptions : object_
 
 
 **Properties**
@@ -63,10 +64,11 @@ exportPlugin.exportAsString('csv', {
 | [columnDelimiter] | <code>string</code> | <code>&quot;&#x27;,&#x27;&quot;</code> | Column delimiter. |
 | [range] | <code>string</code> | <code>&quot;[]&quot;</code> | Cell range that will be exported to file. |
 
-## Functions:
+## Methods:
 
 ### downloadFile
-`exportFile.downloadFile(format, options)`
+
+_exportFile.downloadFile(format, options)_
 
 Exports table data as a downloadable file.
 
@@ -79,7 +81,8 @@ Exports table data as a downloadable file.
 
 
 ### exportAsBlob
-`exportFile.exportAsBlob(format, options) ⇒ Blob`
+
+_exportFile.exportAsBlob(format, options) ⇒ Blob_
 
 Exports table data as a blob object.
 
@@ -92,7 +95,8 @@ Exports table data as a blob object.
 
 
 ### exportAsString
-`exportFile.exportAsString(format, options) ⇒ string`
+
+_exportFile.exportAsString(format, options) ⇒ string_
 
 Exports table data as a string.
 
@@ -105,7 +109,8 @@ Exports table data as a string.
 
 
 ### isEnabled
-`exportFile.isEnabled() ⇒ boolean`
+
+_exportFile.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [ExportFile#enablePlugin](./export-file/#enableplugin) method is called.

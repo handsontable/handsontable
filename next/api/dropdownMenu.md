@@ -23,7 +23,6 @@ or array of any available strings:
 
 See [the dropdown menu demo](https://handsontable.com/docs/demo-dropdown-menu.html) for examples.
 
-
 **Example**  
 ```
 const container = document.getElementById('example');
@@ -42,39 +41,45 @@ const hot = new Handsontable(container, {
   dropdownMenu: ['remove_col', '---------', 'make_read_only', 'alignment']
 });
 ```
+
 ## Members:
 
 ### DEFAULT_ITEMS
-`DropdownMenu.DEFAULT\_ITEMS ⇒ Array`
+
+_DropdownMenu.DEFAULT\_ITEMS ⇒ Array_
 
 Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
 
 
-## Functions:
+## Methods:
 
 ### close
-`dropdownMenu.close()`
+
+_dropdownMenu.close()_
 
 Closes dropdown menu.
 
 
 
 ### destroy
-`dropdownMenu.destroy()`
+
+_dropdownMenu.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`dropdownMenu.disablePlugin()`
+
+_dropdownMenu.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`dropdownMenu.enablePlugin()`
+
+_dropdownMenu.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -82,7 +87,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 
 ### executeCommand
-`dropdownMenu.executeCommand(commandName, ...params)`
+
+_dropdownMenu.executeCommand(commandName, ...params)_
 
 Executes context menu command.
 
@@ -115,7 +121,8 @@ Or you can execute command registered in settings where `key` is your command na
 
 
 ### isEnabled
-`dropdownMenu.isEnabled() ⇒ boolean`
+
+_dropdownMenu.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin) method is called.
@@ -123,7 +130,8 @@ hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin
 
 
 ### open
-`dropdownMenu.open(position)`
+
+_dropdownMenu.open(position)_
 
 Opens menu and re-position it based on the passed coordinates.
 
@@ -136,7 +144,8 @@ Opens menu and re-position it based on the passed coordinates.
 
 
 ### updatePlugin
-`dropdownMenu.updatePlugin()`
+
+_dropdownMenu.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

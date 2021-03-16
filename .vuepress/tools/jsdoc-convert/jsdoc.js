@@ -5,10 +5,18 @@ const path = require('path')
 const fs = require('fs')
 
 /// parameters
-const pathToSource = '../../../../handsontable/src'; // after including in monorepo `../../../src`
+const pathToSource = '../../../../handsontable/src';
 const pathToDist = '../../../next/api';
 const prefix = 'next/api/';
-const whitelist = ['core.js', 'pluginHooks.js', 'dataMap/metaManager/metaSchema.js'];
+const whitelist = [
+    'core.js',
+    'pluginHooks.js',
+    'dataMap/metaManager/metaSchema.js',
+    'translations/indexMapper.js',
+    'editors/baseEditor/baseEditor.js',
+    '3rdparty/walkontable/src/cell/coords.js',
+    'plugins/copyPaste/focusableElement.js',
+];
 
 const seo = {
     'dataMap/metaManager/metaSchema.js': {
@@ -22,7 +30,23 @@ const seo = {
     'core.js': {
         title: 'Core',
         permalink: '/next/api/'
-    }
+    },
+    'translations/indexMapper.js': {
+        title: 'IndexMapper',
+        permalink: '/next/api/index-mapper'
+    },
+    'editors/baseEditor/baseEditor.js': {
+        title: 'BaseEditor',
+        permalink: '/next/api/base-editor'
+    },
+    '3rdparty/walkontable/src/cell/coords.js': {
+        title: 'CellCords',
+        permalink: '/next/api/cell-cords'
+    },
+    'plugins/copyPaste/focusableElement.js': {
+        title: 'FocusableElement',
+        permalink: '/next/api/focusable-element'
+    },
 }
 /// paths construction
 const source = (file) => path.join(__dirname, pathToSource, file);
@@ -36,13 +60,31 @@ const fixLinks = (text) => text
     .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, "[$1](./$2/$3)") // @see https://regexr.com/5nqqr
     .replace(/\.\/\//g, '');
 
-const clearEmptyMembersHeaders = (text) => text.replace(/## Members:\n## Functions:/g, '## Functions:');
-const clearEmptyFunctionsHeaders = (text) => text.replace(/(## Functions:\n)+$/g, "\n");
+const clearEmptyMembersHeaders = (text) => text.replace(/## Members:\n## Methods:/g, '## Methods:');
+const clearEmptyFunctionsHeaders = (text) => text.replace(/(## Methods:\n)+$/g, "\n");
+
+const fixTypes = (text) => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:)( ?[^\n]*)/g, (_, part, signame) => {
+    let suffix='', prefix=part;
+    if(part === '::: signame '){
+        prefix = '_';
+        suffix = '_';
+    }
+    return prefix+signame
+        .replace(/([^\w])(IndexMapper)(#\w*)?/g, '$1[$2$3](./index-mapper/$3)')
+        .replace(/([^\w])(Hooks)(#\w*)?/g, '$1[$2$3](./hooks/$3)')
+        .replace(/([^\w])(BaseEditor)(#\w*)?/g, '$1[$2$3](./base-editor/#3)')
+        .replace(/([^\w])(CellCoords)(#\w*)?/g, '$1[$2$3](./cell-coords/#3)')
+        .replace(/([^\w])(FocusableWrapper)(#\w*)?/g, '$1[$2$3](./focusable-element/#3)')
+        .replace(/\.</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        +suffix;
+});
 
 const postProcessors = [
     fixLinks,
     clearEmptyMembersHeaders,
-    clearEmptyFunctionsHeaders
+    clearEmptyFunctionsHeaders,
+    fixTypes
 ];
 
 const postProcess = (initialText) => postProcessors.reduce((text, postProcessor)=>postProcessor(text), initialText)
@@ -134,7 +176,7 @@ const traverse = function* () {
 const errors = [];
 let i = 0;
 for (const file of traverse()) {
-    console.log(++i, 'Generating: ', file);
+    console.log(++i, 'Generating: ', source(file));
     try {
         render(file);
     } catch (e) {
