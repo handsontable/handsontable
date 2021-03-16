@@ -68,10 +68,10 @@
     "prein": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
     "preall": "node --experimental-json-modules ./scripts/swap-package-links.mjs",
     "postbuild": "node ./scripts/prepare-package-for-publish.mjs && node --experimental-json-modules ./scripts/swap-package-links.mjs handsontable",
-    "examples:version": "node scripts/code-examples.mjs version",
-    "examples:install": "node scripts/code-examples.mjs install",
-    "examples:build": "node scripts/code-examples.mjs build",
-    "examples:test": "node scripts/code-examples.mjs test",
+    "examples:version": "node examples/scripts/code-examples.mjs version",
+    "examples:install": "node examples/scripts/code-examples.mjs install",
+    "examples:build": "node examples/scripts/code-examples.mjs build",
+    "examples:test": "node examples/scripts/code-examples.mjs test",
     "examples:start": "http-server ./examples/tmp"
   },
   "keywords": [

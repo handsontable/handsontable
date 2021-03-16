@@ -4,12 +4,12 @@ import execa from 'execa';
 import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 import rimraf from 'rimraf';
-import { spawnProcess } from './utils/processes.mjs';
-import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from './utils/console.mjs';
+import { spawnProcess } from '../../scripts/utils/processes.mjs';
+import { displayInfoMessage, displayConfirmationMessage, displayErrorMessage } from '../../scripts/utils/console.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const REPO_ROOT_DIR = __dirname.split('scripts')[0];
+const REPO_ROOT_DIR = __dirname.split('examples')[0];
 const NEXT_EXAMPLES_DIR = path.join(REPO_ROOT_DIR, 'examples', 'next');
 const TMP_DIR_NAME = 'tmp';
 const TMP_DIR = path.join('examples', TMP_DIR_NAME);
@@ -192,10 +192,12 @@ switch (shellCommand) {
     examplesFolders.forEach((exampleDir, i) => {
       if (i < examplesFolders.length) {
         // this env is used in each `Smoke.spec.js` file inside code example directory
-        process.env.TEST_URL = `http://127.0.0.1:8080${exampleDir.split('examples')[1]}/dist`;
+        process.env.TEST_URL = `http://127.0.0.1:8080${exampleDir.split('handsontable')[1]}/dist`;
 
         runNpmCommandInExample(exampleDir, 'npm run jasmine');
-      } else {
+      }
+
+      if (i === examplesFolders.length - 1) {
         process.exit(0);
       }
     });
