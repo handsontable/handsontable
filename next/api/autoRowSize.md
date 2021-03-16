@@ -84,7 +84,7 @@ To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-s
 
 | Param | Type | Description |
 | --- | --- | --- |
-| colRange | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+| colRange | `object` \| `number` | Row index or an object with `from` and `to` properties which define row range. |
 
 
 
@@ -97,9 +97,9 @@ Calculate a given rows height.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| rowRange | <code>number</code> \| <code>object</code> |  | Row index or an object with `from` and `to` indexes as a range. |
-| colRange | <code>number</code> \| <code>object</code> |  | Column index or an object with `from` and `to` indexes as a range. |
-| [force] | <code>boolean</code> | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
+| rowRange | `number` \| `object` |  | Row index or an object with `from` and `to` indexes as a range. |
+| colRange | `number` \| `object` |  | Column index or an object with `from` and `to` indexes as a range. |
+| [force] | `boolean` | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
 
 
 
@@ -120,7 +120,7 @@ Clears cache by range.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| range | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+| range | `object` \| `number` | Row index or an object with `from` and `to` properties which define row range. |
 
 
 
@@ -163,7 +163,7 @@ _autoRowSize.getFirstVisibleRow() ⇒ number_
 Get the first visible row.
 
 
-**Returns**: number - Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.  
+**Returns**: `number` - Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.  
 
 ### getLastVisibleRow
 
@@ -172,7 +172,7 @@ _autoRowSize.getLastVisibleRow() ⇒ number_
 Gets the last visible row.
 
 
-**Returns**: number - Returns row index or -1 if table is not rendered.  
+**Returns**: `number` - Returns row index or -1 if table is not rendered.  
 
 ### getRowHeight
 
@@ -183,8 +183,8 @@ Gets the calculated row height.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| [defaultHeight] | <code>number</code> | `optional` Default row height. It will be picked up if no calculated height found. |
+| row | `number` | Visual row index. |
+| [defaultHeight] | `number` | `optional` Default row height. It will be picked up if no calculated height found. |
 
 
 

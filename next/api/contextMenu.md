@@ -116,8 +116,8 @@ Or you can execute command registered in settings where `key` is your command na
 
 | Param | Type | Description |
 | --- | --- | --- |
-| commandName | <code>string</code> | The command name to be executed. |
-| ...params | <code>\*</code> | Additional paramteres passed to command executor module. |
+| commandName | `string` | The command name to be executed. |
+| ...params | `\*` | Additional paramteres passed to command executor module. |
 
 
 
@@ -139,7 +139,7 @@ Opens menu and re-position it based on the passed coordinates.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | The mouse event object. |
+| event | `Event` | The mouse event object. |
 
 
 

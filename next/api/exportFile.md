@@ -75,8 +75,8 @@ Exports table data as a downloadable file.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| format | <code>string</code> | Export format type eq. `'csv'`. |
-| options | <code>ExportOptions</code> | Export options. |
+| format | `string` | Export format type eq. `'csv'`. |
+| options | `ExportOptions` | Export options. |
 
 
 
@@ -89,8 +89,8 @@ Exports table data as a blob object.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| format | <code>string</code> | Export format type eq. `'csv'`. |
-| options | <code>ExportOptions</code> | Export options. |
+| format | `string` | Export format type eq. `'csv'`. |
+| options | `ExportOptions` | Export options. |
 
 
 
@@ -103,8 +103,8 @@ Exports table data as a string.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| format | <code>string</code> | Export format type eq. `'csv'`. |
-| options | <code>ExportOptions</code> | Export options. |
+| format | `string` | Export format type eq. `'csv'`. |
+| options | `ExportOptions` | Export options. |
 
 
 

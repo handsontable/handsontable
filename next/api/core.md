@@ -73,8 +73,8 @@ hot.addHook('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Hook name (see [Hooks](./hooks/)). |
-| callback | <code>function</code> \| <code>Array</code> | Function or array of functions. |
+| key | `string` | Hook name (see [Hooks](./hooks/)). |
+| callback | `function` \| `Array` | Function or array of functions. |
 
 
 
@@ -93,8 +93,8 @@ hot.addHookOnce('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Hook name (see [Hooks](./hooks/)). |
-| callback | <code>function</code> \| <code>Array</code> | Function or array of functions. |
+| key | `string` | Hook name (see [Hooks](./hooks/)). |
+| callback | `function` \| `Array` | Function or array of functions. |
 
 
 
@@ -119,11 +119,11 @@ hot.alter('remove_row', [[1, 3], [5, 2]]);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| action | <code>string</code> |  | Possible alter operations:  * `'insert_row'`  * `'insert_col'`  * `'remove_row'`  * `'remove_col'`. |
-| index | <code>number</code> \| <code>Array.&lt;number&gt;</code> |  | Visual index of the row/column before which the new row/column will be                                inserted/removed or an array of arrays in format `[[index, amount],...]`. |
-| [amount] | <code>number</code> | <code>1</code> | `optional` Amount of rows/columns to be inserted or removed. |
-| [source] | <code>string</code> |  | `optional` Source indicator. |
-| [keepEmptyRows] | <code>boolean</code> |  | `optional` Flag for preventing deletion of empty rows. |
+| action | `string` |  | Possible alter operations:  * `'insert_row'`  * `'insert_col'`  * `'remove_row'`  * `'remove_col'`. |
+| index | `number` \| `Array.&lt;number&gt;` |  | Visual index of the row/column before which the new row/column will be                                inserted/removed or an array of arrays in format `[[index, amount],...]`. |
+| [amount] | `number` | <code>1</code> | `optional` Amount of rows/columns to be inserted or removed. |
+| [source] | `string` |  | `optional` Source indicator. |
+| [keepEmptyRows] | `boolean` |  | `optional` Flag for preventing deletion of empty rows. |
 
 
 
@@ -162,10 +162,10 @@ hot.batch(() => {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| wrappedOperations | <code>function</code> | Batched operations wrapped in a function. |
+| wrappedOperations | `function` | Batched operations wrapped in a function. |
 
 
-**Returns**: \* - Returns result from the wrappedOperations callback.  
+**Returns**: `*` - Returns result from the wrappedOperations callback.  
 
 ### batchExecution
 
@@ -191,11 +191,11 @@ hot.batchExecution(() => {
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| wrappedOperations | <code>function</code> |  | Batched operations wrapped in a function. |
-| [forceFlushChanges] | <code>boolean</code> | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested calls, it can be a desire to recalculate the table after each batch. |
+| wrappedOperations | `function` |  | Batched operations wrapped in a function. |
+| [forceFlushChanges] | `boolean` | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested calls, it can be a desire to recalculate the table after each batch. |
 
 
-**Returns**: \* - Returns result from the wrappedOperations callback.  
+**Returns**: `*` - Returns result from the wrappedOperations callback.  
 
 ### batchRender
 
@@ -224,10 +224,10 @@ hot.batchRender(() => {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| wrappedOperations | <code>function</code> | Batched operations wrapped in a function. |
+| wrappedOperations | `function` | Batched operations wrapped in a function. |
 
 
-**Returns**: \* - Returns result from the wrappedOperations callback.  
+**Returns**: `*` - Returns result from the wrappedOperations callback.  
 
 ### clear
 
@@ -247,10 +247,10 @@ If the data source is an array of arrays, it returns the columns index.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: string | number - Column property or physical column index.  
+**Returns**: `string` | `number` - Column property or physical column index.  
 
 ### countCols
 
@@ -259,7 +259,7 @@ _core.countCols() ⇒ number_
 Returns the total number of visible columns in the table.
 
 
-**Returns**: number - Total number of columns.  
+**Returns**: `number` - Total number of columns.  
 
 ### countEmptyCols
 
@@ -271,10 +271,10 @@ columns at right hand edge of the table.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [ending] | <code>boolean</code> | <code>false</code> | `optional` If `true`, will only count empty columns at the end of the data source row. |
+| [ending] | `boolean` | <code>false</code> | `optional` If `true`, will only count empty columns at the end of the data source row. |
 
 
-**Returns**: number - Count empty cols.  
+**Returns**: `number` - Count empty cols.  
 
 ### countEmptyRows
 
@@ -286,10 +286,10 @@ number of empty rows at the bottom of the table.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [ending] | <code>boolean</code> | <code>false</code> | `optional` If `true`, will only count empty rows at the end of the data source. |
+| [ending] | `boolean` | <code>false</code> | `optional` If `true`, will only count empty rows at the end of the data source. |
 
 
-**Returns**: number - Count empty rows.  
+**Returns**: `number` - Count empty rows.  
 
 ### countRenderedCols
 
@@ -298,7 +298,7 @@ _core.countRenderedCols() ⇒ number_
 Returns the number of rendered columns (including columns partially or fully rendered outside viewport).
 
 
-**Returns**: number - Returns -1 if table is not visible.  
+**Returns**: `number` - Returns -1 if table is not visible.  
 
 ### countRenderedRows
 
@@ -307,7 +307,7 @@ _core.countRenderedRows() ⇒ number_
 Returns the number of rendered rows (including rows partially or fully rendered outside viewport).
 
 
-**Returns**: number - Returns -1 if table is not visible.  
+**Returns**: `number` - Returns -1 if table is not visible.  
 
 ### countRows
 
@@ -316,7 +316,7 @@ _core.countRows() ⇒ number_
 Returns the total number of visual rows in the table.
 
 
-**Returns**: number - Total number of rows.  
+**Returns**: `number` - Total number of rows.  
 
 ### countSourceCols
 
@@ -325,7 +325,7 @@ _core.countSourceCols() ⇒ number_
 Returns the total number of columns in the data source.
 
 
-**Returns**: number - Total number of columns.  
+**Returns**: `number` - Total number of columns.  
 
 ### countSourceRows
 
@@ -334,7 +334,7 @@ _core.countSourceRows() ⇒ number_
 Returns the total number of rows in the data source.
 
 
-**Returns**: number - Total number of rows.  
+**Returns**: `number` - Total number of rows.  
 
 ### countVisibleCols
 
@@ -343,7 +343,7 @@ _core.countVisibleCols() ⇒ number_
 Returns the number of visible columns. Returns -1 if table is not visible.
 
 
-**Returns**: number - Number of visible columns or -1.  
+**Returns**: `number` - Number of visible columns or -1.  
 
 ### countVisibleRows
 
@@ -352,7 +352,7 @@ _core.countVisibleRows() ⇒ number_
 Returns the number of visible rows (rendered rows that fully fit inside viewport).
 
 
-**Returns**: number - Number of visible rows or -1.  
+**Returns**: `number` - Number of visible rows or -1.  
 
 ### deselectCell
 
@@ -380,8 +380,8 @@ Destroys the current editor, render the table and prepares the editor of the new
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [revertOriginal] | <code>boolean</code> | <code>false</code> | `optional` If `true`, the previous value will be restored. Otherwise, the edited value will be saved. |
-| [prepareEditorIfNeeded] | <code>boolean</code> | <code>true</code> | `optional` If `true` the editor under the selected cell will be prepared to open. |
+| [revertOriginal] | `boolean` | <code>false</code> | `optional` If `true`, the previous value will be restored. Otherwise, the edited value will be saved. |
+| [prepareEditorIfNeeded] | `boolean` | <code>true</code> | `optional` If `true` the editor under the selected cell will be prepared to open. |
 
 
 
@@ -395,7 +395,7 @@ Erases content from cells that have been selected in the table.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [source] | <code>string</code> | `optional` String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty. |
+| [source] | `string` | `optional` String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty. |
 
 
 
@@ -406,7 +406,7 @@ _core.getActiveEditor() ⇒ [BaseEditor](./base-editor/)_
 Returns the active editor class instance.
 
 
-**Returns**: [BaseEditor](./base-editor/) - The active editor instance.  
+**Returns**: [`BaseEditor`](./base-editor/) - The active editor instance.  
 
 ### getCell
 
@@ -418,12 +418,12 @@ Returns `null` if the TD is not rendered on screen (probably because that part o
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| row | <code>number</code> |  | Visual row index. |
-| column | <code>number</code> |  | Visual column index. |
-| [topmost] | <code>boolean</code> | <code>false</code> | `optional` If set to `true`, it returns the TD element from the topmost overlay. For example, if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay. |
+| row | `number` |  | Visual row index. |
+| column | `number` |  | Visual column index. |
+| [topmost] | `boolean` | <code>false</code> | `optional` If set to `true`, it returns the TD element from the topmost overlay. For example, if the wanted cell is in the range of fixed rows, it will return a TD element from the `top` overlay. |
 
 
-**Returns**: HTMLTableCellElement | null - The cell's TD element.  
+**Returns**: `HTMLTableCellElement` | `null` - The cell's TD element.  
 
 ### getCellEditor
 
@@ -441,11 +441,11 @@ hot.getCellEditor(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
-| column | <code>number</code> | Visual column index. |
+| row | `number` | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
+| column | `number` | Visual column index. |
 
 
-**Returns**: function - The editor class.  
+**Returns**: `function` - The editor class.  
 
 ### getCellMeta
 
@@ -457,11 +457,11 @@ Returns the cell properties object for the given `row` and `column` coordinates.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: object - The cell properties object.  
+**Returns**: `object` - The cell properties object.  
 
 ### getCellMetaAtRow
 
@@ -472,7 +472,7 @@ Returns an array of cell meta objects for specified physical row index.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Physical row index. |
+| row | `number` | Physical row index. |
 
 
 
@@ -492,11 +492,11 @@ hot.getCellRenderer(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> \| <code>object</code> | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
-| column | <code>number</code> | Visual column index. |
+| row | `number` \| `object` | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
+| column | `number` | Visual column index. |
 
 
-**Returns**: function - The renderer function.  
+**Returns**: `function` - The renderer function.  
 
 ### getCellsMeta
 
@@ -505,7 +505,7 @@ _core.getCellsMeta() ⇒ Array_
 Get all the cells meta settings at least once generated in the table (in order of cell initialization).
 
 
-**Returns**: Array - Returns an array of ColumnSettings object instances.  
+**Returns**: `Array` - Returns an array of ColumnSettings object instances.  
 
 ### getCellValidator
 
@@ -523,11 +523,11 @@ hot.getCellValidator(hot.getCellMeta(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> \| <code>object</code> | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
-| column | <code>number</code> | Visual column index. |
+| row | `number` \| `object` | Visual row index or cell meta object (see [Core#getCellMeta](./core/#getcellmeta)). |
+| column | `number` | Visual column index. |
 
 
-**Returns**: function | RegExp | undefined - The validator function.  
+**Returns**: `function` | `RegExp` | `undefined` - The validator function.  
 
 ### getColHeader
 
@@ -540,10 +540,10 @@ returns the header at the given column.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [column] | <code>number</code> | `optional` Visual column index. |
+| [column] | `number` | `optional` Visual column index. |
 
 
-**Returns**: Array | string | number - The column header(s).  
+**Returns**: `Array` | `string` | `number` - The column header(s).  
 
 ### getColWidth
 
@@ -555,10 +555,10 @@ Returns the width of the requested column.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: number - Column width.  
+**Returns**: `number` - Column width.  
 
 ### getCoords
 
@@ -574,10 +574,10 @@ hot.getCoords(hot.getCell(1, 1));
 
 | Param | Type | Description |
 | --- | --- | --- |
-| element | <code>HTMLTableCellElement</code> | The HTML Element representing the cell. |
+| element | `HTMLTableCellElement` | The HTML Element representing the cell. |
 
 
-**Returns**: [CellCoords](./coords/) | null - Visual coordinates object.  
+**Returns**: [`CellCoords`](./coords/) | `null` - Visual coordinates object.  
 
 ### getCopyableData
 
@@ -588,8 +588,8 @@ Returns the data's copyable value at specified `row` and `column` index.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
 
 
 
@@ -603,10 +603,10 @@ line character.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| startRow | <code>number</code> | From visual row index. |
-| startCol | <code>number</code> | From visual column index. |
-| endRow | <code>number</code> | To visual row index. |
-| endCol | <code>number</code> | To visual column index. |
+| startRow | `number` | From visual row index. |
+| startCol | `number` | From visual column index. |
+| endRow | `number` | To visual row index. |
+| endCol | `number` | To visual column index. |
 
 
 
@@ -632,13 +632,13 @@ hot.getData(2, 1, 3, 3);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [row] | <code>number</code> | `optional` From visual row index. |
-| [column] | <code>number</code> | `optional` From visual column index. |
-| [row2] | <code>number</code> | `optional` To visual row index. |
-| [column2] | <code>number</code> | `optional` To visual column index. |
+| [row] | `number` | `optional` From visual row index. |
+| [column] | `number` | `optional` From visual column index. |
+| [row2] | `number` | `optional` To visual row index. |
+| [column2] | `number` | `optional` To visual column index. |
 
 
-**Returns**: Array.&lt;Array&gt; - Array with the data.  
+**Returns**: `Array.&lt;Array&gt;` - Array with the data.  
 
 ### getDataAtCell
 
@@ -651,11 +651,11 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: \* - Data at cell.  
+**Returns**: `*` - Data at cell.  
 
 ### getDataAtCol
 
@@ -668,10 +668,10 @@ __Note__: If columns were reordered or sorted, the currently visible order will 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: Array - Array of cell values.  
+**Returns**: `Array` - Array of cell values.  
 
 ### getDataAtProp
 
@@ -683,10 +683,10 @@ You can also provide a column index as the first argument.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| prop | <code>string</code> \| <code>number</code> | Property name or physical column index. |
+| prop | `string` \| `number` | Property name or physical column index. |
 
 
-**Returns**: Array - Array of cell values.  
+**Returns**: `Array` - Array of cell values.  
 
 ### getDataAtRow
 
@@ -699,10 +699,10 @@ __Note__: If rows were reordered, sorted or trimmed, the currently visible order
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
+| row | `number` | Visual row index. |
 
 
-**Returns**: Array - Array of row's cell data.  
+**Returns**: `Array` - Array of row's cell data.  
 
 ### getDataAtRowProp
 
@@ -715,11 +715,11 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| prop | <code>string</code> | Property name. |
+| row | `number` | Visual row index. |
+| prop | `string` | Property name. |
 
 
-**Returns**: \* - Cell value.  
+**Returns**: `*` - Cell value.  
 
 ### getDataType
 
@@ -733,13 +733,13 @@ __Note__: If data is reordered, sorted or trimmed, the currently visible order w
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rowFrom | <code>number</code> | From visual row index. |
-| columnFrom | <code>number</code> | From visual column index. |
-| rowTo | <code>number</code> | To visual row index. |
-| columnTo | <code>number</code> | To visual column index. |
+| rowFrom | `number` | From visual row index. |
+| columnFrom | `number` | From visual column index. |
+| rowTo | `number` | To visual row index. |
+| columnTo | `number` | To visual column index. |
 
 
-**Returns**: string - Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).  
+**Returns**: `string` - Cell type (e.q: `'mixed'`, `'text'`, `'numeric'`, `'autocomplete'`).  
 
 ### getInstance
 
@@ -748,7 +748,7 @@ _core.getInstance() ⇒ Handsontable_
 Returns the Handsontable instance.
 
 
-**Returns**: Handsontable - The Handsontable instance.  
+**Returns**: `Handsontable` - The Handsontable instance.  
 
 ### getPlugin
 
@@ -759,10 +759,10 @@ Returns plugin instance by provided its name.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| pluginName | <code>string</code> | The plugin name. |
+| pluginName | `string` | The plugin name. |
 
 
-**Returns**: BasePlugin | undefined - The plugin instance or undefined if there is no plugin.  
+**Returns**: `BasePlugin` | `undefined` - The plugin instance or undefined if there is no plugin.  
 
 ### getRowHeader
 
@@ -774,10 +774,10 @@ Returns an array of row headers' values (if they are enabled). If param `row` wa
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [row] | <code>number</code> | `optional` Visual row index. |
+| [row] | `number` | `optional` Visual row index. |
 
 
-**Returns**: Array | string | number - Array of header values / single header value.  
+**Returns**: `Array` | `string` | `number` - Array of header values / single header value.  
 
 ### getRowHeight
 
@@ -789,10 +789,10 @@ Returns the row height.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
+| row | `number` | Visual row index. |
 
 
-**Returns**: number - The given row's height.  
+**Returns**: `number` - The given row's height.  
 
 ### getSchema
 
@@ -802,7 +802,7 @@ Returns schema provided by constructor settings. If it doesn't exist then it ret
 structure in the first row.
 
 
-**Returns**: object - Schema object.  
+**Returns**: `object` - Schema object.  
 
 ### getSelected
 
@@ -817,7 +817,7 @@ Additionally to collect the coordinates of the currently selected area (as it wa
 you need to use `getSelectedLast` method.
 
 
-**Returns**: Array.&lt;Array&gt; | undefined - An array of arrays of the selection's coordinates.  
+**Returns**: `Array.&lt;Array&gt;` | `undefined` - An array of arrays of the selection's coordinates.  
 
 ### getSelectedLast
 
@@ -827,7 +827,7 @@ Returns the last coordinates applied to the table as a an array `[startRow, star
 
 **Since**: 0.36.0  
 
-**Returns**: Array | undefined - An array of the selection's coordinates.  
+**Returns**: `Array` | `undefined` - An array of the selection's coordinates.  
 
 ### getSelectedRange
 
@@ -840,7 +840,7 @@ Additionally to collect the coordinates of the currently selected area (as it wa
 you need to use `getSelectedRangeLast` method.
 
 
-**Returns**: Array.&lt;CellRange&gt; | undefined - Selected range object or undefined if there is no selection.  
+**Returns**: `Array.&lt;CellRange&gt;` | `undefined` - Selected range object or undefined if there is no selection.  
 
 ### getSelectedRangeLast
 
@@ -850,7 +850,7 @@ Returns the last coordinates applied to the table as a CellRange object.
 
 **Since**: 0.36.0  
 
-**Returns**: CellRange | undefined - Selected range object or undefined` if there is no selection.  
+**Returns**: `CellRange` | `undefined` - Selected range object or undefined` if there is no selection.  
 
 ### getSettings
 
@@ -859,7 +859,7 @@ _core.getSettings() ⇒ object_
 Returns the object settings.
 
 
-**Returns**: object - Object containing the current table settings.  
+**Returns**: `object` - Object containing the current table settings.  
 
 ### getSourceData
 
@@ -875,13 +875,13 @@ sorted or trimmed only physical indexes are correct.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [row] | <code>number</code> | `optional` From physical row index. |
-| [column] | <code>number</code> | `optional` From physical column index (or visual index, if data type is an array of objects). |
-| [row2] | <code>number</code> | `optional` To physical row index. |
-| [column2] | <code>number</code> | `optional` To physical column index (or visual index, if data type is an array of objects). |
+| [row] | `number` | `optional` From physical row index. |
+| [column] | `number` | `optional` From physical column index (or visual index, if data type is an array of objects). |
+| [row2] | `number` | `optional` To physical row index. |
+| [column2] | `number` | `optional` To physical column index (or visual index, if data type is an array of objects). |
 
 
-**Returns**: Array.&lt;Array&gt; | Array.&lt;object&gt; - The table data.  
+**Returns**: `Array.&lt;Array&gt;` | `Array.&lt;object&gt;` - The table data.  
 
 ### getSourceDataArray
 
@@ -897,13 +897,13 @@ sorted or trimmed only physical indexes are correct.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [row] | <code>number</code> | `optional` From physical row index. |
-| [column] | <code>number</code> | `optional` From physical column index (or visual index, if data type is an array of objects). |
-| [row2] | <code>number</code> | `optional` To physical row index. |
-| [column2] | <code>number</code> | `optional` To physical column index (or visual index, if data type is an array of objects). |
+| [row] | `number` | `optional` From physical row index. |
+| [column] | `number` | `optional` From physical column index (or visual index, if data type is an array of objects). |
+| [row2] | `number` | `optional` To physical row index. |
+| [column2] | `number` | `optional` To physical column index (or visual index, if data type is an array of objects). |
 
 
-**Returns**: Array - An array of arrays.  
+**Returns**: `Array` - An array of arrays.  
 
 ### getSourceDataAtCell
 
@@ -914,11 +914,11 @@ Returns a single value from the data source.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Physical row index. |
-| column | <code>number</code> | Visual column index. |
+| row | `number` | Physical row index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: \* - Cell data.  
+**Returns**: `*` - Cell data.  
 
 ### getSourceDataAtCol
 
@@ -929,10 +929,10 @@ Returns an array of column values from the data source.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: Array - Array of the column's cell values.  
+**Returns**: `Array` - Array of the column's cell values.  
 
 ### getSourceDataAtRow
 
@@ -946,10 +946,10 @@ sorted or trimmed only physical indexes are correct.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Physical row index. |
+| row | `number` | Physical row index. |
 
 
-**Returns**: Array | object - Single row of data.  
+**Returns**: `Array` | `object` - Single row of data.  
 
 ### getTranslatedPhrase
 
@@ -961,8 +961,8 @@ Get language phrase for specified dictionary key.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| dictionaryKey | <code>string</code> | Constant which is dictionary key. |
-| extraArguments | <code>\*</code> | Arguments which will be handled by formatters. |
+| dictionaryKey | `string` | Constant which is dictionary key. |
+| extraArguments | `\*` | Arguments which will be handled by formatters. |
 
 
 
@@ -973,7 +973,7 @@ _core.getValue() ⇒ \*_
 Get value from the selected cell.
 
 
-**Returns**: \* - Value of selected cell.  
+**Returns**: `*` - Value of selected cell.  
 
 ### hasColHeaders
 
@@ -982,7 +982,7 @@ _core.hasColHeaders() ⇒ boolean_
 Returns information about if this table is configured to display column headers.
 
 
-**Returns**: boolean - `true` if the instance has the column headers enabled, `false` otherwise.  
+**Returns**: `boolean` - `true` if the instance has the column headers enabled, `false` otherwise.  
 
 ### hasHook
 
@@ -999,7 +999,7 @@ const hasBeforeInitListeners = hot.hasHook('beforeInit');
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Hook name. |
+| key | `string` | Hook name. |
 
 
 
@@ -1010,7 +1010,7 @@ _core.hasRowHeaders() ⇒ boolean_
 Returns information about if this table is configured to display row headers.
 
 
-**Returns**: boolean - `true` if the instance has the row headers enabled, `false` otherwise.  
+**Returns**: `boolean` - `true` if the instance has the row headers enabled, `false` otherwise.  
 
 ### isColumnModificationAllowed
 
@@ -1029,10 +1029,10 @@ Check if all cells in the the column declared by the `column` argument are empty
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Column index. |
+| column | `number` | Column index. |
 
 
-**Returns**: boolean - `true` if the column at the given `col` is empty, `false` otherwise.  
+**Returns**: `boolean` - `true` if the column at the given `col` is empty, `false` otherwise.  
 
 ### isEmptyRow
 
@@ -1043,10 +1043,10 @@ Check if all cells in the row declared by the `row` argument are empty.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
+| row | `number` | Visual row index. |
 
 
-**Returns**: boolean - `true` if the row at the given `row` is empty, `false` otherwise.  
+**Returns**: `boolean` - `true` if the row at the given `row` is empty, `false` otherwise.  
 
 ### isExecutionSuspended
 
@@ -1065,7 +1065,7 @@ _core.isListening() ⇒ boolean_
 Returns `true` if the current Handsontable instance is listening to keyboard input on document body.
 
 
-**Returns**: boolean - `true` if the instance is listening, `false` otherwise.  
+**Returns**: `boolean` - `true` if the instance is listening, `false` otherwise.  
 
 ### isRenderSuspended
 
@@ -1098,7 +1098,7 @@ Since 8.0.0 loading new data also resets states corresponding to rows and column
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array</code> | Array of arrays or array of objects containing data. |
+| data | `Array` | Array of arrays or array of objects containing data. |
 
 
 
@@ -1114,18 +1114,18 @@ Optional `method` argument has the same effect as pasteMode option (see [Options
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| row | <code>number</code> |  | Start visual row index. |
-| column | <code>number</code> |  | Start visual column index. |
-| input | <code>Array</code> |  | 2d array. |
-| [endRow] | <code>number</code> |  | `optional` End visual row index (use when you want to cut input when certain row is reached). |
-| [endCol] | <code>number</code> |  | `optional` End visual column index (use when you want to cut input when certain column is reached). |
-| [source] | <code>string</code> | <code>&quot;populateFromArray&quot;</code> | `optional` Used to identify this call in the resulting events (beforeChange, afterChange). |
-| [method] | <code>string</code> | <code>&quot;overwrite&quot;</code> | `optional` Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`. |
-| direction | <code>string</code> |  | Populate direction, possible values: `'left'`, `'right'`, `'up'`, `'down'`. |
-| deltas | <code>Array</code> |  | The deltas array. A difference between values of adjacent cells.                       Useful **only** when the type of handled cells is `numeric`. |
+| row | `number` |  | Start visual row index. |
+| column | `number` |  | Start visual column index. |
+| input | `Array` |  | 2d array. |
+| [endRow] | `number` |  | `optional` End visual row index (use when you want to cut input when certain row is reached). |
+| [endCol] | `number` |  | `optional` End visual column index (use when you want to cut input when certain column is reached). |
+| [source] | `string` | <code>&quot;populateFromArray&quot;</code> | `optional` Used to identify this call in the resulting events (beforeChange, afterChange). |
+| [method] | `string` | <code>&quot;overwrite&quot;</code> | `optional` Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`. |
+| direction | `string` |  | Populate direction, possible values: `'left'`, `'right'`, `'up'`, `'down'`. |
+| deltas | `Array` |  | The deltas array. A difference between values of adjacent cells.                       Useful **only** when the type of handled cells is `numeric`. |
 
 
-**Returns**: object | undefined - Ending td in pasted area (only if any cell was changed).  
+**Returns**: `object` | `undefined` - Ending td in pasted area (only if any cell was changed).  
 
 ### propToCol
 
@@ -1136,10 +1136,10 @@ Returns column index that corresponds with the given property.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| prop | <code>string</code> \| <code>number</code> | Property name or physical column index. |
+| prop | `string` \| `number` | Property name or physical column index. |
 
 
-**Returns**: number - Visual column index.  
+**Returns**: `number` - Visual column index.  
 
 ### refreshDimensions
 
@@ -1160,9 +1160,9 @@ Remove a property defined by the `key` argument from the cell meta object for th
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| key | <code>string</code> | Property name. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| key | `string` | Property name. |
 
 
 
@@ -1180,8 +1180,8 @@ hot.removeHook('beforeInit', myCallback);
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Hook name. |
-| callback | <code>function</code> | Reference to the function which has been registered using [Core#addHook](./core/#addhook). |
+| key | `string` | Hook name. |
+| callback | `function` | Reference to the function which has been registered using [Core#addHook](./core/#addhook). |
 
 
 
@@ -1222,7 +1222,7 @@ hot.resumeExecution(); // It updates the cache internally
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [forceFlushChanges] | <code>boolean</code> | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](./core/#batchexecution) calls, it can be desire to recalculate the table after each batch. |
+| [forceFlushChanges] | `boolean` | <code>false</code> | `optional` If `true`, the table internal data cache is recalculated after the execution of the batched operations. For nested [Core#batchExecution](./core/#batchexecution) calls, it can be desire to recalculate the table after each batch. |
 
 
 
@@ -1272,13 +1272,13 @@ hot.runHooks('customAction', 10, 'foo');
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Hook name. |
-| [p1] | <code>\*</code> | `optional` Argument passed to the callback. |
-| [p2] | <code>\*</code> | `optional` Argument passed to the callback. |
-| [p3] | <code>\*</code> | `optional` Argument passed to the callback. |
-| [p4] | <code>\*</code> | `optional` Argument passed to the callback. |
-| [p5] | <code>\*</code> | `optional` Argument passed to the callback. |
-| [p6] | <code>\*</code> | `optional` Argument passed to the callback. |
+| key | `string` | Hook name. |
+| [p1] | `\*` | `optional` Argument passed to the callback. |
+| [p2] | `\*` | `optional` Argument passed to the callback. |
+| [p3] | `\*` | `optional` Argument passed to the callback. |
+| [p4] | `\*` | `optional` Argument passed to the callback. |
+| [p5] | `\*` | `optional` Argument passed to the callback. |
+| [p6] | `\*` | `optional` Argument passed to the callback. |
 
 
 
@@ -1291,14 +1291,14 @@ Scroll viewport to coordinates specified by the `row` and `column` arguments.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [row] | <code>number</code> |  | `optional` Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise, we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows). |
-| [column] | <code>number</code> |  | `optional` Column index. If the last argument isn't defined we treat the index as a visual column index. Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns). |
-| [snapToBottom] | <code>boolean</code> | <code>false</code> | `optional` If `true`, viewport is scrolled to show the cell on the bottom of the table. |
-| [snapToRight] | <code>boolean</code> | <code>false</code> | `optional` If `true`, viewport is scrolled to show the cell on the right side of the table. |
-| [considerHiddenIndexes] | <code>boolean</code> | <code>true</code> | `optional` If `true`, we handle visual indexes, otherwise we handle only indexes which may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered). |
+| [row] | `number` |  | `optional` Row index. If the last argument isn't defined we treat the index as a visual row index. Otherwise, we are using the index for numbering only this rows which may be rendered (we don't consider hidden rows). |
+| [column] | `number` |  | `optional` Column index. If the last argument isn't defined we treat the index as a visual column index. Otherwise, we are using the index for numbering only this columns which may be rendered (we don't consider hidden columns). |
+| [snapToBottom] | `boolean` | <code>false</code> | `optional` If `true`, viewport is scrolled to show the cell on the bottom of the table. |
+| [snapToRight] | `boolean` | <code>false</code> | `optional` If `true`, viewport is scrolled to show the cell on the right side of the table. |
+| [considerHiddenIndexes] | `boolean` | <code>true</code> | `optional` If `true`, we handle visual indexes, otherwise we handle only indexes which may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered). |
 
 
-**Returns**: boolean - `true` if scroll was successful, `false` otherwise.  
+**Returns**: `boolean` - `true` if scroll was successful, `false` otherwise.  
 
 ### selectAll
 
@@ -1310,7 +1310,7 @@ Select the whole table. The previous selection will be overwritten.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [includeHeaders] | <code>boolean</code> | <code>true</code> | `optional` `true` If the selection should include the row, column and corner headers, `false` otherwise. |
+| [includeHeaders] | `boolean` | <code>true</code> | `optional` `true` If the selection should include the row, column and corner headers, `false` otherwise. |
 
 
 
@@ -1340,15 +1340,15 @@ hot.selectCell(2, 'address', 3, 'phone_number', false);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| row | <code>number</code> |  | Visual row index. |
-| column | <code>number</code> \| <code>string</code> |  | Visual column index or column property. |
-| [endRow] | <code>number</code> |  | `optional` Visual end row index (if selecting a range). |
-| [endColumn] | <code>number</code> \| <code>string</code> |  | `optional` Visual end column index or column property (if selecting a range). |
-| [scrollToCell] | <code>boolean</code> | <code>true</code> | `optional` If `true`, the viewport will be scrolled to the selection. |
-| [changeListener] | <code>boolean</code> | <code>true</code> | `optional` If `false`, Handsontable will not change keyboard events listener to himself. |
+| row | `number` |  | Visual row index. |
+| column | `number` \| `string` |  | Visual column index or column property. |
+| [endRow] | `number` |  | `optional` Visual end row index (if selecting a range). |
+| [endColumn] | `number` \| `string` |  | `optional` Visual end column index or column property (if selecting a range). |
+| [scrollToCell] | `boolean` | <code>true</code> | `optional` If `true`, the viewport will be scrolled to the selection. |
+| [changeListener] | `boolean` | <code>true</code> | `optional` If `false`, Handsontable will not change keyboard events listener to himself. |
 
 
-**Returns**: boolean - `true` if selection was successful, `false` otherwise.  
+**Returns**: `boolean` - `true` if selection was successful, `false` otherwise.  
 
 ### selectCells
 
@@ -1379,12 +1379,12 @@ hot.selectCells(selected);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| coords | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> |  | Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)                                     the same format as `getSelected` method returns or as an CellRange objects                                     which is the same format what `getSelectedRange` method returns. |
-| [scrollToCell] | <code>boolean</code> | <code>true</code> | `optional` If `true`, the viewport will be scrolled to the selection. |
-| [changeListener] | <code>boolean</code> | <code>true</code> | `optional` If `false`, Handsontable will not change keyboard events listener to himself. |
+| coords | `Array.&lt;Array&gt;` \| `Array.&lt;CellRange&gt;` |  | Visual coords passed as an array of array (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)                                     the same format as `getSelected` method returns or as an CellRange objects                                     which is the same format what `getSelectedRange` method returns. |
+| [scrollToCell] | `boolean` | <code>true</code> | `optional` If `true`, the viewport will be scrolled to the selection. |
+| [changeListener] | `boolean` | <code>true</code> | `optional` If `false`, Handsontable will not change keyboard events listener to himself. |
 
 
-**Returns**: boolean - `true` if selection was successful, `false` otherwise.  
+**Returns**: `boolean` - `true` if selection was successful, `false` otherwise.  
 
 ### selectColumns
 
@@ -1407,11 +1407,11 @@ hot.selectColumns('id', 'last_name');
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| startColumn | <code>number</code> |  | The visual column index from which the selection starts. |
-| [endColumn] | <code>number</code> | <code>startColumn</code> | `optional` The visual column index to which the selection finishes. If `endColumn`                                         is not defined the column defined by `startColumn` will be selected. |
+| startColumn | `number` |  | The visual column index from which the selection starts. |
+| [endColumn] | `number` | <code>startColumn</code> | `optional` The visual column index to which the selection finishes. If `endColumn`                                         is not defined the column defined by `startColumn` will be selected. |
 
 
-**Returns**: boolean - `true` if selection was successful, `false` otherwise.  
+**Returns**: `boolean` - `true` if selection was successful, `false` otherwise.  
 
 ### selectRows
 
@@ -1430,11 +1430,11 @@ hot.selectRows(1, 4);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| startRow | <code>number</code> |  | The visual row index from which the selection starts. |
-| [endRow] | <code>number</code> | <code>startRow</code> | `optional` The visual row index to which the selection finishes. If `endRow`                                   is not defined the row defined by `startRow` will be selected. |
+| startRow | `number` |  | The visual row index from which the selection starts. |
+| [endRow] | `number` | <code>startRow</code> | `optional` The visual row index to which the selection finishes. If `endRow`                                   is not defined the row defined by `startRow` will be selected. |
 
 
-**Returns**: boolean - `true` if selection was successful, `false` otherwise.  
+**Returns**: `boolean` - `true` if selection was successful, `false` otherwise.  
 
 ### setCellMeta
 
@@ -1446,10 +1446,10 @@ Sets a property defined by the `key` property to the meta object of a cell corre
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| key | <code>string</code> | Property name. |
-| value | <code>string</code> | Property value. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| key | `string` | Property name. |
+| value | `string` | Property value. |
 
 
 
@@ -1462,9 +1462,9 @@ Set cell meta data object defined by `prop` to the corresponding params `row` an
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| prop | <code>object</code> | Meta object. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| prop | `object` | Meta object. |
 
 
 
@@ -1478,10 +1478,10 @@ Set new value to a cell. To change many cells at once (recommended way), pass an
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> \| <code>Array</code> | Visual row index or array of changes in format `[[row, col, value],...]`. |
-| [column] | <code>number</code> | `optional` Visual column index. |
-| [value] | <code>string</code> | `optional` New value. |
-| [source] | <code>string</code> | `optional` String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty. |
+| row | `number` \| `Array` | Visual row index or array of changes in format `[[row, col, value],...]`. |
+| [column] | `number` | `optional` Visual column index. |
+| [value] | `string` | `optional` New value. |
+| [source] | `string` | `optional` String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty. |
 
 
 
@@ -1495,10 +1495,10 @@ Set new value to a cell. To change many cells at once (recommended way), pass an
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> \| <code>Array</code> | Visual row index or array of changes in format `[[row, prop, value], ...]`. |
-| prop | <code>string</code> | Property name or the source string (e.g. `'first.name'` or `'0'`). |
-| value | <code>string</code> | Value to be set. |
-| [source] | <code>string</code> | `optional` String that identifies how this change will be described in changes array (useful in onChange callback). |
+| row | `number` \| `Array` | Visual row index or array of changes in format `[[row, prop, value], ...]`. |
+| prop | `string` | Property name or the source string (e.g. `'first.name'` or `'0'`). |
+| value | `string` | Value to be set. |
+| [source] | `string` | `optional` String that identifies how this change will be described in changes array (useful in onChange callback). |
 
 
 
@@ -1511,10 +1511,10 @@ Set the provided value in the source data set at the provided coordinates.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> \| <code>Array</code> | Physical row index or array of changes in format `[[row, prop, value], ...]`. |
-| column | <code>number</code> \| <code>string</code> | Physical column index / prop name. |
-| value | <code>\*</code> | The value to be set at the provided coordinates. |
-| [source] | <code>string</code> | `optional` Source of the change as a string. |
+| row | `number` \| `Array` | Physical row index or array of changes in format `[[row, prop, value], ...]`. |
+| column | `number` \| `string` | Physical column index / prop name. |
+| value | `\*` | The value to be set at the provided coordinates. |
+| [source] | `string` | `optional` Source of the change as a string. |
 
 
 
@@ -1528,9 +1528,9 @@ Removes or adds one or more rows of the cell meta objects to the cell meta colle
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| visualIndex | <code>number</code> |  | A visual index that specifies at what position to add/remove items. |
-| [deleteAmount] | <code>number</code> | <code>0</code> | `optional` The number of items to be removed. If set to 0, no cell meta objects will be removed. |
-| [...cellMetaRows] | <code>object</code> |  | `optional` The new cell meta row objects to be added to the cell meta collection. |
+| visualIndex | `number` |  | A visual index that specifies at what position to add/remove items. |
+| [deleteAmount] | `number` | <code>0</code> | `optional` The number of items to be removed. If set to 0, no cell meta objects will be removed. |
+| [...cellMetaRows] | `object` |  | `optional` The new cell meta row objects to be added to the cell meta collection. |
 
 
 
@@ -1543,13 +1543,13 @@ Adds/removes data from the column. This method works the same as Array.splice fo
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Index of the column in which do you want to do splice. |
-| index | <code>number</code> | Index at which to start changing the array. If negative, will begin that many elements from the end. |
-| amount | <code>number</code> | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
-| [...elements] | <code>number</code> | `optional` The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array. |
+| column | `number` | Index of the column in which do you want to do splice. |
+| index | `number` | Index at which to start changing the array. If negative, will begin that many elements from the end. |
+| amount | `number` | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
+| [...elements] | `number` | `optional` The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array. |
 
 
-**Returns**: Array - Returns removed portion of columns.  
+**Returns**: `Array` - Returns removed portion of columns.  
 
 ### spliceRow
 
@@ -1560,13 +1560,13 @@ Adds/removes data from the row. This method works the same as Array.splice for a
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Index of column in which do you want to do splice. |
-| index | <code>number</code> | Index at which to start changing the array. If negative, will begin that many elements from the end. |
-| amount | <code>number</code> | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
-| [...elements] | <code>number</code> | `optional` The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array. |
+| row | `number` | Index of column in which do you want to do splice. |
+| index | `number` | Index at which to start changing the array. If negative, will begin that many elements from the end. |
+| amount | `number` | An integer indicating the number of old array elements to remove. If amount is 0, no elements are removed. |
+| [...elements] | `number` | `optional` The elements to add to the array. If you don't specify any elements, spliceCol simply removes elements from the array. |
 
 
-**Returns**: Array - Returns removed portion of rows.  
+**Returns**: `Array` - Returns removed portion of rows.  
 
 ### suspendExecution
 
@@ -1646,10 +1646,10 @@ reordered, moved or trimmed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: number - Returns physical column index.  
+**Returns**: `number` - Returns physical column index.  
 
 ### toPhysicalRow
 
@@ -1663,10 +1663,10 @@ reordered, moved or trimmed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
+| row | `number` | Visual row index. |
 
 
-**Returns**: number - Returns physical row index.  
+**Returns**: `number` - Returns physical row index.  
 
 ### toTableElement
 
@@ -1689,10 +1689,10 @@ based on a physical index.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Physical column index. |
+| column | `number` | Physical column index. |
 
 
-**Returns**: number - Returns visual column index.  
+**Returns**: `number` - Returns visual column index.  
 
 ### toVisualRow
 
@@ -1706,10 +1706,10 @@ based on a physical index.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Physical row index. |
+| row | `number` | Physical row index. |
 
 
-**Returns**: number - Returns visual row index.  
+**Returns**: `number` - Returns visual row index.  
 
 ### unlisten
 
@@ -1745,8 +1745,8 @@ hot.updateSettings({
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| settings | <code>object</code> |  | New settings object (see [Options](./options/)). |
-| [init] | <code>boolean</code> | <code>false</code> | `optional` Internally used for in initialization mode. |
+| settings | `object` |  | New settings object (see [Options](./options/)). |
+| [init] | `boolean` | <code>false</code> | `optional` Internally used for in initialization mode. |
 
 
 
@@ -1770,7 +1770,7 @@ hot.validateCells((valid) => {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [callback] | <code>function</code> | `optional` The callback function. |
+| [callback] | `function` | `optional` The callback function. |
 
 
 
@@ -1794,8 +1794,8 @@ hot.validateColumns([3, 4, 5], (valid) => {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [columns] | <code>Array</code> | `optional` Array of validation target visual columns indexes. |
-| [callback] | <code>function</code> | `optional` The callback function. |
+| [columns] | `Array` | `optional` Array of validation target visual columns indexes. |
+| [callback] | `function` | `optional` The callback function. |
 
 
 
@@ -1819,8 +1819,8 @@ hot.validateRows([3, 4, 5], (valid) => {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [rows] | <code>Array</code> | `optional` Array of validation target visual row indexes. |
-| [callback] | <code>function</code> | `optional` The callback function. |
+| [rows] | `Array` | `optional` Array of validation target visual row indexes. |
+| [callback] | `function` | `optional` The callback function. |
 
 
 ## Methods:
@@ -1832,7 +1832,7 @@ _validateCell~done(valid, [canBeValidated])_
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| valid | <code>boolean</code> |  | Indicates if the validation was successful. |
-| [canBeValidated] | <code>boolean</code> | <code>true</code> | `optional` Flag which controls the validation process. |
+| valid | `boolean` |  | Indicates if the validation was successful. |
+| [canBeValidated] | `boolean` | <code>true</code> | `optional` Flag which controls the validation process. |
 
 

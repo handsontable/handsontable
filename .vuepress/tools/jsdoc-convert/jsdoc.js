@@ -69,15 +69,17 @@ const fixTypes = (text) => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\
         prefix = '_';
         suffix = '_';
     }
-    return prefix+signame
-        .replace(/([^\w])(IndexMapper)(#\w*)?/g, '$1[$2$3](./index-mapper/$3)')
-        .replace(/([^\w])(Hooks)(#\w*)?/g, '$1[$2$3](./hooks/$3)')
-        .replace(/([^\w])(BaseEditor)(#\w*)?/g, '$1[$2$3](./base-editor/$3)')
-        .replace(/([^\w])(CellCoords)(#\w*)?/g, '$1[$2$3](./coords/$3)')
-        .replace(/([^\w])(FocusableWrapper)(#\w*)?/g, '$1[$2$3](./focusable-element/$3)')
+    const r = prefix+signame
+        .replace(/([^\w`\[#])(`)?(IndexMapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./index-mapper/$4)')
+        .replace(/([^\w`\[#])(`)?(Hooks)(#\w*)?(`)?/g, '$1[$2$3$4$5](./hooks/$4)')
+        .replace(/([^\w`\[#])(`)?(BaseEditor)(#\w*)?(`)?/g, '$1[$2$3$4$5](./base-editor/$4)')
+        .replace(/([^\w`\[#])(`)?(CellCoords)(#\w*)?(`)?/g, '$1[$2$3$4$5](./coords/$4)')
+        .replace(/([^\w`\[#])(`)?(FocusableWrapper)(#\w*)?(`)?/g, '$1[$2$3$4$5](./focusable-element/$4)')
         .replace(/\.</g, '&lt;')
         .replace(/>/g, '&gt;')
+        .replace(/`\\\*`/,'`*`')
         +suffix;
+    return r;
 });
 
 const postProcessors = [

@@ -78,7 +78,7 @@ To retrieve width for specified column use [AutoColumnSize#getColumnWidth](./aut
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rowRange | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+| rowRange | `object` \| `number` | Row index or an object with `from` and `to` properties which define row range. |
 
 
 
@@ -91,9 +91,9 @@ Calculates a columns width.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| colRange | <code>number</code> \| <code>object</code> |  | Visual column index or an object with `from` and `to` visual indexes as a range. |
-| rowRange | <code>number</code> \| <code>object</code> |  | Visual row index or an object with `from` and `to` visual indexes as a range. |
-| [force] | <code>boolean</code> | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
+| colRange | `number` \| `object` |  | Visual column index or an object with `from` and `to` visual indexes as a range. |
+| rowRange | `number` \| `object` |  | Visual row index or an object with `from` and `to` visual indexes as a range. |
+| [force] | `boolean` | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
 
 
 
@@ -115,7 +115,7 @@ Otherwise whole cache will be cleared.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [columns] | <code>Array.&lt;number&gt;</code> | `optional` List of physical column indexes to clear. |
+| [columns] | `Array.&lt;number&gt;` | `optional` List of physical column indexes to clear. |
 
 
 
@@ -152,9 +152,9 @@ Gets the calculated column width.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| column | <code>number</code> |  | Visual column index. |
-| [defaultWidth] | <code>number</code> |  | `optional` Default column width. It will be picked up if no calculated width found. |
-| [keepMinimum] | <code>boolean</code> | <code>true</code> | `optional` If `true` then returned value won't be smaller then 50 (default column width). |
+| column | `number` |  | Visual column index. |
+| [defaultWidth] | `number` |  | `optional` Default column width. It will be picked up if no calculated width found. |
+| [keepMinimum] | `boolean` | <code>true</code> | `optional` If `true` then returned value won't be smaller then 50 (default column width). |
 
 
 
@@ -165,7 +165,7 @@ _autoColumnSize.getFirstVisibleColumn() ⇒ number_
 Gets the first visible column.
 
 
-**Returns**: number - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.  
+**Returns**: `number` - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.  
 
 ### getLastVisibleColumn
 
@@ -174,7 +174,7 @@ _autoColumnSize.getLastVisibleColumn() ⇒ number_
 Gets the last visible column.
 
 
-**Returns**: number - Returns visual column index or -1 if table is not rendered.  
+**Returns**: `number` - Returns visual column index or -1 if table is not rendered.  
 
 ### getSyncCalculationLimit
 

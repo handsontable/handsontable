@@ -105,7 +105,7 @@ _comments.getComment() ⇒ string | undefined_
 Gets comment from a cell according to previously set range (see [setRange](#Comments+setRange)).
 
 
-**Returns**: string | undefined - Returns a content of the comment.  
+**Returns**: `string` | `undefined` - Returns a content of the comment.  
 
 ### getCommentAtCell
 
@@ -116,11 +116,11 @@ Gets comment from a cell at the provided coordinates.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: string | undefined - Returns a content of the comment.  
+**Returns**: `string` | `undefined` - Returns a content of the comment.  
 
 ### getCommentMeta
 
@@ -131,9 +131,9 @@ Gets the comment related meta information.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| property | <code>string</code> | Cell meta property. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| property | `string` | Cell meta property. |
 
 
 
@@ -163,7 +163,7 @@ Refreshes comment editor position and styling.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [force] | <code>boolean</code> | <code>false</code> | `optional` If `true` then recalculation will be forced. |
+| [force] | `boolean` | <code>false</code> | `optional` If `true` then recalculation will be forced. |
 
 
 
@@ -176,7 +176,7 @@ Removes a comment from a cell according to previously set range (see [setRange](
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [forceRender] | <code>boolean</code> | <code>true</code> | `optional` If set to `true`, the table will be re-rendered at the end of the operation. |
+| [forceRender] | `boolean` | <code>true</code> | `optional` If set to `true`, the table will be re-rendered at the end of the operation. |
 
 
 
@@ -189,9 +189,9 @@ Removes a comment from a specified cell.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| row | <code>number</code> |  | Visual row index. |
-| column | <code>number</code> |  | Visual column index. |
-| [forceRender] | <code>boolean</code> | <code>true</code> | `optional` If `true`, the table will be re-rendered at the end of the operation. |
+| row | `number` |  | Visual row index. |
+| column | `number` |  | Visual column index. |
+| [forceRender] | `boolean` | <code>true</code> | `optional` If `true`, the table will be re-rendered at the end of the operation. |
 
 
 
@@ -204,7 +204,7 @@ Sets a comment for a cell according to the previously set range (see [setRange](
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>string</code> | Comment contents. |
+| value | `string` | Comment contents. |
 
 
 
@@ -217,9 +217,9 @@ Sets a comment for a specified cell.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| value | <code>string</code> | Comment contents. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| value | `string` | Comment contents. |
 
 
 
@@ -232,7 +232,7 @@ Sets the current cell range to be able to use general methods like [setComment](
 
 | Param | Type | Description |
 | --- | --- | --- |
-| range | <code>object</code> | Object with `from` property, each with `row` and `col` properties. |
+| range | `object` | Object with `from` property, each with `row` and `col` properties. |
 
 
 
@@ -243,7 +243,7 @@ _comments.show() ⇒ boolean_
 Shows the comment editor accordingly to the previously set range (see [setRange](#Comments+setRange)).
 
 
-**Returns**: boolean - Returns `true` if comment editor was shown.  
+**Returns**: `boolean` - Returns `true` if comment editor was shown.  
 
 ### showAtCell
 
@@ -254,11 +254,11 @@ Shows comment editor according to cell coordinates.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: boolean - Returns `true` if comment editor was shown.  
+**Returns**: `boolean` - Returns `true` if comment editor was shown.  
 
 ### updateCommentMeta
 
@@ -269,9 +269,9 @@ Sets or update the comment-related cell meta.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| metaObject | <code>object</code> | Object defining all the comment-related meta information. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| metaObject | `object` | Object defining all the comment-related meta information. |
 
 
 

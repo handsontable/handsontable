@@ -80,7 +80,7 @@ customBordersPlugin.clearBorders();
 
 | Param | Type | Description |
 | --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
+| selectionRanges | `Array.&lt;Array&gt;` \| `Array.&lt;CellRange&gt;` | Array of selection ranges. |
 
 
 
@@ -128,10 +128,10 @@ customBordersPlugin.getBorders();
 
 | Param | Type | Description |
 | --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
+| selectionRanges | `Array.&lt;Array&gt;` \| `Array.&lt;CellRange&gt;` | Array of selection ranges. |
 
 
-**Returns**: Array.&lt;object&gt; - Returns array of border objects.  
+**Returns**: `Array.&lt;object&gt;` - Returns array of border objects.  
 
 ### isEnabled
 
@@ -164,8 +164,8 @@ customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, widt
 
 | Param | Type | Description |
 | --- | --- | --- |
-| selectionRanges | <code>Array.&lt;Array&gt;</code> \| <code>Array.&lt;CellRange&gt;</code> | Array of selection ranges. |
-| borderObject | <code>object</code> | Object with `top`, `right`, `bottom` and `left` properties. |
+| selectionRanges | `Array.&lt;Array&gt;` \| `Array.&lt;CellRange&gt;` | Array of selection ranges. |
+| borderObject | `object` | Object with `top`, `right`, `bottom` and `left` properties. |
 
 
 

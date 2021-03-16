@@ -19,9 +19,9 @@ Fired by [NestedRows](./nested-rows/) plugin after adding a children to the Nest
 
 | Param | Type | Description |
 | --- | --- | --- |
-| parent | <code>object</code> | The parent object. |
-| element | <code>object</code> \| <code>undefined</code> | The element added as a child. If `undefined`, a blank child was added. |
-| index | <code>number</code> \| <code>undefined</code> | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
+| parent | `object` | The parent object. |
+| element | `object` \| `undefined` | The element added as a child. If `undefined`, a blank child was added. |
+| index | `number` \| `undefined` | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
 
 
 
@@ -36,9 +36,9 @@ Fired by [Autofill](./autofill/) plugin after populating the data in the autofil
 
 | Param | Type | Description |
 | --- | --- | --- |
-| start | <code>CellCoords</code> | Object containing information about first filled cell: `{row: 2, col: 0}`. |
-| end | <code>CellCoords</code> | Object containing information about last filled cell: `{row: 4, col: 1}`. |
-| data | <code>Array.&lt;Array&gt;</code> | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
+| start | `CellCoords` | Object containing information about first filled cell: `{row: 2, col: 0}`. |
+| end | `CellCoords` | Object containing information about last filled cell: `{row: 4, col: 1}`. |
+| data | `Array.&lt;Array&gt;` | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
 
 
 
@@ -51,8 +51,8 @@ Fired after the editor is opened and rendered.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index of the edited cell. |
-| column | <code>number</code> | Visual column index of the edited cell. |
+| row | `number` | Visual row index of the edited cell. |
+| column | `number` | Visual column index of the edited cell. |
 
 
 
@@ -86,8 +86,8 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | <code>Array</code> | 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| changes | `Array` | 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. |
+| [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -110,10 +110,10 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentCollapsedColumns | <code>Array</code> | Current collapsible configuration - a list of collapsible physical column indexes. |
-| destinationCollapsedColumns | <code>Array</code> | Destination collapsible configuration - a list of collapsible physical column indexes. |
-| collapsePossible | <code>boolean</code> | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
-| successfullyCollapsed | <code>boolean</code> | `true`, if the action affected any non-collapsible column, `false` otherwise. |
+| currentCollapsedColumns | `Array` | Current collapsible configuration - a list of collapsible physical column indexes. |
+| destinationCollapsedColumns | `Array` | Destination collapsible configuration - a list of collapsible physical column indexes. |
+| collapsePossible | `boolean` | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
+| successfullyCollapsed | `boolean` | `true`, if the action affected any non-collapsible column, `false` otherwise. |
 
 
 
@@ -127,10 +127,10 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentCollapsedColumns | <code>Array</code> | Current collapsible configuration - a list of collapsible physical column indexes. |
-| destinationCollapsedColumns | <code>Array</code> | Destination collapsible configuration - a list of collapsible physical column indexes. |
-| expandPossible | <code>boolean</code> | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
-| successfullyExpanded | <code>boolean</code> | `true`, if the action affected any non-collapsible column, `false` otherwise. |
+| currentCollapsedColumns | `Array` | Current collapsible configuration - a list of collapsible physical column indexes. |
+| destinationCollapsedColumns | `Array` | Destination collapsible configuration - a list of collapsible physical column indexes. |
+| expandPossible | `boolean` | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
+| successfullyExpanded | `boolean` | `true`, if the action affected any non-collapsible column, `false` otherwise. |
 
 
 
@@ -144,11 +144,11 @@ Fired by [ManualColumnMove](./manual-column-move/) plugin after changing order o
 
 | Param | Type | Description |
 | --- | --- | --- |
-| movedColumns | <code>Array</code> | Array of visual column indexes to be moved. |
-| finalIndex | <code>number</code> | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | <code>number</code> \| <code>undefined</code> | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
-| movePossible | <code>boolean</code> | Indicates if it was possible to move columns to the desired position. |
-| orderChanged | <code>boolean</code> | Indicates if order of columns was changed by move. |
+| movedColumns | `Array` | Array of visual column indexes to be moved. |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| dropIndex | `number` \| `undefined` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
+| movePossible | `boolean` | Indicates if it was possible to move columns to the desired position. |
+| orderChanged | `boolean` | Indicates if order of columns was changed by move. |
 
 
 
@@ -162,9 +162,9 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 
 | Param | Type | Description |
 | --- | --- | --- |
-| newSize | <code>number</code> | Calculated new column width. |
-| column | <code>number</code> | Visual index of the resized column. |
-| isDoubleClick | <code>boolean</code> | Flag that determines whether there was a double-click. |
+| newSize | `number` | Calculated new column width. |
+| column | `number` | Visual index of the resized column. |
+| isDoubleClick | `boolean` | Flag that determines whether there was a double-click. |
 
 
 
@@ -178,8 +178,8 @@ or [Options#multiColumnSorting](./options/#multicolumnsorting) option is enabled
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentSortConfig | <code>Array</code> | Current sort configuration (for all sorted columns). |
-| destinationSortConfigs | <code>Array</code> | Destination sort configuration (for all sorted columns). |
+| currentSortConfig | `Array` | Current sort configuration (for all sorted columns). |
+| destinationSortConfigs | `Array` | Destination sort configuration (for all sorted columns). |
 
 
 
@@ -193,7 +193,7 @@ which user can select by setting an array of keys or an array of objects in [Opt
 
 | Param | Type | Description |
 | --- | --- | --- |
-| predefinedItems | <code>Array</code> | An array of objects containing information about the pre-defined Context Menu items. |
+| predefinedItems | `Array` | An array of objects containing information about the pre-defined Context Menu items. |
 
 
 
@@ -207,7 +207,7 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| context | <code>object</code> | The Context Menu plugin instance. |
+| context | `object` | The Context Menu plugin instance. |
 
 
 
@@ -221,7 +221,7 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| context | <code>object</code> | The Context Menu plugin instance. |
+| context | `object` | The Context Menu plugin instance. |
 
 
 
@@ -235,8 +235,8 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array.&lt;Array&gt;</code> | An array of arrays which contains the copied data. |
-| coords | <code>Array.&lt;object&gt;</code> | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which was copied. |
+| data | `Array.&lt;Array&gt;` | An array of arrays which contains the copied data. |
+| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which was copied. |
 
 
 
@@ -250,10 +250,10 @@ Fired by [CopyPaste](./copy-paste/) plugin after reaching the copy limit while c
 
 | Param | Type | Description |
 | --- | --- | --- |
-| selectedRows | <code>number</code> | Count of selected copyable rows. |
-| selectedColumns | <code>number</code> | Count of selected copyable columns. |
-| copyRowsLimit | <code>number</code> | Current copy rows limit. |
-| copyColumnsLimit | <code>number</code> | Current copy columns limit. |
+| selectedRows | `number` | Count of selected copyable rows. |
+| selectedColumns | `number` | Count of selected copyable columns. |
+| copyRowsLimit | `number` | Current copy rows limit. |
+| copyColumnsLimit | `number` | Current copy columns limit. |
 
 
 
@@ -266,9 +266,9 @@ Fired after created a new column.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Represents the visual index of first newly created column in the data source. |
-| amount | <code>number</code> | Number of newly created columns in the data source. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Represents the visual index of first newly created column in the data source. |
+| amount | `number` | Number of newly created columns in the data source. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -281,9 +281,9 @@ Fired after created a new row.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Represents the visual index of first newly created row in the data source array. |
-| amount | <code>number</code> | Number of newly created rows in the data source array. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Represents the visual index of first newly created row in the data source array. |
+| amount | `number` | Number of newly created rows in the data source array. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -297,8 +297,8 @@ Fired by [CopyPaste](./copy-paste/) plugin after data was cut out from the table
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array.&lt;Array&gt;</code> | An array of arrays which contains the cutted out data. |
-| coords | <code>Array.&lt;object&gt;</code> | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which was cut out. |
+| data | `Array.&lt;Array&gt;` | An array of arrays which contains the cutted out data. |
+| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which was cut out. |
 
 
 
@@ -328,8 +328,8 @@ Fired by [NestedRows](./nested-rows/) plugin after detaching a child from its pa
 
 | Param | Type | Description |
 | --- | --- | --- |
-| parent | <code>object</code> | An object representing the parent from which the element was detached. |
-| element | <code>object</code> | The detached element. |
+| parent | `object` | An object representing the parent from which the element was detached. |
+| element | `object` | The detached element. |
 
 
 
@@ -343,7 +343,7 @@ hooks system and consumed by Core and internal modules (e.g plugins, editors).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | A native `keydown` event object. |
+| event | `Event` | A native `keydown` event object. |
 
 
 
@@ -357,13 +357,13 @@ Fired inside the Walkontable's selection `draw` method. Can be used to add addit
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentRow | <code>number</code> | Row index of the currently processed cell. |
-| currentColumn | <code>number</code> | Column index of the currently cell. |
-| cornersOfSelection | <code>Array.&lt;number&gt;</code> | Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`. |
-| layerLevel | <code>number</code> \| <code>undefined</code> | Number indicating which layer of selection is currently processed. |
+| currentRow | `number` | Row index of the currently processed cell. |
+| currentColumn | `number` | Column index of the currently cell. |
+| cornersOfSelection | `Array.&lt;number&gt;` | Array of the current selection in a form of `[startRow, startColumn, endRow, endColumn]`. |
+| layerLevel | `number` \| `undefined` | Number indicating which layer of selection is currently processed. |
 
 
-**Returns**: string | undefined - Can return a `String`, which will act as an additional `className` to be added to the currently processed cell.  
+**Returns**: `string` | `undefined` - Can return a `String`, which will act as an additional `className` to be added to the currently processed cell.  
 
 ### afterDropdownMenuDefaultOptions
 
@@ -376,7 +376,7 @@ option.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| predefinedItems | <code>Array.&lt;object&gt;</code> | An array of objects containing information about the pre-defined Context Menu items. |
+| predefinedItems | `Array.&lt;object&gt;` | An array of objects containing information about the pre-defined Context Menu items. |
 
 
 
@@ -390,7 +390,7 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| instance | <code>DropdownMenu</code> | The DropdownMenu instance. |
+| instance | `DropdownMenu` | The DropdownMenu instance. |
 
 
 
@@ -404,7 +404,7 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| dropdownMenu | <code>DropdownMenu</code> | The DropdownMenu instance. |
+| dropdownMenu | `DropdownMenu` | The DropdownMenu instance. |
 
 
 
@@ -418,7 +418,7 @@ Fired by [Filters](./filters/) plugin after applying [filtering](https://handson
 
 | Param | Type | Description |
 | --- | --- | --- |
-| conditionsStack | <code>Array.&lt;object&gt;</code> | An array of objects with added conditions. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
+| conditionsStack | `Array.&lt;object&gt;` | An array of objects with added conditions. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
 
 
 
@@ -431,9 +431,9 @@ Fired after getting the cell settings.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| cellProperties | <code>object</code> | Object containing the cell properties. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| cellProperties | `object` | Object containing the cell properties. |
 
 
 
@@ -446,8 +446,8 @@ Fired after retrieving information about a column header and appending it to the
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
-| TH | <code>HTMLTableCellElement</code> | Header's TH element. |
+| column | `number` | Visual column index. |
+| TH | `HTMLTableCellElement` | Header's TH element. |
 
 
 
@@ -460,7 +460,7 @@ Fired after getting the column header renderers.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| renderers | <code>Array.&lt;function()&gt;</code> | An array of the column header renderers. |
+| renderers | `Array.&lt;function()&gt;` | An array of the column header renderers. |
 
 
 
@@ -473,8 +473,8 @@ Fired after retrieving information about a row header and appending it to the ta
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| TH | <code>HTMLTableCellElement</code> | Header's TH element. |
+| row | `number` | Visual row index. |
+| TH | `HTMLTableCellElement` | Header's TH element. |
 
 
 
@@ -487,7 +487,7 @@ Fired after getting the row header renderers.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| renderers | <code>Array.&lt;function()&gt;</code> | An array of the row header renderers. |
+| renderers | `Array.&lt;function()&gt;` | An array of the row header renderers. |
 
 
 
@@ -500,10 +500,10 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical column indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical column indexes. |
-| actionPossible | <code>boolean</code> | `true`, if the provided column indexes are valid, `false` otherwise. |
-| stateChanged | <code>boolean</code> | `true`, if the action affected any non-hidden columns, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical column indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical column indexes. |
+| actionPossible | `boolean` | `true`, if the provided column indexes are valid, `false` otherwise. |
+| stateChanged | `boolean` | `true`, if the action affected any non-hidden columns, `false` otherwise. |
 
 
 
@@ -516,10 +516,10 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as hidden. F
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical row indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if provided row indexes are valid, `false` otherwise. |
-| stateChanged | <code>boolean</code> | `true`, if the action affected any non-hidden rows, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical row indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical row indexes. |
+| actionPossible | `boolean` | `true`, if provided row indexes are valid, `false` otherwise. |
+| stateChanged | `boolean` | `true`, if the action affected any non-hidden rows, `false` otherwise. |
 
 
 
@@ -541,7 +541,7 @@ Fired after successful change of language (when proper language code was set).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| languageCode | <code>string</code> | New language code. |
+| languageCode | `string` | New language code. |
 
 
 
@@ -563,8 +563,8 @@ Fired after new data is loaded (by `loadData` or `updateSettings` method) into t
 
 | Param | Type | Description |
 | --- | --- | --- |
-| sourceData | <code>Array</code> | Array of arrays or array of objects containing data. |
-| initialLoad | <code>boolean</code> | Flag that determines whether the data has been loaded during the initialization. |
+| sourceData | `Array` | Array of arrays or array of objects containing data. |
+| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
 
 
 
@@ -578,9 +578,9 @@ option is enabled.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| cellRange | <code>CellRange</code> |  | Selection cell range. |
-| mergeParent | <code>object</code> |  | The parent collection of the provided cell range. |
-| [auto] | <code>boolean</code> | <code>false</code> | `optional` `true` if called automatically by the plugin. |
+| cellRange | `CellRange` |  | Selection cell range. |
+| mergeParent | `object` |  | The parent collection of the provided cell range. |
+| [auto] | `boolean` | <code>false</code> | `optional` `true` if called automatically by the plugin. |
 
 
 
@@ -593,9 +593,9 @@ Fired after the end of the selection is being modified (e.g. Moving the selectio
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>CellCoords</code> | Visual coords of the freshly selected cell. |
-| rowTransformDir | <code>number</code> | `-1` if trying to select a cell with a negative row index. `0` otherwise. |
-| colTransformDir | <code>number</code> | `-1` if trying to select a cell with a negative column index. `0` otherwise. |
+| coords | `CellCoords` | Visual coords of the freshly selected cell. |
+| rowTransformDir | `number` | `-1` if trying to select a cell with a negative row index. `0` otherwise. |
+| colTransformDir | `number` | `-1` if trying to select a cell with a negative column index. `0` otherwise. |
 
 
 
@@ -608,9 +608,9 @@ Fired after the start of the selection is being modified (e.g. Moving the select
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>CellCoords</code> | Coords of the freshly selected cell. |
-| rowTransformDir | <code>number</code> | `-1` if trying to select a cell with a negative row index. `0` otherwise. |
-| colTransformDir | <code>number</code> | `-1` if trying to select a cell with a negative column index. `0` otherwise. |
+| coords | `CellCoords` | Coords of the freshly selected cell. |
+| rowTransformDir | `number` | `-1` if trying to select a cell with a negative row index. `0` otherwise. |
+| colTransformDir | `number` | `-1` if trying to select a cell with a negative column index. `0` otherwise. |
 
 
 
@@ -635,9 +635,9 @@ with coordinates `{row: 0, col: -1}`.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | `contextmenu` event object. |
-| coords | <code>CellCoords</code> | Coordinates object containing the visual row and visual column indexes of the clicked cell. |
-| TD | <code>HTMLTableCellElement</code> | Cell's TD (or TH) element. |
+| event | `Event` | `contextmenu` event object. |
+| coords | `CellCoords` | Coordinates object containing the visual row and visual column indexes of the clicked cell. |
+| TD | `HTMLTableCellElement` | Cell's TD (or TH) element. |
 
 
 
@@ -650,7 +650,7 @@ Fired after a `dblclick` event is triggered on the cell corner (the drag handle)
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | `dblclick` event object. |
+| event | `Event` | `dblclick` event object. |
 
 
 
@@ -663,7 +663,7 @@ Fired after a `mousedown` event is triggered on the cell corner (the drag handle
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | `mousedown` event object. |
+| event | `Event` | `mousedown` event object. |
 
 
 
@@ -680,9 +680,9 @@ with coordinates `{row: 0, col: -1}`.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | `mousedown` event object. |
-| coords | <code>CellCoords</code> | Coordinates object containing the visual row and visual column indexes of the clicked cell. |
-| TD | <code>HTMLTableCellElement</code> | Cell's TD (or TH) element. |
+| event | `Event` | `mousedown` event object. |
+| coords | `CellCoords` | Coordinates object containing the visual row and visual column indexes of the clicked cell. |
+| TD | `HTMLTableCellElement` | Cell's TD (or TH) element. |
 
 
 
@@ -695,9 +695,9 @@ Fired after leaving a cell or row/column header with the mouse cursor.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | `mouseout` event object. |
-| coords | <code>CellCoords</code> | Leaved cell's visual coordinate object. |
-| TD | <code>HTMLTableCellElement</code> | Cell's TD (or TH) element. |
+| event | `Event` | `mouseout` event object. |
+| coords | `CellCoords` | Leaved cell's visual coordinate object. |
+| TD | `HTMLTableCellElement` | Cell's TD (or TH) element. |
 
 
 
@@ -714,9 +714,9 @@ with coords `{row: 0, col: -1}`.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | `mouseover` event object. |
-| coords | <code>CellCoords</code> | Hovered cell's visual coordinate object. |
-| TD | <code>HTMLTableCellElement</code> | Cell's TD (or TH) element. |
+| event | `Event` | `mouseover` event object. |
+| coords | `CellCoords` | Hovered cell's visual coordinate object. |
+| TD | `HTMLTableCellElement` | Cell's TD (or TH) element. |
 
 
 
@@ -733,9 +733,9 @@ with coordinates `{row: 0, col: -1}`.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | `mouseup` event object. |
-| coords | <code>CellCoords</code> | Coordinates object containing the visual row and visual column indexes of the clicked cell. |
-| TD | <code>HTMLTableCellElement</code> | Cell's TD (or TH) element. |
+| event | `Event` | `mouseup` event object. |
+| coords | `CellCoords` | Coordinates object containing the visual row and visual column indexes of the clicked cell. |
+| TD | `HTMLTableCellElement` | Cell's TD (or TH) element. |
 
 
 
@@ -749,8 +749,8 @@ Fired by [CopyPaste](./copy-paste/) plugin after values are pasted into table. T
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array.&lt;Array&gt;</code> | An array of arrays which contains the pasted data. |
-| coords | <code>Array.&lt;object&gt;</code> | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
+| data | `Array.&lt;Array&gt;` | An array of arrays which contains the pasted data. |
+| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
 
 
 
@@ -777,7 +777,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>object</code> | The action object. Contains information about the action being redone. The `actionType`                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`). |
+| action | `object` | The action object. Contains information about the action being redone. The `actionType`                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`). |
 
 
 
@@ -790,9 +790,9 @@ Fired after the window was resized.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| previousDimensions | <code>object</code> | Previous dimensions of the container. |
-| currentDimensions | <code>object</code> | Current dimensions of the container. |
-| stateChanged | <code>boolean</code> | `true`, if the container was re-render, `false` otherwise. |
+| previousDimensions | `object` | Previous dimensions of the container. |
+| currentDimensions | `object` | Current dimensions of the container. |
+| stateChanged | `boolean` | `true`, if the container was re-render, `false` otherwise. |
 
 
 
@@ -805,10 +805,10 @@ Fired after cell meta is removed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| key | <code>string</code> | The removed meta key. |
-| value | <code>\*</code> | Value which was under removed key of cell meta. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| key | `string` | The removed meta key. |
+| value | `\*` | Value which was under removed key of cell meta. |
 
 
 
@@ -821,10 +821,10 @@ Fired after one or more columns are removed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Visual index of starter column. |
-| amount | <code>number</code> | An amount of removed columns. |
-| physicalColumns | <code>Array.&lt;number&gt;</code> | An array of physical columns removed from the data source. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Visual index of starter column. |
+| amount | `number` | An amount of removed columns. |
+| physicalColumns | `Array.&lt;number&gt;` | An array of physical columns removed from the data source. |
+| [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -837,10 +837,10 @@ Fired after one or more rows are removed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Visual index of starter row. |
-| amount | <code>number</code> | An amount of removed rows. |
-| physicalRows | <code>Array.&lt;number&gt;</code> | An array of physical rows removed from the data source. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Visual index of starter row. |
+| amount | `number` | An amount of removed rows. |
+| physicalRows | `Array.&lt;number&gt;` | An array of physical rows removed from the data source. |
+| [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -853,7 +853,7 @@ Fired after the Handsontable table is rendered.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| isForced | <code>boolean</code> | Is `true` if rendering was triggered by a change of settings or data; or `false` if                           rendering was triggered by scrolling or moving selection. |
+| isForced | `boolean` | Is `true` if rendering was triggered by a change of settings or data; or `false` if                           rendering was triggered by scrolling or moving selection. |
 
 
 
@@ -866,12 +866,12 @@ Fired after finishing rendering the cell (after the renderer finishes).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| TD | <code>HTMLTableCellElement</code> | Currently rendered cell's TD element. |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| prop | <code>string</code> \| <code>number</code> | Column property name or a column index, if datasource is an array of arrays. |
-| value | <code>\*</code> | Value of the rendered cell. |
-| cellProperties | <code>object</code> | Object containing the cell's properties. |
+| TD | `HTMLTableCellElement` | Currently rendered cell's TD element. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| prop | `string` \| `number` | Column property name or a column index, if datasource is an array of arrays. |
+| value | `\*` | Value of the rendered cell. |
+| cellProperties | `object` | Object containing the cell's properties. |
 
 
 
@@ -885,11 +885,11 @@ Fired by [ManualRowMove](./manual-row-move/) plugin after changing the order of 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| movedRows | <code>Array</code> | Array of visual row indexes to be moved. |
-| finalIndex | <code>number</code> | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | <code>number</code> \| <code>undefined</code> | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
-| movePossible | <code>boolean</code> | Indicates if it was possible to move rows to the desired position. |
-| orderChanged | <code>boolean</code> | Indicates if order of rows was changed by move. |
+| movedRows | `Array` | Array of visual row indexes to be moved. |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| dropIndex | `number` \| `undefined` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
+| movePossible | `boolean` | Indicates if it was possible to move rows to the desired position. |
+| orderChanged | `boolean` | Indicates if order of rows was changed by move. |
 
 
 
@@ -903,9 +903,9 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 | Param | Type | Description |
 | --- | --- | --- |
-| newSize | <code>number</code> | Calculated new row height. |
-| row | <code>number</code> | Visual index of the resized row. |
-| isDoubleClick | <code>boolean</code> | Flag that determines whether there was a double-click. |
+| newSize | `number` | Calculated new row height. |
+| row | `number` | Visual index of the resized row. |
+| isDoubleClick | `boolean` | Flag that determines whether there was a double-click. |
 
 
 
@@ -943,12 +943,12 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Selection start visual row index. |
-| column | <code>number</code> | Selection start visual column index. |
-| row2 | <code>number</code> | Selection end visual row index. |
-| column2 | <code>number</code> | Selection end visual column index. |
-| preventScrolling | <code>object</code> | Object with `value` property where its value change will be observed. |
-| selectionLayerLevel | <code>number</code> | The number which indicates what selection layer is currently modified. |
+| row | `number` | Selection start visual row index. |
+| column | `number` | Selection start visual column index. |
+| row2 | `number` | Selection end visual row index. |
+| column2 | `number` | Selection end visual column index. |
+| preventScrolling | `object` | Object with `value` property where its value change will be observed. |
+| selectionLayerLevel | `number` | The number which indicates what selection layer is currently modified. |
 
 
 
@@ -972,12 +972,12 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Selection start visual row index. |
-| prop | <code>string</code> | Selection start data source object property name. |
-| row2 | <code>number</code> | Selection end visual row index. |
-| prop2 | <code>string</code> | Selection end data source object property name. |
-| preventScrolling | <code>object</code> | Object with `value` property where its value change will be observed. |
-| selectionLayerLevel | <code>number</code> | The number which indicates what selection layer is currently modified. |
+| row | `number` | Selection start visual row index. |
+| prop | `string` | Selection start data source object property name. |
+| row2 | `number` | Selection end visual row index. |
+| prop2 | `string` | Selection end data source object property name. |
+| preventScrolling | `object` | Object with `value` property where its value change will be observed. |
+| selectionLayerLevel | `number` | The number which indicates what selection layer is currently modified. |
 
 
 
@@ -990,11 +990,11 @@ Fired after one or more cells are selected (e.g. On mouse up).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Selection start visual row index. |
-| column | <code>number</code> | Selection start visual column index. |
-| row2 | <code>number</code> | Selection end visual row index. |
-| column2 | <code>number</code> | Selection end visual column index. |
-| selectionLayerLevel | <code>number</code> | The number which indicates what selection layer is currently modified. |
+| row | `number` | Selection start visual row index. |
+| column | `number` | Selection start visual column index. |
+| row2 | `number` | Selection end visual row index. |
+| column2 | `number` | Selection end visual column index. |
+| selectionLayerLevel | `number` | The number which indicates what selection layer is currently modified. |
 
 
 
@@ -1009,11 +1009,11 @@ The `prop` and `prop2` arguments represent the source object property name inste
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Selection start visual row index. |
-| prop | <code>string</code> | Selection start data source object property index. |
-| row2 | <code>number</code> | Selection end visual row index. |
-| prop2 | <code>string</code> | Selection end data source object property index. |
-| selectionLayerLevel | <code>number</code> | The number which indicates what selection layer is currently modified. |
+| row | `number` | Selection start visual row index. |
+| prop | `string` | Selection start data source object property index. |
+| row2 | `number` | Selection end visual row index. |
+| prop2 | `string` | Selection end data source object property index. |
+| selectionLayerLevel | `number` | The number which indicates what selection layer is currently modified. |
 
 
 
@@ -1026,10 +1026,10 @@ Fired after cell meta is changed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| key | <code>string</code> | The updated meta key. |
-| value | <code>\*</code> | The updated meta value. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| key | `string` | The updated meta key. |
+| value | `\*` | The updated meta value. |
 
 
 
@@ -1042,8 +1042,8 @@ Fired after cell data was changed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | <code>Array</code> | An array of changes in format `[[row, column, oldValue, value], ...]`. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| changes | `Array` | An array of changes in format `[[row, column, oldValue, value], ...]`. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -1057,8 +1057,8 @@ Called only when `setDataAtRowProp` was executed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | <code>Array</code> | An array of changes in format `[[row, prop, oldValue, value], ...]`. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| changes | `Array` | An array of changes in format `[[row, prop, oldValue, value], ...]`. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -1072,8 +1072,8 @@ Fired after cell source data was changed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | <code>Array</code> | An array of changes in format `[[row, column, oldValue, value], ...]`. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call. |
+| changes | `Array` | An array of changes in format `[[row, column, oldValue, value], ...]`. |
+| [source] | `string` | `optional` String that identifies source of hook call. |
 
 
 
@@ -1086,13 +1086,13 @@ Fired by [TrimRows](./trim-rows/) plugin after trimming rows. This hook is fired
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentTrimConfig | <code>Array</code> | Current trim configuration - a list of trimmed physical row indexes. |
-| destinationTrimConfig | <code>Array</code> | Destination trim configuration - a list of trimmed physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
-| stateChanged | <code>boolean</code> | `true`, if the action affected any non-trimmed rows, `false` otherwise. |
+| currentTrimConfig | `Array` | Current trim configuration - a list of trimmed physical row indexes. |
+| destinationTrimConfig | `Array` | Destination trim configuration - a list of trimmed physical row indexes. |
+| actionPossible | `boolean` | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
+| stateChanged | `boolean` | `true`, if the action affected any non-trimmed rows, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the trimming action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the trimming action will not be completed.  
 
 ### afterUndo
 
@@ -1104,7 +1104,7 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>object</code> | The action object. Contains information about the action being undone. The `actionType`                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`). |
+| action | `object` | The action object. Contains information about the action being undone. The `actionType`                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`). |
 
 
 
@@ -1117,10 +1117,10 @@ Fired by [HiddenColumns](./hidden-columns/) plugin after marking the columns as 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical column indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical column indexes. |
-| actionPossible | <code>boolean</code> | `true`, if the provided column indexes are valid, `false` otherwise. |
-| stateChanged | <code>boolean</code> | `true`, if the action affected any hidden columns, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical column indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical column indexes. |
+| actionPossible | `boolean` | `true`, if the provided column indexes are valid, `false` otherwise. |
+| stateChanged | `boolean` | `true`, if the action affected any hidden columns, `false` otherwise. |
 
 
 
@@ -1133,10 +1133,10 @@ Fired by [HiddenRows](./hidden-rows/) plugin after marking the rows as not hidde
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical row indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if provided row indexes are valid, `false` otherwise. |
-| stateChanged | <code>boolean</code> | `true`, if the action affected any hidden rows, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical row indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical row indexes. |
+| actionPossible | `boolean` | `true`, if provided row indexes are valid, `false` otherwise. |
+| stateChanged | `boolean` | `true`, if the action affected any hidden rows, `false` otherwise. |
 
 
 
@@ -1159,8 +1159,8 @@ option is enabled.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| cellRange | <code>CellRange</code> |  | Selection cell range. |
-| [auto] | <code>boolean</code> | <code>false</code> | `optional` `true` if called automatically by the plugin. |
+| cellRange | `CellRange` |  | Selection cell range. |
+| [auto] | `boolean` | <code>false</code> | `optional` `true` if called automatically by the plugin. |
 
 
 
@@ -1173,13 +1173,13 @@ Fired by [TrimRows](./trim-rows/) plugin after untrimming rows. This hook is fir
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentTrimConfig | <code>Array</code> | Current trim configuration - a list of trimmed physical row indexes. |
-| destinationTrimConfig | <code>Array</code> | Destination trim configuration - a list of trimmed physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
-| stateChanged | <code>boolean</code> | `true`, if the action affected any trimmed rows, `false` otherwise. |
+| currentTrimConfig | `Array` | Current trim configuration - a list of trimmed physical row indexes. |
+| destinationTrimConfig | `Array` | Destination trim configuration - a list of trimmed physical row indexes. |
+| actionPossible | `boolean` | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
+| stateChanged | `boolean` | `true`, if the action affected any trimmed rows, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the untrimming action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the untrimming action will not be completed.  
 
 ### afterUpdateSettings
 
@@ -1190,7 +1190,7 @@ Fired after calling the `updateSettings` method.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| newSettings | <code>object</code> | New settings object. |
+| newSettings | `object` | New settings object. |
 
 
 
@@ -1206,14 +1206,14 @@ __Returning false from the callback will mark the cell as invalid__.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| isValid | <code>boolean</code> | `true` if valid, `false` if not. |
-| value | <code>\*</code> | The value in question. |
-| row | <code>number</code> | Visual row index. |
-| prop | <code>string</code> \| <code>number</code> | Property name / visual column index. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| isValid | `boolean` | `true` if valid, `false` if not. |
+| value | `\*` | The value in question. |
+| row | `number` | Visual row index. |
+| prop | `string` \| `number` | Property name / visual column index. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
-**Returns**: void | boolean - If `false` the cell will be marked as invalid, `true` otherwise.  
+**Returns**: `void` | `boolean` - If `false` the cell will be marked as invalid, `true` otherwise.  
 
 ### afterViewportColumnCalculatorOverride
 
@@ -1224,7 +1224,7 @@ Fired inside the `viewportColumnCalculatorOverride` method. Allows modifying the
 
 | Param | Type | Description |
 | --- | --- | --- |
-| calc | <code>object</code> | The row calculator. |
+| calc | `object` | The row calculator. |
 
 
 
@@ -1237,7 +1237,7 @@ Fired inside the `viewportRowCalculatorOverride` method. Allows modifying the ro
 
 | Param | Type | Description |
 | --- | --- | --- |
-| calc | <code>object</code> | The row calculator. |
+| calc | `object` | The row calculator. |
 
 
 
@@ -1251,9 +1251,9 @@ Fired by [NestedRows](./nested-rows/) plugin before adding a children to the Nes
 
 | Param | Type | Description |
 | --- | --- | --- |
-| parent | <code>object</code> | The parent object. |
-| element | <code>object</code> \| <code>undefined</code> | The element added as a child. If `undefined`, a blank child was added. |
-| index | <code>number</code> \| <code>undefined</code> | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
+| parent | `object` | The parent object. |
+| element | `object` \| `undefined` | The element added as a child. If `undefined`, a blank child was added. |
+| index | `number` \| `undefined` | The index within the parent where the new child was added. If `undefined`, the element was added as the last child. |
 
 
 
@@ -1267,12 +1267,12 @@ Fired by [Autofill](./autofill/) plugin before populating the data in the autofi
 
 | Param | Type | Description |
 | --- | --- | --- |
-| start | <code>CellCoords</code> | Object containing information about first filled cell: `{row: 2, col: 0}`. |
-| end | <code>CellCoords</code> | Object containing information about last filled cell: `{row: 4, col: 1}`. |
-| data | <code>Array.&lt;Array&gt;</code> | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
+| start | `CellCoords` | Object containing information about first filled cell: `{row: 2, col: 0}`. |
+| end | `CellCoords` | Object containing information about last filled cell: `{row: 4, col: 1}`. |
+| data | `Array.&lt;Array&gt;` | 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`. |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeAutofillInsidePopulate
 
@@ -1283,10 +1283,10 @@ Fired from the `populateFromArray` method during the `autofill` process. Fired f
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>object</code> | Object containing `row` and `col` properties, defining the number of rows/columns from the initial cell of the autofill. |
-| direction | <code>string</code> | Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`. |
-| input | <code>Array.&lt;Array&gt;</code> | Contains an array of rows with data being used in the autofill. |
-| deltas | <code>Array</code> | The deltas array passed to the `populateFromArray` method. |
+| index | `object` | Object containing `row` and `col` properties, defining the number of rows/columns from the initial cell of the autofill. |
+| direction | `string` | Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`. |
+| input | `Array.&lt;Array&gt;` | Contains an array of rows with data being used in the autofill. |
+| deltas | `Array` | The deltas array passed to the `populateFromArray` method. |
 
 
 
@@ -1299,10 +1299,10 @@ Fired before aligning the cell contents.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| stateBefore | <code>object</code> | An object with class names defining the cell alignment. |
-| range | <code>Array.&lt;CellRange&gt;</code> | An array of CellRange coordinates where the alignment will be applied. |
-| type | <code>string</code> | Type of the alignment - either `horizontal` or `vertical`. |
-| alignmentClass | <code>string</code> | String defining the alignment class added to the cell. Possible values: * `htLeft` * `htCenter` * `htRight` * `htJustify` * `htTop` * `htMiddle` * `htBottom`. |
+| stateBefore | `object` | An object with class names defining the cell alignment. |
+| range | `Array.&lt;CellRange&gt;` | An array of CellRange coordinates where the alignment will be applied. |
+| type | `string` | Type of the alignment - either `horizontal` or `vertical`. |
+| alignmentClass | `string` | String defining the alignment class added to the cell. Possible values: * `htLeft` * `htCenter` * `htRight` * `htJustify` * `htTop` * `htMiddle` * `htBottom`. |
 
 
 
@@ -1340,11 +1340,11 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | <code>Array.&lt;Array&gt;</code> | 2D array containing information about each of the edited cells. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| changes | `Array.&lt;Array&gt;` | 2D array containing information about each of the edited cells. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
-**Returns**: void | boolean - If `false` all changes were cancelled, `true` otherwise.  
+**Returns**: `void` | `boolean` - If `false` all changes were cancelled, `true` otherwise.  
 
 ### beforeChangeRender
 
@@ -1355,8 +1355,8 @@ Fired right before rendering the changes.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| changes | <code>Array.&lt;Array&gt;</code> | Array in form of `[row, prop, oldValue, newValue]`. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| changes | `Array.&lt;Array&gt;` | Array in form of `[row, prop, oldValue, newValue]`. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -1370,12 +1370,12 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns coll
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentCollapsedColumns | <code>Array</code> | Current collapsible configuration - a list of collapsible physical column indexes. |
-| destinationCollapsedColumns | <code>Array</code> | Destination collapsible configuration - a list of collapsible physical column indexes. |
-| collapsePossible | <code>boolean</code> | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
+| currentCollapsedColumns | `Array` | Current collapsible configuration - a list of collapsible physical column indexes. |
+| destinationCollapsedColumns | `Array` | Destination collapsible configuration - a list of collapsible physical column indexes. |
+| collapsePossible | `boolean` | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the collapsing action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the collapsing action will not be completed.  
 
 ### beforeColumnExpand
 
@@ -1387,12 +1387,12 @@ Fired by [CollapsibleColumns](./collapsible-columns/) plugin before columns expa
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentCollapsedColumns | <code>Array</code> | Current collapsible configuration - a list of collapsible physical column indexes. |
-| destinationCollapsedColumns | <code>Array</code> | Destination collapsible configuration - a list of collapsible physical column indexes. |
-| expandPossible | <code>boolean</code> | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
+| currentCollapsedColumns | `Array` | Current collapsible configuration - a list of collapsible physical column indexes. |
+| destinationCollapsedColumns | `Array` | Destination collapsible configuration - a list of collapsible physical column indexes. |
+| expandPossible | `boolean` | `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the expanding action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the expanding action will not be completed.  
 
 ### beforeColumnMove
 
@@ -1404,13 +1404,13 @@ Fired by [ManualColumnMove](./manual-column-move/) plugin before change order of
 
 | Param | Type | Description |
 | --- | --- | --- |
-| movedColumns | <code>Array</code> | Array of visual column indexes to be moved. |
-| finalIndex | <code>number</code> | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | <code>number</code> \| <code>undefined</code> | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
-| movePossible | <code>boolean</code> | Indicates if it's possible to move rows to the desired position. |
+| movedColumns | `Array` | Array of visual column indexes to be moved. |
+| finalIndex | `number` | Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| dropIndex | `number` \| `undefined` | Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called. |
+| movePossible | `boolean` | Indicates if it's possible to move rows to the desired position. |
 
 
-**Returns**: void | boolean - If `false` the column will not be moved, `true` otherwise.  
+**Returns**: `void` | `boolean` - If `false` the column will not be moved, `true` otherwise.  
 
 ### beforeColumnResize
 
@@ -1422,12 +1422,12 @@ fired when [Options#manualColumnResize](./options/#manualcolumnresize) option is
 
 | Param | Type | Description |
 | --- | --- | --- |
-| newSize | <code>number</code> | Calculated new column width. |
-| column | <code>number</code> | Visual index of the resized column. |
-| isDoubleClick | <code>boolean</code> | Flag that determines whether there was a double-click. |
+| newSize | `number` | Calculated new column width. |
+| column | `number` | Visual index of the resized column. |
+| isDoubleClick | `boolean` | Flag that determines whether there was a double-click. |
 
 
-**Returns**: number - Returns a new column size or `undefined`, if column size should be calculated automatically.  
+**Returns**: `number` - Returns a new column size or `undefined`, if column size should be calculated automatically.  
 
 ### beforeColumnSort
 
@@ -1441,11 +1441,11 @@ This hook is fired when [Options#columnSorting](./options/#columnsorting) or [Op
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentSortConfig | <code>Array</code> | Current sort configuration (for all sorted columns). |
-| destinationSortConfigs | <code>Array</code> | Destination sort configuration (for all sorted columns). |
+| currentSortConfig | `Array` | Current sort configuration (for all sorted columns). |
+| destinationSortConfigs | `Array` | Destination sort configuration (for all sorted columns). |
 
 
-**Returns**: boolean | void - If `false` the column will not be sorted, `true` otherwise.  
+**Returns**: `boolean` | `void` - If `false` the column will not be sorted, `true` otherwise.  
 
 ### beforeContextMenuSetItems
 
@@ -1458,7 +1458,7 @@ one of the menu item to by always visible.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| menuItems | <code>Array.&lt;object&gt;</code> | An array of objects containing information about to generated Context Menu items. |
+| menuItems | `Array.&lt;object&gt;` | An array of objects containing information about to generated Context Menu items. |
 
 
 
@@ -1472,7 +1472,7 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| context | <code>object</code> | The Context Menu instance. |
+| context | `object` | The Context Menu instance. |
 
 
 
@@ -1508,11 +1508,11 @@ new Handsontable(document.getElementById('example'), {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array.&lt;Array&gt;</code> | An array of arrays which contains data to copied. |
-| coords | <code>Array.&lt;object&gt;</code> | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which will copied. |
+| data | `Array.&lt;Array&gt;` | An array of arrays which contains data to copied. |
+| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                         which will copied. |
 
 
-**Returns**: \* - If returns `false` then copying is canceled.  
+**Returns**: `*` - If returns `false` then copying is canceled.  
 
 ### beforeCreateCol
 
@@ -1532,12 +1532,12 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Represents the visual index of first newly created column in the data source array. |
-| amount | <code>number</code> | Number of newly created columns in the data source array. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Represents the visual index of first newly created column in the data source array. |
+| amount | `number` | Number of newly created columns in the data source array. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](http://docs.handsontable.com/tutorial-using-callbacks.html#page-source-definition)). |
 
 
-**Returns**: \* - If `false` then creating columns is cancelled.  
+**Returns**: `*` - If `false` then creating columns is cancelled.  
 
 ### beforeCreateRow
 
@@ -1548,12 +1548,12 @@ Fired before created a new row.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Represents the visual index of first newly created row in the data source array. |
-| amount | <code>number</code> | Number of newly created rows in the data source array. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Represents the visual index of first newly created row in the data source array. |
+| amount | `number` | Number of newly created rows in the data source array. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeCut
 
@@ -1583,11 +1583,11 @@ new Handsontable(element, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array.&lt;Array&gt;</code> | An array of arrays which contains data to cut. |
-| coords | <code>Array.&lt;object&gt;</code> | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which will be cut out. |
+| data | `Array.&lt;Array&gt;` | An array of arrays which contains data to cut. |
+| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       which will be cut out. |
 
 
-**Returns**: \* - If returns `false` then operation of the cutting out is canceled.  
+**Returns**: `*` - If returns `false` then operation of the cutting out is canceled.  
 
 ### beforeDetachChild
 
@@ -1599,8 +1599,8 @@ Fired by [NestedRows](./nested-rows/) plugin before detaching a child from its p
 
 | Param | Type | Description |
 | --- | --- | --- |
-| parent | <code>object</code> | An object representing the parent from which the element is to be detached. |
-| element | <code>object</code> | The detached element. |
+| parent | `object` | An object representing the parent from which the element is to be detached. |
+| element | `object` | The detached element. |
 
 
 
@@ -1613,8 +1613,8 @@ Fired before drawing the borders.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| corners | <code>Array</code> | Array specifying the current selection borders. |
-| borderClassName | <code>string</code> | Specifies the border class name. |
+| corners | `Array` | Array specifying the current selection borders. |
+| borderClassName | `string` | Specifies the border class name. |
 
 
 
@@ -1629,7 +1629,7 @@ up one of the menu item to by always visible.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| menuItems | <code>Array.&lt;object&gt;</code> | An array of objects containing information about to generated Dropdown Menu items. |
+| menuItems | `Array.&lt;object&gt;` | An array of objects containing information about to generated Dropdown Menu items. |
 
 
 
@@ -1643,7 +1643,7 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| dropdownMenu | <code>DropdownMenu</code> | The DropdownMenu instance. |
+| dropdownMenu | `DropdownMenu` | The DropdownMenu instance. |
 
 
 
@@ -1657,10 +1657,10 @@ Fired by [Filters](./filters/) plugin before applying [filtering](https://handso
 
 | Param | Type | Description |
 | --- | --- | --- |
-| conditionsStack | <code>Array.&lt;object&gt;</code> | An array of objects with added formulas. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
+| conditionsStack | `Array.&lt;object&gt;` | An array of objects with added formulas. ```js // Example format of the conditionsStack argument: [   {     column: 2,     conditions: [       {name: 'begins_with', args: [['S']]}     ],     operation: 'conjunction'   },   {     column: 4,     conditions: [       {name: 'not_empty', args: []}     ],     operation: 'conjunction'   }, ] ``` |
 
 
-**Returns**: boolean - If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).  
+**Returns**: `boolean` - If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).  
 
 ### beforeGetCellMeta
 
@@ -1671,9 +1671,9 @@ Fired before getting cell settings.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| cellProperties | <code>object</code> | Object containing the cell's properties. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| cellProperties | `object` | Object containing the cell's properties. |
 
 
 
@@ -1687,12 +1687,12 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical column indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical column indexes. |
-| actionPossible | <code>boolean</code> | `true`, if the provided column indexes are valid, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical column indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical column indexes. |
+| actionPossible | `boolean` | `true`, if the provided column indexes are valid, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the hiding action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the hiding action will not be completed.  
 
 ### beforeHideRows
 
@@ -1704,12 +1704,12 @@ Returning `false` in the callback will prevent the hiding action from completing
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical row indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if provided row indexes are valid, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical row indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical row indexes. |
+| actionPossible | `boolean` | `true`, if provided row indexes are valid, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the hiding action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the hiding action will not be completed.  
 
 ### beforeInit
 
@@ -1728,7 +1728,7 @@ Fired before the Walkontable instance is initiated.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| walkontableConfig | <code>object</code> | Walkontable configuration object. |
+| walkontableConfig | `object` | Walkontable configuration object. |
 
 
 
@@ -1744,7 +1744,7 @@ handler.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | Original DOM event. |
+| event | `Event` | Original DOM event. |
 
 
 
@@ -1758,7 +1758,7 @@ Fired before successful change of language (when proper language code was set).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| languageCode | <code>string</code> | New language code. |
+| languageCode | `string` | New language code. |
 
 
 
@@ -1772,8 +1772,8 @@ Fired before new data is loaded (by `loadData` or `updateSettings` method) into 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| sourceData | <code>Array</code> | Array of arrays or array of objects containing data. |
-| initialLoad | <code>boolean</code> | Flag that determines whether the data has been loaded during the initialization. |
+| sourceData | `Array` | Array of arrays or array of objects containing data. |
+| initialLoad | `boolean` | Flag that determines whether the data has been loaded during the initialization. |
 
 
 
@@ -1787,8 +1787,8 @@ option is enabled.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| cellRange | <code>CellRange</code> |  | Selection cell range. |
-| [auto] | <code>boolean</code> | <code>false</code> | `optional` `true` if called automatically by the plugin. |
+| cellRange | `CellRange` |  | Selection cell range. |
+| [auto] | `boolean` | <code>false</code> | `optional` `true` if called automatically by the plugin. |
 
 
 
@@ -1802,9 +1802,9 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | The `contextmenu` event object. |
-| coords | <code>CellCoords</code> | Cell coords object containing the visual coordinates of the clicked cell. |
-| TD | <code>HTMLTableCellElement</code> | TD element. |
+| event | `Event` | The `contextmenu` event object. |
+| coords | `CellCoords` | Cell coords object containing the visual coordinates of the clicked cell. |
+| TD | `HTMLTableCellElement` | TD element. |
 
 
 
@@ -1817,10 +1817,10 @@ Fired after the user clicked a cell, but before all the calculations related wit
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | The `mousedown` event object. |
-| coords | <code>CellCoords</code> | Cell coords object containing the visual coordinates of the clicked cell. |
-| TD | <code>HTMLTableCellElement</code> | TD element. |
-| controller | <code>object</code> | An object with keys `row`, `column` and `cells` which contains boolean values. This                            object allows or disallows changing the selection for the particular axies. |
+| event | `Event` | The `mousedown` event object. |
+| coords | `CellCoords` | Cell coords object containing the visual coordinates of the clicked cell. |
+| TD | `HTMLTableCellElement` | TD element. |
+| controller | `object` | An object with keys `row`, `column` and `cells` which contains boolean values. This                            object allows or disallows changing the selection for the particular axies. |
 
 
 
@@ -1833,9 +1833,9 @@ Fired after the user moved cursor out from a cell, but before all the calculatio
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | The `mouseout` event object. |
-| coords | <code>CellCoords</code> | CellCoords object containing the visual coordinates of the leaved cell. |
-| TD | <code>HTMLTableCellElement</code> | TD element. |
+| event | `Event` | The `mouseout` event object. |
+| coords | `CellCoords` | CellCoords object containing the visual coordinates of the leaved cell. |
+| TD | `HTMLTableCellElement` | TD element. |
 
 
 
@@ -1848,10 +1848,10 @@ Fired after the user moved cursor over a cell, but before all the calculations r
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | The `mouseover` event object. |
-| coords | <code>CellCoords</code> | CellCoords object containing the visual coordinates of the clicked cell. |
-| TD | <code>HTMLTableCellElement</code> | TD element. |
-| controller | <code>object</code> | An object with keys `row`, `column` and `cells` which contains boolean values. This                            object allows or disallows changing the selection for the particular axies. |
+| event | `Event` | The `mouseover` event object. |
+| coords | `CellCoords` | CellCoords object containing the visual coordinates of the clicked cell. |
+| TD | `HTMLTableCellElement` | TD element. |
+| controller | `object` | An object with keys `row`, `column` and `cells` which contains boolean values. This                            object allows or disallows changing the selection for the particular axies. |
 
 
 
@@ -1864,9 +1864,9 @@ Fired after the user clicked a cell.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | The `mouseup` event object. |
-| coords | <code>CellCoords</code> | Cell coords object containing the visual coordinates of the clicked cell. |
-| TD | <code>HTMLTableCellElement</code> | TD element. |
+| event | `Event` | The `mouseup` event object. |
+| coords | `CellCoords` | Cell coords object containing the visual coordinates of the clicked cell. |
+| TD | `HTMLTableCellElement` | TD element. |
 
 
 
@@ -1898,11 +1898,11 @@ new Handsontable(example, {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| data | <code>Array.&lt;Array&gt;</code> | An array of arrays which contains data to paste. |
-| coords | <code>Array.&lt;object&gt;</code> | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
+| data | `Array.&lt;Array&gt;` | An array of arrays which contains data to paste. |
+| coords | `Array.&lt;object&gt;` | An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)                       that correspond to the previously selected area. |
 
 
-**Returns**: \* - If returns `false` then pasting is canceled.  
+**Returns**: `*` - If returns `false` then pasting is canceled.  
 
 ### beforeRedo
 
@@ -1914,10 +1914,10 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>object</code> | The action object. Contains information about the action being redone. The `actionType`                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`). |
+| action | `object` | The action object. Contains information about the action being redone. The `actionType`                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`). |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRefreshDimensions
 
@@ -1928,12 +1928,12 @@ Cancellable hook, called after resizing a window, but before redrawing a table.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| previousDimensions | <code>object</code> | Previous dimensions of the container. |
-| currentDimensions | <code>object</code> | Current dimensions of the container. |
-| actionPossible | <code>boolean</code> | `true`, if current and previous dimensions are different, `false` otherwise. |
+| previousDimensions | `object` | Previous dimensions of the container. |
+| currentDimensions | `object` | Current dimensions of the container. |
+| actionPossible | `boolean` | `true`, if current and previous dimensions are different, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the refresh action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the refresh action will not be completed.  
 
 ### beforeRemoveCellClassNames
 
@@ -1943,7 +1943,7 @@ Fired inside the Walkontable's `refreshSelections` method. Can be used to remove
 
 **Since**: 0.38.1  
 
-**Returns**: Array.&lt;string&gt; | undefined - Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.  
+**Returns**: `Array.&lt;string&gt;` | `undefined` - Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.  
 
 ### beforeRemoveCellMeta
 
@@ -1954,13 +1954,13 @@ Fired before cell meta is removed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| key | <code>string</code> | The removed meta key. |
-| value | <code>\*</code> | Value which is under removed key of cell meta. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| key | `string` | The removed meta key. |
+| value | `\*` | Value which is under removed key of cell meta. |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRemoveCol
 
@@ -1971,13 +1971,13 @@ Fired before one or more columns are about to be removed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Visual index of starter column. |
-| amount | <code>number</code> | Amount of columns to be removed. |
-| physicalColumns | <code>Array.&lt;number&gt;</code> | An array of physical columns removed from the data source. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Visual index of starter column. |
+| amount | `number` | Amount of columns to be removed. |
+| physicalColumns | `Array.&lt;number&gt;` | An array of physical columns removed from the data source. |
+| [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRemoveRow
 
@@ -1988,13 +1988,13 @@ Fired when one or more rows are about to be removed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| index | <code>number</code> | Visual index of starter row. |
-| amount | <code>number</code> | Amount of rows to be removed. |
-| physicalRows | <code>Array.&lt;number&gt;</code> | An array of physical rows removed from the data source. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| index | `number` | Visual index of starter row. |
+| amount | `number` | Amount of rows to be removed. |
+| physicalRows | `Array.&lt;number&gt;` | An array of physical rows removed from the data source. |
+| [source] | `string` | `optional` String that identifies source of hook call ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRender
 
@@ -2005,8 +2005,8 @@ Fired before the Handsontable table is rendered.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| isForced | <code>boolean</code> | If `true` rendering was triggered by a change of settings or data; or `false` if                           rendering was triggered by scrolling or moving selection. |
-| skipRender | <code>object</code> | Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped. |
+| isForced | `boolean` | If `true` rendering was triggered by a change of settings or data; or `false` if                           rendering was triggered by scrolling or moving selection. |
+| skipRender | `object` | Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped. |
 
 
 
@@ -2019,12 +2019,12 @@ Fired before starting rendering the cell.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| TD | <code>HTMLTableCellElement</code> | Currently rendered cell's TD element. |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| prop | <code>string</code> \| <code>number</code> | Column property name or a column index, if datasource is an array of arrays. |
-| value | <code>\*</code> | Value of the rendered cell. |
-| cellProperties | <code>object</code> | Object containing the cell's properties. |
+| TD | `HTMLTableCellElement` | Currently rendered cell's TD element. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| prop | `string` \| `number` | Column property name or a column index, if datasource is an array of arrays. |
+| value | `\*` | Value of the rendered cell. |
+| cellProperties | `object` | Object containing the cell's properties. |
 
 
 
@@ -2038,13 +2038,13 @@ Fired by [ManualRowMove](./manual-row-move/) plugin before changing the order of
 
 | Param | Type | Description |
 | --- | --- | --- |
-| movedRows | <code>Array</code> | Array of visual row indexes to be moved. |
-| finalIndex | <code>number</code> | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
-| dropIndex | <code>number</code> \| <code>undefined</code> | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
-| movePossible | <code>boolean</code> | Indicates if it's possible to move rows to the desired position. |
+| movedRows | `Array` | Array of visual row indexes to be moved. |
+| finalIndex | `number` | Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). |
+| dropIndex | `number` \| `undefined` | Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](https://handsontable.com/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called. |
+| movePossible | `boolean` | Indicates if it's possible to move rows to the desired position. |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeRowResize
 
@@ -2056,12 +2056,12 @@ fired when [Options#manualRowResize](./options/#manualrowresize) option is enabl
 
 | Param | Type | Description |
 | --- | --- | --- |
-| newSize | <code>number</code> | Calculated new row height. |
-| row | <code>number</code> | Visual index of the resized row. |
-| isDoubleClick | <code>boolean</code> | Flag that determines whether there was a double-click. |
+| newSize | `number` | Calculated new row height. |
+| row | `number` | Visual index of the resized row. |
+| isDoubleClick | `boolean` | Flag that determines whether there was a double-click. |
 
 
-**Returns**: number - Returns the new row size or `undefined` if row size should be calculated automatically.  
+**Returns**: `number` - Returns the new row size or `undefined` if row size should be calculated automatically.  
 
 ### beforeSetCellMeta
 
@@ -2073,13 +2073,13 @@ Fired before cell meta is changed.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| key | <code>string</code> | The updated meta key. |
-| value | <code>\*</code> | The updated meta value. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| key | `string` | The updated meta key. |
+| value | `\*` | The updated meta value. |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeSetRangeEnd
 
@@ -2090,7 +2090,7 @@ Fired before setting range is ended.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>CellCoords</code> | CellCoords instance. |
+| coords | `CellCoords` | CellCoords instance. |
 
 
 
@@ -2103,7 +2103,7 @@ Fired before setting range is started.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>CellCoords</code> | CellCoords instance. |
+| coords | `CellCoords` | CellCoords instance. |
 
 
 
@@ -2116,7 +2116,7 @@ Fired before setting range is started but not finished yet.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>CellCoords</code> | CellCoords instance. |
+| coords | `CellCoords` | CellCoords instance. |
 
 
 
@@ -2129,11 +2129,11 @@ Fired before applying stretched column width to column.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| stretchedWidth | <code>number</code> | Calculated width. |
-| column | <code>number</code> | Visual column index. |
+| stretchedWidth | `number` | Calculated width. |
+| column | `number` | Visual column index. |
 
 
-**Returns**: number - Returns new width which will be applied to the column element.  
+**Returns**: `number` - Returns new width which will be applied to the column element.  
 
 ### beforeTouchScroll
 
@@ -2152,12 +2152,12 @@ Fired by [TrimRows](./trim-rows/) plugin before trimming rows. This hook is fire
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentTrimConfig | <code>Array</code> | Current trim configuration - a list of trimmed physical row indexes. |
-| destinationTrimConfig | <code>Array</code> | Destination trim configuration - a list of trimmed physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
+| currentTrimConfig | `Array` | Current trim configuration - a list of trimmed physical row indexes. |
+| destinationTrimConfig | `Array` | Destination trim configuration - a list of trimmed physical row indexes. |
+| actionPossible | `boolean` | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the trimming action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the trimming action will not be completed.  
 
 ### beforeUndo
 
@@ -2169,10 +2169,10 @@ This hook is fired when [Options#undo](./options/#undo) option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>object</code> | The action object. Contains information about the action being undone. The `actionType`                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`). |
+| action | `object` | The action object. Contains information about the action being undone. The `actionType`                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`). |
 
 
-**Returns**: \* | boolean - If false is returned the action is canceled.  
+**Returns**: `*` | `boolean` - If false is returned the action is canceled.  
 
 ### beforeUnhideColumns
 
@@ -2184,12 +2184,12 @@ Returning `false` in the callback will prevent the column revealing action from 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical column indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical column indexes. |
-| actionPossible | <code>boolean</code> | `true`, if the provided column indexes are valid, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical column indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical column indexes. |
+| actionPossible | `boolean` | `true`, if the provided column indexes are valid, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the hiding action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the hiding action will not be completed.  
 
 ### beforeUnhideRows
 
@@ -2201,12 +2201,12 @@ Returning `false` in the callback will prevent the row revealing action from com
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentHideConfig | <code>Array</code> | Current hide configuration - a list of hidden physical row indexes. |
-| destinationHideConfig | <code>Array</code> | Destination hide configuration - a list of hidden physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if provided row indexes are valid, `false` otherwise. |
+| currentHideConfig | `Array` | Current hide configuration - a list of hidden physical row indexes. |
+| destinationHideConfig | `Array` | Destination hide configuration - a list of hidden physical row indexes. |
+| actionPossible | `boolean` | `true`, if provided row indexes are valid, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the revealing action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the revealing action will not be completed.  
 
 ### beforeUnmergeCells
 
@@ -2218,8 +2218,8 @@ option is enabled.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| cellRange | <code>CellRange</code> |  | Selection cell range. |
-| [auto] | <code>boolean</code> | <code>false</code> | `optional` `true` if called automatically by the plugin. |
+| cellRange | `CellRange` |  | Selection cell range. |
+| [auto] | `boolean` | <code>false</code> | `optional` `true` if called automatically by the plugin. |
 
 
 
@@ -2232,12 +2232,12 @@ Fired by [TrimRows](./trim-rows/) plugin before untrimming rows. This hook is fi
 
 | Param | Type | Description |
 | --- | --- | --- |
-| currentTrimConfig | <code>Array</code> | Current trim configuration - a list of trimmed physical row indexes. |
-| destinationTrimConfig | <code>Array</code> | Destination trim configuration - a list of trimmed physical row indexes. |
-| actionPossible | <code>boolean</code> | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
+| currentTrimConfig | `Array` | Current trim configuration - a list of trimmed physical row indexes. |
+| destinationTrimConfig | `Array` | Destination trim configuration - a list of trimmed physical row indexes. |
+| actionPossible | `boolean` | `true`, if all of the row indexes are withing the bounds of the table, `false` otherwise. |
 
 
-**Returns**: undefined | boolean - If the callback returns `false`, the untrimming action will not be completed.  
+**Returns**: `undefined` | `boolean` - If the callback returns `false`, the untrimming action will not be completed.  
 
 ### beforeValidate
 
@@ -2251,10 +2251,10 @@ __Note:__ this will not affect values of changes. This will change value *ONLY* 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>\*</code> | Value of the cell. |
-| row | <code>number</code> | Visual row index. |
-| prop | <code>string</code> \| <code>number</code> | Property name / column index. |
-| [source] | <code>string</code> | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
+| value | `\*` | Value of the cell. |
+| row | `number` | Visual row index. |
+| prop | `string` \| `number` | Property name / column index. |
+| [source] | `string` | `optional` String that identifies source of hook call                          ([list of all available sources](https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition)). |
 
 
 
@@ -2268,8 +2268,8 @@ value which is passed to the renderer without modifying the renderer itself.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>\*</code> | Cell value to render. |
-| cellProperties | <code>object</code> | An object containing the cell properties. |
+| value | `\*` | Cell value to render. |
+| cellProperties | `object` | An object containing the cell properties. |
 
 
 
@@ -2299,8 +2299,8 @@ option is enabled.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| startArea | <code>Array</code> | Array of visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`). |
-| entireArea | <code>Array</code> | Array of visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`). |
+| startArea | `Array` | Array of visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`). |
+| entireArea | `Array` | Array of visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`). |
 
 
 
@@ -2313,7 +2313,7 @@ Fired when a column header index is about to be modified by a callback function.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column header index. |
+| column | `number` | Visual column header index. |
 
 
 
@@ -2334,8 +2334,8 @@ Fired when a column width is about to be modified by a callback function.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| width | <code>number</code> | Current column width. |
-| column | <code>number</code> | Visual column index. |
+| width | `number` | Current column width. |
+| column | `number` | Visual column index. |
 
 
 
@@ -2348,7 +2348,7 @@ Fired to allow modifying the copyable range with a callback function.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| copyableRanges | <code>Array.&lt;Array&gt;</code> | Array of objects defining copyable cells. |
+| copyableRanges | `Array.&lt;Array&gt;` | Array of objects defining copyable cells. |
 
 
 
@@ -2361,10 +2361,10 @@ Fired when a data was retrieved or modified.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Physical row height. |
-| column | <code>number</code> | Physical column index. |
-| valueHolder | <code>object</code> | Object which contains original value which can be modified by overwriting `.value` property. |
-| ioMode | <code>string</code> | String which indicates for what operation hook is fired (`get` or `set`). |
+| row | `number` | Physical row height. |
+| column | `number` | Physical column index. |
+| valueHolder | `object` | Object which contains original value which can be modified by overwriting `.value` property. |
+| ioMode | `string` | String which indicates for what operation hook is fired (`get` or `set`). |
 
 
 
@@ -2379,9 +2379,9 @@ and saving values from the closed editor.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| column | <code>number</code> | Visual column index. |
-| topmost | <code>boolean</code> | If set to `true`, it returns the TD element from the topmost overlay. For example,                          if the wanted cell is in the range of fixed rows, it will return a TD element                          from the `top` overlay. |
+| row | `number` | Visual row index. |
+| column | `number` | Visual column index. |
+| topmost | `boolean` | If set to `true`, it returns the TD element from the topmost overlay. For example,                          if the wanted cell is in the range of fixed rows, it will return a TD element                          from the `top` overlay. |
 
 
 
@@ -2394,7 +2394,7 @@ Fired when a data was retrieved or modified.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Physical row index. |
+| row | `number` | Physical row index. |
 
 
 
@@ -2407,7 +2407,7 @@ Fired when a row header index is about to be modified by a callback function.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row header index. |
+| row | `number` | Visual row header index. |
 
 
 
@@ -2420,7 +2420,7 @@ Fired while retrieving the row header width.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rowHeaderWidth | <code>number</code> | Row header width. |
+| rowHeaderWidth | `number` | Row header width. |
 
 
 
@@ -2433,8 +2433,8 @@ Fired when a row height is about to be modified by a callback function.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| height | <code>number</code> | Row height. |
-| row | <code>number</code> | Visual row index. |
+| height | `number` | Row height. |
+| row | `number` | Visual row index. |
 
 
 
@@ -2448,10 +2448,10 @@ Fired when a data was retrieved or modified from the source data set.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Physical row index. |
-| column | <code>number</code> | Physical column index. |
-| valueHolder | <code>object</code> | Object which contains original value which can be modified by overwriting `.value` property. |
-| ioMode | <code>string</code> | String which indicates for what operation hook is fired (`get` or `set`). |
+| row | `number` | Physical row index. |
+| column | `number` | Physical column index. |
+| valueHolder | `object` | Object which contains original value which can be modified by overwriting `.value` property. |
+| ioMode | `string` | String which indicates for what operation hook is fired (`get` or `set`). |
 
 
 
@@ -2464,7 +2464,7 @@ Fired when the end of the selection is being modified (e.g. Moving the selection
 
 | Param | Type | Description |
 | --- | --- | --- |
-| delta | <code>CellCoords</code> | Cell coords object declaring the delta of the new selection relative to the previous one. |
+| delta | `CellCoords` | Cell coords object declaring the delta of the new selection relative to the previous one. |
 
 
 
@@ -2477,7 +2477,7 @@ Fired when the start of the selection is being modified (e.g. Moving the selecti
 
 | Param | Type | Description |
 | --- | --- | --- |
-| delta | <code>CellCoords</code> | Cell coords object declaring the delta of the new selection relative to the previous one. |
+| delta | `CellCoords` | Cell coords object declaring the delta of the new selection relative to the previous one. |
 
 
 
@@ -2491,8 +2491,8 @@ Fired by [PersistentState](./persistent-state/) plugin, after loading value, sav
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Key. |
-| valuePlaceholder | <code>object</code> | Object containing the loaded value under `valuePlaceholder.value` (if no value have been saved, `value` key will be undefined). |
+| key | `string` | Key. |
+| valuePlaceholder | `object` | Object containing the loaded value under `valuePlaceholder.value` (if no value have been saved, `value` key will be undefined). |
 
 
 
@@ -2506,7 +2506,7 @@ This hook is fired when [Options#persistentState](./options/#persistentstate) op
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [key] | <code>string</code> | `optional` Key. |
+| [key] | `string` | `optional` Key. |
 
 
 
@@ -2520,8 +2520,8 @@ Fired by [PersistentState](./persistent-state/) plugin, after saving value under
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | Key. |
-| value | <code>Mixed</code> | Value to save. |
+| key | `string` | Key. |
+| value | `Mixed` | Value to save. |
 
 
 ## Methods:
@@ -2554,12 +2554,12 @@ Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| key | <code>string</code> |  | Hook name. |
-| callback | <code>function</code> \| <code>Array</code> |  | Callback function or an array of functions. |
-| [context] | <code>object</code> | <code>null</code> | `optional` The context for the hook callback to be added - a Handsontable instance or leave empty. |
+| key | `string` |  | Hook name. |
+| callback | `function` \| `Array` |  | Callback function or an array of functions. |
+| [context] | `object` | <code>null</code> | `optional` The context for the hook callback to be added - a Handsontable instance or leave empty. |
 
 
-**Returns**: [[Hooks](./hooks/)](#[Hooks](./hooks/)) - Instance of [Hooks](./hooks/).  
+**Returns**: [`Hooks`](#Hooks) - Instance of [Hooks](./hooks/).  
 
 ### createEmptyBucket
 
@@ -2580,7 +2580,7 @@ beforeInit: [],
 }
 ```
 
-**Returns**: object - The empty bucket object.  
+**Returns**: `object` - The empty bucket object.  
 
 ### deregister
 
@@ -2595,7 +2595,7 @@ Handsontable.hooks.deregister('myHook');
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | The hook name. |
+| key | `string` | The hook name. |
 
 
 
@@ -2616,7 +2616,7 @@ Handsontable.hooks.destroy(hotInstance);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [context] | <code>object</code> | <code>null</code> | `optional` A Handsontable instance. |
+| [context] | `object` | <code>null</code> | `optional` A Handsontable instance. |
 
 
 
@@ -2629,10 +2629,10 @@ Get hook bucket based on the context of the object or if argument is `undefined`
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [context] | <code>object</code> | <code>null</code> | `optional` A Handsontable instance. |
+| [context] | `object` | <code>null</code> | `optional` A Handsontable instance. |
 
 
-**Returns**: object - Returns a global or Handsontable instance bucket.  
+**Returns**: `object` - Returns a global or Handsontable instance bucket.  
 
 ### getRegistered
 
@@ -2656,7 +2656,7 @@ Handsontable.hooks.getRegistered();
 ]
 ```
 
-**Returns**: Array - An array of registered hooks.  
+**Returns**: `Array` - An array of registered hooks.  
 
 ### has
 
@@ -2668,11 +2668,11 @@ If the `context` parameter is provided, it only checks for listeners assigned to
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| key | <code>string</code> |  | Hook name. |
-| [context] | <code>object</code> | <code>null</code> | `optional` A Handsontable instance. |
+| key | `string` |  | Hook name. |
+| [context] | `object` | <code>null</code> | `optional` A Handsontable instance. |
 
 
-**Returns**: boolean - `true` for success, `false` otherwise.  
+**Returns**: `boolean` - `true` for success, `false` otherwise.  
 
 ### isDeprecated
 
@@ -2690,10 +2690,10 @@ true
 
 | Param | Type | Description |
 | --- | --- | --- |
-| hookName | <code>string</code> | The hook name to check. |
+| hookName | `string` | The hook name to check. |
 
 
-**Returns**: boolean - Returns `true` if the provided hook name was marked as deprecated or
+**Returns**: `boolean` - Returns `true` if the provided hook name was marked as deprecated or
 removed from API, `false` otherwise.  
 
 ### isRegistered
@@ -2712,10 +2712,10 @@ true
 
 | Param | Type | Description |
 | --- | --- | --- |
-| hookName | <code>string</code> | The hook name to check. |
+| hookName | `string` | The hook name to check. |
 
 
-**Returns**: boolean - `true` for success, `false` otherwise.  
+**Returns**: `boolean` - `true` for success, `false` otherwise.  
 
 ### once
 
@@ -2731,9 +2731,9 @@ Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| key | <code>string</code> |  | Hook/Event name. |
-| callback | <code>function</code> \| <code>Array</code> |  | Callback function. |
-| [context] | <code>object</code> | <code>null</code> | `optional` A Handsontable instance. |
+| key | `string` |  | Hook/Event name. |
+| callback | `function` \| `Array` |  | Callback function. |
+| [context] | `object` | <code>null</code> | `optional` A Handsontable instance. |
 
 
 
@@ -2752,7 +2752,7 @@ Handsontable.hooks.register('myHook');
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | The hook name. |
+| key | `string` | The hook name. |
 
 
 
@@ -2770,12 +2770,12 @@ Handsontable.hooks.remove('beforeInit', myCallback);
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| key | <code>string</code> |  | Hook/Event name. |
-| callback | <code>function</code> |  | Callback function (needs the be the function that was previously added to the hook). |
-| [context] | <code>object</code> | <code>null</code> | `optional` Handsontable instance. |
+| key | `string` |  | Hook/Event name. |
+| callback | `function` |  | Callback function (needs the be the function that was previously added to the hook). |
+| [context] | `object` | <code>null</code> | `optional` Handsontable instance. |
 
 
-**Returns**: boolean - Returns `true` if hook was removed, `false` otherwise.  
+**Returns**: `boolean` - Returns `true` if hook was removed, `false` otherwise.  
 
 ### run
 
@@ -2792,15 +2792,15 @@ Handsontable.hooks.run(hot, 'beforeInit');
 
 | Param | Type | Description |
 | --- | --- | --- |
-| context | <code>object</code> | Handsontable instance. |
-| key | <code>string</code> | Hook/Event name. |
-| [p1] | <code>\*</code> | `optional` Parameter to be passed as an argument to the callback function. |
-| [p2] | <code>\*</code> | `optional` Parameter to be passed as an argument to the callback function. |
-| [p3] | <code>\*</code> | `optional` Parameter to be passed as an argument to the callback function. |
-| [p4] | <code>\*</code> | `optional` Parameter to be passed as an argument to the callback function. |
-| [p5] | <code>\*</code> | `optional` Parameter to be passed as an argument to the callback function. |
-| [p6] | <code>\*</code> | `optional` Parameter to be passed as an argument to the callback function. |
+| context | `object` | Handsontable instance. |
+| key | `string` | Hook/Event name. |
+| [p1] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p2] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p3] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p4] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p5] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
+| [p6] | `\*` | `optional` Parameter to be passed as an argument to the callback function. |
 
 
-**Returns**: \* - Either a return value from the last called callback or `p1`.  
+**Returns**: `*` - Either a return value from the last called callback or `p1`.  
 

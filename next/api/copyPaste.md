@@ -136,10 +136,10 @@ Creates copyable text releated to range objects.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ranges | <code>Array.&lt;object&gt;</code> | Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`. |
+| ranges | `Array.&lt;object&gt;` | Array of objects with properties `startRow`, `endRow`, `startCol` and `endCol`. |
 
 
-**Returns**: string - Returns string which will be copied into clipboard.  
+**Returns**: `string` - Returns string which will be copied into clipboard.  
 
 ### getRangedData
 
@@ -150,10 +150,10 @@ Creates copyable text releated to range objects.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ranges | <code>Array.&lt;object&gt;</code> | Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`. |
+| ranges | `Array.&lt;object&gt;` | Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`. |
 
 
-**Returns**: Array.&lt;Array&gt; - Returns array of arrays which will be copied into clipboard.  
+**Returns**: `Array.&lt;Array&gt;` - Returns array of arrays which will be copied into clipboard.  
 
 ### isEnabled
 
@@ -173,8 +173,8 @@ Simulates the paste action.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| pastableText | <code>string</code> |  | Value as raw string to paste. |
-| [pastableHtml] | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | `optional` Value as HTML to paste. |
+| pastableText | `string` |  | Value as raw string to paste. |
+| [pastableHtml] | `string` | <code>&quot;&#x27;&#x27;&quot;</code> | `optional` Value as HTML to paste. |
 
 
 

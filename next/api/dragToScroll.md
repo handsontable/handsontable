@@ -36,8 +36,8 @@ between passed boundaries.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| x | <code>number</code> | Mouse X coordinate to check. |
-| y | <code>number</code> | Mouse Y coordinate to check. |
+| x | `number` | Mouse X coordinate to check. |
+| y | `number` | Mouse Y coordinate to check. |
 
 
 
@@ -83,7 +83,7 @@ Sets the value of the visible element.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| boundaries | <code>DOMRect</code> | An object with coordinates compatible with DOMRect. |
+| boundaries | `DOMRect` | An object with coordinates compatible with DOMRect. |
 
 
 
@@ -96,7 +96,7 @@ Changes callback function.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| callback | <code>function</code> | The callback function. |
+| callback | `function` | The callback function. |
 
 
 

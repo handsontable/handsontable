@@ -100,7 +100,7 @@ Hides the row provided as row index (counting from 0).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ...row | <code>number</code> | Visual row index. |
+| ...row | `number` | Visual row index. |
 
 
 
@@ -113,7 +113,7 @@ Hides the rows provided in the array.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rows | <code>Array.&lt;number&gt;</code> | Array of visual row indexes. |
+| rows | `Array.&lt;number&gt;` | Array of visual row indexes. |
 
 
 
@@ -135,7 +135,7 @@ Checks if the provided row is hidden.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
+| row | `number` | Visual row index. |
 
 
 
@@ -148,7 +148,7 @@ Checks whether all of the provided row indexes are within the bounds of the tabl
 
 | Param | Type | Description |
 | --- | --- | --- |
-| hiddenRows | <code>Array</code> | List of hidden visual row indexes. |
+| hiddenRows | `Array` | List of hidden visual row indexes. |
 
 
 
@@ -161,7 +161,7 @@ Shows the row provided as row index (counting from 0).
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ...row | <code>number</code> | Visual row index. |
+| ...row | `number` | Visual row index. |
 
 
 
@@ -174,7 +174,7 @@ Shows the rows provided in the array.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rows | <code>Array.&lt;number&gt;</code> | Array of visual row indexes. |
+| rows | `Array.&lt;number&gt;` | Array of visual row indexes. |
 
 
 

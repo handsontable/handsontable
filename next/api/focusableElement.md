@@ -67,7 +67,7 @@ Switch to the main focusable element.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| element | <code>HTMLElement</code> | The DOM element. |
+| element | `HTMLElement` | The DOM element. |
 
 
 

@@ -115,8 +115,8 @@ Or you can execute command registered in settings where `key` is your command na
 
 | Param | Type | Description |
 | --- | --- | --- |
-| commandName | <code>string</code> | Command name to execute. |
-| ...params | <code>\*</code> | Additional parameters passed to the command executor. |
+| commandName | `string` | Command name to execute. |
+| ...params | `\*` | Additional parameters passed to the command executor. |
 
 
 
@@ -139,7 +139,7 @@ Opens menu and re-position it based on the passed coordinates.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| position | <code>object</code> \| <code>Event</code> | An object with `pageX` and `pageY` properties which contains values relative to                                the top left of the fully rendered content area in the browser or with `clientX`                                and `clientY`  properties which contains values relative to the upper left edge                                of the content area (the viewport) of the browser window. This object is structurally                                compatible with native mouse event so it can be used either. |
+| position | `object` \| `Event` | An object with `pageX` and `pageY` properties which contains values relative to                                the top left of the fully rendered content area in the browser or with `clientX`                                and `clientY`  properties which contains values relative to the upper left edge                                of the content area (the viewport) of the browser window. This object is structurally                                compatible with native mouse event so it can be used either. |
 
 
 

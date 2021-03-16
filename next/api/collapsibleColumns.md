@@ -75,7 +75,7 @@ Collapses section at the provided coords.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>object</code> | Contains coordinates information. (`coords.row`, `coords.col`). |
+| coords | `object` | Contains coordinates information. (`coords.row`, `coords.col`). |
 
 
 
@@ -120,7 +120,7 @@ Expands section at the provided coords.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>object</code> | Contains coordinates information. (`coords.row`, `coords.col`). |
+| coords | `object` | Contains coordinates information. (`coords.row`, `coords.col`). |
 
 
 
@@ -142,7 +142,7 @@ Collapses or expand all collapsible sections, depending on the action parameter.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>string</code> | 'collapse' or 'expand'. |
+| action | `string` | 'collapse' or 'expand'. |
 
 
 
@@ -156,8 +156,8 @@ Collapses/Expands a section.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>Array</code> | Array of coords - section coordinates. |
-| [action] | <code>string</code> | `optional` Action definition ('collapse' or 'expand'). |
+| coords | `Array` | Array of coords - section coordinates. |
+| [action] | `string` | `optional` Action definition ('collapse' or 'expand'). |
 
 
 

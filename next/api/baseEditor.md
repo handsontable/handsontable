@@ -107,8 +107,8 @@ Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| newInitialValue | <code>\*</code> | The initial editor value. |
-| event | <code>Event</code> | The keyboard event object. |
+| newInitialValue | `\*` | The initial editor value. |
+| event | `Event` | The keyboard event object. |
 
 
 
@@ -137,7 +137,7 @@ Verifies result of validation or closes editor if user's cancelled changes.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| result | <code>boolean</code> \| <code>undefined</code> | If `false` and the cell using allowInvalid option,                                   then an editor won't be closed until validation is passed. |
+| result | `boolean` \| `undefined` | If `false` and the cell using allowInvalid option,                                   then an editor won't be closed until validation is passed. |
 
 
 
@@ -167,9 +167,9 @@ Finishes editing and start saving or restoring process for editing cell or last 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| restoreOriginalValue | <code>boolean</code> | If true, then closes editor without saving value from the editor into a cell. |
-| ctrlDown | <code>boolean</code> | If true, then saveValue will save editor's value to each cell in the last selected range. |
-| callback | <code>function</code> | The callback function, fired after editor closing. |
+| restoreOriginalValue | `boolean` | If true, then closes editor without saving value from the editor into a cell. |
+| ctrlDown | `boolean` | If true, then saveValue will save editor's value to each cell in the last selected range. |
+| callback | `function` | The callback function, fired after editor closing. |
 
 
 
@@ -246,12 +246,12 @@ Prepares editor's meta data.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | The visual row index. |
-| col | <code>number</code> | The visual column index. |
-| prop | <code>number</code> \| <code>string</code> | The column property (passed when datasource is an array of objects). |
-| td | <code>HTMLTableCellElement</code> | The rendered cell element. |
-| value | <code>\*</code> | The rendered value. |
-| cellProperties | <code>object</code> | The cell meta object ({@see Core#getCellMeta}). |
+| row | `number` | The visual row index. |
+| col | `number` | The visual column index. |
+| prop | `number` \| `string` | The column property (passed when datasource is an array of objects). |
+| td | `HTMLTableCellElement` | The rendered cell element. |
+| value | `\*` | The rendered value. |
+| cellProperties | `object` | The cell meta object ({@see Core#getCellMeta}). |
 
 
 
@@ -264,8 +264,8 @@ Saves value from editor into data storage.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>\*</code> | The editor value. |
-| ctrlDown | <code>boolean</code> | If `true`, applies value to each cell in the last selected range. |
+| value | `\*` | The editor value. |
+| ctrlDown | `boolean` | If `true`, applies value to each cell in the last selected range. |
 
 
 

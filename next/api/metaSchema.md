@@ -2713,7 +2713,7 @@ isEmptyCol: function(column) {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| col | <code>number</code> | Visual column index. |
+| col | `number` | Visual column index. |
 
 
 
@@ -2733,6 +2733,6 @@ isEmptyRow: function(row) {
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
+| row | `number` | Visual row index. |
 
 

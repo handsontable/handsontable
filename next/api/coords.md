@@ -43,7 +43,7 @@ Checks if this cell coordinates are the same as cell coordinates given as an arg
 
 | Param | Type | Description |
 | --- | --- | --- |
-| cellCoords | [<code>CellCoords</code>](#CellCoords) | Cell coordinates to equal. |
+| cellCoords | [`CellCoords`](#CellCoords) | Cell coordinates to equal. |
 
 
 
@@ -56,7 +56,7 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 | Param | Type | Description |
 | --- | --- | --- |
-| testedCoords | <code>object</code> | Cell coordinates to check. |
+| testedCoords | `object` | Cell coordinates to check. |
 
 
 
@@ -69,7 +69,7 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 | Param | Type | Description |
 | --- | --- | --- |
-| testedCoords | <code>object</code> | Cell coordinates to check. |
+| testedCoords | `object` | Cell coordinates to check. |
 
 
 
@@ -82,7 +82,7 @@ Checks if tested coordinates are positioned in south-east from this cell coordin
 
 | Param | Type | Description |
 | --- | --- | --- |
-| testedCoords | <code>object</code> | Cell coordinates to check. |
+| testedCoords | `object` | Cell coordinates to check. |
 
 
 
@@ -95,7 +95,7 @@ Checks if tested coordinates are positioned in south-west from this cell coordin
 
 | Param | Type | Description |
 | --- | --- | --- |
-| testedCoords | <code>object</code> | Cell coordinates to check. |
+| testedCoords | `object` | Cell coordinates to check. |
 
 
 
@@ -108,7 +108,7 @@ Checks if given set of coordinates is valid in context of a given Walkontable in
 
 | Param | Type | Description |
 | --- | --- | --- |
-| wot | <code>Walkontable</code> | A Walkontable instance. |
+| wot | `Walkontable` | A Walkontable instance. |
 
 
 
@@ -128,4 +128,4 @@ _cellCoords.toObject() ⇒ object_
 Converts CellCoords to literal object with `row` and `col` properties.
 
 
-**Returns**: object - Returns a literal object with `row` and `col` properties.  
+**Returns**: `object` - Returns a literal object with `row` and `col` properties.  

@@ -99,7 +99,7 @@ Hides a single column.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ...column | <code>number</code> | Visual column index. |
+| ...column | `number` | Visual column index. |
 
 
 
@@ -112,7 +112,7 @@ Hides the columns provided in the array.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| columns | <code>Array.&lt;number&gt;</code> | Array of visual column indexes. |
+| columns | `Array.&lt;number&gt;` | Array of visual column indexes. |
 
 
 
@@ -134,7 +134,7 @@ Checks if the provided column is hidden.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| column | <code>number</code> | Visual column index. |
+| column | `number` | Visual column index. |
 
 
 
@@ -147,7 +147,7 @@ Get if trim config is valid. Check whether all of the provided column indexes ar
 
 | Param | Type | Description |
 | --- | --- | --- |
-| hiddenColumns | <code>Array</code> | List of hidden column indexes. |
+| hiddenColumns | `Array` | List of hidden column indexes. |
 
 
 
@@ -160,7 +160,7 @@ Shows a single column.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ...column | <code>number</code> | Visual column index. |
+| ...column | `number` | Visual column index. |
 
 
 
@@ -173,7 +173,7 @@ Shows the provided columns.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| columns | <code>Array.&lt;number&gt;</code> | Array of visual column indexes. |
+| columns | `Array.&lt;number&gt;` | Array of visual column indexes. |
 
 
 

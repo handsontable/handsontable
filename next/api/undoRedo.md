@@ -55,7 +55,7 @@ _undoRedo.done(action)_
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>object</code> | The action desciptor. |
+| action | `object` | The action desciptor. |
 
 
 
@@ -82,7 +82,7 @@ _undoRedo.isRedoAvailable() ⇒ boolean_
 Checks if redo action is available.
 
 
-**Returns**: boolean - Return `true` if redo can be performed, `false` otherwise.  
+**Returns**: `boolean` - Return `true` if redo can be performed, `false` otherwise.  
 
 ### isUndoAvailable
 
@@ -91,7 +91,7 @@ _undoRedo.isUndoAvailable() ⇒ boolean_
 Checks if undo action is available.
 
 
-**Returns**: boolean - Return `true` if undo can be performed, `false` otherwise.  
+**Returns**: `boolean` - Return `true` if undo can be performed, `false` otherwise.  
 
 ### redo
 
