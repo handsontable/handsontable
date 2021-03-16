@@ -17,8 +17,11 @@ const data = [
 ];
 
 const container = document.getElementById('example');
+
 const hot = new Handsontable(container, {
-    data: data,
+    data,
+    width: '100%',
+    height: '100%',
     rowHeaders: true,
     colHeaders: true,
     licenseKey: 'non-commercial-and-evaluation'

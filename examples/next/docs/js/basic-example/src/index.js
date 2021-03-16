@@ -1,7 +1,13 @@
 import Handsontable from "handsontable";
 import 'handsontable/dist/handsontable.full.css';
-
 import "./styles.css";
+
+const getDebugInfo = () => {
+    let debug = 'Handsontable:';
+    debug += ` v${Handsontable.version}`;
+    debug += ` (${Handsontable.buildDate})`;
+    return debug;
+}
 
 const data = [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
@@ -11,11 +17,14 @@ const data = [
 ];
 
 const container = document.getElementById('example');
-const settings = {
+
+const hot = new Handsontable(container, {
     data,
+    width: '100%',
+    height: '100%',
     rowHeaders: true,
     colHeaders: true,
     licenseKey: 'non-commercial-and-evaluation'
-}
-const hot = new Handsontable(container, settings);
+});
 
+console.log(getDebugInfo());
