@@ -6,4 +6,6 @@
 !package.json
 !*.d.ts
 !README.md
-!LICENSE
+!LICENSE.txt
+!handsontable-general-terms.pdf
+!handsontable-non-commercial-license.pdf
