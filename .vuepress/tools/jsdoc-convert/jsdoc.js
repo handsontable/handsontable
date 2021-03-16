@@ -72,9 +72,9 @@ const fixTypes = (text) => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\
     return prefix+signame
         .replace(/([^\w])(IndexMapper)(#\w*)?/g, '$1[$2$3](./index-mapper/$3)')
         .replace(/([^\w])(Hooks)(#\w*)?/g, '$1[$2$3](./hooks/$3)')
-        .replace(/([^\w])(BaseEditor)(#\w*)?/g, '$1[$2$3](./base-editor/#3)')
-        .replace(/([^\w])(CellCoords)(#\w*)?/g, '$1[$2$3](./cell-coords/#3)')
-        .replace(/([^\w])(FocusableWrapper)(#\w*)?/g, '$1[$2$3](./focusable-element/#3)')
+        .replace(/([^\w])(BaseEditor)(#\w*)?/g, '$1[$2$3](./base-editor/$3)')
+        .replace(/([^\w])(CellCoords)(#\w*)?/g, '$1[$2$3](./cell-coords/$3)')
+        .replace(/([^\w])(FocusableWrapper)(#\w*)?/g, '$1[$2$3](./focusable-element/$3)')
         .replace(/\.</g, '&lt;')
         .replace(/>/g, '&gt;')
         +suffix;

@@ -28,7 +28,7 @@ Row index.
 
 ### clone
 
-_cellCoords.clone() ⇒ [CellCoords](./cell-coords/#3)_
+_cellCoords.clone() ⇒ [CellCoords](./cell-coords/)_
 
 Clones the coordinates.
 
@@ -114,7 +114,7 @@ Checks if given set of coordinates is valid in context of a given Walkontable in
 
 ### normalize
 
-_cellCoords.normalize() ⇒ [CellCoords](./cell-coords/#3)_
+_cellCoords.normalize() ⇒ [CellCoords](./cell-coords/)_
 
 Normalizes the coordinates to the nearest valid position. The coordinates that point
 to the headers (negative values) are normalized to 0.

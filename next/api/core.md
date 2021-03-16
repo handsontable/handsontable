@@ -117,8 +117,6 @@ hot.alter('remove_row', 10, 2);
 hot.alter('remove_row', [[1, 3], [5, 2]]);
 ```
 
-* asd   
-
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | action | <code>string</code> |  | Possible alter operations:  * `'insert_row'`  * `'insert_col'`  * `'remove_row'`  * `'remove_col'`. |
@@ -403,12 +401,12 @@ Erases content from cells that have been selected in the table.
 
 ### getActiveEditor
 
-_core.getActiveEditor() ⇒ [BaseEditor](./base-editor/#3)_
+_core.getActiveEditor() ⇒ [BaseEditor](./base-editor/)_
 
 Returns the active editor class instance.
 
 
-**Returns**: [BaseEditor](./base-editor/#3) - The active editor instance.  
+**Returns**: [BaseEditor](./base-editor/) - The active editor instance.  
 
 ### getCell
 
@@ -564,7 +562,7 @@ Returns the width of the requested column.
 
 ### getCoords
 
-_core.getCoords(element) ⇒ [CellCoords](./cell-coords/#3) | null_
+_core.getCoords(element) ⇒ [CellCoords](./cell-coords/) | null_
 
 Returns the coordinates of the cell, provided as a HTML table cell element.
 
@@ -579,7 +577,7 @@ hot.getCoords(hot.getCell(1, 1));
 | element | <code>HTMLTableCellElement</code> | The HTML Element representing the cell. |
 
 
-**Returns**: [CellCoords](./cell-coords/#3) | null - Visual coordinates object.  
+**Returns**: [CellCoords](./cell-coords/) | null - Visual coordinates object.  
 
 ### getCopyableData
 

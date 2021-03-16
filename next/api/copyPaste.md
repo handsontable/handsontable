@@ -51,7 +51,7 @@ Maximum number of columns than can be copied to clipboard using <kbd>CTRL</kbd> 
 
 ### focusableElement
 
-_copyPaste.focusableElement : [FocusableWrapper](./focusable-element/#3)_
+_copyPaste.focusableElement : [FocusableWrapper](./focusable-element/)_
 
 Provides focusable element to support IME and copy/paste/cut actions.
 

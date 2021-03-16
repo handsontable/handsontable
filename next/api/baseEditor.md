@@ -11,7 +11,7 @@ canonicalUrl: /api/base-editor
 
 ### BaseEditor
 
-_baseEditor.[BaseEditor](./base-editor/#3)_
+_baseEditor.[BaseEditor](./base-editor/)_
 
 
 
