@@ -1,7 +1,0 @@
-{
-  "title": "The dropdown cell type will work on Safari 14+",
-  "type": "fixed",
-  "issue": 7413,
-  "breaking": false,
-  "framework": "none"
-}

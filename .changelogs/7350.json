@@ -1,7 +1,0 @@
-{
-  "title": "Fixed an issue where maxRows nad maxCols options haven't cooperated with hidden indexes properly.",
-  "type": "fixed",
-  "issue": 7350,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,7 +1,0 @@
-{
-  "title": "Fix `trimWhitespace` option and reported regression",
-  "type": "fixed",
-  "issue": 7458,
-  "breaking": false,
-  "framework": "none"
-}
