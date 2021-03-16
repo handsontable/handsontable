@@ -1,49 +1,40 @@
 import React from 'react';
-import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
+import { HotTable } from '@handsontable/react';
 
+function getDebugInfo() {
+  let debug = 'Handsontable:';
+  debug += ` v${Handsontable.version}`;
+  debug += ` (${Handsontable.buildDate})`;
+  debug += ' Wrapper:';
+  debug += ` v${HotTable.version}`;
+  debug += ' React:';
+  debug += ` v${React.version}`;
+  return debug;
+}
 
 function App() {
-  const [settings, setSettings] = React.useState({
-    data: Handsontable.helper.createSpreadsheetData(15, 20),
-    width: 570,
-    height: 220,
-    licenseKey: 'non-commercial-and-evaluation'
-  });
-
-  const handleChange = (setting, states) => event => {
-    setSettings({
-      [setting]: states[event.target.checked ? 1 : 0]
-    })
-  }
+  const data = [
+    ["", "Ford", "Volvo", "Toyota", "Honda"],
+    ["2016", 10, 11, 12, 13],
+    ["2017", 20, 11, 14, 13],
+    ["2018", 30, 15, 12, 13]
+  ]
 
   return (
-    <div className="App">
-      <div className="controllers">
-        <label>
-          <input onChange={handleChange('fixedRowsTop', [0, 2])} type="checkbox" />
-          Add fixed rows
-          </label>
-        <br />
-        <label>
-          <input onChange={handleChange('fixedColumnsLeft', [0, 2])} type="checkbox" />
-          Add fixed columns
-          </label>
-        <br />
-        <label>
-          <input onChange={handleChange('rowHeaders', [false, true])} type="checkbox" />
-          Enable row headers
-          </label>
-        <br />
-        <label>
-          <input onChange={handleChange('colHeaders', [false, true])} type="checkbox" />
-          Enable column headers
-          </label>
-        <br />
-      </div>
-      <HotTable settings={settings} />
+    <div id="example">
+      <HotTable
+        data={data}
+        width="100%"
+        height="100%"
+        colHeaders={true}
+        rowHeaders={true}
+        licenseKey="non-commercial-and-evaluation"
+      />
     </div>
   );
 }
+
+console.log(getDebugInfo());
 
 export default App;

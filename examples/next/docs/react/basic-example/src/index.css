@@ -1,13 +1,21 @@
 @import 'handsontable/dist/handsontable.full.css';
 
-body {
-    padding: 1rem;
-    margin: 0;
+html, body, #root, #example {
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  margin: 0;
 }
 
-.App {
-    overflow: auto;
-    min-width: 100%;
-    min-height: 100%;
-    height: calc(100vh - 2rem);
+html {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+body {
+  padding: 1rem;
+  overflow: auto;
 }

@@ -22,10 +22,11 @@ function App() {
   ]
 
   return (
-    <div className="App">
+    <div id="example">
       <HotTable
-        id="hot"
         data={data}
+        width="100%"
+        height="100%"
         colHeaders={true}
         rowHeaders={true}
         licenseKey="non-commercial-and-evaluation"
