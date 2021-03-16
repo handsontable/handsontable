@@ -562,7 +562,7 @@ Returns the width of the requested column.
 
 ### getCoords
 
-_core.getCoords(element) ⇒ [CellCoords](./cell-coords/) | null_
+_core.getCoords(element) ⇒ [CellCoords](./coords/) | null_
 
 Returns the coordinates of the cell, provided as a HTML table cell element.
 
@@ -577,7 +577,7 @@ hot.getCoords(hot.getCell(1, 1));
 | element | <code>HTMLTableCellElement</code> | The HTML Element representing the cell. |
 
 
-**Returns**: [CellCoords](./cell-coords/) | null - Visual coordinates object.  
+**Returns**: [CellCoords](./coords/) | null - Visual coordinates object.  
 
 ### getCopyableData
 

@@ -1,7 +1,7 @@
 ---
-title: CellCords
-permalink: /next/api/cell-cords
-canonicalUrl: /api/cell-cords
+title: CellCoords
+permalink: /next/api/coords
+canonicalUrl: /api/coords
 ---
 
 # {{ $frontmatter.title }}
@@ -28,7 +28,7 @@ Row index.
 
 ### clone
 
-_cellCoords.clone() ⇒ [CellCoords](./cell-coords/)_
+_cellCoords.clone() ⇒ [CellCoords](./coords/)_
 
 Clones the coordinates.
 
@@ -114,7 +114,7 @@ Checks if given set of coordinates is valid in context of a given Walkontable in
 
 ### normalize
 
-_cellCoords.normalize() ⇒ [CellCoords](./cell-coords/)_
+_cellCoords.normalize() ⇒ [CellCoords](./coords/)_
 
 Normalizes the coordinates to the nearest valid position. The coordinates that point
 to the headers (negative values) are normalized to 0.
