@@ -1,5 +1,6 @@
 {
-  "name": "angular-example-custom-id",
+  "name": "angular-basic-example",
+  "private": true,
   "version": "0.0.0",
   "homepage": "https://handsontable.com/",
   "repository": {
@@ -16,7 +17,6 @@
     "build": "ng build",
     "jasmine": "node spec/support/jasmine.config.js"
   },
-  "private": true,
   "dependencies": {
     "@angular/animations": "^11.0.5",
     "@angular/common": "^11.0.5",
@@ -40,8 +40,6 @@
     "@types/node": "^12.11.1",
     "jasmine": "^3.6.4",
     "jasmine-console-reporter": "^3.1.0",
-    "jasmine-core": "~3.6.0",
-    "jasmine-spec-reporter": "~5.0.0",
     "puppeteer": "^7.0.1",
     "ts-node": "~8.3.0",
     "typescript": "~4.0.2"

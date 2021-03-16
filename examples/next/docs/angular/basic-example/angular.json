@@ -65,9 +65,6 @@
                   "maximumError": "4kb"
                 }
               ]
-            },
-            "testing": {
-              "optimization": false
             }
           }
         },
