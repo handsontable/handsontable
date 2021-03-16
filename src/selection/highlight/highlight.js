@@ -90,12 +90,18 @@ class Highlight {
    * Check if highlight cell rendering is disabled for specified highlight type.
    *
    * @param {string} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
    * @returns {boolean}
    */
-  isEnabledFor(highlightType) {
+  isEnabledFor(highlightType, coords) {
+    let type = highlightType;
+
     // Legacy compatibility.
-    const type = highlightType === 'current' ? CELL_TYPE : highlightType;
-    let disableHighlight = this.options.disableHighlight;
+    if (highlightType === CELL_TYPE) {
+      type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
+    }
+
+    let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];

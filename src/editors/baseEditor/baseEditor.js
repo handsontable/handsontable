@@ -197,8 +197,8 @@ export class BaseEditor {
     if (ctrlDown) {
       const selectedLast = this.hot.getSelectedLast();
 
-      visualRowFrom = Math.min(selectedLast[0], selectedLast[2]);
-      visualColumnFrom = Math.min(selectedLast[1], selectedLast[3]);
+      visualRowFrom = Math.max(Math.min(selectedLast[0], selectedLast[2]), 0); // Math.max eliminate headers coords.
+      visualColumnFrom = Math.max(Math.min(selectedLast[1], selectedLast[3]), 0); // Math.max eliminate headers coords.
       visualRowTo = Math.max(selectedLast[0], selectedLast[2]);
       visualColumnTo = Math.max(selectedLast[1], selectedLast[3]);
 

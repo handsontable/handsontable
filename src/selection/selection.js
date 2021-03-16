@@ -76,7 +76,7 @@ class Selection {
       activeHeaderClassName: settings.activeHeaderClassName,
       rowClassName: settings.currentRowClassName,
       columnClassName: settings.currentColClassName,
-      disableHighlight: this.settings.disableVisualSelection,
+      disabledCellSelection: (row, column) => this.tableProps.isDisabledCellSelection(row, column),
       cellCornerVisible: (...args) => this.isCellCornerVisible(...args),
       areaCornerVisible: (...args) => this.isAreaCornerVisible(...args),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
@@ -223,7 +223,7 @@ class Selection {
     // Set up current selection.
     this.highlight.getCell().clear();
 
-    if (this.highlight.isEnabledFor(CELL_TYPE)) {
+    if (this.highlight.isEnabledFor(CELL_TYPE, cellRange.highlight)) {
       this.highlight.getCell()
         .add(this.selectedRange.current().highlight)
         .commit()
@@ -250,7 +250,7 @@ class Selection {
     headerHighlight.clear();
     activeHeaderHighlight.clear();
 
-    if (this.highlight.isEnabledFor(AREA_TYPE) && (this.isMultiple() || layerLevel >= 1)) {
+    if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
         .add(cellRange.from)
         .add(cellRange.to)
@@ -274,7 +274,7 @@ class Selection {
       }
     }
 
-    if (this.highlight.isEnabledFor(HEADER_TYPE)) {
+    if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
       // The header selection generally contains cell selection. In a case when all rows (or columns)
       // are hidden that visual coordinates are translated to renderable coordinates that do not exist.
       // Hence no header highlight is generated. In that case, to make a column (or a row) header
@@ -308,29 +308,29 @@ class Selection {
           .add(headerCellRange.to)
           .commit();
       }
-    }
 
-    if (this.isEntireRowSelected()) {
-      const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
+      if (this.isEntireRowSelected()) {
+        const isRowSelected = this.tableProps.countCols() === cellRange.getWidth();
 
-      // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
-      if (isRowSelected) {
-        activeHeaderHighlight
-          .add(new CellCoords(cellRange.from.row, -1))
-          .add(new CellCoords(cellRange.to.row, -1))
-          .commit();
+        // Make sure that the whole row is selected (in case where selectionMode is set to 'single')
+        if (isRowSelected) {
+          activeHeaderHighlight
+            .add(new CellCoords(cellRange.from.row, -1))
+            .add(new CellCoords(cellRange.to.row, -1))
+            .commit();
+        }
       }
-    }
 
-    if (this.isEntireColumnSelected()) {
-      const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
+      if (this.isEntireColumnSelected()) {
+        const isColumnSelected = this.tableProps.countRows() === cellRange.getHeight();
 
-      // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
-      if (isColumnSelected) {
-        activeHeaderHighlight
-          .add(new CellCoords(-1, cellRange.from.col))
-          .add(new CellCoords(-1, cellRange.to.col))
-          .commit();
+        // Make sure that the whole column is selected (in case where selectionMode is set to 'single')
+        if (isColumnSelected) {
+          activeHeaderHighlight
+            .add(new CellCoords(-1, cellRange.from.col))
+            .add(new CellCoords(-1, cellRange.to.col))
+            .commit();
+        }
       }
     }
 
@@ -573,9 +573,9 @@ class Selection {
     const isValid = !selectionRanges.some((selection) => {
       const [rowStart, columnStart, rowEnd, columnEnd] = selectionSchemaNormalizer(selection);
       const _isValid = isValidCoord(rowStart, nrOfRows) &&
-                      isValidCoord(columnStart, nrOfColumns) &&
-                      isValidCoord(rowEnd, nrOfRows) &&
-                      isValidCoord(columnEnd, nrOfColumns);
+        isValidCoord(columnStart, nrOfColumns) &&
+        isValidCoord(rowEnd, nrOfRows) &&
+        isValidCoord(columnEnd, nrOfColumns);
 
       return !_isValid;
     });

@@ -26,9 +26,8 @@ export function textRenderer(instance, TD, row, col, prop, value, cellProperties
 
   escaped = stringify(escaped);
 
-  if (!instance.getSettings().trimWhitespace && !instance.getSettings().wordWrap) {
-    // 160 is &nbsp; which won't wrap and preserves sequences of whitespace
-    escaped = escaped.replace(/ /g, String.fromCharCode(160));
+  if (instance.getSettings().trimWhitespace) {
+    escaped = escaped.trim();
   }
 
   if (cellProperties.rendererTemplate) {
