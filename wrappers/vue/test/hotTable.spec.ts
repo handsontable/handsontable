@@ -49,6 +49,33 @@ describe('Updating the Handsontable settings', () => {
     expect(testWrapper.vm.hotInstance.getSettings().rowHeaders).toEqual(false);
   });
 
+  it('should update the previously initialized Handsontable instance with a single changed property (function)', async() => {
+    let updateSettingsCalls = 0;
+    const cellsFuncA = function() {}
+    const cellsFuncB = function() {}
+    let testWrapper = mount(HotTable, {
+      propsData: {
+        data: createSampleData(1, 1),
+        licenseKey: 'non-commercial-and-evaluation',
+        cells: cellsFuncA,
+        afterUpdateSettings: function () {
+          updateSettingsCalls++;
+        }
+      }
+    });
+
+    expect(testWrapper.vm.hotInstance.getSettings().cells).toEqual(cellsFuncA);
+
+    testWrapper.setProps({
+      cells: cellsFuncB
+    });
+
+    await Vue.nextTick();
+
+    expect(updateSettingsCalls).toEqual(1);
+    expect(testWrapper.vm.hotInstance.getSettings().cells).toEqual(cellsFuncB);
+  });
+
   it('should update the previously initialized Handsontable instance only once with multiple changed properties', async() => {
     let App = Vue.extend({
       data: function () {
