@@ -13,7 +13,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "cross-env SKIP_PREFLIGHT_CHECK=true BROWSER=none PORT=8080 react-app-rewired start",
-    "build": "cross-env SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build && node post-build.js",
+    "build": "cross-env BUILD_PATH=dist SKIP_PREFLIGHT_CHECK=true PUBLIC_URL=. react-app-rewired build",
     "eject": "react-app-rewired eject",
     "jasmine": "node spec/support/jasmine.config.js"
   },
