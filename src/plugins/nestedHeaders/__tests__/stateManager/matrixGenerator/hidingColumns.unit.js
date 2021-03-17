@@ -1274,6 +1274,254 @@ describe('generateMatrix', () => {
           ],
         ]);
       }
+      {
+        // hide F4 at visual column index 6
+        triggerNodeModification('hide-column', tree.getNode(3, 5), 6);
+        // hide D4 at visual column index 10
+        triggerNodeModification('hide-column', tree.getNode(3, 3), 4);
+
+        const matrix = generateMatrixFromTree(tree);
+
+        /**
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A1 | X    X    X    X    X    X    B1   X  | J1 | K1   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A2 | X    X    X    X    X    X    B2   X  | J2 | K2   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A3 | X    X    X    B3 | X    X    F3   X  | J3 | K3   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A4 | B4   X  | X    D4 | X    F4 | H4   X  | J4 | K4 | X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *    |    |    |    |    |    |    |         |         |    |    |
+         *                           Hidden columns
+         */
+        expect(matrix).toEqual([
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B1', colspan: 1, origColspan: 8 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J1' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B2', colspan: 1, origColspan: 8 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J2' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'F3', colspan: 1, origColspan: 4 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J3' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'H4', colspan: 1, origColspan: 2 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J4' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+        ]);
+      }
+      {
+        // hide H4 at visual column index 7
+        triggerNodeModification('hide-column', tree.getNode(3, 7), 7);
+
+        const matrix = generateMatrixFromTree(tree);
+
+        /**
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A1 | X    X    X    X    X    X    B1   X  | J1 | K1   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A2 | X    X    X    X    X    X    B2   X  | J2 | K2   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A3 | X    X    X    B3 | X    X    F3   X  | J3 | K3   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A4 | B4   X  | X    D4 | X    F4 | H4   X  | J4 | K4 | X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *    |    |    |    |    |    |    |    |    |         |    |    |
+         *                           Hidden columns
+         */
+        expect(matrix).toEqual([
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J1' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J2' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J3' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J4' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+        ]);
+      }
+      {
+        // hide J4 at visual column index 9
+        triggerNodeModification('hide-column', tree.getNode(3, 9), 9);
+
+        const matrix = generateMatrixFromTree(tree);
+
+        /**
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A1 | X    X    X    X    X    X    B1   X  | J1 | K1   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A2 | X    X    X    X    X    X    B2   X  | J2 | K2   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A3 | X    X    X    B3 | X    X    F3   X  | J3 | K3   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A4 | B4   X  | X    D4 | X    F4 | H4   X  | J4 | K4 | X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *    |    |    |    |    |    |    |    |    |    |    |    |    |
+         *                           Hidden columns
+         */
+        expect(matrix).toEqual([
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+        ]);
+      }
     });
   });
 });

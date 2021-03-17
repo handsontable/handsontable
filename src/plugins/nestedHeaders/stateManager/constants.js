@@ -1,7 +1,8 @@
 /**
  * Creates the header settings object with default values.
  *
- * @type {object}
+ * @param {object} initialValues The initial values for the header settings object.
+ * @returns {object}
  */
 export function createDefaultHeaderSettings({
   label = '',
@@ -61,10 +62,20 @@ export function createDefaultHeaderSettings({
      * @type {boolean}
      */
     isRoot,
+    /**
+     * Describe me!
+     *
+     * @type {boolean}
+     */
     isPlaceholder,
   };
 }
 
+/**
+ * Describe me!
+ *
+ * @returns {object}
+ */
 export function createPlaceholderHeaderSettings() {
   return {
     label: '',
