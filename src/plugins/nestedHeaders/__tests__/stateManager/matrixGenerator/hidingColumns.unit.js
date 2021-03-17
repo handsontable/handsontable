@@ -36,7 +36,7 @@ function generateMatrixFromTree(tree) {
   return generateMatrix(tree.getRoots());
 }
 
-xdescribe('generateMatrix', () => {
+describe('generateMatrix', () => {
   describe('should build proper headers settings array matrix after hiding columns', () => {
     it('no nested headers defined', () => {
       /**
@@ -72,12 +72,12 @@ xdescribe('generateMatrix', () => {
         expect(matrix).toEqual([
           [
             createRootColspanSettings({ label: 'A1' }),
-            createRootColspanSettings({ label: 'B1', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'C1' }),
           ],
           [
             createRootColspanSettings({ label: 'A2' }),
-            createRootColspanSettings({ label: 'B2', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'C2' }),
           ],
         ]);
@@ -99,13 +99,13 @@ xdescribe('generateMatrix', () => {
          */
         expect(matrix).toEqual([
           [
-            createRootColspanSettings({ label: 'A1', isHidden: true }),
-            createRootColspanSettings({ label: 'B1', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'C1' }),
           ],
           [
-            createRootColspanSettings({ label: 'A2', isHidden: true }),
-            createRootColspanSettings({ label: 'B2', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'C2' }),
           ],
         ]);
@@ -127,14 +127,14 @@ xdescribe('generateMatrix', () => {
          */
         expect(matrix).toEqual([
           [
-            createRootColspanSettings({ label: 'A1', isHidden: true }),
-            createRootColspanSettings({ label: 'B1', isHidden: true }),
-            createRootColspanSettings({ label: 'C1', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'A2', isHidden: true }),
-            createRootColspanSettings({ label: 'B2', isHidden: true }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ],
         ]);
       }
@@ -192,7 +192,7 @@ xdescribe('generateMatrix', () => {
           [
             createRootColspanSettings({ label: 'C1', colspan: 2, origColspan: 2 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'C3' }),
           ]
         ]);
@@ -230,7 +230,7 @@ xdescribe('generateMatrix', () => {
           [
             createPlaceholder(),
             createRootColspanSettings({ label: 'C1', colspan: 1, origColspan: 2 }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'C3' }),
           ]
         ]);
@@ -261,14 +261,14 @@ xdescribe('generateMatrix', () => {
           ],
           [
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B1', colspan: 1, origColspan: 3, isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'B2' }),
           ],
           [
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C1', colspan: 1, origColspan: 2, isHidden: true }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'C3' }),
           ]
         ]);
@@ -295,19 +295,19 @@ xdescribe('generateMatrix', () => {
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'A1', colspan: 1, origColspan: 4, isHidden: true }),
+            createPlaceholder(),
           ],
           [
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B1', colspan: 1, origColspan: 3, isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B2', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
           ],
           [
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C1', colspan: 1, origColspan: 2, isHidden: true }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
-            createRootColspanSettings({ label: 'C3', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ]
         ]);
       }
@@ -394,7 +394,7 @@ xdescribe('generateMatrix', () => {
           [
             createRootColspanSettings({ label: 'D1' }),
             createRootColspanSettings({ label: 'D2' }),
-            createRootColspanSettings({ label: 'D3', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D4' }),
             createRootColspanSettings({ label: 'D5' }),
             createRootColspanSettings({ label: 'D6' }),
@@ -464,11 +464,11 @@ xdescribe('generateMatrix', () => {
           [
             createRootColspanSettings({ label: 'D1' }),
             createRootColspanSettings({ label: 'D2' }),
-            createRootColspanSettings({ label: 'D3', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D4' }),
             createRootColspanSettings({ label: 'D5' }),
             createRootColspanSettings({ label: 'D6' }),
-            createRootColspanSettings({ label: 'D7', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D8' }),
             createRootColspanSettings({ label: 'D9' }),
             createRootColspanSettings({ label: '' }),
@@ -521,7 +521,7 @@ xdescribe('generateMatrix', () => {
           ],
           [
             createRootColspanSettings({ label: 'C1' }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'C3', colspan: 2, origColspan: 3 }),
             createPlaceholder(),
@@ -533,12 +533,12 @@ xdescribe('generateMatrix', () => {
           ],
           [
             createRootColspanSettings({ label: 'D1' }),
-            createRootColspanSettings({ label: 'D2', isHidden: true }),
-            createRootColspanSettings({ label: 'D3', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D4' }),
             createRootColspanSettings({ label: 'D5' }),
             createRootColspanSettings({ label: 'D6' }),
-            createRootColspanSettings({ label: 'D7', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D8' }),
             createRootColspanSettings({ label: 'D9' }),
             createRootColspanSettings({ label: '' }),
@@ -568,7 +568,7 @@ xdescribe('generateMatrix', () => {
          */
         expect(matrix).toEqual([
           [
-            createRootColspanSettings({ label: 'A1', isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'A2', colspan: 5, origColspan: 8 }),
@@ -577,10 +577,10 @@ xdescribe('generateMatrix', () => {
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'A3', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'B1', isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'B2', colspan: 2, origColspan: 4 }),
@@ -589,11 +589,11 @@ xdescribe('generateMatrix', () => {
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B4', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'C1', isHidden: true }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'C3', colspan: 2, origColspan: 3 }),
             createPlaceholder(),
@@ -601,19 +601,19 @@ xdescribe('generateMatrix', () => {
             createPlaceholder(),
             createRootColspanSettings({ label: 'C5', colspan: 2, origColspan: 2 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C6', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'D1', isHidden: true }),
-            createRootColspanSettings({ label: 'D2', isHidden: true }),
-            createRootColspanSettings({ label: 'D3', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D4' }),
             createRootColspanSettings({ label: 'D5' }),
             createRootColspanSettings({ label: 'D6' }),
-            createRootColspanSettings({ label: 'D7', isHidden: true }),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D8' }),
             createRootColspanSettings({ label: 'D9' }),
-            createRootColspanSettings({ label: '', isHidden: true }),
+            createPlaceholder(),
           ]
         ]);
       }
@@ -640,7 +640,7 @@ xdescribe('generateMatrix', () => {
          */
         expect(matrix).toEqual([
           [
-            createRootColspanSettings({ label: 'A1', isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'A2', colspan: 3, origColspan: 8 }),
@@ -649,10 +649,10 @@ xdescribe('generateMatrix', () => {
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'A3', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'B1', isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'B2', colspan: 1, origColspan: 4 }),
@@ -661,31 +661,31 @@ xdescribe('generateMatrix', () => {
             createPlaceholder(),
             createRootColspanSettings({ label: 'B3', colspan: 2, origColspan: 4 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B4', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'C1', isHidden: true }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'C3', colspan: 1, origColspan: 3 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C4', colspan: 1, origColspan: 2, isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'C5', colspan: 2, origColspan: 2 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C6', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'D1', isHidden: true }),
-            createRootColspanSettings({ label: 'D2', isHidden: true }),
-            createRootColspanSettings({ label: 'D3', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D4' }),
-            createRootColspanSettings({ label: 'D5', isHidden: true }),
-            createRootColspanSettings({ label: 'D6', isHidden: true }),
-            createRootColspanSettings({ label: 'D7', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D8' }),
             createRootColspanSettings({ label: 'D9' }),
-            createRootColspanSettings({ label: '', isHidden: true }),
+            createPlaceholder(),
           ]
         ]);
       }
@@ -712,7 +712,7 @@ xdescribe('generateMatrix', () => {
          */
         expect(matrix).toEqual([
           [
-            createRootColspanSettings({ label: 'A1', isHidden: true }),
+            createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
@@ -721,43 +721,43 @@ xdescribe('generateMatrix', () => {
             createPlaceholder(),
             createRootColspanSettings({ label: 'A2', colspan: 1, origColspan: 8 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'A3', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'B1', isHidden: true }),
             createPlaceholder(),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B2', colspan: 1, origColspan: 4, isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'B3', colspan: 1, origColspan: 4 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B4', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'C1', isHidden: true }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C3', colspan: 1, origColspan: 3, isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C4', colspan: 1, origColspan: 2, isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'C5', colspan: 1, origColspan: 2 }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C6', isHidden: true }),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'D1', isHidden: true }),
-            createRootColspanSettings({ label: 'D2', isHidden: true }),
-            createRootColspanSettings({ label: 'D3', isHidden: true }),
-            createRootColspanSettings({ label: 'D4', isHidden: true }),
-            createRootColspanSettings({ label: 'D5', isHidden: true }),
-            createRootColspanSettings({ label: 'D6', isHidden: true }),
-            createRootColspanSettings({ label: 'D7', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
             createRootColspanSettings({ label: 'D8' }),
-            createRootColspanSettings({ label: 'D9', isHidden: true }),
-            createRootColspanSettings({ label: '', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
           ]
         ]);
       }
@@ -782,52 +782,52 @@ xdescribe('generateMatrix', () => {
          */
         expect(matrix).toEqual([
           [
-            createRootColspanSettings({ label: 'A1', isHidden: true }),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'A2', colspan: 1, origColspan: 8, isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'A3', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'B1', isHidden: true }),
-            createPlaceholder(),
-            createPlaceholder(),
-            createRootColspanSettings({ label: 'B2', colspan: 1, origColspan: 4, isHidden: true }),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B3', colspan: 1, origColspan: 4, isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'B4', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'C1', isHidden: true }),
-            createRootColspanSettings({ label: 'C2', isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C3', colspan: 1, origColspan: 3, isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C4', colspan: 1, origColspan: 2, isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C5', colspan: 1, origColspan: 2, isHidden: true }),
             createPlaceholder(),
-            createRootColspanSettings({ label: 'C6', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ],
           [
-            createRootColspanSettings({ label: 'D1', isHidden: true }),
-            createRootColspanSettings({ label: 'D2', isHidden: true }),
-            createRootColspanSettings({ label: 'D3', isHidden: true }),
-            createRootColspanSettings({ label: 'D4', isHidden: true }),
-            createRootColspanSettings({ label: 'D5', isHidden: true }),
-            createRootColspanSettings({ label: 'D6', isHidden: true }),
-            createRootColspanSettings({ label: 'D7', isHidden: true }),
-            createRootColspanSettings({ label: 'D8', isHidden: true }),
-            createRootColspanSettings({ label: 'D9', isHidden: true }),
-            createRootColspanSettings({ label: '', isHidden: true }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ]
         ]);
       }
@@ -962,9 +962,9 @@ xdescribe('generateMatrix', () => {
         expect(matrix).toEqual([
           [
             createRootColspanSettings({ label: 'A1' }),
-            createRootColspanSettings({ label: 'B1', colspan: 8, origColspan: 8 }),
             createPlaceholder(),
             createPlaceholder(),
+            createRootColspanSettings({ label: 'B1', colspan: 6, origColspan: 8 }),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
@@ -977,9 +977,9 @@ xdescribe('generateMatrix', () => {
           ],
           [
             createRootColspanSettings({ label: 'A2' }),
-            createRootColspanSettings({ label: 'B2', colspan: 8, origColspan: 8 }),
             createPlaceholder(),
             createPlaceholder(),
+            createRootColspanSettings({ label: 'B2', colspan: 6, origColspan: 8 }),
             createPlaceholder(),
             createPlaceholder(),
             createPlaceholder(),
@@ -992,9 +992,9 @@ xdescribe('generateMatrix', () => {
           ],
           [
             createRootColspanSettings({ label: 'A3' }),
-            createRootColspanSettings({ label: 'B3', colspan: 4, origColspan: 4 }),
             createPlaceholder(),
             createPlaceholder(),
+            createRootColspanSettings({ label: 'B3', colspan: 2, origColspan: 4 }),
             createPlaceholder(),
             createRootColspanSettings({ label: 'F3', colspan: 4, origColspan: 4 }),
             createPlaceholder(),
@@ -1007,7 +1007,7 @@ xdescribe('generateMatrix', () => {
           ],
           [
             createRootColspanSettings({ label: 'A4' }),
-            createRootColspanSettings({ label: 'B4', colspan: 2, origColspan: 2 }),
+            createPlaceholder(),
             createPlaceholder(),
             createRootColspanSettings({ label: 'D4', colspan: 2, origColspan: 2 }),
             createPlaceholder(),
@@ -1019,6 +1019,258 @@ xdescribe('generateMatrix', () => {
             createRootColspanSettings({ label: 'K4' }),
             createPlaceholder(),
             createRootColspanSettings({ label: 'L4', colspan: 1, origColspan: 2 }),
+          ],
+        ]);
+      }
+      {
+        // hide D4 at visual column index 3
+        triggerNodeModification('hide-column', tree.getNode(3, 3), 3);
+        // hide L4 at visual column index 12
+        triggerNodeModification('hide-column', tree.getNode(3, 11), 12);
+
+        const matrix = generateMatrixFromTree(tree);
+
+        /**
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A1 | X    X    X    B1                     | J1 | K1   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A2 | X    X    X    B2                     | J2 | K2   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A3 | X    X    X    B3 | F3                | J3 | K3   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A4 | B4   X  | X    D4 | F4      | H4      | J4 | K4 | X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *         |    |    |                                       |    |
+         *                           Hidden columns
+         */
+        expect(matrix).toEqual([
+          [
+            createRootColspanSettings({ label: 'A1' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B1', colspan: 5, origColspan: 8 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J1' }),
+            createRootColspanSettings({ label: 'K1', colspan: 1, origColspan: 3 }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createRootColspanSettings({ label: 'A2' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B2', colspan: 5, origColspan: 8 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J2' }),
+            createRootColspanSettings({ label: 'K2', colspan: 1, origColspan: 3 }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createRootColspanSettings({ label: 'A3' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B3', colspan: 1, origColspan: 4 }),
+            createRootColspanSettings({ label: 'F3', colspan: 4, origColspan: 4 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J3' }),
+            createRootColspanSettings({ label: 'K3', colspan: 1, origColspan: 3 }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createRootColspanSettings({ label: 'A4' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'D4', colspan: 1, origColspan: 2 }),
+            createRootColspanSettings({ label: 'F4', colspan: 2, origColspan: 2 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'H4', colspan: 2, origColspan: 2 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J4' }),
+            createRootColspanSettings({ label: 'K4' }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+        ]);
+      }
+      {
+        // hide F4 at visual column index 5
+        triggerNodeModification('hide-column', tree.getNode(3, 5), 5);
+        // hide H4 at visual column index 8
+        triggerNodeModification('hide-column', tree.getNode(3, 7), 8);
+
+        const matrix = generateMatrixFromTree(tree);
+
+        /**
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A1 | X    X    X    B1   X              X  | J1 | K1   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A2 | X    X    X    B2   X              X  | J2 | K2   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A3 | X    X    X    B3 | X    F3        X  | J3 | K3   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A4 | B4   X  | X    D4 | X    F4 | H4   X  | J4 | K4 | X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *         |    |    |         |              |              |    |
+         *                           Hidden columns
+         */
+        expect(matrix).toEqual([
+          [
+            createRootColspanSettings({ label: 'A1' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B1', colspan: 3, origColspan: 8 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J1' }),
+            createRootColspanSettings({ label: 'K1', colspan: 1, origColspan: 3 }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createRootColspanSettings({ label: 'A2' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B2', colspan: 3, origColspan: 8 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J2' }),
+            createRootColspanSettings({ label: 'K2', colspan: 1, origColspan: 3 }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createRootColspanSettings({ label: 'A3' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B3', colspan: 1, origColspan: 4 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'F3', colspan: 2, origColspan: 4 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J3' }),
+            createRootColspanSettings({ label: 'K3', colspan: 1, origColspan: 3 }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createRootColspanSettings({ label: 'A4' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'D4', colspan: 1, origColspan: 2 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'F4', colspan: 1, origColspan: 2 }),
+            createRootColspanSettings({ label: 'H4', colspan: 1, origColspan: 2 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J4' }),
+            createRootColspanSettings({ label: 'K4' }),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+        ]);
+      }
+      {
+        // hide A4 at visual column index 0
+        triggerNodeModification('hide-column', tree.getNode(3, 0), 0);
+        // hide K4 at visual column index 10
+        triggerNodeModification('hide-column', tree.getNode(3, 10), 10);
+
+        const matrix = generateMatrixFromTree(tree);
+
+        /**
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A1 | X    X    X    B1   X              X  | J1 | K1   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A2 | X    X    X    B2   X              X  | J2 | K2   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A3 | X    X    X    B3 | X    F3        X  | J3 | K3   X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *  | A4 | B4   X  | X    D4 | X    F4 | H4   X  | J4 | K4 | X    X  |
+         *  +----+----+----+----+----+----+----+----+----+----+----+----+----+
+         *    |    |    |    |         |              |         |    |    |
+         *                           Hidden columns
+         */
+        expect(matrix).toEqual([
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B1', colspan: 3, origColspan: 8 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J1' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B2', colspan: 3, origColspan: 8 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J2' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'B3', colspan: 1, origColspan: 4 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'F3', colspan: 2, origColspan: 4 }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J3' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+          ],
+          [
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'D4', colspan: 1, origColspan: 2 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'F4', colspan: 1, origColspan: 2 }),
+            createRootColspanSettings({ label: 'H4', colspan: 1, origColspan: 2 }),
+            createPlaceholder(),
+            createRootColspanSettings({ label: 'J4' }),
+            createPlaceholder(),
+            createPlaceholder(),
+            createPlaceholder(),
           ],
         ]);
       }
