@@ -36,7 +36,6 @@ or array of any available strings:
 
 See [the context menu demo](https://handsontable.com/docs/demo-context-menu.html) for examples.
 
-
 **Example**  
 ```js
 // as a boolean
@@ -44,46 +43,53 @@ contextMenu: true
 // as a array
 contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 ```
+
 ## Members:
 
 ### DEFAULT_ITEMS
-`ContextMenu.DEFAULT\_ITEMS ⇒ Array.<string>`
+
+_ContextMenu.DEFAULT\_ITEMS ⇒ Array&lt;string&gt;_
 
 Context menu default items order when `contextMenu` options is set as `true`.
 
 
-## Functions:
+## Methods:
 
 ### close
-`contextMenu.close()`
+
+_contextMenu.close()_
 
 Closes the menu.
 
 
 
 ### destroy
-`contextMenu.destroy()`
+
+_contextMenu.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`contextMenu.disablePlugin()`
+
+_contextMenu.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`contextMenu.enablePlugin()`
+
+_contextMenu.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### executeCommand
-`contextMenu.executeCommand(commandName, ...params)`
+
+_contextMenu.executeCommand(commandName, ...params)_
 
 Execute context menu command.
 
@@ -110,13 +116,14 @@ Or you can execute command registered in settings where `key` is your command na
 
 | Param | Type | Description |
 | --- | --- | --- |
-| commandName | <code>string</code> | The command name to be executed. |
-| ...params | <code>\*</code> | Additional paramteres passed to command executor module. |
+| commandName | `string` | The command name to be executed. |
+| ...params | `\*` | Additional paramteres passed to command executor module. |
 
 
 
 ### isEnabled
-`contextMenu.isEnabled() ⇒ boolean`
+
+_contextMenu.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin) method is called.
@@ -124,19 +131,21 @@ hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin)
 
 
 ### open
-`contextMenu.open(event)`
+
+_contextMenu.open(event)_
 
 Opens menu and re-position it based on the passed coordinates.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>Event</code> | The mouse event object. |
+| event | `Event` | The mouse event object. |
 
 
 
 ### updatePlugin
-`contextMenu.updatePlugin()`
+
+_contextMenu.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

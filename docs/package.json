@@ -33,6 +33,7 @@
     "replace-in-files": "^3.0.0",
     "semver": "^5.7.1",
     "vue-router": "^3.5.1",
-    "vuepress": "^1.8.1"
+    "vuepress": "^1.8.1",
+    "vuepress-plugin-sitemap": "^2.3.1"
   }
 }

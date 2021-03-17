@@ -18,7 +18,7 @@ const environmentHead = process.env.BUILD_MODE === 'production' ?
   : [];
 
 module.exports = {
-  patterns: ['**/*.md', '!README.md'], // to enable vue pages add: '**/*.vue'.
+  patterns: ['**/*.md', '!README.md', '!README-EDITING.md', '!README-DEPLOYMENT.md'], // to enable vue pages add: '**/*.vue'.
   description: 'Handsontable',
   base: '/docs/',
   head: [
@@ -32,6 +32,9 @@ module.exports = {
     },
   },
   plugins: [
+    ['sitemap', {
+      hostname: 'https://handsontable.com'
+    }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',
       headerAnchorSelector: '.header-anchor'
@@ -73,6 +76,7 @@ module.exports = {
     lastUpdated: true,
     smoothScroll: false,
     nav: [
+      // Guide & API Reference has defined in: theme/components/NavLinks.vue
       { text: 'Demo', link: 'https://handsontable.com/examples' },
       { text: 'Support', items: [
           { text: 'Forum', link: 'https://forum.handsontable.com' },

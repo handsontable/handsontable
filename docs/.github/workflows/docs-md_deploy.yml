@@ -6,7 +6,7 @@ env:
 
 on:
   push:
-    branches: [ master, vuepress ]
+    branches: [ master, vuepress, develop ]
   workflow_dispatch:
 
 defaults:

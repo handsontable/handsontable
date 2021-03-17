@@ -7,8 +7,8 @@ canonicalUrl: /api/undo-redo
 # {{ $frontmatter.title }}
 
 [[toc]]
-## Functions:
-## Functions:
+## Methods:
+## Methods:
 
 ## Description
 
@@ -17,48 +17,85 @@ Handsontable UndoRedo plugin allows to undo and redo certain actions done in the
 
 __Note__, that not all actions are currently undo-able. The UndoRedo plugin is enabled by default.
 
-
 **Example**  
 ```js
 undo: true
 ```
-## Functions:
+
+## Methods:
 
 ### clear
-`undoRedo.clear()`
+
+_undoRedo.clear()_
 
 Clears undo history.
 
 
 
+### destroy
+
+_undoRedo.destroy()_
+
+Destroys the instance.
+
+
+
+### disable
+
+_undoRedo.disable()_
+
+Disables the plugin.
+
+
+
 ### done
-`undoRedo.done(action)`
+
+_undoRedo.done(action)_
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>object</code> | The action desciptor. |
+| action | `object` | The action desciptor. |
+
+
+
+### enable
+
+_undoRedo.enable()_
+
+Enables the plugin.
+
+
+
+### isEnabled
+
+_undoRedo.isEnabled() ⇒ boolean_
+
+Checks if the plugin is enabled.
 
 
 
 ### isRedoAvailable
-`undoRedo.isRedoAvailable() ⇒ boolean`
+
+_undoRedo.isRedoAvailable() ⇒ boolean_
 
 Checks if redo action is available.
 
 
-**Returns**: <code>boolean</code> - Return `true` if redo can be performed, `false` otherwise.  
+**Returns**: `boolean` - Return `true` if redo can be performed, `false` otherwise.  
 
 ### isUndoAvailable
-`undoRedo.isUndoAvailable() ⇒ boolean`
+
+_undoRedo.isUndoAvailable() ⇒ boolean_
 
 Checks if undo action is available.
 
 
-**Returns**: <code>boolean</code> - Return `true` if undo can be performed, `false` otherwise.  
+**Returns**: `boolean` - Return `true` if undo can be performed, `false` otherwise.  
 
 ### redo
-`undoRedo.redo()`
+
+_undoRedo.redo()_
 
 Redo the previous action performed to the table (used to reverse an undo).
 
@@ -66,7 +103,8 @@ Redo the previous action performed to the table (used to reverse an undo).
 
 
 ### undo
-`undoRedo.undo()`
+
+_undoRedo.undo()_
 
 Undo the last action performed to the table.
 

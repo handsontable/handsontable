@@ -20,7 +20,6 @@ while the `colspan` property defines a number of columns that the header should 
 __Note__ that the plugin supports a *nested* structure, which means, any header cannot be wider than it's "parent". In
 other words, headers cannot overlap each other.
 
-
 **Example**  
 ```js
 const container = document.getElementById('example');
@@ -33,47 +32,54 @@ const hot = new Handsontable(container, {
     ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
  ],
 ```
+
 ## Members:
 
 ### detectedOverlappedHeaders
-`nestedHeaders.detectedOverlappedHeaders : boolean`
+
+_nestedHeaders.detectedOverlappedHeaders : boolean_
 
 The flag which determines that the nested header settings contains overlapping headers
 configuration.
 
 
-## Functions:
+## Methods:
 
 ### destroy
-`nestedHeaders.destroy()`
+
+_nestedHeaders.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`nestedHeaders.disablePlugin()`
+
+_nestedHeaders.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`nestedHeaders.enablePlugin()`
+
+_nestedHeaders.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
-`nestedHeaders.isEnabled() ⇒ boolean`
+
+_nestedHeaders.isEnabled() ⇒ boolean_
 
 Check if plugin is enabled.
 
 
 
 ### updatePlugin
-`nestedHeaders.updatePlugin()`
+
+_nestedHeaders.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

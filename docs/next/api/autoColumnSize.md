@@ -33,7 +33,6 @@ autoColumnSize: {syncLimit: '40%'},
 
 To configure this plugin see [Options#autoColumnSize](./options/#autocolumnsize).
 
-
 **Example**  
 ```js
 const hot = new Handsontable(document.getElementById('example'), {
@@ -49,25 +48,29 @@ if (plugin.isEnabled()) {
   // code...
 }
 ```
+
 ## Members:
 
 ### inProgress
-`autoColumnSize.inProgress : boolean`
+
+_autoColumnSize.inProgress : boolean_
 
 `true` if the size calculation is in progress.
 
 
 
 ### measuredColumns
-`autoColumnSize.measuredColumns : number`
+
+_autoColumnSize.measuredColumns : number_
 
 Number of already measured columns (we already know their sizes).
 
 
-## Functions:
+## Methods:
 
 ### calculateAllColumnsWidth
-`autoColumnSize.calculateAllColumnsWidth(rowRange)`
+
+_autoColumnSize.calculateAllColumnsWidth(rowRange)_
 
 Calculates all columns width. The calculated column will be cached in the [AutoColumnSize#widths](./auto-column-size/#widths) property.
 To retrieve width for specified column use [AutoColumnSize#getColumnWidth](./auto-column-size/#getcolumnwidth) method.
@@ -75,33 +78,36 @@ To retrieve width for specified column use [AutoColumnSize#getColumnWidth](./aut
 
 | Param | Type | Description |
 | --- | --- | --- |
-| rowRange | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+| rowRange | `object` \| `number` | Row index or an object with `from` and `to` properties which define row range. |
 
 
 
 ### calculateColumnsWidth
-`autoColumnSize.calculateColumnsWidth(colRange, rowRange, [force])`
+
+_autoColumnSize.calculateColumnsWidth(colRange, rowRange, [force])_
 
 Calculates a columns width.
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| colRange | <code>number</code> \| <code>object</code> |  | Visual column index or an object with `from` and `to` visual indexes as a range. |
-| rowRange | <code>number</code> \| <code>object</code> |  | Visual row index or an object with `from` and `to` visual indexes as a range. |
-| [force] | <code>boolean</code> | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
+| colRange | `number` \| `object` |  | Visual column index or an object with `from` and `to` visual indexes as a range. |
+| rowRange | `number` \| `object` |  | Visual row index or an object with `from` and `to` visual indexes as a range. |
+| [force] | `boolean` | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
 
 
 
 ### calculateVisibleColumnsWidth
-`autoColumnSize.calculateVisibleColumnsWidth()`
+
+_autoColumnSize.calculateVisibleColumnsWidth()_
 
 Calculates visible columns width.
 
 
 
 ### clearCache
-`autoColumnSize.clearCache([columns])`
+
+_autoColumnSize.clearCache([columns])_
 
 Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
 Otherwise whole cache will be cleared.
@@ -109,63 +115,70 @@ Otherwise whole cache will be cleared.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [columns] | <code>Array.&lt;number&gt;</code> | `optional` List of physical column indexes to clear. |
+| [columns] | `Array.&lt;number&gt;` | `optional` List of physical column indexes to clear. |
 
 
 
 ### destroy
-`autoColumnSize.destroy()`
+
+_autoColumnSize.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`autoColumnSize.disablePlugin()`
+
+_autoColumnSize.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`autoColumnSize.enablePlugin()`
+
+_autoColumnSize.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getColumnWidth
-`autoColumnSize.getColumnWidth(column, [defaultWidth], [keepMinimum]) ⇒ number`
+
+_autoColumnSize.getColumnWidth(column, [defaultWidth], [keepMinimum]) ⇒ number_
 
 Gets the calculated column width.
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| column | <code>number</code> |  | Visual column index. |
-| [defaultWidth] | <code>number</code> |  | `optional` Default column width. It will be picked up if no calculated width found. |
-| [keepMinimum] | <code>boolean</code> | <code>true</code> | `optional` If `true` then returned value won't be smaller then 50 (default column width). |
+| column | `number` |  | Visual column index. |
+| [defaultWidth] | `number` |  | `optional` Default column width. It will be picked up if no calculated width found. |
+| [keepMinimum] | `boolean` | <code>true</code> | `optional` If `true` then returned value won't be smaller then 50 (default column width). |
 
 
 
 ### getFirstVisibleColumn
-`autoColumnSize.getFirstVisibleColumn() ⇒ number`
+
+_autoColumnSize.getFirstVisibleColumn() ⇒ number_
 
 Gets the first visible column.
 
 
-**Returns**: <code>number</code> - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.  
+**Returns**: `number` - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.  
 
 ### getLastVisibleColumn
-`autoColumnSize.getLastVisibleColumn() ⇒ number`
+
+_autoColumnSize.getLastVisibleColumn() ⇒ number_
 
 Gets the last visible column.
 
 
-**Returns**: <code>number</code> - Returns visual column index or -1 if table is not rendered.  
+**Returns**: `number` - Returns visual column index or -1 if table is not rendered.  
 
 ### getSyncCalculationLimit
-`autoColumnSize.getSyncCalculationLimit() ⇒ number`
+
+_autoColumnSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
 asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see [Options#autoColumnSize](./options/#autocolumnsize)).
@@ -173,7 +186,8 @@ asynchronously). The limit is calculated based on `syncLimit` set to `autoColumn
 
 
 ### isEnabled
-`autoColumnSize.isEnabled() ⇒ boolean`
+
+_autoColumnSize.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [#enablePlugin](./auto-column-size/#enableplugin) method is called.
@@ -181,21 +195,24 @@ hook and if it returns `true` than the [#enablePlugin](./auto-column-size/#enabl
 
 
 ### isNeedRecalculate
-`autoColumnSize.isNeedRecalculate() ⇒ boolean`
+
+_autoColumnSize.isNeedRecalculate() ⇒ boolean_
 
 Checks if all widths were calculated. If not then return `true` (need recalculate).
 
 
 
 ### recalculateAllColumnsWidth
-`autoColumnSize.recalculateAllColumnsWidth()`
+
+_autoColumnSize.recalculateAllColumnsWidth()_
 
 Recalculates all columns width (overwrite cache values).
 
 
 
 ### updatePlugin
-`autoColumnSize.updatePlugin()`
+
+_autoColumnSize.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./core/#updatesettings) is invoked.
 

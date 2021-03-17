@@ -39,7 +39,6 @@ height. __Note__, that this might have a negative impact on performance.
 
 To configure this plugin see [Options#autoRowSize](./options/#autorowsize).
 
-
 **Example**  
 ```js
 const hot = new Handsontable(document.getElementById('example'), {
@@ -55,25 +54,29 @@ if (plugin.isEnabled()) {
   // code...
 }
 ```
+
 ## Members:
 
 ### inProgress
-`autoRowSize.inProgress : boolean`
+
+_autoRowSize.inProgress : boolean_
 
 `true` if the size calculation is in progress.
 
 
 
 ### measuredRows
-`autoRowSize.measuredRows : number`
+
+_autoRowSize.measuredRows : number_
 
 Number of already measured rows (we already know their sizes).
 
 
-## Functions:
+## Methods:
 
 ### calculateAllRowsHeight
-`autoRowSize.calculateAllRowsHeight(colRange)`
+
+_autoRowSize.calculateAllRowsHeight(colRange)_
 
 Calculate all rows heights. The calculated row will be cached in the [AutoRowSize#heights](./auto-row-size/#heights) property.
 To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-size/#getrowheight) method.
@@ -81,102 +84,113 @@ To retrieve height for specified row use [AutoRowSize#getRowHeight](./auto-row-s
 
 | Param | Type | Description |
 | --- | --- | --- |
-| colRange | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+| colRange | `object` \| `number` | Row index or an object with `from` and `to` properties which define row range. |
 
 
 
 ### calculateRowsHeight
-`autoRowSize.calculateRowsHeight(rowRange, colRange, [force])`
+
+_autoRowSize.calculateRowsHeight(rowRange, colRange, [force])_
 
 Calculate a given rows height.
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| rowRange | <code>number</code> \| <code>object</code> |  | Row index or an object with `from` and `to` indexes as a range. |
-| colRange | <code>number</code> \| <code>object</code> |  | Column index or an object with `from` and `to` indexes as a range. |
-| [force] | <code>boolean</code> | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
+| rowRange | `number` \| `object` |  | Row index or an object with `from` and `to` indexes as a range. |
+| colRange | `number` \| `object` |  | Column index or an object with `from` and `to` indexes as a range. |
+| [force] | `boolean` | <code>false</code> | `optional` If `true` the calculation will be processed regardless of whether the width exists in the cache. |
 
 
 
 ### clearCache
-`autoRowSize.clearCache()`
+
+_autoRowSize.clearCache()_
 
 Clears cached heights.
 
 
 
 ### clearCacheByRange
-`autoRowSize.clearCacheByRange(range)`
+
+_autoRowSize.clearCacheByRange(range)_
 
 Clears cache by range.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| range | <code>object</code> \| <code>number</code> | Row index or an object with `from` and `to` properties which define row range. |
+| range | `object` \| `number` | Row index or an object with `from` and `to` properties which define row range. |
 
 
 
 ### destroy
-`autoRowSize.destroy()`
+
+_autoRowSize.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`autoRowSize.disablePlugin()`
+
+_autoRowSize.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`autoRowSize.enablePlugin()`
+
+_autoRowSize.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getColumnHeaderHeight
-`autoRowSize.getColumnHeaderHeight() ⇒ number | undefined`
+
+_autoRowSize.getColumnHeaderHeight() ⇒ number | undefined_
 
 Get the calculated column header height.
 
 
 
 ### getFirstVisibleRow
-`autoRowSize.getFirstVisibleRow() ⇒ number`
+
+_autoRowSize.getFirstVisibleRow() ⇒ number_
 
 Get the first visible row.
 
 
-**Returns**: <code>number</code> - Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.  
+**Returns**: `number` - Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.  
 
 ### getLastVisibleRow
-`autoRowSize.getLastVisibleRow() ⇒ number`
+
+_autoRowSize.getLastVisibleRow() ⇒ number_
 
 Gets the last visible row.
 
 
-**Returns**: <code>number</code> - Returns row index or -1 if table is not rendered.  
+**Returns**: `number` - Returns row index or -1 if table is not rendered.  
 
 ### getRowHeight
-`autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number`
+
+_autoRowSize.getRowHeight(row, [defaultHeight]) ⇒ number_
 
 Gets the calculated row height.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| row | <code>number</code> | Visual row index. |
-| [defaultHeight] | <code>number</code> | `optional` Default row height. It will be picked up if no calculated height found. |
+| row | `number` | Visual row index. |
+| [defaultHeight] | `number` | `optional` Default row height. It will be picked up if no calculated height found. |
 
 
 
 ### getSyncCalculationLimit
-`autoRowSize.getSyncCalculationLimit() ⇒ number`
+
+_autoRowSize.getSyncCalculationLimit() ⇒ number_
 
 Gets value which tells how many rows should be calculated synchronously (rest of the rows will be calculated
 asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize option (see [Options#autoRowSize](./options/#autorowsize)).
@@ -184,7 +198,8 @@ asynchronously). The limit is calculated based on `syncLimit` set to autoRowSize
 
 
 ### isEnabled
-`autoRowSize.isEnabled() ⇒ boolean`
+
+_autoRowSize.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-size/#enableplugin) method is called.
@@ -192,14 +207,16 @@ hook and if it returns `true` than the [AutoRowSize#enablePlugin](./auto-row-siz
 
 
 ### isNeedRecalculate
-`autoRowSize.isNeedRecalculate() ⇒ boolean`
+
+_autoRowSize.isNeedRecalculate() ⇒ boolean_
 
 Checks if all heights were calculated. If not then return `true` (need recalculate).
 
 
 
 ### recalculateAllRowsHeight
-`autoRowSize.recalculateAllRowsHeight()`
+
+_autoRowSize.recalculateAllRowsHeight()_
 
 Recalculates all rows height (overwrite cache values).
 

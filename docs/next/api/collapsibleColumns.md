@@ -21,7 +21,6 @@ with a defined `colspan` property.
 To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
 of objects, as in the example below.
 
-
 **Example**  
 ```js
 const container = document.getElementById('example');
@@ -47,77 +46,87 @@ const hot = new Handsontable(container, {
   ],
 });
 ```
+
 ## Members:
 
 ### headerStateManager
-`collapsibleColumns.headerStateManager : StateManager`
+
+_collapsibleColumns.headerStateManager : StateManager_
 
 The NestedHeaders plugin StateManager instance.
 
 
-## Functions:
+## Methods:
 
 ### collapseAll
-`collapsibleColumns.collapseAll()`
+
+_collapsibleColumns.collapseAll()_
 
 Collapses all collapsible sections.
 
 
 
 ### collapseSection
-`collapsibleColumns.collapseSection(coords)`
+
+_collapsibleColumns.collapseSection(coords)_
 
 Collapses section at the provided coords.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>object</code> | Contains coordinates information. (`coords.row`, `coords.col`). |
+| coords | `object` | Contains coordinates information. (`coords.row`, `coords.col`). |
 
 
 
 ### destroy
-`collapsibleColumns.destroy()`
+
+_collapsibleColumns.destroy()_
 
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
-`collapsibleColumns.disablePlugin()`
+
+_collapsibleColumns.disablePlugin()_
 
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
-`collapsibleColumns.enablePlugin()`
+
+_collapsibleColumns.enablePlugin()_
 
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### expandAll
-`collapsibleColumns.expandAll()`
+
+_collapsibleColumns.expandAll()_
 
 Expands all collapsible sections.
 
 
 
 ### expandSection
-`collapsibleColumns.expandSection(coords)`
+
+_collapsibleColumns.expandSection(coords)_
 
 Expands section at the provided coords.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>object</code> | Contains coordinates information. (`coords.row`, `coords.col`). |
+| coords | `object` | Contains coordinates information. (`coords.row`, `coords.col`). |
 
 
 
 ### isEnabled
-`collapsibleColumns.isEnabled() ⇒ boolean`
+
+_collapsibleColumns.isEnabled() ⇒ boolean_
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#CollapsibleColumns+enablePlugin) method is called.
@@ -125,19 +134,21 @@ hook and if it returns `true` than the [enablePlugin](#CollapsibleColumns+enable
 
 
 ### toggleAllCollapsibleSections
-`collapsibleColumns.toggleAllCollapsibleSections(action)`
+
+_collapsibleColumns.toggleAllCollapsibleSections(action)_
 
 Collapses or expand all collapsible sections, depending on the action parameter.
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| action | <code>string</code> | 'collapse' or 'expand'. |
+| action | `string` | 'collapse' or 'expand'. |
 
 
 
 ### toggleCollapsibleSection
-`collapsibleColumns.toggleCollapsibleSection(coords, [action])`
+
+_collapsibleColumns.toggleCollapsibleSection(coords, [action])_
 
 Collapses/Expands a section.
 
@@ -145,13 +156,14 @@ Collapses/Expands a section.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| coords | <code>Array</code> | Array of coords - section coordinates. |
-| [action] | <code>string</code> | `optional` Action definition ('collapse' or 'expand'). |
+| coords | `Array` | Array of coords - section coordinates. |
+| [action] | `string` | `optional` Action definition ('collapse' or 'expand'). |
 
 
 
 ### updatePlugin
-`collapsibleColumns.updatePlugin()`
+
+_collapsibleColumns.updatePlugin()_
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
