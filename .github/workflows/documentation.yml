@@ -6,12 +6,13 @@ env:
 
 on:
   push:
-    branches: [ master, vuepress, develop ]
+    branches: [ vuepress, develop, feature/issue-7624 ]
+    
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: ./ # todo change this when merging into monorepo
+    working-directory: ./docs/
 
 jobs:
   docker:
@@ -19,13 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2
-
-      ## monorepo required
-      #      - name: Api Reference
-      #        working-directory: ./src/utils/jsdoc-convert/
-      #        run: |
-      #          npm install
-      #          npm run jsdoc2md
 
       - name: Docker login into GHCR
         run: |

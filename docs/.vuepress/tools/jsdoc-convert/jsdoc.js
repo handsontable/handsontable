@@ -5,7 +5,7 @@ const path = require('path')
 const fs = require('fs')
 
 /// parameters
-const pathToSource = '../../../../handsontable/src';
+const pathToSource = '../../../../src';
 const pathToDist = '../../../next/api';
 const prefix = 'next/api/';
 const whitelist = [
