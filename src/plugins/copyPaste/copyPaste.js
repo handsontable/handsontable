@@ -608,7 +608,9 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onAfterOnCellMouseUp() {
-    if (!this.hot.isListening() || this.isEditorOpened()) {
+    // Changing focused element will remove current selection. It's unnecessary in case when we give possibility
+    // for fragment selection
+    if (!this.hot.isListening() || this.isEditorOpened() || this.hot.getSettings().fragmentSelection) {
       return;
     }
 

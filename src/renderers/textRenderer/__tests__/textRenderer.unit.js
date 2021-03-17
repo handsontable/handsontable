@@ -53,10 +53,10 @@ describe('textRenderer', () => {
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long&nbsp;&nbsp;&nbsp;text&nbsp;</td>');
+      expect(TD.outerHTML).toBe('<td>Long   text </td>');
     });
 
-    it('should left whitespaces if trimWhitespace is set as true', () => {
+    it('should trim whitespaces if trimWhitespace is set as true', () => {
       const TD = document.createElement('td');
       const instance = getInstance({
         trimWhitespace: true,
@@ -65,19 +65,20 @@ describe('textRenderer', () => {
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text </td>');
+      expect(TD.outerHTML).toBe('<td>Long   text</td>');
     });
 
-    it('should left whitespaces if wordWrap is set as true', () => {
+    it('should trim whitespaces if wordWrap is set as true and trimWhitespace is set as true', () => {
       const TD = document.createElement('td');
       const instance = getInstance({
         wordWrap: true,
+        trimWhitespace: true
       });
       const cellMeta = {};
 
       textRenderer(instance, TD, void 0, void 0, void 0, 'Long   text ', cellMeta);
 
-      expect(TD.outerHTML).toBe('<td>Long   text </td>');
+      expect(TD.outerHTML).toBe('<td>Long   text</td>');
     });
 
     it('should insert stringified value', () => {

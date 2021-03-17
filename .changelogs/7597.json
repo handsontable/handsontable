@@ -1,0 +1,7 @@
+{
+  "title": "Fixed the cellTypes modules paths in the exports entry in the package.json file",
+  "type": "fixed",
+  "issue": 7597,
+  "breaking": false,
+  "framework": "none"
+}
