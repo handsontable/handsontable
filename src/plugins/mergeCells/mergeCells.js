@@ -446,8 +446,10 @@ export class MergeCells extends BasePlugin {
           this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'hidden');
         });
       });
-
+      
       this.hot.removeCellMeta(currentCollection.row, currentCollection.col, 'spanned');
+      this.hot.removeCellMeta(currentCollection.row, currentCollection.col, 'rowspan');
+      this.hot.removeCellMeta(currentCollection.row, currentCollection.col, 'colspan');
     });
 
     this.hot.runHooks('afterUnmergeCells', cellRange, auto);
