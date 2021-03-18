@@ -1,9 +1,9 @@
 ---
-name: @handsontable/react
+name: "@handsontable/react"
 about: Issues regarding the React wrapper for Handsontable.
-title: ''
-labels: 'react'
-assignees: ''
+title: ""
+labels: "react"
+assignees: ""
 
 ---
 

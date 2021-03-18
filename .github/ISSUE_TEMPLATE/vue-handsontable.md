@@ -1,9 +1,9 @@
 ---
-name: @handsontable/vue
+name: "@handsontable/vue"
 about: Issues regarding the Vue wrapper for Handsontable.
-title: ''
-labels: 'vue'
-assignees: ''
+title: ""
+labels: "vue"
+assignees: ""
 
 ---
 
