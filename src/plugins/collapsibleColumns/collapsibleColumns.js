@@ -308,7 +308,7 @@ export class CollapsibleColumns extends BasePlugin {
     let isActionPossible = filteredCoords.length > 0;
 
     arrayEach(filteredCoords, ({ row, col: column }) => {
-      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column);
+      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
 
       if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
         isActionPossible = false;
@@ -431,7 +431,7 @@ export class CollapsibleColumns extends BasePlugin {
     const TR = TH.parentNode;
     const THEAD = TR.parentNode;
     const row = ((-1) * THEAD.childNodes.length) + Array.prototype.indexOf.call(THEAD.childNodes, TR);
-    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column);
+    const { collapsible, origColspan } = this.headerStateManager.getHeaderSettings(row, column) ?? {};
 
     if (collapsible && origColspan > 1 && column >= this.hot.getSettings().fixedColumnsLeft) {
       const button = this.generateIndicator(row, column);

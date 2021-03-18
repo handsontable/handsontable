@@ -291,7 +291,7 @@ export class NestedHeaders extends BasePlugin {
         label,
         isHidden,
         isPlaceholder,
-      } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex) ?? {};
+      } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnsIndex) ?? { label: '' };
 
       if (isPlaceholder || isHidden) {
         addClass(TH, 'hiddenHeader');
