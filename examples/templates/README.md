@@ -17,7 +17,7 @@ In order to create new code examples with these templates, each new example must
 
 #### Common `package.json` features (the same for every new example)
 
-``` json
+```javascript
 {
   "version": "0.0.0", // will be overwritten on new version created,
   "homepage": "https://handsontable.com/",
