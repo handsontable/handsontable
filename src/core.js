@@ -1397,8 +1397,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Creates and register new IndexMap for rows.
    *
+   * @private
    * @memberof Core#
-   * @since 9.0.0
    * @function createAndRegisterRowIndexMap
    * @param {string} indexName The uniq index name.
    * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
@@ -1412,8 +1412,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   /**
    * Creates and register new IndexMap for columns.
    *
+   * @private
    * @memberof Core#
-   * @since 9.0.0
    * @function createAndRegisterColumnIndexMap
    * @param {string} indexName The uniq index name.
    * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").

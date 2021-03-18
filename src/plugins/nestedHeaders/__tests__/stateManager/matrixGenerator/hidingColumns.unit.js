@@ -55,7 +55,7 @@ describe('generateMatrix', () => {
       tree.buildTree();
 
       {
-        // hide B2
+        // hide B2 at visual column 1
         triggerNodeModification('hide-column', tree.getNode(1, 1), 1);
 
         const matrix = generateMatrixFromTree(tree);
@@ -83,7 +83,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // hide A2
+        // hide A2 at visual column 0
         triggerNodeModification('hide-column', tree.getNode(1, 0), 0);
 
         const matrix = generateMatrixFromTree(tree);
@@ -111,7 +111,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // hide C2
+        // hide C2 at visual column 2
         triggerNodeModification('hide-column', tree.getNode(1, 2), 2);
 
         const matrix = generateMatrixFromTree(tree);
@@ -160,7 +160,7 @@ describe('generateMatrix', () => {
       tree.buildTree();
 
       {
-        // hide C2
+        // hide C2 at visual column 2
         triggerNodeModification('hide-column', tree.getNode(2, 2), 2);
 
         const matrix = generateMatrixFromTree(tree);
@@ -198,7 +198,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // hide C1 at column index 0
+        // hide C1 at visual column index 0
         triggerNodeModification('hide-column', tree.getNode(2, 0), 0);
 
         const matrix = generateMatrixFromTree(tree);
@@ -236,7 +236,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // hide C1 at column index 1
+        // hide C1 at visual column index 1
         triggerNodeModification('hide-column', tree.getNode(2, 0), 1);
 
         const matrix = generateMatrixFromTree(tree);
@@ -274,7 +274,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // hide C3 at column index 3
+        // hide C3 at visual column index 3
         triggerNodeModification('hide-column', tree.getNode(2, 3), 3);
 
         const matrix = generateMatrixFromTree(tree);

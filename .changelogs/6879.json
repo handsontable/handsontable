@@ -1,5 +1,5 @@
 {
-  "title": "Fixed the issue where hiding columns causes visual glitches when the Handsontable uses nested headers or collapsible columns feature",
+  "title": "Fixed the issue where hiding columns causes visual glitches when the _NestedHeaders_ plugin is used",
   "type": "fixed",
   "issue": 6879,
   "breaking": false,

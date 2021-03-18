@@ -69,7 +69,7 @@ describe('generateMatrix', () => {
       });
 
       {
-        // show B2
+        // show B2 at visual column 1
         triggerNodeModification('show-column', tree.getNode(1, 1), 1);
 
         const matrix = generateMatrixFromTree(tree);
@@ -97,7 +97,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // show A2
+        // show A2 at visual column 0
         triggerNodeModification('show-column', tree.getNode(1, 0), 0);
 
         const matrix = generateMatrixFromTree(tree);
@@ -125,7 +125,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // show C2
+        // show C2 at visual column 2
         triggerNodeModification('show-column', tree.getNode(1, 2), 2);
 
         const matrix = generateMatrixFromTree(tree);
@@ -185,7 +185,7 @@ describe('generateMatrix', () => {
       });
 
       {
-        // show C1 at column index 1
+        // show C1 at visual column index 1
         triggerNodeModification('show-column', tree.getNode(2, 0), 1);
 
         const matrix = generateMatrixFromTree(tree);
@@ -223,7 +223,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // show C2 at column index 2
+        // show C2 at visual column index 2
         triggerNodeModification('show-column', tree.getNode(2, 2), 2);
 
         const matrix = generateMatrixFromTree(tree);
@@ -261,7 +261,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // show C1 at column index 0
+        // show C1 at visual column index 0
         triggerNodeModification('show-column', tree.getNode(2, 0), 0);
 
         const matrix = generateMatrixFromTree(tree);
@@ -299,7 +299,7 @@ describe('generateMatrix', () => {
         ]);
       }
       {
-        // show C3 at column index 3
+        // show C3 at visual column index 3
         triggerNodeModification('show-column', tree.getNode(2, 3), 3);
 
         const matrix = generateMatrixFromTree(tree);
