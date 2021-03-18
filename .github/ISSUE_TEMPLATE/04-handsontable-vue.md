@@ -1,10 +1,9 @@
 ---
-name: handsontable
-about: Issues regarding Handsontable.
-title: ''
-labels: ''
-assignees: ''
-
+name: "Handsontable for Vue"
+about: Issues regarding the Vue wrapper for Handsontable.
+title: ""
+labels: "vue"
+assignees: ""
 ---
 
 ### Description
@@ -18,11 +17,10 @@ assignees: ''
 
 ### Demo
 <!--- Provide a link to a live example on JSFiddle or Codepen or fill the following demo with your settings -->
-https://jsfiddle.net/handsoncode/8ffpsqt6/
+https://jsfiddle.net/handsoncode/dezfbgjt/
 
 ### Your environment
+* Vue wrapper version:
 * Handsontable version:
 * Browser Name and version:
 * Operating System:
-
-

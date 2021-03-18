@@ -16,7 +16,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm ci
+          npm ci --no-audit
 
       - name: JavaScript lint
         run: |
