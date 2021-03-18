@@ -12,7 +12,6 @@ const getHotUrls = (version) => {
   const mappedVersion = mapVersion(version);
 
   return [
-    // todo, localhost url for version `next`
     `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
     `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.css`,
   ];

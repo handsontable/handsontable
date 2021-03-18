@@ -13,11 +13,12 @@
     "directory": "docs"
   },
   "scripts": {
-    "docs:start": "vuepress dev ./",
-    "docs:start:no-cache": "vuepress dev --no-cache ./",
+    "docs:assets:next": "cp ../dist/handsontable.full.css .vuepress/public/handsontable.css && cp ../dist/handsontable.full.js .vuepress/public/handsontable.js",
+    "docs:start": "npm run docs:assets:next && vuepress dev ./",
+    "docs:start:no-cache": "npm run docs:assets:next && vuepress dev --no-cache ./",
     "docs:build": "vuepress build ./",
     "docs:docker:build": "npm run docs:docker:build:staging",
-    "docs:docker:build:staging": "docker build -t docs-md .",
+    "docs:docker:build:staging": "npm run docs:assets:next && docker build -t docs-md .",
     "docs:docker:build:production": "docker build -t docs-md --build-arg BUILD_MODE=production .",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js",
     "docs:api": "cd .vuepress/tools/jsdoc-convert && node jsdoc.js"

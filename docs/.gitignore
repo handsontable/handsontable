@@ -11,3 +11,6 @@ dist
 config.local.js
 basement_dist
 .idea
+
+/.vuepress/public/handsontable.js
+/.vuepress/public/handsontable.css

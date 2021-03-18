@@ -11,6 +11,6 @@ const buildRegisterCleaner = (register) => () => {
 
 export default ({ Vue, options, router, siteData, isServer }) => {
     if(!isServer) {
-        router.afterEach(buildRegisterCleaner(handsotnableInstancesRegister));
+        router.afterEach(buildRegisterCleaner(handsontableInstancesRegister));
     }
 }

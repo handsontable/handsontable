@@ -1,6 +1,6 @@
 'use strict';
 
-const handsotnableInstancesRegister = (() => {
+const handsontableInstancesRegister = (() => {
     const register = new Set();
 
     register.listen = ()=> {
@@ -12,7 +12,7 @@ const handsotnableInstancesRegister = (() => {
                 });
             }
         } catch (e) {
-            console.error('handsotnableInstancesRegister initialization failed', e);
+            console.error('handsontableInstancesRegister initialization failed', e);
         }
     }
 
@@ -28,6 +28,12 @@ const useHandsontable = ((instanceRegister) => {
     const ATTR_VERSION = 'data-hot-version';
 
     const getHotUrls = (version) => {
+        if(version === 'next'){
+            return [
+              `/docs/handsontable.js`,
+              `/docs/handsontable.css`,
+            ];
+        }
         const mappedVersion = version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest';
 
         return [
@@ -85,4 +91,4 @@ const useHandsontable = ((instanceRegister) => {
         }
     };
 
-})(handsotnableInstancesRegister);
+})(handsontableInstancesRegister);
