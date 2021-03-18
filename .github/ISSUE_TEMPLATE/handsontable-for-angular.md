@@ -1,8 +1,8 @@
 ---
-name: Handsontable
-about: Issues regarding Handsontable.
+name: Handsontable for Angular
+about: Issues regarding the Angular wrapper for Handsontable.
 title: ''
-labels: ''
+labels: angular
 assignees: ''
 
 ---
@@ -17,10 +17,12 @@ assignees: ''
 3.
 
 ### Demo
-<!--- Provide a link to a live example on JSFiddle or Codepen or fill the following demo with your settings -->
-https://jsfiddle.net/handsoncode/8ffpsqt6/
+<!--- Provide a link to a live example on Stackblitz -->
+https://stackblitz.com/edit/handsontable-angular
 
 ### Your environment
+* Angular version:
 * Handsontable version:
+* Wrapper version:
 * Browser Name and version:
 * Operating System:
