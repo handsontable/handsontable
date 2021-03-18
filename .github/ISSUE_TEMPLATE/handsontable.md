@@ -1,10 +1,9 @@
 ---
-name: handsontable
+name: Handsontable
 about: Issues regarding Handsontable.
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
 ### Description
@@ -24,5 +23,3 @@ https://jsfiddle.net/handsoncode/8ffpsqt6/
 * Handsontable version:
 * Browser Name and version:
 * Operating System:
-
-
