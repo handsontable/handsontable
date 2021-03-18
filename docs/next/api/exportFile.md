@@ -2,6 +2,7 @@
 title: ExportFile
 permalink: /next/api/export-file
 canonicalUrl: /api/export-file
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

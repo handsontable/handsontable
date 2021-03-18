@@ -2,6 +2,7 @@
 title: DragToScroll
 permalink: /next/api/drag-to-scroll
 canonicalUrl: /api/drag-to-scroll
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

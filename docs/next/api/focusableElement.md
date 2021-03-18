@@ -2,6 +2,7 @@
 title: FocusableElement
 permalink: /next/api/focusable-element
 canonicalUrl: /api/focusable-element
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

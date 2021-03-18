@@ -2,6 +2,7 @@
 title: AutoColumnSize
 permalink: /next/api/auto-column-size
 canonicalUrl: /api/auto-column-size
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

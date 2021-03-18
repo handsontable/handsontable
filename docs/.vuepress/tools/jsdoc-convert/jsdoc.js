@@ -133,17 +133,21 @@ const seoPermalink = (file) => seo[file] && seo[file].permalink || genSeoPermali
 
 const seoCanonicalUrl = (file) => seoPermalink(file).replace('/next','');
 
-const header = (file) =>
-    `---
-title: ${seoTitle(file)}
+const header = (file) => {
+  const title = seoTitle(file);
+
+  return `---
+title: ${title}
 permalink: ${seoPermalink(file)}
 canonicalUrl: ${seoCanonicalUrl(file)}
+editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ${title}
 
 [[toc]]
-`
+`;
+}
 
 /// main logic
 const write = (file, output) => {

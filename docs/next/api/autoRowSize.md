@@ -2,6 +2,7 @@
 title: AutoRowSize
 permalink: /next/api/auto-row-size
 canonicalUrl: /api/auto-row-size
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

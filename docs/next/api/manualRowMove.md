@@ -2,6 +2,7 @@
 title: ManualRowMove
 permalink: /next/api/manual-row-move
 canonicalUrl: /api/manual-row-move
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

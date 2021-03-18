@@ -2,6 +2,7 @@
 title: Options
 permalink: /next/api/options
 canonicalUrl: /api/options
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

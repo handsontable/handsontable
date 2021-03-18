@@ -2,6 +2,7 @@
 title: CellCoords
 permalink: /next/api/coords
 canonicalUrl: /api/coords
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

@@ -2,6 +2,7 @@
 title: CustomBorders
 permalink: /next/api/custom-borders
 canonicalUrl: /api/custom-borders
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

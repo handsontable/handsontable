@@ -2,6 +2,7 @@
 title: CopyPaste
 permalink: /next/api/copy-paste
 canonicalUrl: /api/copy-paste
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

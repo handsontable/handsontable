@@ -2,6 +2,7 @@
 title: IndexMapper
 permalink: /next/api/index-mapper
 canonicalUrl: /api/index-mapper
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

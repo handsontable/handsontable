@@ -2,6 +2,7 @@
 title: Comments
 permalink: /next/api/comments
 canonicalUrl: /api/comments
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

@@ -2,6 +2,7 @@
 title: DropdownMenu
 permalink: /next/api/dropdown-menu
 canonicalUrl: /api/dropdown-menu
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

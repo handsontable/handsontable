@@ -2,6 +2,7 @@
 title: Core
 permalink: /next/api/
 canonicalUrl: /api/
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

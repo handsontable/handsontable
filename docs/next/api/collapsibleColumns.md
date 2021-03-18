@@ -2,6 +2,7 @@
 title: CollapsibleColumns
 permalink: /next/api/collapsible-columns
 canonicalUrl: /api/collapsible-columns
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

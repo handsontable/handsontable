@@ -2,6 +2,7 @@
 title: BaseEditor
 permalink: /next/api/base-editor
 canonicalUrl: /api/base-editor
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

@@ -2,6 +2,7 @@
 title: HiddenColumns
 permalink: /next/api/hidden-columns
 canonicalUrl: /api/hidden-columns
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

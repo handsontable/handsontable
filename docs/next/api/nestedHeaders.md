@@ -2,6 +2,7 @@
 title: NestedHeaders
 permalink: /next/api/nested-headers
 canonicalUrl: /api/nested-headers
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

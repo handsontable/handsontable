@@ -2,6 +2,7 @@
 title: Hooks
 permalink: /next/api/hooks
 canonicalUrl: /api/hooks
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

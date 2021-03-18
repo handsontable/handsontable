@@ -2,6 +2,7 @@
 title: ManualColumnMove
 permalink: /next/api/manual-column-move
 canonicalUrl: /api/manual-column-move
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

@@ -2,6 +2,7 @@
 title: HiddenRows
 permalink: /next/api/hidden-rows
 canonicalUrl: /api/hidden-rows
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

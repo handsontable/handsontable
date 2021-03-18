@@ -2,6 +2,7 @@
 title: ContextMenu
 permalink: /next/api/context-menu
 canonicalUrl: /api/context-menu
+editLink: false
 ---
 
 # {{ $frontmatter.title }}

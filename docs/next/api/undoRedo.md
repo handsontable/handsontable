@@ -2,6 +2,7 @@
 title: UndoRedo
 permalink: /next/api/undo-redo
 canonicalUrl: /api/undo-redo
+editLink: false
 ---
 
 # {{ $frontmatter.title }}
