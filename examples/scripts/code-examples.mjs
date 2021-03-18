@@ -191,8 +191,10 @@ switch (shellCommand) {
 
     examplesFolders.forEach((exampleDir, i) => {
       if (i < examplesFolders.length) {
+        const split = exampleDir.split('handsontable');
+        const splitLength = split.length;
         // this env is used in each `Smoke.spec.js` file inside code example directory
-        process.env.TEST_URL = `http://127.0.0.1:8080${exampleDir.split('handsontable')[1]}/dist`;
+        process.env.TEST_URL = `http://127.0.0.1:8080${split[splitLength - 1]}/dist`;
 
         runNpmCommandInExample(exampleDir, 'npm run jasmine');
       }
