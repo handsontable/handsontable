@@ -5,6 +5,6 @@ canonicalUrl: /api/manual-column-resize
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ManualColumnResize
 
 [[toc]]

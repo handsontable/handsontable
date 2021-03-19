@@ -5,7 +5,7 @@ canonicalUrl: /api/drag-to-scroll
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# DragToScroll
 
 [[toc]]
 

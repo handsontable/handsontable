@@ -5,7 +5,7 @@ canonicalUrl: /api/hidden-columns
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# HiddenColumns
 
 [[toc]]
 

@@ -5,7 +5,7 @@ canonicalUrl: /api/auto-row-size
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# AutoRowSize
 
 [[toc]]
 

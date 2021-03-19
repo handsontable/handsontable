@@ -5,7 +5,7 @@ canonicalUrl: /api/options
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Options
 
 [[toc]]
 

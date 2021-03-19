@@ -5,7 +5,7 @@ canonicalUrl: /api/coords
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# CellCoords
 
 [[toc]]
 ## Members:

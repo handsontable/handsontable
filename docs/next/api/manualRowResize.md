@@ -5,6 +5,6 @@ canonicalUrl: /api/manual-row-resize
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ManualRowResize
 
 [[toc]]

@@ -5,6 +5,6 @@ canonicalUrl: /api/observe-changes
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ObserveChanges
 
 [[toc]]

@@ -5,7 +5,7 @@ canonicalUrl: /api/index-mapper
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# IndexMapper
 
 [[toc]]
 ## Methods:

@@ -5,6 +5,6 @@ canonicalUrl: /api/merge-cells
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# MergeCells
 
 [[toc]]

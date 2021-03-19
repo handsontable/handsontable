@@ -5,7 +5,7 @@ canonicalUrl: /api/focusable-element
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# FocusableElement
 
 [[toc]]
 ## Members:

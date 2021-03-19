@@ -5,6 +5,6 @@ canonicalUrl: /api/header-tooltips
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# HeaderTooltips
 
 [[toc]]

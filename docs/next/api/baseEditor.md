@@ -5,7 +5,7 @@ canonicalUrl: /api/base-editor
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# BaseEditor
 
 [[toc]]
 ## Members:

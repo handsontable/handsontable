@@ -5,7 +5,7 @@ canonicalUrl: /api/auto-column-size
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# AutoColumnSize
 
 [[toc]]
 

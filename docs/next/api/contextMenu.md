@@ -5,7 +5,7 @@ canonicalUrl: /api/context-menu
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ContextMenu
 
 [[toc]]
 

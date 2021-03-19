@@ -5,6 +5,6 @@ canonicalUrl: /api/touch-scroll
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# TouchScroll
 
 [[toc]]

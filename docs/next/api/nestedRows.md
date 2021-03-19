@@ -5,6 +5,6 @@ canonicalUrl: /api/nested-rows
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# NestedRows
 
 [[toc]]

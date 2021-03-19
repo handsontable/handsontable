@@ -5,7 +5,7 @@ canonicalUrl: /api/
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Core
 
 [[toc]]
 

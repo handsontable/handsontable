@@ -5,6 +5,6 @@ canonicalUrl: /api/multiple-selection-handles
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# MultipleSelectionHandles
 
 [[toc]]

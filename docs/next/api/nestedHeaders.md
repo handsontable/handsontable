@@ -5,7 +5,7 @@ canonicalUrl: /api/nested-headers
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# NestedHeaders
 
 [[toc]]
 

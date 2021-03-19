@@ -5,7 +5,7 @@ canonicalUrl: /api/copy-paste
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# CopyPaste
 
 [[toc]]
 

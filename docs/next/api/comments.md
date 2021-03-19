@@ -5,7 +5,7 @@ canonicalUrl: /api/comments
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Comments
 
 [[toc]]
 

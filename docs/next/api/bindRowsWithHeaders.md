@@ -5,6 +5,6 @@ canonicalUrl: /api/bind-rows-with-headers
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# BindRowsWithHeaders
 
 [[toc]]

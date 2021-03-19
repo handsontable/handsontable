@@ -5,7 +5,7 @@ canonicalUrl: /api/manual-row-move
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ManualRowMove
 
 [[toc]]
 

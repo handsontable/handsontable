@@ -5,6 +5,6 @@ canonicalUrl: /api/persistent-state
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# PersistentState
 
 [[toc]]

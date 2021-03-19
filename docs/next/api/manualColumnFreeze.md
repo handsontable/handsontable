@@ -5,6 +5,6 @@ canonicalUrl: /api/manual-column-freeze
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ManualColumnFreeze
 
 [[toc]]

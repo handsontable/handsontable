@@ -5,7 +5,7 @@ canonicalUrl: /api/collapsible-columns
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# CollapsibleColumns
 
 [[toc]]
 

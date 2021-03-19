@@ -5,7 +5,7 @@ canonicalUrl: /api/export-file
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ExportFile
 
 [[toc]]
 

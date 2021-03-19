@@ -5,6 +5,6 @@ canonicalUrl: /api/formulas
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Formulas
 
 [[toc]]

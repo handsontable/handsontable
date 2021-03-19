@@ -5,7 +5,7 @@ canonicalUrl: /api/hidden-rows
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# HiddenRows
 
 [[toc]]
 

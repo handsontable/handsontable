@@ -5,7 +5,7 @@ canonicalUrl: /api/undo-redo
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# UndoRedo
 
 [[toc]]
 ## Methods:

@@ -5,6 +5,6 @@ canonicalUrl: /api/column-summary
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ColumnSummary
 
 [[toc]]

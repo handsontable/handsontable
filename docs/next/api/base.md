@@ -5,6 +5,6 @@ canonicalUrl: /api/base
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Base
 
 [[toc]]

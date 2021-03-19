@@ -5,7 +5,7 @@ canonicalUrl: /api/hooks
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Hooks
 
 [[toc]]
 ## Members:

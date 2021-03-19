@@ -5,7 +5,7 @@ canonicalUrl: /api/manual-column-move
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ManualColumnMove
 
 [[toc]]
 

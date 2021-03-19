@@ -5,6 +5,6 @@ canonicalUrl: /api/column-sorting
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# ColumnSorting
 
 [[toc]]

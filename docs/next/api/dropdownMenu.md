@@ -5,7 +5,7 @@ canonicalUrl: /api/dropdown-menu
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# DropdownMenu
 
 [[toc]]
 

@@ -5,7 +5,7 @@ canonicalUrl: /api/custom-borders
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# CustomBorders
 
 [[toc]]
 

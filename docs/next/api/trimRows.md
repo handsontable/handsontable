@@ -5,6 +5,6 @@ canonicalUrl: /api/trim-rows
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# TrimRows
 
 [[toc]]

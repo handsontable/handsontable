@@ -5,6 +5,6 @@ canonicalUrl: /api/multi-column-sorting
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# MultiColumnSorting
 
 [[toc]]

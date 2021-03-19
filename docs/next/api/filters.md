@@ -5,6 +5,6 @@ canonicalUrl: /api/filters
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Filters
 
 [[toc]]

@@ -5,6 +5,6 @@ canonicalUrl: /api/search
 editLink: false
 ---
 
-# {{ $frontmatter.title }}
+# Search
 
 [[toc]]
