@@ -878,7 +878,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 clen += 1;
                 continue;
               }
-              if (cellMeta.readOnly) {
+              if (cellMeta.readOnly && source !== 'UndoRedo.undo') {
                 current.col += 1;
                 /* eslint-disable no-continue */
                 continue;
