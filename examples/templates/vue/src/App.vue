@@ -5,10 +5,10 @@
 </template>
 
 <script>
-import Handsontable from "handsontable";
-import { HotTable } from "@handsontable/vue";
-import Vue from "vue";
-import "handsontable/dist/handsontable.full.css";
+import Handsontable from 'handsontable';
+import { HotTable } from '@handsontable/vue';
+import Vue from 'vue';
+import 'handsontable/dist/handsontable.full.css';
 import './assets/styles.css';
 
 function getDebugInfo() {
