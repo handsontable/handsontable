@@ -17,8 +17,8 @@ docker login --registry docker.pkg.github.com
 **Deploy:**
 
 ```shell script
-docker build -t docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest .
-docker push docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest
+docker build -t docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest .
+docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
 ```
 
 ## From GH Action
@@ -44,9 +44,9 @@ GH Action pushes two tags into GHCR:
 To revert deployment:
 
 ```shell script
-docker pull docker.pkg.github.com/handsontable/docs-md/handsontable-docs:[COMMIT_HASH]
-docker tag docker.pkg.github.com/handsontable/docs-md/handsontable-docs:[COMMIT_HASH] docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest
-docker push docker.pkg.github.com/handsontable/docs-md/handsontable-docs:latest
+docker pull docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH]
+docker tag docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:[COMMIT_HASH] docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
+docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:latest
 ```
 
 ## Production environment:

@@ -6,7 +6,7 @@ env:
 
 on:
   push:
-    branches: [ vuepress, develop, feature/issue-7624 ]
+    branches: [ develop ]
     paths:
       - 'docs/**'
   workflow_dispatch:

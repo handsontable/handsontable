@@ -38,7 +38,7 @@ Using small chars only with `-` as a word separator is recommended.
 
 ### Headers
 
-Each markdown file with a content starts by Frontmatters:
+Each markdown file with a content starts by Frontmatter:
 
 ```markdown
 ---
@@ -46,6 +46,8 @@ title: Introduction
 permalink: /next/api/
 canonicalUrl: /api/
 ---
+
+# Introduction
 ```
 
 * **title**: A header on a page.

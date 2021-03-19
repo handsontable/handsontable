@@ -27,7 +27,7 @@ const getCss = (version) => {
 }
 
 const getHtml = (id) => `<div id="${id}" ></div>`;
-const jsfiddle = (id, code)=>{
+const jsfiddle = (id, code, version)=>{
   return `
     <form
       id="jsfiddle-${id}"
@@ -40,7 +40,7 @@ const jsfiddle = (id, code)=>{
       <input type="text" name="wrap" readOnly value="d" />
       <textarea name="js" readOnly>${code}</textarea>
       <textarea name="html" readOnly>${getHtml(id)}</textarea>
-      <textarea name="css" readOnly>${getCss()}</textarea>
+      <textarea name="css" readOnly>${getCss(version)}</textarea>
     </form>
     <div class="js-fiddle-link"><button type="submit" form="jsfiddle-${id}"><i class="fa fa-jsfiddle"></i>Edit</button></div>
   `;
@@ -58,7 +58,7 @@ module.exports = {
       id = id ? id.substring(1): '';
       klass = klass ? klass.substring(1) : '';
       // opening tag
-      return `<div data-jsfiddle="${id}"><div id="${id}" class="hot ${klass}"></div></div><script data-jsfiddle="${id}">useHandsontable('${version}', ()=>{${tokenNext.content}});</script><div class="codeLayout">${jsfiddle(id, tokenNext.content)}\n`;
+      return `<div data-jsfiddle="${id}"><div id="${id}" class="hot ${klass}"></div></div><script data-jsfiddle="${id}">useHandsontable('${version}', ()=>{${tokenNext.content}});</script><div class="codeLayout">${jsfiddle(id, tokenNext.content, version)}\n`;
     } else {
       // closing tag
       return `</div>\n`;

@@ -32,7 +32,7 @@ const replaceInFiles = require('replace-in-files');
     /// * copy `/next/` to `/${version}/`
     fse.copySync(path.join(workingDir, 'next'), path.join(workingDir, version));
 
-    /// * replace all `/next/` into `/` in dir `/${version}/`
+    /// * replace all `/next/` into `/${version}/` for the new version
     await replaceInFiles({
         files: path.join(workingDir, version, '**/*.md'),
         from: /permalink: \/next\//g,

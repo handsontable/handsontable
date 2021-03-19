@@ -37,7 +37,6 @@ const useHandsontable = ((instanceRegister) => {
         const mappedVersion = version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest';
 
         return [
-            // todo, localhost url for version `next`
             `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
             `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.css`,
         ];
