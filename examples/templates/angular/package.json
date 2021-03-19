@@ -15,7 +15,7 @@
     "ng": "ng",
     "start": "ng serve --port 8080",
     "build": "ng build",
-    "jasmine": "node spec/support/jasmine.config.js"
+    "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
     "@angular/animations": "^11.0.5",

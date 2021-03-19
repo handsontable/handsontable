@@ -40,4 +40,4 @@ In order to create new code examples with these templates, each new example must
 
 #### Don't touch
 
-Each example have its own scripts ***you should never modify or remove***, because those scripts are used by our CI/CD pipeline : `npm run start`, `npm run build` and `npm run jasmine`.
+Each example have its own scripts ***you should never modify or remove***, because those scripts are used by our CI/CD pipeline : `npm run start`, `npm run build` and `npm run test`.

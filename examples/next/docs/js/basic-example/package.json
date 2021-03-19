@@ -15,7 +15,7 @@
   "scripts": {
     "start": "parcel index.html --port 8080",
     "build": "parcel build index.html --public-url '.'",
-    "jasmine": "node spec/support/jasmine.config.js"
+    "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {
     "handsontable": "latest"

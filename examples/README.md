@@ -93,7 +93,7 @@ Each code example has its own test specs, which lives in the `spec` directory.
 
 Each code example has its own test suites which you can run using a development server:
 1. Run the `npm run start` command.
-2. After the app is launched on a server, run the `npm run jasmine` command which will launch tests specified to this code example.
+2. After the app is launched on a server, run the `npm run test` command which will launch tests specified to this code example.
 
 #### How to run tests for the versioned code examples locally
 
