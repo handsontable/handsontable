@@ -83,6 +83,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
       if (labelOptions.separated) {
         TD.appendChild(label);
         TD.appendChild(input);
+
       } else {
         label.appendChild(input);
         input = label;
@@ -91,6 +92,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
       if (labelOptions.separated) {
         TD.appendChild(input);
         TD.appendChild(label);
+
       } else {
         label.insertBefore(input, label.firstChild);
         input = label;
