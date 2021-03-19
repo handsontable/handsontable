@@ -2196,6 +2196,8 @@ export default () => {
      *  * `position` - String which describes where to place the label text (before or after checkbox element).
      * Valid values are `'before'` and '`after`' (defaults to `'after'`).
      *  * `value` - String or a Function which will be used as label text.
+     *  * `separated` - Boolean which describes that input(type checkbox) & label elements are separated or not.
+     *  (eg. `label: {separated: true}`). Default value is `false`
      *
      * @memberof Options#
      * @type {object}

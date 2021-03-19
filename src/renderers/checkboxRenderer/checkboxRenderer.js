@@ -80,14 +80,27 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     const label = createLabel(rootDocument, labelText);
 
     if (labelOptions.position === 'before') {
-      label.appendChild(input);
-    } else {
-      label.insertBefore(input, label.firstChild);
+      if (labelOptions.separated) {
+        TD.appendChild(label);
+        TD.appendChild(input);
+      } else {
+        label.appendChild(input);
+        input = label;
+      }
+    } else if (!labelOptions.position || labelOptions.position === 'after') {
+      if (labelOptions.separated) {
+        TD.appendChild(input);
+        TD.appendChild(label);
+      } else {
+        label.insertBefore(input, label.firstChild);
+        input = label;
+      }
     }
-    input = label;
   }
 
-  TD.appendChild(input);
+  if (!labelOptions || (labelOptions && !labelOptions.separated)) {
+    TD.appendChild(input);
+  }
 
   if (badValue) {
     TD.appendChild(rootDocument.createTextNode('#bad-value#'));
