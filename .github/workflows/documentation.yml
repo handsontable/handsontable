@@ -6,7 +6,9 @@ env:
 
 on:
   push:
-    branches: [ develop ]
+    branches: 
+      - develop
+      - feature/issue-7624
     paths:
       - 'docs/**'
   workflow_dispatch:
