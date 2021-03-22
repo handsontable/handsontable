@@ -25,7 +25,7 @@
   },
   "license": "CC BY 4.0",
   "devDependencies": {
-    "@vuepress/plugin-active-header-links": "^1.8.1",
+    "@vuepress/plugin-active-header-links": "^1.8.2",
     "@vuepress/plugin-search": "^1.8.2",
     "fs-extra": "^9.1.0",
     "markdown-it-regex": "^0.2.0",

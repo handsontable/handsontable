@@ -11,8 +11,25 @@ const buildRegisterCleaner = (register) => (to,from,next) => {
     register.destroyAll();
 }
 
+const buildActiveHeaderLinkHandler = () => {
+  let activeLink = '';
+
+  return (to, from) => {
+    if(to.hash !== from.hash){
+      if(activeLink){
+        activeLink.classList.remove("active");
+      }
+      activeLink = document.querySelector('.table-of-contents a[href="'+to.hash+'"]');
+      if(activeLink){
+        activeLink.classList.add("active");
+      }
+    }
+  }
+}
+
 export default ({ Vue, options, router, siteData, isServer }) => {
     if(!isServer) {
-      router.afterEach(buildRegisterCleaner(handsontableInstancesRegister));
+        router.afterEach(buildRegisterCleaner(handsontableInstancesRegister));
+        router.afterEach(buildActiveHeaderLinkHandler());
     }
 }

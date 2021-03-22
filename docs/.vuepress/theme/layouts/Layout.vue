@@ -53,7 +53,7 @@ export default {
 .version-alert
   background #104bcd
   margin-top 40px
-  padding 30px 20px
+  padding 25px 25px
   border-radius 12px
   color #ffffff
   p
