@@ -49,10 +49,6 @@ module.exports = {
           .end()
       },
     },
-    ['@vuepress/search', {
-      searchPlaceholder: 'Search...',
-      test: helpers.getLatestVersion().replace('.','\\.') // todo make sensible for currentVersion
-    }]
   ],
   extendPageData ($page) {
     $page.versions = helpers.getVersions();
@@ -88,6 +84,7 @@ module.exports = {
     displayAllHeaders: true, // collapse other pages
     activeHeaderLinks: true,
     sidebarDepth: 0,
-    sidebar: helpers.getSidebars()
+    sidebar: helpers.getSidebars(),
+    search: true
   }
 };
