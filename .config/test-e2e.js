@@ -6,6 +6,7 @@
 const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
+const webpack = require('webpack');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -13,6 +14,7 @@ module.exports.create = function create(envArgs) {
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
     c.target = 'web';
+    c.mode = 'development' // TODO remove this
     c.output = {
       libraryTarget: 'var',
       filename: '[name].entry.js',
@@ -33,6 +35,17 @@ module.exports.create = function create(envArgs) {
         window: 'window',
       },
     ];
+
+    // TODO remove this
+    c.devServer = {
+      hot: true,
+      writeToDisk: true
+    }
+
+    // TODO remove this
+    c.plugins.push(
+      new webpack.HotModuleReplacementPlugin(),
+    )
 
     c.plugins.push(
       new JasmineHtml({

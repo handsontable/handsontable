@@ -173,7 +173,15 @@ registerPlugin(DragToScroll);
 registerPlugin(DropdownMenu);
 registerPlugin(ExportFile);
 registerPlugin(Filters);
+
+// TODO
+// Not messing with the bundling yet as I'm not sure if anything concrete
+// regarding that was decided so far.
+//
+// For now we'll just include it in the main bundle (which from what I see
+// doubles the size of the development bundle).
 registerPlugin(Formulas);
+
 registerPlugin(HeaderTooltips);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
