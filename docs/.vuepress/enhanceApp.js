@@ -13,7 +13,6 @@ const buildRegisterCleaner = (register) => (to,from,next) => {
 
 export default ({ Vue, options, router, siteData, isServer }) => {
     if(!isServer) {
-      console.log(router);
       router.afterEach(buildRegisterCleaner(handsontableInstancesRegister));
     }
 }

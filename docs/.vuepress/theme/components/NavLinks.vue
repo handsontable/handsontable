@@ -45,7 +45,7 @@ export default {
     guideLink(){
       return {
         link: '/',
-        text: 'Guide'
+        text: 'Guides'
       }
     },
     apiLink(){
