@@ -4,11 +4,11 @@ permalink: /next/suspend-rendering
 canonicalUrl: /suspend-rendering
 ---
 
-# {{ $frontmatter.title }}
+# Suspend rendering
 
 [[toc]]
 
-import './suspend-rendering.css'
+<link href="./suspend-rendering.css" >
 
 ## How suspending improves performance
 
