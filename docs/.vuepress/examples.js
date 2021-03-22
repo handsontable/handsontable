@@ -58,7 +58,7 @@ module.exports = {
       id = id ? id.substring(1): '';
       klass = klass ? klass.substring(1) : '';
       // opening tag
-      return `<div data-jsfiddle="${id}"><div id="${id}" class="hot ${klass}"></div></div><script data-jsfiddle="${id}">useHandsontable('${version}', ()=>{${tokenNext.content}});</script><div class="codeLayout">${jsfiddle(id, tokenNext.content, version)}\n`;
+      return `<div data-jsfiddle="${id}"><div id="${id}" class="hot ${klass}"></div></div><script data-jsfiddle="${id}">useHandsontable('${version}', function(){${tokenNext.content}});</script><div class="codeLayout">${jsfiddle(id, tokenNext.content, version)}\n`;
     } else {
       // closing tag
       return `</div>\n`;
