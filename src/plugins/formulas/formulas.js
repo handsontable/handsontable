@@ -46,7 +46,19 @@ export class Formulas extends BasePlugin {
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
 
-    this.hyperformula = HyperFormula.buildEmpty();
+    /**
+     * The HyperFormula instance that will be used for this instance of Handsontable.
+     * @type {HyperFormula}
+     */
+    this.hyperformula = HyperFormula.buildEmpty({
+      licenseKey: 'non-commercial-and-evaluation' // TODO
+    });
+
+    this.sheetName = this.hyperformula.addSheet()
+
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args))
+    this.addHook('modifyData', (...args) => this.onModifyData(...args))
+    this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args))
 
     // TODO list out hooks from my local plugin/old plugin/todo
 
@@ -57,6 +69,9 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // TODO add tests for this line
+    this.hyperformula.destroy()
+
     super.disablePlugin();
   }
 
@@ -67,12 +82,45 @@ export class Formulas extends BasePlugin {
     super.destroy();
   }
 
-  onAfterLoadData(...args) {
+  onAfterLoadData(data) {
     if (!this.isEnabled) {
       return
     }
 
-    const {width, height} = this.hyperFormula.getSheetDimensions()
-    // hf.setSheetContent()
+    this.hyperformula.setSheetContent(this.sheetName, data)
+  }
+
+  onModifyData(row, column, valueHolder, ioMode) {
+    if (!this.enabled) {
+      // TODO check if this line is actually ever reached
+      return
+    }
+
+    const address = {
+      row: this.hot.toVisualRow(row),
+      col: column,
+      sheet: this.hyperformula.getSheetId(this.sheetName)
+    }
+
+    if (ioMode === 'get') {
+      const cellValue = this.hyperformula.getCellValue(address)
+
+      // If `cellValue` is an object it is expected to be an error
+      const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue
+
+      valueHolder.value = value
+    } else {
+      this.hyperformula.setCellContents(address, valueHolder.value)
+    }
+  }
+
+  onModifySourceData(row, col, valueHolder) {
+    const address = {
+      row: this.hot.toVisualRow(row),
+      col,
+      sheet: this.hyperformula.getSheetId(this.sheetName)
+    }
+
+    valueHolder.value = this.hyperformula.getCellSerialized(address)
   }
 }
