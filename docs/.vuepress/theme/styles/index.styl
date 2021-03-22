@@ -117,17 +117,17 @@ table {
 }
 
 // floating sidebar should be inline on mobile, and float on wider screens
-@media (min-width: 1200px) {
+@media (min-width: 1080px) {
     .page {
         .page-edit
         .page-nav
         .page-top
         .theme-default-content {
             margin: 0;
+            max-width:480px;
         }
     }
-}
-@media (min-width: 1380px) {
+  
     .toc-container-header {
         font-weight: 600;
         padding: 1.2em 1rem;
@@ -138,7 +138,7 @@ table {
         position: fixed;
         right: 0;
         top: 100px;
-        width: 250px;
+        width: 200px;
         overflow-y: auto;
         overflow-x: hidden;
         border-left: 1px solid #eaecef;
@@ -176,8 +176,21 @@ table {
         }
     }
 }
-
-div.js-fiddle-link {
+@media (min-width: 1200px) {
+  .page {
+    .theme-default-content {
+      max-width: 600px;
+    }
+  }
+}
+@media (min-width: 1400px) {
+  .page {
+    .theme-default-content {
+      max-width: 800px;
+    }
+  }
+}
+  div.js-fiddle-link {
     position: relative;
     top: 10px;
     z-index: 10;
