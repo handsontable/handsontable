@@ -53,7 +53,7 @@ describe('Updating the Handsontable settings', () => {
     let updateSettingsCalls = 0;
     const cellsFuncA = function() {}
     const cellsFuncB = function() {}
-    let testWrapper = mount(HotTable, {
+    const testWrapper = mount(HotTable, {
       propsData: {
         data: createSampleData(1, 1),
         licenseKey: 'non-commercial-and-evaluation',
