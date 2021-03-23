@@ -89,14 +89,14 @@ export class AutoColumnSize extends BasePlugin {
       cachedColumnHeaders: [],
     });
     /**
-     * Instance of {@link ghost-table GhostTable} for rows and columns size calculations.
+     * Instance of {@link GhostTable} for rows and columns size calculations.
      *
      * @private
      * @type {GhostTable}
      */
     this.ghostTable = new GhostTable(this.hot);
     /**
-     * Instance of {@link samples-generator SamplesGenerator} for generating samples necessary for columns width calculations.
+     * Instance of {@link SamplesGenerator} for generating samples necessary for columns width calculations.
      *
      * @private
      * @type {SamplesGenerator}

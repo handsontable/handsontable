@@ -68,20 +68,6 @@ Keeping all content as just `.md` file makes them more manageable.
 
 ## Editing documentation content
 
-<!-- TODO
-### ESLint for markdown
-
-ESLint is a tool which helps us keep our content in agreed with best rules.
-
-```shell script
-npm run docs:lint:docs # feedback with error list
-
-npm run docs:lint:docs:fix # attempt to fix errors
-```
-
-ESLint runs in GH Action on each commit pushed into the repo.
--->
-
 ### Live demo:
 It is able to run code snippets to show result of the code:
 
