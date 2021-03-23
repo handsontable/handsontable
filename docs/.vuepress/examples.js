@@ -1,12 +1,13 @@
 /**
- * Matches into: `example #ID .class`
+ * Matches into: `example #ID .class`.
+ *
  * @type {RegExp}
  */
-const exampleRegex = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*([\S|\s]*)$/
+const exampleRegex = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*([\S|\s]*)$/;
 
 const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 
-const mapVersion = (version='latest') => (version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest');
+const mapVersion = (version = 'latest') => (version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest');
 
 const getHotUrls = (version) => {
   const mappedVersion = mapVersion(version);
@@ -24,10 +25,10 @@ const getCss = (version) => {
 <script src="${scriptUrl}"></script>
 <link type="text/css" rel="stylesheet" href="${styleUrl}" />
 `;
-}
+};
 
-const getHtml = (id) => `<div id="${id}" ></div>`;
-const jsfiddle = (id, code, version)=>{
+const getHtml = id => `<div id="${id}" ></div>`;
+const jsfiddle = (id, code, version) => {
   return `
     <form
       id="jsfiddle-${id}"
@@ -42,26 +43,33 @@ const jsfiddle = (id, code, version)=>{
       <textarea name="html" readOnly>${getHtml(id)}</textarea>
       <textarea name="css" readOnly>${getCss(version)}</textarea>
     </form>
-    <div class="js-fiddle-link"><button type="submit" form="jsfiddle-${id}"><i class="fa fa-jsfiddle"></i>Edit</button></div>
+    <div class="js-fiddle-link">
+      <button type="submit" form="jsfiddle-${id}"><i class="fa fa-jsfiddle"></i>Edit</button>
+    </div>
   `;
-}
+};
 module.exports = {
   type: 'example',
-  render: function (tokens, index, opts, env) {
-    const token = tokens[index]
-    const tokenNext = tokens[index + 1]
+  render(tokens, index, opts, env) {
+    const token = tokens[index];
+    const tokenNext = tokens[index + 1];
     const m = token.info.trim().match(exampleRegex);
     const version = env.relativePath.split('/')[0];
 
     if (token.nesting === 1 && m) {
-      let [full, tag, id, klass, content] = m;
-      id = id ? id.substring(1): '';
+      let [, , id, klass] = m;
+      id = id ? id.substring(1) : '';
       klass = klass ? klass.substring(1) : '';
       // opening tag
-      return `<div data-jsfiddle="${id}"><div id="${id}" class="hot ${klass}"></div></div><script data-jsfiddle="${id}">useHandsontable('${version}', function(){${tokenNext.content}});</script><div class="codeLayout">${jsfiddle(id, tokenNext.content, version)}\n`;
+      return `
+    <div data-jsfiddle="${id}">
+    <div id="${id}" class="hot ${klass}"></div>
+    </div><script data-jsfiddle="${id}">useHandsontable('${version}', function(){${tokenNext.content}});</script>
+    <div class="codeLayout">${jsfiddle(id, tokenNext.content, version)}
+`;
     } else {
       // closing tag
-      return `</div>\n`;
+      return '</div>\n';
     }
   }
-}
+};

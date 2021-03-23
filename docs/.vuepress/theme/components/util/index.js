@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Copied from `node_modules/@vuepress/theme-default/util` because can't be imported
 
 export const hashRE = /#.*$/

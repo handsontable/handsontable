@@ -137,20 +137,20 @@ const apiHighLevelPages = [
   'core',
   'pluginHooks',
   'metaSchema'
-]
+];
 const nonPublicPages = [
   'indexMapper',
   'baseEditor',
   'coords',
   'focusableElement',
-]
+];
 const API = [
   ...apiHighLevelPages,
   {
     title: 'Plugins',
     collapsable: false,
     children: fs.readdirSync(path.join(__dirname, 'api/'))
-        .filter(f=>![...nonPublicPages, ...apiHighLevelPages].includes(f.split('.').shift()))
+      .filter(f => ![...nonPublicPages, ...apiHighLevelPages].includes(f.split('.').shift()))
   },
 ];
 
@@ -159,20 +159,22 @@ module.exports = {
     { title: 'Getting started', children: gettingStartedItems },
     { title: 'Basic usage', children: basicUsageItems },
     { title: 'Developer guide', children: developerGuideItems },
-    { title: 'Wrappers', children:[
-      { title: 'Wrapper for React', children: wrapperForReactItems },
-      { title: 'Wrapper for Angular', children: wrapperForAngularItems },
-      { title: 'Wrapper for Vue', children: wrapperForVueItems },
-    ]},
-    { title: 'Demos', children:[
-      { title: 'Rows and columns', children: rowsAndColumnsItems },
-      { title: 'Data operations', children: dataOperationsItems },
-      { title: 'Cell features', children: cellFeaturesItems },
-      { title: 'Cell types', children: cellTypesItems },
-      { title: 'Utilities', children: utilitiesItems },
-      { title: 'Appearance', children: appearanceItems },
-      { title: 'Formulas', children: formulasItems },
-    ]}
+    { title: 'Wrappers',
+      children: [
+        { title: 'Wrapper for React', children: wrapperForReactItems },
+        { title: 'Wrapper for Angular', children: wrapperForAngularItems },
+        { title: 'Wrapper for Vue', children: wrapperForVueItems },
+      ] },
+    { title: 'Demos',
+      children: [
+        { title: 'Rows and columns', children: rowsAndColumnsItems },
+        { title: 'Data operations', children: dataOperationsItems },
+        { title: 'Cell features', children: cellFeaturesItems },
+        { title: 'Cell types', children: cellTypesItems },
+        { title: 'Utilities', children: utilitiesItems },
+        { title: 'Appearance', children: appearanceItems },
+        { title: 'Formulas', children: formulasItems },
+      ] }
   ],
   api: API,
 };

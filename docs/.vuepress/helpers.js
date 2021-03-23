@@ -6,22 +6,23 @@ const semver = require('semver');
 const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
 
-const versions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))))
+const availableVersions = unsortedVersions.sort((a, b) => semver.rcompare(semver.coerce(a), semver.coerce((b))));
 
 module.exports = {
-  getVersions () {
-    return ['next', ...versions];
+  getVersions() {
+    return ['next', ...availableVersions];
   },
 
-  getLatestVersion () {
-    return versions[0];
+  getLatestVersion() {
+    return availableVersions[0];
   },
 
-  getSidebars () {
+  getSidebars() {
     const sidebars = { };
     const versions = this.getVersions();
 
-    versions.forEach(version => {
+    versions.forEach((version) => {
+      // eslint-disable-next-line
       const s = require(path.join(__dirname, `../${version}/sidebars.js`));
 
       sidebars[`/${version}/api/`] = s.api;
@@ -31,7 +32,7 @@ module.exports = {
     return sidebars;
   },
 
-  parseVersion(url){
+  parseVersion(url) {
     return url.split('/')[1] || this.getLatestVersion();
   }
 };

@@ -27,7 +27,7 @@ module.exports = {
   ],
   markdown: {
     toc: {
-      includeLevel: [2,3],
+      includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
   },
@@ -41,22 +41,22 @@ module.exports = {
     }],
     ['container', examples],
     {
-      chainMarkdown (config) {
+      chainMarkdown(config) {
         // inject custom markdown highlight with our snippet runner
         config
           .options
           .highlight(highlight)
-          .end()
+          .end();
       },
     },
   ],
-  extendPageData ($page) {
+  extendPageData($page) {
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
-    $page.currentVersion = helpers.parseVersion($page.path)
+    $page.currentVersion = helpers.parseVersion($page.path);
 
-    if($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
-        $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//,'/');
+    if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
+      $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
     }
   },
   themeConfig: {
@@ -74,7 +74,8 @@ module.exports = {
     nav: [
       // Guide & API Reference has defined in: theme/components/NavLinks.vue
       { text: 'Demo', link: 'https://handsontable.com/examples' },
-      { text: 'Support', items: [
+      { text: 'Support',
+        items: [
           { text: 'Forum', link: 'https://forum.handsontable.com' },
           { text: 'Report an issue', link: 'https://github.com/handsontable/handsontable/issues/new' },
           { text: 'Contact support', link: 'https://handsontable.com/contact?category=technical_support' },
