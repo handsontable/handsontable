@@ -76,7 +76,26 @@ export default {
 
   .icon.outbound
     display none
+    
+  .dropdown-wrapper 
+    height: 1.8rem
 
+  .dropdown-wrapper .nav-dropdown 
+    height: auto !important;
+    box-sizing: border-box;
+    max-height: calc(100vh - 2.7rem);
+    overflow-y: auto;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    padding: 0.6rem 0;
+    border: 1px solid #ddd;
+    border-bottom-color: #ccc;
+    text-align: left;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    margin: 0;
 
 @media (min-width: 719px)
   .nav-versions
