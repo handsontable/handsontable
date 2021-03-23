@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "jsx": "react",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "declarationDir": "."
+  },
+  "include": [
+    "src/*"
+  ],
+  "exclude": [
+    "**/node_modules/*"
+  ]
+}

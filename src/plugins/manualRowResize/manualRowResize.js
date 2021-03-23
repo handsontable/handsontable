@@ -1,14 +1,15 @@
-import BasePlugin from './../_base';
-import { addClass, hasClass, removeClass, outerWidth } from './../../helpers/dom/element';
-import EventManager from './../../eventManager';
-import { arrayEach } from './../../helpers/array';
-import { rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from '../../helpers/dom/element';
+import EventManager from '../../eventManager';
+import { arrayEach } from '../../helpers/array';
+import { rangeEach } from '../../helpers/number';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { ViewportRowsCalculator } from '../../3rdparty/walkontable/src';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
+export const PLUGIN_KEY = 'manualRowResize';
+export const PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = 'manualRowHeights';
 const privatePool = new WeakMap();
 
@@ -23,7 +24,15 @@ const privatePool = new WeakMap();
  *
  * @plugin ManualRowResize
  */
-class ManualRowResize extends BasePlugin {
+export class ManualRowResize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -69,7 +78,7 @@ class ManualRowResize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().manualRowResize;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -292,17 +301,9 @@ class ManualRowResize extends BasePlugin {
    * @returns {boolean}
    */
   checkIfRowHeader(element) {
-    if (element !== this.hot.rootElement) {
-      const parent = element.parentNode;
+    const thElement = closest(element, ['TH'], this.hot.rootElement);
 
-      if (parent.tagName === 'TBODY') {
-        return true;
-      }
-
-      return this.checkIfRowHeader(parent);
-    }
-
-    return false;
+    return thElement && element.parentNode?.parentNode?.tagName === 'TBODY';
   }
 
   /**
@@ -312,12 +313,12 @@ class ManualRowResize extends BasePlugin {
    * @param {HTMLElement} element HTML element.
    * @returns {HTMLElement}
    */
-  getTHFromTargetElement(element) {
+  getClosestTHParent(element) {
     if (element.tagName !== 'TABLE') {
       if (element.tagName === 'TH') {
         return element;
       }
-      return this.getTHFromTargetElement(element.parentNode);
+      return this.getClosestTHParent(element.parentNode);
 
     }
 
@@ -349,8 +350,14 @@ class ManualRowResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   onMouseOver(event) {
+    // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
+    // the next `onmouseover`.
+    if (isDetached(event.target)) {
+      return;
+    }
+
     if (this.checkIfRowHeader(event.target)) {
-      const th = this.getTHFromTargetElement(event.target);
+      const th = this.getClosestTHParent(event.target);
 
       if (th) {
         if (!this.pressed) {
@@ -371,7 +378,7 @@ class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -462,7 +469,7 @@ class ManualRowResize extends BasePlugin {
     const render = () => {
       this.hot.forceFullRender = true;
       this.hot.view.render(); // updates all
-      this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+      this.hot.view.adjustElementsSize(true);
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
@@ -526,7 +533,7 @@ class ManualRowResize extends BasePlugin {
       const physicalRow = this.hot.toPhysicalRow(row);
       const rowHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
 
-      if (this.hot.getSettings().manualRowResize && rowHeight) {
+      if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
         newHeight = rowHeight;
       }
     }
@@ -541,10 +548,10 @@ class ManualRowResize extends BasePlugin {
    */
   onMapInit() {
     const priv = privatePool.get(this);
-    const initialSetting = this.hot.getSettings().manualRowResize;
+    const initialSetting = this.hot.getSettings()[PLUGIN_KEY];
     const loadedManualRowHeights = this.loadManualRowHeights();
 
-    this.hot.batch(() => {
+    this.hot.batchExecution(() => {
       if (typeof loadedManualRowHeights !== 'undefined') {
         loadedManualRowHeights.forEach((height, index) => {
           this.rowHeightsMap.setValueAtIndex(index, height);
@@ -563,7 +570,7 @@ class ManualRowResize extends BasePlugin {
           this.rowHeightsMap.setValueAtIndex(index, height);
         });
       }
-    });
+    }, true);
   }
 
   /**
@@ -575,7 +582,3 @@ class ManualRowResize extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('manualRowResize', ManualRowResize);
-
-export default ManualRowResize;

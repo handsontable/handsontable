@@ -41,7 +41,13 @@ module.exports.create = function create(envArgs) {
         commonjs2: 'hot-formula-parser',
         commonjs: 'hot-formula-parser',
         amd: 'hot-formula-parser',
-      }
+      },
+      dompurify: {
+        root: 'DOMPurify',
+        commonjs2: 'dompurify',
+        commonjs: 'dompurify',
+        amd: 'dompurify',
+      },
     };
     c.module.rules.unshift({
       test: [

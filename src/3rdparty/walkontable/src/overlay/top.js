@@ -10,12 +10,19 @@ import {
   resetCssTransform,
 } from './../../../../helpers/dom/element';
 import TopOverlayTable from './../table/top';
-import Overlay from './_base';
+import { Overlay } from './_base';
+import {
+  CLONE_TOP,
+} from './constants';
 
 /**
  * @class TopOverlay
  */
-class TopOverlay extends Overlay {
+export class TopOverlay extends Overlay {
+  static get OVERLAY_NAME() {
+    return CLONE_TOP;
+  }
+
   /**
    * Cached value which holds the previous value of the `fixedRowsTop` option.
    * It is used as a comparison value that can be used to detect changes in this value.
@@ -29,7 +36,8 @@ class TopOverlay extends Overlay {
    */
   constructor(wotInstance) {
     super(wotInstance);
-    this.clone = this.makeClone(Overlay.CLONE_TOP);
+    this.clone = this.makeClone(CLONE_TOP);
+    this.cachedFixedRowsTop = this.wot.getSetting('fixedRowsTop');
   }
 
   /**
@@ -179,10 +187,6 @@ class TopOverlay extends Overlay {
     if (this.needFullRender || force) {
       this.adjustRootElementSize();
       this.adjustRootChildrenSize();
-
-      if (!force) {
-        this.areElementSizesAdjusted = true;
-      }
     }
   }
 
@@ -242,9 +246,6 @@ class TopOverlay extends Overlay {
   applyToDOM() {
     const total = this.wot.getSetting('totalRows');
 
-    if (!this.areElementSizesAdjusted) {
-      this.adjustElementsSize();
-    }
     if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
@@ -385,7 +386,3 @@ class TopOverlay extends Overlay {
     return positionChanged;
   }
 }
-
-Overlay.registerOverlay(Overlay.CLONE_TOP, TopOverlay);
-
-export default TopOverlay;

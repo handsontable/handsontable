@@ -1,5 +1,5 @@
 import { hasOwnProperty, isObject, objectEach, inherit } from '../../helpers/object';
-import { getCellType } from '../../cellTypes';
+import { getCellType } from '../../cellTypes/registry';
 
 /**
  * Expands "type" property of the meta object to single values. For example `type: 'numeric'` sets
@@ -22,7 +22,8 @@ export function expandMetaType(type, metaObject) {
   const expandedType = {};
 
   objectEach(validType, (value, property) => {
-    if (!preventSourceOverwrite || preventSourceOverwrite && !hasOwnProperty(metaObject, property)) {
+    if (property !== 'CELL_TYPE' && (!preventSourceOverwrite
+        || preventSourceOverwrite && !hasOwnProperty(metaObject, property))) {
       expandedType[property] = value;
     }
   });

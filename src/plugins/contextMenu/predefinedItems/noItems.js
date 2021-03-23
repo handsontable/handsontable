@@ -1,4 +1,4 @@
-import { CONTEXTMENU_ITEMS_NO_ITEMS } from './../../../i18n/constants';
+import { CONTEXTMENU_ITEMS_NO_ITEMS } from '../../../i18n/constants';
 
 export const KEY = 'no_items';
 

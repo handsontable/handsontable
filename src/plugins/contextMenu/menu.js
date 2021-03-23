@@ -1,4 +1,18 @@
-import Core from './../../core';
+import Cursor from './cursor';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
+import {
+  filterSeparators,
+  hasSubMenu,
+  isDisabled,
+  isItemHidden,
+  isSeparator,
+  isSelectionDisabled,
+  normalizeSelection
+} from './utils';
+import Core from '../../core';
+import EventManager from '../../eventManager';
+import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
+import { isWindowsOS } from '../../helpers/browser';
 import {
   addClass,
   empty,
@@ -9,27 +23,13 @@ import {
   removeClass,
   getParentWindow,
   hasClass,
-} from './../../helpers/dom/element';
-import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
-import Cursor from './cursor';
-import EventManager from './../../eventManager';
-import { mixin, hasOwnProperty } from './../../helpers/object';
-import { isUndefined, isDefined } from './../../helpers/mixed';
-import { debounce, isFunction } from './../../helpers/function';
-import {
-  filterSeparators,
-  hasSubMenu,
-  isDisabled,
-  isItemHidden,
-  isSeparator,
-  isSelectionDisabled,
-  normalizeSelection
-} from './utils';
-import { KEY_CODES } from './../../helpers/unicode';
-import localHooks from './../../mixins/localHooks';
-import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
-import { stopImmediatePropagation, isRightClick } from './../../helpers/dom/event';
-import { isWindowsOS } from './../../helpers/browser';
+} from '../../helpers/dom/element';
+import { stopImmediatePropagation, isRightClick } from '../../helpers/dom/event';
+import { debounce, isFunction } from '../../helpers/function';
+import { isUndefined, isDefined } from '../../helpers/mixed';
+import { mixin, hasOwnProperty } from '../../helpers/object';
+import { KEY_CODES } from '../../helpers/unicode';
+import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
 
@@ -451,7 +451,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top;
+    let top = this.offset.below + cursor.top + 1;
 
     if (this.isSubMenu()) {
       top = cursor.top - 1;

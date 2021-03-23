@@ -1,8 +1,7 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
 import { isObject, objectEach } from '../../helpers/object';
 import EventManager from '../../eventManager';
-import { registerPlugin } from '../../plugins';
 import {
   isFormulaExpression,
   toUpperCaseFormula,
@@ -14,12 +13,23 @@ import DataProvider from './dataProvider';
 import UndoRedoSnapshot from './undoRedoSnapshot';
 import CellValue from './cell/value';
 
+export const PLUGIN_KEY = 'formulas';
+export const PLUGIN_PRIORITY = 260;
+
 /**
  * The formulas plugin.
  *
  * @plugin Formulas
  */
-class Formulas extends BasePlugin {
+export class Formulas extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -68,7 +78,7 @@ class Formulas extends BasePlugin {
    */
   isEnabled() {
     /* eslint-disable no-unneeded-ternary */
-    return this.hot.getSettings().formulas ? true : false;
+    return this.hot.getSettings()[PLUGIN_KEY] ? true : false;
   }
 
   /**
@@ -78,7 +88,7 @@ class Formulas extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    const settings = this.hot.getSettings().formulas;
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
 
     if (isObject(settings)) {
       if (isObject(settings.variables)) {
@@ -431,7 +441,3 @@ class Formulas extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('formulas', Formulas);
-
-export default Formulas;

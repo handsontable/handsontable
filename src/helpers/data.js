@@ -1,4 +1,4 @@
-import { getCellType } from './../cellTypes';
+import { getCellType } from './../cellTypes/registry';
 import { deepObjectSize, hasOwnProperty, isObject } from './object';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';

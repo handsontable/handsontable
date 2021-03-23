@@ -4,7 +4,85 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+<!-- This file should generally be updated automatically using our changelog script. See `.changelogs/README.md` for more information. -->
+
+<!-- UNVERSIONED -->
+
+## [8.3.2] - 2021-03-16
+
+### Fixed
+- Fixed a bug where it was impossible to enable `disableVisualSelection` for cells/columns. [#5082](https://github.com/handsontable/handsontable/issues/5082)
+- Fixed wrong paddings for multi-level headers. [#5086](https://github.com/handsontable/handsontable/issues/5086)
+- Fixed problems with the `current` option of the `disableVisualSelection` setting. [#5869](https://github.com/handsontable/handsontable/issues/5869)
+- Fixed problems with the `header` option of the `disableVisualSelection` setting. [#6025](https://github.com/handsontable/handsontable/issues/6025)
+- Fixed a bug where the "double-tap-to-zoom" gesture prevented the editor from opening properly on some mobile devices. [#7142](https://github.com/handsontable/handsontable/issues/7142)
+- Fixed a bug where calling the `updateSettings` method in the body of some callbacks would break the table. [#7231](https://github.com/handsontable/handsontable/issues/7231)
+- Fixed an issue where the `maxRows` and `maxCols` options interfered with hidden index calculations. [#7350](https://github.com/handsontable/handsontable/issues/7350)
+- Fixed problems with doubled borders being displayed when `window` was a scrollable container. [#7356](https://github.com/handsontable/handsontable/issues/7356)
+- Fixed a bug where value population from an edited cell would result in a console error. [#7382](https://github.com/handsontable/handsontable/issues/7382)
+- Fixed a bug where the dropdown cell type would not work on Safari 14+. [#7413](https://github.com/handsontable/handsontable/issues/7413)
+- Fixed a bug where the `AutoRowSize` plugin would break the table when placed in an iframe. [#7424](https://github.com/handsontable/handsontable/issues/7424)
+- Fixed bugs in navigation by `HOME` and `END` keys with hidden rows/columns enabled. [#7454](https://github.com/handsontable/handsontable/issues/7454)
+- Fixed a bug with the `trimWhitespace` option not working properly. [#7458](https://github.com/handsontable/handsontable/issues/7458)
+- Fixed an issue with inconsistent documentation and TypeScript definitions for `colWidths` and `rowHeights` options. [#7507](https://github.com/handsontable/handsontable/issues/7507)
+- Fixed the incorrect `cellTypes` module paths in the `exports` entry of the `package.json` file. [#7597](https://github.com/handsontable/handsontable/issues/7597)
+- *Vue:* Fixed Remote Code Execution vulnerability in the dev dependencies. [#7620](https://github.com/handsontable/handsontable/issues/7620)
+
+### Added
+- Introduced the monorepo to this repository. From now on, `handsontable`, `@handsontable/angular`, `@handsontable/react`, and `@handsontable/vue` will all be developed in the same repo - `handsontable`. [#7380](https://github.com/handsontable/handsontable/issues/7380)
+- Added a custom ESLint rule which allows restricting specified modules from loading by `import` or re-exporting. [#7473](https://github.com/handsontable/handsontable/issues/7473)
+
+## [8.3.1] - 2021-02-10
+
+### Fixed
+- Fixed an issue where the CSS files could be eliminated during tree-shaking [#7516](https://github.com/handsontable/handsontable/issues/7516)
+
+## [8.3.0] - 2021-01-28
+
+### Added
+- Introduced a new feature that allows postponing the table render and internal data cache update. The table rendering time can be reduced several-fold times by batching (using the `batch` method), multi-line API calls, or manually suspending rendering using the `suspendRender` and `resumeRender` methods. [#7274](https://github.com/handsontable/handsontable/issues/7274)
+- Introduced a possibility to import:
+  - plugins
+  - cell types
+  - editors
+  - renderers
+  - validators
+
+  as separate modules, along with the Handsontable _base_. This change allows utilizing only the parts of Handsontable the end application is actually using, without the overhead of the full bundle. [#7403](https://github.com/handsontable/handsontable/issues/7403)
+- Added a new workflow for managing and generating changelogs. [#7405](https://github.com/handsontable/handsontable/issues/7405)
+
+### Fixed
+- Fixed a bug with auto-execution of the first item in the ContextMenu plugin. [#7364](https://github.com/handsontable/handsontable/issues/7364)
+- Fixed a bug where column sorting with multi column sorting crashed the table. [#7415](https://github.com/handsontable/handsontable/issues/7415)
+- Added a missing entry for the `skipRowOnPaste` option in the TypeScript definition file. [#7394](https://github.com/handsontable/handsontable/issues/7394)
+- Added missing tests to prevent issue #7377 from resurfacing. [#7396](https://github.com/handsontable/handsontable/issues/7396)
+- Fixed an issue where altering columns did not update filters attached to columns. [#6830](https://github.com/handsontable/handsontable/issues/6830)
+- Fixed typos and wrong return types in the TypeScript definition file. [#7399](https://github.com/handsontable/handsontable/issues/7399), [#7400](https://github.com/handsontable/handsontable/issues/7400)
+- Updated the dependencies causing potential security issues, as well as Babel configuration needed after the update. [#7463](https://github.com/handsontable/handsontable/issues/7463)
+
+### Changed
+- Corrected a typo in a helper method from the Column Sorting plugin. [#7375](https://github.com/handsontable/handsontable/issues/7375)
+- Optimized the performance of rendering the table with numerous spare rows (for `minSpareRows`, `minSpareCols`, `minRows`, and `minCols` options). [#7439](https://github.com/handsontable/handsontable/issues/7439)
+
+## [8.2.0] - 2020-11-12
+
+### Added
+- Added new type of Index Map named `LinkedPhysicalIndexToValueMap` [#7276](https://github.com/handsontable/handsontable/pull/7276)
+- Added an external dependency, `DOMPurify`, to add HTML sanitization what should minimize the risk of inserting insecure code using Handsontable built-in functionalities. [#7292](https://github.com/handsontable/handsontable/issues/7292)
+
+### Fixed
+- Fixed an issue the container not being updated after trimming rows. [#7241](https://github.com/handsontable/handsontable/issues/7241)
+- Fixed an issue with a `htmlToGridSettings` helper if passed `<table>` had no rows. [#7311](https://github.com/handsontable/handsontable/issues/7311)
+- Fixed an issue where sorting indicator moved incorrectly when column was added. [#6397](https://github.com/handsontable/handsontable/issues/6397)
+- Fixed a bug, where untrimming previously trimmed rows would sometimes result in the table instance not refreshing its height, leaving the row headers not properly rendered. [#6276](https://github.com/handsontable/handsontable/issues/6276)
+- Fixes a bug, where tables' viewport was scrolled if a user opened editor when some columns on the left side of that cell were hidden. [#7322](https://github.com/handsontable/handsontable/issues/7322)
+- Fix a problem when `event.target`'s parent in the `mouseover` event was not defined, the table threw an error when hovering over row/column headers. [#6926](https://github.com/handsontable/handsontable/issues/6926)
+- Fixed an issue, where calling the validation-triggering methods on a `hiddenColumns`-enabled Handsontable instance rendered the validated cells improperly. [#7301](https://github.com/handsontable/handsontable/issues/7301)
+- Fixed an issue, where adding 0 rows to the table ended with doubled entries in indexMappers' collections. [#7326](https://github.com/handsontable/handsontable/issues/7326)
+- Fix a problem with the inconsistent behavior of the Context Menu's "Clear column" disabled status. [#7003](https://github.com/handsontable/handsontable/issues/7003)
+- Fix a bug with parsing multiline cells on pasting `text/html` mime-type. [#7369](https://github.com/handsontable/handsontable/issues/7369)
+
+## [8.1.0] - 2020-10-01
 
 ### Added
 - Added support for resizing non-contiguous selected rows [#7162](https://github.com/handsontable/handsontable/pull/7162) along with refactor and bug fix introduced within #6871 PR [#7220](https://github.com/handsontable/handsontable/pull/7220)
@@ -22,6 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where the rows were missing their left border after disabling the row headers using `updateSettings`, while there were `fixedColumnsLeft` defined. [#5735](https://github.com/handsontable/handsontable/issues/5735)
 - Fixed an issue where the Handsontable could fall into an infinite loop during vertical scrolling. It only happened when the scrollable element was the `window` object. [#7260](https://github.com/handsontable/handsontable/issues/7260);
 - Fixed an issue with moving rows to the last row of the table, when the Nested Rows plugin was enabled along with some other minor moving-related bugs. [#6067](https://github.com/handsontable/handsontable/issues/6067)
+- Fixed an issue with adding unnecessary extra empty line in cells on Safari. [#7262](https://github.com/handsontable/handsontable/issues/7262)
+- Fixed an issue with clipped column headers if they were changed before or within usage `updateSettings`. [#6004](https://github.com/handsontable/handsontable/issues/6004)
 
 ### Changed
 - Updated dependencies to meet security requirements [#7222](https://github.com/handsontable/handsontable/pull/7222)

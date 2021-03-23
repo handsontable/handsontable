@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 const $ = (selector, context = document) => context.querySelector(selector);
 
 /**

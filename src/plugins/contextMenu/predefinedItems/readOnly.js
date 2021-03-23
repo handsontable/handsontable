@@ -1,6 +1,6 @@
-import { checkSelectionConsistency, markLabelAsSelected } from './../utils';
-import { arrayEach } from './../../../helpers/array';
-import * as C from './../../../i18n/constants';
+import { checkSelectionConsistency, markLabelAsSelected } from '../utils';
+import { arrayEach } from '../../../helpers/array';
+import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
 

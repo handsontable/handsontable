@@ -1,4 +1,4 @@
-import * as C from './../../../i18n/constants';
+import * as C from '../../../i18n/constants';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -16,7 +16,7 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin) {
       manualColumnFreezePlugin.unfreezeColumn(selectedColumn);
 
       this.render();
-      this.view.wt.wtOverlays.adjustElementsSize(true);
+      this.view.adjustElementsSize(true);
     },
     hidden() {
       const selection = this.getSelectedRange();

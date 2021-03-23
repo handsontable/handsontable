@@ -3,7 +3,7 @@ import { getListWithRemovedItems, getListWithInsertedItems } from './utils/index
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils';
 
 /**
- * Map for storing mappings from an visual index to an physical index.
+ * Map for storing mappings from an index to a physical index.
  *
  * It also updates the physical indexes (remaining in the map) on remove/add row or column action.
  */
@@ -21,7 +21,7 @@ class IndexesSequence extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex, insertedIndexes) {
-    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertionIndex, insertedIndexes);
+    const listAfterUpdate = getIncreasedIndexes(this.indexedValues, insertedIndexes);
 
     this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
 
