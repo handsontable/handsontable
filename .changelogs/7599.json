@@ -1,0 +1,7 @@
+{
+  "title": "Adding/updating a property in settings is not used when property is a function",
+  "type": "fixed",
+  "issue": 7599,
+  "breaking": false,
+  "framework": "vue"
+}
