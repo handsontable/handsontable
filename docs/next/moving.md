@@ -38,10 +38,10 @@ There are significant differences between the plugin's `dragRows` and `moveRows`
 
 1\. The [`dragRows`](api/plugins/manualRowMove/manualRowMove.md#dragrows) method with the `dropIndex` parameter. This argument points to where we are going to drop the moved elements.
 
-![dragRows method](/img/drag_action.svg)
+![dragRows method](/docs/img/drag_action.svg)
 
 2\. The [`moveRows`](api/plugins/manualRowMove/manualRowMove.md#moverows) method with the `finalIndex` parameter. The argument points to where the elements will be placed after the _moving_ action (`finalIndex` being the index of the first moved element).
 
-![moveRows method](/img/move_action.svg)
+![moveRows method](/docs/img/move_action.svg)
 
 Some of actions to be performed by `moveRows` function aren't possible, i.e. we can't move more than one element to the last position. In this case, the move will be cancelled. The Plugin's [`isMovePossible`](api/plugins/manualRowMove/manualRowMove.md#ismovepossible) API method and the `movePossible` parameter of `beforeRowMove` and `afterRowMove` hooks may be helpful in determining such situations.

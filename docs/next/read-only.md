@@ -102,6 +102,6 @@ var container3 = document.getElementById('example3'),
       {row: 0, col: 1, comment: {value: 'A read-only comment.', readOnly: true}},
       {row: 0, col: 3, comment: {value: 'You can edit this comment!'}}
     ]
-  ;
+  });
 ```
 :::
