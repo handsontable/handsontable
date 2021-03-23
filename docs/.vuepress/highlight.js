@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 const prism = require('prismjs');
 const loadLanguages = require('prismjs/components/index');
 const { logger, chalk, escapeHtml } = require('@vuepress/shared-utils');

@@ -1,4 +1,4 @@
-/* eslint-disable no-useless-escape, no-restricted-syntax */
+/* eslint-disable no-useless-escape, no-restricted-syntax, import/no-unresolved  */
 /// requires
 const jsdoc2md = require('jsdoc-to-markdown');
 const dmd = require('dmd');

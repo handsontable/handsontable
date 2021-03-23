@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /// Usages: `version ${version}`
 
 const semver = require('semver');
