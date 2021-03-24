@@ -18,7 +18,7 @@ const BAD_VALUE_CLASS = 'htBadValue';
 
 export const RENDERER_TYPE = 'checkbox';
 
-Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleCountSeed, cellMeta, cellValue) {
+Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMeta, cellValue) {
   const { label, type, row, column, prop } = cellMeta;
 
   if (type !== RENDERER_TYPE) {
@@ -27,7 +27,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleCountSeed, c
 
   if (label) {
     const { value: labelValue, property: labelProperty } = label;
-    let labelText = '';
+    let labelText = cellValue;
 
     if (labelValue) {
       labelText = typeof labelValue === 'function' ?
@@ -35,13 +35,13 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleCountSeed, c
 
     } else if (labelProperty) {
       const labelData = this.getDataAtRowProp(row, labelProperty);
-      labelText = labelData !== null ? labelData : '';
+      labelText = labelData !== null ? labelData : cellValue;
     }
 
-    bundleCountSeed = labelText.length;
+    bundleSeed = labelText;
   }
 
-  return bundleCountSeed;
+  return bundleSeed;
 });
 /**
  * Checkbox renderer.

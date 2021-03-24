@@ -131,13 +131,13 @@ export class AutoColumnSize extends BasePlugin {
         cellValue = this.hot.getDataAtCell(row, column);
       }
 
-      let bundleCountSeed = 0;
+      let bundleSeed = '';
 
       if (this.hot.hasHook('modifyAutoColumnSizeSeed')) {
-        bundleCountSeed = this.hot.runHooks('modifyAutoColumnSizeSeed', bundleCountSeed, cellMeta, cellValue);
+        bundleSeed = this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, cellValue);
       }
 
-      return { value: cellValue, bundleCountSeed };
+      return { value: cellValue, bundleSeed };
     });
     /**
      * `true` only if the first calculation was performed.

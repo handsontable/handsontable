@@ -109,8 +109,8 @@ describe('SamplesGenerator', () => {
     expect(sg.dataFactory.calls.mostRecent().args[1]).toBe(4);
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(4);
-    expect(result.get(1).strings).toEqual([{ value: { id: 2 }, col: 1 }, { value: 'C', col: 2 }]);
-    expect(result.get(2).strings).toEqual([{ value: 'AA', col: 0 }]);
+    expect(result.get('1').strings).toEqual([{ value: { id: 2 }, col: 1 }, { value: 'C', col: 2 }]);
+    expect(result.get('2').strings).toEqual([{ value: 'AA', col: 0 }]);
   });
 
   it('should generate row sample with limited generated items (when the data source contains the same values)', () => {
@@ -129,10 +129,10 @@ describe('SamplesGenerator', () => {
     const result = sg.generateSample('row', { from: 0, to: 9 }, 0);
 
     expect(result.size).toBe(1);
-    expect(result.get(4).strings).toEqual([{ col: 0, value: true }]);
+    expect(result.get('4').strings).toEqual([{ col: 0, value: true }]);
   });
 
-  it('should generate row sample controlled by `bundleCountSeed` (in case of collecting more samples despite their repeatability)', () => {
+  it('should generate row sample controlled by `bundleSeed` (in case of collecting more samples despite their repeatability)', () => {
     let seedIndex = 0;
     const data = [
       [true, true, true, true, true, true, true, true, true, true],
@@ -142,7 +142,7 @@ describe('SamplesGenerator', () => {
 
       return {
         value: data[row][col],
-        bundleCountSeed: seedIndex,
+        bundleSeed: `${seedIndex}`,
       };
     });
 
@@ -151,16 +151,16 @@ describe('SamplesGenerator', () => {
     const result = sg.generateSample('row', { from: 0, to: 9 }, 0);
 
     expect(result.size).toBe(10);
-    expect(result.get(5).strings).toEqual([{ col: 0, value: true }]);
-    expect(result.get(6).strings).toEqual([{ col: 1, value: true }]);
-    expect(result.get(7).strings).toEqual([{ col: 2, value: true }]);
-    expect(result.get(8).strings).toEqual([{ col: 3, value: true }]);
-    expect(result.get(9).strings).toEqual([{ col: 4, value: true }]);
-    expect(result.get(10).strings).toEqual([{ col: 5, value: true }]);
-    expect(result.get(11).strings).toEqual([{ col: 6, value: true }]);
-    expect(result.get(12).strings).toEqual([{ col: 7, value: true }]);
-    expect(result.get(13).strings).toEqual([{ col: 8, value: true }]);
-    expect(result.get(14).strings).toEqual([{ col: 9, value: true }]);
+    expect(result.get('1').strings).toEqual([{ col: 0, value: true }]);
+    expect(result.get('2').strings).toEqual([{ col: 1, value: true }]);
+    expect(result.get('3').strings).toEqual([{ col: 2, value: true }]);
+    expect(result.get('4').strings).toEqual([{ col: 3, value: true }]);
+    expect(result.get('5').strings).toEqual([{ col: 4, value: true }]);
+    expect(result.get('6').strings).toEqual([{ col: 5, value: true }]);
+    expect(result.get('7').strings).toEqual([{ col: 6, value: true }]);
+    expect(result.get('8').strings).toEqual([{ col: 7, value: true }]);
+    expect(result.get('9').strings).toEqual([{ col: 8, value: true }]);
+    expect(result.get('10').strings).toEqual([{ col: 9, value: true }]);
   });
 
   it('should generate column sample', () => {
@@ -187,10 +187,10 @@ describe('SamplesGenerator', () => {
     expect(sg.dataFactory.calls.mostRecent().args[1]).toBe(3);
     expect(result instanceof Map).toBe(true);
     expect(result.size).toBe(3);
-    expect(result.get(1).strings).toEqual([
+    expect(result.get('1').strings).toEqual([
       { value: 'D', row: 1 }, { value: [4], row: 3 }, { value: { id: 4 }, row: 4 }
     ]);
-    expect(result.get(2).strings).toEqual([{ value: 44, row: 0 }]);
+    expect(result.get('2').strings).toEqual([{ value: 44, row: 0 }]);
   });
 
   it('should generate column sample with limited generated items (when the data source contains the same values)', () => {
@@ -218,30 +218,30 @@ describe('SamplesGenerator', () => {
     const result = sg.generateSample('col', { from: 0, to: 9 }, 0);
 
     expect(result.size).toBe(1);
-    expect(result.get(4).strings).toEqual([{ row: 0, value: true }]);
+    expect(result.get('4').strings).toEqual([{ row: 0, value: true }]);
   });
 
-  it('should generate column sample controlled by `bundleCountSeed` (in case of collecting more samples despite their repeatability)', () => {
+  it('should generate column sample controlled by `bundleSeed` (in case of collecting more samples despite their repeatability)', () => {
     let seedIndex = 0;
-    const sg = new SamplesGenerator((row, col) => {
-      const data = [
-        [true],
-        [true],
-        [true],
-        [true],
-        [true],
-        [true],
-        [true],
-        [true],
-        [true],
-        [true],
-      ];
+    const data = [
+      [true],
+      [true],
+      [true],
+      [true],
+      [true],
+      [true],
+      [true],
+      [true],
+      [true],
+      [true],
+    ];
 
+    const sg = new SamplesGenerator((row, col) => {
       seedIndex += 1;
 
       return {
         value: data[row][col],
-        bundleCountSeed: seedIndex,
+        bundleSeed: `${seedIndex}`,
       };
     });
 
@@ -250,15 +250,15 @@ describe('SamplesGenerator', () => {
     const result = sg.generateSample('col', { from: 0, to: 9 }, 0);
 
     expect(result.size).toBe(10);
-    expect(result.get(5).strings).toEqual([{ row: 0, value: true }]);
-    expect(result.get(6).strings).toEqual([{ row: 1, value: true }]);
-    expect(result.get(7).strings).toEqual([{ row: 2, value: true }]);
-    expect(result.get(8).strings).toEqual([{ row: 3, value: true }]);
-    expect(result.get(9).strings).toEqual([{ row: 4, value: true }]);
-    expect(result.get(10).strings).toEqual([{ row: 5, value: true }]);
-    expect(result.get(11).strings).toEqual([{ row: 6, value: true }]);
-    expect(result.get(12).strings).toEqual([{ row: 7, value: true }]);
-    expect(result.get(13).strings).toEqual([{ row: 8, value: true }]);
-    expect(result.get(14).strings).toEqual([{ row: 9, value: true }]);
+    expect(result.get('1').strings).toEqual([{ row: 0, value: true }]);
+    expect(result.get('2').strings).toEqual([{ row: 1, value: true }]);
+    expect(result.get('3').strings).toEqual([{ row: 2, value: true }]);
+    expect(result.get('4').strings).toEqual([{ row: 3, value: true }]);
+    expect(result.get('5').strings).toEqual([{ row: 4, value: true }]);
+    expect(result.get('6').strings).toEqual([{ row: 5, value: true }]);
+    expect(result.get('7').strings).toEqual([{ row: 6, value: true }]);
+    expect(result.get('8').strings).toEqual([{ row: 7, value: true }]);
+    expect(result.get('9').strings).toEqual([{ row: 8, value: true }]);
+    expect(result.get('10').strings).toEqual([{ row: 9, value: true }]);
   });
 });

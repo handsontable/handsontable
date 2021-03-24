@@ -1913,7 +1913,7 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#modifyAutoColumnSizeSeed
    * @since 8.4.0
-   * @param {number|string|undefined} seed Seed ID, unique name to categorize samples.
+   * @param {string|undefined} seed Seed ID, unique name to categorize samples.
    * @param {object} cellProperties Object containing the cell properties.
    * @param {*} cellValue Value of the cell.
    */
