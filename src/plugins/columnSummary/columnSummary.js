@@ -1,7 +1,10 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
-import { registerPlugin } from '../../plugins';
 import Endpoints from './endpoints';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+
+export const PLUGIN_KEY = 'columnSummary';
+export const PLUGIN_PRIORITY = 220;
 
 /**
  * @plugin ColumnSummary
@@ -37,7 +40,15 @@ import Endpoints from './endpoints';
  *   ]
  * });
  */
-class ColumnSummary extends BasePlugin {
+export class ColumnSummary extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -56,7 +67,7 @@ class ColumnSummary extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().columnSummary;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -67,21 +78,25 @@ class ColumnSummary extends BasePlugin {
       return;
     }
 
-    this.settings = this.hot.getSettings().columnSummary;
+    this.settings = this.hot.getSettings()[PLUGIN_KEY];
     this.endpoints = new Endpoints(this, this.settings);
 
     this.addHook('afterInit', (...args) => this.onAfterInit(...args));
     this.addHook('afterChange', (...args) => this.onAfterChange(...args));
 
-    this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source));
-    this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source));
-    this.addHook('beforeRemoveRow', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args));
-    this.addHook('beforeRemoveCol', (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args));
+    this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('beforeRemoveRow',
+      (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_row', ...args));
+    this.addHook('beforeRemoveCol',
+      (...args) => this.endpoints.resetSetupBeforeStructureAlteration('remove_col', ...args));
 
-    this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source));
-    this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source));
-    this.addHook('afterRemoveRow', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
-    this.addHook('afterRemoveCol', (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
+    this.addHook('afterCreateRow', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterCreateCol', (index, amount, source) => this.endpoints.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterRemoveRow',
+      (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_row', ...args));
+    this.addHook('afterRemoveCol',
+      (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
     this.addHook('afterRowMove', (...args) => this.onAfterRowMove(...args));
 
     super.enablePlugin();
@@ -342,7 +357,8 @@ class ColumnSummary extends BasePlugin {
 
     if (isNaN(cellValue)) {
       if (!this.endpoints.currentEndpoint.suppressDataTypeErrors) {
-        throw new Error(`ColumnSummary plugin: cell at (${row}, ${col}) is not in a numeric format. Cannot do the calculation.`);
+        throw new Error(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
+          numeric format. Cannot do the calculation.`);
       }
     }
 
@@ -378,14 +394,10 @@ class ColumnSummary extends BasePlugin {
    * @private
    * @param {Array} rows Array of visual row indexes to be moved.
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
-   * To check the visualization of the final index, please take a look at [documentation](/demo-moving.html#manualRowMove).
+   * To check the visualization of the final index, please take a look at [documentation](/docs/demo-moving.html).
    */
   onAfterRowMove(rows, finalIndex) {
     this.endpoints.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length, rows, this.pluginName);
     this.endpoints.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
   }
 }
-
-registerPlugin('columnSummary', ColumnSummary);
-
-export default ColumnSummary;

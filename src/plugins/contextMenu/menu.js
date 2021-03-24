@@ -1,4 +1,18 @@
-import Core from './../../core';
+import Cursor from './cursor';
+import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
+import {
+  filterSeparators,
+  hasSubMenu,
+  isDisabled,
+  isItemHidden,
+  isSeparator,
+  isSelectionDisabled,
+  normalizeSelection
+} from './utils';
+import Core from '../../core';
+import EventManager from '../../eventManager';
+import { arrayEach, arrayFilter, arrayReduce } from '../../helpers/array';
+import { isWindowsOS } from '../../helpers/browser';
 import {
   addClass,
   empty,
@@ -8,19 +22,14 @@ import {
   isInput,
   removeClass,
   getParentWindow,
-} from './../../helpers/dom/element';
-import { arrayEach, arrayFilter, arrayReduce } from './../../helpers/array';
-import Cursor from './cursor';
-import EventManager from './../../eventManager';
-import { mixin, hasOwnProperty } from './../../helpers/object';
-import { isUndefined, isDefined } from './../../helpers/mixed';
-import { debounce, isFunction } from './../../helpers/function';
-import { filterSeparators, hasSubMenu, isDisabled, isItemHidden, isSeparator, isSelectionDisabled, normalizeSelection } from './utils';
-import { KEY_CODES } from './../../helpers/unicode';
-import localHooks from './../../mixins/localHooks';
-import { SEPARATOR, NO_ITEMS, predefinedItems } from './predefinedItems';
-import { stopImmediatePropagation, isRightClick } from './../../helpers/dom/event';
-import { isWindowsOS } from './../../helpers/browser';
+  hasClass,
+} from '../../helpers/dom/element';
+import { stopImmediatePropagation, isRightClick } from '../../helpers/dom/event';
+import { debounce, isFunction } from '../../helpers/function';
+import { isUndefined, isDefined } from '../../helpers/mixed';
+import { mixin, hasOwnProperty } from '../../helpers/object';
+import { KEY_CODES } from '../../helpers/unicode';
+import localHooks from '../../mixins/localHooks';
 
 const MIN_WIDTH = 215;
 
@@ -70,6 +79,7 @@ class Menu {
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
+      this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
 
       frame = getParentWindow(frame);
     }
@@ -172,6 +182,7 @@ class Menu {
       readOnly: true,
       editor: false,
       copyPaste: false,
+      maxCols: 1,
       columns: [{
         data: 'name',
         renderer: (hot, TD, row, col, prop, value) => this.menuItemRenderer(hot, TD, row, col, prop, value)
@@ -215,7 +226,7 @@ class Menu {
         // Restore menu focus, fix for `this.instance.unlisten();` call in the tableView.js@260 file.
         // This prevents losing table responsiveness for keyboard events when filter select menu is closed (#6497).
         if (!this.hasSelectedItem() && this.isOpened()) {
-          this.hotMenu.listen(false);
+          this.hotMenu.listen();
         }
       },
     };
@@ -440,7 +451,7 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionBelowCursor(cursor) {
-    let top = this.offset.below + cursor.top;
+    let top = this.offset.below + cursor.top + 1;
 
     if (this.isSubMenu()) {
       top = cursor.top - 1;
@@ -471,7 +482,8 @@ class Menu {
    * @param {Cursor} cursor `Cursor` object.
    */
   setPositionOnLeftOfCursor(cursor) {
-    const left = this.offset.left + cursor.left - this.container.offsetWidth + getScrollbarWidth(this.hot.rootDocument) + 4;
+    const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
+    const left = this.offset.left + cursor.left - this.container.offsetWidth + scrollbarWidth + 4;
 
     this.container.style.left = `${left}px`;
   }
@@ -560,7 +572,8 @@ class Menu {
 
     const isSubMenu = itemToTest => hasOwnProperty(itemToTest, 'submenu');
     const itemIsSeparator = itemToTest => new RegExp(SEPARATOR, 'i').test(itemToTest.name);
-    const itemIsDisabled = itemToTest => itemToTest.disabled === true || (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
+    const itemIsDisabled = itemToTest => itemToTest.disabled === true ||
+      (typeof itemToTest.disabled === 'function' && itemToTest.disabled.call(this.hot) === true);
     const itemIsSelectionDisabled = itemToTest => itemToTest.disableSelection;
     let itemValue = value;
 
@@ -595,7 +608,8 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
+        this.eventManager
+          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
     } else {
       removeClass(TD, ['htSubmenu', 'htDisabled']);
@@ -603,7 +617,8 @@ class Menu {
       if (itemIsSelectionDisabled(item)) {
         this.eventManager.addEventListener(TD, 'mouseenter', () => hot.deselectCell());
       } else {
-        this.eventManager.addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
+        this.eventManager
+          .addEventListener(TD, 'mouseenter', () => hot.selectCell(row, col, void 0, void 0, false, false));
       }
     }
   }
@@ -812,8 +827,25 @@ class Menu {
 
     // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) &&
-        (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) || isChildOf(event.target, this.hot.rootDocument)))) {
+        (!isChildOf(event.target, '.htMenu') && (isChildOf(event.target, this.container.ownerDocument) ||
+        isChildOf(event.target, this.hot.rootDocument)))) {
       this.close(true);
+    }
+  }
+
+  /**
+   * Document's contextmenu listener.
+   *
+   * @private
+   * @param {MouseEvent} event The mouse event object.
+   */
+  onDocumentContextMenu(event) {
+    if (!this.isOpened()) {
+      return;
+    }
+
+    if (hasClass(event.target, 'htCore') && isChildOf(event.target, this.hotMenu.rootElement)) {
+      event.preventDefault();
     }
   }
 }

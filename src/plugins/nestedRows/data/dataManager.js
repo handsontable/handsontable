@@ -1,5 +1,5 @@
 import { rangeEach } from '../../../helpers/number';
-import { objectEach, hasOwnProperty } from '../../../helpers/object';
+import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 
 /**
@@ -9,7 +9,7 @@ import { arrayEach } from '../../../helpers/array';
  * @private
  */
 class DataManager {
-  constructor(nestedRowsPlugin, hotInstance, sourceData) {
+  constructor(nestedRowsPlugin, hotInstance) {
     /**
      * Main Handsontable instance reference.
      *
@@ -19,9 +19,9 @@ class DataManager {
     /**
      * Reference to the source data object.
      *
-     * @type {object}
+     * @type {Handsontable.CellValue[][]|Handsontable.RowObject[]}
      */
-    this.data = sourceData;
+    this.data = null;
     /**
      * Reference to the NestedRows plugin.
      *
@@ -45,6 +45,49 @@ class DataManager {
       rows: [],
       nodeInfo: new WeakMap()
     };
+  }
+
+  /**
+   * Set the data for the manager.
+   *
+   * @param {Handsontable.CellValue[][]|Handsontable.RowObject[]} data Data for the manager.
+   */
+  setData(data) {
+    this.data = data;
+  }
+
+  /**
+   * Get the data cached in the manager.
+   *
+   * @returns {Handsontable.CellValue[][]|Handsontable.RowObject[]}
+   */
+  getData() {
+    return this.data;
+  }
+
+  /**
+   * Load the "raw" source data, without NestedRows' modifications.
+   *
+   * @returns {Handsontable.CellValue[][]|Handsontable.RowObject[]}
+   */
+  getRawSourceData() {
+    let rawSourceData = null;
+
+    this.plugin.disableCoreAPIModifiers();
+    rawSourceData = this.hot.getSourceData();
+    this.plugin.enableCoreAPIModifiers();
+
+    return rawSourceData;
+  }
+
+  /**
+   * Update the Data Manager with new data and refresh cache.
+   *
+   * @param {Handsontable.CellValue[][]|Handsontable.RowObject[]} data Data for the manager.
+   */
+  updateWithData(data) {
+    this.setData(data);
+    this.rewriteCache();
   }
 
   /**
@@ -115,10 +158,10 @@ class DataManager {
    */
   readTreeNodes(parent, readCount, neededIndex, neededObject) {
     let rootLevel = false;
-    let readedNodesCount = readCount;
+    let readNodesCount = readCount;
 
-    if (isNaN(readedNodesCount) && readedNodesCount.end) {
-      return readedNodesCount;
+    if (isNaN(readNodesCount) && readNodesCount.end) {
+      return readNodesCount;
     }
 
     let parentObj = parent;
@@ -128,42 +171,33 @@ class DataManager {
         __children: this.data
       };
       rootLevel = true;
-      readedNodesCount -= 1;
+      readNodesCount -= 1;
     }
 
-    if (neededIndex !== null && neededIndex !== void 0 && readedNodesCount === neededIndex) {
+    if (neededIndex !== null && neededIndex !== void 0 && readNodesCount === neededIndex) {
       return { result: parentObj, end: true };
     }
 
     if (neededObject !== null && neededObject !== void 0 && parentObj === neededObject) {
-      return { result: readedNodesCount, end: true };
+      return { result: readNodesCount, end: true };
     }
 
-    readedNodesCount += 1;
+    readNodesCount += 1;
 
     if (parentObj.__children) {
       arrayEach(parentObj.__children, (val) => {
 
         this.parentReference.set(val, rootLevel ? null : parentObj);
 
-        readedNodesCount = this.readTreeNodes(val, readedNodesCount, neededIndex, neededObject);
+        readNodesCount = this.readTreeNodes(val, readNodesCount, neededIndex, neededObject);
 
-        if (isNaN(readedNodesCount) && readedNodesCount.end) {
+        if (isNaN(readNodesCount) && readNodesCount.end) {
           return false;
         }
       });
     }
 
-    return readedNodesCount;
-  }
-
-  /**
-   * Update the parent reference map.
-   *
-   * @private
-   */
-  updateParentReference() {
-    this.readTreeNodes({ __children: this.data }, 0, this.hot.countRows());
+    return readNodesCount;
   }
 
   /**
@@ -274,7 +308,7 @@ class DataManager {
   /**
    * Get the parent of the row at the provided index.
    *
-   * @param {number|object} row Row index.
+   * @param {number|object} row Physical row index.
    * @returns {object}
    */
   getRowParent(row) {
@@ -297,7 +331,7 @@ class DataManager {
    * @returns {object|null}
    */
   getRowObjectParent(rowObject) {
-    if (typeof rowObject !== 'object') {
+    if (!rowObject || typeof rowObject !== 'object') {
       return null;
     }
 
@@ -349,6 +383,32 @@ class DataManager {
     return !!(rowObj.__children && rowObj.__children.length);
   }
 
+  /**
+   * Returns `true` if the row at the provided index has a parent.
+   *
+   * @param {number} index Row index.
+   * @returns {boolean} `true` if the row at the provided index has a parent, `false` otherwise.
+   */
+  isChild(index) {
+    return this.getRowParent(index) !== null;
+  }
+
+  /**
+   * Return `true` of the row at the provided index is located at the topmost level.
+   *
+   * @param {number} index Row index.
+   * @returns {boolean} `true` of the row at the provided index is located at the topmost level, `false` otherwise.
+   */
+  isRowHighestLevel(index) {
+    return !this.isChild(index);
+  }
+
+  /**
+   * Return `true` if the provided row index / row object represents a parent in the nested structure.
+   *
+   * @param {number|object} row Row index / row object.
+   * @returns {boolean} `true` if the row is a parent, `false` otherwise.
+   */
   isParent(row) {
     let rowObj = row;
 
@@ -356,8 +416,7 @@ class DataManager {
       rowObj = this.getDataObject(rowObj);
     }
 
-    // TODO: Bug? What about situation when an element has empty array under the `__children` key? Please take a look at another "TODO" within test cases.
-    return !!(hasOwnProperty(rowObj, '__children'));
+    return rowObj && (!!rowObj.__children && rowObj.__children?.length !== 0);
   }
 
   /**
@@ -395,6 +454,8 @@ class DataManager {
 
     const newRowIndex = this.getRowIndex(childElement);
 
+    this.hot.rowIndexMapper.insertIndexes(newRowIndex, 1);
+
     this.hot.runHooks('afterCreateRow', newRowIndex, 1);
     this.hot.runHooks('afterAddChild', parent, childElement);
   }
@@ -405,31 +466,43 @@ class DataManager {
    * @param {object} parent Parent node.
    * @param {number} index Index to insert the child element at.
    * @param {object} [element] Element (node) to insert.
-   * @param {number} [globalIndex] Global index of the inserted row.
    */
-  addChildAtIndex(parent, index, element, globalIndex) {
+  addChildAtIndex(parent, index, element) {
     let childElement = element;
-    this.hot.runHooks('beforeAddChild', parent, childElement, index);
-    this.hot.runHooks('beforeCreateRow', globalIndex + 1, 1);
-    let functionalParent = parent;
-
-    if (!parent) {
-      functionalParent = this.mockParent();
-    }
-
-    if (!functionalParent.__children) {
-      functionalParent.__children = [];
-    }
 
     if (!childElement) {
       childElement = this.mockNode();
     }
 
-    functionalParent.__children.splice(index, null, childElement);
+    this.hot.runHooks('beforeAddChild', parent, childElement, index);
 
-    this.rewriteCache();
+    if (parent) {
+      this.hot.runHooks('beforeCreateRow', index, 1);
 
-    this.hot.runHooks('afterCreateRow', globalIndex + 1, 1);
+      parent.__children.splice(index, null, childElement);
+
+      this.plugin.disableCoreAPIModifiers();
+      this.hot.setSourceDataAtCell(
+        this.getRowIndexWithinParent(parent),
+        '__children',
+        parent.__children,
+        'NestedRows.addChildAtIndex'
+      );
+      this.plugin.enableCoreAPIModifiers();
+
+      this.hot.runHooks('afterCreateRow', index, 1);
+
+    } else {
+      this.plugin.disableCoreAPIModifiers();
+      this.hot.alter('insert_row', index, 1, 'NestedRows.addChildAtIndex');
+      this.plugin.enableCoreAPIModifiers();
+    }
+
+    this.updateWithData(this.getRawSourceData());
+
+    // Workaround for refreshing cache losing the reference to the mocked row.
+    childElement = this.getDataObject(index);
+
     this.hot.runHooks('afterAddChild', parent, childElement, index);
   }
 
@@ -446,10 +519,10 @@ class DataManager {
 
     switch (where) {
       case 'below':
-        this.addChildAtIndex(parent, indexWithinParent + 1, null, index);
+        this.addChildAtIndex(parent, indexWithinParent + 1, null);
         break;
       case 'above':
-        this.addChildAtIndex(parent, indexWithinParent, null, index);
+        this.addChildAtIndex(parent, indexWithinParent, null);
         break;
       default:
         break;
@@ -532,6 +605,8 @@ class DataManager {
    * @param {Array} logicRows Array of indexes to remove.
    */
   filterData(index, amount, logicRows) {
+    // TODO: why are the first 2 arguments not used?
+
     const elementsToRemove = [];
 
     arrayEach(logicRows, (elem) => {
@@ -553,42 +628,38 @@ class DataManager {
   }
 
   /**
-   * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the default script.
+   * Used to splice the source data. Needed to properly modify the nested structure, which wouldn't work with the
+   * default script.
    *
    * @private
-   * @param {number} index Index of the element at the splice beginning.
+   * @param {number} index Physical index of the element at the splice beginning.
    * @param {number} amount Number of elements to be removed.
-   * @param {object} element Row to add.
+   * @param {object[]} elements Array of row objects to add.
    */
-  spliceData(index, amount, element) {
-    const elementIndex = this.translateTrimmedRow(index);
-
-    if (elementIndex === null || elementIndex === void 0) {
-      return;
-    }
-
-    const previousElement = this.getDataObject(elementIndex - 1);
+  spliceData(index, amount, elements) {
+    const previousElement = this.getDataObject(index - 1);
     let newRowParent = null;
-    let indexWithinParent = null;
+    let indexWithinParent = index;
 
     if (previousElement && previousElement.__children && previousElement.__children.length === 0) {
       newRowParent = previousElement;
       indexWithinParent = 0;
 
-    } else {
-      newRowParent = this.getRowParent(elementIndex);
-      indexWithinParent = this.getRowIndexWithinParent(elementIndex);
+    } else if (index < this.countAllRows()) {
+      newRowParent = this.getRowParent(index);
+      indexWithinParent = this.getRowIndexWithinParent(index);
     }
 
     if (newRowParent) {
-      if (element) {
-        newRowParent.__children.splice(indexWithinParent, amount, element);
+      if (elements) {
+        newRowParent.__children.splice(indexWithinParent, amount, ...elements);
+
       } else {
         newRowParent.__children.splice(indexWithinParent, amount);
       }
 
-    } else if (element) {
-      this.data.splice(indexWithinParent, amount, element);
+    } else if (elements) {
+      this.data.splice(indexWithinParent, amount, ...elements);
 
     } else {
       this.data.splice(indexWithinParent, amount);
@@ -598,18 +669,52 @@ class DataManager {
   }
 
   /**
+   * Update the `__children` key of the upmost parent of the provided row object.
+   *
+   * @private
+   * @param {object} rowElement Row object.
+   */
+  syncRowWithRawSource(rowElement) {
+    let upmostParent = rowElement;
+    let tempParent = null;
+
+    do {
+      tempParent = this.getRowParent(tempParent);
+
+      if (tempParent !== null) {
+        upmostParent = tempParent;
+      }
+
+    } while (tempParent !== null);
+
+    this.plugin.disableCoreAPIModifiers();
+    this.hot.setSourceDataAtCell(
+      this.getRowIndex(upmostParent),
+      '__children',
+      upmostParent.__children,
+      'NestedRows.syncRowWithRawSource',
+    );
+    this.plugin.enableCoreAPIModifiers();
+  }
+
+  /* eslint-disable jsdoc/require-param */
+  /**
    * Move a single row.
    *
    * @param {number} fromIndex Index of the row to be moved.
    * @param {number} toIndex Index of the destination.
+   * @param {boolean} moveToCollapsed `true` if moving a row to a collapsed parent.
+   * @param {boolean} moveToLastChild `true` if moving a row to be a last child of the new parent.
    */
-  moveRow(fromIndex, toIndex) {
-    const targetIsParent = this.isParent(toIndex);
 
+  /* eslint-enable jsdoc/require-param */
+  moveRow(fromIndex, toIndex, moveToCollapsed, moveToLastChild) {
+    const moveToLastRow = toIndex === this.hot.countRows();
     const fromParent = this.getRowParent(fromIndex);
     const indexInFromParent = this.getRowIndexWithinParent(fromIndex);
-
-    let toParent = this.getRowParent(toIndex);
+    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
+    const movingUp = fromIndex > toIndex;
+    let toParent = moveToLastRow ? this.getRowParent(toIndex - 1) : this.getRowParent(toIndex);
 
     if (toParent === null || toParent === void 0) {
       toParent = this.getRowParent(toIndex - 1);
@@ -627,31 +732,23 @@ class DataManager {
       toParent.__children = [];
     }
 
-    const previousToTargetParent = this.getRowParent(toIndex - 1);
-    const indexInToParent = targetIsParent ? this.countChildren(previousToTargetParent) : this.getRowIndexWithinParent(toIndex);
+    const indexInTargetParent = moveToLastRow || moveToCollapsed || moveToLastChild ?
+      toParent.__children.length : this.getRowIndexWithinParent(toIndex);
+    const sameParent = fromParent === toParent;
 
-    const elemToMove = fromParent.__children.slice(indexInFromParent, indexInFromParent + 1);
+    toParent.__children.splice(indexInTargetParent, 0, elemToMove[0]);
+    fromParent.__children.splice(indexInFromParent + (movingUp && sameParent ? 1 : 0), 1);
 
-    fromParent.__children.splice(indexInFromParent, 1);
-    toParent.__children.splice(indexInToParent, 0, elemToMove[0]);
+    // Sync the changes in the cached data with the actual data stored in HOT.
+    this.syncRowWithRawSource(fromParent);
+
+    if (!sameParent) {
+      this.syncRowWithRawSource(toParent);
+    }
   }
 
   /**
-   * Move the cell meta.
-   *
-   * @private
-   * @param {number} fromIndex Index of the starting row.
-   * @param {number} toIndex Index of the ending row.
-   */
-  moveCellMeta(fromIndex, toIndex) {
-    const rowOfMeta = this.hot.getCellMetaAtRow(fromIndex);
-
-    this.hot.spliceCellsMeta(fromIndex, 1);
-    this.hot.spliceCellsMeta(toIndex, 0, rowOfMeta);
-  }
-
-  /**
-   * Translate the row index according to the `TrimRows` plugin.
+   * Translate the visual row index to the physical index, taking into consideration the state of collapsed rows.
    *
    * @private
    * @param {number} row Row index.
@@ -660,6 +757,21 @@ class DataManager {
   translateTrimmedRow(row) {
     if (this.plugin.collapsingUI) {
       return this.plugin.collapsingUI.translateTrimmedRow(row);
+    }
+
+    return row;
+  }
+
+  /**
+   * Translate the physical row index to the visual index, taking into consideration the state of collapsed rows.
+   *
+   * @private
+   * @param {number} row Row index.
+   * @returns {number}
+   */
+  untranslateTrimmedRow(row) {
+    if (this.plugin.collapsingUI) {
+      return this.plugin.collapsingUI.untranslateTrimmedRow(row);
     }
 
     return row;

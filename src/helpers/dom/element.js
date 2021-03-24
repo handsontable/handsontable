@@ -5,6 +5,7 @@ import {
   isGetComputedStyleSupported,
 } from '../feature';
 import { isSafari, isIE9 } from '../browser';
+import { sanitize } from '../string';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -67,23 +68,29 @@ export function hasAccessToParentWindow(frame) {
 }
 
 /**
- * Goes up the DOM tree (including given element) until it finds an element that matches the nodes or nodes name.
+ * Goes up the DOM tree (including given element) until it finds an parent element that matches the nodes or nodes name.
  * This method goes up through web components.
  *
- * @param {HTMLElement} element Element from which traversing is started.
- * @param {Array} nodes Array of elements or Array of elements name.
- * @param {HTMLElement} [until] The element until the traversing ends.
- * @returns {HTMLElement|null}
+ * @param {Node} element Element from which traversing is started.
+ * @param {Array<string|Node>} [nodes] Array of elements or Array of elements name (in uppercase form).
+ * @param {Node} [until] The element until the traversing ends.
+ * @returns {Node|null}
  */
-export function closest(element, nodes, until) {
+export function closest(element, nodes = [], until) {
+  const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck = element;
 
-  while (elementToCheck !== null && elementToCheck !== until) {
-    if (elementToCheck.nodeType === Node.ELEMENT_NODE && (nodes.indexOf(elementToCheck.nodeName) > -1 || nodes.indexOf(elementToCheck) > -1)) {
+  while (elementToCheck !== null && elementToCheck !== void 0 && elementToCheck !== until) {
+    const { nodeType, nodeName } = elementToCheck;
+
+    if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
       return elementToCheck;
     }
-    if (elementToCheck.host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = elementToCheck.host;
+
+    const { host } = elementToCheck;
+
+    if (host && nodeType === DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = host;
 
     } else {
       elementToCheck = elementToCheck.parentNode;
@@ -202,20 +209,11 @@ let _removeClass;
  * @returns {string[]}
  */
 function filterEmptyClassNames(classNames) {
-  const result = [];
-
   if (!classNames || !classNames.length) {
-    return result;
+    return [];
   }
 
-  let len = 0;
-
-  while (classNames[len]) {
-    result.push(classNames[len]);
-    len += 1;
-  }
-
-  return result;
+  return classNames.filter(x => !!x);
 }
 
 if (isClassListSupported()) {
@@ -261,6 +259,7 @@ if (isClassListSupported()) {
   };
 
   _removeClass = function(element, classes) {
+    const rootDocument = element.ownerDocument;
     let className = classes;
 
     if (typeof className === 'string') {
@@ -270,7 +269,7 @@ if (isClassListSupported()) {
     className = filterEmptyClassNames(className);
 
     if (className.length > 0) {
-      if (isSupportMultipleClassesArg) {
+      if (isSupportMultipleClassesArg(rootDocument)) {
         element.classList.remove(...className);
 
       } else {
@@ -295,24 +294,26 @@ if (isClassListSupported()) {
   };
 
   _addClass = function(element, classes) {
-    let len = 0;
     let _className = element.className;
     let className = classes;
 
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
+
     if (_className === '') {
       _className = className.join(' ');
 
     } else {
-      while (className && className[len]) {
-        if (!createClassNameRegExp(className[len]).test(_className)) {
+      for (let len = 0; len < className.length; len++) {
+        if (className[len] && !createClassNameRegExp(className[len]).test(_className)) {
           _className += ` ${className[len]}`;
         }
-        len += 1;
       }
     }
+
     element.className = _className;
   };
 
@@ -324,6 +325,9 @@ if (isClassListSupported()) {
     if (typeof className === 'string') {
       className = className.split(' ');
     }
+
+    className = filterEmptyClassNames(className);
+
     while (className && className[len]) {
       // String.prototype.trim is defined in polyfill.js
       _className = _className.replace(createClassNameRegExp(className[len]), ' ').trim();
@@ -404,10 +408,11 @@ export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
+ * @param {boolean} [sanitizeContent=true] If `true`, the content will be sanitized before writing to the element.
  */
-export function fastInnerHTML(element, content) {
+export function fastInnerHTML(element, content, sanitizeContent = true) {
   if (HTML_CHARACTERS.test(content)) {
-    element.innerHTML = content;
+    element.innerHTML = sanitizeContent ? sanitize(content) : content;
   } else {
     fastInnerText(element, content);
   }
@@ -670,7 +675,9 @@ export function getTrimmingContainer(base) {
     const propertyY = computedStyle.getPropertyValue('overflow-y');
     const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-    if (allowedProperties.includes(property) || allowedProperties.includes(propertyY) || allowedProperties.includes(propertyX)) {
+    if (allowedProperties.includes(property) ||
+        allowedProperties.includes(propertyY) ||
+        allowedProperties.includes(propertyX)) {
       return el;
     }
 
@@ -759,7 +766,7 @@ export function getComputedStyle(element, rootWindow = window) {
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
-  return element.offsetWidth;
+  return Math.ceil(element.getBoundingClientRect().width);
 }
 
 /**
@@ -1106,4 +1113,14 @@ export function selectElementIfAllowed(element) {
   if (!isOutsideInput(activeElement)) {
     element.select();
   }
+}
+
+/**
+ * Check if the provided element is detached from DOM.
+ *
+ * @param {HTMLElement} element HTML element to be checked.
+ * @returns {boolean} `true` if the element is detached, `false` otherwise.
+ */
+export function isDetached(element) {
+  return !element.parentNode;
 }

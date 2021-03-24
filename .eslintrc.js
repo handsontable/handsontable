@@ -4,6 +4,7 @@ module.exports = {
   "plugins": [
     "babel",
     "jsdoc",
+    "handsontable",
   ],
   "env": {
     "browser": true,
@@ -24,6 +25,7 @@ module.exports = {
     "consistent-return": "off",
     "func-names": "off",
     "import/no-extraneous-dependencies": "off",
+    "import/prefer-default-export": "off",
     "indent": [
       "error",
       2,
@@ -36,8 +38,9 @@ module.exports = {
     "max-len": [
       "error",
       {
-        "code": 170,
-        "ignoreComments": true
+        "code": 120,
+        "ignoreComments": true,
+        "ignorePattern": "^\\s*x?it\\s*\\(", // Ignore long test names (e.q: `it("something long")`).
       }
     ],
     "newline-per-chained-call": "off",
@@ -66,7 +69,7 @@ module.exports = {
       "document",
       {
         "name": "console",
-        "message": "Using the `console` object is not allowed within Handsontable. Please use one of the helpers from the `console.js` file instead."
+        "message": "Using the `console` object is not allowed within Handsontable. Please use one of the helpers from the `src/helpers/console.js` file instead."
       }
     ],
     "no-underscore-dangle": "off",
@@ -81,52 +84,83 @@ module.exports = {
     "padded-blocks": "off",
     "quotes": [ "error", "single" ],
     "space-before-function-paren": ["error", "never"],
-    'jsdoc/check-access': 'error',
-    'jsdoc/check-alignment': 'error',
-    'jsdoc/check-examples': 'off',
-    'jsdoc/check-indentation': 'off',
-    'jsdoc/check-param-names': 'error',
-    'jsdoc/check-property-names': 'error',
-    'jsdoc/check-syntax': 'error',
-    'jsdoc/check-tag-names': [
+    "jsdoc/check-access": "error",
+    "jsdoc/check-alignment": "error",
+    "jsdoc/check-examples": "off",
+    "jsdoc/check-indentation": "off",
+    "jsdoc/check-param-names": "error",
+    "jsdoc/check-property-names": "error",
+    "jsdoc/check-syntax": "error",
+    "jsdoc/check-tag-names": [
       "error",
       {
         "definedTags": ["plugin", "util", "experimental", "deprecated", "preserve", "core", "TODO"]
       }
     ],
-    'jsdoc/check-types': 'error',
-    'jsdoc/check-values': 'error',
-    'jsdoc/empty-tags': 'error',
-    'jsdoc/implements-on-classes': 'error',
-    'jsdoc/match-description': 'off',
-    'jsdoc/newline-after-description': 'error',
-    'jsdoc/no-bad-blocks': 'off',
-    'jsdoc/no-defaults': 'off',
-    'jsdoc/no-types': 'off',
-    'jsdoc/no-undefined-types': 'off',
-    'jsdoc/require-description-complete-sentence': 'error',
-    'jsdoc/require-description': 'off',
-    'jsdoc/require-example': 'off',
-    'jsdoc/require-file-overview': 'off',
-    'jsdoc/require-hyphen-before-param-description': 'off',
-    'jsdoc/require-jsdoc': 'error',
-    'jsdoc/require-param-description': 'error',
-    'jsdoc/require-param-name': 'error',
-    'jsdoc/require-param-type': 'error',
-    'jsdoc/require-param': 'error',
-    'jsdoc/require-property-description': 'error',
-    'jsdoc/require-property-name': 'error',
-    'jsdoc/require-property-type': 'error',
-    'jsdoc/require-property': 'error',
-    'jsdoc/require-returns-check': 'error',
-    'jsdoc/require-returns-description': 'off',
-    'jsdoc/require-returns-type': 'error',
-    'jsdoc/require-returns': 'error',
-    'jsdoc/valid-types': 'error',
+    "jsdoc/check-types": "error",
+    "jsdoc/check-values": "error",
+    "jsdoc/empty-tags": "error",
+    "jsdoc/implements-on-classes": "error",
+    "jsdoc/match-description": "off",
+    "jsdoc/newline-after-description": "error",
+    "jsdoc/no-bad-blocks": "off",
+    "jsdoc/no-defaults": "off",
+    "jsdoc/no-types": "off",
+    "jsdoc/no-undefined-types": "off",
+    "jsdoc/require-description-complete-sentence": "error",
+    "jsdoc/require-description": "off",
+    "jsdoc/require-example": "off",
+    "jsdoc/require-file-overview": "off",
+    "jsdoc/require-hyphen-before-param-description": "off",
+    "jsdoc/require-jsdoc": "error",
+    "jsdoc/require-param-description": "error",
+    "jsdoc/require-param-name": "error",
+    "jsdoc/require-param-type": "error",
+    "jsdoc/require-param": "error",
+    "jsdoc/require-property-description": "error",
+    "jsdoc/require-property-name": "error",
+    "jsdoc/require-property-type": "error",
+    "jsdoc/require-property": "error",
+    "jsdoc/require-returns-check": "error",
+    "jsdoc/require-returns-description": "off",
+    "jsdoc/require-returns-type": "error",
+    "jsdoc/require-returns": "error",
+    "jsdoc/valid-types": "error",
+    "handsontable/restricted-module-imports": [
+      "error",
+      "**/cellTypes",
+      "**/cellTypes/?(index)",
+      "**/editors",
+      "**/editors/?(index)",
+      "**/i18n",
+      "**/i18n/?(index)",
+      "**/plugins",
+      "**/plugins/?(index)",
+      "**/renderers",
+      "**/renderers/?(index)",
+      "**/validators",
+      "**/validators/?(index)",
+    ],
+    // TODO: To be reviewed:
+    'operator-linebreak': 'off',
+    'object-curly-newline': 'off',
+    'prefer-destructuring': 'off',
+    'implicit-arrow-linebreak': 'off',
+    'function-paren-newline': 'off',
+    'max-classes-per-file': 'off',
+    'import/no-useless-path-segments': 'off',
+    'lines-between-class-members': 'off',
+    'semi-style': 'off',
+    'no-else-return': 'off',
+    'import/no-cycle': 'off',
+    'no-lone-blocks': 'off',
+    'getter-return': 'off',
+    'switch-colon-spacing': 'off',
+    'operator-assignment': 'off',
   },
   "overrides": [
     {
-      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.e2e.js", "src/plugins/**/test/helpers/**"],
+      "files": ["test/**", "src/3rdparty/walkontable/test/**", "*.unit.js", "*.spec.js", "src/plugins/**/__tests__/helpers/**"],
       "rules": {
         "import/extensions": "off",
         "import/no-unresolved": [
@@ -135,10 +169,11 @@ module.exports = {
         ],
         "no-restricted-globals": "off",
         "no-undef": "off",
+        "handsontable/restricted-module-imports": "off",
       }
     },
     {
-      "files": ["*.unit.js", "*.e2e.js", "*.spec.js"],
+      "files": ["*.unit.js", "*.spec.js"],
       "rules": {
         "no-restricted-globals": "off",
         "no-undef": "off",
@@ -147,7 +182,23 @@ module.exports = {
         "jsdoc/require-param-description": "off",
         "jsdoc/require-param-type": "off",
         "jsdoc/require-returns": "off",
+        "handsontable/restricted-module-imports": "off",
       }
-    }
+    },
+    {
+      "files": ["scripts/**"],
+      "rules": {
+        "no-restricted-globals": "off",
+        "import/extensions": "off",
+        "no-console": "off",
+        "no-await-in-loop": "off",
+        "no-restricted-syntax": [
+          'error',
+          'ForInStatement',
+          'LabeledStatement',
+          'WithStatement',
+        ]
+      }
+    },
   ],
 }

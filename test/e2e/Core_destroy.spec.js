@@ -52,7 +52,8 @@ describe('Core_destroy', () => {
 
     expect(() => {
       hot.getDataAtCell(0, 0);
-    }).toThrowError('The "getDataAtCell" method cannot be called because this Handsontable instance has been destroyed');
+    }).toThrowError('The "getDataAtCell" method cannot be called because this ' +
+      'Handsontable instance has been destroyed');
     expect(() => {
       hot.listen();
     }).toThrowError('The "listen" method cannot be called because this Handsontable instance has been destroyed');
@@ -89,7 +90,7 @@ describe('Core_destroy', () => {
 
     destroy();
 
-    // There is at least one plugin registering map which can change cache by its own map.
+    // There is at least one plugin registering map which can update cache by change in its own map.
     expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
 
     // There is no plugin which can change cache by its own map.

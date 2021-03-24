@@ -208,6 +208,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeCreateRow',
 
@@ -577,6 +578,7 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired after cell data was changed.
+   * Called only when `setDataAtRowProp` was executed.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.
@@ -584,6 +586,16 @@ const REGISTERED_HOOKS = [
    *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
    */
   'afterSetDataAtRowProp',
+
+  /**
+   * Fired after cell source data was changed.
+   *
+   * @event Hooks#afterSetSourceDataAtCell
+   * @since 8.0.0
+   * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
+   * @param {string} [source] String that identifies source of hook call.
+   */
+  'afterSetSourceDataAtCell',
 
   /**
    * Fired after calling the `updateSettings` method.
@@ -598,7 +610,7 @@ const REGISTERED_HOOKS = [
    * A plugin hook executed after validator function, only if validator function is defined.
    * Validation result is the first parameter. This can be used to determinate if validation passed successfully or not.
    *
-   * __Returning false from the callback will mark the cell as invalid.__.
+   * __Returning false from the callback will mark the cell as invalid__.
    *
    * @event Hooks#afterValidate
    * @param {boolean} isValid `true` if valid, `false` if not.
@@ -607,6 +619,7 @@ const REGISTERED_HOOKS = [
    * @param {string|number} prop Property name / visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {void | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
    */
   'afterValidate',
 
@@ -636,8 +649,21 @@ const REGISTERED_HOOKS = [
    * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
    * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
    * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeAutofill',
+
+  /**
+   * Fired by {@link Autofill} plugin after populating the data in the autofill feature. This hook is fired when
+   * {@link Options#fillHandle} option is enabled.
+   *
+   * @event Hooks#afterAutofill
+   * @since 8.0.0
+   * @param {CellCoords} start Object containing information about first filled cell: `{row: 2, col: 0}`.
+   * @param {CellCoords} end Object containing information about last filled cell: `{row: 4, col: 1}`.
+   * @param {Array[]} data 2D array containing information about fill pattern: `[["1", "Ted"], ["1", "John"]]`.
+   */
+  'afterAutofill',
 
   /**
    * Fired before aligning the cell contents.
@@ -666,6 +692,7 @@ const REGISTERED_HOOKS = [
    * @param {Array[]} changes 2D array containing information about each of the edited cells.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {void | boolean} If `false` all changes were cancelled, `true` otherwise.
    * @example
    * ```js
    * // To disregard a single change, set changes[i] to null or remove it from array using changes.splice(i, 1).
@@ -730,6 +757,7 @@ const REGISTERED_HOOKS = [
    * @param {number} column Visual column index.
    * @param {string} key The removed meta key.
    * @param {*} value Value which is under removed key of cell meta.
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCellMeta',
 
@@ -752,6 +780,7 @@ const REGISTERED_HOOKS = [
    * Fired before new data is loaded (by `loadData` or `updateSettings` method) into the data source array.
    *
    * @event Hooks#beforeLoadData
+   * @since 8.0.0
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
@@ -831,6 +860,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of columns to be removed.
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveCol',
 
@@ -842,6 +872,7 @@ const REGISTERED_HOOKS = [
    * @param {number} amount Amount of rows to be removed.
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @param {string} [source] String that identifies source of hook call ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRemoveRow',
 
@@ -851,8 +882,22 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRender
    * @param {boolean} isForced If `true` rendering was triggered by a change of settings or data; or `false` if
    *                           rendering was triggered by scrolling or moving selection.
+   * @param {object} skipRender Object with `skipRender` property, if it is set to `true ` the next rendering cycle will be skipped.
    */
   'beforeRender',
+
+  /**
+   * Fired before cell meta is changed.
+   *
+   * @event Hooks#beforeSetCellMeta
+   * @since 8.0.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The updated meta key.
+   * @param {*} value The updated meta value.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  'beforeSetCellMeta',
 
   /**
    * Fired before setting range is started but not finished yet.
@@ -962,12 +1007,24 @@ const REGISTERED_HOOKS = [
    * Fired when a data was retrieved or modified.
    *
    * @event Hooks#modifyData
-   * @param {number} row Row height.
-   * @param {number} column Column index.
+   * @param {number} row Physical row height.
+   * @param {number} column Physical column index.
    * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   'modifyData',
+
+  /**
+   * Fired when a data was retrieved or modified from the source data set.
+   *
+   * @event Hooks#modifySourceData
+   * @since 8.0.0
+   * @param {number} row Physical row index.
+   * @param {number} column Physical column index.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
+  'modifySourceData',
 
   /**
    * Fired when a data was retrieved or modified.
@@ -978,7 +1035,8 @@ const REGISTERED_HOOKS = [
   'modifyRowData',
 
   /**
-   * Used to modify the cell coordinates when using the `getCell` method.
+   * Used to modify the cell coordinates when using the `getCell` method, opening editor, getting value from the editor
+   * and saving values from the closed editor.
    *
    * @event Hooks#modifyGetCellCoords
    * @since 0.36.0
@@ -1028,6 +1086,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeColumnSort
    * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
    * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
+   * @returns {boolean | void} If `false` the column will not be sorted, `true` otherwise.
    */
   'beforeColumnSort',
 
@@ -1192,8 +1251,11 @@ const REGISTERED_HOOKS = [
    * {@link Options#manualColumnMove} option is enabled.
    *
    * @event Hooks#beforeColumnMove
-   * @param {number[]} columns Array of visual column indexes to be moved.
-   * @param {number} target Visual column index being a target for moved columns.
+   * @param {Array} movedColumns Array of visual column indexes to be moved.
+   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+   * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
+   * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @returns {void | boolean} If `false` the column will not be moved, `true` otherwise.
    */
   'beforeColumnMove',
 
@@ -1202,8 +1264,11 @@ const REGISTERED_HOOKS = [
    * {@link Options#manualColumnMove} option is enabled.
    *
    * @event Hooks#afterColumnMove
-   * @param {number[]} columns Array of visual column indexes that were moved.
-   * @param {number} target Visual column index being a target for moved columns.
+   * @param {Array} movedColumns Array of visual column indexes to be moved.
+   * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+   * @param {number|undefined} dropIndex Visual column index, being a drop index for the moved columns. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragColumns` function wasn't called.
+   * @param {boolean} movePossible Indicates if it was possible to move columns to the desired position.
+   * @param {boolean} orderChanged Indicates if order of columns was changed by move.
    */
   'afterColumnMove',
 
@@ -1213,9 +1278,10 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#beforeRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove). It's `undefined` when `dragRows` function wasn't called.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it's possible to move rows to the desired position.
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRowMove',
 
@@ -1225,8 +1291,8 @@ const REGISTERED_HOOKS = [
    *
    * @event Hooks#afterRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
-   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/demo-moving.html#manualRowMove).
-   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/demo-moving.html#manualRowMove). It's `undefined` when `dragRows` function wasn't called.
+   * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action. To check visualization of final index please take a look at [documentation](/docs/demo-moving.html).
+   * @param {number|undefined} dropIndex Visual row index, being a drop index for the moved rows. Points to where we are going to drop the moved elements. To check visualization of drop index please take a look at [documentation](/docs/demo-moving.html). It's `undefined` when `dragRows` function wasn't called.
    * @param {boolean} movePossible Indicates if it was possible to move rows to the desired position.
    * @param {boolean} orderChanged Indicates if order of rows was changed by move.
    */
@@ -1304,6 +1370,7 @@ const REGISTERED_HOOKS = [
    */
   'beforeStretchingColumnWidth',
 
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin before applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
@@ -1328,11 +1395,14 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```.
+   * ```
    * @returns {boolean} If hook returns `false` value then filtering won't be applied on the UI side (server-side filtering).
    */
   'beforeFilter',
 
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+
+  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired by {@link Filters} plugin after applying [filtering]{@link https://handsontable.com/docs/demo-filtering.html}. This hook is fired when
    * {@link Options#filters} option is enabled.
@@ -1357,9 +1427,11 @@ const REGISTERED_HOOKS = [
    *     operation: 'conjunction'
    *   },
    * ]
-   * ```.
+   * ```
    */
   'afterFilter',
+
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Fired while retrieving the column header height.
@@ -1375,6 +1447,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeUndo
    * @param {object} action The action object. Contains information about the action being undone. The `actionType`
    *                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeUndo',
 
@@ -1395,6 +1468,7 @@ const REGISTERED_HOOKS = [
    * @event Hooks#beforeRedo
    * @param {object} action The action object. Contains information about the action being redone. The `actionType`
    *                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`).
+   * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeRedo',
 
@@ -1481,8 +1555,14 @@ const REGISTERED_HOOKS = [
 
   /**
    * Fired after initializing all the plugins.
+   * This hook should be added before Handsontable is initialized.
    *
    * @event Hooks#afterPluginsInitialized
+   *
+   * @example
+   * ```js
+   * Handsontable.hooks.add('afterPluginsInitialized', myCallback);
+   * ```
    */
   'afterPluginsInitialized',
 
@@ -1652,24 +1732,6 @@ const REGISTERED_HOOKS = [
   'afterDropdownMenuHide',
 
   /**
-   * Fired by {@link HiddenRows} plugin to check whether the provided row index is hidden. This hook is fired when
-   * {@link Options#hiddenRows} option is enabled.
-   *
-   * @event Hooks#hiddenRow
-   * @param {number} row The visual row index in question.
-   */
-  'hiddenRow',
-
-  /**
-   * Fired by {@link HiddenColumns} plugin to check whether the provided column index is hidden. This hook is fired when
-   * {@link Options#hiddenColumns} option is enabled.
-   *
-   * @event Hooks#hiddenColumn
-   * @param {number} column The visual column index in question.
-   */
-  'hiddenColumn',
-
-  /**
    * Fired by {@link NestedRows} plugin before adding a children to the NestedRows structure. This hook is fired when
    * {@link Options#nestedRows} option is enabled.
    *
@@ -1802,6 +1864,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnCollapse
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -1813,6 +1876,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns collapse. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#afterColumnCollapse
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} collapsePossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -1824,6 +1888,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#beforeColumnExpand
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -1835,6 +1900,7 @@ const REGISTERED_HOOKS = [
    * Fired by {@link CollapsibleColumns} plugin before columns expand. This hook is fired when {@link Options#collapsibleColumns} option is enabled.
    *
    * @event Hooks#afterColumnExpand
+   * @since 8.0.0
    * @param {Array} currentCollapsedColumns Current collapsible configuration - a list of collapsible physical column indexes.
    * @param {Array} destinationCollapsedColumns Destination collapsible configuration - a list of collapsible physical column indexes.
    * @param {boolean} expandPossible `true`, if all of the column indexes are withing the bounds of the collapsed sections, `false` otherwise.
@@ -1849,7 +1915,8 @@ const REGISTERED_HOOKS = [
  * @type {string}
  */
 const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in Handsontable [removedInVersion].\x20
-  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to learn about the migration path.`;
+  Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to\x20
+  learn about the migration path.`;
 
 /**
  * The list of the hooks which are removed from the API. The warning message is printed out in
@@ -1866,8 +1933,11 @@ const REMOVED_HOOKS = new Map([
   ['unmodifyRow', '8.0.0'],
   ['unmodifyCol', '8.0.0'],
   ['skipLengthCache', '8.0.0'],
+  ['hiddenColumn', '8.0.0'],
+  ['hiddenRow', '8.0.0'],
 ]);
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The list of the hooks which are deprecated. The warning message is printed out in
  * the developer console when the hook is used.
@@ -1876,17 +1946,18 @@ const REMOVED_HOOKS = new Map([
  * printed out when the hook is used.
  *
  * Usage:
- * ```.
+ * ```js
  * ...
  * New Map([
  *   ['beforeColumnExpand', 'The plugin hook "beforeColumnExpand" is deprecated. Use "beforeColumnExpand2" instead.'],
  * ])
  * ...
- * ```.
+ * ```
  *
  *
  * @type {Map<string, string>}
  */
+/* eslint-enable jsdoc/require-description-complete-sentence */
 const DEPRECATED_HOOKS = new Map([]);
 
 class Hooks {

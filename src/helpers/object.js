@@ -60,11 +60,16 @@ export function inherit(Child, Parent) {
  *
  * @param {object} target An object that will receive the new properties.
  * @param {object} extension An object containing additional properties to merge into the target.
+ * @param {string[]} [writableKeys] An array of keys that are writable to target object.
  * @returns {object}
  */
-export function extend(target, extension) {
+export function extend(target, extension, writableKeys) {
+  const hasWritableKeys = Array.isArray(writableKeys);
+
   objectEach(extension, (value, key) => {
-    target[key] = value;
+    if (hasWritableKeys === false || writableKeys.includes(key)) {
+      target[key] = value;
+    }
   });
 
   return target;
@@ -271,6 +276,31 @@ export function getProperty(object, name) {
 }
 
 /**
+ * Set a property value on the provided object. Works on nested object prop names as well (e.g. `first.name`).
+ *
+ * @param {object} object Object to work on.
+ * @param {string} name Prop name.
+ * @param {*} value Value to be assigned at the provided property.
+ */
+export function setProperty(object, name, value) {
+  const names = name.split('.');
+  let workingObject = object;
+
+  names.forEach((propName, index) => {
+    if (index !== names.length - 1) {
+      if (!hasOwnProperty(workingObject, propName)) {
+        workingObject[propName] = {};
+      }
+
+      workingObject = workingObject[propName];
+
+    } else {
+      workingObject[propName] = value;
+    }
+  });
+}
+
+/**
  * Return object length (recursively).
  *
  * @param {*} object Object for which we want get length.
@@ -280,12 +310,17 @@ export function deepObjectSize(object) {
   if (!isObject(object)) {
     return 0;
   }
+
   const recursObjLen = function(obj) {
     let result = 0;
 
     if (isObject(obj)) {
-      objectEach(obj, (key) => {
-        result += recursObjLen(key);
+      objectEach(obj, (value, key) => {
+        if (key === '__children') {
+          return;
+        }
+
+        result += recursObjLen(value);
       });
     } else {
       result += 1;

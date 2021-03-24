@@ -152,13 +152,6 @@ beforeEach(function() {
 
           result.message = `Expected ${actualHTML} NOT to be ${expectedHTML}`;
 
-          if (typeof jest === 'object') {
-            /* eslint-disable global-require */
-            const jestMatcherUtils = require('jest-matcher-utils');
-
-            result.message = () => jestMatcherUtils.diff(expectedHTML, actualHTML);
-          }
-
           return result;
         }
       };
@@ -167,10 +160,12 @@ beforeEach(function() {
       return {
         compare(actual, expected, diff = 1) {
           const pass = actual >= expected - diff && actual <= expected + diff;
-          let message = `Expected ${actual} to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+          let message = `Expected ${actual} to be around ${expected}
+ (between ${expected - diff} and ${expected + diff})`;
 
           if (!pass) {
-            message = `Expected ${actual} NOT to be around ${expected} (between ${expected - diff} and ${expected + diff})`;
+            message = `Expected ${actual} NOT to be around ${expected}
+ (between ${expected - diff} and ${expected + diff})`;
           }
 
           return {
@@ -416,6 +411,7 @@ export function getScrollbarWidth() {
  */
 export function expectWtTable(wt, callb, name) {
   const callbAsString = callb.toString().replace(/\s\s+/g, ' ');
+
   if (name === 'master') {
     return expect(callb(wt.wtTable)).withContext(`${name}: ${callbAsString}`);
   }

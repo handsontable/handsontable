@@ -19,7 +19,7 @@ class ViewportRowsCalculator {
   }
 
   /**
-   * @param {object} options Object with all options specyfied for row viewport calculation.
+   * @param {object} options Object with all options specified for row viewport calculation.
    * @param {number} options.viewportHeight Height of the viewport.
    * @param {number} options.scrollOffset Current vertical scroll position of the viewport.
    * @param {number} options.totalRows Total number of rows.
@@ -107,7 +107,7 @@ class ViewportRowsCalculator {
         this.startRow = i;
       }
 
-      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= scrollOffset + viewportHeight - horizontalScrollbarHeight) {
+      if (sum >= scrollOffset && sum + (calculationType === FULLY_VISIBLE_TYPE ? rowHeight : 0) <= scrollOffset + viewportHeight - horizontalScrollbarHeight) { // eslint-disable-line max-len
         if (this.startRow === null) {
           this.startRow = i;
         }

@@ -28,8 +28,8 @@
  * INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
- * Version: 7.2.2
- * Release date: 23/10/2019 (built at 07/11/2019 19:18:08)
+ * Version: 8.3.2
+ * Release date: 16/03/2021 (built at 11/03/2021 13:43:12)
  */
 /**
  * Fix for bootstrap styles
@@ -78,7 +78,7 @@
 .handsontable .table > thead > tr > td,
 .handsontable .table > thead > tr > th {
   line-height: 21px;
-  padding: 0 4px;
+  padding: 0;
 }
 
 .col-lg-1.handsontable, .col-lg-10.handsontable, .col-lg-11.handsontable, .col-lg-12.handsontable,
@@ -182,9 +182,7 @@
   vertical-align: top;
   overflow: hidden;
   outline-width: 0;
-  white-space: pre-line;
-  /* preserve new line character in cell */
-  background-clip: padding-box;
+  white-space: pre-wrap;
 }
 
 .handsontable th:last-child {
@@ -213,10 +211,14 @@
   border-right-width: 0;
 }
 
-.ht_master:not(.innerBorderTop) thead tr:last-child th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr:last-child th,
-.ht_master:not(.innerBorderTop) thead tr.lastChild th,
-.ht_master:not(.innerBorderTop) ~ .handsontable thead tr.lastChild th {
+/*
+innerBorderTop - Property controlled by top overlay
+innerBorderBottom - Property controlled by bottom overlay
+ */
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr:last-child th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) thead tr.lastChild th,
+.ht_master:not(.innerBorderTop):not(.innerBorderBottom) ~ .handsontable thead tr.lastChild th {
   border-bottom-width: 0;
 }
 
@@ -349,6 +351,10 @@
 .ht_clone_left .wtHolder,
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
+}
+
+.handsontable {
+  touch-action: manipulation;
 }
 
 .handsontable.htAutoSize {
@@ -576,17 +582,24 @@
   /*overwrite styles potentionally made by a framework*/
 }
 
+.handsontableInput:focus {
+  outline: none;
+}
+
 .handsontableInputHolder {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 104;
 }
 
 .htSelectEditor {
   -webkit-appearance: menulist-button !important;
   position: absolute;
   width: auto;
+}
+
+.htSelectEditor:focus {
+  outline: none;
 }
 
 /*
@@ -645,63 +658,6 @@ TextRenderer placeholder value
 .handsontable .htPlaceholder {
   color: #999;
 }
-
-/*
-AutocompleteRenderer down arrow
-*/
-
-.handsontable .htAutocompleteArrow {
-  float: right;
-  font-size: 10px;
-  color: #EEE;
-  cursor: default;
-  width: 16px;
-  text-align: center;
-}
-
-.handsontable td .htAutocompleteArrow:hover {
-  color: #777;
-}
-
-.handsontable td.area .htAutocompleteArrow {
-  color: #d3d3d3;
-}
-
-/*
-CheckboxRenderer
-*/
-.handsontable .htCheckboxRendererInput {
-  display: inline-block;
-}
-.handsontable .htCheckboxRendererInput.noValue {
-  opacity: 0.5;
-}
-.handsontable .htCheckboxRendererLabel {
-  font-size: inherit;
-  vertical-align: middle;
-  cursor: pointer;
-  display: inline-block;
-  width: 100%;
-}
-
-/**
- * Handsontable in Handsontable
- */
-
-.handsontable .handsontable.ht_clone_top .wtHider {
-  padding: 0 0 5px 0;
-}
-
-/**
-* Autocomplete Editor
-*/
-.handsontable .autocompleteEditor.handsontable {
-  padding-right: 17px;
-}
-.handsontable .autocompleteEditor.handsontable.htMacScroll {
-  padding-right: 15px;
-}
-
 
 /**
  * Handsontable listbox theme
@@ -994,6 +950,44 @@ CheckboxRenderer
   -webkit-animation-fill-mode: forwards;
 }
 
+/*
+AutocompleteRenderer down arrow
+*/
+
+.handsontable .htAutocompleteArrow {
+  float: right;
+  font-size: 10px;
+  color: #EEE;
+  cursor: default;
+  width: 16px;
+  text-align: center;
+}
+
+.handsontable td .htAutocompleteArrow:hover {
+  color: #777;
+}
+
+.handsontable td.area .htAutocompleteArrow {
+  color: #d3d3d3;
+}
+
+/*
+CheckboxRenderer
+*/
+.handsontable .htCheckboxRendererInput {
+  display: inline-block;
+}
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 0.5;
+}
+.handsontable .htCheckboxRendererLabel {
+  font-size: inherit;
+  vertical-align: middle;
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+}
+
 .htCommentCell {
   position: relative;
 }
@@ -1050,7 +1044,7 @@ CheckboxRenderer
   display: none;
 }
 
-.htContextMenu table.htCore {
+.htContextMenu .ht_master table.htCore {
   border: 1px solid #ccc;
   border-bottom-width: 2px;
   border-right-width: 2px;
@@ -1715,33 +1709,6 @@ textarea.HandsontableCopyPaste {
   padding-bottom: 5px;
 }
 
-.handsontable.ganttChart tr:first-child th div.relative {
-  padding-right: 21px;
-}
-.handsontable.ganttChart .colHeader {
-  display: block;
-}
-.handsontable.ganttChart td.rangeBar {
-  background: #48b703;
-  border-right-width: 0;
-  position: relative;
-  -webkit-box-shadow: inset 0 3px 0 #ffffff;
-  -moz-box-shadow: inset 0 3px 0 #ffffff;
-  box-shadow: inset 0 3px 0 #ffffff;
-}
-.handsontable.ganttChart td.rangeBar.last {
-  border-right-width: 1px;
-}
-.handsontable.ganttChart td.rangeBar.area {
-  background: #7EC481;
-}
-.handsontable.ganttChart td.rangeBar.partial {
-  background: #8edf5a;
-}
-.handsontable.ganttChart td.rangeBar.area.partial {
-  background: #A1D8AD;
-}
-
 .handsontable thead th.hiddenHeader:not(:first-of-type) {
   display: none;
 }
@@ -1828,11 +1795,6 @@ textarea.HandsontableCopyPaste {
 .handsontable th.afterHiddenColumn::before {
   left: 1px;
   content: '\25B6';
-}
-
-.handsontable td.firstVisibleColumn,
-.handsontable th.firstVisibleColumn {
-  border-left: 1px solid #CCC;
 }
 
 /*!

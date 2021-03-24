@@ -16,9 +16,11 @@ const SELECTED_AT_START_ELEMENT_INDEX = 0;
  */
 class OperatorsComponent extends BaseComponent {
   constructor(hotInstance, options) {
-    super(hotInstance);
+    super(hotInstance, {
+      id: options.id,
+      stateless: false,
+    });
 
-    this.id = options.id;
     this.name = options.name;
 
     this.buildOperatorsElement();
@@ -140,7 +142,7 @@ class OperatorsComponent extends BaseComponent {
       selectedOperationId = OPERATION_OR;
     }
 
-    this.setCachedState(column, selectedOperationId);
+    this.state.setValueAtIndex(column, selectedOperationId);
   }
 
   /**

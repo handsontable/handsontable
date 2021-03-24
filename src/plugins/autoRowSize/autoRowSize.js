@@ -1,20 +1,22 @@
-import BasePlugin from './../_base';
-import { arrayEach, arrayFilter } from './../../helpers/array';
-import { cancelAnimationFrame, requestAnimationFrame } from './../../helpers/feature';
-import { isVisible } from './../../helpers/dom/element';
-import GhostTable from './../../utils/ghostTable';
-import { isObject, hasOwnProperty } from './../../helpers/object';
-import { valueAccordingPercent, rangeEach } from './../../helpers/number';
-import { registerPlugin } from './../../plugins';
-import SamplesGenerator from './../../utils/samplesGenerator';
-import { isPercentValue } from './../../helpers/string';
-import { PhysicalIndexToValueMap as IndexToValueMap } from './../../translations';
+import { BasePlugin } from '../base';
+import { arrayEach, arrayFilter } from '../../helpers/array';
+import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
+import { isVisible } from '../../helpers/dom/element';
+import GhostTable from '../../utils/ghostTable';
+import { isObject, hasOwnProperty } from '../../helpers/object';
+import { valueAccordingPercent, rangeEach } from '../../helpers/number';
+import SamplesGenerator from '../../utils/samplesGenerator';
+import { isPercentValue } from '../../helpers/string';
+import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
+export const PLUGIN_KEY = 'autoRowSize';
+export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoRowSize
- *
+ * @class AutoRowSize
  * @description
  * This plugin allows to set row heights based on their highest cells.
  *
@@ -37,7 +39,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * // allow sample duplication
  * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
- * ```.
+ * ```
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
@@ -48,7 +50,7 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * ```js
  * const hot = new Handsontable(document.getElementById('example'), {
- *   date: getData(),
+ *   data: getData(),
  *   autoRowSize: true
  * });
  * // Access to plugin instance:
@@ -61,7 +63,16 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  * }
  * ```
  */
-class AutoRowSize extends BasePlugin {
+/* eslint-enable jsdoc/require-description-complete-sentence */
+export class AutoRowSize extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   static get CALCULATION_STEP() {
     return 50;
   }
@@ -130,12 +141,18 @@ class AutoRowSize extends BasePlugin {
      * @type {number}
      */
     this.measuredRows = 0;
-
-    // moved to constructor to allow auto-sizing the rows when the plugin is disabled
-    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
-
+    /**
+     * PhysicalIndexToValueMap to keep and track heights for physical row indexes.
+     *
+     * @private
+     * @type {PhysicalIndexToValueMap}
+     */
     this.rowHeightsMap = new IndexToValueMap();
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+
+    // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
+    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
   }
 
   /**
@@ -145,7 +162,9 @@ class AutoRowSize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().autoRowSize === true || isObject(this.hot.getSettings().autoRowSize);
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return settings === true || isObject(settings);
   }
 
   /**
@@ -175,6 +194,10 @@ class AutoRowSize extends BasePlugin {
     this.headerHeight = null;
 
     super.disablePlugin();
+
+    // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
+    // This is necesseary for height recalculation for resize handler doubleclick (ManualRowResize).
+    this.addHook('beforeRowResize', (size, row, isDblClick) => this.onBeforeRowResize(size, row, isDblClick));
   }
 
   /**
@@ -184,7 +207,7 @@ class AutoRowSize extends BasePlugin {
    * @param {number|object} colRange Column index or an object with `from` and `to` indexes as a range.
    * @param {boolean} [force=false] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateRowsHeight(rowRange = { from: 0, to: this.hot.countRows() - 1 }, colRange = { from: 0, to: this.hot.countCols() - 1 }, force = false) {
+  calculateRowsHeight(rowRange = { from: 0, to: this.hot.countRows() - 1 }, colRange = { from: 0, to: this.hot.countCols() - 1 }, force = false) { // eslint-disable-line max-len
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
 
@@ -205,7 +228,7 @@ class AutoRowSize extends BasePlugin {
     });
 
     if (this.ghostTable.rows.length) {
-      this.hot.executeBatchOperations(() => {
+      this.hot.batchExecution(() => {
         this.ghostTable.getHeights((row, height) => {
           if (row < 0) {
             this.headerHeight = height;
@@ -213,7 +236,7 @@ class AutoRowSize extends BasePlugin {
             this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
           }
         });
-      });
+      }, true);
 
       this.measuredRows = rowsRange.to + 1;
 
@@ -223,7 +246,7 @@ class AutoRowSize extends BasePlugin {
 
   /**
    * Calculate all rows heights. The calculated row will be cached in the {@link AutoRowSize#heights} property.
-   * To retrieve height for specyfied row use {@link AutoRowSize#getRowHeight} method.
+   * To retrieve height for specified row use {@link AutoRowSize#getRowHeight} method.
    *
    * @param {object|number} colRange Row index or an object with `from` and `to` properties which define row range.
    */
@@ -242,7 +265,10 @@ class AutoRowSize extends BasePlugin {
 
         return;
       }
-      this.calculateRowsHeight({ from: current, to: Math.min(current + AutoRowSize.CALCULATION_STEP, length) }, colRange);
+      this.calculateRowsHeight({
+        from: current,
+        to: Math.min(current + AutoRowSize.CALCULATION_STEP, length)
+      }, colRange);
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
@@ -252,7 +278,7 @@ class AutoRowSize extends BasePlugin {
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
-        this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+        this.hot.view.adjustElementsSize(true);
         // tmp
         if (this.hot.view.wt.wtOverlays.leftOverlay.needFullRender) {
           this.hot.view.wt.wtOverlays.leftOverlay.clone.draw();
@@ -273,7 +299,7 @@ class AutoRowSize extends BasePlugin {
       loop();
     } else {
       this.inProgress = false;
-      this.hot.view.wt.wtOverlays.adjustElementsSize(false);
+      this.hot.view.adjustElementsSize(false);
     }
   }
 
@@ -283,9 +309,11 @@ class AutoRowSize extends BasePlugin {
    * @private
    */
   setSamplingOptions() {
-    const setting = this.hot.getSettings().autoRowSize;
-    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ? this.hot.getSettings().autoRowSize.samplingRatio : void 0;
-    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ? this.hot.getSettings().autoRowSize.allowSampleDuplicates : void 0;
+    const setting = this.hot.getSettings()[PLUGIN_KEY];
+    const samplingRatio = setting && hasOwnProperty(setting, 'samplingRatio') ?
+      setting.samplingRatio : void 0;
+    const allowSampleDuplicates = setting && hasOwnProperty(setting, 'allowSampleDuplicates') ?
+      setting.allowSampleDuplicates : void 0;
 
     if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio, 10));
@@ -313,12 +341,13 @@ class AutoRowSize extends BasePlugin {
    * @returns {number}
    */
   getSyncCalculationLimit() {
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
     /* eslint-disable no-bitwise */
     let limit = AutoRowSize.SYNC_CALCULATION_LIMIT;
     const rowsLimit = this.hot.countRows() - 1;
 
-    if (isObject(this.hot.getSettings().autoRowSize)) {
-      limit = this.hot.getSettings().autoRowSize.syncLimit;
+    if (isObject(settings)) {
+      limit = settings.syncLimit;
 
       if (isPercentValue(limit)) {
         limit = valueAccordingPercent(rowsLimit, limit);
@@ -410,11 +439,11 @@ class AutoRowSize extends BasePlugin {
   clearCacheByRange(range) {
     const { from, to } = typeof range === 'number' ? { from: range, to: range } : range;
 
-    this.hot.executeBatchOperations(() => {
+    this.hot.batchExecution(() => {
       rangeEach(Math.min(from, to), Math.max(from, to), (row) => {
         this.rowHeightsMap.setValueAtIndex(row, null);
       });
-    });
+    }, true);
   }
 
   /**
@@ -536,7 +565,3 @@ class AutoRowSize extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('autoRowSize', AutoRowSize);
-
-export default AutoRowSize;

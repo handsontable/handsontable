@@ -3,6 +3,7 @@ import { clone, extend } from '../../../helpers/object';
 import { arrayFilter, arrayMap, arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import { partial } from '../../../helpers/function';
+import { dataRowToChangesArray } from '../../../helpers/data';
 import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import BaseUI from './_base';
@@ -156,6 +157,7 @@ class MultipleSelectUI extends BaseUI {
         beforeRenderer: (TD, row, col, prop, value, cellProperties) => {
           TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
         },
+        maxCols: 1,
         autoWrapCol: true,
         height: 110,
         // Workaround for #151.
@@ -277,11 +279,16 @@ class MultipleSelectUI extends BaseUI {
    * @param {DOMEvent} event The mouse event object.
    */
   onSelectAllClick(event) {
+    const changes = [];
+
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row) => {
+    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = true;
+
+      changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
-    this.itemsBox.render();
+
+    this.itemsBox.setSourceDataAtCell(changes);
   }
 
   /**
@@ -291,11 +298,16 @@ class MultipleSelectUI extends BaseUI {
    * @param {DOMEvent} event The mouse event object.
    */
   onClearAllClick(event) {
+    const changes = [];
+
     event.preventDefault();
-    arrayEach(this.itemsBox.getSourceData(), (row) => {
+    arrayEach(this.itemsBox.getSourceData(), (row, rowIndex) => {
       row.checked = false;
+
+      changes.push(dataRowToChangesArray(row, rowIndex)[0]);
     });
-    this.itemsBox.render();
+
+    this.itemsBox.setSourceDataAtCell(changes);
   }
 }
 

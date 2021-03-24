@@ -1,0 +1,1 @@
+export { autoResize } from './autoResize';

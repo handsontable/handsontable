@@ -4,10 +4,11 @@ const allowedE2EModules = [
   'jest-matcher-utils',
   'html-parse-stringify',
   'core-js/*',
-  'regenerator-runtime/runtime',
+  'regenerator-runtime/runtime*',
   '@babel/runtime/*',
   './htmlNormalize',
   './common',
+  './mouseEvents',
   './../bootstrap',
   './helpers/custom-matchers',
   './asciiTable',
@@ -57,17 +58,33 @@ module.exports = {
         ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
       ],
       ignore: [
-        'src/plugins/**/test/**'
+        '**/__tests__/**',
+        '**/test/**',
+        '**/dist/**',
       ]
     },
     // Environment for transpiling files to be compatible with ES Modules.
     es: {
       plugins: [
-        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }]
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }]
       ],
       ignore: [
-        'src/plugins/**/test/**'
-      ]
+        '**/__tests__/**',
+        '**/test/**',
+        '**/dist/**',
+      ],
+    },
+    // Environment for transpiling only legacy language files (e.q. import `languages/pl-PL`)
+    // which need to be compatible with ES Modules. That format, by default, automatically
+    // registers the language pack. It's not suitable to use with the modularized version of
+    // the Handsontable.
+    es_languages: {
+      plugins: [
+        ['babel-plugin-transform-require-ignore', { extensions: ['.css'] }],
+        ['./.config/plugin/babel/add-import-extension.js', { extension: 'mjs' }],
+        ['./.config/plugin/babel/add-language-registration.js'],
+      ],
     },
     // Environment for building E2E tests (UMD).
     commonjs_e2e: {
@@ -83,14 +100,10 @@ module.exports = {
           allowedModules: allowedE2EModules
         }]
       ],
-      ignore: [
-        'src/plugins/**/test/**'
-      ]
     },
   },
-
   ignore: [
     'src/3rdparty/walkontable/dist/',
-    'src/3rdparty/walkontable/test/dist/'
-  ]
+    'src/3rdparty/walkontable/test/dist/',
+  ],
 };

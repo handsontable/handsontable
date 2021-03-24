@@ -4,7 +4,7 @@ import { isObjectEqual } from '../../helpers/object';
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
- * @class
+ * @class Options
  * @description
  *
  * ## Constructor options.
@@ -46,7 +46,7 @@ import { isObjectEqual } from '../../helpers/object';
  *     return cellProperties;
  *   }
  * });
- * ```.
+ * ```
  *
  * The above notation will result in all TDs being *read only*, except for first column TDs which will be *editable*, except for the TD in top left corner which will still be *read only*.
  *
@@ -94,7 +94,7 @@ export default () => {
     /**
      * @description
      * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
-     * Can be declared as an array of arrays, array of objects or a function.
+     * Can be declared as an array of arrays or an array of objects.
      *
      * See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
      *
@@ -287,8 +287,14 @@ export default () => {
      * (if you want to define column width separately for each column) or a function (if you want to set column width
      * dynamically on each render).
      *
+     * The default width for columns in the rendering process equals 50px.
+     *
+     * An `undefined` value is for detection in {@link Hooks#modifyColWidth} hook if plugin or setting changed the default size.
+     *
+     * Note: This option will forcely disable {@link AutoColumnSize} plugin.
+     *
      * @memberof Options#
-     * @type {number|number[]|string|string[]|Function}
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      *
      * @example
@@ -299,8 +305,8 @@ export default () => {
      * // as a string, for each column.
      * colWidths: '100px',
      *
-     * // as an array, based on visual indexes. The rest of the columns have a default width.
-     * colWidths: [100, 120, 90],
+     * // as an array, based on visual indexes. Unspecified columns have a default width.
+     * colWidths: [100, 120, undefined, 90],
      *
      * // as a function, based on visual indexes.
      * colWidths: function(index) {
@@ -318,10 +324,13 @@ export default () => {
      * If the {@link ManualRowResize} or {@link AutoRowSize} plugins are enabled, this is also the minimum height that can
      * be set via either of those two plugins.
      *
+     * The default height for rows in the rendering process equals 23px.
      * Height should be equal or greater than 23px. Table is rendered incorrectly if height is less than 23px.
      *
+     * An `undefined` value is for detection in {@link Hooks#modifyRowHeight} hook if plugin or setting changed the default size.
+     *
      * @memberof Options#
-     * @type {number|number[]|string|string[]|Function}
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
      *
      * @example
@@ -394,8 +403,8 @@ export default () => {
      * operations based on the __visual__ representation of Handsontable.
      *
      * Possible values of `prop`:
-     * - property name for column's data source object, when dataset is an [array of objects](/tutorial-data-sources.html#page-object)
-     * - the same number as `col`, when dataset is an [array of arrays](/tutorial-data-sources.html#page-array).
+     * - property name for column's data source object, when dataset is an [array of objects](https://handsontable.com/docs/tutorial-data-sources.html#page-object)
+     * - the same number as `col`, when dataset is an [array of arrays](https://handsontable.com/docs/tutorial-data-sources.html#page-array).
      *
      * @memberof Options#
      * @type {Function}
@@ -404,7 +413,7 @@ export default () => {
      * @example
      * ```js
      * cells: function(row, column, prop) {
-     *   const cellProperties = {};
+     *   const cellProperties = { readOnly: false };
      *   const visualRowIndex = this.instance.toVisualRow(row);
      *   const visualColIndex = this.instance.toVisualColumn(column);
      *
@@ -468,7 +477,7 @@ export default () => {
      * // or
      * // enable comments plugin and add predefined comments
      * const hot = new Handsontable(document.getElementById('example'), {
-     *   date: getData(),
+     *   data: getData(),
      *   comments: true,
      *   cell: [
      *     { row: 1, col: 1, comment: { value: 'Foo' } },
@@ -558,6 +567,8 @@ export default () => {
 
     /**
      * Minimum number of columns. At least that number of columns will be created during initialization.
+     * Works only with an array data source. When data source in an object, you can only have as many columns
+     * as defined in the first data row, data schema, or the `columns` setting.
      *
      * @memberof Options#
      * @type {number}
@@ -848,19 +859,19 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|Function}
-     * @default {row: 1, col: 0}
+     * @default {col: 0, row: 1}
      *
      * @example
      * ```js
      * // move selection diagonal by 1 cell in x and y axis
-     * enterMoves: {row: 1, col: 1},
+     * enterMoves: {col: 1, row: 1},
      * // or as a function
      * enterMoves: function(event) {
-     *   return {row: 1, col: 1};
+     *   return {col: 1, row: 1};
      * },
      * ```
      */
-    enterMoves: { row: 1, col: 0 },
+    enterMoves: { col: 0, row: 1 },
 
     /**
      * Defines the cursor movement after <kbd>TAB</kbd> is pressed (<kbd>SHIFT</kbd> + <kbd>TAB</kbd> uses a negative vector). Can
@@ -1018,7 +1029,10 @@ export default () => {
     activeHeaderClassName: 'ht__active_highlight',
 
     /**
-     * Class name for the Handsontable container element.
+     * Class name for the current element.
+     * The interpretation depends on the level on which this option is provided in the [cascading configuration](https://handsontable.com/docs/Options.html).
+     * If `className` is provided on the first (constructor) level, it is the applied to the Handsontable container.
+     * If `className` is provided on the second (`column`) or the third (`cell` or `cells`) level, it is applied to the table cell.
      *
      * @memberof Options#
      * @type {string|string[]}
@@ -1026,10 +1040,10 @@ export default () => {
      *
      * @example
      * ```js
-     * // set custom class for table container
+     * // can be set as a string
      * className: 'your__class--name',
      *
-     * // or
+     * // or as an array of strings
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
@@ -1263,6 +1277,7 @@ export default () => {
      */
     readOnlyCellClassName: 'htDimmed',
 
+    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * @description
      * If a string is provided, it may be one of the following predefined values:
@@ -1279,7 +1294,7 @@ export default () => {
      * If a function is provided, it will receive the following arguments:
      * ```js
      * function(instance, TD, row, col, prop, value, cellProperties) {}
-     * ```.
+     * ```
      *
      * You can read more about custom renderes [in the documentation](https://docs.handsontable.com/demo-custom-renderers.html).
      *
@@ -1316,6 +1331,8 @@ export default () => {
      * ```
      */
     renderer: void 0,
+
+    /* eslint-enable jsdoc/require-description-complete-sentence */
 
     /**
      * CSS class name added to the commented cells.
@@ -1355,7 +1372,7 @@ export default () => {
 
     /**
      * @description
-     * Makes cell [read only](https://docs.handsontable.com/demo-read-only.html).
+     * Makes cell, column or comment [read only](https://docs.handsontable.com/demo-read-only.html).
      *
      * @memberof Options#
      * @type {boolean}
@@ -1363,7 +1380,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set cell as read only
+     * // set as read only
      * readOnly: true,
      * ```
      */
@@ -1599,22 +1616,6 @@ export default () => {
     trimDropdown: true,
 
     /**
-     * Setting to `true` enables the debug mode, currently used to test the correctness of the row and column
-     * header fixed positioning on a layer above the master table.
-     *
-     * @memberof Options#
-     * @type {boolean}
-     * @default false
-     *
-     * @example
-     * ```js
-     * // enable debug mode
-     * debug: true,
-     * ```
-     */
-    debug: false,
-
-    /**
      * When set to `true`, the text of the cell content is wrapped if it does not fit in the fixed column width.
      *
      * @memberof Options#
@@ -1658,6 +1659,10 @@ export default () => {
      * * `false` (to disable completely)
      * * an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
      * * an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom).
+     *
+     * If the value is an object, you can also customize the options with:
+     * * `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
+     * * `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
      *
      * See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
      *
@@ -1704,19 +1709,29 @@ export default () => {
      * Disables or enables the copy/paste functionality.
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {object|boolean}
      * @default true
      *
      * @example
      * ```js
      * // disable copy and paste
      * copyPaste: false,
+     *
+     * // enable copy and paste with custom configuration
+     * copyPaste: {
+     *   columnsLimit: 25,
+     *   rowsLimit: 50,
+     *   pasteMode: 'shift_down',
+     *   uiContainer: document.body,
+     * },
      * ```
      */
     copyPaste: true,
 
     /**
      * If `true`, undo/redo functionality is enabled.
+     * Note: `undefined` by default but it acts as enabled.
+     * You need to switch it to `false` to disable it completely.
      *
      * @memberof Options#
      * @type {boolean}
@@ -1886,7 +1901,7 @@ export default () => {
 
     /**
      * @description
-     * Turns on [Multi-column sorting](https://docs.handsontable.com/pro/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
+     * Turns on [Multi-column sorting](https://docs.handsontable.com/demo-multicolumn-sorting.html). Can be either a boolean (`true` / `false`) or an object with a declared sorting options:
      * * `initialConfig` - Array containing objects, every with predefined keys:
      *   * `column` - sorted column
      *   * `sortOrder` - order in which column will be sorted
@@ -2022,7 +2037,7 @@ export default () => {
      * Disables visual cells selection.
      *
      * Possible values:
-     *  * `true` - Disables any type of visual selection (current and area selection),
+     *  * `true` - Disables any type of visual selection (current, header and area selection),
      *  * `false` - Enables any type of visual selection. This is default value.
      *  * `'current'` - Disables the selection of a currently selected cell, the area selection is still present.
      *  * `'area'` - Disables the area selection, the currently selected cell selection is still present.
@@ -2269,7 +2284,8 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`.
+     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`,
+     * meaning, the `syncLimit` is set to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
      *
      * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
@@ -2279,6 +2295,8 @@ export default () => {
      * To configure the sync/async distribution, you can pass an absolute value (number of columns) or a percentage value.
      *
      * You can also use the `useHeaders` option to take the column headers width into calculation.
+     *
+     * Note: Using {@link Core#colWidths} option will forcely disable {@link AutoColumnSize}.
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -2302,6 +2320,8 @@ export default () => {
      * Enables or disables {@link AutoRowSize} plugin. Default value is `undefined`, which has the same effect as `false`
      * (disabled). Enabling this plugin can decrease performance, as size-related calculations would be performed.
      *
+     * __Note:__ the default `syncLimit` value is set to 500 when the plugin is manually enabled by declaring it as: `autoRowSize: true`.
+     *
      * Row height calculations are divided into sync and async stages. Each of these stages has their own advantages and
      * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
      * operations don't block the browser UI.
@@ -2310,7 +2330,7 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|boolean}
-     * @default {syncLimit: 500}
+     * @default undefined
      *
      * @example
      * ```js
@@ -2544,7 +2564,7 @@ export default () => {
      *  * `'average'`
      *  * `'custom'` - add `customFunction`.
      *
-     * [See the demo for more information](https://docs.handsontable.com/pro/demo-summary-calculations.html).
+     * [See the demo for more information](https://docs.handsontable.com/demo-summary-calculations.html).
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -2631,17 +2651,6 @@ export default () => {
 
     /**
      * @description
-     * The {@link GanttChart} plugin enables a possibility to create a Gantt chart using a Handsontable instance. In this
-     * case, the whole table becomes read-only.
-     *
-     * @memberof Options#
-     * @type {object}
-     * @default undefined
-     */
-    ganttChart: void 0,
-
-    /**
-     * @description
      * Allows adding a tooltip to the table headers.
      *
      * Available options:
@@ -2652,6 +2661,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js
@@ -2815,6 +2825,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @deprecated This plugin is deprecated and will be removed in the next major release.
      *
      * @example
      * ```js
@@ -2915,7 +2926,7 @@ export default () => {
      * @description
      * Disable or enable the nested rows functionality - displaying nested structures in a two-dimensional data table.
      *
-     * See [quick setup of the Nested rows](https://docs.handsontable.kbudnik/pro/next/demo-nested-rows.html).
+     * See [quick setup of the Nested rows](https://handsontable.com/docs/demo-nested-rows.html).
      * @example
      * ```js
      * nestedRows: true,

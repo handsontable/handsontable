@@ -1,0 +1,7 @@
+{
+  "title": "fulfill readonly cells with data on UndoRedo.undo",
+  "type": "fixed",
+  "issue": 4754,
+  "breaking": false,
+  "framework": "none"
+}

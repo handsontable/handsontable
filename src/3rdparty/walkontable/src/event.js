@@ -8,6 +8,7 @@ import { partial } from './../../../helpers/function';
 import { isTouchSupported } from './../../../helpers/feature';
 import { isMobileBrowser } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
+import { isDefined } from '../../../helpers/mixed';
 
 const privatePool = new WeakMap();
 
@@ -174,8 +175,8 @@ class Event {
       this.instance.getSetting('onCellMouseDown', event, cell.coords, cell.TD, this.instance);
     }
 
-    // doubleclick reacts only for left mouse button
-    if (event.button === 0 && cell.TD) {
+    // doubleclick reacts only for left mouse button or from touch events
+    if ((event.button === 0 || this.instance.touchApplied) && cell.TD) {
       priv.dblClickOrigin[0] = cell.TD;
 
       clearTimeout(priv.dblClickTimeout[0]);
@@ -258,8 +259,8 @@ class Event {
       this.instance.getSetting('onCellMouseUp', event, cell.coords, cell.TD, this.instance);
     }
 
-    // if not left mouse button, then ignore
-    if (event.button !== 0) {
+    // if not left mouse button, and the origin event is not comes from touch
+    if (event.button !== 0 && !this.instance.touchApplied) {
       return;
     }
 
@@ -308,17 +309,19 @@ class Event {
   onTouchEnd(event) {
     const excludeTags = ['A', 'BUTTON', 'INPUT'];
     const target = event.target;
-
-    this.instance.touchApplied = false;
+    const parentCellCoords = this.parentCell(target)?.coords;
+    const isHeader = isDefined(parentCellCoords) && (parentCellCoords.row < 0 || parentCellCoords.col < 0);
 
     // When the standard event was performed on the link element (a cell which contains HTML `a` element) then here
     // we check if it should be canceled. Click is blocked in a situation when the element is rendered outside
     // selected cells. This prevents accidentally page reloads while selecting adjacent cells.
-    if (this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
+    if (isHeader === false && this.selectedCellWasTouched(target) === false && excludeTags.includes(target.tagName)) {
       event.preventDefault();
     }
 
     this.onMouseUp(event);
+
+    this.instance.touchApplied = false;
   }
 
   /**

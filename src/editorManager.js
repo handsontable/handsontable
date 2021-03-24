@@ -1,9 +1,9 @@
 import { CellCoords } from './3rdparty/walkontable/src';
 import { KEY_CODES, isMetaKey, isCtrlMetaKey } from './helpers/unicode';
 import { stopImmediatePropagation, isImmediatePropagationStopped } from './helpers/dom/event';
-import { getEditorInstance } from './editors';
+import { getEditorInstance } from './editors/registry';
 import EventManager from './eventManager';
-import { EditorState } from './editors/_baseEditor';
+import { EDITOR_STATE } from './editors/baseEditor';
 import { getParentWindow } from './helpers/dom/element';
 
 class EditorManager {
@@ -155,8 +155,25 @@ class EditorManager {
     }
 
     const { row, col } = this.instance.selection.selectedRange.current().highlight;
+    const modifiedCellCoords = this.instance.runHooks('modifyGetCellCoords', row, col);
+    let visualRowToCheck = row;
+    let visualColumnToCheck = col;
 
-    this.cellProperties = this.instance.getCellMeta(row, col);
+    if (Array.isArray(modifiedCellCoords)) {
+      [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
+    }
+
+    // Getting values using the modified coordinates.
+    this.cellProperties = this.instance.getCellMeta(visualRowToCheck, visualColumnToCheck);
+
+    const { activeElement } = this.instance.rootDocument;
+
+    if (activeElement) {
+      // Bluring the activeElement removes unwanted border around the focusable element
+      // (and resets activeElement prop). Without blurring the activeElement points to the
+      // previously focusable element after clicking onto the cell (#6877).
+      activeElement.blur();
+    }
 
     if (this.cellProperties.readOnly) {
       this.clearActiveEditor();
@@ -165,13 +182,18 @@ class EditorManager {
     }
 
     const editorClass = this.instance.getCellEditor(this.cellProperties);
+    // Getting element using coordinates from the selection.
     const td = this.instance.getCell(row, col, true);
 
     if (editorClass && td) {
-      const prop = this.instance.colToProp(col);
-      const originalValue = this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(row), col);
+      const prop = this.instance.colToProp(visualColumnToCheck);
+
+      const originalValue =
+        this.instance.getSourceDataAtCell(this.instance.toPhysicalRow(visualRowToCheck), visualColumnToCheck);
 
       this.activeEditor = getEditorInstance(editorClass, this.instance);
+      // Using not modified coordinates, as we need to get the table element using selection coordinates.
+      // There is an extra translation in the editor for saving value.
       this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
 
     } else {
@@ -252,7 +274,8 @@ class EditorManager {
    * @param {boolean} isShiftPressed If `true`, then the selection will move up after hit enter.
    */
   moveSelectionAfterEnter(isShiftPressed) {
-    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ? this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
+    const enterMoves = typeof this.tableMeta.enterMoves === 'function' ?
+      this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves;
 
     if (isShiftPressed) {
       // move selection up
@@ -416,7 +439,8 @@ class EditorManager {
         break;
 
       case KEY_CODES.TAB:
-        tabMoves = typeof this.tableMeta.tabMoves === 'function' ? this.tableMeta.tabMoves(event) : this.tableMeta.tabMoves;
+        tabMoves = typeof this.tableMeta.tabMoves === 'function' ?
+          this.tableMeta.tabMoves(event) : this.tableMeta.tabMoves;
 
         if (isShiftPressed) {
           // move selection left
@@ -450,7 +474,7 @@ class EditorManager {
         /* return/enter */
         if (this.isEditorOpened()) {
 
-          if (this.activeEditor && this.activeEditor.state !== EditorState.WAITING) {
+          if (this.activeEditor && this.activeEditor.state !== EDITOR_STATE.WAITING) {
             this.closeEditorAndSaveChanges(isCtrlPressed);
           }
           this.moveSelectionAfterEnter(isShiftPressed);
@@ -482,9 +506,14 @@ class EditorManager {
 
       case KEY_CODES.HOME:
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier.call(this.selection, new CellCoords(0, this.selection.selectedRange.current().from.col));
+          rangeModifier.call(this.selection,
+            new CellCoords(
+              this.instance.rowIndexMapper.getFirstNotHiddenIndex(0, 1),
+              this.selection.selectedRange.current().from.col));
         } else {
-          rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, 0));
+          rangeModifier.call(this.selection,
+            new CellCoords(this.selection.selectedRange.current().from.row,
+              this.instance.columnIndexMapper.getFirstNotHiddenIndex(0, 1)));
         }
         event.preventDefault(); // don't scroll the window
         event.stopPropagation();
@@ -492,9 +521,17 @@ class EditorManager {
 
       case KEY_CODES.END:
         if (event.ctrlKey || event.metaKey) {
-          rangeModifier.call(this.selection, new CellCoords(this.instance.countRows() - 1, this.selection.selectedRange.current().from.col));
+          rangeModifier.call(
+            this.selection,
+            new CellCoords(this.instance.rowIndexMapper.getFirstNotHiddenIndex(this.instance.countRows() - 1, -1),
+              this.selection.selectedRange.current().from.col)
+          );
         } else {
-          rangeModifier.call(this.selection, new CellCoords(this.selection.selectedRange.current().from.row, this.instance.countCols() - 1));
+          rangeModifier.call(
+            this.selection,
+            new CellCoords(this.selection.selectedRange.current().from.row,
+              this.instance.columnIndexMapper.getFirstNotHiddenIndex(this.instance.countCols() - 1, -1))
+          );
         }
         event.preventDefault(); // don't scroll the window
         event.stopPropagation();

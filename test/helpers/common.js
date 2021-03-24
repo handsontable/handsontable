@@ -54,6 +54,7 @@ export function handsontableMethodFactory(method) {
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
 export const addHook = handsontableMethodFactory('addHook');
 export const alter = handsontableMethodFactory('alter');
+export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
 export const countCols = handsontableMethodFactory('countCols');
 export const countEmptyCols = handsontableMethodFactory('countEmptyCols');
@@ -61,6 +62,7 @@ export const countEmptyRows = handsontableMethodFactory('countEmptyRows');
 export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
+export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
 export const destroyEditor = handsontableMethodFactory('destroyEditor');
@@ -74,6 +76,7 @@ export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');
 export const getCellValidator = handsontableMethodFactory('getCellValidator');
 export const getColHeader = handsontableMethodFactory('getColHeader');
+export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
 export const getData = handsontableMethodFactory('getData');
@@ -95,6 +98,8 @@ export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCel
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
+export const isListening = handsontableMethodFactory('isListening');
+export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
 export const propToCol = handsontableMethodFactory('propToCol');
@@ -109,10 +114,12 @@ export const selectColumns = handsontableMethodFactory('selectColumns');
 export const selectRows = handsontableMethodFactory('selectRows');
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
+export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
+export const toVisualRow = handsontableMethodFactory('toVisualRow');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const undo = handsontableMethodFactory('undo');
 
@@ -223,7 +230,8 @@ export function countCells() {
  * @returns {boolean}
  */
 export function isEditorVisible(editableElement) {
-  if (editableElement && !(editableElement.hasClass('handsontableInput') || editableElement.hasClass('handsontableEditor'))) {
+  if (editableElement && !(editableElement.hasClass('handsontableInput') ||
+      editableElement.hasClass('handsontableEditor'))) {
     throw new Error('Editable element of the editor was not found.');
   }
 
@@ -293,14 +301,20 @@ export function contextMenu(cell, instance) {
  *
  * @param {string} submenuName The context menu item name (it has to be a submenu) to hover.
  * @param {string} optionName The context menu subitem name to click.
+ * @param {HTMLElement} [cell] The cell element to check.
  */
-export async function selectContextSubmenuOption(submenuName, optionName) {
-  contextMenu();
+export async function selectContextSubmenuOption(submenuName, optionName, cell) {
+  contextMenu(cell);
+
   const item = $(`.htContextMenu .ht_master .htCore tbody td:contains(${submenuName})`);
+
   item.simulate('mouseover');
+
   await sleep(300);
+
   const contextSubMenu = $(`.htContextMenuSub_${item.text()}`);
   const button = contextSubMenu.find(`.ht_master .htCore tbody td:contains(${optionName})`);
+
   button.simulate('mousedown').simulate('mouseup');
   closeContextMenu();
 }
@@ -349,47 +363,6 @@ export function dropdownMenuRootElement() {
 
   return root;
 }
-
-/**
- * Returns a function that triggers a mouse event.
- *
- * @param {string} type The event type/name.
- * @param {number} button The number which indicates which button is triggered the event.
- * @returns {Function}
- */
-export function handsontableMouseTriggerFactory(type, button) {
-  return function(element) {
-    let handsontableElement = element;
-
-    if (!(handsontableElement instanceof jQuery)) {
-      handsontableElement = $(handsontableElement);
-    }
-    const ev = $.Event(type);
-    ev.which = button || 1; // left click by default
-
-    handsontableElement.simulate(type, ev);
-  };
-}
-
-export const mouseDown = handsontableMouseTriggerFactory('mousedown');
-export const mouseMove = handsontableMouseTriggerFactory('mousemove');
-export const mouseOver = handsontableMouseTriggerFactory('mouseover');
-export const mouseUp = handsontableMouseTriggerFactory('mouseup');
-
-/**
- * Emulates the mouse double click on target elemnt.
- *
- * @param {HTMLElement} element An element which triggers the event.
- */
-export function mouseDoubleClick(element) {
-  mouseDown(element);
-  mouseUp(element);
-  mouseDown(element);
-  mouseUp(element);
-}
-
-export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', 3);
-export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', 3);
 
 /**
  * Returns a function that triggers a key event.
@@ -469,6 +442,14 @@ export function handsontableKeyTriggerFactory(type) {
 
         case 'space':
           ev.keyCode = 32;
+          break;
+
+        case 'home':
+          ev.keyCode = 36;
+          break;
+
+        case 'end':
+          ev.keyCode = 35;
           break;
 
         case 'x':
@@ -752,12 +733,12 @@ export function createAccessorForProperty(name) {
 }
 
 /**
- * @param {number} displayedColumnIndex The visual column index.
+ * @param {number} renderableColumnIndex The renderable column index.
  * @param {number} width The target column width.
  */
-export function resizeColumn(displayedColumnIndex, width) {
+export function resizeColumn(renderableColumnIndex, width) {
   const $container = spec().$container;
-  const $th = $container.find(`thead tr:eq(0) th:eq(${displayedColumnIndex})`);
+  const $th = getTopClone().find(`thead tr:eq(0) th:eq(${renderableColumnIndex})`);
 
   $th.simulate('mouseover');
 
@@ -778,12 +759,13 @@ export function resizeColumn(displayedColumnIndex, width) {
 }
 
 /**
- * @param {number} displayedRowIndex The visual row index.
+ * @param {number} renderableRowIndex The renderable row index.
  * @param {number} height The target row height.
  */
-export function resizeRow(displayedRowIndex, height) {
+export function resizeRow(renderableRowIndex, height) {
   const $container = spec().$container;
-  const $th = $container.find(`tbody tr:eq(${displayedRowIndex}) th:eq(0)`);
+  const $th = getLeftClone().find(`tbody tr:eq(${renderableRowIndex}) th:eq(0)`);
+  const newHeight = renderableRowIndex !== 0 ? height + 1 : height; // compensate border
 
   $th.simulate('mouseover');
 
@@ -794,11 +776,7 @@ export function resizeRow(displayedRowIndex, height) {
     clientY: resizerPosition.top
   });
 
-  let delta = height - $th.height() - 2;
-
-  if (delta < 0) {
-    delta = 0;
-  }
+  const delta = newHeight - $th.height() - 2;
 
   $resizer.simulate('mousemove', {
     clientY: resizerPosition.top + delta
@@ -893,45 +871,98 @@ export function swapDisplayedColumns(container, from, to) {
 }
 
 /**
+ * Creates touch event and dispatch it for handled element.
+ *
+ * @param {number} x The page x coordinates.
+ * @param {number} y The page y coordinates.
+ * @param {HTMLElement} element An element for which event will be triggered.
+ * @param {string} eventType Type of touch event, ie. 'touchstart', 'touchmove', 'touchend'.
+ * @returns {boolean} The return value is `false` if event is cancelable and at least one of the event handlers which
+ * received event called `preventDefault()`. Otherwise it returns `true`.
+ */
+function sendTouchEvent(x, y, element, eventType) {
+  const touchObj = new Touch({
+    identifier: Date.now(),
+    target: element,
+    clientX: x,
+    clientY: y,
+    radiusX: 2.5,
+    radiusY: 2.5,
+  });
+
+  const touchEvent = new TouchEvent(eventType, {
+    cancelable: true,
+    bubbles: true,
+    touches: eventType === 'touchend' ? [] : [touchObj],
+    targetTouches: eventType === 'touchend' ? [] : [touchObj],
+    changedTouches: [touchObj],
+    shiftKey: false,
+  });
+
+  return element.dispatchEvent(touchEvent);
+}
+
+/**
  * @param {string} type A name/type of the event.
  * @param {HTMLElement} target The target element from the event was triggered.
  * @param {number} pageX The page x coordinates.
  * @param {number} pageY The page y coordinates.
+ * @returns {boolean} The return value is `false` if event is cancelable and at least one of the event handlers which
+ * received event called `preventDefault()`. Otherwise it returns `true`.
  */
 export function triggerTouchEvent(type, target, pageX, pageY) {
-  const e = document.createEvent('TouchEvent');
-
   const targetCoords = target.getBoundingClientRect();
-  const targetPageX = pageX || parseInt(targetCoords.left + 3, 10);
-  const targetPageY = pageY || parseInt(targetCoords.top + 3, 10);
-  let touches;
-  let targetTouches;
-  let changedTouches;
+  const targetPageX = pageX || parseInt(targetCoords.left, 10) + 3;
+  const targetPageY = pageY || parseInt(targetCoords.top, 10) + 3;
 
-  const touch = document.createTouch(window, target, 0, targetPageX, targetPageY, targetPageX, targetPageY);
-
-  if (type === 'touchend') {
-    touches = document.createTouchList();
-    targetTouches = document.createTouchList();
-    changedTouches = document.createTouchList(touch);
-  } else {
-    touches = document.createTouchList(touch);
-    targetTouches = document.createTouchList(touch);
-    changedTouches = document.createTouchList(touch);
-  }
-
-  e.initTouchEvent(type, true, true, window, null, 0, 0, 0, 0, false, false, false, false, touches, targetTouches, changedTouches, 1, 0);
-  target.dispatchEvent(e);
+  return sendTouchEvent(targetPageX, targetPageY, target, type);
 }
 
 /**
- * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label values (e.q "A1", "A2"...).
+ * Emulates touch on handled HTML element.
+ *
+ * Note: Please keep in mind that this method doesn't reflects fully "native" behaviour.
+ * Note: MDN docs (https://developer.mozilla.org/en-US/docs/Web/API/Touch_events/Supporting_both_TouchEvent_and_MouseEvent)
+ * says: "Browsers typically dispatch emulated mouse and click events when there is only a single active touch point.".
+ * This method is working similar.
+ *
+ * @param {HTMLElement} target The target element from the event was triggered.
+ */
+export function simulateTouch(target) {
+  const touchStartRun = triggerTouchEvent('touchstart', target);
+
+  if (touchStartRun === true) {
+    const touchEndRun = triggerTouchEvent('touchend', target);
+
+    // If the `preventDefault` is called for below event emulation doesn't reflects "native" behaviour.
+    if (touchEndRun === true) {
+      $(target).simulate('mousedown');
+      $(target).simulate('mouseup');
+      $(target).simulate('click');
+    }
+  }
+}
+
+/**
+ * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
  *
  * @param {*} args The arguments passed directly to the Handsontable helper.
  * @returns {Array}
  */
 export function createSpreadsheetData(...args) {
   return Handsontable.helper.createSpreadsheetData(...args);
+}
+
+/**
+ * Creates spreadsheet data as an array of objects filled with spreadsheet-like label
+ * values (e.q "A1", "A2"...).
+ *
+ * @param {*} args The arguments passed directly to the Handsontable helper.
+ * @returns {Array}
+ */
+export function createSpreadsheetObjectData(...args) {
+  return Handsontable.helper.createSpreadsheetObjectData(...args);
 }
 
 /**

@@ -1,11 +1,10 @@
-import BasePlugin from '../_base';
+import { BasePlugin } from '../base';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import EventManager from '../../eventManager';
 import { addClass, removeClass, closest } from '../../helpers/dom/element';
-import { registerPlugin } from '../../plugins';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import ConditionComponent from './component/condition';
@@ -16,10 +15,19 @@ import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
-import { CONDITION_NONE, CONDITION_BY_VALUE, OPERATION_AND, OPERATION_OR, OPERATION_OR_THEN_VARIABLE } from './constants';
-import { SkipMap } from '../../translations';
+import {
+  CONDITION_NONE,
+  CONDITION_BY_VALUE,
+  OPERATION_AND,
+  OPERATION_OR,
+  OPERATION_OR_THEN_VARIABLE
+} from './constants';
+import { TrimmingMap } from '../../translations';
 
 import './filters.css';
+
+export const PLUGIN_KEY = 'filters';
+export const PLUGIN_PRIORITY = 250;
 
 /**
  * @plugin Filters
@@ -41,7 +49,23 @@ import './filters.css';
  * });
  * ```
  */
-class Filters extends BasePlugin {
+export class Filters extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:DropdownMenu',
+      'plugin:HiddenRows',
+      'cell-type:checkbox',
+    ];
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -94,17 +118,10 @@ class Filters extends BasePlugin {
      */
     this.lastSelectedColumn = null;
     /**
-     * Hidden menu rows indexed by physical column index.
-     *
-     * @private
-     * @type {Map}
-     */
-    this.hiddenRowsCache = new Map();
-    /**
      * Map of skipped rows by plugin.
      *
      * @private
-     * @type {null|SkipMap}
+     * @type {null|TrimmingMap}
      */
     this.filtersRowsMap = null;
 
@@ -120,7 +137,7 @@ class Filters extends BasePlugin {
    */
   isEnabled() {
     /* eslint-disable no-unneeded-ternary */
-    return this.hot.getSettings().filters ? true : false;
+    return this.hot.getSettings()[PLUGIN_KEY] ? true : false;
   }
 
   /**
@@ -131,11 +148,11 @@ class Filters extends BasePlugin {
       return;
     }
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap('filters', new SkipMap());
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap());
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
+
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootDocument.body;
-
     const addConfirmationHooks = (component) => {
       component.addLocalHook('accept', () => this.onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.onActionBarSubmit('cancel'));
@@ -148,47 +165,75 @@ class Filters extends BasePlugin {
     const filterValueLabel = () => `${this.hot.getTranslatedPhrase(constants.FILTERS_DIVS_FILTER_BY_VALUE)}:`;
 
     if (!this.components.get('filter_by_condition')) {
-      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition', name: filterByConditionLabel, addSeparator: false, menuContainer });
+      const conditionComponent = new ConditionComponent(this.hot, {
+        id: 'filter_by_condition',
+        name: filterByConditionLabel,
+        addSeparator: false,
+        menuContainer
+      });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
     }
+
     if (!this.components.get('filter_operators')) {
-      this.components.set('filter_operators', new OperatorsComponent(this.hot, { id: 'filter_operators', name: 'Operators' }));
+      this.components.set('filter_operators', new OperatorsComponent(this.hot, {
+        id: 'filter_operators',
+        name: 'Operators'
+      }));
     }
+
     if (!this.components.get('filter_by_condition2')) {
-      const conditionComponent = new ConditionComponent(this.hot, { id: 'filter_by_condition2', name: '', addSeparator: true, menuContainer });
+      const conditionComponent = new ConditionComponent(this.hot, {
+        id: 'filter_by_condition2',
+        name: '',
+        addSeparator: true,
+        menuContainer
+      });
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));
     }
+
     if (!this.components.get('filter_by_value')) {
-      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, { id: 'filter_by_value', name: filterValueLabel })));
+      this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
+        id: 'filter_by_value',
+        name: filterValueLabel
+      })));
     }
+
     if (!this.components.get('filter_action_bar')) {
-      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, { id: 'filter_action_bar', name: 'Action bar' })));
+      this.components.set('filter_action_bar', addConfirmationHooks(new ActionBarComponent(this.hot, {
+        id: 'filter_action_bar',
+        name: 'Action bar'
+      })));
     }
+
     if (!this.conditionCollection) {
-      this.conditionCollection = new ConditionCollection();
+      this.conditionCollection = new ConditionCollection(this.hot);
     }
+
     if (!this.conditionUpdateObserver) {
-      this.conditionUpdateObserver = new ConditionUpdateObserver(this.conditionCollection, column => this.getDataMapAtColumn(column));
+      this.conditionUpdateObserver = new ConditionUpdateObserver(
+        this.hot,
+        this.conditionCollection,
+        physicalColumn => this.getDataMapAtColumn(physicalColumn),
+      );
       this.conditionUpdateObserver.addLocalHook('update', conditionState => this.updateComponents(conditionState));
     }
 
-    this.components.forEach((component) => {
-      component.show();
-    });
+    this.components.forEach(component => component.show());
 
     this.registerEvents();
     this.addHook('beforeDropdownMenuSetItems', items => this.onBeforeDropdownMenuSetItems(items));
-    this.addHook('afterDropdownMenuDefaultOptions', defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
+    this.addHook('afterDropdownMenuDefaultOptions',
+      defaultOptions => this.onAfterDropdownMenuDefaultOptions(defaultOptions));
     this.addHook('afterDropdownMenuShow', () => this.onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.onAfterChange(changes));
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
-    if (this.hot.getSettings().dropdownMenu) {
+    if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
       this.dropdownMenuPlugin.disablePlugin();
       this.dropdownMenuPlugin.enablePlugin();
     }
@@ -210,17 +255,17 @@ class Filters extends BasePlugin {
    */
   disablePlugin() {
     if (this.enabled) {
-      if (this.dropdownMenuPlugin.enabled) {
+      if (this.dropdownMenuPlugin?.enabled) {
         this.dropdownMenuPlugin.menu.clearLocalHooks();
       }
 
-      this.components.forEach((component) => {
-        component.hide();
+      this.components.forEach((component, key) => {
+        component.destroy();
+        this.components.set(key, null);
       });
-
-      this.conditionCollection.clean();
-
-      this.hot.rowIndexMapper.unregisterMap('filters');
+      this.conditionCollection.destroy();
+      this.conditionCollection = null;
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
     super.disablePlugin();
@@ -228,6 +273,8 @@ class Filters extends BasePlugin {
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
+   * @memberof Filters#
+   * @function addCondition
    * @description
    * Adds condition to the conditions collection at specified column index.
    *
@@ -262,7 +309,7 @@ class Filters extends BasePlugin {
    * ```js
    * const container = document.getElementById('example');
    * const hot = new Handsontable(container, {
-   *   date: getData(),
+   *   data: getData(),
    *   filters: true
    * });
    *
@@ -291,7 +338,7 @@ class Filters extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
    * @param {Array} args Condition arguments.
-   * @param {string} operationId `id` of operation which is performed on the column.
+   * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column, name, args, operationId = OPERATION_AND) {
@@ -324,7 +371,7 @@ class Filters extends BasePlugin {
     } else {
       const physicalColumn = this.hot.toPhysicalColumn(column);
 
-      this.conditionCollection.clearConditions(physicalColumn);
+      this.conditionCollection.removeConditions(physicalColumn);
     }
   }
 
@@ -346,7 +393,7 @@ class Filters extends BasePlugin {
       if (needToFilter) {
         const trimmedRows = [];
 
-        this.hot.executeBatchOperations(() => {
+        this.hot.batchExecution(() => {
           this.filtersRowsMap.clear();
 
           visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
@@ -362,7 +409,7 @@ class Filters extends BasePlugin {
           arrayEach(trimmedRows, (physicalRow) => {
             this.filtersRowsMap.setValueAtIndex(physicalRow, true);
           });
-        });
+        }, true);
 
         if (!visibleVisualRows.length) {
           this.hot.deselectCell();
@@ -374,7 +421,7 @@ class Filters extends BasePlugin {
 
     this.hot.runHooks('afterFilter', conditions);
 
-    this.hot.view.wt.wtOverlays.adjustElementsSize(true);
+    this.hot.view.adjustElementsSize(true);
     this.hot.render();
     this.clearColumnSelection();
   }
@@ -395,17 +442,17 @@ class Filters extends BasePlugin {
    * @private
    */
   clearColumnSelection() {
-    const [row, col] = this.hot.getSelectedLast() || [];
+    const coords = this.hot.getSelectedRangeLast()?.getTopLeftCorner();
 
-    if (row !== void 0 && col !== void 0) {
-      this.hot.selectCell(row, col);
+    if (coords !== void 0) {
+      this.hot.selectCell(coords.row, coords.col);
     }
   }
 
   /**
    * Returns handsontable source data with cell meta based on current selection.
    *
-   * @param {number} [column] Column index. By default column index accept the value of the selected column.
+   * @param {number} [column] The physical column index. By default column index accept the value of the selected column.
    * @returns {Array} Returns array of objects where keys as row index.
    */
   getDataMapAtColumn(column) {
@@ -413,7 +460,8 @@ class Filters extends BasePlugin {
     const data = [];
 
     arrayEach(this.hot.getSourceDataAtCol(visualIndex), (value, rowIndex) => {
-      const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot.getCellMeta(rowIndex, visualIndex);
+      const { row, col, visualCol, visualRow, type, instance, dateFormat } = this.hot
+        .getCellMeta(rowIndex, visualIndex);
 
       data.push({
         meta: { row, col, visualCol, visualRow, type, instance, dateFormat },
@@ -457,20 +505,23 @@ class Filters extends BasePlugin {
   }
 
   /**
-   * Restores components to their cached state.
+   * Restores components to its saved state.
    *
    * @private
    * @param {Array} components List of components.
    */
   restoreComponents(components) {
-    const selectedColumn = this.getSelectedColumn();
-    const physicalIndex = selectedColumn && selectedColumn.physicalIndex;
+    const physicalIndex = this.getSelectedColumn()?.physicalIndex;
 
     components.forEach((component) => {
-      if (component.isHidden() === false) {
-        component.restoreState(physicalIndex);
+      if (component.isHidden()) {
+        return;
       }
+
+      component.restoreState(physicalIndex);
     });
+
+    this.updateDependentComponentsVisibility();
   }
 
   /**
@@ -479,12 +530,7 @@ class Filters extends BasePlugin {
    * @private
    */
   onAfterDropdownMenuShow() {
-    this.restoreComponents([
-      this.components.get('filter_by_condition'),
-      this.components.get('filter_operators'),
-      this.components.get('filter_by_condition2'),
-      this.components.get('filter_by_value'),
-    ]);
+    this.restoreComponents(Array.from(this.components.values()));
   }
 
   /**
@@ -501,16 +547,13 @@ class Filters extends BasePlugin {
    * Before dropdown menu set menu items listener.
    *
    * @private
-   * @param {Array} items DropdownMenu items created based on predefined items and settings provided by user.
    */
-  onBeforeDropdownMenuSetItems(items) {
-    const menuKeys = arrayMap(items, item => item.key);
-
-    this.components.forEach((component) => {
-      component[menuKeys.indexOf(component.getMenuItemDescriptor().key) === -1 ? 'hide' : 'show']();
-    });
-
-    this.initHiddenRowsCache();
+  onBeforeDropdownMenuSetItems() {
+    if (this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
+        this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: true });
+      });
+    }
   }
 
   /**
@@ -561,45 +604,49 @@ class Filters extends BasePlugin {
    */
   onActionBarSubmit(submitType) {
     if (submitType === 'accept') {
-      const selectedColumn = this.getSelectedColumn();
-      const physicalIndex = selectedColumn && selectedColumn.physicalIndex;
+      const physicalIndex = this.getSelectedColumn()?.physicalIndex;
       const byConditionState1 = this.components.get('filter_by_condition').getState();
       const byConditionState2 = this.components.get('filter_by_condition2').getState();
       const byValueState = this.components.get('filter_by_value').getState();
 
-      const operation = this.getOperationBasedOnArguments(this.components.get('filter_operators').getActiveOperationId(),
-        byConditionState1, byConditionState2, byValueState);
+      const operation = this.getOperationBasedOnArguments(
+        this.components.get('filter_operators').getActiveOperationId(),
+        byConditionState1,
+        byConditionState2,
+        byValueState
+      );
 
       this.conditionUpdateObserver.groupChanges();
-      this.conditionCollection.clearConditions(physicalIndex);
 
-      if (byConditionState1.command.key === CONDITION_NONE && byConditionState2.command.key === CONDITION_NONE && byValueState.command.key === CONDITION_NONE) {
-        this.conditionCollection.removeConditions(physicalIndex);
+      let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
 
-      } else {
-        if (byConditionState1.command.key !== CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation);
+      if (columnStackPosition === -1) {
+        columnStackPosition = void 0;
+      }
 
-          if (byConditionState2.command.key !== CONDITION_NONE) {
-            this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation);
-          }
-        }
+      this.conditionCollection.removeConditions(physicalIndex);
 
-        if (byValueState.command.key !== CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byValueState, operation);
+      if (byConditionState1.command.key !== CONDITION_NONE) {
+        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation, columnStackPosition);
+
+        if (byConditionState2.command.key !== CONDITION_NONE) {
+          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation, columnStackPosition);
         }
       }
 
+      if (byValueState.command.key !== CONDITION_NONE) {
+        this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
+      }
+
       this.conditionUpdateObserver.flush();
-
-      this.components.get('filter_operators').saveState(physicalIndex);
-      this.components.get('filter_by_value').saveState(physicalIndex);
-      this.saveHiddenRowsCache(physicalIndex);
-
+      this.components.forEach(component => component.saveState(physicalIndex));
       this.filtersRowsMap.clear();
       this.filter();
     }
-    this.dropdownMenuPlugin.close();
+
+    if (this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.close();
+    }
   }
 
   /**
@@ -610,14 +657,7 @@ class Filters extends BasePlugin {
    * @param {object} command Menu item object (command).
    */
   onComponentChange(component, command) {
-    if (component === this.components.get('filter_by_condition')) {
-      if (command.showOperators) {
-        this.showComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
-
-      } else {
-        this.hideComponents(this.components.get('filter_by_condition2'), this.components.get('filter_operators'));
-      }
-    }
+    this.updateDependentComponentsVisibility();
 
     if (component.constructor === ConditionComponent && !command.inputsCount) {
       this.setListeningDropdownMenu();
@@ -640,7 +680,29 @@ class Filters extends BasePlugin {
    * @private
    */
   setListeningDropdownMenu() {
-    this.dropdownMenuPlugin.setListening();
+    if (this.dropdownMenuPlugin) {
+      this.dropdownMenuPlugin.setListening();
+    }
+  }
+
+  /**
+   * Updates visibility of the some of the components based on the state of the parent component.
+   *
+   * @private
+   */
+  updateDependentComponentsVisibility() {
+    const component = this.components.get('filter_by_condition');
+    const { command } = component.getState();
+    const componentsToShow = [
+      this.components.get('filter_by_condition2'),
+      this.components.get('filter_operators')
+    ];
+
+    if (command.showOperators) {
+      this.showComponents(...componentsToShow);
+    } else {
+      this.hideComponents(...componentsToShow);
+    }
   }
 
   /**
@@ -688,75 +750,45 @@ class Filters extends BasePlugin {
    * @returns {DataFilter}
    */
   _createDataFilter(conditionCollection = this.conditionCollection) {
-    return new DataFilter(conditionCollection, column => this.getDataMapAtColumn(column));
+    return new DataFilter(conditionCollection, physicalColumn => this.getDataMapAtColumn(physicalColumn));
   }
 
   /**
-   * Updates components basing on conditions state.
+   * It updates the components state. The state is triggered by ConditionUpdateObserver, which
+   * reacts to any condition added to the condition collection. It may be added through the UI
+   * components or by API call.
    *
    * @private
    * @param {object} conditionsState An object with the state generated by UI components.
    */
   updateComponents(conditionsState) {
-    if (!this.dropdownMenuPlugin.enabled) {
+    if (!this.dropdownMenuPlugin?.enabled) {
       return;
     }
 
-    const conditions = conditionsState.editedConditionStack.conditions;
-    const column = conditionsState.editedConditionStack.column;
+    const {
+      editedConditionStack: {
+        conditions,
+        column,
+      }
+    } = conditionsState;
+
     const conditionsByValue = conditions.filter(condition => condition.name === CONDITION_BY_VALUE);
     const conditionsWithoutByValue = conditions.filter(condition => condition.name !== CONDITION_BY_VALUE);
-    const operationType = this.conditionCollection.columnTypes[column];
 
-    if (conditionsByValue.length === 2 || conditionsWithoutByValue.length === 3) {
+    if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
         The overall amount of conditions exceed the capability of the dropdown menu.\x20
         For more details see the documentation.`);
 
     } else {
-      if (conditionsWithoutByValue.length > 0) {
-        this.showComponentForParticularColumn(this.components.get('filter_operators'), column);
-      }
+      const operationType = this.conditionCollection.getOperation(column);
 
       this.components.get('filter_by_condition').updateState(conditionsWithoutByValue[0], column);
       this.components.get('filter_by_condition2').updateState(conditionsWithoutByValue[1], column);
-      this.components.get('filter_by_value').updateState(conditionsState);
       this.components.get('filter_operators').updateState(operationType, column);
+      this.components.get('filter_by_value').updateState(conditionsState);
     }
-  }
-
-  /**
-   * Shows component for particular column.
-   *
-   * @private
-   * @param {BaseComponent} component `BaseComponent` element or it derivatives.
-   * @param {number} column Physical column index.
-   */
-  showComponentForParticularColumn(component, column) {
-    if (!this.hiddenRowsCache.has(column)) {
-      this.hiddenRowsCache.set(column, []);
-
-    } else {
-      const indexes = this.getIndexesOfComponents(component);
-      this.removeIndexesFromHiddenRowsCache(column, indexes);
-    }
-  }
-
-  /**
-   * Removes specific rows from `hiddenRows` cache for particular column.
-   *
-   * @private
-   * @param {number} column Physical column index.
-   * @param {Array} indexes Physical indexes of rows which will be removed from `hiddenRows` cache.
-   */
-  removeIndexesFromHiddenRowsCache(column, indexes) {
-    const hiddenRowsForColumn = this.hiddenRowsCache.get(column);
-
-    arrayEach(indexes, (index) => {
-      if (hiddenRowsForColumn.includes(index)) {
-        hiddenRowsForColumn.splice(hiddenRowsForColumn.indexOf(index), 1);
-      }
-    });
   }
 
   /**
@@ -767,8 +799,13 @@ class Filters extends BasePlugin {
    * @returns {Array}
    */
   getIndexesOfComponents(...components) {
-    const menu = this.dropdownMenuPlugin.menu;
     const indexes = [];
+
+    if (!this.dropdownMenuPlugin) {
+      return indexes;
+    }
+
+    const menu = this.dropdownMenuPlugin.menu;
 
     arrayEach(components, (component) => {
       arrayEach(menu.menuItems, (item, index) => {
@@ -790,6 +827,10 @@ class Filters extends BasePlugin {
    * @param {...BaseComponent} components List of components.
    */
   changeComponentsVisibility(visible = true, ...components) {
+    if (!this.dropdownMenuPlugin) {
+      return;
+    }
+
     const menu = this.dropdownMenuPlugin.menu;
     const hotMenu = menu.hotMenu;
     const hiddenRows = hotMenu.getPlugin('hiddenRows');
@@ -803,33 +844,6 @@ class Filters extends BasePlugin {
     }
 
     hotMenu.render();
-  }
-
-  /**
-   * Initializes `hiddenRows` cache.
-   *
-   * @private
-   */
-  initHiddenRowsCache() {
-    this.dropdownMenuPlugin.menu.addLocalHook('afterOpen', () => {
-      const index = this.lastSelectedColumn.physicalIndex;
-
-      if (!this.hiddenRowsCache.has(index)) {
-        this.hiddenRowsCache.set(index, this.getIndexesOfComponents(this.components.get('filter_operators'), this.components.get('filter_by_condition2')));
-      }
-
-      this.dropdownMenuPlugin.menu.hotMenu.updateSettings({ hiddenRows: { rows: this.hiddenRowsCache.get(index) } });
-    });
-  }
-
-  /**
-   * Saves `hiddenRows` cache for particular row.
-   *
-   * @private
-   * @param {number} rowIndex Physical row index.
-   */
-  saveHiddenRowsCache(rowIndex) {
-    this.hiddenRowsCache.set(rowIndex, this.dropdownMenuPlugin.menu.hotMenu.getPlugin('hiddenRows').hiddenRows);
   }
 
   /**
@@ -857,20 +871,17 @@ class Filters extends BasePlugin {
    */
   destroy() {
     if (this.enabled) {
-      this.components.forEach((component) => {
-        component.destroy();
+      this.components.forEach((component, key) => {
+        if (component !== null) {
+          component.destroy();
+          this.components.set(key, null);
+        }
       });
-
-      this.hot.rowIndexMapper.unregisterMap('filters');
       this.conditionCollection.destroy();
       this.conditionUpdateObserver.destroy();
-      this.hiddenRowsCache.clear();
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     }
 
     super.destroy();
   }
 }
-
-registerPlugin('filters', Filters);
-
-export default Filters;

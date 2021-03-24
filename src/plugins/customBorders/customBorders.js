@@ -1,22 +1,10 @@
-import BasePlugin from './../_base';
-import { registerPlugin } from './../../plugins';
-import {
-  hasOwnProperty,
-  objectEach } from './../../helpers/object';
-import { rangeEach } from './../../helpers/number';
-import {
-  arrayEach,
-  arrayReduce,
-  arrayMap } from './../../helpers/array';
-import { CellRange } from './../../3rdparty/walkontable/src';
-import * as C from './../../i18n/constants';
-import {
-  bottom,
-  left,
-  noBorders,
-  right,
-  top
-} from './contextMenuItem';
+import { BasePlugin } from '../base';
+import { hasOwnProperty, objectEach } from '../../helpers/object';
+import { rangeEach } from '../../helpers/number';
+import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
+import { CellRange, CellCoords } from '../../3rdparty/walkontable/src';
+import * as C from '../../i18n/constants';
+import { bottom, left, noBorders, right, top } from './contextMenuItem';
 import {
   createId,
   createDefaultCustomBorder,
@@ -24,10 +12,10 @@ import {
   createEmptyBorders,
   extendDefaultBorder
 } from './utils';
-import {
-  detectSelectionType,
-  normalizeSelectionFactory,
-} from './../../selection';
+import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
+
+export const PLUGIN_KEY = 'customBorders';
+export const PLUGIN_PRIORITY = 90;
 
 /**
  * @class CustomBorders
@@ -81,7 +69,15 @@ import {
  * ],
  * ```
  */
-class CustomBorders extends BasePlugin {
+export class CustomBorders extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
 
@@ -101,7 +97,7 @@ class CustomBorders extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return !!this.hot.getSettings().customBorders;
+    return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -148,7 +144,11 @@ class CustomBorders extends BasePlugin {
    *
    * // Using an array of arrays (produced by `.getSelected()` method).
    * customBordersPlugin.setBorders([[1, 1, 2, 2], [6, 2, 0, 2]], {left: {width: 2, color: 'blue'}});
+   *
    * // Using an array of CellRange objects (produced by `.getSelectedRange()` method).
+   * //  Selecting a cell range.
+   * hot.selectCell(0, 0, 2, 2);
+   * // Returning selected cells' range with the getSelectedRange method.
    * customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, width: 2, color: 'blue'}});
    * ```
    *
@@ -276,15 +276,11 @@ class CustomBorders extends BasePlugin {
       this.savedBorders.push(border);
     }
 
-    const coordinates = {
-      row: border.row,
-      col: border.col
-    };
-    const cellRange = new CellRange(coordinates, coordinates, coordinates);
-    const hasCustomSelections = this.checkCustomSelections(border, cellRange, place);
+    const visualCellRange = new CellRange(new CellCoords(border.row, border.col));
+    const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {
-      this.hot.selection.highlight.addCustomSelection({ border, cellRange });
+      this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
     }
   }
 
@@ -298,6 +294,13 @@ class CustomBorders extends BasePlugin {
    * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right`.
    */
   prepareBorderFromCustomAdded(row, column, borderDescriptor, place) {
+    const nrOfRows = this.hot.countRows();
+    const nrOfColumns = this.hot.countCols();
+
+    if (row >= nrOfRows || column >= nrOfColumns) {
+      return;
+    }
+
     let border = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
@@ -307,7 +310,11 @@ class CustomBorders extends BasePlugin {
         if (border.id === customSelection.settings.id) {
           Object.assign(customSelection.settings, borderDescriptor);
 
-          border = customSelection.settings;
+          border.id = customSelection.settings.id;
+          border.left = customSelection.settings.left;
+          border.right = customSelection.settings.right;
+          border.top = customSelection.settings.top;
+          border.bottom = customSelection.settings.bottom;
 
           return false; // breaks forAll
         }
@@ -327,9 +334,11 @@ class CustomBorders extends BasePlugin {
    */
   prepareBorderFromCustomAddedRange(rowDecriptor) {
     const range = rowDecriptor.range;
+    const lastRowIndex = Math.min(range.to.row, this.hot.countRows() - 1);
+    const lastColumnIndex = Math.min(range.to.col, this.hot.countCols() - 1);
 
-    rangeEach(range.from.row, range.to.row, (rowIndex) => {
-      rangeEach(range.from.col, range.to.col, (colIndex) => {
+    rangeEach(range.from.row, lastRowIndex, (rowIndex) => {
+      rangeEach(range.from.col, lastColumnIndex, (colIndex) => {
         const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
@@ -340,6 +349,7 @@ class CustomBorders extends BasePlugin {
           }
         }
 
+        // Please keep in mind that `range.to.row` may be beyond the table boundaries. The border won't be rendered.
         if (rowIndex === range.to.row) {
           if (hasOwnProperty(rowDecriptor, 'bottom')) {
             add += 1;
@@ -354,6 +364,7 @@ class CustomBorders extends BasePlugin {
           }
         }
 
+        // Please keep in mind that `range.to.col` may be beyond the table boundaries. The border won't be rendered.
         if (colIndex === range.to.col) {
           if (hasOwnProperty(rowDecriptor, 'right')) {
             add += 1;
@@ -538,7 +549,10 @@ class CustomBorders extends BasePlugin {
    * @param {string} borderId Border id name as string.
    */
   clearBordersFromSelectionSettings(borderId) {
-    const index = arrayMap(this.hot.selection.highlight.customSelections, customSelection => customSelection.settings.id).indexOf(borderId);
+    const index = arrayMap(
+      this.hot.selection.highlight.customSelections,
+      customSelection => customSelection.settings.id
+    ).indexOf(borderId);
 
     if (index > -1) {
       this.hot.selection.highlight.customSelections[index].clear();
@@ -666,7 +680,8 @@ class CustomBorders extends BasePlugin {
     } else {
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
-          customSelection.cellRange = cellRange;
+          customSelection.visualCellRange = cellRange;
+          customSelection.commit();
 
           if (place) {
             objectEach(customSelection.instanceBorders, (borderObject) => {
@@ -690,7 +705,7 @@ class CustomBorders extends BasePlugin {
    * @private
    */
   changeBorderSettings() {
-    const customBorders = this.hot.getSettings().customBorders;
+    const customBorders = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(customBorders)) {
       if (!customBorders.length) {
@@ -711,7 +726,7 @@ class CustomBorders extends BasePlugin {
    * @param {object} defaultOptions Context menu items.
    */
   onAfterContextMenuDefaultOptions(defaultOptions) {
-    if (!this.hot.getSettings().customBorders) {
+    if (!this.hot.getSettings()[PLUGIN_KEY]) {
       return;
     }
 
@@ -753,7 +768,3 @@ class CustomBorders extends BasePlugin {
     super.destroy();
   }
 }
-
-registerPlugin('customBorders', CustomBorders);
-
-export default CustomBorders;

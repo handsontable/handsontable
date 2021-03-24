@@ -1,26 +1,39 @@
-import BasePlugin from './../_base';
+import { BasePlugin } from '../base';
 import DataObserver from './dataObserver';
-import { arrayEach } from './../../helpers/array';
-import { registerPlugin } from './../../plugins';
+import { arrayEach } from '../../helpers/array';
+import { warn } from '../../helpers/console';
 
 // Handsontable.hooks.register('afterChangesObserved');
+
+export const PLUGIN_KEY = 'observeChanges';
+export const PLUGIN_PRIORITY = 180;
 
 /**
  * @plugin ObserveChanges
  *
+ * @deprecated This plugin is deprecated and will be removed in the next major release.
  * @description
  * This plugin allows to observe data source changes. By default, the plugin is declared as `undefined`, which makes it
  * disabled. Enabling this plugin switches the table into one-way data binding where changes are applied into the data
  * source (outside from the table) will be automatically reflected in the table.
  *
+ * @example
  * ```js
  * // as a boolean
  * observeChanges: true,
- * ```.
+ * ```
  *
  * To configure this plugin see {@link Options#observeChanges}.
  */
-class ObserveChanges extends BasePlugin {
+export class ObserveChanges extends BasePlugin {
+  static get PLUGIN_KEY() {
+    return PLUGIN_KEY;
+  }
+
+  static get PLUGIN_PRIORITY() {
+    return PLUGIN_PRIORITY;
+  }
+
   constructor(hotInstance) {
     super(hotInstance);
     /**
@@ -39,7 +52,7 @@ class ObserveChanges extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().observeChanges;
+    return this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -50,7 +63,8 @@ class ObserveChanges extends BasePlugin {
       return;
     }
     if (!this.observer) {
-      this.observer = new DataObserver(this.hot.getSourceData());
+      warn('The Observe Changes plugin is deprecated and will be removed in the next major release');
+      this.observer = new DataObserver(this.hot.getSettings().data);
       this._exposePublicApi();
     }
 
@@ -60,7 +74,7 @@ class ObserveChanges extends BasePlugin {
     this.addHook('afterCreateCol', () => this.onAfterTableAlter());
     this.addHook('afterRemoveCol', () => this.onAfterTableAlter());
     this.addHook('afterChange', (changes, source) => this.onAfterTableAlter(source));
-    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(firstRun));
+    this.addHook('afterLoadData', (sourceData, firstRun) => this.onAfterLoadData(sourceData, firstRun));
 
     super.enablePlugin();
   }
@@ -152,11 +166,12 @@ class ObserveChanges extends BasePlugin {
    * On after load data listener.
    *
    * @private
+   * @param {Array} sourceData Source data array.
    * @param {boolean} firstRun `true` if event was fired first time.
    */
-  onAfterLoadData(firstRun) {
+  onAfterLoadData(sourceData, firstRun) {
     if (!firstRun) {
-      this.observer.setObservedData(this.hot.getSourceData());
+      this.observer.setObservedData(sourceData);
     }
   }
 
@@ -197,7 +212,3 @@ class ObserveChanges extends BasePlugin {
     delete hot.isPausedObservingChanges;
   }
 }
-
-export default ObserveChanges;
-
-registerPlugin('observeChanges', ObserveChanges);

@@ -77,7 +77,8 @@ describe('WalkontableScroll', () => {
       wt.scrollViewportVertically(getTotalRows() - 1);
       wt.draw();
 
-      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual(new Walkontable.CellCoords(0, 0));
+      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:eq(0) td:eq(0)')[0]))
+        .toEqual(new Walkontable.CellCoords(0, 0));
     });
 
     it('scroll horizontal should take totalColumns if it is smaller than width', () => {
@@ -91,7 +92,8 @@ describe('WalkontableScroll', () => {
       wt.scrollViewportHorizontally(getTotalColumns() - 1);
       wt.draw();
 
-      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:eq(0) td:eq(0)')[0])).toEqual(new Walkontable.CellCoords(0, 0));
+      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:eq(0) td:eq(0)')[0]))
+        .toEqual(new Walkontable.CellCoords(0, 0));
     });
 
     it('scroll vertical should return `false` if given number smaller than 0', () => {
@@ -246,7 +248,8 @@ describe('WalkontableScroll', () => {
       wt.scrollViewport(new Walkontable.CellCoords(0, 2));
       wt.draw();
 
-      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:last')[0])).toEqual(new Walkontable.CellCoords(0, 3));
+      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:last')[0]))
+        .toEqual(new Walkontable.CellCoords(0, 3));
     });
 
     it('scroll viewport to a cell on far bottom should make it visible on bottom edge', () => {
@@ -283,7 +286,8 @@ describe('WalkontableScroll', () => {
       wt.scrollViewport(new Walkontable.CellCoords(12, 0));
       wt.draw();
 
-      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:first')[0])).toEqual(new Walkontable.CellCoords(12, 0));
+      expect(wt.wtTable.getCoords(spec().$table.find('tbody tr:first td:first')[0]))
+        .toEqual(new Walkontable.CellCoords(12, 0));
     });
 
     it('scroll viewport to a cell that does not exist (vertically) should return `false`', () => {
@@ -392,7 +396,8 @@ describe('WalkontableScroll', () => {
       wt.scrollViewportVertically(getTotalRows() - 1);
       wt.draw();
 
-      expect(spec().$table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(spec().data.length - 1, 0))); // last rendered row should be last data row
+      expect(spec().$table.find('tbody tr:last td:first')[0])
+        .toBe(wt.wtTable.getCell(new Walkontable.CellCoords(spec().data.length - 1, 0))); // last rendered row should be last data row
     });
 
     xit('should scroll to last row with very high rows (respecting fixedRows)', () => {
@@ -413,10 +418,14 @@ describe('WalkontableScroll', () => {
       wt.scrollViewportVertically(2000);
       wt.draw();
 
-      expect(spec().$table.find('tbody tr:eq(0) td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(0, 0))); // first rendered row should fixed row 0
-      expect(spec().$table.find('tbody tr:eq(1) td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(1, 0))); // second rendered row should fixed row 1
-      expect(spec().$table.find('tbody tr:eq(2) td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(2, 0))); // third rendered row should fixed row 1
-      expect(spec().$table.find('tbody tr:last td:first')[0]).toBe(wt.wtTable.getCell(new Walkontable.CellCoords(spec().data.length - 1, 0))); // last rendered row should be last data row
+      expect(spec().$table.find('tbody tr:eq(0) td:first')[0])
+        .toBe(wt.wtTable.getCell(new Walkontable.CellCoords(0, 0))); // first rendered row should fixed row 0
+      expect(spec().$table.find('tbody tr:eq(1) td:first')[0])
+        .toBe(wt.wtTable.getCell(new Walkontable.CellCoords(1, 0))); // second rendered row should fixed row 1
+      expect(spec().$table.find('tbody tr:eq(2) td:first')[0])
+        .toBe(wt.wtTable.getCell(new Walkontable.CellCoords(2, 0))); // third rendered row should fixed row 1
+      expect(spec().$table.find('tbody tr:last td:first')[0])
+        .toBe(wt.wtTable.getCell(new Walkontable.CellCoords(spec().data.length - 1, 0))); // last rendered row should be last data row
     });
 
     it('should scroll to last column with very wide cells', () => {
