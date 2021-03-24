@@ -56,6 +56,11 @@ export class NestedHeaders extends BasePlugin {
    */
   #stateManager = new StateManager();
   /**
+   * @private
+   * @type {StateManager}
+   */
+  #hidingIndexMapObserver = null;
+  /**
    * Custom helper for getting widths of the nested headers.
    *
    * @private
@@ -91,18 +96,19 @@ export class NestedHeaders extends BasePlugin {
 
     const { nestedHeaders } = this.hot.getSettings();
 
-    // this.hot.columnIndexMapper
-    //   .createChangesListener({ collectionName: 'hiding', mapsToExclude: ['CollapsibleColumns'] })
-    //   .addLocalHook('change', (changes) => {
-    //     changes.forEach(({ op, index: columnIndex, oldValue, newValue }, i) => {
-    //
-    //       if (op === 'replace' && oldValue !== newValue) {
-    //         const actionName = newValue ? 'hide-column' : 'show-column';
-    //
-    //         this.#stateManager.triggerColumnModification(actionName, columnIndex);
-    //       }
-    //     });
-    //   });
+    this.#hidingIndexMapObserver = this.hot.columnIndexMapper
+      .createChangesListener('hiding', {
+        mapNamesIgnoreList: ['CollapsibleColumns'],
+      })
+      .subscribe((changes) => {
+        changes.forEach(({ op, index: columnIndex, oldValue, newValue }) => {
+          if (op === 'replace' && oldValue !== newValue) {
+            const actionName = newValue ? 'hide-column' : 'show-column';
+
+            this.#stateManager.triggerColumnModification(actionName, columnIndex);
+          }
+        });
+      });
 
     if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
       warn(toSingleLine`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
@@ -153,6 +159,7 @@ export class NestedHeaders extends BasePlugin {
   disablePlugin() {
     this.clearColspans();
     this.#stateManager.clear();
+    this.#hidingIndexMapObserver.unsubscribe();
     this.ghostTable.clear();
 
     super.disablePlugin();
@@ -272,7 +279,7 @@ export class NestedHeaders extends BasePlugin {
    * @fires Hooks#afterGetColHeader
    */
   headerRendererFactory(headerLevel) {
-    const fixedColumnsLeft = this.hot.getSettings().fixedColumnsLeft || 0;
+    const fixedColumnsLeft = this.hot.view.wt.getSetting('fixedColumnsLeft');
 
     return (renderedColumnIndex, TH) => {
       const { rootDocument, columnIndexMapper, view } = this.hot;
@@ -302,7 +309,7 @@ export class NestedHeaders extends BasePlugin {
 
         // Check if there is a fixed column enabled, if so then reduce colspan to fixed column width.
         const correctedColspan = isTopLeftOverlay || isLeftOverlay ?
-          Math.min(colspan, fixedColumnsLeft - visualColumnsIndex) : colspan;
+          Math.min(colspan, fixedColumnsLeft - renderedColumnIndex) : colspan;
 
         if (correctedColspan > 1) {
           TH.setAttribute('colspan', correctedColspan);

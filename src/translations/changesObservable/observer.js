@@ -2,21 +2,33 @@ import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 
 class ChangesObserver {
-  #mapsToExclude = [];
+  #mapNamesIgnoreList = [];
 
-  constructor({ mapsToExclude }) {
-    this.#mapsToExclude = mapsToExclude;
+  constructor({ mapNamesIgnoreList }) {
+    this.#mapNamesIgnoreList = mapNamesIgnoreList;
   }
 
-  write(changes) {
-    this.runLocalHooks('change', changes);
+  write(changesChunk) {
+    const { changes, callerMapName } = changesChunk;
+
+    if (!this.#mapNamesIgnoreList.includes(callerMapName)) {
+      this.runLocalHooks('change', changes);
+    }
+
+    return this;
   }
 
-  destroy() {
-    this.runLocalHooks('destroy');
+  subscribe(callback) {
+    this.addLocalHook('change', callback);
 
-    this.#mapsToExclude = null;
+    return this;
+  }
+
+  unsubscribe() {
+    this.runLocalHooks('unsubscribe');
     this.clearLocalHooks();
+
+    return this;
   }
 }
 

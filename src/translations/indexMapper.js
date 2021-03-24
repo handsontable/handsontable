@@ -1,5 +1,6 @@
 import { arrayMap } from '../helpers/array';
 import {
+  createIndexMap,
   getListWithInsertedItems,
   getListWithRemovedItems,
   HidingMap,
@@ -164,7 +165,9 @@ export class IndexMapper {
     });
 
     this.hidingMapsCollection.addLocalHook('change', (mapName, changedMap, changes) => {
-      this.changesObservable.collect('hiding', mapName, changes);
+      if (changes) {
+        this.changesObservable.collect('hiding', mapName, changes);
+      }
       this.hiddenIndexesChanged = true;
 
       // Number of hidden indexes might change.
@@ -201,13 +204,25 @@ export class IndexMapper {
    * allows listening to the index changes that happen while the Handsontable is running.
    * The changes are triggered incrementally.
    *
+   * @param {string} indexMapType The index map type which we want to observe.
+   *                              Currently, the 'hiding' indexes are observable.
    * @param {object} observerOptions The Observer options.
-   * @param {string} observerOptions.collectionName The collection name which we want to observe.
-   *                                                Currently, the 'hiding' indexes are observable.
    * @returns {ChangesObserver}
    */
-  createChangesListener({ collectionName, ...observerOptions }) {
-    return this.changesObservable.createObserver(collectionName, observerOptions);
+  createChangesListener(indexMapType, observerOptions) {
+    return this.changesObservable.createObserver(indexMapType, observerOptions);
+  }
+
+  /**
+   * Creates and register the new IndexMap for specified IndexMapper instance.
+   *
+   * @param {string} indexName The uniq index name.
+   * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
+   * @param {*} [initValueOrFn=null] The initial value for the index map.
+   * @returns {IndexMap}
+   */
+  createAndRegisterIndexMap(indexName, mapType, initValueOrFn = null) {
+    return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
   }
 
   /**

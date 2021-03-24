@@ -1,55 +1,56 @@
 import ChangesObserver from './observer';
 import { arrayDiff } from './diff';
 
-const SUPPORTED_COLLECTION_NAMES = ['hiding'];
+const SUPPORTED_INDEX_MAP_TYPES = ['hiding'];
 const SUPPORTED_CHANGES_TYPES = ['multiple', 'single'];
 
 class ChangesObservable {
   #observers = new Map();
   #globalObserversCount = 0;
-
   #collectedChanges = new Map();
 
   constructor() {
-    SUPPORTED_COLLECTION_NAMES.forEach((collectionName) => {
-      this.#observers.set(collectionName, new Set());
-      this.#collectedChanges.set(collectionName, new Set());
+    SUPPORTED_INDEX_MAP_TYPES.forEach((indexMapType) => {
+      this.#observers.set(indexMapType, new Set());
+      this.#collectedChanges.set(indexMapType, new Set());
     });
   }
 
-  createObserver(collectionName, observerOptions) {
-    if (!SUPPORTED_COLLECTION_NAMES.includes(collectionName)) {
-      throw new Error(`Unsupported collection name ${collectionName}`);
+  createObserver(indexMapType, observerOptions) {
+    if (!SUPPORTED_INDEX_MAP_TYPES.includes(indexMapType)) {
+      throw new Error(`Unsupported index map type "${indexMapType}"`);
     }
 
     const observer = new ChangesObserver(observerOptions);
-    const observerCollection = this.#observers.get(collectionName);
+    const observers = this.#observers.get(indexMapType);
 
-    observerCollection.add(observer);
+    observers.add(observer);
     this.#globalObserversCount += 1;
 
-    observer.addLocalHook('destroy', () => {
-      observerCollection.delete(observer);
+    observer.addLocalHook('unsubscribe', () => {
+      observers.delete(observer);
       this.#globalObserversCount -= 1;
     });
 
     return observer;
   }
 
-  collect(collectionName, mapName, changes) {
-    if (this.#globalObserversCount === 0 ||
-        !SUPPORTED_COLLECTION_NAMES.includes(collectionName) ||
-        !SUPPORTED_CHANGES_TYPES.includes(changes.changeType)) {
+  collect(indexMapType, mapName, changes) {
+    if (this.#globalObserversCount === 0 || !SUPPORTED_CHANGES_TYPES.includes(changes.changeType)) {
       return;
     }
 
-    const observerCollection = this.#observers.get(collectionName);
+    if (!SUPPORTED_INDEX_MAP_TYPES.includes(indexMapType)) {
+      throw new Error(`Unsupported index map type "${indexMapType}"`);
+    }
 
-    if (observerCollection.size === 0) {
+    const observers = this.#observers.get(indexMapType);
+
+    if (observers.size === 0) {
       return;
     }
 
-    this.#collectedChanges.get(collectionName).add({
+    this.#collectedChanges.get(indexMapType).add({
       mapName,
       changes,
     });
@@ -60,38 +61,54 @@ class ChangesObservable {
       return;
     }
 
-    this.#observers.forEach((observers, collectionName) => {
+    const cachedChanges = new Map();
+
+    this.#observers.forEach((observers, indexMapType) => {
       if (observers.size === 0) {
         return;
       }
 
-      const rawChanges = this.#collectedChanges.get(collectionName);
+      const rawChanges = this.#collectedChanges.get(indexMapType);
 
       if (rawChanges.size === 0) {
         return;
       }
 
-      observers.forEach((observer) => {
-        const changes = this._generateChanges(rawChanges);
+      let changesChunk = {};
 
-        observer.write(changes);
+      if (cachedChanges.has(indexMapType)) {
+        changesChunk = cachedChanges.get(indexMapType);
+      } else {
+        changesChunk = this._generateChangesChunk(rawChanges);
+        cachedChanges.set(indexMapType, changesChunk);
+      }
+
+      observers.forEach((observer) => {
+        observer.write(changesChunk);
       });
 
-      this.#collectedChanges.get(collectionName).clear();
+      this.#collectedChanges.get(indexMapType).clear();
     });
+
+    cachedChanges.clear();
   }
 
-  _generateChanges(rawChanges) {
-    const diff = [];
+  _generateChangesChunk(rawChanges) {
+    const changesChunk = {
+      changes: [],
+      callerMapName: null,
+    };
 
-    rawChanges.forEach(({ changes }) => {
-      const { changeType, oldValue, newValue } = changes;
+    rawChanges.forEach(({ changes: changesEntry, mapName }) => {
+      const { changeType, oldValue, newValue } = changesEntry;
+
+      changesChunk.callerMapName = mapName;
 
       if (changeType === 'multiple') {
-        diff.push(...arrayDiff(oldValue, newValue));
+        changesChunk.changes.push(...arrayDiff(oldValue, newValue));
 
       } else if (changeType === 'single') {
-        diff.push({
+        changesChunk.changes.push({
           op: 'replace',
           index: oldValue.index,
           oldValue: oldValue.value,
@@ -100,7 +117,7 @@ class ChangesObservable {
       }
     });
 
-    return diff;
+    return changesChunk;
   }
 }
 
