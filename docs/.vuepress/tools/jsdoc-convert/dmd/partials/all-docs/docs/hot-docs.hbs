@@ -1,4 +1,6 @@
 {{>hot-header~}}
-{{#unless (isConstructor)}}{{>hot-sig-name~}}{{/unless}}
+{{#unless (isConstructor)}}{{>hot-sig-name}}
+
+[Source code]({{{sourceLink}}}){{/unless}}
 
 {{>hot-body}}
