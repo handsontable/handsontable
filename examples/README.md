@@ -73,7 +73,7 @@ Sometimes you want to edit existing code examples that is live in the `/examples
 
 To see code examples in action run these commands:
 
-1. `npm examples:install <version_number>` - will install the dependencies of all the examples matching the `<version_number>`, utilizing the `examples`' internal workspace logic.
+1. `npm run examples:install <version_number>` - will install the dependencies of all the examples matching the `<version_number>`, utilizing the `examples`' internal workspace logic.
 2. `npm run examples:build <version_number>` - will build each code example in the `/examples/<version_number>` directory then copy each example's production output to the `/examples/tmp/<version_number>`. The path to the code example in the `/examples/tmp` follows the [Folder structure](#folder-structure) convention.
 3. `npm run examples:start` - it will start the `http-server` right in the `/examples/tmp` on PORT `8080`. So the URL to the specific code example would be `http://localhost:8080/8.1.0/docs/angular/custom-context-menu/`. The URL follows the same convention as mentioned in the [Live on production](#live-on-production) section.
 
