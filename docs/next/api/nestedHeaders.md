@@ -40,6 +40,8 @@ const hot = new Handsontable(container, {
 
 _nestedHeaders.detectedOverlappedHeaders : boolean_
 
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L73)
+
 The flag which determines that the nested header settings contains overlapping headers
 configuration.
 
@@ -50,6 +52,8 @@ configuration.
 
 _nestedHeaders.destroy()_
 
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L547)
+
 Destroys the plugin instance.
 
 
@@ -57,6 +61,8 @@ Destroys the plugin instance.
 ### disablePlugin
 
 _nestedHeaders.disablePlugin()_
+
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L140)
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -66,6 +72,8 @@ Disables the plugin functionality for this Handsontable instance.
 
 _nestedHeaders.enablePlugin()_
 
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L87)
+
 Enables the plugin functionality for this Handsontable instance.
 
 
@@ -74,6 +82,8 @@ Enables the plugin functionality for this Handsontable instance.
 
 _nestedHeaders.isEnabled() ⇒ boolean_
 
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L80)
+
 Check if plugin is enabled.
 
 
@@ -81,6 +91,8 @@ Check if plugin is enabled.
 ### updatePlugin
 
 _nestedHeaders.updatePlugin()_
+
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L115)
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

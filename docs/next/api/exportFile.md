@@ -53,6 +53,8 @@ exportPlugin.exportAsString('csv', {
 
 _ExportFile.ExportOptions : object_
 
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L66)
+
 
 **Properties**
 
@@ -71,6 +73,8 @@ _ExportFile.ExportOptions : object_
 
 _exportFile.downloadFile(format, options)_
 
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L106)
+
 Exports table data as a downloadable file.
 
 
@@ -84,6 +88,8 @@ Exports table data as a downloadable file.
 ### exportAsBlob
 
 _exportFile.exportAsBlob(format, options) ⇒ Blob_
+
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L96)
 
 Exports table data as a blob object.
 
@@ -99,6 +105,8 @@ Exports table data as a blob object.
 
 _exportFile.exportAsString(format, options) ⇒ string_
 
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L85)
+
 Exports table data as a string.
 
 
@@ -112,6 +120,8 @@ Exports table data as a string.
 ### isEnabled
 
 _exportFile.isEnabled() ⇒ boolean_
+
+[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L62)
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [ExportFile#enablePlugin](./export-file/#enableplugin) method is called.
