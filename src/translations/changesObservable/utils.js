@@ -1,5 +1,9 @@
 /**
- * An array diff implementation.
+ * An array diff implementation. The function iterates through the arrays and depends
+ * on the diff results, collect the changes as a list of the objects.
+ *
+ * Each object contains information about the differences in the indexes of the arrays.
+ * The changes also contain data about the new and previous array values.
  *
  * @param {Array} baseArray The base array to diff from.
  * @param {Array} newArray The new array to compare with.
@@ -35,8 +39,8 @@ export function arrayDiff(baseArray, newArray) {
     changes.push({
       op: 'remove',
       index: j,
-      oldVvalue: baseArray[j],
-      newVvalue: void 0,
+      oldValue: baseArray[j],
+      newValue: void 0,
     });
   }
 

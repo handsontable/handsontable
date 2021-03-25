@@ -1,10 +1,10 @@
-import ChangesObserver from './observer';
-import { arrayDiff } from './diff';
+import { ChangesObserver } from './observer';
+import { arrayDiff } from './utils';
 
 const SUPPORTED_INDEX_MAP_TYPES = ['hiding'];
 const SUPPORTED_CHANGES_TYPES = ['multiple', 'single'];
 
-class ChangesObservable {
+export class ChangesObservable {
   #observers = new Map();
   #globalObserversCount = 0;
   #collectedChanges = new Map();
@@ -18,7 +18,7 @@ class ChangesObservable {
 
   createObserver(indexMapType, observerOptions) {
     if (!SUPPORTED_INDEX_MAP_TYPES.includes(indexMapType)) {
-      throw new Error(`Unsupported index map type "${indexMapType}"`);
+      throw new Error(`Unsupported index map type "${indexMapType}".`);
     }
 
     const observer = new ChangesObserver(observerOptions);
@@ -35,13 +35,13 @@ class ChangesObservable {
     return observer;
   }
 
-  collect(indexMapType, mapName, changes) {
-    if (this.#globalObserversCount === 0 || !SUPPORTED_CHANGES_TYPES.includes(changes.changeType)) {
-      return;
+  collect(indexMapType, callerMapName, changes) {
+    if (!SUPPORTED_INDEX_MAP_TYPES.includes(indexMapType)) {
+      throw new Error(`Unsupported index map type "${indexMapType}".`);
     }
 
-    if (!SUPPORTED_INDEX_MAP_TYPES.includes(indexMapType)) {
-      throw new Error(`Unsupported index map type "${indexMapType}"`);
+    if (this.#globalObserversCount === 0 || !SUPPORTED_CHANGES_TYPES.includes(changes.changeType)) {
+      return;
     }
 
     const observers = this.#observers.get(indexMapType);
@@ -51,7 +51,7 @@ class ChangesObservable {
     }
 
     this.#collectedChanges.get(indexMapType).add({
-      mapName,
+      callerMapName,
       changes,
     });
   }
@@ -84,7 +84,7 @@ class ChangesObservable {
       }
 
       observers.forEach((observer) => {
-        observer.write(changesChunk);
+        observer._write(changesChunk);
       });
 
       this.#collectedChanges.get(indexMapType).clear();
@@ -99,10 +99,10 @@ class ChangesObservable {
       callerMapName: null,
     };
 
-    rawChanges.forEach(({ changes: changesEntry, mapName }) => {
+    rawChanges.forEach(({ changes: changesEntry, callerMapName }) => {
       const { changeType, oldValue, newValue } = changesEntry;
 
-      changesChunk.callerMapName = mapName;
+      changesChunk.callerMapName = callerMapName;
 
       if (changeType === 'multiple') {
         changesChunk.changes.push(...arrayDiff(oldValue, newValue));
@@ -119,6 +119,8 @@ class ChangesObservable {
 
     return changesChunk;
   }
-}
 
-export default ChangesObservable;
+  get globalObserversCount() {
+    return this.#globalObserversCount;
+  }
+}

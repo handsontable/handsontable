@@ -14,7 +14,7 @@ import {
 import localHooks from '../mixins/localHooks';
 import { mixin } from '../helpers/object';
 import { isDefined } from '../helpers/mixed';
-import ChangesObservable from './changesObservable/observable';
+import { ChangesObservable } from './changesObservable/observable';
 
 /**
  * Index mapper stores, registers and manages the indexes on the basis of calculations collected from the subsidiary maps.
