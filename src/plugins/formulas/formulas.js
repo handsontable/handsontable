@@ -128,15 +128,22 @@ export class Formulas extends BasePlugin {
     }
   }
 
-  onModifySourceData(row, col, valueHolder) {
+  onModifySourceData(row, col, valueHolder, ioMode) {
+    if (!this.isEnabled()) {
+      return
+    }
+
     const address = {
       row: this.hot.toVisualRow(row),
       col,
       sheet: this.hyperformula.getSheetId(this.sheetName)
     }
 
-    // TODO if there's an error, somehow retrieve original source value
-    valueHolder.value = this.hyperformula.getCellSerialized(address)
+    if (ioMode === 'get') {
+      valueHolder.value = this.hyperformula.getCellSerialized(address)
+    } else if (ioMode === 'set') {
+      this.hyperformula.setCellContents(address, valueHolder.value)
+    }
   }
 
   onBeforeCreateRow(row, amount) {
