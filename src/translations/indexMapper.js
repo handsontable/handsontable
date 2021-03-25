@@ -70,9 +70,9 @@ export class IndexMapper {
     this.variousMapsCollection = new MapCollection();
     /**
      * The class instance collects row and column index changes that happen while the Handsontable
-     * is running. The object allows creating observers that trigger the "change" events.
-     * Each event represents the index change (e.g., insert, removing, change index value),
-     * which can be consumed by a developer to update its logic.
+     * is running. The object allows creating observers that you can subscribe to so that you can
+     * observe changes in indexes. Each event represents the index change (e.g., insert, removing,
+     * change index value), which can be consumed by a developer to update its logic.
      *
      * @private
      * @type {ChangesObservable}
@@ -205,7 +205,7 @@ export class IndexMapper {
    * The changes are triggered incrementally.
    *
    * @param {string} indexMapType The index map type which we want to observe.
-   *                              Currently, the 'hiding' indexes are observable.
+   *                              Currently, only the 'hiding' index map types are observable.
    * @param {object} observerOptions The Observer options.
    * @returns {ChangesObserver}
    */
@@ -656,12 +656,11 @@ export class IndexMapper {
 
       this.changesObservable.flush();
 
-      this.runLocalHooks(
-        'cacheUpdated',
-        this.indexesSequenceChanged,
-        this.trimmedIndexesChanged,
-        this.hiddenIndexesChanged
-      );
+      this.runLocalHooks('cacheUpdated', {
+        indexesSequenceChanged: this.indexesSequenceChanged,
+        trimmedIndexesChanged: this.trimmedIndexesChanged,
+        hiddenIndexesChanged: this.hiddenIndexesChanged,
+      });
 
       this.indexesSequenceChanged = false;
       this.trimmedIndexesChanged = false;

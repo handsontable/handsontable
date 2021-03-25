@@ -215,7 +215,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.selection = selection;
 
-  const onIndexMapperCacheUpdate = (flag1, flag2, hiddenIndexesChanged) => {
+  const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
     if (hiddenIndexesChanged) {
       this.selection.refresh();
     }

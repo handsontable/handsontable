@@ -20,6 +20,7 @@ describe('IndexMapper', () => {
 
   it('should fill mappers with proper values by calling `initToLength` method', () => {
     const indexMapper = new IndexMapper();
+
     indexMapper.initToLength(10);
 
     expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -119,6 +120,62 @@ describe('IndexMapper', () => {
     indexMapper.registerMap('uniqueName3', indexToValueMap);
 
     expect(indexMapper.variousMapsCollection.get('uniqueName3')).toBe(indexToValueMap);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName3')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName3')).toBe(undefined);
+
+    indexMapper.unregisterMap('uniqueName');
+    indexMapper.unregisterMap('uniqueName2');
+    indexMapper.unregisterMap('uniqueName3');
+  });
+
+  it('should create and register map to proper collection when it is possible', () => {
+    const indexMapper = new IndexMapper();
+
+    expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
+
+    const trimmingMap = indexMapper.createAndRegisterIndexMap('uniqueName', 'trimming');
+
+    expect(trimmingMap).toBeInstanceOf(TrimmingMap);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBeInstanceOf(TrimmingMap);
+    expect(indexMapper.trimmingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+
+    // We can register map under unique key only once. Otherwise, error should be thrown.
+    expect(() => {
+      indexMapper.createAndRegisterIndexMap('uniqueName', 'trimming');
+    }).toThrow();
+
+    expect(() => {
+      indexMapper.createAndRegisterIndexMap('uniqueName', 'hiding');
+    }).toThrow();
+
+    expect(() => {
+      indexMapper.createAndRegisterIndexMap('uniqueName', 'physicalIndexToValue');
+    }).toThrow();
+
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBeInstanceOf(TrimmingMap);
+    expect(indexMapper.trimmingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+    expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+
+    const hidingMap = indexMapper.createAndRegisterIndexMap('uniqueName2', 'hiding');
+
+    expect(hidingMap).toBeInstanceOf(HidingMap);
+    expect(indexMapper.hidingMapsCollection.get('uniqueName2')).toBeInstanceOf(HidingMap);
+    expect(indexMapper.hidingMapsCollection.getLength()).toBe(1);
+    expect(indexMapper.trimmingMapsCollection.get('uniqueName2')).toBe(undefined);
+    expect(indexMapper.variousMapsCollection.get('uniqueName2')).toBe(undefined);
+
+    const pIndexToValueMap = indexMapper.createAndRegisterIndexMap('uniqueName3', 'physicalIndexToValue');
+
+    expect(pIndexToValueMap).toBeInstanceOf(PIndexToValueMap);
+    expect(indexMapper.variousMapsCollection.get('uniqueName3')).toBeInstanceOf(PIndexToValueMap);
     expect(indexMapper.variousMapsCollection.getLength()).toBe(1);
     expect(indexMapper.trimmingMapsCollection.get('uniqueName3')).toBe(undefined);
     expect(indexMapper.hidingMapsCollection.get('uniqueName3')).toBe(undefined);
@@ -665,6 +722,40 @@ describe('IndexMapper', () => {
 
     indexMapper.unregisterMap('trimmingMap');
     indexMapper.unregisterMap('hidingMap');
+  });
+
+  describe('createChangesListener', () => {
+    it('should create and return new index observer listener', () => {
+      const indexMapper = new IndexMapper();
+
+      spyOn(indexMapper.changesObservable, 'createObserver').and.returnValue('fake-observer');
+
+      const value = indexMapper.createChangesListener('index-map-type', { setting1: 1, setting2: 2 });
+
+      expect(value).toBe('fake-observer');
+      expect(indexMapper.changesObservable.createObserver)
+        .toHaveBeenCalledWith('index-map-type', { setting1: 1, setting2: 2 });
+    });
+  });
+
+  describe('unregisterAll', () => {
+    it('should unregister all maps properly', () => {
+      const indexMapper = new IndexMapper();
+
+      indexMapper.createAndRegisterIndexMap('myIndexToValueName', 'physicalIndexToValue');
+      indexMapper.createAndRegisterIndexMap('myHidingMap1', 'hiding');
+      indexMapper.createAndRegisterIndexMap('myHidingMap2', 'hiding');
+      indexMapper.createAndRegisterIndexMap('myTrimmingMap', 'trimming');
+
+      indexMapper.unregisterAll();
+
+      expect(indexMapper.variousMapsCollection.get('uniqueName')).toBe(undefined);
+      expect(indexMapper.variousMapsCollection.getLength()).toBe(0);
+      expect(indexMapper.hidingMapsCollection.get('uniqueName')).toBe(undefined);
+      expect(indexMapper.hidingMapsCollection.getLength()).toBe(0);
+      expect(indexMapper.trimmingMapsCollection.get('uniqueName')).toBe(undefined);
+      expect(indexMapper.trimmingMapsCollection.getLength()).toBe(0);
+    });
   });
 
   describe('removing indexes', () => {
