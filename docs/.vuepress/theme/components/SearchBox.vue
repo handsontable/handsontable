@@ -244,7 +244,7 @@ export default {
   margin-right 2rem
   input
     cursor text
-    width 12rem
+    width 13rem
     height: 2rem
     color #104bcd
     display inline-block
