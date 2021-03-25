@@ -47,6 +47,8 @@ export default {
 
 <style lang="stylus">
 .sidebar
+  border-color: #e9eef2;
+  background-color: #fafbff;
   ul
     padding 0
     margin 0
@@ -72,6 +74,41 @@ export default {
       font-weight bold
     & > li:not(:first-child)
       margin-top .75rem
+      
+  a.sidebar-link
+    padding 0.3rem 1rem 0.3rem 2rem
+    font-size 14px
+
+  a.sidebar-link.active, a.sidebar-link:hover
+    color #104bcd
+  
+  .sidebar-sub-headers a.sidebar-link
+    color #4d6379
+  
+  a.sidebar-link.active
+    border-color #104bcd
+
+  .sidebar-heading
+    position relative
+    font-size 15px
+    
+  .sidebar-heading .arrow
+    padding 3px
+    position absolute
+    top 40%
+    right 1.3rem
+    left auto
+    border solid #cfd4db
+    border-width 0 2px 2px 0
+    transform rotate(315deg)
+    -webkit-transform rotate(315deg)
+    
+    &.down
+      transform rotate(45deg)
+      -webkit-transform rotate(45deg)
+      
+.sidebar > .sidebar-links > li:not(:first-child)
+  margin-top 0
 
 @media (max-width: $MQMobile)
   .sidebar

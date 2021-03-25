@@ -28,7 +28,7 @@ module.exports = {
   ],
   markdown: {
     toc: {
-      includeLevel: [2, 3],
+      includeLevel: [2],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
   },
@@ -61,7 +61,7 @@ module.exports = {
     }
   },
   themeConfig: {
-    logo: '/logo.png',
+    logo: '/logo.svg',
     nextLinks: true,
     prevLinks: true,
     repo: 'handsontable/handsontable',
@@ -69,12 +69,13 @@ module.exports = {
     docsDir: 'docs',
     docsBranch: 'develop',
     editLinks: true,
-    editLinkText: 'Help us improve this page',
+    editLinkText: 'Suggest edits',
     lastUpdated: true,
     smoothScroll: false,
     nav: [
       // Guide & API Reference has defined in: theme/components/NavLinks.vue
-      { text: 'Demo', link: 'https://handsontable.com/examples' },
+      { text: 'GitHub', link: 'https://github.com/handsontable/handsontable' },
+      { text: 'Blog', link: 'https://handsontable.com/blog' },
       { text: 'Support',
         items: [
           { text: 'Forum', link: 'https://forum.handsontable.com' },
@@ -87,6 +88,7 @@ module.exports = {
     activeHeaderLinks: true,
     sidebarDepth: 0,
     sidebar: helpers.getSidebars(),
-    search: true
+    search: true,
+    searchPlaceholder: 'Search...'
   }
 };

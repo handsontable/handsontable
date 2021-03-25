@@ -4,19 +4,17 @@
       <template #page-top>
         <div v-if="show" class="page-top">
           <div class="version-alert">
-            <p v-if="isNext">This is unreleased documentation for Handsontable <strong>Next</strong> version.</p>
+            <p v-if="isNext">This is an unreleased documentation for the next version of Handsontable.</p>
             <p v-else-if="!isLatest">You're viewing a documentation of a previous version of Handsontable.</p>
           </div>
         </div>
       </template>
     </ParentLayout>
-    <LayoutFooter />
   </div>
 </template>
 
 <script>
 import ParentLayout from '@parent-theme/layouts/Layout.vue';
-import LayoutFooter from '@theme/components/LayoutFooter.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 import NavLink from '@theme/components/NavLink.vue';
 import Sidebar from '@theme/components/Sidebar.vue';
@@ -25,7 +23,6 @@ export default {
   name: 'Layout',
   components: {
     ParentLayout,
-    LayoutFooter,
     NavLinks,
     NavLink,
     Sidebar
@@ -52,10 +49,10 @@ export default {
 
 .version-alert
   background #104bcd
-  margin-top 40px
-  padding 25px 25px
-  border-radius 12px
-  color #ffffff
+  margin-top 2rem
+  padding 1.2rem 1.2rem
+  border-radius 6px
+  color #fff
   p
     padding 0
     margin 0

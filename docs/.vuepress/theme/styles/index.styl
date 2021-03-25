@@ -11,7 +11,8 @@ body div {
     position: relative;
     z-index: 9;
     font-size: 13px;
-    font-family: Verdana, Helvetica, Arial, FreeSans, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+      "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
     font-weight: 400;
     overflow-y: scroll;
     height: 320px
@@ -27,7 +28,11 @@ body div {
 .page-top {
     max-width: 740px;
     margin: 0 auto;
-    padding: 0 2.5rem;
+    padding: 0 2.5rem 0 5rem;
+}
+  
+.theme-default-content:not(.custom) {
+    padding: 2rem 2.5rem 2rem 5rem;  
 }
 
 .theme-default-content > h1:first-child {
@@ -69,11 +74,14 @@ body div {
 
 /* Larger bottom gap of H1, H2, H3 */
 h1 {
-    margin-bottom: 3rem!important;
+    margin-bottom: 1rem!important;
 }
 
 h2 {
-    margin-bottom: 2rem!important;
+    margin-bottom: 1rem!important;
+    padding-bottom: 0;
+    padding-top: 3.6rem!important;
+    border-bottom: none;
     font-size: 1.55rem;
 }
 
@@ -91,19 +99,13 @@ h3 {
 }
 
 a {
-    color: #3d84ff;
+    color: #104bcd;
 }
 
 .sidebar {
-    background-color: #fbfbfb;
+    
 
-    a.sidebar-link.active, a.sidebar-link:hover {
-        color: #3d84ff;
-    }
 
-    .sidebar-sub-headers a.sidebar-link {
-        color: #4d6379
-    }
 }
 
 table {
@@ -116,7 +118,7 @@ table {
 
     th, td {
         border: none;
-        border-bottom: 1px solid #dfe2e5;
+        border-bottom: 1px solid #e9eef2;
         line-height: 1.7;
         text-align: left;
     }
@@ -144,10 +146,10 @@ table {
         position: fixed;
         right: 0;
         top: 100px;
-        width: 200px;
+        width: 240px;
         overflow-y: auto;
         overflow-x: hidden;
-        border-left: 1px solid #eaecef;
+        border-left: 1px solid #e9eef2;
         max-height: 100%;
 
         .toc-container-header {
@@ -172,17 +174,17 @@ table {
             font-weight: 400;
             line-height: 1.4;
             padding: 0.35rem 1rem;
-            color: #2c3e50;
+            color: #104bcd;
             display: block;
+            text-decoration: none!important;
         }
       
         a.active {
-          color: #3d84ff;    
+          color: #104bcd;    
         }
       
         a:hover {
-            color: #3d84ff;
-            text-decoration: none;
+            color: #104bcd;
         }
     }
 }
@@ -224,12 +226,11 @@ table {
     }
 }
 
-.search-box{
-    margin-right: 24px;
+.page-edit .edit-link a, .page-edit .last-updated .prefix, 
+.page-edit .last-updated .time {
+  color: #2c3e50!important;
 }
 
-.home-link{
-    img{
-        margin-top: 2px;
-    }
+.page-nav .inner {
+  border-color: #e9eef2!important;
 }

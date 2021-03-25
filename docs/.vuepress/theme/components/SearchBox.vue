@@ -241,12 +241,12 @@ export default {
 .search-box
   display inline-block
   position relative
-  margin-right 1rem
+  margin-right 2rem
   input
     cursor text
-    width 10rem
+    width 12rem
     height: 2rem
-    color lighten($textColor, 25%)
+    color #104bcd
     display inline-block
     border 1px solid darken($borderColor, 10%)
     border-radius 2rem
@@ -262,9 +262,9 @@ export default {
       border-color $accentColor
   .suggestions
     background #fff
-    width 20rem
+    width 26rem
     position absolute
-    top 2 rem
+    top 2rem
     border 1px solid darken($borderColor, 10%)
     border-radius 6px
     padding 0.4rem
@@ -279,13 +279,14 @@ export default {
     a
       white-space normal
       color lighten($textColor, 35%)
+      font-weight 500
       .page-title
-        font-weight 600
+        
       .header
         font-size 0.9em
         margin-left 0.25em
     &.focused
-      background-color #f3f4f5
+      background-color #f3f4f9
       a
         color $accentColor
 

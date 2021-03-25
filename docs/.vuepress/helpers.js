@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
 
-// TODO: adjust to meet the monorepo structure requirements
 const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
 

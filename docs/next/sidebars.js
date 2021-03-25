@@ -156,25 +156,22 @@ const API = [
 
 module.exports = {
   guide: [
-    { title: 'Getting started', children: gettingStartedItems },
-    { title: 'Basic usage', children: basicUsageItems },
-    { title: 'Developer guide', children: developerGuideItems },
-    { title: 'Wrappers',
+    { title: 'Overview', children: gettingStartedItems },
+    { title: 'Getting Started', children: basicUsageItems },
+    { title: 'Framework integration',
       children: [
-        { title: 'Wrapper for React', children: wrapperForReactItems },
-        { title: 'Wrapper for Angular', children: wrapperForAngularItems },
-        { title: 'Wrapper for Vue', children: wrapperForVueItems },
+        { title: 'Use with React', children: wrapperForReactItems },
+        { title: 'Use with Angular', children: wrapperForAngularItems },
+        { title: 'Use with Vue', children: wrapperForVueItems },
       ] },
-    { title: 'Demos',
-      children: [
-        { title: 'Rows and columns', children: rowsAndColumnsItems },
-        { title: 'Data operations', children: dataOperationsItems },
-        { title: 'Cell features', children: cellFeaturesItems },
-        { title: 'Cell types', children: cellTypesItems },
-        { title: 'Utilities', children: utilitiesItems },
-        { title: 'Appearance', children: appearanceItems },
-        { title: 'Formulas', children: formulasItems },
-      ] }
+    { title: 'Rows and columns', children: rowsAndColumnsItems },
+    { title: 'Data operations', children: dataOperationsItems },
+    { title: 'Cell types', children: cellTypesItems },
+    { title: 'Cell features', children: cellFeaturesItems },
+    { title: 'Utilities', children: utilitiesItems },
+    { title: 'Appearance', children: appearanceItems },
+    { title: 'Formulas', children: formulasItems },
+    { title: 'Customization', children: developerGuideItems }
   ],
-  api: API,
+  api: API
 };

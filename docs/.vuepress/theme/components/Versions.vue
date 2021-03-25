@@ -18,7 +18,7 @@ export default {
   methods: {
     addLatest (version) {
       if (version === this.$page.latestVersion) {
-        return `${version} (latest)`;
+        return `${version} (Current)`;
       }
 
       return version;
@@ -69,10 +69,10 @@ export default {
 
 <style lang="stylus">
 .nav-versions
+  margin-right 2rem
   display inline-block
   position relative
-  line-height 2rem
-  margin-left 1px
+  top -0.2rem
 
   .icon.outbound
     display none
@@ -81,13 +81,14 @@ export default {
     height: 1.8rem
 
   .dropdown-wrapper .nav-dropdown 
+    min-width: 150px;
     height: auto !important;
     box-sizing: border-box;
     max-height: calc(100vh - 2.7rem);
     overflow-y: auto;
     position: absolute;
     top: 100%;
-    right: 0;
+    left: 0;
     background-color: #fff;
     padding: 0.6rem 0;
     border: 1px solid #ddd;
@@ -96,10 +97,11 @@ export default {
     border-radius: 0.25rem;
     white-space: nowrap;
     margin: 0;
-
+.dropdown-wrapper .dropdown-title .arrow, .dropdown-wrapper .mobile-dropdown-title .arrow
+  margin-left 0.1rem
 @media (min-width: 719px)
   .nav-versions
     .dropdown-wrapper .nav-dropdown
-      right: initial!important;
-      left: -22px;
+      //right: initial!important;
+      //left: -22px;
 </style>

@@ -12,12 +12,6 @@
           :src="$withBase($site.themeConfig.logo)"
           :alt="$siteTitle"
       >
-      <span
-          v-if="$siteTitle"
-          ref="siteName"
-          class="site-name"
-          :class="{ 'can-hide': $site.themeConfig.logo }"
-      >{{ $siteTitle }}</span>
     </RouterLink>
     <Versions></Versions>
 
@@ -31,7 +25,9 @@
           v-if="isAlgoliaSearch"
           :options="algolia"
       />
-      <SearchBox v-else-if="$page.frontmatter.search !== false" />
+
+      <SearchBox />
+
       <NavLinks class="can-hide" />
     </div>
   </header>
@@ -89,25 +85,24 @@ function css (el, property) {
 </script>
 
 <style lang="stylus">
-$navbar-vertical-padding = 0.7rem
+$navbar-vertical-padding = 0.65rem
 $navbar-horizontal-padding = 1.5rem
 .navbar
   padding $navbar-vertical-padding $navbar-horizontal-padding
   line-height $navbarHeight - 1.4rem
+  border-color: #e9eef2;
   a, span, img
     display inline-block
-  .logo
-    height $navbarHeight - 1.4rem
-    min-width $navbarHeight - 1.4rem
-    margin-right 0.8rem
-    vertical-align top
-  .site-name
-    font-size 1.3rem
+    text-transform capitalize
     font-weight 600
-    color $textColor
-    position relative
+    font-size: 14px
+  .home-link
+    margin-right 2rem
+    position relative;
+    top .6rem;
+  .logo
+    height $navbarHeight - 2rem
   .links
-    padding-left 1.5rem
     box-sizing border-box
     background-color white
     white-space nowrap
@@ -126,9 +121,4 @@ $navbar-horizontal-padding = 1.5rem
       display none
     .links
       padding-left 1.5rem
-    .site-name
-      width calc(100vw - 9.4rem)
-      overflow hidden
-      white-space nowrap
-      text-overflow ellipsis
 </style>
