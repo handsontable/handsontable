@@ -61,6 +61,19 @@ export class Formulas extends BasePlugin {
     this.addHook('modifyData', (...args) => this.onModifyData(...args))
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args))
 
+    // TODO test if the `before` hook will actually block operations
+    this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args))
+    this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args))
+
+    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args))
+    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args))
+
+    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args))
+    this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args))
+
+    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args))
+    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args))
+
     // TODO list out hooks from my local plugin/old plugin/todo
 
     super.enablePlugin();
@@ -124,5 +137,37 @@ export class Formulas extends BasePlugin {
 
     // TODO if there's an error, somehow retrieve original source value
     valueHolder.value = this.hyperformula.getCellSerialized(address)
+  }
+
+  onBeforeCreateRow(row, amount) {
+    return this.hyperformula.isItPossibleToAddRows(this.hyperformula.getSheetId(this.sheetName), [row, amount]);
+  }
+
+  onBeforeCreateCol(col, amount) {
+    return this.hyperformula.isItPossibleToAddColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
+  }
+
+  onAfterCreateRow(row, amount) {
+    this.hyperformula.addRows(this.hyperformula.getSheetId(this.sheetName), [row, amount]);
+  }
+
+  onAfterCreateCol(col, amount) {
+    this.hyperformula.addColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
+  }
+
+  onBeforeRemoveRow(row, amount) {
+    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [row, amount])
+  }
+
+  onBeforeRemoveCol(col, amount) {
+    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [col, amount])
+  }
+
+  onAfterRemoveRow(row, amount) {
+    this.hyperformula.removeRows(this.hyperformula.getSheetId(this.sheetName), [row, amount]);
+  }
+
+  onAfterRemoveCol(col, amount) {
+    this.hyperformula.removeColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount])
   }
 }
