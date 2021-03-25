@@ -1,5 +1,5 @@
 describe('Formulas general', () => {
-  let debug = false
+  const debug = false;
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -8,7 +8,7 @@ describe('Formulas general', () => {
 
   afterEach(function() {
     if (debug) {
-      return
+      return;
     }
 
     if (this.$container) {
@@ -111,10 +111,10 @@ describe('Formulas general', () => {
   });
 
   xdescribe('should handle \' at the beginning of the formula', () => {
-    xit('with ordinary text')
-    xit('with numeric value')
-    xit('with formulas')
-  })
+    xit('with ordinary text');
+    xit('with numeric value');
+    xit('with formulas');
+  });
 
   it('should throw error while parsing invalid cell coordinates syntax', () => {
     const data = getDataSimpleExampleFormulas();
@@ -268,7 +268,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#VALUE!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-       .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
   xit('should recalculate table after changing cell value from escaped formula expression into valid formula expression', () => {
@@ -412,9 +412,9 @@ describe('Formulas general', () => {
       height: 300
     });
 
-    hot.setDataAtCell(0, 0, '=RAND()')
+    hot.setDataAtCell(0, 0, '=RAND()');
 
-    const firstCellBefore = hot.getDataAtCell(0, 0)
+    const firstCellBefore = hot.getDataAtCell(0, 0);
 
     expect(hot.getDataAtRow(0)).toEqual([firstCellBefore, 'Maserati', 'Mazda', 'Mercedes', 'Mini', firstCellBefore]);
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -422,18 +422,18 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '=SUM(E5)']);
 
-    hot.setDataAtCell(1, 1, 10)
+    hot.setDataAtCell(1, 1, 10);
 
-    const firstCellAfter = hot.getDataAtCell(0, 0)
+    const firstCellAfter = hot.getDataAtCell(0, 0);
 
-    expect(firstCellBefore).not.toEqual(firstCellAfter)
+    expect(firstCellBefore).not.toEqual(firstCellAfter);
 
     expect(hot.getDataAtRow(0)).toEqual([firstCellAfter, 'Maserati', 'Mazda', 'Mercedes', 'Mini', firstCellAfter]);
     expect(hot.getDataAtRow(1)).toEqual([2009, 10, 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
     expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 200.9, 12, '=SUM(E5)']);
-  })
+  });
 
   describe('alter table (insert row)', () => {
     it('should recalculate table after added new empty rows', () => {

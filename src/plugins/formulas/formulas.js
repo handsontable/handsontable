@@ -1,9 +1,8 @@
 // big work in progress.
 // TODO remove hot-formula-parser
 
+import { HyperFormula } from 'hyperformula';
 import { BasePlugin } from '../base';
-
-import { HyperFormula } from 'hyperformula'
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
@@ -20,10 +19,6 @@ export class Formulas extends BasePlugin {
 
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
-  }
-
-  constructor(hotInstance) {
-    super(hotInstance);
   }
 
   /**
@@ -45,34 +40,36 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const settings = this.hot.getSettings()[PLUGIN_KEY];
+    // TODO use this
+    // const settings = this.hot.getSettings()[PLUGIN_KEY];
 
     /**
      * The HyperFormula instance that will be used for this instance of Handsontable.
+     *
      * @type {HyperFormula}
      */
     this.hyperformula = HyperFormula.buildEmpty({
       licenseKey: 'non-commercial-and-evaluation' // TODO
     });
 
-    this.sheetName = this.hyperformula.addSheet()
+    this.sheetName = this.hyperformula.addSheet();
 
-    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args))
-    this.addHook('modifyData', (...args) => this.onModifyData(...args))
-    this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args))
+    this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
+    this.addHook('modifyData', (...args) => this.onModifyData(...args));
+    this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
 
     // TODO test if the `before` hook will actually block operations
-    this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args))
-    this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args))
+    this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
+    this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
 
-    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args))
-    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args))
+    this.addHook('afterCreateRow', (...args) => this.onAfterCreateRow(...args));
+    this.addHook('afterCreateCol', (...args) => this.onAfterCreateCol(...args));
 
-    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args))
-    this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args))
+    this.addHook('beforeRemoveRow', (...args) => this.onBeforeRemoveRow(...args));
+    this.addHook('beforeRemoveCol', (...args) => this.onBeforeRemoveCol(...args));
 
-    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args))
-    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args))
+    this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
+    this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
     // TODO list out hooks from my local plugin/old plugin/todo
 
@@ -84,7 +81,7 @@ export class Formulas extends BasePlugin {
    */
   disablePlugin() {
     // TODO add tests for this line
-    this.hyperformula.destroy()
+    this.hyperformula.destroy();
 
     super.disablePlugin();
   }
@@ -98,51 +95,51 @@ export class Formulas extends BasePlugin {
 
   onAfterLoadData(data) {
     if (!this.isEnabled) {
-      return
+      return;
     }
 
-    this.hyperformula.setSheetContent(this.sheetName, data)
+    this.hyperformula.setSheetContent(this.sheetName, data);
   }
 
   onModifyData(row, column, valueHolder, ioMode) {
     if (!this.enabled) {
       // TODO check if this line is actually ever reached
-      return
+      return;
     }
 
     const address = {
       row: this.hot.toVisualRow(row),
       col: column,
       sheet: this.hyperformula.getSheetId(this.sheetName)
-    }
+    };
 
     if (ioMode === 'get') {
-      const cellValue = this.hyperformula.getCellValue(address)
+      const cellValue = this.hyperformula.getCellValue(address);
 
       // If `cellValue` is an object it is expected to be an error
-      const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue
+      const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
-      valueHolder.value = value
+      valueHolder.value = value;
     } else {
-      this.hyperformula.setCellContents(address, valueHolder.value)
+      this.hyperformula.setCellContents(address, valueHolder.value);
     }
   }
 
   onModifySourceData(row, col, valueHolder, ioMode) {
     if (!this.isEnabled()) {
-      return
+      return;
     }
 
     const address = {
       row: this.hot.toVisualRow(row),
       col,
       sheet: this.hyperformula.getSheetId(this.sheetName)
-    }
+    };
 
     if (ioMode === 'get') {
-      valueHolder.value = this.hyperformula.getCellSerialized(address)
+      valueHolder.value = this.hyperformula.getCellSerialized(address);
     } else if (ioMode === 'set') {
-      this.hyperformula.setCellContents(address, valueHolder.value)
+      this.hyperformula.setCellContents(address, valueHolder.value);
     }
   }
 
@@ -163,11 +160,11 @@ export class Formulas extends BasePlugin {
   }
 
   onBeforeRemoveRow(row, amount) {
-    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [row, amount])
+    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [row, amount]);
   }
 
   onBeforeRemoveCol(col, amount) {
-    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [col, amount])
+    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
   }
 
   onAfterRemoveRow(row, amount) {
@@ -175,6 +172,6 @@ export class Formulas extends BasePlugin {
   }
 
   onAfterRemoveCol(col, amount) {
-    this.hyperformula.removeColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount])
+    this.hyperformula.removeColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
   }
 }
