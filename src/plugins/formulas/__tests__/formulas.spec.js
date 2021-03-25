@@ -387,6 +387,37 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
+  it('should recalculate volatile functions upon data changes', () => {
+    const hot = handsontable({
+      data: getDataSimpleExampleFormulas(),
+      formulas: true,
+      width: 500,
+      height: 300
+    });
+
+    hot.setDataAtCell(0, 0, '=RAND()')
+
+    const firstCellBefore = hot.getDataAtCell(0, 0)
+
+    expect(hot.getDataAtRow(0)).toEqual([firstCellBefore, 'Maserati', 'Mazda', 'Mercedes', 'Mini', firstCellBefore]);
+    expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
+    expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
+    expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#DIV/0!', 12, '=SUM(E5)']);
+
+    hot.setDataAtCell(1, 1, 10)
+
+    const firstCellAfter = hot.getDataAtCell(0, 0)
+
+    expect(firstCellBefore).not.toEqual(firstCellAfter)
+
+    expect(hot.getDataAtRow(0)).toEqual([firstCellAfter, 'Maserati', 'Mazda', 'Mercedes', 'Mini', firstCellAfter]);
+    expect(hot.getDataAtRow(1)).toEqual([2009, 10, 2941, 4303, 354, 5814]);
+    expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
+    expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 200.9, 12, '=SUM(E5)']);
+  })
+
   describe('alter table (insert row)', () => {
     it('should recalculate table after added new empty rows', () => {
       const hot = handsontable({
