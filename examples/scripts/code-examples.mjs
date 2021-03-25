@@ -110,38 +110,38 @@ const versionedExamplesExist = fs.existsSync(versionedDir);
 
 switch (shellCommand) {
   case 'version': { // npm run examples:version <version_number>
-    (async() => {
-      if (versionedExamplesExist) {
-        displayErrorMessage(`Examples already exist: ${path.join('examples', hotVersion)}.`);
+    if (versionedExamplesExist) {
+      displayErrorMessage(`Examples already exist: ${path.join('examples', hotVersion)}.`);
 
-        process.exit(1);
-      }
+      process.exit(1);
+    }
 
-      await rimraf(`${NEXT_EXAMPLES_DIR}/node_modules`, () => {});
+    rimraf(`${NEXT_EXAMPLES_DIR}/node_modules`, () => {
       displayConfirmationMessage(`node_modules removed from: "${NEXT_EXAMPLES_DIR}/node_modules"`);
 
       displayInfoMessage(`Start deleting node_modules from: "${NEXT_EXAMPLES_DIR}/**/node_modules"`);
-      await rimraf(`${NEXT_EXAMPLES_DIR}/**/node_modules`, () => {});
-      displayConfirmationMessage(`node_modules removed from: "${NEXT_EXAMPLES_DIR}/**/node_modules"`);
 
-      displayInfoMessage(`Start copying examples to: "${versionedDir}"`);
-      fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
-      displayConfirmationMessage(`Examples copied to: "${versionedDir}"`);
+      rimraf(`${NEXT_EXAMPLES_DIR}/**/node_modules`, () => {
+        displayConfirmationMessage(`node_modules removed from: "${NEXT_EXAMPLES_DIR}/**/node_modules"`);
 
-      const versionedExamplesFolders = getExamplesFolders(versionedDir);
-      const workspaceConfigFolders = getWorkspaceConfigFolders(versionedDir);
-
-      versionedExamplesFolders.forEach((versionedExampleDir) => {
-        updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
+        displayInfoMessage(`Start copying examples to: "${versionedDir}"`);
+        fs.copySync(NEXT_EXAMPLES_DIR, versionedDir);
+        displayConfirmationMessage(`Examples copied to: "${versionedDir}"`);
+  
+        const versionedExamplesFolders = getExamplesFolders(versionedDir);
+        const workspaceConfigFolders = getWorkspaceConfigFolders(versionedDir);
+  
+        versionedExamplesFolders.forEach((versionedExampleDir) => {
+          updatePackageJsonWithVersion(versionedExampleDir, hotVersion);
+        });
+        displayConfirmationMessage('package.json updated for code examples');
+  
+        workspaceConfigFolders.forEach((frameworkFolder) => {
+          updateFrameworkWorkspacesNames(frameworkFolder, hotVersion);
+        });
+        displayConfirmationMessage('package.json updated for examples workspaces');
       });
-      displayConfirmationMessage('package.json updated for code examples');
-
-      workspaceConfigFolders.forEach((frameworkFolder) => {
-        updateFrameworkWorkspacesNames(frameworkFolder, hotVersion);
-      });
-      displayConfirmationMessage('package.json updated for examples workspaces');
-
-    })();
+    });
 
     break;
   }
