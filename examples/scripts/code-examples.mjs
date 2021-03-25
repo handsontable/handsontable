@@ -150,7 +150,9 @@ switch (shellCommand) {
       process.exit(1);
     }
 
-    runNpmCommandInExample(versionedDir, `npm run install:version ${hotVersion}`);
+    spawnProcess(`npm run install:version ${hotVersion}`, {
+      cwd: path.join(REPO_ROOT_DIR, 'examples')
+    });
 
     break;
   }
