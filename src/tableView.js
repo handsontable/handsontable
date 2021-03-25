@@ -845,18 +845,18 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const rows = this.countRenderableRows();
+          const renderableRows = this.countRenderableRows();
 
           if (typeof viewportOffset === 'number') {
             calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-            calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+            calc.endRow = Math.min(calc.endRow + viewportOffset, renderableRows - 1);
 
           } else if (viewportOffset === 'auto') {
-            const center = calc.startRow + calc.endRow - calc.startRow;
-            const offset = Math.ceil(center / rows * 12);
+            const lastRenderedRow = calc.endRow;
+            const offset = Math.ceil(lastRenderedRow / renderableRows * 12);
 
             calc.startRow = Math.max(calc.startRow - offset, 0);
-            calc.endRow = Math.min(calc.endRow + offset, rows - 1);
+            calc.endRow = Math.min(calc.endRow + offset, renderableRows - 1);
           }
         }
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
@@ -869,18 +869,18 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const cols = this.countRenderableColumns();
+          const renderableColumns = this.countRenderableColumns();
 
           if (typeof viewportOffset === 'number') {
             calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-            calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+            calc.endColumn = Math.min(calc.endColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const center = calc.startColumn + calc.endColumn - calc.startColumn;
-            const offset = Math.ceil(center / cols * 6);
+            const lastRenderedColumn = calc.endColumn;
+            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 12);
 
             calc.startColumn = Math.max(calc.startColumn - offset, 0);
-            calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+            calc.endColumn = Math.min(calc.endColumn + offset, renderableColumns - 1);
           }
         }
         this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
