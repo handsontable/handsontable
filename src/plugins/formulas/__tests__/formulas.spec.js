@@ -1,5 +1,5 @@
 describe('Formulas general', () => {
-  let debug = true
+  let debug = false
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -213,7 +213,7 @@ describe('Formulas general', () => {
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, 20]], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  xit('should recalculate table after changing cell value into formula expression written in lower case', () => {
+  it('should recalculate table after changing cell value into formula expression written in lower case', () => {
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -229,11 +229,11 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(1)).toEqual([2009, 6030, 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=Sum(a2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  xit('should prevent recalculate table after changing cell value into escaped formula expression', () => {
+  it('should prevent recalculate table after changing cell value into escaped formula expression', () => {
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -245,13 +245,13 @@ describe('Formulas general', () => {
 
     hot.setDataAtCell(1, 1, '\'=SUM(A2:A4)');
 
-    expect(hot.getDataAtRow(0)).toEqual(['\'=SUM(A2:A4)', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '\'=SUM(A2:A4)']);
-    expect(hot.getDataAtRow(1)).toEqual([2009, '\'=SUM(A2:A4)', 2941, 4303, 354, 5814]);
+    expect(hot.getDataAtRow(0)).toEqual(['=SUM(A2:A4)', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=SUM(A2:A4)']);
+    expect(hot.getDataAtRow(1)).toEqual([2009, '=SUM(A2:A4)', 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#VALUE!', 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, '#VALUE!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+       .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
   xit('should recalculate table after changing cell value from escaped formula expression into valid formula expression', () => {
@@ -275,7 +275,7 @@ describe('Formulas general', () => {
       .toEqual([[[4, 5, '\'=SUM(E5)', '=SUM(E5)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  xit('should recalculate table after changing cell value from primitive value into formula expression', () => {
+  it('should recalculate table after changing cell value from primitive value into formula expression', () => {
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -291,7 +291,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(1)).toEqual([2009, 6030, 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 8042, 10058, 0.333167495854063, 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 

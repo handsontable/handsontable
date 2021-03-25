@@ -1,4 +1,5 @@
 // big work in progress.
+// TODO remove hot-formula-parser
 
 import { BasePlugin } from '../base';
 
@@ -121,6 +122,7 @@ export class Formulas extends BasePlugin {
       sheet: this.hyperformula.getSheetId(this.sheetName)
     }
 
+    // TODO if there's an error, somehow retrieve original source value
     valueHolder.value = this.hyperformula.getCellSerialized(address)
   }
 }
