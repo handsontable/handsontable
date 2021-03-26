@@ -4,35 +4,59 @@ on:
   workflow_dispatch:
     inputs:
       hotVersion:
-        description: 'Handsontable version to update all code examples (eg.: 8.0.0)'
+        description: 'Handsontable valid version from NPM (eg.: 8.0.0)'
+  push:
+    branches:
+      - develop
+    paths:
+      - examples/[0-9]*.[0-9]*.[0-9]*/**
 
 jobs:
+  prepare-matrix:
+    name: Prepare Matrix
+    runs-on: ubuntu-18.04
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    outputs:
+      version: ${{ steps.prepare-version-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+        with:
+          fetch-depth: 2
+      - name: Use Node 15
+        uses: actions/setup-node@c46424eee26de4078d34105d3de3cc4992202b1e # https://github.com/actions/setup-node/releases/tag/v2.1.4
+        with:
+          node-version: '15'
+      - id: prepare-version-matrix
+        run: echo "::set-output name=matrix::$(node --experimental-json-modules ./examples/scripts/changed-folders.mjs ${{ github.event.inputs.hotVersion }})"
+
   Examples:
     name: Version and Deploy
+    needs: prepare-matrix
     runs-on: ubuntu-18.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        versions: ${{fromJson(needs.prepare-matrix.outputs.version)}}
+
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
       - name: Use Node 15
         uses: actions/setup-node@c46424eee26de4078d34105d3de3cc4992202b1e # https://github.com/actions/setup-node/releases/tag/v2.1.4
         with:
           node-version: '15'
-      - name: Checkout gh-pages branch to "./examples/tmp" folder
-        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
-        with:
-          ref: gh-pages
-          path: './examples/tmp'
       - name: Install global dependencies
         run: npm ci
       - name: Create new examples for version
-        run: npm run examples:version ${{ github.event.inputs.hotVersion }}
+        run: npm run examples:version ${{ matrix.versions }}
         # this action can throw an error, when the examples for specific version exist already. If they exist, move to the next action
         continue-on-error: true
       - name: Install dependencies of code examples
-        run: npm run examples:install ${{ github.event.inputs.hotVersion }}
+        run: npm run examples:install ${{ matrix.versions }}
       - name: Build the code examples
-        run: npm run examples:build ${{ github.event.inputs.hotVersion }}
+        run: npm run examples:build ${{ matrix.versions }}
       - name: Test each code example
-        run: npm run examples:test ${{ github.event.inputs.hotVersion }}
+        run: npm run examples:test ${{ matrix.versions }}
       - name: Setup git config
         run: |
           git config user.name "GitHub Actions Bot"
@@ -40,12 +64,25 @@ jobs:
       - name: Commit
         # make commit only when there is something to commit, so when new examples have been made
         run: |
-          git pull --ff
           if [ "$(git status --porcelain)" ]; then
-            git add examples/${{ github.event.inputs.hotVersion }}
-            git commit -m "Update code examples with version: ${{ github.event.inputs.hotVersion }}"
+            git add examples/${{ matrix.versions }}
+            git commit -m "Update code examples with version: ${{ matrix.versions }}"
+            git pull origin develop --rebase
             git push origin develop
           fi
+      - name: Checkout gh-pages branch to "./examples/tmp" folder
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # https://github.com/actions/checkout/releases/tag/v2.3.4
+        with:
+          ref: gh-pages
+          path: './examples/tmp'
+      - name: Copy production output to examples/tmp
+        run: npm run examples:copy-prod ${{ matrix.versions }}
+      - name: Pull gh-pages branch
+        run: |
+          git fetch
+          git checkout gh-pages
+          git pull origin gh-pages --rebase
+          git checkout develop
       - name: Deploy
         uses: peaceiris/actions-gh-pages@bbdfb200618d235585ad98e965f4aafc39b4c501 # https://github.com/peaceiris/actions-gh-pages/releases/tag/v3.7.3
         with:

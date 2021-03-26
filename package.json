@@ -70,6 +70,7 @@
     "examples:version": "node examples/scripts/code-examples.mjs version",
     "examples:install": "node examples/scripts/code-examples.mjs install",
     "examples:build": "node examples/scripts/code-examples.mjs build",
+    "examples:copy-prod": "node examples/scripts/code-examples.mjs copy-prod",
     "examples:test": "node examples/scripts/code-examples.mjs test",
     "examples:start": "http-server ./examples/tmp"
   },
