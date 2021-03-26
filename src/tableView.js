@@ -858,8 +858,6 @@ class TableView {
 
             calc.startRow = Math.max(firstRenderedRow - offset, 0);
             calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
-            
-            console.log(`start: ${calc.startRow}, end: ${calc.endRow}, nr of columns: ${calc.endRow - calc.startRow}, offset: ${offset}`)
           }
         }
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
