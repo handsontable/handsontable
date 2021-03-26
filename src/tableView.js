@@ -846,17 +846,20 @@ class TableView {
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
           const renderableRows = this.countRenderableRows();
+          const firstRenderedRow = calc.startRow;
+          const lastRenderedRow = calc.endRow;
 
           if (typeof viewportOffset === 'number') {
-            calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-            calc.endRow = Math.min(calc.endRow + viewportOffset, renderableRows - 1);
+            calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
+            calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
 
           } else if (viewportOffset === 'auto') {
-            const lastRenderedRow = calc.endRow;
             const offset = Math.ceil(lastRenderedRow / renderableRows * 12);
 
-            calc.startRow = Math.max(calc.startRow - offset, 0);
-            calc.endRow = Math.min(calc.endRow + offset, renderableRows - 1);
+            calc.startRow = Math.max(firstRenderedRow - offset, 0);
+            calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
+            
+            console.log(`start: ${calc.startRow}, end: ${calc.endRow}, nr of columns: ${calc.endRow - calc.startRow}, offset: ${offset}`)
           }
         }
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
@@ -870,17 +873,18 @@ class TableView {
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
           const renderableColumns = this.countRenderableColumns();
+          const firstRenderedColumn = calc.startColumn;
+          const lastRenderedColumn = calc.endColumn;
 
           if (typeof viewportOffset === 'number') {
-            calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-            calc.endColumn = Math.min(calc.endColumn + viewportOffset, renderableColumns - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const lastRenderedColumn = calc.endColumn;
             const offset = Math.ceil(lastRenderedColumn / renderableColumns * 12);
 
-            calc.startColumn = Math.max(calc.startColumn - offset, 0);
-            calc.endColumn = Math.min(calc.endColumn + offset, renderableColumns - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
           }
         }
         this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
