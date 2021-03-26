@@ -29,7 +29,7 @@ if (!version) {
       if ((version && frameworkUrl.startsWith(version))) {
         console.log(`\nRunning npm install for ${frameworkUrl}:\n`);
 
-        await execa('npm', ['install'], {
+        await execa('npm', ['install', '--no-audit'], {
           cwd: frameworkUrl,
           stdio: 'inherit'
         });
