@@ -135,6 +135,7 @@ class TableView {
       this.wt.draw(!this.instance.forceFullRender);
       this.instance.forceFullRender = false;
       this.instance.renderCall = false;
+      this.instance.memoizedGetCellMeta.clear();
     }
   }
 

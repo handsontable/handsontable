@@ -39,6 +39,28 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 
 let activeGuid = null;
 
+class SimpleMap {
+  constructor() {
+    this._map = {};
+  }
+
+  get(key) {
+    return this._map[key];
+  }
+
+  has(key) {
+    return !!this._map[key];
+  }
+
+  set(key, value) {
+    this._map[key] = value;
+  }
+
+  clear() {
+    this._map = {};
+  }
+}
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Handsontable constructor.
@@ -3017,6 +3039,21 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return metaManager.getCellsMeta();
   };
 
+  this.memoizedGetCellMeta = new SimpleMap();
+  this.getCellMeta = function(row, column) {
+    if (this.renderCall) {
+      const key = `${row}-${column}`;
+
+      if (!this.memoizedGetCellMeta.has(key)) {
+        this.memoizedGetCellMeta.set(key, this._getCellMeta(row, column));
+      }
+
+      return this.memoizedGetCellMeta.get(key);
+    }
+
+    return this._getCellMeta(row, column);
+  };
+
   /**
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
@@ -3028,7 +3065,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function(row, column) {
+  this._getCellMeta = function(row, column) {
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
