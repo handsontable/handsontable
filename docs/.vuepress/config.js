@@ -55,6 +55,10 @@ module.exports = {
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
     $page.currentVersion = helpers.parseVersion($page.path);
+    $page.lastUpdated = new Date($page.lastUpdated)
+      .toDateString()
+      .replace(/^\w+? /,'')
+      .replace(/(\d) (\d)/,'$1, $2');
 
     if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
       $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
