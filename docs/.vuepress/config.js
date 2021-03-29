@@ -58,12 +58,15 @@ module.exports = {
     $page.currentVersion = helpers.parseVersion($page.path);
     $page.lastUpdated = new Date($page.lastUpdated)
       .toDateString()
-      .replace(/^\w+? /,'')
-      .replace(/(\d) (\d)/,'$1, $2');
+      .replace(/^\w+? /, '')
+      .replace(/(\d) (\d)/, '$1, $2');
 
     if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
       $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
       $page.frontmatter.canonicalUrl = undefined;
+    }
+    if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
+      $page.frontmatter.canonicalUrl='https://handsontable.com/docs'+$page.frontmatter.canonicalUrl;
     }
   },
   themeConfig: {
