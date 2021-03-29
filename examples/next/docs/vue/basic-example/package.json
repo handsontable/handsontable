@@ -18,21 +18,21 @@
   },
   "dependencies": {
     "@handsontable/vue": "latest",
-    "core-js": "^3.6.5",
+    "core-js": "3.9.1",
     "handsontable": "latest",
-    "vue": "^2.6.11"
+    "vue": "2.6.12"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.4.0",
-    "@vue/cli-plugin-eslint": "~4.4.0",
-    "@vue/cli-service": "~4.4.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "jasmine": "^3.6.4",
-    "jasmine-console-reporter": "^3.1.0",
-    "puppeteer": "^7.0.1",
-    "vue-template-compiler": "^2.6.11"
+    "@vue/cli-plugin-babel": "4.5.12",
+    "@vue/cli-plugin-eslint": "4.5.12",
+    "@vue/cli-service": "4.5.12",
+    "babel-eslint": "10.1.0",
+    "eslint": "7.23.0",
+    "eslint-plugin-vue": "7.8.0",
+    "jasmine": "3.7.0",
+    "jasmine-console-reporter": "3.1.0",
+    "puppeteer": "8.0.0",
+    "vue-template-compiler": "2.6.12"
   },
   "license": "MIT",
   "eslintConfig": {
