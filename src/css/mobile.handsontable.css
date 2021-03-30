@@ -16,6 +16,13 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.handsontable.mobile .handsontableInput:focus {
+  -webkit-box-shadow: 0 0 0 2px #5292f7 inset;
+  -moz-box-shadow: 0 0 0 2px #5292f7 inset;
+  box-shadow: 0 0 0 2px #5292f7 inset;
+  -webkit-appearance: none;
+}
+
 .topLeftSelectionHandle:not(.ht_master .topLeftSelectionHandle),
 .topLeftSelectionHandle-HitArea:not(.ht_master .topLeftSelectionHandle-HitArea) {
   z-index: 9999;
