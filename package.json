@@ -86,7 +86,7 @@
     "core-js": "^3.0.0",
     "dompurify": "^2.1.1",
     "hot-formula-parser": "^4.0.0",
-    "hyperformula": "file:hyperformula-develop-34b5e7f44c91ab7c371d86715dbe81d51e56ede7.tgz",
+    "hyperformula": "file:hyperformula-2e44288638f797fe7c1b44493d135160cbff320f.tgz",
     "moment": "2.24.0",
     "numbro": "2.1.2",
     "pikaday": "1.8.0"
