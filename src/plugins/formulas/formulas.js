@@ -119,7 +119,10 @@ export class Formulas extends BasePlugin {
       // If `cellValue` is an object it is expected to be an error
       const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
-      valueHolder.value = value;
+      // Omit the leading `'` from presentation, and all `getData` operations
+      const prettyValue = typeof value === 'string' ? (value.indexOf('\'') === 0 ? value.slice(1) : value) : value;
+
+      valueHolder.value = prettyValue;
     } else {
       this.hyperformula.setCellContents(address, valueHolder.value);
     }
