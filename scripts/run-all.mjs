@@ -20,7 +20,8 @@ const argv = yargs(hideBin(process.argv))
     'handsontable',
     'angular',
     'react',
-    'vue'
+    'vue',
+    'examples'
   ];
 
   /* eslint-disable no-await-in-loop,no-restricted-syntax */
