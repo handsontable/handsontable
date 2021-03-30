@@ -22,10 +22,10 @@
     "handsontable": "latest"
   },
   "devDependencies": {
-    "jasmine": "^3.6.4",
-    "jasmine-console-reporter": "^3.1.0",
+    "jasmine": "3.7.0",
+    "jasmine-console-reporter": "3.1.0",
     "parcel-bundler": "1.12.3",
-    "puppeteer": "^7.0.1"
+    "puppeteer": "7.1.0"
   },
   "license": "MIT"
 }

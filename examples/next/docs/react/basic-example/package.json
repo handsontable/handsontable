@@ -20,16 +20,16 @@
   "dependencies": {
     "@handsontable/react": "latest",
     "handsontable": "latest",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "react-scripts": "4.0.2"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3",
-    "jasmine": "^3.6.4",
-    "jasmine-console-reporter": "^3.1.0",
-    "puppeteer": "^7.0.1",
-    "react-app-rewired": "^2.1.8"
+    "cross-env": "7.0.3",
+    "jasmine": "3.7.0",
+    "jasmine-console-reporter": "3.1.0",
+    "puppeteer": "7.0.4",
+    "react-app-rewired": "2.1.8"
   },
   "license": "MIT",
   "eslintConfig": {

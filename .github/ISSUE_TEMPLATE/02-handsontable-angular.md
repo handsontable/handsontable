@@ -1,10 +1,9 @@
 ---
-name: @handsontable/angular
+name: "Handsontable for Angular"
 about: Issues regarding the Angular wrapper for Handsontable.
-title: ''
-labels: 'angular'
-assignees: ''
-
+title: ""
+labels: "angular"
+assignees: ""
 ---
 
 ### Description

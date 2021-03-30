@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "clean": "node ./scripts/clean-subpackages.mjs",
-    "test": "node ../scripts/code-examples.mjs test next",
-    "build": "node ../scripts/code-examples.mjs build next",
+    "test": "node ./scripts/code-examples.mjs test next",
+    "build": "node ./scripts/code-examples.mjs build next",
     "install:version": "node --experimental-json-modules ./scripts/install-subpackages.mjs"
   },
   "eslintConfig": {
