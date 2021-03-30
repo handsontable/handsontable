@@ -286,7 +286,7 @@ describe('Formulas general', () => {
       .toEqual([[[1, 1, 0, '\'=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  xit('should recalculate table after changing cell value from escaped formula expression into valid formula expression', () => {
+  it('should recalculate table after changing cell value from escaped formula expression into valid formula expression', () => {
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -296,7 +296,7 @@ describe('Formulas general', () => {
       afterChange,
     });
 
-    hot.setDataAtCell(4, 5, hot.getDataAtCell(4, 5).substr(1));
+    hot.setDataAtCell(4, 5, hot.getDataAtCell(4, 5));
 
     expect(hot.getDataAtRow(0)).toEqual([0, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 0]);
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -327,7 +327,7 @@ describe('Formulas general', () => {
     expect(afterChange.calls.argsFor(1)).toEqual([[[1, 1, 0, '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  xit('should recalculate table after changing cell value from formula expression into primitive value', () => {
+  it('should recalculate table after changing cell value from formula expression into primitive value', () => {
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -343,12 +343,12 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 15, 2031, '#DIV/0!', 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 15, 2031, '#DIV/0!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[4, 1, '=Sum(a2:a5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([[[4, 1, '=SUM(A2:A5)', 15]], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  xit('should recalculate table after changing cell value from formula expression into another formula expression', () => {
+  it('should recalculate table after changing cell value from formula expression into another formula expression', () => {
     const afterChange = jasmine.createSpy();
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
@@ -364,11 +364,12 @@ describe('Formulas general', () => {
     expect(hot.getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
     expect(hot.getDataAtRow(2)).toEqual([2010, 5, 2905, 2867, 2016, 'Maserati']);
     expect(hot.getDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-    expect(hot.getDataAtRow(4)).toEqual([2012, 6030, 8046, '#DIV/0!', 12, '\'=SUM(E5)']);
+    expect(hot.getDataAtRow(4)).toEqual([2012, 6030, 8046, '#DIV/0!', 12, '=SUM(E5)']);
     expect(afterChange.calls.argsFor(1))
-      .toEqual([[[4, 1, '=Sum(a2:a5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
+      .toEqual([[[4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
+  // TODO throws some "array of arrays" error
   xit('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=B39']),
@@ -383,6 +384,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('foo bar');
   });
 
+  // TODO throws some "array of arrays" error
   xit('should mark cell as #REF! (circular dependency)', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=B1']),
@@ -395,6 +397,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
+  // TODO throws some "array of arrays" error
   xit('should mark cell as #REF! (out of data table range for columns)', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=K1']),
@@ -407,6 +410,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
+  // TODO throws some "array of arrays" error
   xit('should mark cell as #REF! (out of data table range for rows)', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=A1000']),
@@ -956,7 +960,6 @@ describe('Formulas general', () => {
         .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
     });
 
-    // TODO
     xit('should restore previous state after alter table (mixed remove operations)', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
@@ -998,7 +1001,6 @@ describe('Formulas general', () => {
       expect(hot.getSourceDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '=SUM(E5)']);
     });
 
-    // TODO
     xit('should redo into the next state after alter table (mixed remove operations)', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
@@ -1044,7 +1046,6 @@ describe('Formulas general', () => {
     });
   });
 
-  // TODO
   xdescribe('column sorting', () => {
     it('should recalculate all formulas and update theirs cell coordinates if needed', () => {
       const hot = handsontable({
