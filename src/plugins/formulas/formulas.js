@@ -1,4 +1,3 @@
-// big work in progress.
 // TODO remove hot-formula-parser
 
 import { HyperFormula } from 'hyperformula';
@@ -70,8 +69,6 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
-
-    // TODO list out hooks from my local plugin/old plugin/todo
 
     super.enablePlugin();
   }
