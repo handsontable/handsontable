@@ -1547,14 +1547,6 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="8">T1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
             <th class="">AB1</th>
             <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
             <th class="hiddenHeader"></th>
@@ -1570,19 +1562,8 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT1</th>
             <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="4">T2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="4">X2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
             <th class="">AB2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
             <th class="hiddenHeader"></th>
@@ -1598,19 +1579,8 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="2">T3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">V3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">X3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">Z3</th>
-            <th class="hiddenHeader"></th>
             <th class="">AB3</th>
             <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
             <th class="hiddenHeader"></th>
@@ -1626,19 +1596,8 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="">AT3</th>
             <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">AW3</th>
-            <th class="hiddenHeader"></th>
           </tr>
           <tr>
-            <th class="">T4</th>
-            <th class="">U4</th>
-            <th class="">V4</th>
-            <th class="">W4</th>
-            <th class="">X4</th>
-            <th class="">Y4</th>
-            <th class="">Z4</th>
-            <th class="">AA4</th>
             <th class="">AB4</th>
             <th class="">AC4</th>
             <th class="">AD4</th>
@@ -1654,21 +1613,10 @@ describe('CollapsibleColumns', () => {
             <th class="">AQ4</th>
             <th class="">AT4</th>
             <th class="">AU4</th>
-            <th class="">AV4</th>
-            <th class="">AW4</th>
-            <th class="">AX4</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">T1</td>
-            <td class="">U1</td>
-            <td class="">V1</td>
-            <td class="">W1</td>
-            <td class="">X1</td>
-            <td class="">Y1</td>
-            <td class="">Z1</td>
-            <td class="">AA1</td>
             <td class="">AB1</td>
             <td class="">AC1</td>
             <td class="">AD1</td>
@@ -1684,9 +1632,6 @@ describe('CollapsibleColumns', () => {
             <td class="">AQ1</td>
             <td class="">AT1</td>
             <td class="">AU1</td>
-            <td class="">AV1</td>
-            <td class="">AW1</td>
-            <td class="">AX1</td>
           </tr>
         </tbody>
         `);
@@ -1734,8 +1679,6 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="2">J</th>
-            <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="4">N</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -1759,10 +1702,10 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
           </tr>
           <tr>
-            <th class="collapsibleIndicator collapsed">J</th>
-            <th class="collapsibleIndicator collapsed">L</th>
             <th class="collapsibleIndicator expanded" colspan="2">N</th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">P</th>
@@ -1786,10 +1729,10 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
           </tr>
           <tr>
-            <th class="">J</th>
-            <th class="">L</th>
             <th class="">N</th>
             <th class="">O</th>
             <th class="">P</th>
@@ -1813,12 +1756,12 @@ describe('CollapsibleColumns', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
+            <th class=""></th>
+            <th class=""></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">J1</td>
-            <td class="">L1</td>
             <td class="">N1</td>
             <td class="">O1</td>
             <td class="">P1</td>
@@ -1842,6 +1785,8 @@ describe('CollapsibleColumns', () => {
             <td class="">AH1</td>
             <td class="">AI1</td>
             <td class="">AJ1</td>
+            <td class="">AK1</td>
+            <td class="">AL1</td>
           </tr>
         </tbody>
         `);
@@ -2454,14 +2399,6 @@ describe('CollapsibleColumns', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="8">T1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
             <th class="">AB1</th>
             <th class="collapsibleIndicator expanded" colspan="8">AC1</th>
             <th class="hiddenHeader"></th>
@@ -2477,19 +2414,8 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT1</th>
-            <th class="collapsibleIndicator collapsed" colspan="4">AU1</th>
           </tr>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="4">T2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="4">X2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
             <th class="">AB2</th>
             <th class="collapsibleIndicator expanded" colspan="4">AC2</th>
             <th class="hiddenHeader"></th>
@@ -2505,19 +2431,8 @@ describe('CollapsibleColumns', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator collapsed" colspan="2">AP2</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT2</th>
-            <th class="collapsibleIndicator expanded" colspan="4">AU2</th>
           </tr>
           <tr>
-            <th class="collapsibleIndicator expanded" colspan="2">T3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">V3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">X3</th>
-            <th class="hiddenHeader"></th>
-            <th class="collapsibleIndicator expanded" colspan="2">Z3</th>
-            <th class="hiddenHeader"></th>
             <th class="">AB3</th>
             <th class="collapsibleIndicator expanded" colspan="2">AC3</th>
             <th class="hiddenHeader"></th>
@@ -2533,19 +2448,8 @@ describe('CollapsibleColumns', () => {
             <th class="collapsibleIndicator expanded" colspan="2">AN3</th>
             <th class="hiddenHeader"></th>
             <th class="collapsibleIndicator expanded" colspan="2">AP3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT3</th>
-            <th class="collapsibleIndicator expanded" colspan="2">AU3</th>
           </tr>
           <tr>
-            <th class="">T4</th>
-            <th class="">U4</th>
-            <th class="">V4</th>
-            <th class="">W4</th>
-            <th class="">X4</th>
-            <th class="">Y4</th>
-            <th class="">Z4</th>
-            <th class="">AA4</th>
             <th class="">AB4</th>
             <th class="">AC4</th>
             <th class="">AD4</th>
@@ -2561,21 +2465,10 @@ describe('CollapsibleColumns', () => {
             <th class="">AN4</th>
             <th class="">AO4</th>
             <th class="">AP4</th>
-            <th class="">AQ4</th>
-            <th class="">AT4</th>
-            <th class="">AU4</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="">T1</td>
-            <td class="">U1</td>
-            <td class="">V1</td>
-            <td class="">W1</td>
-            <td class="">X1</td>
-            <td class="">Y1</td>
-            <td class="">Z1</td>
-            <td class="">AA1</td>
             <td class="">AB1</td>
             <td class="">AC1</td>
             <td class="">AD1</td>
@@ -2591,9 +2484,6 @@ describe('CollapsibleColumns', () => {
             <td class="">AN1</td>
             <td class="">AO1</td>
             <td class="">AP1</td>
-            <td class="">AQ1</td>
-            <td class="">AT1</td>
-            <td class="">AU1</td>
           </tr>
         </tbody>
         `);
@@ -3458,8 +3348,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT1</th>
             <th class="collapsibleIndicator collapsed">AU1</th>
             <th class="">BC1</th>
-            <th class="collapsibleIndicator collapsed">BD1</th>
-            <th class="">BL1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -3475,8 +3363,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT2</th>
             <th class="collapsibleIndicator collapsed">AU2</th>
             <th class="">BC2</th>
-            <th class="collapsibleIndicator collapsed">BD2</th>
-            <th class="">BL2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -3492,8 +3378,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT3</th>
             <th class="collapsibleIndicator collapsed">AU3</th>
             <th class="">BC3</th>
-            <th class="collapsibleIndicator collapsed">BD3</th>
-            <th class="">BL3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -3509,8 +3393,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT4</th>
             <th class="">AU4</th>
             <th class="">BC4</th>
-            <th class="">BD4</th>
-            <th class="">BL4</th>
           </tr>
           <tr>
             <th class="">A5</th>
@@ -3526,8 +3408,6 @@ describe('CollapsibleColumns', () => {
             <th class="">AT5</th>
             <th class="">AU5</th>
             <th class="">BC5</th>
-            <th class="">BD5</th>
-            <th class="">BL5</th>
           </tr>
         </thead>
         <tbody>
@@ -3545,8 +3425,6 @@ describe('CollapsibleColumns', () => {
             <td class="">AT1</td>
             <td class="">AU1</td>
             <td class="">BC1</td>
-            <td class="">BD1</td>
-            <td class="">BL1</td>
           </tr>
         </tbody>
         `);

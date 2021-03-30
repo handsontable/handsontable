@@ -848,6 +848,7 @@ class TableView {
           const renderableRows = this.countRenderableRows();
           const firstRenderedRow = calc.startRow;
           const lastRenderedRow = calc.endRow;
+          const renderedRows = lastRenderedRow - firstRenderedRow;
 
           if (typeof viewportOffset === 'number') {
             calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
@@ -879,7 +880,7 @@ class TableView {
             calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 12);
+            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 6);
 
             calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
             calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
