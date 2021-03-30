@@ -21,25 +21,27 @@
       :class="{ 'align-right': alignRight }"
       @mouseleave="unfocus"
     >
-      <li
-        v-for="(s, i) in suggestions"
-        :key="i"
-        class="suggestion"
-        :class="{ focused: i === focusIndex }"
-        @mousedown="go(i)"
-        @mouseenter="focus(i)"
-      >
-        <a
-          :href="s.path"
-          @click.prevent
+      <template v-for="(s, i) in suggestions">
+        <li v-if="s.category!==(suggestions[i-1] || {}).category"> {{ s.category }}: </li>
+        <li
+          :key="i"
+          class="suggestion"
+          :class="{ focused: i === focusIndex }"
+          @mousedown="go(i)"
+          @mouseenter="focus(i)"
         >
-          <span class="page-title">{{ s.title || s.path }}</span>
-          <span
-            v-if="s.header"
-            class="header"
-          >&gt; {{ s.header.title }}</span>
-        </a>
-      </li>
+          <a
+            :href="s.path"
+            @click.prevent
+          >
+            <span class="page-title">{{ s.title || s.path }}</span>
+            <span
+              v-if="s.header"
+              class="header"
+            >&gt; {{ s.header.title }}</span>
+          </a>
+        </li>
+      </template>
     </ul>
   </div>
 </template>
@@ -95,7 +97,7 @@ const matchTest = (query, domain) => {
     return words.some(word => domain.toLowerCase().indexOf(word) > -1)
   }
 }
-
+const apiRegex = /^(\/\d*\.\d*)?\/api\//
 /* global SEARCH_MAX_SUGGESTIONS, SEARCH_PATHS, SEARCH_HOTKEYS */
 export default {
   name: 'SearchBox',
@@ -142,7 +144,9 @@ export default {
         }
 
         if (matchQuery(query, p)) {
-          res.push(p)
+          res.push(Object.assign({}, p, {
+            category: apiRegex.exec(p.path) ? 'API References' : 'Guides'
+          }))
         } else if (p.headers) {
           for (let j = 0; j < p.headers.length; j++) {
             if (res.length >= max) break
@@ -150,12 +154,14 @@ export default {
             if (h.title && matchQuery(query, p, h.title)) {
               res.push(Object.assign({}, p, {
                 path: p.path + '#' + h.slug,
-                header: h
+                header: h,
+                category: apiRegex.exec(p.path) ? 'API References' : 'Guides'
               }))
             }
           }
         }
       }
+      res.sort((a,b)=>b.category.localeCompare(a.category))
       return res
     },
 

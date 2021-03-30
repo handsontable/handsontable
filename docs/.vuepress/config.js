@@ -98,6 +98,7 @@ module.exports = {
     sidebarDepth: 0,
     sidebar: helpers.getSidebars(),
     search: true,
-    searchPlaceholder: 'Search...'
+    searchPlaceholder: 'Search...',
+    searchMaxSuggestions: 10
   }
 };
