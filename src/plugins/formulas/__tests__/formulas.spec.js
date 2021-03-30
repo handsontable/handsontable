@@ -369,8 +369,7 @@ describe('Formulas general', () => {
       .toEqual([[[4, 1, '=SUM(A2:A5)', '=SUM(A2:A4)']], 'edit', void 0, void 0, void 0, void 0]);
   });
 
-  // TODO throws some "array of arrays" error
-  xit('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
+  it('should correctly recalculate formulas when precedents cells are located out of table viewport', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=B39']),
       columns: getColumnsForFormulas(),
@@ -384,8 +383,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('foo bar');
   });
 
-  // TODO throws some "array of arrays" error
-  xit('should mark cell as #REF! (circular dependency)', () => {
+  it('should mark cell as #REF! (circular dependency)', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=B1']),
       columns: getColumnsForFormulas(),
@@ -394,10 +392,10 @@ describe('Formulas general', () => {
       height: 300
     });
 
-    expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
+    expect(hot.getDataAtCell(0, 1)).toBe('#CYCLE!');
   });
 
-  // TODO throws some "array of arrays" error
+  // TODO https://github.com/handsontable/handsontable/issues/7668
   xit('should mark cell as #REF! (out of data table range for columns)', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=K1']),
@@ -410,7 +408,7 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
-  // TODO throws some "array of arrays" error
+  // TODO https://github.com/handsontable/handsontable/issues/7668
   xit('should mark cell as #REF! (out of data table range for rows)', () => {
     const hot = handsontable({
       data: getDataForFormulas(0, 'name', ['=A1000']),

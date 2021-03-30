@@ -91,11 +91,11 @@ export class Formulas extends BasePlugin {
   }
 
   onAfterLoadData(data) {
-    if (!this.isEnabled) {
+    if (!this.enabled) {
       return;
     }
 
-    this.hyperformula.setSheetContent(this.sheetName, data);
+    this.hyperformula.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
   }
 
   onModifyData(row, column, valueHolder, ioMode) {
@@ -126,7 +126,17 @@ export class Formulas extends BasePlugin {
   }
 
   onModifySourceData(row, col, valueHolder, ioMode) {
-    if (!this.isEnabled()) {
+    if (!this.enabled) {
+      return;
+    }
+
+    const dimensions = this.hyperformula.getSheetDimensions(this.hyperformula.getSheetId(this.sheetName));
+
+    // Don't actually change the source data if HyperFormula is not
+    // initialized yet. This is done to allow the `afterLoadData` hook to
+    // load the existing source data with `Handsontable#getSourceDataArray`
+    // properly.
+    if (dimensions.width === 0 && dimensions.height === 0) {
       return;
     }
 
