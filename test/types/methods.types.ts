@@ -82,6 +82,7 @@ hot.isEmptyRow(123) === true;
 hot.isExecutionSuspended();
 hot.isListening() === true;
 hot.isRedoAvailable() === true;
+hot.isRenderSuspended();
 hot.isUndoAvailable() === true;
 hot.listen();
 hot.loadData([[1,2,3], [1,2,3]]);
