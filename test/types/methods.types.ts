@@ -11,6 +11,7 @@ hot.alter('insert_row', [[0, 0], [1, 2]], 123, 'foo', true);
 hot.alter('insert_row', 123, 123, 'foo', true);
 hot.alter('insert_row');
 hot.batch(() => 'string').toUpperCase();
+hot.batch(() => 12345).toFixed();
 hot.batch(() => {});
 hot.batchExecution(() => 'string', true).toUpperCase();
 hot.batchRender(() => 'string').toUpperCase();
