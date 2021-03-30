@@ -848,7 +848,6 @@ class TableView {
           const renderableRows = this.countRenderableRows();
           const firstRenderedRow = calc.startRow;
           const lastRenderedRow = calc.endRow;
-          const renderedRows = lastRenderedRow - firstRenderedRow;
 
           if (typeof viewportOffset === 'number') {
             calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
