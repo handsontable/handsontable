@@ -50,6 +50,29 @@ describe('Passing column settings using HotColumn', () => {
 
     done();
   });
+
+  it('should allow to use data option as a string', async(done) => {
+    const dataKeyCellValue = 'Value of key1 in row 0';
+    const wrapper: ReactWrapper<{}, {}, typeof HotTable> = mount(
+      <HotTable
+        licenseKey="non-commercial-and-evaluation"
+        id="test-hot" data={[{ key1: dataKeyCellValue }]}
+        readOnly={false}
+      >
+        <HotColumn data="key1"></HotColumn>
+      </HotTable>, {attachTo: document.body.querySelector('#hotContainer')}
+    );
+
+    await sleep(300);
+
+    let hotInstance = wrapper.instance().hotInstance;
+
+    expect(hotInstance.getCell(0, 0).innerHTML).toEqual(dataKeyCellValue);
+
+    wrapper.detach();
+
+    done();
+  })
 });
 
 describe('Renderer configuration using React components', () => {
