@@ -498,9 +498,9 @@ describe('Core.selectCell', () => {
     });
 
     selectCell(5, 15); // Scroll to the right of the table.
-    selectCell(5, 0);
+    selectCell(5, 5);
 
-    expect(getCell(5, 0)).toBeVisibleAtLeftOfViewport();
+    expect(getCell(5, 5)).toBeVisibleAtLeftOfViewport();
   });
 
   it('should by default scroll the viewport to the selected cell using column props (left of the viewport)', () => {
@@ -511,9 +511,9 @@ describe('Core.selectCell', () => {
     });
 
     selectCell(5, 15); // Scroll to the right of the table.
-    selectCell(5, 'prop0');
+    selectCell(5, 'prop5');
 
-    expect(getCell(5, 0)).toBeVisibleAtLeftOfViewport();
+    expect(getCell(5, 5)).toBeVisibleAtLeftOfViewport();
   });
 
   it('should by default scroll the viewport to the selected cell (top of the viewport)', () => {

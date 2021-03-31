@@ -567,8 +567,8 @@ describe('TextEditor', () => {
 
     const mainHolder = hot.view.wt.wtTable.holder;
 
-    mainHolder.scrollTop = 150;
-    mainHolder.scrollLeft = 150;
+    mainHolder.scrollTop = 500;
+    mainHolder.scrollLeft = 500;
 
     await sleep(200);
 
