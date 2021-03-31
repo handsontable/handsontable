@@ -36,7 +36,6 @@ module.exports = {
   plugins: [
     ['sitemap', {
       hostname: 'https://handsontable.com',
-      dateFormatter: time => time.time && new Date(time.time).toISOString()
     }],
     ['@vuepress/active-header-links', {
       sidebarLinkSelector: '.table-of-contents a',
@@ -57,13 +56,10 @@ module.exports = {
     $page.versions = helpers.getVersions();
     $page.latestVersion = helpers.getLatestVersion();
     $page.currentVersion = helpers.parseVersion($page.path);
-    $page.lastUpdated = {
-      time: $page.lastUpdated, 
-      toString: () => new Date($page.lastUpdated)
+    $page.lastUpdatedFormat = new Date($page.lastUpdated)
         .toDateString()
         .replace(/^\w+? /, '')
-        .replace(/(\d) (\d)/, '$1, $2')
-    };
+        .replace(/(\d) (\d)/, '$1, $2');
 
     if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
       $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
