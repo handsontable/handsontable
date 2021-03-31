@@ -1,0 +1,7 @@
+{
+  "title": "Fixed TypeScript definition for the suspending render feature.",
+  "type": "fixed",
+  "issue": 7666,
+  "breaking": false,
+  "framework": "none"
+}
