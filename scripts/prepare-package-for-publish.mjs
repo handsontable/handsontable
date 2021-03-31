@@ -22,6 +22,7 @@ const filesToMove = [
   'LICENSE.txt',
   'package.json',
   'README.md',
+  'hyperformula-2e44288638f797fe7c1b44493d135160cbff320f.tgz'
 ];
 
 filesToMove.forEach((file) => {
