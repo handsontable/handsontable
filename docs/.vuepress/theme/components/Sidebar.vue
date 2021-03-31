@@ -1,5 +1,5 @@
 <template>
-  <aside class="sidebar" v-bind:style="{bottom: this.offset+'px'}">
+  <aside class="sidebar">
     <NavLinks />
 
     <slot name="top" />
@@ -18,28 +18,8 @@ import NavLinks from '@theme/components/NavLinks.vue'
 
 export default {
   name: 'Sidebar',
-  data:()=>({
-    offset:0
-  }),
+
   components: { SidebarLinks, NavLinks },
-  mounted() {
-    if(window) {
-      window.addEventListener('scroll', this.handleScroll);
-    }
-  },
-  destroyed() {
-    if(window) {
-      window.removeEventListener('scroll', this.handleScroll);
-    }
-  },
-  watch:{},
-  methods: {
-    handleScroll(){
-      const offset =  Math.max(0,(window.innerHeight || document.documentElement.clientHeight) - document.querySelector('footer.footer').getBoundingClientRect().top);
-      this.$el.scrollBy(0,offset-this.offset);
-      this.offset = offset;
-    }
-  },
 
   props: ['items']
 }
