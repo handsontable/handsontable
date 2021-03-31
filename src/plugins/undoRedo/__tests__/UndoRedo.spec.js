@@ -1990,6 +1990,40 @@ describe('UndoRedo', () => {
           expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
         });
+
+        it('should undo removal row with readonly column', () => {
+          const HOT = handsontable({
+            data: createObjectData().slice(0, 2),
+            cells(row, col) {
+              if (col === 1) {
+                return { readOnly: true };
+              }
+              return {};
+            }
+          });
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
+
+          alter('remove_row');
+
+          expect(countRows()).toEqual(1);
+          expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name')).toBeNull();
+          expect(getDataAtRowProp(1, 'surname')).toBeNull();
+
+          HOT.undo();
+
+          expect(countRows()).toEqual(2);
+          expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
+          expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
+          expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
+          expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
+        });
       });
 
       describe('redo', () => {

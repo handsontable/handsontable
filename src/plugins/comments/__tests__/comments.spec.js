@@ -864,4 +864,77 @@ describe('Comments', () => {
       expect(plugin.getComment()).toEqual('Bar');
     });
   });
+
+  describe('Destroying the plugin with two instances of Handsontable', () => {
+    it('should create two containers for comments for two HOT instances', () => {
+      const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } },
+          { row: 1, col: 2, comment: { value: 'Yes!' } }
+        ],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+
+      expect(commentContainersLength).toEqual(2);
+
+      // cleanup first HOT instance
+      container1.handsontable('destroy');
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(1);
+
+      // cleanup second HOT instance
+      container2.handsontable('destroy');
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(0);
+    });
+
+    it('should delete one container when one HOT instance is destroyed', () => {
+      const container1 = $('<div id="hot1"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [
+          { row: 1, col: 1, comment: { value: 'Hello world!' } },
+          { row: 1, col: 2, comment: { value: 'Yes!' } }
+        ],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      const container2 = $('<div id="hot2"></div>').appendTo(spec().$container).handsontable({
+        data: Handsontable.helper.createSpreadsheetData(6, 6),
+        cell: [{ row: 1, col: 1, comment: { value: 'Hello world!' } }],
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        licenseKey: 'non-commercial-and-evaluation'
+      });
+
+      container2.handsontable('destroy');
+
+      let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+
+      expect(commentContainersLength).toEqual(1);
+
+      // cleanup HOT instance
+      container1.handsontable('destroy');
+      commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
+      expect(commentContainersLength).toEqual(0);
+    });
+  });
 });
