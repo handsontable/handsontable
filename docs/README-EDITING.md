@@ -54,6 +54,18 @@ canonicalUrl: /api/
 * **permalink**: Url to this page, **should be unique**.
 * **canonicalUrl**: Canonical url to the latest version of this page.
 
+#### Sitemap headers
+
+The `vuepress-plugin-sitemap` give us additional headers to customise it behaviour:
+
+```
+---
+sitemap:
+  exclude: false
+  changefreq: hourly
+---
+```
+
 ### Subdirectories
 
 I recommend to keep files flat without subdirectories. 
