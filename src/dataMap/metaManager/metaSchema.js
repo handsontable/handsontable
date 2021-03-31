@@ -2196,6 +2196,7 @@ export default () => {
      *  * `position` - String which describes where to place the label text (before or after checkbox element).
      * Valid values are `'before'` and '`after`' (defaults to `'after'`).
      *  * `value` - String or a Function which will be used as label text.
+     *  * `separated` - Boolean which describes that checkbox & label elements are separated or not. Default value is `false`.
      *
      * @memberof Options#
      * @type {object}
@@ -2206,7 +2207,7 @@ export default () => {
      * columns: [{
      *   type: 'checkbox',
      *   // add "My label:" after the checkbox
-     *   label: {position: 'after', value: 'My label: '}
+     *   label: { position: 'after', value: 'My label: ', separated: true }
      * }],
      * ```
      */
