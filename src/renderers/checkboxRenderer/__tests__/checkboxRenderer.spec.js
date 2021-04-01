@@ -824,6 +824,27 @@ describe('CheckboxRenderer', () => {
     expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
   });
 
+  it('should add label on the beginning of a checkbox element where checkbox and label are separated', () => {
+    handsontable({
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
+      columns: [
+        { type: 'checkbox', data: 'checked', label: { position: 'before', property: 'label', separated: true } }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(afterChangeCallback.calls.count()).toEqual(1);
+    expect(getCell(0, 0).querySelector('label').firstChild.textContent).toEqual('myLabel');
+    expect(getCell(0, 0).querySelector('label').nextSibling.type).toEqual('checkbox');
+  });
+
   it('should add label on the end of a checkbox element', () => {
     handsontable({
       data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
@@ -842,6 +863,27 @@ describe('CheckboxRenderer', () => {
     expect(getDataAtCell(1, 0)).toBe(false);
     expect(afterChangeCallback.calls.count()).toEqual(1);
     expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+  });
+
+  it('should add label on the end of a checkbox element where checkbox and label are separated', () => {
+    handsontable({
+      data: [{ checked: true, label: 'myLabel' }, { checked: false, label: 'myLabel' }],
+      columns: [
+        { type: 'checkbox', data: 'checked', label: { position: 'after', property: 'label', separated: true } }
+      ]
+    });
+
+    const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+    addHook('afterChange', afterChangeCallback);
+
+    selectCell(0, 0);
+    keyDown('space');
+
+    expect(getDataAtCell(0, 0)).toBe(false);
+    expect(getDataAtCell(1, 0)).toBe(false);
+    expect(afterChangeCallback.calls.count()).toEqual(1);
+    expect(getCell(0, 0).querySelector('label').lastChild.textContent).toEqual('myLabel');
+    expect(getCell(0, 0).querySelector('label').previousSibling.type).toEqual('checkbox');
   });
 
   it('should not add label when value is incorrect (#bad-value)', () => {
