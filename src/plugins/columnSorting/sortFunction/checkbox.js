@@ -1,4 +1,3 @@
-import { isEmpty } from '../../../helpers/mixed';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
 
 /**
@@ -6,21 +5,18 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortSer
  *
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
  * @param {object} columnMeta Column meta object.
- * @param {object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettings) {
+export function compareFunctionFactory(sortOrder, columnMeta) {
   const checkedTemplate = columnMeta.checkedTemplate;
   const uncheckedTemplate = columnMeta.uncheckedTemplate;
-  
-  return function(value, nextValue) {
-    const { sortEmptyCells } = columnPluginSettings;
 
+  return function(value, nextValue) {
     if (value === uncheckedTemplate && nextValue === checkedTemplate) {
       if (sortOrder === 'asc') {
         return FIRST_BEFORE_SECOND;
       }
-      
+
       return FIRST_AFTER_SECOND;
     }
 
@@ -31,7 +27,7 @@ export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettin
 
       return FIRST_BEFORE_SECOND;
     }
-    
+
     return DO_NOT_SWAP;
   };
 }
