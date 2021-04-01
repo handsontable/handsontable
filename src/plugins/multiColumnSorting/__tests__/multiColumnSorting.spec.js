@@ -1035,6 +1035,102 @@ describe('MultiColumnSorting', () => {
     });
   });
 
+  describe('data type: checkbox', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are not set', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', year: 2017, available: true },
+          { car: 'Citroen C4 Coupe', year: 2018, available: false },
+          { car: 'Audi A4 Avant', year: 2019, available: true },
+          { car: 'Opel Astra', year: 2020, available: false },
+          { car: 'BMW 320i Coupe', year: 2021, available: false }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'year',
+            type: 'numeric'
+          },
+          {
+            data: 'available',
+            type: 'checkbox'
+          }
+        ],
+        multiColumnSorting: true,
+      });
+
+      getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        ['Citroen C4 Coupe', 2018, false],
+        ['Opel Astra', 2020, false],
+        ['BMW 320i Coupe', 2021, false],
+        ['Mercedes A 160', 2017, true],
+        ['Audi A4 Avant', 2019, true]
+      ]);
+
+      getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 2017, true],
+        ['Audi A4 Avant', 2019, true],
+        ['Citroen C4 Coupe', 2018, false],
+        ['Opel Astra', 2020, false],
+        ['BMW 320i Coupe', 2021, false]
+      ]);
+    });
+
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', year: 2017, comesInBlack: 'yes' },
+          { car: 'Citroen C4 Coupe', year: 2018, comesInBlack: 'yes' },
+          { car: 'Audi A4 Avant', year: 2019, comesInBlack: 'no' },
+          { car: 'Opel Astra', year: 2020, comesInBlack: 'yes' },
+          { car: 'BMW 320i Coupe', year: 2021, comesInBlack: 'no' }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'year',
+            type: 'numeric'
+          },
+          {
+            data: 'comesInBlack',
+            type: 'checkbox',
+            checkedTemplate: 'yes',
+            uncheckedTemplate: 'no',
+          }
+        ],
+        multiColumnSorting: true,
+      });
+
+      getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        ['Audi A4 Avant', 2019, 'no'],
+        ['BMW 320i Coupe', 2021, 'no'],
+        ['Mercedes A 160', 2017, 'yes'],
+        ['Citroen C4 Coupe', 2018, 'yes'],
+        ['Opel Astra', 2020, 'yes']
+      ]);
+
+      getPlugin('multiColumnSorting').sort({ column: 2, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 2017, 'yes'],
+        ['Citroen C4 Coupe', 2018, 'yes'],
+        ['Opel Astra', 2020, 'yes'],
+        ['Audi A4 Avant', 2019, 'no'],
+        ['BMW 320i Coupe', 2021, 'no'],
+      ]);
+    });
+  });
+
   it('should properly sort numeric data', () => {
     handsontable({
       data: [
