@@ -28,9 +28,7 @@ export class MapCollection {
     if (this.collection.has(uniqueName) === false) {
       this.collection.set(uniqueName, indexMap);
 
-      indexMap.addLocalHook('change', (changes) => {
-        this.runLocalHooks('change', uniqueName, indexMap, changes);
-      });
+      indexMap.addLocalHook('change', () => this.runLocalHooks('change', indexMap));
 
       registeredMaps += 1;
     }
@@ -48,7 +46,7 @@ export class MapCollection {
       indexMap.destroy();
       this.collection.delete(name);
 
-      this.runLocalHooks('change', name, indexMap);
+      this.runLocalHooks('change', indexMap);
 
       registeredMaps -= 1;
     }

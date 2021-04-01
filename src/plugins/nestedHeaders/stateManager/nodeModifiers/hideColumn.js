@@ -24,6 +24,24 @@ the last node, the hide column modification can be applied.`);
     return;
   }
 
+  let isCollapsibleNode = false;
+
+  nodeToProcess.walkUp((node) => {
+    const { data: { collapsible } } = node;
+
+    if (collapsible) {
+      isCollapsibleNode = true;
+
+      return false; // Cancel tree traversing
+    }
+  });
+
+  // TODO: When the node is collapsible do not hide the column. Currently collapsible headers
+  // does not work with hidden columns.
+  if (isCollapsibleNode) {
+    return;
+  }
+
   nodeToProcess.walkUp((node) => {
     const { data } = node;
 

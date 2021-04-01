@@ -104,44 +104,35 @@ describe('ChangesObserver', () => {
   });
 
   describe('_write', () => {
-    it('should trigger local "change" hook when it\'s called with chunk of changes', () => {
+    it('should trigger local "change" hook when it\'s called with changes', () => {
       const changesSpy = jasmine.createSpy();
       const observer = new ChangesObserver();
 
       observer.addLocalHook('change', changesSpy);
 
-      observer._write({
-        callerMapName: 'MyHidingPlugin',
-        changes: [
-          { op: 'replace', index: 3, oldValue: false, newValue: true },
-        ]
-      });
+      observer._write([
+        { op: 'replace', index: 3, oldValue: false, newValue: true },
+      ]);
 
       expect(changesSpy.calls.count()).toBe(1);
       expect(changesSpy).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
 
-      observer._write({
-        callerMapName: 'MyHidingPlugin2',
-        changes: [
-          { op: 'replace', index: 30, oldValue: true, newValue: true },
-        ]
-      });
+      observer._write([
+        { op: 'replace', index: 30, oldValue: true, newValue: true },
+      ]);
 
       expect(changesSpy.calls.count()).toBe(2);
       expect(changesSpy).toHaveBeenLastCalledWith([
         { op: 'replace', index: 30, oldValue: true, newValue: true },
       ]);
 
-      observer._write({
-        callerMapName: 'MyHidingPlugin',
-        changes: [
-          { op: 'replace', index: 2, oldValue: true, newValue: false },
-          { op: 'replace', index: 3, oldValue: true, newValue: false },
-          { op: 'replace', index: 4, oldValue: false, newValue: true },
-        ]
-      });
+      observer._write([
+        { op: 'replace', index: 2, oldValue: true, newValue: false },
+        { op: 'replace', index: 3, oldValue: true, newValue: false },
+        { op: 'replace', index: 4, oldValue: false, newValue: true },
+      ]);
 
       expect(changesSpy.calls.count()).toBe(3);
       expect(changesSpy).toHaveBeenLastCalledWith([
@@ -151,57 +142,38 @@ describe('ChangesObserver', () => {
       ]);
     });
 
-    it('should ignore changes that comes from the map name that is configured as ignore', () => {
+    it('should not trigger local "change" hook when the changes are empty', () => {
       const changesSpy = jasmine.createSpy();
-      const observer = new ChangesObserver({
-        mapNamesIgnoreList: ['MyHidingPlugin', 'MyHidingPlugin4'],
-      });
+      const observer = new ChangesObserver();
 
       observer.addLocalHook('change', changesSpy);
-
-      observer._write({
-        callerMapName: 'MyHidingPlugin',
-        changes: [
-          { op: 'replace', index: 3, oldValue: false, newValue: true },
-        ]
-      });
+      observer._write([]);
 
       expect(changesSpy.calls.count()).toBe(0);
+    });
+  });
 
-      observer._write({
-        callerMapName: 'MyHidingPlugin2',
-        changes: [
-          { op: 'replace', index: 30, oldValue: true, newValue: true },
-        ]
-      });
+  describe('_writeInitialChanges', () => {
+    it('should call the subscriber with changes when there are some initial changes queued', () => {
+      const subscribeSpy = jasmine.createSpy();
+      const observer = new ChangesObserver();
 
-      expect(changesSpy.calls.count()).toBe(1);
-      expect(changesSpy).toHaveBeenLastCalledWith([
-        { op: 'replace', index: 30, oldValue: true, newValue: true },
+      observer._writeInitialChanges([
+        { op: 'insert', index: 1, oldValue: 4, newValue: 7 }
       ]);
 
-      observer._write({
-        callerMapName: 'MyHidingPlugin',
-        changes: [
-          { op: 'replace', index: 2, oldValue: true, newValue: false },
-          { op: 'replace', index: 3, oldValue: true, newValue: false },
-          { op: 'replace', index: 4, oldValue: false, newValue: true },
-        ]
-      });
+      observer.subscribe(subscribeSpy);
 
-      expect(changesSpy.calls.count()).toBe(1);
-
-      observer._write({
-        callerMapName: 'MyHidingPlugin2',
-        changes: [
-          { op: 'multiple', oldValue: [1, 2, 3], newValue: [6, 5, 3] },
-        ]
-      });
-
-      expect(changesSpy.calls.count()).toBe(2);
-      expect(changesSpy).toHaveBeenLastCalledWith([
-        { op: 'multiple', oldValue: [1, 2, 3], newValue: [6, 5, 3] },
+      expect(subscribeSpy.calls.count()).toBe(1);
+      expect(subscribeSpy).toHaveBeenLastCalledWith([
+        { op: 'insert', index: 1, oldValue: 4, newValue: 7 }
       ]);
+
+      observer._writeInitialChanges([
+        { op: 'insert', index: 2, oldValue: 7, newValue: 2 }
+      ]);
+
+      expect(subscribeSpy.calls.count()).toBe(1);
     });
   });
 });

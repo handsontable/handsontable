@@ -1,28 +1,11 @@
 /* eslint max-len: ["error", { "code": 140 }] */
+import {
+  createColspanSettings,
+  createPlaceholder,
+} from 'handsontable/plugins/nestedHeaders/__tests__/helpers';
 import HeadersTree from 'handsontable/plugins/nestedHeaders/stateManager/headersTree';
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 import { generateMatrix } from 'handsontable/plugins/nestedHeaders/stateManager/matrixGenerator';
-
-function createRootColspanSettings(overwriteProps = {}) {
-  return {
-    label: '',
-    colspan: 1,
-    origColspan: 1,
-    isHidden: false,
-    isCollapsed: false,
-    collapsible: false,
-    isRoot: true,
-    isPlaceholder: false,
-    ...overwriteProps,
-  };
-}
-
-function createPlaceholder() {
-  return {
-    label: '',
-    isPlaceholder: true,
-  };
-}
 
 function createTree(nestedHeadersSettings) {
   const source = new SourceSettings();
@@ -58,14 +41,14 @@ describe('generateMatrix', () => {
 
       expect(matrix).toEqual([
         [
-          createRootColspanSettings({ label: 'A1' }),
-          createRootColspanSettings({ label: 'B1' }),
-          createRootColspanSettings({ label: 'C1' }),
+          createColspanSettings({ l: 'A1' }),
+          createColspanSettings({ l: 'B1' }),
+          createColspanSettings({ l: 'C1' }),
         ],
         [
-          createRootColspanSettings({ label: 'A2' }),
-          createRootColspanSettings({ label: 'B2' }),
-          createRootColspanSettings({ label: 'C2' }),
+          createColspanSettings({ l: 'A2' }),
+          createColspanSettings({ l: 'B2' }),
+          createColspanSettings({ l: 'C2' }),
         ],
       ]);
     });
@@ -93,22 +76,22 @@ describe('generateMatrix', () => {
 
       expect(matrix).toEqual([
         [
-          createRootColspanSettings({ label: 'A1', colspan: 4, origColspan: 4 }),
+          createColspanSettings({ l: 'A1', colspan: 4, origColspan: 4 }),
           createPlaceholder(),
           createPlaceholder(),
           createPlaceholder(),
         ],
         [
-          createRootColspanSettings({ label: 'B1', colspan: 3, origColspan: 3 }),
+          createColspanSettings({ l: 'B1', colspan: 3, origColspan: 3 }),
           createPlaceholder(),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'B2' }),
+          createColspanSettings({ l: 'B2' }),
         ],
         [
-          createRootColspanSettings({ label: 'C1', colspan: 2, origColspan: 2 }),
+          createColspanSettings({ l: 'C1', colspan: 2, origColspan: 2 }),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'C2' }),
-          createRootColspanSettings({ label: 'C3' }),
+          createColspanSettings({ l: 'C2' }),
+          createColspanSettings({ l: 'C3' }),
         ]
       ]);
     });
@@ -139,8 +122,8 @@ describe('generateMatrix', () => {
 
       expect(matrix).toEqual([
         [
-          createRootColspanSettings({ label: 'A1' }),
-          createRootColspanSettings({ label: 'A2', colspan: 8, origColspan: 8 }),
+          createColspanSettings({ l: 'A1' }),
+          createColspanSettings({ l: 'A2', colspan: 8, origColspan: 8 }),
           createPlaceholder(),
           createPlaceholder(),
           createPlaceholder(),
@@ -148,43 +131,43 @@ describe('generateMatrix', () => {
           createPlaceholder(),
           createPlaceholder(),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'A3' }),
+          createColspanSettings({ l: 'A3' }),
         ],
         [
-          createRootColspanSettings({ label: 'B1' }),
-          createRootColspanSettings({ label: 'B2', colspan: 4, origColspan: 4 }),
+          createColspanSettings({ l: 'B1' }),
+          createColspanSettings({ l: 'B2', colspan: 4, origColspan: 4 }),
           createPlaceholder(),
           createPlaceholder(),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'B3', colspan: 4, origColspan: 4 }),
+          createColspanSettings({ l: 'B3', colspan: 4, origColspan: 4 }),
           createPlaceholder(),
           createPlaceholder(),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'B4' }),
+          createColspanSettings({ l: 'B4' }),
         ],
         [
-          createRootColspanSettings({ label: 'C1' }),
-          createRootColspanSettings({ label: 'C2' }),
-          createRootColspanSettings({ label: 'C3', colspan: 3, origColspan: 3 }),
+          createColspanSettings({ l: 'C1' }),
+          createColspanSettings({ l: 'C2' }),
+          createColspanSettings({ l: 'C3', colspan: 3, origColspan: 3 }),
           createPlaceholder(),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'C4', colspan: 2, origColspan: 2 }),
+          createColspanSettings({ l: 'C4', colspan: 2, origColspan: 2 }),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'C5', colspan: 2, origColspan: 2 }),
+          createColspanSettings({ l: 'C5', colspan: 2, origColspan: 2 }),
           createPlaceholder(),
-          createRootColspanSettings({ label: 'C6' }),
+          createColspanSettings({ l: 'C6' }),
         ],
         [
-          createRootColspanSettings({ label: 'D1' }),
-          createRootColspanSettings({ label: 'D2' }),
-          createRootColspanSettings({ label: 'D3' }),
-          createRootColspanSettings({ label: 'D4' }),
-          createRootColspanSettings({ label: 'D5' }),
-          createRootColspanSettings({ label: 'D6' }),
-          createRootColspanSettings({ label: 'D7' }),
-          createRootColspanSettings({ label: 'D8' }),
-          createRootColspanSettings({ label: 'D9' }),
-          createRootColspanSettings({ label: '' }),
+          createColspanSettings({ l: 'D1' }),
+          createColspanSettings({ l: 'D2' }),
+          createColspanSettings({ l: 'D3' }),
+          createColspanSettings({ l: 'D4' }),
+          createColspanSettings({ l: 'D5' }),
+          createColspanSettings({ l: 'D6' }),
+          createColspanSettings({ l: 'D7' }),
+          createColspanSettings({ l: 'D8' }),
+          createColspanSettings({ l: 'D9' }),
+          createColspanSettings({ l: '' }),
         ]
       ]);
     });

@@ -9,7 +9,6 @@ import {
 } from '../../helpers/dom/element';
 import EventManager from '../../eventManager';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { HidingMap } from '../../translations';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -134,9 +133,7 @@ export class CollapsibleColumns extends BasePlugin {
       warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
-    this.#collapsedColumnsMap = new HidingMap();
-    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#collapsedColumnsMap);
-
+    this.#collapsedColumnsMap = this.hot.columnIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding');
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 

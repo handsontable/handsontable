@@ -9,6 +9,7 @@ export function createDefaultHeaderSettings({
   colspan = 1,
   origColspan = 1,
   collapsible = false,
+  crossHiddenColumns = [],
   isCollapsed = false,
   isHidden = false,
   isRoot = false,
@@ -46,6 +47,13 @@ export function createDefaultHeaderSettings({
      */
     isCollapsed,
     /**
+     * The list of visual column indexes which indicates that the specified columns within
+     * the header settings are hidden.
+     *
+     * @type {number[]}
+     */
+    crossHiddenColumns,
+    /**
      * The flag determines whether the column header at specified index is hidden. If true
      * the TH element will be rendered as hidden (display: none).
      *
@@ -56,14 +64,14 @@ export function createDefaultHeaderSettings({
      * The flag which determines whether the column header settings is accually not renderable. That kind
      * of objects are generated after colspaned header to fill an array to correct size.
      *
-     * For example for header with colspan = 8 the 7 blank objects are generated to fil an array settings
+     * For example for header with colspan = 8 the 7 blank objects are generated to fill the array settings
      * to length = 8.
      *
      * @type {boolean}
      */
     isRoot,
     /**
-     * Describe me!
+     * The flag determines whether the column header at the specified index is non-renderable.
      *
      * @type {boolean}
      */
@@ -72,7 +80,9 @@ export function createDefaultHeaderSettings({
 }
 
 /**
- * Describe me!
+ * Creates the header settings placeholder object. Those settings tell the header renderers
+ * that this TH element should not be rendered (the node will be overlapped by the previously
+ * created node with colspan bigger than 1).
  *
  * @returns {object}
  */
@@ -82,10 +92,3 @@ export function createPlaceholderHeaderSettings() {
     isPlaceholder: true,
   };
 }
-
-/**
- * List of properties which are configurable. That properties can be changed using public API.
- *
- * @type {string[]}
- */
-export const HEADER_CONFIGURABLE_PROPS = ['label', 'collapsible'];

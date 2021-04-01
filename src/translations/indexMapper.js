@@ -77,7 +77,9 @@ export class IndexMapper {
      * @private
      * @type {ChangesObservable}
      */
-    this.changesObservable = new ChangesObservable();
+    this.hidingChangesObservable = new ChangesObservable({
+      initialIndexValue: false,
+    });
     /**
      * Cache for list of not trimmed indexes, respecting the indexes sequence (physical indexes).
      *
@@ -155,7 +157,7 @@ export class IndexMapper {
       this.runLocalHooks('change', this.indexesSequence, null);
     });
 
-    this.trimmingMapsCollection.addLocalHook('change', (mapName, changedMap) => {
+    this.trimmingMapsCollection.addLocalHook('change', (changedMap) => {
       this.trimmedIndexesChanged = true;
 
       // Number of trimmed indexes might change.
@@ -164,10 +166,7 @@ export class IndexMapper {
       this.runLocalHooks('change', changedMap, this.trimmingMapsCollection);
     });
 
-    this.hidingMapsCollection.addLocalHook('change', (mapName, changedMap, changes) => {
-      if (changes) {
-        this.changesObservable.collect('hiding', mapName, changes);
-      }
+    this.hidingMapsCollection.addLocalHook('change', (changedMap) => {
       this.hiddenIndexesChanged = true;
 
       // Number of hidden indexes might change.
@@ -176,7 +175,7 @@ export class IndexMapper {
       this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
-    this.variousMapsCollection.addLocalHook('change', (mapName, changedMap) => {
+    this.variousMapsCollection.addLocalHook('change', (changedMap) => {
       this.runLocalHooks('change', changedMap, this.variousMapsCollection);
     });
   }
@@ -206,11 +205,14 @@ export class IndexMapper {
    *
    * @param {string} indexMapType The index map type which we want to observe.
    *                              Currently, only the 'hiding' index map types are observable.
-   * @param {object} observerOptions The Observer options.
    * @returns {ChangesObserver}
    */
-  createChangesListener(indexMapType, observerOptions) {
-    return this.changesObservable.createObserver(indexMapType, observerOptions);
+  createChangesListener(indexMapType) {
+    if (indexMapType !== 'hiding') {
+      throw new Error(`Unsupported index map type "${indexMapType}".`);
+    }
+
+    return this.hidingChangesObservable.createObserver();
   }
 
   /**
@@ -218,10 +220,10 @@ export class IndexMapper {
    *
    * @param {string} indexName The uniq index name.
    * @param {string} mapType The index map type (e.q. "hiding, "trimming", "physicalIndexToValue").
-   * @param {*} [initValueOrFn=null] The initial value for the index map.
+   * @param {*} [initValueOrFn] The initial value for the index map.
    * @returns {IndexMap}
    */
-  createAndRegisterIndexMap(indexName, mapType, initValueOrFn = null) {
+  createAndRegisterIndexMap(indexName, mapType, initValueOrFn) {
     return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
   }
 
@@ -654,7 +656,10 @@ export class IndexMapper {
       this.cacheFromPhysicalToVisualIndexes();
       this.cacheFromVisualToRenderabIendexes();
 
-      this.changesObservable.flush();
+      // Currently we support only the "hiding" map types.
+      if (this.hiddenIndexesChanged) {
+        this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
+      }
 
       this.runLocalHooks('cacheUpdated', {
         indexesSequenceChanged: this.indexesSequenceChanged,

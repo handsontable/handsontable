@@ -1,6 +1,6 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach } from '../../../helpers/array';
-import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './constants';
+import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
 /**
  * A function that dump a tree structure into multidimensional array. That structure is
@@ -53,7 +53,7 @@ export function generateMatrix(headerRoots) {
         if (isColumnHidden || isRootSettingsFound) {
           colspanHeaderLayer.push(createPlaceholderHeaderSettings(nodeData));
         } else {
-          const headerRootSettings = createDefaultHeaderSettings(nodeData);
+          const headerRootSettings = createHeaderSettings(nodeData);
 
           headerRootSettings.isRoot = true;
           colspanHeaderLayer.push(headerRootSettings);
@@ -64,6 +64,19 @@ export function generateMatrix(headerRoots) {
   });
 
   return matrix;
+}
+
+/**
+ * Creates header settings object.
+ *
+ * @param {object} nodeData The tree data object.
+ * @returns {object}
+ */
+function createHeaderSettings(nodeData) {
+  // For the matrix module we do not need to export "crossHiddenColumns" key. It's redundant here.
+  const { crossHiddenColumns, ...headerRootSettings } = createDefaultHeaderSettings(nodeData);
+
+  return headerRootSettings;
 }
 
 /**

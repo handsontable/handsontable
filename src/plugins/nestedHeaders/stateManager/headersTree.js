@@ -198,13 +198,6 @@ export default class HeadersTree {
          * @type {number}
          */
         columnIndex,
-        /**
-         * The list of visual column indexes which indicates that the specified columns within
-         * the node (including its colspan width) are hidden.
-         *
-         * @type {number[]}
-         */
-        crossHiddenColumns: [],
       };
       let node;
 

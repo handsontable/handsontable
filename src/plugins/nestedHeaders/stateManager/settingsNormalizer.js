@@ -2,7 +2,7 @@
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import { isObject } from '../../../helpers/object';
 import { stringify } from '../../../helpers/mixed';
-import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './constants';
+import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
 /**
  * A function that normalizes user-defined settings into one predictable

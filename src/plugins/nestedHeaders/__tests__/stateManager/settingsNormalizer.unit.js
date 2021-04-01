@@ -1,24 +1,15 @@
 /* eslint max-len: ["error", { "code": 140 }] */
+import {
+  createColspanSettings,
+  createPlaceholder,
+} from 'handsontable/plugins/nestedHeaders/__tests__/helpers';
 import { normalizeSettings } from 'handsontable/plugins/nestedHeaders/stateManager/settingsNormalizer';
 
-function createColspanSettings(overwriteProps = {}) {
+function createColspanSourceSettings(overwriteProps) {
   return {
-    label: '',
-    colspan: 1,
-    origColspan: 1,
-    isHidden: false,
-    isCollapsed: false,
-    collapsible: false,
+    ...createColspanSettings(overwriteProps),
+    crossHiddenColumns: [],
     isRoot: false,
-    isPlaceholder: false,
-    ...overwriteProps,
-  };
-}
-
-function createPlaceholder() {
-  return {
-    label: '',
-    isPlaceholder: true,
   };
 }
 
@@ -27,7 +18,7 @@ describe('normalizeSettings', () => {
     expect(normalizeSettings([])).toEqual([]);
     expect(normalizeSettings([[]])).toEqual([[]]);
     expect(normalizeSettings([['A1']])).toEqual([[
-      createColspanSettings({ label: 'A1' })
+      createColspanSourceSettings({ l: 'A1' })
     ]]);
     expect(normalizeSettings([
       ['A1'],
@@ -35,19 +26,19 @@ describe('normalizeSettings', () => {
       [],
     ])).toEqual([
       [
-        createColspanSettings({ label: 'A1' }),
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
+        createColspanSourceSettings({ l: 'A1' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        createColspanSettings({ label: 'true' }),
-        createColspanSettings({ label: 'B2' }),
-        createColspanSettings({ label: '4' }),
+        createColspanSourceSettings({ l: 'true' }),
+        createColspanSourceSettings({ l: 'B2' }),
+        createColspanSourceSettings({ l: '4' }),
       ],
       [
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
     ]);
   });
@@ -62,8 +53,8 @@ describe('normalizeSettings', () => {
 
     expect(normalizeSettings(settings)).toEqual([
       [
-        createColspanSettings({ label: 'A' }),
-        createColspanSettings({ label: 'B', colspan: 8, origColspan: 8 }),
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B', colspan: 8, origColspan: 8 }),
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
@@ -71,43 +62,43 @@ describe('normalizeSettings', () => {
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
-        createColspanSettings({ label: 'C' }),
+        createColspanSourceSettings({ l: 'C' }),
       ],
       [
-        createColspanSettings({ label: 'D' }),
-        createColspanSettings({ label: 'E', colspan: 4, origColspan: 4 }),
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E', colspan: 4, origColspan: 4 }),
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
-        createColspanSettings({ label: 'F', colspan: 4, origColspan: 4 }),
+        createColspanSourceSettings({ l: 'F', colspan: 4, origColspan: 4 }),
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
-        createColspanSettings({ label: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        createColspanSettings({ label: 'H' }),
-        createColspanSettings({ label: 'I', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'J', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'J', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'K', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'K', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'L', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'L', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'M' }),
+        createColspanSourceSettings({ l: 'M' }),
       ],
       [
-        createColspanSettings({ label: 'N' }),
-        createColspanSettings({ label: 'O' }),
-        createColspanSettings({ label: 'P' }),
-        createColspanSettings({ label: 'Q' }),
-        createColspanSettings({ label: 'R' }),
-        createColspanSettings({ label: 'S' }),
-        createColspanSettings({ label: 'T' }),
-        createColspanSettings({ label: 'U' }),
-        createColspanSettings({ label: 'V' }),
-        createColspanSettings({ label: '' }),
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
+        createColspanSourceSettings({ l: 'P' }),
+        createColspanSourceSettings({ l: 'Q' }),
+        createColspanSourceSettings({ l: 'R' }),
+        createColspanSourceSettings({ l: 'S' }),
+        createColspanSourceSettings({ l: 'T' }),
+        createColspanSourceSettings({ l: 'U' }),
+        createColspanSourceSettings({ l: 'V' }),
+        createColspanSourceSettings({ l: '' }),
       ],
     ]);
   });
@@ -122,95 +113,95 @@ describe('normalizeSettings', () => {
 
     expect(normalizeSettings(settings, 6)).toEqual([
       [
-        createColspanSettings({ label: 'A' }),
-        createColspanSettings({ label: 'B', colspan: 5, origColspan: 5 }),
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B', colspan: 5, origColspan: 5 }),
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
       ],
       [
-        createColspanSettings({ label: 'D' }),
-        createColspanSettings({ label: 'E', colspan: 4, origColspan: 4 }),
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E', colspan: 4, origColspan: 4 }),
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
-        createColspanSettings({ label: 'F' }),
+        createColspanSourceSettings({ l: 'F' }),
       ],
       [
-        createColspanSettings({ label: 'H' }),
-        createColspanSettings({ label: 'I', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'J', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'J', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'K' }),
+        createColspanSourceSettings({ l: 'K' }),
       ],
       [
-        createColspanSettings({ label: 'N' }),
-        createColspanSettings({ label: 'O' }),
-        createColspanSettings({ label: 'P' }),
-        createColspanSettings({ label: 'Q' }),
-        createColspanSettings({ label: 'R' }),
-        createColspanSettings({ label: 'S' }),
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
+        createColspanSourceSettings({ l: 'P' }),
+        createColspanSourceSettings({ l: 'Q' }),
+        createColspanSourceSettings({ l: 'R' }),
+        createColspanSourceSettings({ l: 'S' }),
       ],
     ]);
     expect(normalizeSettings(settings, 4)).toEqual([
       [
-        createColspanSettings({ label: 'A' }),
-        createColspanSettings({ label: 'B', colspan: 3, origColspan: 3 }),
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B', colspan: 3, origColspan: 3 }),
         createPlaceholder(),
         createPlaceholder(),
       ],
       [
-        createColspanSettings({ label: 'D' }),
-        createColspanSettings({ label: 'E', colspan: 3, origColspan: 3 }),
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E', colspan: 3, origColspan: 3 }),
         createPlaceholder(),
         createPlaceholder(),
       ],
       [
-        createColspanSettings({ label: 'H' }),
-        createColspanSettings({ label: 'I', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'J' }),
+        createColspanSourceSettings({ l: 'J' }),
       ],
       [
-        createColspanSettings({ label: 'N' }),
-        createColspanSettings({ label: 'O' }),
-        createColspanSettings({ label: 'P' }),
-        createColspanSettings({ label: 'Q' }),
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
+        createColspanSourceSettings({ l: 'P' }),
+        createColspanSourceSettings({ l: 'Q' }),
       ],
     ]);
     expect(normalizeSettings(settings, 1)).toEqual([
       [
-        createColspanSettings({ label: 'A' }),
+        createColspanSourceSettings({ l: 'A' }),
       ],
       [
-        createColspanSettings({ label: 'D' }),
+        createColspanSourceSettings({ l: 'D' }),
       ],
       [
-        createColspanSettings({ label: 'H' }),
+        createColspanSourceSettings({ l: 'H' }),
       ],
       [
-        createColspanSettings({ label: 'N' }),
+        createColspanSourceSettings({ l: 'N' }),
       ],
     ]);
     expect(normalizeSettings(settings, 0)).toEqual([]);
     expect(normalizeSettings(settings, 2)).toEqual([
       [
-        createColspanSettings({ label: 'A' }),
-        createColspanSettings({ label: 'B' }),
+        createColspanSourceSettings({ l: 'A' }),
+        createColspanSourceSettings({ l: 'B' }),
       ],
       [
-        createColspanSettings({ label: 'D' }),
-        createColspanSettings({ label: 'E' }),
+        createColspanSourceSettings({ l: 'D' }),
+        createColspanSourceSettings({ l: 'E' }),
       ],
       [
-        createColspanSettings({ label: 'H' }),
-        createColspanSettings({ label: 'I' }),
+        createColspanSourceSettings({ l: 'H' }),
+        createColspanSourceSettings({ l: 'I' }),
       ],
       [
-        createColspanSettings({ label: 'N' }),
-        createColspanSettings({ label: 'O' }),
+        createColspanSourceSettings({ l: 'N' }),
+        createColspanSourceSettings({ l: 'O' }),
       ],
     ]);
   });
@@ -224,31 +215,31 @@ describe('normalizeSettings', () => {
 
     expect(normalizeSettings(settings)).toEqual([
       [
-        createColspanSettings({ label: 'A1' }),
-        createColspanSettings({ label: 'A2' }),
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
+        createColspanSourceSettings({ l: 'A1' }),
+        createColspanSourceSettings({ l: 'A2' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        createColspanSettings({ label: 'B1' }),
-        createColspanSettings({ label: 'B2', colspan: 4, origColspan: 4 }),
+        createColspanSourceSettings({ l: 'B1' }),
+        createColspanSourceSettings({ l: 'B2', colspan: 4, origColspan: 4 }),
         createPlaceholder(),
         createPlaceholder(),
         createPlaceholder(),
-        createColspanSettings({ label: '' }),
-        createColspanSettings({ label: '' }),
+        createColspanSourceSettings({ l: '' }),
+        createColspanSourceSettings({ l: '' }),
       ],
       [
-        createColspanSettings({ label: 'C1' }),
-        createColspanSettings({ label: 'C2', colspan: 3, origColspan: 3 }),
+        createColspanSourceSettings({ l: 'C1' }),
+        createColspanSourceSettings({ l: 'C2', colspan: 3, origColspan: 3 }),
         createPlaceholder(),
         createPlaceholder(),
-        createColspanSettings({ label: 'C3', colspan: 2, origColspan: 2 }),
+        createColspanSourceSettings({ l: 'C3', colspan: 2, origColspan: 2 }),
         createPlaceholder(),
-        createColspanSettings({ label: 'C4' }),
+        createColspanSourceSettings({ l: 'C4' }),
       ],
     ]);
   });

@@ -1,7 +1,13 @@
 import { extend, isObject } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import { normalizeSettings } from './settingsNormalizer';
-import { HEADER_CONFIGURABLE_PROPS } from './constants';
+
+/**
+ * List of properties which are configurable. That properties can be changed using public API.
+ *
+ * @type {string[]}
+ */
+export const HEADER_CONFIGURABLE_PROPS = ['label', 'collapsible'];
 
 /**
  * The class manages and normalizes settings passed by the developer

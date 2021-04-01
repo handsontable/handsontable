@@ -1,126 +1,117 @@
 import { ChangesObserver } from './observer';
 import { arrayDiff } from './utils';
 
-const SUPPORTED_INDEX_MAP_TYPES = ['hiding'];
-const SUPPORTED_CHANGES_TYPES = ['multiple', 'single'];
-
+/**
+ * The ChangesObservable module is an object that represents a resource that provides
+ * the ability to observe the changes that happened in the index map indexes during
+ * the code running.
+ *
+ * @class ChangesObservable
+ */
 export class ChangesObservable {
-  #observers = new Map();
-  #globalObserversCount = 0;
-  #collectedChanges = new Map();
+  /**
+   * The list of registered ChangesObserver instances.
+   *
+   * @type {ChangesObserver[]}
+   */
+  #observers = new Set();
+  /**
+   * An array with default values that act as a base array that will be compared with
+   * the last saved index state. The changes are generated and immediately send through
+   * the newly created ChangesObserver object. Thank that the observer initially has all
+   * information about what indexes are currently changed.
+   *
+   * @type {Array}
+   */
+  #indexMatrix = [];
+  /**
+   * An array that holds the indexes state that is currently valid. The value is changed on every
+   * index mapper cache update.
+   *
+   * @type {Array}
+   */
+  #currentIndexState = [];
+  /**
+   * The flag determines if the observable is initialized or not. Not initialized object created
+   * index matrix once while emitting new changes.
+   *
+   * @type {boolean}
+   */
+  #isMatrixIndexesInitialized = false;
+  /**
+   * The initial index value allows control from what value the index matrix array will be created.
+   * Changing that value changes how the array diff generates the changes for the initial data
+   * sent to the subscribers. For example, the changes can be triggered by detecting the changes
+   * from `false` to `true` value or vice versa.
+   *
+   * @type {boolean}
+   */
+  #initialIndexValue = false;
 
-  constructor() {
-    SUPPORTED_INDEX_MAP_TYPES.forEach((indexMapType) => {
-      this.#observers.set(indexMapType, new Set());
-      this.#collectedChanges.set(indexMapType, new Set());
-    });
+  constructor({ initialIndexValue } = {}) {
+    this.#initialIndexValue = initialIndexValue ?? false;
   }
 
-  createObserver(indexMapType, observerOptions) {
-    if (!SUPPORTED_INDEX_MAP_TYPES.includes(indexMapType)) {
-      throw new Error(`Unsupported index map type "${indexMapType}".`);
-    }
+  /* eslint-disable jsdoc/require-description-complete-sentence */
+  /**
+   * Creates and returns a new instance of the ChangesObserver object. The resource
+   * allows subscribing to the index changes that during the code running may change.
+   * Changes are emitted as an array of the index change. Each change is represented
+   * separately as an object with `op`, `index`, `oldValue`, and `newValue` props.
+   *
+   * For example:
+   * ```
+   * [
+   *   { op: 'replace', index: 1, oldValue: false, newValue: true },
+   *   { op: 'replace', index: 3, oldValue: false, newValue: true },
+   *   { op: 'insert', index: 4, oldValue: false, newValue: true },
+   * ]
+   * // or when the new index map changes have less indexes
+   * [
+   *   { op: 'replace', index: 1, oldValue: false, newValue: true },
+   *   { op: 'remove', index: 4, oldValue: false, newValue: true },
+   * ]
+   * ```
+   *
+   * @returns {ChangesObserver}
+   */
+  /* eslint-enable jsdoc/require-description-complete-sentence */
+  createObserver() {
+    const observer = new ChangesObserver();
 
-    const observer = new ChangesObserver(observerOptions);
-    const observers = this.#observers.get(indexMapType);
-
-    observers.add(observer);
-    this.#globalObserversCount += 1;
+    this.#observers.add(observer);
 
     observer.addLocalHook('unsubscribe', () => {
-      observers.delete(observer);
-      this.#globalObserversCount -= 1;
+      this.#observers.delete(observer);
     });
+
+    observer._writeInitialChanges(arrayDiff(this.#indexMatrix, this.#currentIndexState));
 
     return observer;
   }
 
-  collect(indexMapType, callerMapName, changes) {
-    if (!SUPPORTED_INDEX_MAP_TYPES.includes(indexMapType)) {
-      throw new Error(`Unsupported index map type "${indexMapType}".`);
+  /**
+   * The method is an entry point for triggering new index map changes. Emitting the
+   * changes triggers comparing algorithm which compares last saved state with a new
+   * state. When there are some differences, the changes are sent to all subscribers.
+   *
+   * @param {Array} indexesState An array with index map state.
+   */
+  emit(indexesState) {
+    let currentIndexState = this.#currentIndexState;
+
+    if (!this.#isMatrixIndexesInitialized || this.#indexMatrix.length !== indexesState.length) {
+      this.#indexMatrix = new Array(indexesState.length).fill(this.#initialIndexValue);
+
+      if (!this.#isMatrixIndexesInitialized) {
+        this.#isMatrixIndexesInitialized = true;
+        currentIndexState = this.#indexMatrix;
+      }
     }
 
-    if (this.#globalObserversCount === 0 || !SUPPORTED_CHANGES_TYPES.includes(changes.changeType)) {
-      return;
-    }
+    const changes = arrayDiff(currentIndexState, indexesState);
 
-    const observers = this.#observers.get(indexMapType);
-
-    if (observers.size === 0) {
-      return;
-    }
-
-    this.#collectedChanges.get(indexMapType).add({
-      callerMapName,
-      changes,
-    });
-  }
-
-  flush() {
-    if (this.#globalObserversCount === 0) {
-      return;
-    }
-
-    const cachedChanges = new Map();
-
-    this.#observers.forEach((observers, indexMapType) => {
-      if (observers.size === 0) {
-        return;
-      }
-
-      const rawChanges = this.#collectedChanges.get(indexMapType);
-
-      if (rawChanges.size === 0) {
-        return;
-      }
-
-      let changesChunk = {};
-
-      if (cachedChanges.has(indexMapType)) {
-        changesChunk = cachedChanges.get(indexMapType);
-      } else {
-        changesChunk = this._generateChangesChunk(rawChanges);
-        cachedChanges.set(indexMapType, changesChunk);
-      }
-
-      observers.forEach((observer) => {
-        observer._write(changesChunk);
-      });
-
-      this.#collectedChanges.get(indexMapType).clear();
-    });
-
-    cachedChanges.clear();
-  }
-
-  _generateChangesChunk(rawChanges) {
-    const changesChunk = {
-      changes: [],
-      callerMapName: null,
-    };
-
-    rawChanges.forEach(({ changes: changesEntry, callerMapName }) => {
-      const { changeType, oldValue, newValue } = changesEntry;
-
-      changesChunk.callerMapName = callerMapName;
-
-      if (changeType === 'multiple') {
-        changesChunk.changes.push(...arrayDiff(oldValue, newValue));
-
-      } else if (changeType === 'single') {
-        changesChunk.changes.push({
-          op: 'replace',
-          index: oldValue.index,
-          oldValue: oldValue.value,
-          newValue: newValue.value,
-        });
-      }
-    });
-
-    return changesChunk;
-  }
-
-  get globalObserversCount() {
-    return this.#globalObserversCount;
+    this.#observers.forEach(observer => observer._write(changes));
+    this.#currentIndexState = indexesState;
   }
 }

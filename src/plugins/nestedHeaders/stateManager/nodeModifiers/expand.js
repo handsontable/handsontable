@@ -57,13 +57,17 @@ export function expandNode(nodeToProcess) {
       // the colspan width of all its children.
       colspanCompensation += leafData.colspan;
 
-      traverseHiddenNodeColumnIndexes(node, (nodeColumnIndex) => {
-        affectedColumns.add(nodeColumnIndex);
+      traverseHiddenNodeColumnIndexes(node, (gridColumnIndex) => {
+        affectedColumns.add(gridColumnIndex);
       });
     });
 
   } else {
-    const { colspan, origColspan, columnIndex } = nodeData;
+    const {
+      colspan,
+      origColspan,
+      columnIndex,
+    } = nodeData;
 
     // In a case when the node doesn't have any children restore the colspan width to
     // its original state.

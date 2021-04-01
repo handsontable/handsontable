@@ -47,8 +47,8 @@ export function collapseNode(nodeToProcess) {
 
   if (allLeavesExceptMostLeft.length > 0) {
     arrayEach(allLeavesExceptMostLeft, (node) => {
-      traverseHiddenNodeColumnIndexes(node, (nodeColumnIndex) => {
-        affectedColumns.add(nodeColumnIndex);
+      traverseHiddenNodeColumnIndexes(node, (gridColumnIndex) => {
+        affectedColumns.add(gridColumnIndex);
       });
 
       // Clone the tree to preserve original tree state after header expanding.
@@ -62,10 +62,17 @@ export function collapseNode(nodeToProcess) {
     });
 
   } else {
+    const {
+      origColspan,
+      columnIndex,
+    } = nodeData;
+
     // Add column to "affected" started from 1. The header without children can not be
     // collapsed so the first have to be visible (untouched).
-    for (let i = 1; i < nodeData.origColspan; i++) {
-      affectedColumns.add(nodeData.columnIndex + i);
+    for (let i = 1; i < origColspan; i++) {
+      const gridColumnIndex = columnIndex + i;
+
+      affectedColumns.add(gridColumnIndex);
     }
   }
 

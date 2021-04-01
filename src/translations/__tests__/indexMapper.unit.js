@@ -725,16 +725,26 @@ describe('IndexMapper', () => {
   });
 
   describe('createChangesListener', () => {
+    it('should throw an error when unsupported observer listener is created', () => {
+      const indexMapper = new IndexMapper();
+
+      spyOn(indexMapper.hidingChangesObservable, 'createObserver').and.returnValue('fake-observer');
+
+      expect(() => {
+        indexMapper.createChangesListener('index-map-type');
+      }).toThrowError('Unsupported index map type "index-map-type".');
+      expect(indexMapper.hidingChangesObservable.createObserver).not.toHaveBeenCalled();
+    });
+
     it('should create and return new index observer listener', () => {
       const indexMapper = new IndexMapper();
 
-      spyOn(indexMapper.changesObservable, 'createObserver').and.returnValue('fake-observer');
+      spyOn(indexMapper.hidingChangesObservable, 'createObserver').and.returnValue('fake-observer');
 
-      const value = indexMapper.createChangesListener('index-map-type', { setting1: 1, setting2: 2 });
+      const value = indexMapper.createChangesListener('hiding');
 
       expect(value).toBe('fake-observer');
-      expect(indexMapper.changesObservable.createObserver)
-        .toHaveBeenCalledWith('index-map-type', { setting1: 1, setting2: 2 });
+      expect(indexMapper.hidingChangesObservable.createObserver).toHaveBeenCalled();
     });
   });
 

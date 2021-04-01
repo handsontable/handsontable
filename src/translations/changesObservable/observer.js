@@ -9,16 +9,13 @@ import localHooks from '../../mixins/localHooks';
  */
 export class ChangesObserver {
   /**
-   * The list of the unique index map names that will be used to filter changes
-   * comes to the observer.
+   * The field holds initial changes that will be used to notify the callbacks added using
+   * subscribe method. Regardless of the moment of listening for changes, the subscriber
+   * will be notified once with all changes made before subscribing.
    *
-   * @type {string[]}
+   * @type {Array}
    */
-  #mapNamesIgnoreList = [];
-
-  constructor({ mapNamesIgnoreList } = {}) {
-    this.#mapNamesIgnoreList = mapNamesIgnoreList ?? [];
-  }
+  #currentInitialChanges = [];
 
   /**
    * Subscribes to the observer.
@@ -28,6 +25,7 @@ export class ChangesObserver {
    */
   subscribe(callback) {
     this.addLocalHook('change', callback);
+    this._write(this.#currentInitialChanges);
 
     return this;
   }
@@ -50,17 +48,26 @@ export class ChangesObserver {
    * changes events that are distributed further by the observer.
    *
    * @private
-   * @param {object} changesChunk The chunk of changes produced by the ChangesObservable module.
+   * @param {object} changes The chunk of changes produced by the ChangesObservable module.
    * @returns {ChangesObserver}
    */
-  _write(changesChunk) {
-    const { changes, callerMapName } = changesChunk;
-
-    if (!this.#mapNamesIgnoreList.includes(callerMapName)) {
+  _write(changes) {
+    if (changes.length > 0) {
       this.runLocalHooks('change', changes);
     }
 
     return this;
+  }
+
+  /**
+   * The write method is executed by the ChangesObservable module. The module produces initial
+   * changes that will be used to notify new subscribers.
+   *
+   * @private
+   * @param {object} initialChanges The chunk of changes produced by the ChangesObservable module.
+   */
+  _writeInitialChanges(initialChanges) {
+    this.#currentInitialChanges = initialChanges;
   }
 }
 

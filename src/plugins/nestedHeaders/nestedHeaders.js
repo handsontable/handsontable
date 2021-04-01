@@ -96,20 +96,6 @@ export class NestedHeaders extends BasePlugin {
 
     const { nestedHeaders } = this.hot.getSettings();
 
-    this.#hidingIndexMapObserver = this.hot.columnIndexMapper
-      .createChangesListener('hiding', {
-        mapNamesIgnoreList: ['CollapsibleColumns'],
-      })
-      .subscribe((changes) => {
-        changes.forEach(({ op, index: columnIndex, oldValue, newValue }) => {
-          if (op === 'replace' && oldValue !== newValue) {
-            const actionName = newValue ? 'hide-column' : 'show-column';
-
-            this.#stateManager.triggerColumnModification(actionName, columnIndex);
-          }
-        });
-      });
-
     if (!Array.isArray(nestedHeaders) || !Array.isArray(nestedHeaders[0])) {
       warn(toSingleLine`Your Nested Headers plugin configuration is invalid. The settings has to be\x20
                         passed as an array of arrays e.q. [['A1', { label: 'A2', colspan: 2 }]]`);
@@ -138,7 +124,7 @@ export class NestedHeaders extends BasePlugin {
 
     const { nestedHeaders } = this.hot.getSettings();
 
-    this.#stateManager.setColumnsLimit(this.hot.countCols());
+    this.#stateManager.setColumnsLimit(this.hot.countSourceCols());
 
     if (Array.isArray(nestedHeaders)) {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
@@ -147,6 +133,20 @@ export class NestedHeaders extends BasePlugin {
     if (this.detectedOverlappedHeaders) {
       warn(toSingleLine`Your Nested Headers plugin setup contains overlapping headers. This kind of configuration\x20
                         is currently not supported.`);
+    }
+
+    if (!this.#hidingIndexMapObserver && this.enabled) {
+      this.#hidingIndexMapObserver = this.hot.columnIndexMapper
+        .createChangesListener('hiding')
+        .subscribe((changes) => {
+          changes.forEach(({ op, index: columnIndex, newValue }) => {
+            if (op === 'replace') {
+              const actionName = newValue === true ? 'hide-column' : 'show-column';
+
+              this.#stateManager.triggerColumnModification(actionName, columnIndex);
+            }
+          });
+        });
     }
 
     this.ghostTable.buildWidthsMapper();
@@ -160,6 +160,7 @@ export class NestedHeaders extends BasePlugin {
     this.clearColspans();
     this.#stateManager.clear();
     this.#hidingIndexMapObserver.unsubscribe();
+    this.#hidingIndexMapObserver = null;
     this.ghostTable.clear();
 
     super.disablePlugin();

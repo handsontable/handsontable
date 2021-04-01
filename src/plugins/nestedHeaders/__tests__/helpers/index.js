@@ -86,3 +86,50 @@ export function generateComplexSetup(rows, cols, generateNestedHeaders = false) 
 
   return data;
 }
+
+const colspanSettingsAbbreviations = new Map([
+  ['l', 'label'],
+  ['cs', 'colspan'],
+  ['ocs', 'origColspan'],
+]);
+
+/**
+ * Returns header settings object. This is a common helper function used by multiple tests for
+ * the state manager of the NestedHeaders plugin.
+ *
+ * @param {object} [overwriteProps={}] An object with default values.
+ * @returns {object}
+ */
+export function createColspanSettings(overwriteProps = {}) {
+  colspanSettingsAbbreviations.forEach((fullKey, abbrKey) => {
+    if (overwriteProps[abbrKey] !== void 0) {
+      overwriteProps[fullKey] = overwriteProps[abbrKey];
+      delete overwriteProps[abbrKey];
+    }
+  });
+
+  return {
+    label: '',
+    colspan: 1,
+    origColspan: 1,
+    isHidden: false,
+    isCollapsed: false,
+    collapsible: false,
+    isRoot: true,
+    isPlaceholder: false,
+    ...overwriteProps,
+  };
+}
+
+/**
+ * Returns placeholder settings object. This is a common helper function used by multiple tests for
+ * the state manager of the NestedHeaders plugin.
+ *
+ * @returns {object}
+ */
+export function createPlaceholder() {
+  return {
+    label: '',
+    isPlaceholder: true,
+  };
+}

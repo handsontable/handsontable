@@ -181,6 +181,7 @@ export default class StateManager {
     if (nodeToProcess) {
       actionResult = triggerNodeModification(action, nodeToProcess, columnIndex);
 
+      // TODO (perf-tip): Trigger matrix generation once after multiple node modifications.
       this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
     }
 

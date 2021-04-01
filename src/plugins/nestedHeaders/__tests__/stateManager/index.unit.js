@@ -1,25 +1,8 @@
+import {
+  createColspanSettings,
+  createPlaceholder,
+} from 'handsontable/plugins/nestedHeaders/__tests__/helpers';
 import StateManager from 'handsontable/plugins/nestedHeaders/stateManager';
-
-function createRootColspanSettings(overwriteProps = {}) {
-  return {
-    label: '',
-    colspan: 1,
-    origColspan: 1,
-    isHidden: false,
-    isCollapsed: false,
-    collapsible: false,
-    isRoot: true,
-    isPlaceholder: false,
-    ...overwriteProps,
-  };
-}
-
-function createPlaceholder() {
-  return {
-    label: '',
-    isPlaceholder: true,
-  };
-}
 
 describe('StateManager', () => {
   describe('setState', () => {
@@ -46,16 +29,16 @@ describe('StateManager', () => {
       ]);
 
       expect(isError).toBe(false);
-      expect(state.getHeaderSettings(0, 0)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(0, 0)).toEqual(createColspanSettings({
         label: 'A1',
       }));
-      expect(state.getHeaderSettings(0, 1)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(0, 1)).toEqual(createColspanSettings({
         label: 'A2',
         colspan: 4,
         origColspan: 4,
       }));
       expect(state.getHeaderSettings(0, 2)).toEqual(createPlaceholder());
-      expect(state.getHeaderSettings(-1, 1)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(-1, 1)).toEqual(createColspanSettings({
         label: 'D2',
       }));
       expect(state.getLayersCount()).toBe(4);
@@ -424,28 +407,28 @@ describe('StateManager', () => {
         ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
       ]);
 
-      expect(state.getHeaderSettings(0, 0)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(0, 0)).toEqual(createColspanSettings({
         label: 'A1',
       }));
-      expect(state.getHeaderSettings(-4, 0)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(-4, 0)).toEqual(createColspanSettings({
         label: 'A1',
       }));
-      expect(state.getHeaderSettings(0, 1)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(0, 1)).toEqual(createColspanSettings({
         label: 'A2',
         colspan: 4,
         origColspan: 4,
       }));
-      expect(state.getHeaderSettings(-4, 1)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(-4, 1)).toEqual(createColspanSettings({
         label: 'A2',
         colspan: 4,
         origColspan: 4,
       }));
       expect(state.getHeaderSettings(0, 2)).toEqual(createPlaceholder());
       expect(state.getHeaderSettings(-4, 2)).toEqual(createPlaceholder());
-      expect(state.getHeaderSettings(3, 1)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(3, 1)).toEqual(createColspanSettings({
         label: 'D2',
       }));
-      expect(state.getHeaderSettings(-1, 1)).toEqual(createRootColspanSettings({
+      expect(state.getHeaderSettings(-1, 1)).toEqual(createColspanSettings({
         label: 'D2',
       }));
     });
