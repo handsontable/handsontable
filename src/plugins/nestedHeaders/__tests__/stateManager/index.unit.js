@@ -316,6 +316,20 @@ describe('StateManager', () => {
     });
   });
 
+  describe('triggerColumnModification', () => {
+    it('should internally call "triggerNodeModification" method', () => {
+      const state = new StateManager();
+
+      spyOn(state, 'triggerNodeModification').and.returnValue('test');
+
+      const modResult = state.triggerColumnModification('collapse', 15);
+
+      expect(modResult).toBe('test');
+      expect(state.triggerNodeModification).toHaveBeenCalledTimes(1);
+      expect(state.triggerNodeModification).toHaveBeenCalledWith('collapse', -1, 15);
+    });
+  });
+
   describe('rowCoordsToLevel', () => {
     it('should translate row coords into header level', () => {
       /**

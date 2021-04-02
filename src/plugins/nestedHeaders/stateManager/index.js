@@ -80,13 +80,6 @@ export default class StateManager {
     return hasError;
   }
 
-  getTree() {
-    return this.#headersTree;
-  }
-  getMatrix() {
-    return this.#stateMatrix;
-  }
-
   /**
    * Sets columns limit to the state will be trimmed. All headers (colspans) which
    * overlap the column limit will be reduced to keep the structure solid.

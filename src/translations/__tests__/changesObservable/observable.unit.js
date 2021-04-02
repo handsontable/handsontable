@@ -15,25 +15,25 @@ describe('ChangesObservable', () => {
     observer2.subscribe(observer2Listener1);
     observer2.subscribe(observer2Listener2);
 
-    expect(observer1Listener1.calls.count()).toBe(0);
-    expect(observer2Listener1.calls.count()).toBe(0);
-    expect(observer2Listener2.calls.count()).toBe(0);
+    expect(observer1Listener1).toHaveBeenCalledTimes(0);
+    expect(observer2Listener1).toHaveBeenCalledTimes(0);
+    expect(observer2Listener2).toHaveBeenCalledTimes(0);
 
     observable.emit([false, true, false, true, true, false]);
 
-    expect(observer1Listener1.calls.count()).toBe(1);
+    expect(observer1Listener1).toHaveBeenCalledTimes(1);
     expect(observer1Listener1).toHaveBeenLastCalledWith([
       { op: 'replace', index: 1, oldValue: false, newValue: true },
       { op: 'replace', index: 3, oldValue: false, newValue: true },
       { op: 'replace', index: 4, oldValue: false, newValue: true },
     ]);
-    expect(observer2Listener1.calls.count()).toBe(1);
+    expect(observer2Listener1).toHaveBeenCalledTimes(1);
     expect(observer2Listener1).toHaveBeenLastCalledWith([
       { op: 'replace', index: 1, oldValue: false, newValue: true },
       { op: 'replace', index: 3, oldValue: false, newValue: true },
       { op: 'replace', index: 4, oldValue: false, newValue: true },
     ]);
-    expect(observer2Listener2.calls.count()).toBe(1);
+    expect(observer2Listener2).toHaveBeenCalledTimes(1);
     expect(observer2Listener2).toHaveBeenLastCalledWith([
       { op: 'replace', index: 1, oldValue: false, newValue: true },
       { op: 'replace', index: 3, oldValue: false, newValue: true },
@@ -43,9 +43,9 @@ describe('ChangesObservable', () => {
     observer2.unsubscribe();
     observable.emit([false, false, true, true, true, false]);
 
-    expect(observer1Listener1.calls.count()).toBe(2);
-    expect(observer2Listener1.calls.count()).toBe(1);
-    expect(observer2Listener2.calls.count()).toBe(1);
+    expect(observer1Listener1).toHaveBeenCalledTimes(2);
+    expect(observer2Listener1).toHaveBeenCalledTimes(1);
+    expect(observer2Listener2).toHaveBeenCalledTimes(1);
   });
 
   describe('constructor', () => {
@@ -62,7 +62,7 @@ describe('ChangesObservable', () => {
 
         observer.subscribe(observerListener);
 
-        expect(observerListener.calls.count()).toBe(1);
+        expect(observerListener).toHaveBeenCalledTimes(1);
         expect(observerListener).toHaveBeenLastCalledWith([
           { op: 'replace', index: 0, oldValue: true, newValue: false },
           { op: 'replace', index: 2, oldValue: true, newValue: false },
@@ -88,7 +88,7 @@ describe('ChangesObservable', () => {
 
       observer.subscribe(observerListener);
 
-      expect(observerListener.calls.count()).toBe(0);
+      expect(observerListener).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -106,25 +106,25 @@ describe('ChangesObservable', () => {
       observer2.subscribe(observer2Listener1);
       observer2.subscribe(observer2Listener2);
 
-      expect(observer1Listener1.calls.count()).toBe(0);
-      expect(observer2Listener1.calls.count()).toBe(0);
-      expect(observer2Listener2.calls.count()).toBe(0);
+      expect(observer1Listener1).toHaveBeenCalledTimes(0);
+      expect(observer2Listener1).toHaveBeenCalledTimes(0);
+      expect(observer2Listener2).toHaveBeenCalledTimes(0);
 
       observable.emit([false, true, false, true, true, false]);
 
-      expect(observer1Listener1.calls.count()).toBe(1);
+      expect(observer1Listener1).toHaveBeenCalledTimes(1);
       expect(observer1Listener1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: false, newValue: true },
         { op: 'replace', index: 3, oldValue: false, newValue: true },
         { op: 'replace', index: 4, oldValue: false, newValue: true },
       ]);
-      expect(observer2Listener1.calls.count()).toBe(1);
+      expect(observer2Listener1).toHaveBeenCalledTimes(1);
       expect(observer2Listener1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: false, newValue: true },
         { op: 'replace', index: 3, oldValue: false, newValue: true },
         { op: 'replace', index: 4, oldValue: false, newValue: true },
       ]);
-      expect(observer2Listener2.calls.count()).toBe(1);
+      expect(observer2Listener2).toHaveBeenCalledTimes(1);
       expect(observer2Listener2).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: false, newValue: true },
         { op: 'replace', index: 3, oldValue: false, newValue: true },
@@ -133,30 +133,30 @@ describe('ChangesObservable', () => {
 
       observable.emit([true, true, false, true, true, false]);
 
-      expect(observer1Listener1.calls.count()).toBe(2);
+      expect(observer1Listener1).toHaveBeenCalledTimes(2);
       expect(observer1Listener1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 0, oldValue: false, newValue: true },
       ]);
-      expect(observer2Listener1.calls.count()).toBe(2);
+      expect(observer2Listener1).toHaveBeenCalledTimes(2);
       expect(observer2Listener1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 0, oldValue: false, newValue: true },
       ]);
-      expect(observer2Listener2.calls.count()).toBe(2);
+      expect(observer2Listener2).toHaveBeenCalledTimes(2);
       expect(observer2Listener2).toHaveBeenLastCalledWith([
         { op: 'replace', index: 0, oldValue: false, newValue: true },
       ]);
 
       observable.emit([true, false, false, true, true, false]);
 
-      expect(observer1Listener1.calls.count()).toBe(3);
+      expect(observer1Listener1).toHaveBeenCalledTimes(3);
       expect(observer1Listener1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: true, newValue: false },
       ]);
-      expect(observer2Listener1.calls.count()).toBe(3);
+      expect(observer2Listener1).toHaveBeenCalledTimes(3);
       expect(observer2Listener1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: true, newValue: false },
       ]);
-      expect(observer2Listener2.calls.count()).toBe(3);
+      expect(observer2Listener2).toHaveBeenCalledTimes(3);
       expect(observer2Listener2).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: true, newValue: false },
       ]);
@@ -172,7 +172,7 @@ describe('ChangesObservable', () => {
 
       observable.emit([false, true, false, true]);
 
-      expect(observerListener.calls.count()).toBe(1);
+      expect(observerListener).toHaveBeenCalledTimes(1);
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: false, newValue: true },
         { op: 'replace', index: 3, oldValue: false, newValue: true },
@@ -182,7 +182,7 @@ describe('ChangesObservable', () => {
       //                           ↓new indexes↓
       observable.emit([false, true, false, false, false, true]);
 
-      expect(observerListener.calls.count()).toBe(2);
+      expect(observerListener).toHaveBeenCalledTimes(2);
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: true, newValue: false },
         { op: 'insert', index: 4, oldValue: void 0, newValue: false },
@@ -200,7 +200,7 @@ describe('ChangesObservable', () => {
 
       observable.emit([false, true, false, true, true]);
 
-      expect(observerListener.calls.count()).toBe(1);
+      expect(observerListener).toHaveBeenCalledTimes(1);
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: false, newValue: true },
         { op: 'replace', index: 3, oldValue: false, newValue: true },
@@ -210,7 +210,7 @@ describe('ChangesObservable', () => {
       // The case emulates the situation where remove indexes are performed
       observable.emit([false, false, true]);
 
-      expect(observerListener.calls.count()).toBe(2);
+      expect(observerListener).toHaveBeenCalledTimes(2);
       expect(observerListener).toHaveBeenLastCalledWith([
         { op: 'replace', index: 1, oldValue: true, newValue: false },
         { op: 'replace', index: 2, oldValue: false, newValue: true },
@@ -219,7 +219,31 @@ describe('ChangesObservable', () => {
       ]);
     });
 
-    it('should trigger all new subscribers with bulk changes', () => {
+    it('should emit the changes when the new index state is an empty array', () => {
+      const observable = new ChangesObservable();
+      const observer = observable.createObserver();
+
+      const observerListener = jasmine.createSpy('observerListener');
+
+      observer.subscribe(observerListener);
+
+      observable.emit([false, true, false, true, true]);
+
+      expect(observerListener).toHaveBeenCalledTimes(1);
+
+      // The case emulates the situation when the index map collection returns an empty array
+      // when the last index map is unregistered form the collection.
+      observable.emit([]);
+
+      expect(observerListener).toHaveBeenCalledTimes(2);
+      expect(observerListener).toHaveBeenLastCalledWith([
+        { op: 'replace', index: 1, oldValue: true, newValue: false },
+        { op: 'replace', index: 3, oldValue: true, newValue: false },
+        { op: 'replace', index: 4, oldValue: true, newValue: false },
+      ]);
+    });
+
+    it('should trigger all new subscribers with initial bulk changes', () => {
       const observable = new ChangesObservable();
 
       observable.emit([false, true, false, true, true, false]);
@@ -230,7 +254,7 @@ describe('ChangesObservable', () => {
 
         observer.subscribe(observerListener);
 
-        expect(observerListener.calls.count()).toBe(1);
+        expect(observerListener).toHaveBeenCalledTimes(1);
         expect(observerListener).toHaveBeenLastCalledWith([
           { op: 'replace', index: 1, oldValue: false, newValue: true },
           { op: 'replace', index: 3, oldValue: false, newValue: true },
@@ -248,7 +272,7 @@ describe('ChangesObservable', () => {
 
         observer.subscribe(observerListener);
 
-        expect(observerListener.calls.count()).toBe(1);
+        expect(observerListener).toHaveBeenCalledTimes(1);
         expect(observerListener).toHaveBeenLastCalledWith([
           { op: 'replace', index: 3, oldValue: false, newValue: true },
         ]);
@@ -263,7 +287,7 @@ describe('ChangesObservable', () => {
 
         observer.subscribe(observerListener);
 
-        expect(observerListener.calls.count()).toBe(1);
+        expect(observerListener).toHaveBeenCalledTimes(1);
         expect(observerListener).toHaveBeenLastCalledWith([
           { op: 'replace', index: 1, oldValue: false, newValue: true },
         ]);
@@ -278,7 +302,7 @@ describe('ChangesObservable', () => {
 
         observer.subscribe(observerListener);
 
-        expect(observerListener.calls.count()).toBe(1);
+        expect(observerListener).toHaveBeenCalledTimes(1);
         expect(observerListener).toHaveBeenLastCalledWith([
           { op: 'replace', index: 0, oldValue: false, newValue: true },
           { op: 'replace', index: 4, oldValue: false, newValue: true },

@@ -201,13 +201,12 @@ export class IndexMapper {
   /**
    * It creates and returns the new instance of the ChangesObserver object. The object
    * allows listening to the index changes that happen while the Handsontable is running.
-   * The changes are triggered incrementally.
    *
    * @param {string} indexMapType The index map type which we want to observe.
    *                              Currently, only the 'hiding' index map types are observable.
    * @returns {ChangesObserver}
    */
-  createChangesListener(indexMapType) {
+  createChangesObserver(indexMapType) {
     if (indexMapType !== 'hiding') {
       throw new Error(`Unsupported index map type "${indexMapType}".`);
     }

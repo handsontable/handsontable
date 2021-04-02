@@ -1220,5 +1220,425 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
     });
+
+    it('should adjust headers correctly when the new maps are created and registered after Hot is running', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 8 }, 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+          ['A3', 'B3', { label: 'C3', colspan: 3 }, { label: 'F3', colspan: 2 }, { label: 'H3', colspan: 2 }, 'J3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+        ],
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
+      hot.render();
+
+      await sleep(200);
+
+      const hidingMap2 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map2', 'hiding');
+
+      hidingMap2.setValueAtIndex(6, true); // Hide column that contains cells G{n}
+      hidingMap2.setValueAtIndex(9, true); // Hide column that contains cells J{n}
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="6">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="3">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="3">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="" colspan="2">C3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F3</th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+          </tr>
+        </tbody>
+        `);
+
+      await sleep(200);
+
+      const hidingMap3 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map3', 'hiding');
+
+      hidingMap3.setValueAtIndex(2, true); // Hide column that contains cells C{n}
+      hidingMap3.setValueAtIndex(1, true); // Hide column that contains cells B{n}
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="">B2</th>
+            <th class="" colspan="3">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">C3</th>
+            <th class="">F3</th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+          </tr>
+        </tbody>
+        `);
+
+      await sleep(200);
+
+      const hidingMap4 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map4', 'hiding');
+
+      hidingMap4.setValueAtIndex(0, true); // Hide column that contains cells A{n}
+      hidingMap4.setValueAtIndex(5, true); // Hide column that contains cells F{n}
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="3">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">B2</th>
+            <th class="" colspan="2">F2</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">C3</th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">E4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">E1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
+    it('should adjust headers correctly when the hidden maps are unregistered', async() => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A1', { label: 'B1', colspan: 8 }, 'J1'],
+          ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
+          ['A3', 'B3', { label: 'C3', colspan: 3 }, { label: 'F3', colspan: 2 }, { label: 'H3', colspan: 2 }, 'J3'],
+          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+        ],
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
+      hot.render();
+
+      await sleep(200);
+
+      const hidingMap2 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map2', 'hiding');
+
+      hidingMap2.setValueAtIndex(6, true); // Hide column that contains cells G{n}
+      hidingMap2.setValueAtIndex(9, true); // Hide column that contains cells J{n}
+
+      await sleep(200);
+
+      const hidingMap3 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map3', 'hiding');
+
+      hidingMap3.setValueAtIndex(2, true); // Hide column that contains cells C{n}
+      hidingMap3.setValueAtIndex(1, true); // Hide column that contains cells B{n}
+      hidingMap3.setValueAtIndex(3, true); // Hide column that contains cells D{n}
+      hidingMap3.setValueAtIndex(9, true); // Hide column that contains cells J{n}
+      hot.render();
+
+      await sleep(200);
+
+      const hidingMap4 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map4', 'hiding');
+
+      hidingMap4.setValueAtIndex(0, true); // Hide column that contains cells A{n}
+      hidingMap4.setValueAtIndex(5, true); // Hide column that contains cells F{n}
+      hidingMap4.setValueAtIndex(9, true); // Hide column that contains cells J{n}
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="3">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">B2</th>
+            <th class="" colspan="2">F2</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">C3</th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">E4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">E1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.columnIndexMapper.unregisterMap('my-hiding-map4');
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="4">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="">B2</th>
+            <th class="" colspan="3">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">C3</th>
+            <th class="">F3</th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.columnIndexMapper.unregisterMap('my-hiding-map');
+      hot.columnIndexMapper.unregisterMap('my-hiding-map3');
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="7">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="3">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="" colspan="3">C3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">F3</th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="">D4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hot.columnIndexMapper.unregisterMap('my-hiding-map2');
+      hot.render();
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A1</th>
+            <th class="" colspan="8">B1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J1</th>
+          </tr>
+          <tr>
+            <th class="">A2</th>
+            <th class="" colspan="4">B2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">F2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">J2</th>
+          </tr>
+          <tr>
+            <th class="">A3</th>
+            <th class="">B3</th>
+            <th class="" colspan="3">C3</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">F3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">H3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">J3</th>
+          </tr>
+          <tr>
+            <th class="">A4</th>
+            <th class="">B4</th>
+            <th class="">C4</th>
+            <th class="">D4</th>
+            <th class="">E4</th>
+            <th class="">F4</th>
+            <th class="">G4</th>
+            <th class="">H4</th>
+            <th class="">I4</th>
+            <th class="">J4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">B1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">E1</td>
+            <td class="">F1</td>
+            <td class="">G1</td>
+            <td class="">H1</td>
+            <td class="">I1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+    });
   });
 });

@@ -37,7 +37,7 @@ the last node, the hide column modification can be applied.`);
   });
 
   // TODO: When the node is collapsible do not hide the column. Currently collapsible headers
-  // does not work with hidden columns.
+  // does not work with hidden columns (hidden index map types).
   if (isCollapsibleNode) {
     return;
   }

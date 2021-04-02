@@ -12,14 +12,14 @@ describe('ChangesObserver', () => {
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
 
-      expect(subscribeSpy.calls.count()).toBe(1);
+      expect(subscribeSpy).toHaveBeenCalledTimes(1);
       expect(subscribeSpy).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
 
       observer.runLocalHooks('change', 'test');
 
-      expect(subscribeSpy.calls.count()).toBe(2);
+      expect(subscribeSpy).toHaveBeenCalledTimes(2);
       expect(subscribeSpy).toHaveBeenLastCalledWith('test');
     });
 
@@ -37,9 +37,9 @@ describe('ChangesObserver', () => {
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
 
-      expect(subscribeSpy1.calls.count()).toBe(1);
-      expect(subscribeSpy2.calls.count()).toBe(1);
-      expect(subscribeSpy3.calls.count()).toBe(1);
+      expect(subscribeSpy1).toHaveBeenCalledTimes(1);
+      expect(subscribeSpy2).toHaveBeenCalledTimes(1);
+      expect(subscribeSpy3).toHaveBeenCalledTimes(1);
       expect(subscribeSpy1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
@@ -52,9 +52,9 @@ describe('ChangesObserver', () => {
 
       observer.runLocalHooks('change', 'test');
 
-      expect(subscribeSpy1.calls.count()).toBe(2);
-      expect(subscribeSpy2.calls.count()).toBe(2);
-      expect(subscribeSpy3.calls.count()).toBe(2);
+      expect(subscribeSpy1).toHaveBeenCalledTimes(2);
+      expect(subscribeSpy2).toHaveBeenCalledTimes(2);
+      expect(subscribeSpy3).toHaveBeenCalledTimes(2);
       expect(subscribeSpy1).toHaveBeenLastCalledWith('test');
       expect(subscribeSpy2).toHaveBeenLastCalledWith('test');
       expect(subscribeSpy3).toHaveBeenLastCalledWith('test');
@@ -74,8 +74,8 @@ describe('ChangesObserver', () => {
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
 
-      expect(subscribeSpy1.calls.count()).toBe(1);
-      expect(subscribeSpy2.calls.count()).toBe(1);
+      expect(subscribeSpy1).toHaveBeenCalledTimes(1);
+      expect(subscribeSpy2).toHaveBeenCalledTimes(1);
       expect(subscribeSpy1).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
@@ -86,8 +86,8 @@ describe('ChangesObserver', () => {
       observer.unsubscribe();
       observer.runLocalHooks('change', 'test');
 
-      expect(subscribeSpy1.calls.count()).toBe(1);
-      expect(subscribeSpy2.calls.count()).toBe(1);
+      expect(subscribeSpy1).toHaveBeenCalledTimes(1);
+      expect(subscribeSpy2).toHaveBeenCalledTimes(1);
     });
 
     it('should trigger local "unsubscribe" hook when it\'s called', () => {
@@ -99,7 +99,7 @@ describe('ChangesObserver', () => {
       observer.unsubscribe();
       observer.runLocalHooks('change', 'test');
 
-      expect(unsubscribeSpy.calls.count()).toBe(1);
+      expect(unsubscribeSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -114,7 +114,7 @@ describe('ChangesObserver', () => {
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
 
-      expect(changesSpy.calls.count()).toBe(1);
+      expect(changesSpy).toHaveBeenCalledTimes(1);
       expect(changesSpy).toHaveBeenLastCalledWith([
         { op: 'replace', index: 3, oldValue: false, newValue: true },
       ]);
@@ -123,7 +123,7 @@ describe('ChangesObserver', () => {
         { op: 'replace', index: 30, oldValue: true, newValue: true },
       ]);
 
-      expect(changesSpy.calls.count()).toBe(2);
+      expect(changesSpy).toHaveBeenCalledTimes(2);
       expect(changesSpy).toHaveBeenLastCalledWith([
         { op: 'replace', index: 30, oldValue: true, newValue: true },
       ]);
@@ -134,7 +134,7 @@ describe('ChangesObserver', () => {
         { op: 'replace', index: 4, oldValue: false, newValue: true },
       ]);
 
-      expect(changesSpy.calls.count()).toBe(3);
+      expect(changesSpy).toHaveBeenCalledTimes(3);
       expect(changesSpy).toHaveBeenLastCalledWith([
         { op: 'replace', index: 2, oldValue: true, newValue: false },
         { op: 'replace', index: 3, oldValue: true, newValue: false },
@@ -149,7 +149,7 @@ describe('ChangesObserver', () => {
       observer.addLocalHook('change', changesSpy);
       observer._write([]);
 
-      expect(changesSpy.calls.count()).toBe(0);
+      expect(changesSpy).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -164,7 +164,7 @@ describe('ChangesObserver', () => {
 
       observer.subscribe(subscribeSpy);
 
-      expect(subscribeSpy.calls.count()).toBe(1);
+      expect(subscribeSpy).toHaveBeenCalledTimes(1);
       expect(subscribeSpy).toHaveBeenLastCalledWith([
         { op: 'insert', index: 1, oldValue: 4, newValue: 7 }
       ]);
@@ -173,7 +173,7 @@ describe('ChangesObserver', () => {
         { op: 'insert', index: 2, oldValue: 7, newValue: 2 }
       ]);
 
-      expect(subscribeSpy.calls.count()).toBe(1);
+      expect(subscribeSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

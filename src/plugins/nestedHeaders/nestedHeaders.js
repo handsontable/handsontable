@@ -137,7 +137,7 @@ export class NestedHeaders extends BasePlugin {
 
     if (!this.#hidingIndexMapObserver && this.enabled) {
       this.#hidingIndexMapObserver = this.hot.columnIndexMapper
-        .createChangesListener('hiding')
+        .createChangesObserver('hiding')
         .subscribe((changes) => {
           changes.forEach(({ op, index: columnIndex, newValue }) => {
             if (op === 'replace') {
@@ -576,6 +576,11 @@ export class NestedHeaders extends BasePlugin {
    */
   destroy() {
     this.#stateManager = null;
+
+    if (this.#hidingIndexMapObserver !== null) {
+      this.#hidingIndexMapObserver.unsubscribe();
+      this.#hidingIndexMapObserver = null;
+    }
 
     super.destroy();
   }

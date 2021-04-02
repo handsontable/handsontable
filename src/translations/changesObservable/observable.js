@@ -32,7 +32,7 @@ export class ChangesObservable {
    */
   #currentIndexState = [];
   /**
-   * The flag determines if the observable is initialized or not. Not initialized object created
+   * The flag determines if the observable is initialized or not. Not initialized object creates
    * index matrix once while emitting new changes.
    *
    * @type {boolean}
@@ -42,7 +42,10 @@ export class ChangesObservable {
    * The initial index value allows control from what value the index matrix array will be created.
    * Changing that value changes how the array diff generates the changes for the initial data
    * sent to the subscribers. For example, the changes can be triggered by detecting the changes
-   * from `false` to `true` value or vice versa.
+   * from `false` to `true` value or vice versa. Generally, it depends on which index map type
+   * the Observable will work with. For "hiding" or "trimming" index types, it will be boolean
+   * values. For various index maps, it can be anything, but I suspect that the most appropriate
+   * initial value will be "undefined" in that case.
    *
    * @type {boolean}
    */
@@ -101,7 +104,11 @@ export class ChangesObservable {
     let currentIndexState = this.#currentIndexState;
 
     if (!this.#isMatrixIndexesInitialized || this.#indexMatrix.length !== indexesState.length) {
-      this.#indexMatrix = new Array(indexesState.length).fill(this.#initialIndexValue);
+      if (indexesState.length === 0) {
+        indexesState = new Array(currentIndexState.length).fill(this.#initialIndexValue);
+      } else {
+        this.#indexMatrix = new Array(indexesState.length).fill(this.#initialIndexValue);
+      }
 
       if (!this.#isMatrixIndexesInitialized) {
         this.#isMatrixIndexesInitialized = true;
