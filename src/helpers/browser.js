@@ -19,6 +19,7 @@ const browsers = {
   // eslint-disable-next-line no-restricted-globals
   ie9: tester(() => !!(document.documentMode)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
+  ios: tester(ua => /iPhone|iPad|iPod/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
 
@@ -88,6 +89,13 @@ export function isMSBrowser() {
  */
 export function isMobileBrowser() {
   return browsers.mobile.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isIOS() {
+  return browsers.ios.value;
 }
 
 /**
