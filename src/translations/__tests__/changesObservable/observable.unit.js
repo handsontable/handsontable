@@ -219,7 +219,7 @@ describe('ChangesObservable', () => {
       ]);
     });
 
-    it('should emit the changes when the new index state is an empty array', () => {
+    it('should emit the changes when the passed new index state is an empty array', () => {
       const observable = new ChangesObservable();
       const observer = observable.createObserver();
 
@@ -231,8 +231,9 @@ describe('ChangesObservable', () => {
 
       expect(observerListener).toHaveBeenCalledTimes(1);
 
-      // The case emulates the situation when the index map collection returns an empty array
-      // when the last index map is unregistered form the collection.
+      // The case emulates the situation when the index map collection returns an empty array.
+      // It happens when the last index map is unregistered form the collection or the passed
+      // dataset is empty.
       observable.emit([]);
 
       expect(observerListener).toHaveBeenCalledTimes(2);

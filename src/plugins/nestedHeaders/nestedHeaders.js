@@ -135,6 +135,20 @@ export class NestedHeaders extends BasePlugin {
                         is currently not supported.`);
     }
 
+    if (this.enabled) {
+      // The line covers the case when a developer uses the external hiding maps to manipulate
+      // the columns' visibility. The tree state built from the settings - which is always built
+      // as if all the columns are visible, needs to be modified to be in sync with a dataset.
+      this.hot.columnIndexMapper
+        .hidingMapsCollection
+        .getMergedValues()
+        .forEach((isColumnHidden, physicalColumnIndex) => {
+          const actionName = isColumnHidden === true ? 'hide-column' : 'show-column';
+
+          this.#stateManager.triggerColumnModification(actionName, physicalColumnIndex);
+        });
+    }
+
     if (!this.#hidingIndexMapObserver && this.enabled) {
       this.#hidingIndexMapObserver = this.hot.columnIndexMapper
         .createChangesObserver('hiding')

@@ -18,8 +18,8 @@ export class ChangesObservable {
   /**
    * An array with default values that act as a base array that will be compared with
    * the last saved index state. The changes are generated and immediately send through
-   * the newly created ChangesObserver object. Thank that the observer initially has all
-   * information about what indexes are currently changed.
+   * the newly created ChangesObserver object. Thanks to that, the observer initially has
+   * all information about what indexes are currently changed.
    *
    * @type {Array}
    */

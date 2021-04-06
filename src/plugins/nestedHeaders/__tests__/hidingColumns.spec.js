@@ -204,6 +204,74 @@ describe('NestedHeaders', () => {
         `);
     });
 
+    it('should keep the headers in sync with a dataset after updateSettings call', () => {
+      const hot = handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
+        ],
+      });
+
+      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+      hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
+      hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
+      hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
+      hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
+      hot.render();
+
+      updateSettings({ });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="">A</th>
+            <th class="" colspan="2">B</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F</th>
+            <th class="">G</th>
+            <th class="">J</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">A1</td>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">F1</td>
+            <td class="">H1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+
+      hidingMap.setValueAtIndex(7, true); // Hide column that contains cells H{n}
+      hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
+      hot.render();
+
+      updateSettings({ });
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+        <thead>
+          <tr>
+            <th class="" colspan="2">B</th>
+            <th class="hiddenHeader"></th>
+            <th class="">F</th>
+            <th class="">J</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="">C1</td>
+            <td class="">D1</td>
+            <td class="">F1</td>
+            <td class="">J1</td>
+          </tr>
+        </tbody>
+        `);
+    });
+
     it('should work with multiple levels of nested headers configuration (variation #1)', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -1639,6 +1707,132 @@ describe('NestedHeaders', () => {
           </tr>
         </tbody>
         `);
+    });
+
+    describe('with cooperation with the HidingColumns plugin', () => {
+      it('should keep the headers in sync with a dataset using initial settings', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
+          ],
+          hiddenColumns: {
+            columns: [1, 4, 8, 6],
+          },
+        });
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="" colspan="2">B</th>
+              <th class="hiddenHeader"></th>
+              <th class="">F</th>
+              <th class="">G</th>
+              <th class="">J</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="">A1</td>
+              <td class="afterHiddenColumn">C1</td>
+              <td class="">D1</td>
+              <td class="afterHiddenColumn">F1</td>
+              <td class="afterHiddenColumn">H1</td>
+              <td class="afterHiddenColumn">J1</td>
+            </tr>
+          </tbody>
+          `);
+      });
+
+      it('should keep the headers in sync with a dataset after updateSettings call', () => {
+        handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
+          ],
+          hiddenColumns: {
+            columns: [1],
+          },
+        });
+
+        updateSettings({
+          hiddenColumns: {
+            columns: [1, 4, 8, 6],
+          },
+        });
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="" colspan="2">B</th>
+              <th class="hiddenHeader"></th>
+              <th class="">F</th>
+              <th class="">G</th>
+              <th class="">J</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="">A1</td>
+              <td class="afterHiddenColumn">C1</td>
+              <td class="">D1</td>
+              <td class="afterHiddenColumn">F1</td>
+              <td class="afterHiddenColumn">H1</td>
+              <td class="afterHiddenColumn">J1</td>
+            </tr>
+          </tbody>
+          `);
+
+        updateSettings({
+          hiddenColumns: {
+            columns: [0, 1, 2, 4, 8, 6],
+          },
+        });
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">B</th>
+              <th class="">F</th>
+              <th class="">G</th>
+              <th class="">J</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="afterHiddenColumn">D1</td>
+              <td class="afterHiddenColumn">F1</td>
+              <td class="afterHiddenColumn">H1</td>
+              <td class="afterHiddenColumn">J1</td>
+            </tr>
+          </tbody>
+          `);
+
+        updateSettings({ });
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">B</th>
+              <th class="">F</th>
+              <th class="">G</th>
+              <th class="">J</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="afterHiddenColumn">D1</td>
+              <td class="afterHiddenColumn">F1</td>
+              <td class="afterHiddenColumn">H1</td>
+              <td class="afterHiddenColumn">J1</td>
+            </tr>
+          </tbody>
+          `);
+      });
     });
   });
 });
