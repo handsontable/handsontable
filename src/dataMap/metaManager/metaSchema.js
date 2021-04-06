@@ -2285,9 +2285,10 @@ export default () => {
     selectOptions: void 0,
 
     /**
-     * Enables or disables the {@link AutoColumnSize} plugin. Default value is `undefined`, which has the same effect as `true`,
-     * meaning, the `syncLimit` is set to 50.
+     * Enables or disables the {@link AutoColumnSize} plugin. Default value `undefined`
+     * is an equivalent of `true`, sets `syncLimit` to 50.
      * Disabling this plugin can increase performance, as no size-related calculations would be done.
+     * To disable plugin it's necessary to set `false`.
      *
      * Column width calculations are divided into sync and async part. Each of those parts has their own advantages and
      * disadvantages. Synchronous calculations are faster but they block the browser UI, while the slower asynchronous
@@ -2301,18 +2302,24 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|boolean}
-     * @default {syncLimit: 50}
+     * @default undefined
      *
      * @example
      * ```js
      * // as a number (300 columns in sync, rest async)
-     * autoColumnSize: {syncLimit: 300},
+     * autoColumnSize: { syncLimit: 300 },
      *
      * // as a string (percent)
-     * autoColumnSize: {syncLimit: '40%'},
+     * autoColumnSize: { syncLimit: '40%' },
      *
      * // use headers width while calculating the column width
-     * autoColumnSize: {useHeaders: true},
+     * autoColumnSize: { useHeaders: true },
+     *
+     * // defines how many samples for the same length will be caught to calculations
+     * autoColumnSize: { samplingRatio: 10 },
+     *
+     * // defines if duplicated samples are allowed in calculations
+     * autoColumnSize: { allowSampleDuplicates: true },
      * ```
      */
     autoColumnSize: void 0,
