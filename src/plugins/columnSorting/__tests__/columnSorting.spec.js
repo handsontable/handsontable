@@ -1100,7 +1100,7 @@ describe('ColumnSorting', () => {
       ]);
     });
 
-    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (string templates)', () => {
       handsontable({
         data: [
           { car: 'Mercedes A 160', year: 2017, comesInBlack: 'yes' },
@@ -1145,6 +1145,96 @@ describe('ColumnSorting', () => {
         ['Opel Astra', 2020, 'yes'],
         ['Audi A4 Avant', 2019, 'no'],
         ['BMW 320i Coupe', 2021, 'no'],
+      ]);
+    });
+
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates)', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', damaged: true },
+          { car: 'Citroen C4 Coupe', damaged: false },
+          { car: 'Audi A4 Avant', damaged: false },
+          { car: 'Opel Astra', damaged: true },
+          { car: 'BMW 320i Coupe', damaged: false }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'damaged',
+            type: 'checkbox',
+            checkedTemplate: false,
+            uncheckedTemplate: true,
+          }
+        ],
+        columnSorting: true,
+        colHeaders: ['Name', 'is working?']
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Mercedes A 160', true],
+        ['Opel Astra', true],
+        ['Citroen C4 Coupe', false],
+        ['Audi A4 Avant', false],
+        ['BMW 320i Coupe', false],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Citroen C4 Coupe', false],
+        ['Audi A4 Avant', false],
+        ['BMW 320i Coupe', false],
+        ['Mercedes A 160', true],
+        ['Opel Astra', true],
+      ]);
+    });
+
+    it('should sort #bad_value# elements in a proper way', () => {
+      handsontable({
+        data: [
+          ['b', 0],
+          ['a', 1],
+          [1, 2],
+          ['a', 3],
+          ['aaaa', 4],
+          [0, 5],
+          ['a', 6],
+        ],
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [0, 5],
+        [1, 2],
+        ['a', 1],
+        ['a', 3],
+        ['a', 6],
+        ['aaaa', 4],
+        ['b', 0],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        ['b', 0],
+        ['aaaa', 4],
+        ['a', 1],
+        ['a', 3],
+        ['a', 6],
+        [1, 2],
+        [0, 5],
       ]);
     });
   });

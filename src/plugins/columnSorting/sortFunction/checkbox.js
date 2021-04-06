@@ -1,4 +1,5 @@
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
+import { compareFunctionFactory as defaultCompareFunctionFactory } from '../sortFunction/default';
 import { isEmpty } from '../../../helpers/mixed';
 
 const emptyCellToFalsyValue = (value, falsyValue) => {
@@ -57,6 +58,12 @@ export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettin
       }
 
       return FIRST_BEFORE_SECOND;
+    }
+
+    // 1st value === #BAD_VALUE# && 2nd value === #BAD_VALUE#
+    if (isValueFromTemplate === false && isNextValueFromTemplate === false) {
+      // Sorting by values (not just by visual representation).
+      return defaultCompareFunctionFactory(sortOrder, columnMeta, columnPluginSettings)(value, nextValue);
     }
 
     if (unifiedValue === uncheckedTemplate && unifiedNextValue === checkedTemplate) {
