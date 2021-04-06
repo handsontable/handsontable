@@ -1,12 +1,8 @@
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
-import { isUndefined } from '../../../helpers/mixed';
-
-const isEmptyCell = (value) => {
-  return value === '' || value === null || isUndefined(value);
-};
+import { isEmpty } from '../../../helpers/mixed';
 
 const emptyCellToFalsyValue = (value, falsyValue) => {
-  if (isEmptyCell(value)) {
+  if (isEmpty(value)) {
     return falsyValue;
   }
 
@@ -33,12 +29,12 @@ export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettin
     const isNextValueFromTemplate = unifiedNextValue === uncheckedTemplate || unifiedNextValue === checkedTemplate;
 
     // As an empty cell we recognize cells with undefined, null and '' values.
-    if (sortEmptyCells === false && (isEmptyCell(value) || isEmptyCell(nextValue))) {
-      if (isEmptyCell(value) && isEmptyCell(nextValue) === false) {
+    if (sortEmptyCells === false && (isEmpty(value) || isEmpty(nextValue))) {
+      if (isEmpty(value) && isEmpty(nextValue) === false) {
         return FIRST_AFTER_SECOND;
       }
 
-      if (isEmptyCell(value) === false && isEmptyCell(nextValue)) {
+      if (isEmpty(value) === false && isEmpty(nextValue)) {
         return FIRST_BEFORE_SECOND;
       }
 

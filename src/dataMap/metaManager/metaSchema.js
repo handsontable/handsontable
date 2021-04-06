@@ -1,4 +1,4 @@
-import { isDefined } from '../../helpers/mixed';
+import { isEmpty } from '../../helpers/mixed';
 import { isObjectEqual } from '../../helpers/object';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -1112,7 +1112,7 @@ export default () => {
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
-        if (value !== '' && value !== null && isDefined(value)) {
+        if (isEmpty(value) === false) {
           if (typeof value === 'object') {
             meta = this.getCellMeta(row, col);
 
@@ -1149,7 +1149,7 @@ export default () => {
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
-        if (value !== '' && value !== null && isDefined(value)) {
+        if (isEmpty(value) === false) {
           return false;
         }
       }
