@@ -1,0 +1,7 @@
+{
+  "title": "Fixed postbuild and examples:install scripts on Windows",
+  "type": "fixed",
+  "issue": 7680,
+  "breaking": false,
+  "framework": "none"
+}
