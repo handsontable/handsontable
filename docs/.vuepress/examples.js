@@ -3,7 +3,7 @@
  *
  * @type {RegExp}
  */
-const exampleRegex = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*([\S|\s]*)$/;
+const exampleRegex = /^(example)\s*(#\S*|)\s*(\.\S*|)\s*(:\S*|)\s*([\S|\s]*)$/;
 
 const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 
@@ -51,20 +51,31 @@ const jsfiddle = (id, code, version) => {
 module.exports = {
   type: 'example',
   render(tokens, index, opts, env) {
+    const {transformSync} = require('@babel/core');
+
     const token = tokens[index];
     const tokenNext = tokens[index + 1];
     const m = token.info.trim().match(exampleRegex);
     const version = env.relativePath.split('/')[0];
 
     if (token.nesting === 1 && m) {
-      let [, , id, klass] = m;
+      let [, , id, klass, preset] = m;
       id = id ? id.substring(1) : '';
       klass = klass ? klass.substring(1) : '';
+      preset = preset ? preset.substring(1) : 'hot';
       // opening tag
+      const {code} = transformSync(tokenNext.content, {
+        "presets": ["@babel/preset-react"],
+        "plugins": ["@babel/plugin-transform-modules-commonjs"],
+        "targets": {
+          "ie":9
+        }
+      });
+      
       return `
     <div data-jsfiddle="${id}">
     <div id="${id}" class="hot ${klass}"></div>
-    </div><script data-jsfiddle="${id}">useHandsontable('${version}', function(){${tokenNext.content}});</script>
+    </div><script data-jsfiddle="${id}">useHandsontable('${version}', function(){${code}}, '${preset}');</script>
     <div class="codeLayout">${jsfiddle(id, tokenNext.content, version)}
 `;
     } else {

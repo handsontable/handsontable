@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-globals, no-undef, no-console, no-unused-vars */
 const handsontableInstancesRegister = (() => {
+  // todo reformat all this file
   const register = new Set();
 
   register.listen = () => {
@@ -41,52 +42,91 @@ const useHandsontable = ((instanceRegister) => {
     ];
   };
 
-  return (version, callback = () => {}, id = 'handsontable-loader') => {
-    let hotScript = document.getElementById(id);
-
-    // clear outdated version
-    if (hotScript && hotScript.getAttribute(ATTR_VERSION) !== version) {
-      delete window.Handsontable;
-      hotScript.remove();
-      hotScript = null;
+  return (version, callback = () => {}, preset="hot") => {
+    const buildDependencyGetter = (version) =>{
+      const [hotJsUrl, hotCssUrl] = getHotUrls(version);
+      //todo use version
+      return  (dependency) => {
+        const dependencies = {
+          hot: [hotJsUrl, ['Handsontable'], hotCssUrl],
+          'react' : ['https://unpkg.com/react@17/umd/react.development.js',['React']],
+          'react-dom' : ['https://unpkg.com/react-dom@17/umd/react-dom.development.js',['ReactDOM']],
+          'hot-react' : ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js',[/*Handsontable.react - clear with Handsontable dependency*/]],
+          'fixer' : ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js',['require']]
+        };
+        
+        // [jsUrl, dependentVars[]?, cssUrl?]
+        return dependencies[dependency]; 
+      }
     }
+    const getDependency = buildDependencyGetter(version);
+    
+    const reloadDependency = (dep) => new Promise((resolve)=>{
+      const id = 'dependency-reloader_'+dep;
+      const [jsUrl, dependentVars=[], cssUrl=undefined] = getDependency(dep);
+      
+      let script = document.getElementById('script-'+id);
 
-    // clear outdated css
-    const cssScript = document.getElementById(`css-${id}`);
+      // clear outdated version
+      if (script && script.getAttribute(ATTR_VERSION) !== version) {
+        dependentVars.forEach(x=>delete window[x]);
+        script.remove();
+        script = null;
+      }
 
-    if (cssScript && cssScript.getAttribute(ATTR_VERSION) !== version) {
-      cssScript.remove();
+      // clear outdated css
+      const css = document.getElementById(`css-${id}`);
+
+      if (css && css.getAttribute(ATTR_VERSION) !== version) {
+        css.remove();
+      }
+
+      // import current version
+      if (!script) {
+        script = document.createElement('script');
+        script.src = jsUrl;
+        script.id = "script-"+id;
+        script.setAttribute(ATTR_VERSION, version);
+        script.addEventListener('load', () => { script.loaded = true; });
+
+        document.head.append(script);
+        
+        if(cssUrl) {
+          document.head.insertAdjacentHTML(
+            'beforeend',
+            `<link type="text/css" data-hot-version="${version}" rel="stylesheet" id="css-${id}" href="${cssUrl}"/>`
+          );
+        }
+      }
+
+      // execute callback
+      if (script.loaded) {
+        setTimeout(() => {
+          instanceRegister.listen();
+          resolve();
+        });
+      } else {
+        script.addEventListener('load', () => {
+          instanceRegister.listen();
+          resolve();
+        });
+      }
+
+    });
+    
+    const reloadPreset = async (preset) => {
+      const presetMap = {
+        hot:['hot'],
+        react:['react', 'react-dom', 'hot', 'hot-react', 'fixer'],
+        //todo others
+      }
+      
+      for( const dep of presetMap[preset] ){ // order of loading is really important. that why I use for with await - really slow solution
+        await reloadDependency(dep);
+      }
     }
-
-    // import current version
-    if (!hotScript) {
-      const [scriptUrl, styleUrl] = getHotUrls(version);
-
-      hotScript = document.createElement('script');
-      hotScript.src = scriptUrl;
-      hotScript.id = id;
-      hotScript.setAttribute(ATTR_VERSION, version);
-      hotScript.addEventListener('load', () => { hotScript.loaded = true; });
-
-      document.head.append(hotScript);
-      document.head.insertAdjacentHTML(
-        'beforeend',
-        `<link type="text/css" data-hot-version="${version}" rel="stylesheet" id="css-${id}" href="${styleUrl}"/>`
-      );
-    }
-
-    // execute callback
-    if (hotScript.loaded) {
-      setTimeout(() => {
-        instanceRegister.listen();
-        callback();
-      });
-    } else {
-      hotScript.addEventListener('load', () => {
-        instanceRegister.listen();
-        callback();
-      });
-    }
+    
+    reloadPreset(preset).then(callback);
   };
 
 })(handsontableInstancesRegister);

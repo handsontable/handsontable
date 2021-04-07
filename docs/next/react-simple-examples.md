@@ -15,11 +15,16 @@ canonicalUrl: /react-simple-examples
 <div id="example1" class="hot"></div>
 ```
 
+:react
+
+::: example #example1 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
+
+console.log(Handsontable);
 
 class App extends React.Component {
   constructor(props) {
@@ -40,6 +45,7 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
+:::
 
 ## An implementation of the component using a single-property (`settings`) configuration.
 
@@ -47,7 +53,7 @@ ReactDOM.render(<App />, document.getElementById('example1'));
 <!-- a root div where the component is rendered -->
 <div id="example2" class="hot"></div>
 ```
-
+ 
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
