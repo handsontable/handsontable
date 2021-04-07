@@ -1,11 +1,15 @@
 // big work in progress.
 // TODO remove hot-formula-parser
 
-import { HyperFormula } from 'hyperformula';
 import { BasePlugin } from '../base';
+import staticRegister from '../../utils/staticRegister';
+import hyperformulaDefaultSettings from './hfDefaultSettings';
+import { registerHF } from './hyperformulaSetup';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
+
+registerHF();
 
 /**
  * The formulas plugin.
@@ -40,19 +44,45 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // TODO use this
-    // const settings = this.hot.getSettings()[PLUGIN_KEY];
+    /**
+     * Plugin settings.
+     */
+    this.settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    /**
+     * Static register used to set up one global HyperFormula instance.
+     *
+     * @type {object}
+     */
+    this.staticRegister = staticRegister('formulas');
 
     /**
      * The HyperFormula instance that will be used for this instance of Handsontable.
      *
      * @type {HyperFormula}
      */
-    this.hyperformula = HyperFormula.buildEmpty({
-      licenseKey: 'non-commercial-and-evaluation' // TODO
-    });
+    this.hyperformula = this.staticRegister.getItem('hyperformula');
 
+    /**
+     * HyperFormula's sheet name.
+     *
+     * @type {string}
+     */
     this.sheetName = this.hyperformula.addSheet();
+
+    /**
+     * HyperFormula's sheet id.
+     *
+     * @type {number}
+     */
+    this.sheetId = this.hyperformula.getSheetId(this.sheetName);
+
+    /**
+     * Flag used to retrieve the data straight from Handsontable.
+     *
+     * @type {boolean}
+     */
+    this.skipHF = false;
 
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
@@ -71,7 +101,12 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    // HyperFormula events:
+    this.hyperformula.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
+
     // TODO list out hooks from my local plugin/old plugin/todo
+
+    this.applyHFSettings();
 
     super.enablePlugin();
   }
@@ -87,22 +122,63 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Triggered on `updateSettings`.
+   */
+  updatePlugin() {
+    this.applyHFSettings();
+
+    super.updatePlugin();
+  }
+
+  /**
    * Destroys the plugin instance.
    */
   destroy() {
     super.destroy();
   }
 
-  onAfterLoadData(data) {
-    if (!this.isEnabled) {
+  /**
+   * Applies the settings passed to the plugin to the HF instance.
+   */
+  applyHFSettings() {
+    const hotSettings = this.hot.getSettings();
+    const hfConfig = this.settings.hyperFormulaConfig;
+
+    if (hfConfig) {
+      this.hyperformula.updateConfig({
+        ...hyperformulaDefaultSettings,
+        ...hfConfig,
+        maxColumns: hotSettings.maxColumns,
+        maxRows: hotSettings.maxRows,
+        licenseKey: hotSettings.licenseKey
+      });
+    }
+  }
+
+  /**
+   * `afterLoadData` hook callback.
+   */
+  onAfterLoadData() {
+    if (!this.isEnabled()) {
       return;
     }
 
-    this.hyperformula.setSheetContent(this.sheetName, data);
+    const hotSettings = this.hot.getSettings();
+    const pluginSettings = hotSettings.formulas;
+    const sheetName = pluginSettings.sheetName;
+
+    if (sheetName) {
+      this.sheetName = sheetName;
+      this.hyperformula.renameSheet(this.sheetId, sheetName);
+    }
+
+    this.skipHF = true;
+    this.hyperformula.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+    this.skipHF = false;
   }
 
   onModifyData(row, column, valueHolder, ioMode) {
-    if (!this.enabled) {
+    if (!this.enabled || this.skipHF) {
       // TODO check if this line is actually ever reached
       return;
     }
@@ -129,7 +205,7 @@ export class Formulas extends BasePlugin {
   }
 
   onModifySourceData(row, col, valueHolder, ioMode) {
-    if (!this.isEnabled()) {
+    if (!this.isEnabled() || this.skipHF) {
       return;
     }
 
@@ -176,5 +252,24 @@ export class Formulas extends BasePlugin {
 
   onAfterRemoveCol(col, amount) {
     this.hyperformula.removeColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
+  }
+
+  /**
+   * HyperFormula's `valuesUpdated` event callback.
+   *
+   * @param {Array} changes Array of objects containing information about HF changes.
+   */
+  onHFvaluesUpdated(changes) {
+    let isAffectedByChange = false;
+
+    changes.some((change) => {
+      isAffectedByChange = change.address.sheet === this.sheetId;
+
+      return isAffectedByChange;
+    });
+
+    if (isAffectedByChange) {
+      this.hot.render();
+    }
   }
 }
