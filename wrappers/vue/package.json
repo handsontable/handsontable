@@ -1,10 +1,10 @@
 {
   "name": "@handsontable/vue",
-  "version": "5.1.0",
+  "version": "6.0.0",
   "description": "Best Data Grid for Vue with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "main": "./commonjs/vue-handsontable.js",
   "module": "./es/vue-handsontable.js",
   "jsdelivr": "./dist/vue-handsontable.min.js",
@@ -93,7 +93,7 @@
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch",
     "watch:umd": "cross-env NODE_ENV=umd rollup -c --watch",
     "clean": "del-cli ./es/ && del-cli ./commonjs/ && del-cli ./dist/ && del-cli ./*.d.ts",
-    "publish": "npm publish",
+    "publish-package": "npm publish",
     "test": "jest"
   },
   "jest": {

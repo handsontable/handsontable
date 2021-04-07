@@ -1,4 +1,3 @@
-// big work in progress.
 // TODO remove hot-formula-parser
 
 import { BasePlugin } from '../base';
@@ -104,8 +103,6 @@ export class Formulas extends BasePlugin {
     // HyperFormula events:
     this.hyperformula.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
 
-    // TODO list out hooks from my local plugin/old plugin/todo
-
     this.applyHFSettings();
 
     super.enablePlugin();
@@ -159,7 +156,7 @@ export class Formulas extends BasePlugin {
    * `afterLoadData` hook callback.
    */
   onAfterLoadData() {
-    if (!this.isEnabled()) {
+    if (!this.enabled) {
       return;
     }
 
@@ -205,7 +202,17 @@ export class Formulas extends BasePlugin {
   }
 
   onModifySourceData(row, col, valueHolder, ioMode) {
-    if (!this.isEnabled() || this.skipHF) {
+    if (!this.enabled || this.skipHF) {
+      return;
+    }
+
+    const dimensions = this.hyperformula.getSheetDimensions(this.hyperformula.getSheetId(this.sheetName));
+
+    // Don't actually change the source data if HyperFormula is not
+    // initialized yet. This is done to allow the `afterLoadData` hook to
+    // load the existing source data with `Handsontable#getSourceDataArray`
+    // properly.
+    if (dimensions.width === 0 && dimensions.height === 0) {
       return;
     }
 
