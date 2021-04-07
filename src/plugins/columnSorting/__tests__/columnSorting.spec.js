@@ -2,7 +2,7 @@ describe('ColumnSorting', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id='${id}' style='overflow: auto; width: 300px; height: 200px;'></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
     this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');
@@ -1169,7 +1169,7 @@ describe('ColumnSorting', () => {
           }
         ],
         columnSorting: true,
-        colHeaders: ['Name', 'is working?']
+        colHeaders: ['Name', 'works?']
       });
 
       getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
@@ -1235,6 +1235,94 @@ describe('ColumnSorting', () => {
         ['a', 6],
         [1, 2],
         [0, 5],
+      ]);
+    });
+
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `false` (by default)', () => {
+      handsontable({
+        data: [
+          [false, 0],
+          ['', 1], // empty cell
+          [true, 2],
+          ['a', 3],
+          [null, 4], // empty cell
+          [undefined, 5], // empty cell
+          [1, 6],
+        ],
+        columnSorting: true,
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ]
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [1, 6],
+        ['a', 3],
+        [false, 0],
+        [true, 2],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, 2],
+        [false, 0],
+        ['a', 3],
+        [1, 6],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+      ]);
+    });
+
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `true`', () => {
+      handsontable({
+        data: [
+          [false, 0],
+          ['', 1], // empty cell
+          [true, 2],
+          ['a', 3],
+          [null, 4], // empty cell
+          [undefined, 5], // empty cell
+          [1, 6],
+        ],
+        columnSorting: {
+          sortEmptyCells: true
+        },
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ]
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [1, 6],
+        ['a', 3],
+        [false, 0],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+        [true, 2],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, 2],
+        [false, 0],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+        ['a', 3],
+        [1, 6],
       ]);
     });
   });

@@ -1151,7 +1151,7 @@ describe('MultiColumnSorting', () => {
           }
         ],
         multiColumnSorting: true,
-        colHeaders: ['Name', 'is working?']
+        colHeaders: ['Name', 'works?']
       });
 
       getPlugin('multiColumnSorting').sort({ column: 1, sortOrder: 'asc' });
@@ -1217,6 +1217,94 @@ describe('MultiColumnSorting', () => {
         ['a', 6],
         [1, 2],
         [0, 5],
+      ]);
+    });
+
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `false` (by default)', () => {
+      handsontable({
+        data: [
+          [false, 0],
+          ['', 1], // empty cell
+          [true, 2],
+          ['a', 3],
+          [null, 4], // empty cell
+          [undefined, 5], // empty cell
+          [1, 6],
+        ],
+        multiColumnSorting: true,
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ]
+      });
+
+      getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [1, 6],
+        ['a', 3],
+        [false, 0],
+        [true, 2],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+      ]);
+
+      getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, 2],
+        [false, 0],
+        ['a', 3],
+        [1, 6],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+      ]);
+    });
+
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `true`', () => {
+      handsontable({
+        data: [
+          [false, 0],
+          ['', 1], // empty cell
+          [true, 2],
+          ['a', 3],
+          [null, 4], // empty cell
+          [undefined, 5], // empty cell
+          [1, 6],
+        ],
+        multiColumnSorting: {
+          sortEmptyCells: true
+        },
+        columns: [
+          { type: 'checkbox' },
+          {}
+        ]
+      });
+
+      getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [1, 6],
+        ['a', 3],
+        [false, 0],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+        [true, 2],
+      ]);
+
+      getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, 2],
+        [false, 0],
+        ['', 1], // empty cell
+        [null, 4], // empty cell
+        [undefined, 5], // empty cell
+        ['a', 3],
+        [1, 6],
       ]);
     });
   });
