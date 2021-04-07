@@ -1276,13 +1276,19 @@ describe('MultiColumnSorting', () => {
     it('should sort elements in a proper way when `sortEmptyCells` is set to `false` (by default)', () => {
       handsontable({
         data: [
-          [false, 0],
+          [null, 0], // empty cell
           ['', 1], // empty cell
-          [true, 2],
-          ['a', 3],
+          [false, 2],
+          [undefined, 3], // empty cell
           [null, 4], // empty cell
-          [undefined, 5], // empty cell
-          [1, 6],
+          [true, 5],
+          ['a', 6],
+          ['', 7], // empty cell
+          [null, 8], // empty cell
+          [1, 9],
+          [undefined, 10], // empty cell
+          ['', 11], // empty cell
+          [null, 12], // empty cell
         ],
         multiColumnSorting: true,
         columns: [
@@ -1294,38 +1300,58 @@ describe('MultiColumnSorting', () => {
       getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       expect(getData()).toEqual([
-        [1, 6],
-        ['a', 3],
-        [false, 0],
-        [true, 2],
+        [1, 9],
+        ['a', 6],
+        [false, 2],
+        [true, 5],
+        // Not sorting in place.
+        [null, 0], // empty cell
         ['', 1], // empty cell
+        [undefined, 3], // empty cell
         [null, 4], // empty cell
-        [undefined, 5], // empty cell
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
       ]);
 
       getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'desc' });
 
       expect(getData()).toEqual([
-        [true, 2],
-        [false, 0],
-        ['a', 3],
-        [1, 6],
+        [true, 5],
+        [false, 2],
+        ['a', 6],
+        [1, 9],
+        // Not sorting in place.
+        [null, 0], // empty cell
         ['', 1], // empty cell
+        [undefined, 3], // empty cell
         [null, 4], // empty cell
-        [undefined, 5], // empty cell
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
       ]);
     });
 
     it('should sort elements in a proper way when `sortEmptyCells` is set to `true`', () => {
       handsontable({
         data: [
-          [false, 0],
+          [null, 0], // empty cell
           ['', 1], // empty cell
-          [true, 2],
-          ['a', 3],
+          [false, 2],
+          [undefined, 3], // empty cell
           [null, 4], // empty cell
-          [undefined, 5], // empty cell
-          [1, 6],
+          [true, 5],
+          ['a', 6],
+          ['', 7], // empty cell
+          [null, 8], // empty cell
+          [1, 9],
+          [undefined, 10], // empty cell
+          ['', 11], // empty cell
+          [null, 12], // empty cell
         ],
         multiColumnSorting: {
           sortEmptyCells: true
@@ -1339,25 +1365,37 @@ describe('MultiColumnSorting', () => {
       getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       expect(getData()).toEqual([
-        [1, 6],
-        ['a', 3],
-        [false, 0],
+        [1, 9],
+        ['a', 6],
+        [null, 0], // empty cell
         ['', 1], // empty cell
+        [false, 2],
+        [undefined, 3], // empty cell
         [null, 4], // empty cell
-        [undefined, 5], // empty cell
-        [true, 2],
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
+        [true, 5],
       ]);
 
       getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'desc' });
 
       expect(getData()).toEqual([
-        [true, 2],
-        [false, 0],
+        [true, 5],
+        [null, 0], // empty cell
         ['', 1], // empty cell
+        [false, 2],
+        [undefined, 3], // empty cell
         [null, 4], // empty cell
-        [undefined, 5], // empty cell
-        ['a', 3],
-        [1, 6],
+        ['', 7], // empty cell
+        [null, 8], // empty cell
+        [undefined, 10], // empty cell
+        ['', 11], // empty cell
+        [null, 12], // empty cell
+        ['a', 6],
+        [1, 9],
       ]);
     });
   });
