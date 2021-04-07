@@ -1148,7 +1148,7 @@ describe('ColumnSorting', () => {
       ]);
     });
 
-    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates)', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #1', () => {
       handsontable({
         data: [
           { car: 'Mercedes A 160', damaged: true },
@@ -1195,16 +1195,65 @@ describe('ColumnSorting', () => {
       ]);
     });
 
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #2', () => {
+      handsontable({
+        data: [
+          { car: 'Mercedes A 160', damaged: 1 },
+          { car: 'Citroen C4 Coupe', damaged: 0 },
+          { car: 'Audi A4 Avant', damaged: 0 },
+          { car: 'Opel Astra', damaged: 1 },
+          { car: 'BMW 320i Coupe', damaged: 0 }
+        ],
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'damaged',
+            type: 'checkbox',
+            checkedTemplate: 0,
+            uncheckedTemplate: 1,
+          }
+        ],
+        columnSorting: true,
+        colHeaders: ['Name', 'works?']
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 1],
+        ['Opel Astra', 1],
+        ['Citroen C4 Coupe', 0],
+        ['Audi A4 Avant', 0],
+        ['BMW 320i Coupe', 0],
+      ]);
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      // Sorting by visual state of checkbox.
+      expect(getData()).toEqual([
+        ['Citroen C4 Coupe', 0],
+        ['Audi A4 Avant', 0],
+        ['BMW 320i Coupe', 0],
+        ['Mercedes A 160', 1],
+        ['Opel Astra', 1],
+      ]);
+    });
+
     it('should sort #bad_value# elements in a proper way', () => {
       handsontable({
         data: [
           ['b', 0],
           ['a', 1],
           [1, 2],
-          ['a', 3],
-          ['aaaa', 4],
-          [0, 5],
-          ['a', 6],
+          ['A', 3], // to lower case while sorting by default
+          ['a', 4],
+          ['aaaa', 5],
+          [0, 6],
+          ['a', 7],
+          [-2, 8],
         ],
         columns: [
           { type: 'checkbox' },
@@ -1216,12 +1265,14 @@ describe('ColumnSorting', () => {
       getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       expect(getData()).toEqual([
-        [0, 5],
+        [-2, 8],
+        [0, 6],
         [1, 2],
         ['a', 1],
-        ['a', 3],
-        ['a', 6],
-        ['aaaa', 4],
+        ['A', 3],
+        ['a', 4],
+        ['a', 7],
+        ['aaaa', 5],
         ['b', 0],
       ]);
 
@@ -1229,12 +1280,14 @@ describe('ColumnSorting', () => {
 
       expect(getData()).toEqual([
         ['b', 0],
-        ['aaaa', 4],
+        ['aaaa', 5],
         ['a', 1],
-        ['a', 3],
-        ['a', 6],
+        ['A', 3],
+        ['a', 4],
+        ['a', 7],
         [1, 2],
-        [0, 5],
+        [0, 6],
+        [-2, 8],
       ]);
     });
 

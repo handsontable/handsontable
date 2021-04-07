@@ -2,14 +2,6 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortSer
 import { compareFunctionFactory as defaultCompareFunctionFactory } from '../sortFunction/default';
 import { isEmpty } from '../../../helpers/mixed';
 
-const emptyCellToFalsyValue = (value, falsyValue) => {
-  if (isEmpty(value)) {
-    return falsyValue;
-  }
-
-  return value;
-};
-
 /**
  * Checkbox sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
@@ -24,40 +16,32 @@ export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettin
   const { sortEmptyCells } = columnPluginSettings;
 
   return function(value, nextValue) {
-    const unifiedValue = emptyCellToFalsyValue(value, uncheckedTemplate);
-    const unifiedNextValue = emptyCellToFalsyValue(nextValue, uncheckedTemplate);
+    const isEmptyValue = isEmpty(value);
+    const isEmptyNextValue = isEmpty(nextValue);
+    const unifiedValue = isEmptyValue ? uncheckedTemplate : value;
+    const unifiedNextValue = isEmptyNextValue ? uncheckedTemplate : nextValue;
     const isValueFromTemplate = unifiedValue === uncheckedTemplate || unifiedValue === checkedTemplate;
     const isNextValueFromTemplate = unifiedNextValue === uncheckedTemplate || unifiedNextValue === checkedTemplate;
 
     // As an empty cell we recognize cells with undefined, null and '' values.
-    if (sortEmptyCells === false && (isEmpty(value) || isEmpty(nextValue))) {
-      if (isEmpty(value) && isEmpty(nextValue) === false) {
+    if (sortEmptyCells === false) {
+      if (isEmptyValue && isEmptyNextValue === false) {
         return FIRST_AFTER_SECOND;
       }
 
-      if (isEmpty(value) === false && isEmpty(nextValue)) {
+      if (isEmptyValue === false && isEmptyNextValue) {
         return FIRST_BEFORE_SECOND;
       }
-
-      return DO_NOT_SWAP;
     }
 
     // 1st value === #BAD_VALUE#
     if (isValueFromTemplate === false && isNextValueFromTemplate) {
-      if (sortOrder === 'asc') {
-        return FIRST_BEFORE_SECOND;
-      }
-
-      return FIRST_AFTER_SECOND;
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
     }
 
     // 2nd value === #BAD_VALUE#
     if (isValueFromTemplate && isNextValueFromTemplate === false) {
-      if (sortOrder === 'asc') {
-        return FIRST_AFTER_SECOND;
-      }
-
-      return FIRST_BEFORE_SECOND;
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
     }
 
     // 1st value === #BAD_VALUE# && 2nd value === #BAD_VALUE#
@@ -67,19 +51,11 @@ export function compareFunctionFactory(sortOrder, columnMeta, columnPluginSettin
     }
 
     if (unifiedValue === uncheckedTemplate && unifiedNextValue === checkedTemplate) {
-      if (sortOrder === 'asc') {
-        return FIRST_BEFORE_SECOND;
-      }
-
-      return FIRST_AFTER_SECOND;
+      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
     }
 
     if (unifiedValue === checkedTemplate && unifiedNextValue === uncheckedTemplate) {
-      if (sortOrder === 'asc') {
-        return FIRST_AFTER_SECOND;
-      }
-
-      return FIRST_BEFORE_SECOND;
+      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
     }
 
     return DO_NOT_SWAP;
