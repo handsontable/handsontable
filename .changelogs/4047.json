@@ -1,5 +1,5 @@
 {
-  "title": "Sorting checkboxes will work + fixed not proper way of displaying some empty cells",
+  "title": "Sorting of checkboxes will work + fixed not proper way of displaying some empty cells",
   "type": "fixed",
   "issue": 4047,
   "breaking": false,
