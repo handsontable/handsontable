@@ -811,4 +811,68 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 1)).toBeAroundValue(225, 1);
     });
   });
+
+  describe('samplingRatio', () => {
+    it('should samplingRatio overwrites default samples count', () => {
+      handsontable({
+        data: [
+          ['iiiii'],
+          ['aaaaa'],
+          ['zzzzz'],
+          ['WWWWW'],
+        ],
+        autoColumnSize: {
+          samplingRatio: 4,
+        },
+      });
+
+      expect(colWidth(spec().$container, 0)).toBeGreaterThan(60);
+    });
+  });
+
+  describe('allowSampleDuplicates', () => {
+    it('should add duplicated values', () => {
+      handsontable({
+        data: [
+          ['1'],
+          ['1'],
+        ],
+        autoColumnSize: {
+          allowSampleDuplicates: true,
+        },
+        renderer(hotInstance, td, row, column, prop, value) {
+          const cellValue = row === 1 ? `${value}_WWWWW` : `${value}`;
+
+          td.innerHTML = cellValue;
+        }
+      });
+
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(95, 10);
+    });
+  });
+
+  describe('modifyAutoColumnSizeSeed', () => {
+    it('should overwrite native seed generation', () => {
+      handsontable({
+        columns: [
+          { data: 'lang' },
+        ],
+        data: [
+          { lang: { code: 'en-bz', name: 'English (Belize)' } },
+          { lang: { code: 'en-ie', name: 'English (Ireland)' } },
+          { lang: { code: 'en-jm', name: 'English (Jamaica)' } },
+          { lang: { code: 'en-gb', name: 'English (United Kingdom)' } },
+        ],
+        autoColumnSize: true,
+        modifyAutoColumnSizeSeed(seed, cellMeta, cellValue) {
+          return `${cellValue.code}`;
+        },
+        renderer(hotInstance, td, row, column, prop, value) {
+          td.innerHTML = value.name;
+        }
+      });
+
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(180, 5);
+    });
+  });
 });
