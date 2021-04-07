@@ -8,6 +8,9 @@
       <NavVersionedLink :item="guideLink"/>
     </div>
     <div class="nav-item">
+      <NavVersionedLink :item="examplesLink"/>
+    </div>
+    <div class="nav-item">
       <NavVersionedLink :item="apiLink"/>
     </div>
     <div
@@ -46,6 +49,12 @@ export default {
       return {
         link: '/',
         text: 'Guides'
+      }
+    },
+    examplesLink(){
+      return {
+        link: '/examples/',
+        text: 'Examples'
       }
     },
     apiLink(){
