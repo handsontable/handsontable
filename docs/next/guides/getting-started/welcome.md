@@ -12,7 +12,7 @@ canonicalUrl: /
 
 **Handsontable** is a **JavaScript data grid** with spreadsheet features and look&feel. It supports the most popular frameworks such as **React, Angular, and Vue**. It can be easily modified or extended with custom plugins. It binds to data using the JSON format, and handles large amounts of records. It supports operations like filtering, sorting, and CRUD operations.
 
-## Get started with basic examples
+## Get started with sample apps
 
 <div class="row-items-container">
     <a href="hello-world-app" class="row-item">
@@ -36,23 +36,23 @@ canonicalUrl: /
    </a>
 </div>
 
-## API Documentation
+## What's new in Handsontable
 
 <div class="row-items-container">
-    <a href="hello-world-app" class="row-item">
-     <h3>Introduction</h3>
+    <a href="release-notes" class="row-item">
+     <h3>Release notes</h3>
     </a>
 
-   <a href="react-simple-examples" class="row-item">
-    <h3>Options</h3>
+   <a href="roadmap" class="row-item">
+    <h3>Roadmap</h3>
    </a>
    
-   <a href="angular-simple-examples" class="row-item">
-    <h3>Methods</h3>
+   <a href="https://handsontable.com/blog" class="row-item">
+    <h3>Blog</h3>
    </a>
    
-   <a href="vue-simple-examples" class="row-item">
-    <h3>Hooks</h3>
+   <a href="https://twitter.com/handsontable" class="row-item">
+    <h3>Twitter</h3>
    </a>
 </div>
 
