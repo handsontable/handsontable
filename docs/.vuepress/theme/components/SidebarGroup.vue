@@ -13,37 +13,37 @@
       v-if="item.path"
       class="sidebar-heading clickable"
       :class="{
-        open,
+        open:isOpen,
         'active': isActive($route, item.path)
       }"
       :to="item.path"
-      @click.native="open=!open"
+      @click.native="toggleOpen()"
     >
       <span>{{ item.title }}</span>
       <span
         v-if="collapsable"
         class="arrow"
-        :class="open ? 'down' : 'right'"
+        :class="isOpen ? 'down' : 'right'"
       />
     </RouterLink>
 
     <p
       v-else
       class="sidebar-heading"
-      :class="{ open }"
-      @click="open=!open"
+      :class="{ open:isOpen }"
+      @click="toggleOpen()"
     >
       <span>{{ item.title }}</span>
       <span
         v-if="collapsable"
         class="arrow"
-        :class="open ? 'down' : 'right'"
+        :class="isOpen ? 'down' : 'right'"
       />
     </p>
 
     <DropdownTransition>
       <SidebarLinks
-        v-if="open || !collapsable"
+        v-if="isOpen || !collapsable"
         class="sidebar-group-items"
         :items="item.children"
         :sidebar-depth="item.sidebarDepth"
@@ -74,10 +74,19 @@ export default {
 
   // ref: https://vuejs.org/v2/guide/components-edge-cases.html#Circular-References-Between-Components
   beforeCreate () {
-    this.$options.components.SidebarLinks = require('@theme/components/SidebarLinks.vue').default
+    this.$options.components.SidebarLinks = require('@theme/components/SidebarLinks.vue').default;
   },
-
-  methods: { isActive }
+  data(){
+    return {
+      isOpen: this.open
+    }
+  },
+  methods: { 
+    isActive, 
+    toggleOpen(){
+      this.isOpen = !this.isOpen;  
+    }
+  }
 }
 </script>
 
