@@ -63,7 +63,8 @@ module.exports = {
       id = id ? id.substring(1) : '';
       klass = klass ? klass.substring(1) : '';
       preset = preset ? preset.substring(1) : 'hot';
-      // opening tag
+      
+      // todo As this tests code snippets during docs:build, it will be really helpful, however any additional information needed.
       const {code} = transformSync(tokenNext.content, {
         "presets": ["@babel/preset-react"],
         "plugins": ["@babel/plugin-transform-modules-commonjs"],
@@ -71,7 +72,8 @@ module.exports = {
           "ie":9
         }
       });
-      
+
+      // opening tag
       return `
     <div data-jsfiddle="${id}">
     <div id="${id}" class="hot ${klass}"></div>
