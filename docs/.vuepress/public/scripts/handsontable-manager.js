@@ -48,11 +48,11 @@ const useHandsontable = ((instanceRegister) => {
       //todo use version
       return  (dependency) => {
         const dependencies = {
-          hot: [hotJsUrl, ['Handsontable'], hotCssUrl],
+          'hot': [hotJsUrl, ['Handsontable', 'Handsontable.react'], hotCssUrl],
           'react' : ['https://unpkg.com/react@17/umd/react.development.js',['React']],
           'react-dom' : ['https://unpkg.com/react-dom@17/umd/react-dom.development.js',['ReactDOM']],
-          'hot-react' : ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js',[/*Handsontable.react - clear with Handsontable dependency*/]],
-          'fixer' : ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js',['require']]
+          'hot-react' : ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js',['Handsontable.react']],
+          'fixer' : ['/docs/scripts/fixer.js',['require', 'exports']]
         };
         
         // [jsUrl, dependentVars[]?, cssUrl?]
@@ -61,7 +61,7 @@ const useHandsontable = ((instanceRegister) => {
     }
     const getDependency = buildDependencyGetter(version);
     
-    const reloadDependency = (dep) => new Promise((resolve)=>{
+    const loadDependency = (dep) => new Promise((resolve)=>{
       const id = 'dependency-reloader_'+dep;
       const [jsUrl, dependentVars=[], cssUrl=undefined] = getDependency(dep);
       
@@ -69,7 +69,7 @@ const useHandsontable = ((instanceRegister) => {
 
       // clear outdated version
       if (script && script.getAttribute(ATTR_VERSION) !== version) {
-        dependentVars.forEach(x=>delete window[x]);
+        dependentVars.forEach(x=>delete x.split('.').reduce((p,c,i) => p[c] || {}, {}));
         script.remove();
         script = null;
       }
@@ -122,7 +122,7 @@ const useHandsontable = ((instanceRegister) => {
       }
       
       for( const dep of presetMap[preset] ){ // order of loading is really important. that why I use for with await - really slow solution
-        await reloadDependency(dep);
+        await loadDependency(dep);
       }
     }
     
