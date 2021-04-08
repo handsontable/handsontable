@@ -27,8 +27,13 @@ export default {
 
 <style lang="stylus">
 .sidebar
+  width 18rem;
   border-color: #e9eef2;
   background-color: #fafbff;
+  
+  @media (max-width: $MQMobile) {
+    width: 18rem;
+  }
   ul
     padding 0
     margin 0
@@ -41,6 +46,9 @@ export default {
     padding 0.5rem 0 0.75rem 0
     a
       font-weight 600
+      @media (max-width: $MQMobile) {
+        font-size: 15px;
+      }
     .nav-item, .repo-link
       display block
       line-height 1.25rem
@@ -71,6 +79,7 @@ export default {
   .sidebar-heading
     position relative
     font-size 15px
+    font-weight 600
     
   .sidebar-heading .arrow
     padding 3px
@@ -93,6 +102,8 @@ export default {
 @media (max-width: $MQMobile)
   .sidebar
     .nav-links
+      .mobile-dropdown-title
+        font-size 15px
       display block
       .dropdown-wrapper .nav-dropdown .dropdown-item a.router-link-active::after
         top calc(1rem - 2px)

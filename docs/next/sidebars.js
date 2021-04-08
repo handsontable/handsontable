@@ -3,6 +3,7 @@ const path = require('path');
 
 const gettingStartedItems = [
   'guides/getting-started/welcome',
+  'guides/getting-started/hello-world-app',
   'guides/getting-started/basic-usage',
   'guides/getting-started/binding-to-data',
   'guides/getting-started/setting-options',

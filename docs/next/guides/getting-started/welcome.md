@@ -4,72 +4,64 @@ permalink: /next/
 canonicalUrl: /
 ---
 
-# {{ $frontmatter.title }}
+# {{ $frontmatter.title }} <img class="waving-hand" src="/img/pages/welcome/icon-waving-hand.svg" alt="Hello" />
 
 [[toc]]
 
-Get Started with Handsontable
-
-
-
-React
-Installation
-Basic examples
-
-Angular
-Installation
-Basic examples
-
-Vue
-Installation
-Basic examples
-
-Pure JavaScript
-Installation
-Basic examples
-
-API Reference
-
-
-### React / Angular / Vue / Vanilla JS (columns)
-
-- Hello world apps
-
-
-### Create your first app
-
-- Link do Basic usage (Installation + basic usage)
-
-### Hello world app
-
-- CodeSandBox
-- StackBlitz
-- JSFiddle
-
-### Examples
- 
-### What's new in Handsontable
-
-### Roadmap
-
-
 ## About Handsontable
 
-**Handsontable** is a data grid with spreadsheet features and look&feel. Handsontable is written in JavaScript and works with the most popular frameworks such as Angular, Vue and React. It can be easily modified or extended with custom plugins. It binds to any data source using the JSON format and handles large amounts of records. It supports operations like filtering, sorting and **CRUD** (Create, Read, Update, Delete), and advanced ones - multi-column sorting, creating custom cell types and adding data summaries.
+**Handsontable** is a **JavaScript data grid** with spreadsheet features and look&feel. It supports the most popular frameworks such as **React, Angular, and Vue**. It can be easily modified or extended with custom plugins. It binds to data using the JSON format, and handles large amounts of records. It supports operations like filtering, sorting, and CRUD operations.
 
-Handsontable is loved by users because it gives them the same experience as Google Sheets or Excel. The list below is just to give you a rough idea on what you can do with Handsontable, but it doesn't limit you in any way.
+## Get started with basic examples
 
-* Database editing
-* Configuration controlling
-* Data merging
-* Workforce planning
-* Sales reporting
-* Financial analysis
+<div class="row-items-container">
+    <a href="hello-world-app" class="row-item">
+     <img class="integration-framework-logo" src="/img/pages/welcome/javascript.svg" alt="JavaScript logo" />
+     <h3>JavaScript</h3>
+    </a>
+
+   <a href="react-simple-examples" class="row-item">
+   <img class="integration-framework-logo" src="/img/pages/welcome/react.svg" alt="React logo" />
+    <h3>React</h3>
+   </a>
+   
+   <a href="angular-simple-examples" class="row-item">
+    <img class="integration-framework-logo" src="/img/pages/welcome/angular.svg" alt="Angular logo" />
+    <h3>Angular</h3>
+   </a>
+   
+   <a href="vue-simple-examples" class="row-item">
+    <img class="integration-framework-logo" src="/img/pages/welcome/vue.svg" alt="Vue logo" />
+    <h3>Vue</h3>
+   </a>
+</div>
+
+## API Documentation
+
+<div class="row-items-container">
+    <a href="hello-world-app" class="row-item">
+     <h3>Introduction</h3>
+    </a>
+
+   <a href="react-simple-examples" class="row-item">
+    <h3>Options</h3>
+   </a>
+   
+   <a href="angular-simple-examples" class="row-item">
+    <h3>Methods</h3>
+   </a>
+   
+   <a href="vue-simple-examples" class="row-item">
+    <h3>Hooks</h3>
+   </a>
+</div>
 
 ## Troubleshooting
 
-There are several way to get help if you stumble across any issues.
+If you obtained the commercial license then you have several convenient 
+way to get help.
 
-* Report a bug on [GitHub](https://github.com/handsontable/handsontable/issues)
-* Ask on [Developers Forum](https://forum.handsontable.com)
-* Contact our [Support Team](https://handsontable.com/contact?category=technical_support)
+- [Contact Support Team](https://handsontable.com/contact?category=technical_support)
+- [Ask on Forum](https://forum.handsontable.com)
+- [Report issue on GitHub](https://github.com/handsontable/handsontable/discussions)
+- [Discuss on GitHub Discussions](https://github.com/handsontable/handsontable/discussions)

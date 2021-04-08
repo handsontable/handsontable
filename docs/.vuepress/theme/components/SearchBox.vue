@@ -250,11 +250,10 @@ export default {
   margin-right 2rem
   input
     cursor text
-    width 13rem
+    width 14rem
     height: 2rem
-    color #104bcd
     display inline-block
-    border 1px solid darken($borderColor, 10%)
+    border 1px solid #cfdbe4
     border-radius 2rem
     font-size 0.9rem
     line-height 2rem
@@ -264,6 +263,7 @@ export default {
     background #fff url(search.svg) 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
+      color #104bcd
       cursor auto
       border-color $accentColor
   .suggestions
