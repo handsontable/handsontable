@@ -97,7 +97,7 @@ const matchTest = (query, domain) => {
     return words.some(word => domain.toLowerCase().indexOf(word) > -1)
   }
 }
-const apiRegex = /^(\/\d*\.\d*)?\/api\//
+const apiRegex = /^(\/(next|(\d*\.\d*)))?\/api\//
 /* global SEARCH_MAX_SUGGESTIONS, SEARCH_PATHS, SEARCH_HOTKEYS */
 export default {
   name: 'SearchBox',
@@ -147,7 +147,7 @@ export default {
           res.push(Object.assign({}, p, {
             category: apiRegex.exec(p.path) ? 'API References' : 'Guides'
           }))
-        } else if (p.headers) {
+        } else if (p.headers) { //todo add headers at end of the result list
           for (let j = 0; j < p.headers.length; j++) {
             if (res.length >= max) break
             const h = p.headers[j]
