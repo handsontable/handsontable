@@ -445,9 +445,9 @@ export class TextEditor extends BaseEditor {
   bindEvents() {
     this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
     this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
-    if (isIOS) {
+    if (isIOS()) {
       // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
-      this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.editorFocusOut());
+      this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
     }
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
@@ -462,10 +462,6 @@ export class TextEditor extends BaseEditor {
       this.refreshDimensions();
       this.focus();
     });
-  }
-
-  editorFocusOut() {
-    this.hideEditableElement();
   }
 
   /**
