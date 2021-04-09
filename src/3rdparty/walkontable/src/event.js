@@ -281,7 +281,7 @@ class Event {
 
       priv.dblClickTimeout[1] = setTimeout(() => {
         priv.dblClickOrigin[1] = null;
-      }, 1000);
+      }, 500);
     }
   }
 
