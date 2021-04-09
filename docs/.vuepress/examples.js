@@ -51,7 +51,7 @@ const jsfiddle = (id, code, version) => {
 module.exports = {
   type: 'example',
   render(tokens, index, opts, env) {
-    const {transformSync} = require('@babel/core');
+    const { transformSync } = require('@babel/core');
 
     const token = tokens[index];
     const tokenNext = tokens[index + 1];
@@ -63,15 +63,27 @@ module.exports = {
       id = id ? id.substring(1) : '';
       klass = klass ? klass.substring(1) : '';
       preset = preset ? preset.substring(1) : 'hot';
-      
-      // todo As this tests code snippets during docs:build, it will be really helpful, however any additional information needed.
-      const {code} = transformSync(tokenNext.content, {
-        "presets": ["@babel/preset-react"],
-        "plugins": ["@babel/plugin-transform-modules-commonjs"],
-        "targets": {
-          "ie":9
-        }
-      });
+
+      let code;
+      try {
+        code = transformSync(tokenNext.content, {
+          presets: [
+            "@babel/preset-env",
+            '@babel/preset-react',
+          ],
+          plugins: [
+            '@babel/plugin-transform-modules-commonjs',
+            '@babel/plugin-syntax-class-properties',
+            ['@babel/plugin-proposal-class-properties', {loose: true}]
+          ],
+          targets: {
+            ie: 9
+          }
+        }).code;
+      }catch (error){
+        console.error(`Babel error when building ${env.relativePath}`);
+        throw error;
+      }
 
       // opening tag
       return `

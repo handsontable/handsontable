@@ -15,16 +15,12 @@ canonicalUrl: /react-simple-examples
 <div id="example1" class="hot"></div>
 ```
 
-:react
-
 ::: example #example1 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
 import Handsontable from 'handsontable';
-
-console.log(Handsontable);
 
 class App extends React.Component {
   constructor(props) {
@@ -54,6 +50,7 @@ ReactDOM.render(<App />, document.getElementById('example1'));
 <div id="example2" class="hot"></div>
 ```
  
+::: example #example2 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -79,6 +76,7 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example2'));
 ```
+:::
 
 ## An interactive implementation using external checkboxes which control the table behavior.
 
@@ -98,6 +96,7 @@ ReactDOM.render(<App />, document.getElementById('example2'));
 <div id="example3" class="hot"></div>
 ```
 
+::: example #example3 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -143,3 +142,4 @@ class MyComponent extends React.Component {
 
 ReactDOM.render(<MyComponent />, document.getElementById('example3'));
 ```
+:::
