@@ -9,17 +9,19 @@ type Omit<T, K extends keyof T> = Pick<T, ({ [P in keyof T]: P } & { [P in K]: n
 // type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>; // TS >= 2.8
 
 declare namespace _Handsontable {
-
   class Core {
-    constructor(element: Element, options: Handsontable.GridSettings);
     addHook<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K] | Handsontable.Hooks.Events[K][]): void;
     addHookOnce<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K] | Handsontable.Hooks.Events[K][]): void;
     alter(action: 'insert_row' | 'insert_col' | 'remove_row' | 'remove_col', index?: number | Array<[number, number]>, amount?: number, source?: string, keepEmptyRows?: boolean): void;
+    batch<R>(wrappedOperations: () => R): R;
+    batchExecution<R>(wrappedOperations: () => R, forceFlushChanges: boolean): R;
+    batchRender<R>(wrappedOperations: () => R): R;
     clear(): void;
     clearUndo(): void;
-    columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
     colOffset(): number;
     colToProp(col: number): string | number;
+    columnIndexMapper: Handsontable.RecordTranslation.IndexMapper;
+    constructor(element: Element, options: Handsontable.GridSettings);
     container: HTMLElement;
     countCols(): number;
     countEmptyCols(ending?: boolean): number;
@@ -35,19 +37,18 @@ declare namespace _Handsontable {
     destroy(): void;
     destroyEditor(revertOriginal?: boolean, prepareEditorIfNeeded?: boolean): void;
     emptySelectedCells(): void;
-    batch(wrappedOperations: () => void): void;
     forceFullRender: boolean;
     getActiveEditor<T extends Handsontable._editors.Base>(): T | undefined;
     getCell(row: number, col: number, topmost?: boolean): HTMLTableCellElement | null;
-    getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
     getCellEditor<T extends Handsontable._editors.Base>(cellMeta: Handsontable.CellMeta): T;
+    getCellEditor<T extends Handsontable._editors.Base>(row: number, col: number): T;
     getCellMeta(row: number, col: number): Handsontable.CellProperties;
     getCellMetaAtRow(row: number): Handsontable.CellProperties[];
-    getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
     getCellRenderer(cellMeta: Handsontable.CellMeta): Handsontable.renderers.Base;
+    getCellRenderer(row: number, col: number): Handsontable.renderers.Base;
     getCellsMeta(): Handsontable.CellProperties[];
-    getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
     getCellValidator(cellMeta: Handsontable.CellMeta): Handsontable.validators.Base | RegExp | undefined;
+    getCellValidator(row: number, col: number): Handsontable.validators.Base | RegExp | undefined;
     getColHeader(): (number | string)[];
     getColHeader(col: number): number | string;
     getColWidth(col: number): number;
@@ -87,8 +88,10 @@ declare namespace _Handsontable {
     isDestroyed: boolean
     isEmptyCol(col: number): boolean;
     isEmptyRow(row: number): boolean;
+    isExecutionSuspended(): boolean;
     isListening(): boolean;
     isRedoAvailable(): boolean;
+    isRenderSuspended(): boolean;
     isUndoAvailable(): boolean;
     listen(): void;
     loadData(data: Handsontable.CellValue[][] | Handsontable.RowObject[]): void;
@@ -96,11 +99,13 @@ declare namespace _Handsontable {
     propToCol(prop: string | number): number;
     redo(): void;
     refreshDimensions(): void;
-    removeCellMeta(row: number, col: number, key: string): void;
     removeCellMeta(row: number, col: number, key: keyof Handsontable.CellMeta): void;
+    removeCellMeta(row: number, col: number, key: string): void;
     removeHook<K extends keyof Handsontable.Hooks.Events>(key: K, callback: Handsontable.Hooks.Events[K]): void;
     render(): void;
     renderCall: boolean;
+    resumeExecution(): void;
+    resumeRender(): void;
     rootDocument: Document;
     rootElement: HTMLElement;
     rootWindow: Window;
@@ -119,21 +124,23 @@ declare namespace _Handsontable {
     setCellMeta(row: number, col: number, key: string, val: any): void;
     setCellMeta<K extends keyof Handsontable.CellMeta>(row: number, col: number, key: K, val: Handsontable.CellMeta[K]): void;
     setCellMetaObject<T extends Handsontable.CellMeta>(row: number, col: number, prop: T): void;
-    setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: string): void;
     setDataAtCell(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
-    setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
+    setDataAtCell(row: number, col: string | number, value: Handsontable.CellValue, source?: string): void;
     setDataAtRowProp(changes: Array<[number, string | number, Handsontable.CellValue]>, source?: string): void;
-    setSourceDataAtCell(row: number, column: number | string, value: Handsontable.CellValue, source?: string): void;
+    setDataAtRowProp(row: number, prop: string, value: Handsontable.CellValue, source?: string): void;
     setSourceDataAtCell(changes: [number, string | number, Handsontable.CellValue][]): void;
+    setSourceDataAtCell(row: number, column: number | string, value: Handsontable.CellValue, source?: string): void;
     spliceCol(col: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
     spliceRow(row: number, index: number, amount: number, ...elements: Handsontable.CellValue[]): void;
+    suspendExecution(): void;
+    suspendRender(): void;
     table: HTMLTableElement;
     toHTML(): string;
     toPhysicalColumn(column: number): number;
     toPhysicalRow(row: number): number;
+    toTableElement(): HTMLTableElement;
     toVisualColumn(column: number): number;
     toVisualRow(row: number): number;
-    toTableElement(): HTMLTableElement;
     undo(): void;
     undoRedo: Handsontable.UndoRedo;
     unlisten(): void;
@@ -1905,6 +1912,7 @@ declare namespace Handsontable {
       beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
       construct?: () => void;
       init?: () => void;
+      modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
       modifyAutofillRange?: (startArea: [number, number, number, number][], entireArea: [number, number, number, number][]) => void;
       modifyColHeader?: (column: number) => void;
       modifyColumnHeaderHeight?: () => void;

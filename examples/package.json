@@ -1,0 +1,21 @@
+{
+  "name": "handsontable-examples",
+  "private": true,
+  "scripts": {
+    "clean": "node ./scripts/clean-subpackages.mjs",
+    "test": "node ./scripts/code-examples.mjs test next",
+    "build": "node ./scripts/code-examples.mjs build next",
+    "install:version": "node --experimental-json-modules ./scripts/install-subpackages.mjs"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    }
+  },
+  "workspaces": {
+    "packages": [
+      "@(next|@(+([0-9]).+([0-9]).+([0-9])*))/@(!(node_modules))/+(js|angular|react|vue)"
+    ]
+  }
+}
