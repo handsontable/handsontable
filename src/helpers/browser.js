@@ -101,6 +101,15 @@ export function isIOS() {
 /**
  * @returns {boolean}
  */
+export function isIpadOS() {
+  return navigator.maxTouchPoints &&
+  navigator.maxTouchPoints > 2 &&
+  /Mac/.test(navigator.platform);
+}
+
+/**
+ * @returns {boolean}
+ */
 export function isSafari() {
   return browsers.safari.value;
 }

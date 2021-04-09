@@ -1,7 +1,7 @@
 import { addClass, empty, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
-import { isMobileBrowser } from './helpers/browser';
+import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
@@ -1005,7 +1005,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('beforeInit');
 
-    if (isMobileBrowser()) {
+    if (isMobileBrowser() || isIpadOS()) {
       addClass(instance.rootElement, 'mobile');
     }
 
