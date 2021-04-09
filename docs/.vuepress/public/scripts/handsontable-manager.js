@@ -42,34 +42,34 @@ const useHandsontable = ((instanceRegister) => {
     ];
   };
 
-  return (version, callback = () => {}, preset="hot") => {
-    const buildDependencyGetter = (version) =>{
+  return (version, callback = () => {}, preset = 'hot') => {
+    const buildDependencyGetter = (version) => {
       const [hotJsUrl, hotCssUrl] = getHotUrls(version);
-      //todo use version
-      return  (dependency) => {
+      // todo use version
+      return (dependency) => {
         const dependencies = {
-          'hot': [hotJsUrl, ['Handsontable', 'Handsontable.react'], hotCssUrl],
-          'react' : ['https://unpkg.com/react@17/umd/react.development.js',['React']],
-          'react-dom' : ['https://unpkg.com/react-dom@17/umd/react-dom.development.js',['ReactDOM']],
-          'hot-react' : ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js',['Handsontable.react']],
-          'fixer' : ['/docs/scripts/fixer.js',['require', 'exports']]
+          hot: [hotJsUrl, ['Handsontable', 'Handsontable.react'], hotCssUrl],
+          react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
+          'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
+          'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
+          fixer: ['/docs/scripts/fixer.js', ['require', 'exports']]
         };
-        
+
         // [jsUrl, dependentVars[]?, cssUrl?]
-        return dependencies[dependency]; 
-      }
-    }
+        return dependencies[dependency];
+      };
+    };
     const getDependency = buildDependencyGetter(version);
-    
-    const loadDependency = (dep) => new Promise((resolve)=>{
-      const id = 'dependency-reloader_'+dep;
-      const [jsUrl, dependentVars=[], cssUrl=undefined] = getDependency(dep);
-      
-      let script = document.getElementById('script-'+id);
+
+    const loadDependency = dep => new Promise((resolve) => {
+      const id = `dependency-reloader_${dep}`;
+      const [jsUrl, dependentVars = [], cssUrl = undefined] = getDependency(dep);
+
+      let script = document.getElementById(`script-${id}`);
 
       // clear outdated version
       if (script && script.getAttribute(ATTR_VERSION) !== version) {
-        dependentVars.forEach(x=>delete x.split('.').reduce((p,c,i) => p[c] || {}, {}));
+        dependentVars.forEach(x => delete x.split('.').reduce((p, c, i) => p[c] || {}, {}));
         script.remove();
         script = null;
       }
@@ -85,13 +85,13 @@ const useHandsontable = ((instanceRegister) => {
       if (!script) {
         script = document.createElement('script');
         script.src = jsUrl;
-        script.id = "script-"+id;
+        script.id = `script-${id}`;
         script.setAttribute(ATTR_VERSION, version);
         script.addEventListener('load', () => { script.loaded = true; });
 
         document.head.append(script);
-        
-        if(cssUrl) {
+
+        if (cssUrl) {
           document.head.insertAdjacentHTML(
             'beforeend',
             `<link type="text/css" data-hot-version="${version}" rel="stylesheet" id="css-${id}" href="${cssUrl}"/>`
@@ -113,19 +113,19 @@ const useHandsontable = ((instanceRegister) => {
       }
 
     });
-    
-    const reloadPreset = async (preset) => {
+
+    const reloadPreset = async(preset) => {
       const presetMap = {
-        hot:['hot'],
-        react:['react', 'react-dom', 'hot', 'hot-react', 'fixer'],
-        //todo others
-      }
-      
-      for( const dep of presetMap[preset] ){ // order of loading is really important. that why I use for with await - really slow solution
+        hot: ['hot'],
+        react: ['react', 'react-dom', 'hot', 'hot-react', 'fixer'],
+        // todo others
+      };
+
+      for (const dep of presetMap[preset]) { // order of loading is really important. that why I use for with await - really slow solution
         await loadDependency(dep);
       }
-    }
-    
+    };
+
     reloadPreset(preset).then(callback);
   };
 

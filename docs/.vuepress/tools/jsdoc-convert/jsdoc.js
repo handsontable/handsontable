@@ -100,10 +100,10 @@ const sort = data => data.sort((m, p) => {
   return m.name.localeCompare(p.name);
 });
 
-const linkToSource = data => data.map((x)=>{
-  if(x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
+const linkToSource = data => data.map((x) => {
+  if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
     const filepath = path.relative(path.join(__dirname, '../../../../'), x.meta.path);
-    x.sourceLink = `https://github.com/handsontable/handsontable/blob/develop/${filepath}/${x.meta.filename}#L${x.meta.lineno}`
+    x.sourceLink = `https://github.com/handsontable/handsontable/blob/develop/${filepath}/${x.meta.filename}#L${x.meta.lineno}`;
   }
   return x;
 });

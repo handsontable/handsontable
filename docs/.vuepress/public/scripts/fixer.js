@@ -3,8 +3,12 @@
     window.exports = {};
   }
 
+  /**
+   * @param string
+   * @param firstLowerCase
+   */
   function camelCase(string, firstLowerCase) {
-    var s = string.replace(/-\D/g, function(match){
+    const s = string.replace(/-\D/g, (match) => {
       return match.charAt(1).toUpperCase();
     });
 
@@ -14,16 +18,16 @@
 
     return s[0].toUpperCase() + s.substr(1);
   }
-  
+
   window.require = function(key) {
-    var ns = '';
+    let ns = '';
 
     if (key === 'exports') {
       return window.exports;
     }
 
-    key.split('/').forEach(function(k, index) {
-      var nsPart = '';
+    key.split('/').forEach((k, index) => {
+      let nsPart = '';
 
       if (index === 0) {
         nsPart = camelCase(k.replace('@', ''));
@@ -35,7 +39,7 @@
           nsPart = 'Handsontable';
         }
       } else {
-        nsPart = '.' + camelCase(k, true);
+        nsPart = `.${camelCase(k, true)}`;
       }
 
       ns = ns + nsPart;
@@ -63,27 +67,27 @@
       ns = 'numbro.allLanguages';
 
     } else if (/^numbro\/languages\/(.+)$/.test(key)) {
-      var match = key.match(/^numbro\/languages\/(.+)$/);
+      const match = key.match(/^numbro\/languages\/(.+)$/);
 
-      ns = 'numbro.allLanguages.' + match[1];
+      ns = `numbro.allLanguages.${match[1]}`;
     }
 
-    var moduleToReturn = window;
+    let moduleToReturn = window;
 
     if (ns !== '') {
-      ns.split('.').forEach(function(n) {
+      ns.split('.').forEach((n) => {
         moduleToReturn = moduleToReturn[n];
       });
 
       if (typeof moduleToReturn === 'undefined') {
         moduleToReturn = window.exports;
 
-        ns.split('.').forEach(function(n) {
+        ns.split('.').forEach((n) => {
           moduleToReturn = moduleToReturn[n];
         });
       }
     }
 
     return moduleToReturn;
-  }
-}())
+  };
+}());
