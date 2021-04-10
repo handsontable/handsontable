@@ -19,7 +19,6 @@ const browsers = {
   // eslint-disable-next-line no-restricted-globals
   ie9: tester(() => !!(document.documentMode)),
   mobile: tester(ua => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)),
-  ios: tester(ua => /iPhone|iPad|iPod/i.test(ua)),
   safari: tester((ua, vendor) => /Safari/.test(ua) && /Apple Computer/.test(vendor)),
 };
 
@@ -27,6 +26,7 @@ const platforms = {
   mac: tester(platform => /^Mac/.test(platform)),
   win: tester(platform => /^Win/.test(platform)),
   linux: tester(platform => /^Linux/.test(platform)),
+  ios: tester(ua => /iPhone|iPad|iPod/i.test(ua))
 };
 
 /**
@@ -95,7 +95,7 @@ export function isMobileBrowser() {
  * @returns {boolean}
  */
 export function isIOS() {
-  return browsers.ios.value;
+  return platforms.ios.value;
 }
 
 /**

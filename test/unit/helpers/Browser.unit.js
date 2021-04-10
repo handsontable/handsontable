@@ -9,6 +9,7 @@ import {
   isWindowsOS,
   isMacOS,
   isLinuxOS,
+  isIOS,
   setBrowserMeta,
   setPlatformMeta,
 } from 'handsontable/helpers/browser';
@@ -617,6 +618,81 @@ describe('Browser helper', () => {
       });
 
       expect(isLinuxOS()).toBeTruthy();
+    });
+  });
+
+  describe('isIOS', () => {
+    it('should recognize platform correctly', () => {
+      setPlatformMeta({
+        platform: 'Win'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Win32'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Mac'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'MacIntel'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'HP-UX'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux i686'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'Linux x86_64'
+      });
+
+      expect(isIOS()).toBeFalsy();
+
+      setPlatformMeta({
+        platform: 'iPhone'
+      });
+
+      expect(isIOS()).toBeTruthy();
+
+      setPlatformMeta({
+        platform: 'iPad'
+      });
+
+      expect(isIOS()).toBeTruthy();
+
+      setPlatformMeta({
+        platform: 'iPod'
+      });
+
+      expect(isIOS()).toBeTruthy();
+    });
+  });
+
+  describe('isIpadOS', () => {
+
+    const iPadUA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' +
+    'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15'; // iPad Pro (9.7-inch) - iOS 14.3
+    const iPadPlatform = 'MacIntel'; // iPad Pro (9.7-inch) - iOS 14.3
+
+    it('should recognize iPadOS correctly', () => {
+
     });
   });
 });
