@@ -99,12 +99,16 @@ export function isIOS() {
 }
 
 /**
+ * A hacky way to recognize the iPad. Since iOS 13, the iPad on Safari mimics macOS behavior and user agent.
+ *
+ * @see {@https://stackoverflow.com/a/57838385}
+ * @param {object} [metaObject] The browser identity collection.
  * @returns {boolean}
  */
-export function isIpadOS() {
-  return navigator.maxTouchPoints &&
-  navigator.maxTouchPoints > 2 &&
-  /Mac/.test(navigator.platform);
+export function isIpadOS({ maxTouchPoints } = navigator) {
+  return maxTouchPoints &&
+  maxTouchPoints > 2 &&
+  platforms.mac.value;
 }
 
 /**

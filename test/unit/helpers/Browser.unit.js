@@ -10,6 +10,7 @@ import {
   isMacOS,
   isLinuxOS,
   isIOS,
+  isIpadOS,
   setBrowserMeta,
   setPlatformMeta,
 } from 'handsontable/helpers/browser';
@@ -686,13 +687,68 @@ describe('Browser helper', () => {
   });
 
   describe('isIpadOS', () => {
-
-    const iPadUA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' +
-    'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15'; // iPad Pro (9.7-inch) - iOS 14.3
-    const iPadPlatform = 'MacIntel'; // iPad Pro (9.7-inch) - iOS 14.3
-
     it('should recognize iPadOS correctly', () => {
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) ' +
+          'Chrome/38.0.2125.111 Safari/537.36'
+      });
 
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) ' +
+          'AppleWebKit/600.1.17 (KHTML, like Gecko) Version/7.1 Safari/537.85.10'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (iPad; CPU OS 8_1 like Mac OS X) ' +
+          'AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/4.0 (compatible; MSIE 7.0; Windows Phone OS 7.0; Trident/3.1; IEMobile/7.0; Nokia;N70)'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393'
+      });
+
+      expect(isIpadOS()).toBeFalsy();
+
+      // mock navigator for iPad Pro (9.7-inch) - iOS 14.3 to overwrite maxTouchPoints read-only property
+      const navigator = {
+        maxTouchPoints: 5
+      };
+
+      setBrowserMeta({
+        userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' +
+        'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15' // iPad Pro (9.7-inch) - iOS 14.3
+      });
+
+      setPlatformMeta({
+        platform: 'MacIntel'
+      });
+
+      expect(isIpadOS(navigator)).toBeTruthy();
     });
   });
 });
