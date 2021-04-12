@@ -363,6 +363,8 @@ class Border {
     let toRow;
     let fromColumn;
     let toColumn;
+    let rowHeader;
+    let columnHeader;
 
     const rowsCount = wtTable.getRenderedRowsCount();
 
@@ -371,6 +373,7 @@ class Border {
 
       if (s >= corners[0] && s <= corners[2]) {
         fromRow = s;
+        rowHeader = corners[0];
         break;
       }
     }
@@ -391,6 +394,7 @@ class Border {
 
       if (s >= corners[1] && s <= corners[3]) {
         fromColumn = s;
+        columnHeader = corners[1];
         break;
       }
     }
@@ -408,6 +412,7 @@ class Border {
 
       return;
     }
+
     let fromTD = wtTable.getCell(new CellCoords(fromRow, fromColumn));
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     const toTD = isMultiple ? wtTable.getCell(new CellCoords(toRow, toColumn)) : fromTD;
@@ -421,7 +426,7 @@ class Border {
     let width = toOffset.left + outerWidth(toTD) - minLeft;
 
     if (this.isEntireColumnSelected(fromRow, toRow)) {
-      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader('columns', fromColumn, toColumn, rowHeader, containerOffset);
       let fromTH = null;
 
       if (modifiedValues) {
@@ -437,7 +442,7 @@ class Border {
     let height = toOffset.top + outerHeight(toTD) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
-      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, containerOffset);
+      const modifiedValues = this.getDimensionsFromHeader('rows', fromRow, toRow, columnHeader, containerOffset);
       let fromTH = null;
 
       if (modifiedValues) {
@@ -575,10 +580,11 @@ class Border {
    * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
    * @param {number} fromIndex Start index of the selection.
    * @param {number} toIndex End index of the selection.
+   * @param {number} headerIndex The header index as negative value.
    * @param {number} containerOffset Offset of the container.
    * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
-  getDimensionsFromHeader(direction, fromIndex, toIndex, containerOffset) {
+  getDimensionsFromHeader(direction, fromIndex, toIndex, headerIndex, containerOffset) {
     const { wtTable } = this.wot;
     const rootHotElement = wtTable.wtRootElement.parentNode;
     let getHeaderFn = null;
@@ -608,11 +614,11 @@ class Border {
       default:
     }
 
-    if (rootHotElement.className.includes(entireSelectionClassname)) {
+    if (rootHotElement.classList.contains(entireSelectionClassname)) {
       const columnHeaderLevelCount = this.wot.getSetting('columnHeaders').length;
 
-      startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - 1);
-      endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - 1);
+      startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - headerIndex);
+      endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - headerIndex);
 
       if (!startHeader || !endHeader) {
         return false;

@@ -626,6 +626,20 @@ class Table {
     }
   }
 
+  getColumnHeaders(col) {
+    const THs = [];
+
+    this.THEAD.childNodes.forEach((TR) => {
+      const TH = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+
+      if (TH) {
+        THs.push(TH);
+      }
+    });
+
+    return THs;
+  }
+
   /**
    * GetRowHeader.
    *

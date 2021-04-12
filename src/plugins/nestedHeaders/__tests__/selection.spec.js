@@ -28,7 +28,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)') // Select columns from O to P
         .simulate('mousedown')
         .simulate('mouseup');
 
@@ -60,7 +60,7 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">H</th>
-            <th class="my-active-header my-current-header" colspan="2">I</th>
+            <th class="my-active-header" colspan="2">I</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">J</th>
             <th class="hiddenHeader"></th>
@@ -72,8 +72,8 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">N</th>
-            <th class="my-active-header my-current-header">O</th>
-            <th class="my-active-header my-current-header">P</th>
+            <th class="my-current-header my-active-header">O</th>
+            <th class="my-current-header my-active-header">P</th>
             <th class="">Q</th>
             <th class="">R</th>
             <th class="">S</th>
@@ -554,7 +554,7 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">H</th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">I</th>
+            <th class="ht__active_highlight" colspan="2">I</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">J</th>
             <th class="hiddenHeader"></th>
@@ -566,8 +566,8 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">N</th>
-            <th class="ht__active_highlight ht__highlight">O</th>
-            <th class="ht__active_highlight ht__highlight">P</th>
+            <th class="ht__highlight ht__active_highlight">O</th>
+            <th class="ht__highlight ht__active_highlight">P</th>
             <th class="">Q</th>
             <th class="">R</th>
             <th class="">S</th>
@@ -579,7 +579,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-1, 1, 9, 2]]);
+      expect(getSelected()).toEqual([[-2, 1, 9, 2]]);
 
       $(getCell(-3, 1)) // Header "E"
         .simulate('mousedown')
@@ -601,7 +601,7 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">D</th>
-            <th class="ht__active_highlight ht__highlight" colspan="4">E</th>
+            <th class="ht__active_highlight" colspan="4">E</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -613,9 +613,9 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">H</th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">I</th>
+            <th class="ht__active_highlight" colspan="2">I</th>
             <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">J</th>
+            <th class="ht__active_highlight" colspan="2">J</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">K</th>
             <th class="hiddenHeader"></th>
@@ -625,10 +625,10 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">N</th>
-            <th class="ht__active_highlight ht__highlight">O</th>
-            <th class="ht__active_highlight ht__highlight">P</th>
-            <th class="ht__active_highlight ht__highlight">Q</th>
-            <th class="ht__active_highlight ht__highlight">R</th>
+            <th class="ht__highlight ht__active_highlight">O</th>
+            <th class="ht__highlight ht__active_highlight">P</th>
+            <th class="ht__highlight ht__active_highlight">Q</th>
+            <th class="ht__highlight ht__active_highlight">R</th>
             <th class="">S</th>
             <th class="">T</th>
             <th class="">U</th>
@@ -638,7 +638,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-1, 1, 9, 4]]);
+      expect(getSelected()).toEqual([[-3, 1, 9, 4]]);
 
       $(getCell(-4, 1)) // Header "B"
         .simulate('mousedown')
@@ -648,7 +648,7 @@ describe('NestedHeaders', () => {
         <thead>
           <tr>
             <th class="">A</th>
-            <th class="ht__highlight ht__active_highlight" colspan="8">B</th>
+            <th class="ht__active_highlight" colspan="8">B</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -660,11 +660,11 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">D</th>
-            <th class="ht__active_highlight ht__highlight" colspan="4">E</th>
+            <th class="ht__active_highlight" colspan="4">E</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight" colspan="4">F</th>
+            <th class="ht__active_highlight" colspan="4">F</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
@@ -672,32 +672,32 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">H</th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">I</th>
+            <th class="ht__active_highlight" colspan="2">I</th>
             <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">J</th>
+            <th class="ht__active_highlight" colspan="2">J</th>
             <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">K</th>
+            <th class="ht__active_highlight" colspan="2">K</th>
             <th class="hiddenHeader"></th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">L</th>
+            <th class="ht__active_highlight" colspan="2">L</th>
             <th class="hiddenHeader"></th>
             <th class="">M</th>
           </tr>
           <tr>
             <th class="">N</th>
-            <th class="ht__active_highlight ht__highlight">O</th>
-            <th class="ht__active_highlight ht__highlight">P</th>
-            <th class="ht__active_highlight ht__highlight">Q</th>
-            <th class="ht__active_highlight ht__highlight">R</th>
-            <th class="ht__active_highlight ht__highlight">S</th>
-            <th class="ht__active_highlight ht__highlight">T</th>
-            <th class="ht__active_highlight ht__highlight">U</th>
-            <th class="ht__active_highlight ht__highlight">V</th>
+            <th class="ht__highlight ht__active_highlight">O</th>
+            <th class="ht__highlight ht__active_highlight">P</th>
+            <th class="ht__highlight ht__active_highlight">Q</th>
+            <th class="ht__highlight ht__active_highlight">R</th>
+            <th class="ht__highlight ht__active_highlight">S</th>
+            <th class="ht__highlight ht__active_highlight">T</th>
+            <th class="ht__highlight ht__active_highlight">U</th>
+            <th class="ht__highlight ht__active_highlight">V</th>
             <th class="">W</th>
           </tr>
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-1, 1, 9, 8]]);
+      expect(getSelected()).toEqual([[-4, 1, 9, 8]]);
     });
 
     it('should active highlight column header for non-contiguous header selection', () => {
@@ -712,7 +712,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      $(getCell(-2, 1)) // Header "B2"
+      $(getCell(-2, 1)) // Header "B3"
         .simulate('mousedown')
         .simulate('mouseup');
 
@@ -744,7 +744,7 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">A3</th>
-            <th class="ht__active_highlight ht__highlight">B3</th>
+            <th class="ht__active_highlight">B3</th>
             <th class="" colspan="2">C3</th>
             <th class="hiddenHeader"></th>
             <th class="">E3</th>
@@ -756,7 +756,7 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">A4</th>
-            <th class="ht__active_highlight ht__highlight">B4</th>
+            <th class="ht__highlight ht__active_highlight">B4</th>
             <th class="" colspan="2">C4</th>
             <th class="hiddenHeader"></th>
             <th class="">E4</th>
@@ -769,7 +769,7 @@ describe('NestedHeaders', () => {
         </thead>
         `);
 
-      expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
+      expect(getSelected()).toEqual([[-2, 1, 9, 1]]);
 
       keyDown('ctrl');
 
@@ -785,7 +785,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="ht__highlight ht__active_highlight">F1</th>
+            <th class="ht__active_highlight">F1</th>
             <th class="">G1</th>
             <th class="">H1</th>
             <th class="">I1</th>
@@ -797,7 +797,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">E2</th>
-            <th class="ht__active_highlight ht__highlight">F2</th>
+            <th class="ht__active_highlight">F2</th>
             <th class="">G2</th>
             <th class="">H2</th>
             <th class="">I2</th>
@@ -805,11 +805,11 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">A3</th>
-            <th class="ht__active_highlight ht__highlight">B3</th>
+            <th class="ht__active_highlight">B3</th>
             <th class="" colspan="2">C3</th>
             <th class="hiddenHeader"></th>
             <th class="">E3</th>
-            <th class="ht__active_highlight ht__highlight">F3</th>
+            <th class="ht__active_highlight">F3</th>
             <th class="">G3</th>
             <th class="">H3</th>
             <th class="">I3</th>
@@ -817,11 +817,11 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">A4</th>
-            <th class="ht__active_highlight ht__highlight">B4</th>
+            <th class="ht__highlight ht__active_highlight">B4</th>
             <th class="" colspan="2">C4</th>
             <th class="hiddenHeader"></th>
             <th class="">E4</th>
-            <th class="ht__active_highlight ht__highlight">F4</th>
+            <th class="ht__highlight ht__active_highlight">F4</th>
             <th class="">G4</th>
             <th class="">H4</th>
             <th class="">I4</th>
@@ -831,8 +831,8 @@ describe('NestedHeaders', () => {
         `);
 
       expect(getSelected()).toEqual([
-        [-1, 1, 9, 1],
-        [-1, 5, 9, 5],
+        [-2, 1, 9, 1],
+        [-3, 5, 9, 5],
       ]);
 
       $(getCell(-3, 1)) // Header "B2"
@@ -847,7 +847,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="ht__highlight ht__active_highlight">F1</th>
+            <th class="ht__active_highlight">F1</th>
             <th class="">G1</th>
             <th class="">H1</th>
             <th class="">I1</th>
@@ -855,11 +855,11 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">A2</th>
-            <th class="ht__active_highlight ht__highlight" colspan="3">B2</th>
+            <th class="ht__active_highlight" colspan="3">B2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">E2</th>
-            <th class="ht__active_highlight ht__highlight">F2</th>
+            <th class="ht__active_highlight">F2</th>
             <th class="">G2</th>
             <th class="">H2</th>
             <th class="">I2</th>
@@ -867,11 +867,11 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">A3</th>
-            <th class="ht__active_highlight ht__highlight">B3</th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">C3</th>
+            <th class="ht__active_highlight">B3</th>
+            <th class="ht__active_highlight" colspan="2">C3</th>
             <th class="hiddenHeader"></th>
             <th class="">E3</th>
-            <th class="ht__active_highlight ht__highlight">F3</th>
+            <th class="ht__active_highlight">F3</th>
             <th class="">G3</th>
             <th class="">H3</th>
             <th class="">I3</th>
@@ -879,11 +879,11 @@ describe('NestedHeaders', () => {
           </tr>
           <tr>
             <th class="">A4</th>
-            <th class="ht__active_highlight ht__highlight">B4</th>
-            <th class="ht__active_highlight ht__highlight" colspan="2">C4</th>
+            <th class="ht__highlight ht__active_highlight">B4</th>
+            <th class="ht__highlight ht__active_highlight" colspan="2">C4</th>
             <th class="hiddenHeader"></th>
             <th class="">E4</th>
-            <th class="ht__active_highlight ht__highlight">F4</th>
+            <th class="ht__highlight ht__active_highlight">F4</th>
             <th class="">G4</th>
             <th class="">H4</th>
             <th class="">I4</th>
@@ -893,10 +893,9 @@ describe('NestedHeaders', () => {
         `);
 
       expect(getSelected()).toEqual([
-        [-1, 1, 9, 1],
-        [-1, 5, 9, 5],
-        [-1, 1, 9, 1], // <- This coords shouldn't be here (known issue)
-        [-1, 1, 9, 3],
+        [-2, 1, 9, 1],
+        [-3, 5, 9, 5],
+        [-3, 1, 9, 3],
       ]);
     });
 
@@ -991,15 +990,15 @@ describe('NestedHeaders', () => {
       const $leftBorder = this.$container.find('.wtBorder.area').eq(1);
       const $rightBorder = this.$container.find('.wtBorder.area').eq(3);
 
-      expect($topBorder.offset().top).toEqual($firstRow.offset().top - 1);
+      expect($topBorder.offset().top).toEqual($firstRow.offset().top);
       expect($bottomBorder.offset().top).toEqual($lastRow.offset().top + $lastRow.height() - 1);
-      expect($topBorder.width()).toEqual($headerLvl3.width());
-      expect($bottomBorder.width()).toEqual($headerLvl3.width());
+      expect($topBorder.width()).toEqual($headerLvl3.width() + 1);
+      expect($bottomBorder.width()).toEqual($headerLvl3.width() + 1);
 
-      expect($leftBorder.offset().left).toEqual($headerLvl3.offset().left);
+      expect($leftBorder.offset().left).toEqual($headerLvl3.offset().left - 1);
       expect($rightBorder.offset().left).toEqual($headerLvl3.offset().left + $headerLvl3.width());
-      expect($leftBorder.height()).toEqual($tbody.height());
-      expect($rightBorder.height()).toEqual($tbody.height() + 1);
+      expect($leftBorder.height()).toEqual($tbody.height() - 1);
+      expect($rightBorder.height()).toEqual($tbody.height());
     });
   });
 });

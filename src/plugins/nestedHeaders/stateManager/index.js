@@ -283,6 +283,22 @@ export default class StateManager {
     return this.#stateMatrix[headerLevel]?.[columnIndex] ?? null;
   }
 
+  getHeaderTreeNodeData(headerLevel, columnIndex) {
+    if (headerLevel < 0) {
+      headerLevel = this.rowCoordsToLevel(headerLevel);
+    }
+
+    const node = this.#headersTree.getNode(headerLevel, columnIndex);
+
+    if (!node) {
+      return null;
+    }
+
+    return {
+      ...node.data,
+    };
+  }
+
   /**
    * The method is helpful in cases where the column index targets in-between currently
    * collapsed column. In that case, the method returns the left-most column index

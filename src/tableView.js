@@ -746,9 +746,10 @@ class TableView {
         this.activeWt = wt;
         this.instance.runHooks('beforeOnCellMouseUp', event, visualCoords, TD);
 
-        // TODO: Second argument is for workaround. Callback corresponding the method `updateSettings` disable plugin
-        // and enable it again. Disabling plugin closes the menu. Thus, calling the `updateSettings` in a body of
-        // any callback executed right after some context-menu action breaks the table (#7231).
+        // TODO: The second condition check is a workaround. Callback corresponding the method `updateSettings`
+        // disable plugin and enable it again. Disabling plugin closes the menu. Thus, calling the
+        // `updateSettings` in a body of any callback executed right after some context-menu action
+        // breaks the table (#7231).
         if (isImmediatePropagationStopped(event) || this.instance.isDestroyed) {
           return;
         }
@@ -769,6 +770,15 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
+      onBeforeHighlightingRowHeader: (renderableColumn, headerLevel, highlightMeta) => {
+        const columnMapper = this.instance.columnIndexMapper;
+        const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+
+        const newVisualColumn = this.instance
+          .runHooks('beforeHighlightingRowHeader', visualColumn, headerLevel, highlightMeta);
+
+        return columnMapper.getRenderableFromVisualIndex(columnMapper.getFirstNotHiddenIndex(newVisualColumn, 1));
+      },
       onAfterDrawSelection: (currentRow, currentColumn, layerLevel) => {
         let cornersOfSelection;
         const [visualRowIndex, visualColumnIndex] =

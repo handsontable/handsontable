@@ -197,27 +197,57 @@ class Selection {
     const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
     const corners = this.getCorners();
     const [topRow, topColumn, bottomRow, bottomColumn] = corners;
+    const {
+      highlightHeaderClassName,
+      highlightColumnClassName,
+      highlightOnlyClosestHeader,
+    } = this.settings;
 
     if (topColumn !== null && bottomColumn !== null) {
+      let selectionColumnCursor = 0;
+
       for (let column = 0; column < renderedColumns; column += 1) {
         const sourceCol = wotInstance.wtTable.columnFilter.renderedToSource(column);
 
         if (sourceCol >= topColumn && sourceCol <= bottomColumn) {
-          const TH = wotInstance.wtTable.getColumnHeader(sourceCol);
+          let THs = wotInstance.wtTable.getColumnHeaders(sourceCol);
+          const closestHeaderLevel = THs.length - 1;
 
-          if (TH) {
+          if (highlightOnlyClosestHeader && THs.length > 1) {
+            THs = [THs[closestHeaderLevel]];
+          }
+
+          /* eslint-disable no-loop-func */
+          THs.forEach((TH, headerLevel) => {
             const newClasses = [];
 
-            if (this.settings.highlightHeaderClassName) {
-              newClasses.push(this.settings.highlightHeaderClassName);
+            if (highlightHeaderClassName) {
+              newClasses.push(highlightHeaderClassName);
             }
 
-            if (this.settings.highlightColumnClassName) {
-              newClasses.push(this.settings.highlightColumnClassName);
+            if (highlightColumnClassName) {
+              newClasses.push(highlightColumnClassName);
+            }
+
+            headerLevel = highlightOnlyClosestHeader ? closestHeaderLevel : headerLevel;
+
+            const newSourceCol = wotInstance
+              .getSetting('onBeforeHighlightingRowHeader', sourceCol, headerLevel, {
+                selectionType: this.settings.selectionType,
+                columnCursor: selectionColumnCursor,
+                selectionWidth: bottomColumn - topColumn + 1,
+                classNames: newClasses,
+              });
+
+            if (newSourceCol !== sourceCol) {
+              TH = wotInstance.wtTable.getColumnHeader(newSourceCol, headerLevel);
             }
 
             addClass(TH, newClasses);
-          }
+          });
+          /* eslint-enable no-loop-func */
+
+          selectionColumnCursor += 1;
         }
       }
     }

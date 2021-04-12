@@ -4,14 +4,22 @@ import {
   fastInnerHTML,
   empty,
 } from '../../helpers/dom/element';
-import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import {
+  ACTIVE_HEADER_TYPE,
+  HEADER_TYPE,
+} from '../../selection';
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
+
+const PROCESSABLE_SELECTION_HEADERS = [
+  ACTIVE_HEADER_TYPE,
+  HEADER_TYPE,
+];
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -103,12 +111,16 @@ export class NestedHeaders extends BasePlugin {
 
     this.addHook('init', () => this.onInit());
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
-    this.addHook('afterOnCellMouseDown', (event, coords) => this.onAfterOnCellMouseDown(event, coords));
-    this.addHook('beforeOnCellMouseOver',
-      (event, coords, TD, blockCalculations) => this.onBeforeOnCellMouseOver(event, coords, TD, blockCalculations));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.onBeforeOnCellMouseDown(...args));
+    this.addHook('afterOnCellMouseDown', (...args) => this.onAfterOnCellMouseDown(...args));
+    this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
-    this.addHook('modifyColWidth', (width, column) => this.onModifyColWidth(width, column));
-    this.addHook('afterViewportColumnCalculatorOverride', calc => this.onAfterViewportColumnCalculatorOverride(calc));
+    this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
+    this.addHook('beforeHighlightingRowHeader', (...args) => this.onBeforeHighlightingRowHeader(...args));
+    this.addHook(
+      'afterViewportColumnCalculatorOverride',
+      (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
+    );
 
     super.enablePlugin();
     this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
@@ -136,7 +148,7 @@ export class NestedHeaders extends BasePlugin {
     }
 
     if (this.enabled) {
-      // The line covers the case when a developer uses the external hiding maps to manipulate
+      // This line covers the case when a developer uses the external hiding maps to manipulate
       // the columns' visibility. The tree state built from the settings - which is always built
       // as if all the columns are visible, needs to be modified to be in sync with a dataset.
       this.hot.columnIndexMapper
@@ -212,32 +224,6 @@ export class NestedHeaders extends BasePlugin {
    */
   getHeaderSettings(headerLevel, columnIndex) {
     return this.#stateManager.getHeaderSettings(headerLevel, columnIndex);
-  }
-
-  /**
-   * Gets HTML elements for specified visual column index and header level from
-   * all overlays except master.
-   *
-   * @private
-   * @param {number} columnIndex A visual column index.
-   * @param {number} headerLevel Header level (0 = most distant to the table).
-   * @returns {HTMLElement[]}
-   */
-  getColumnHeaders(columnIndex, headerLevel) {
-    const { wtOverlays } = this.hot.view.wt;
-    const renderedColumnIndex = this.hot.columnIndexMapper.getRenderableFromVisualIndex(columnIndex);
-    const headers = [];
-
-    if (renderedColumnIndex !== null) {
-      if (wtOverlays.topOverlay) {
-        headers.push(wtOverlays.topOverlay.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel));
-      }
-      if (wtOverlays.topLeftCornerOverlay) {
-        headers.push(wtOverlays.topLeftCornerOverlay.clone.wtTable.getColumnHeader(renderedColumnIndex, headerLevel));
-      }
-    }
-
-    return headers;
   }
 
   /**
@@ -348,82 +334,70 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Updates headers highlight in nested structure.
+   * [onBeforeHighlightingRowHeader description].
    *
-   * @private
+   * @param {number} visualColumn A visual column index of the highlighted row header.
+   * @param {number} headerLevel A row header level that is currently highlighted.
+   * @param {object} highlightMeta An object with meta data that describes the highlight state.
+   * @returns {number}
    */
-  updateHeadersHighlight() {
-    const { hot } = this;
-    const selection = hot.getSelectedRange();
+  onBeforeHighlightingRowHeader(visualColumn, headerLevel, highlightMeta) {
+    const {
+      selectionType,
+    } = highlightMeta;
 
-    if (selection === void 0) {
-      return;
+    if (!PROCESSABLE_SELECTION_HEADERS.includes(selectionType)) {
+      return visualColumn;
     }
 
-    const hotSettings = this.hot.getSettings();
-    const classNameModifier = className => (TH, modifier) => () => (TH ? modifier(TH, className) : null);
-    const highlightHeader = classNameModifier(hotSettings.currentHeaderClassName);
-    const activeHeader = classNameModifier(hotSettings.activeHeaderClassName);
+    const headerNodeData = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumn);
 
-    const selectionByHeader = hot.selection.isSelectedByColumnHeader() || hot.selection.isSelectedByCorner();
-    const layersCount = this.#stateManager.getLayersCount();
-    const activeHeaderChanges = new Map();
-    const highlightHeaderChanges = new Map();
+    if (!headerNodeData) {
+      return visualColumn;
+    }
 
-    arrayEach(selection, (selectionLayer) => {
-      const coordsFrom = selectionLayer.getTopLeftCorner();
-      const coordsTo = selectionLayer.getTopRightCorner();
+    const {
+      isRoot,
+      colspan,
+    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumn);
 
-      // If the beginning of the selection (columnFrom) starts in-between colspaned
-      // header shift the columnFrom to the header position where it starts.
-      const columnFrom = this.#stateManager.findLeftMostColumnIndex(-1, coordsFrom.col);
-      const columnTo = coordsTo.col;
-      const columnSelectionWidth = columnTo - columnFrom + 1;
-
-      let columnCursor = 0;
-
-      for (let column = columnFrom; column <= columnTo; column++) {
-        // Traverse header layers from bottom to top.
-        for (let level = layersCount - 1; level > -1; level--) {
-          const {
-            colspan,
-            isHidden,
-            isPlaceholder
-          } = this.#stateManager.getHeaderSettings(level, column) ?? { isPlaceholder: true };
-          const isFirstLayer = level === layersCount - 1;
-          const isOutOfRange = !isFirstLayer && (columnCursor + colspan) > columnSelectionWidth;
-
-          const THs = this.getColumnHeaders(column, level);
-
-          arrayEach(THs, (TH) => {
-            if (isOutOfRange || isHidden || isPlaceholder) {
-              // Reset CSS classes state (workaround for WoT issue which can not render that classes
-              // for nested header structure properly).
-              activeHeaderChanges.set(TH, activeHeader(TH, removeClass));
-              highlightHeaderChanges.set(TH, highlightHeader(TH, removeClass));
-
-            } else if (selectionByHeader) {
-              activeHeaderChanges.set(TH, activeHeader(TH, addClass));
-              highlightHeaderChanges.set(TH, highlightHeader(TH, addClass));
-
-            } else if (isFirstLayer) {
-              highlightHeaderChanges.set(TH, highlightHeader(TH, addClass));
-
-            } else {
-              highlightHeaderChanges.set(TH, highlightHeader(TH, removeClass));
-            }
-          });
-        }
-
-        columnCursor += 1;
+    if (selectionType === HEADER_TYPE) {
+      if (!isRoot) {
+        return headerNodeData.columnIndex;
       }
-    });
 
-    arrayEach(activeHeaderChanges, ([, classModifer]) => void classModifer());
-    arrayEach(highlightHeaderChanges, ([, classModifer]) => void classModifer());
+    } else if (selectionType === ACTIVE_HEADER_TYPE) {
+      const {
+        columnCursor,
+        selectionWidth,
+        classNames,
+      } = highlightMeta;
 
-    activeHeaderChanges.clear();
-    highlightHeaderChanges.clear();
+      if (colspan > selectionWidth - columnCursor || !isRoot) {
+        // Reset the class names array so the generated TH element won't be modified.
+        classNames.length = 0;
+      }
+    }
+
+    return visualColumn;
+  }
+
+  /**
+   * @private
+   * @param {MouseEvent} event Mouse event.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
+   * @param {CellCoords} TD The table cell or header element.
+   * @param {object} blockCalculations An object with keys `row`, `column` and `cell` which contains boolean values.
+   *                                   This object allows or disallows changing the selection for the particular axies.
+   */
+  onBeforeOnCellMouseDown(event, coords, TD, blockCalculations) {
+    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
+
+    if (headerNodeData) {
+      // Block the Selection module in controlling how the columns are selected. Pass the
+      // responsibility of the column selection to this plugin (see "onAfterOnCellMouseDown" hook).
+      blockCalculations.column = true;
+    }
   }
 
   /**
@@ -431,15 +405,19 @@ export class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Clicked cell coords.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    */
   onAfterOnCellMouseDown(event, coords) {
-    if (coords.row < 0 && coords.col >= 0) {
-      const { origColspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
+    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
-      if (origColspan > 1) {
-        this.hot.selection.selectColumns(coords.col, coords.col + origColspan - 1);
-      }
+    if (headerNodeData) {
+      const {
+        columnIndex,
+        origColspan,
+      } = headerNodeData;
+
+      // The plugin takes control of the how the columns are selected.
+      this.hot.selection.selectColumns(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
   }
 
@@ -448,63 +426,50 @@ export class NestedHeaders extends BasePlugin {
    *
    * @private
    * @param {MouseEvent} event Mouse event.
-   * @param {CellCoords} coords Clicked cell coords.
+   * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
    * @param {HTMLElement} TD The cell element.
-   * @param {object} blockCalculations An object which allows or disallows changing the selection for the particular axies.
+   * @param {object} blockCalculations An object with keys `row`, `column` and `cell` which contains boolean values.
+   *                                   This object allows or disallows changing the selection for the particular axies.
    */
   onBeforeOnCellMouseOver(event, coords, TD, blockCalculations) {
-    if (coords.row >= 0 || coords.col < 0 || !this.hot.view.isMouseDown()) {
+    if (!this.hot.view.isMouseDown()) {
       return;
     }
 
-    const { from, to } = this.hot.getSelectedRangeLast();
-    const { origColspan } = this.#stateManager.getHeaderSettings(coords.row, coords.col);
-    const lastColIndex = coords.col + origColspan - 1;
-    let changeDirection = false;
+    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
-    if (from.col <= to.col) {
-      if ((coords.col < from.col && lastColIndex === to.col) ||
-          (coords.col < from.col && lastColIndex < from.col) ||
-          (coords.col < from.col && lastColIndex >= from.col && lastColIndex < to.col)) {
-        changeDirection = true;
-      }
-    } else if ((coords.col < to.col && lastColIndex > from.col) ||
-               (coords.col > from.col) ||
-               (coords.col <= to.col && lastColIndex > from.col) ||
-               (coords.col > to.col && lastColIndex > from.col)) {
-      changeDirection = true;
+    if (!headerNodeData) {
+      return;
     }
 
-    if (changeDirection) {
-      [from.col, to.col] = [to.col, from.col];
+    const {
+      columnIndex,
+      origColspan,
+    } = headerNodeData;
+
+    const selectedRange = this.hot.getSelectedRangeLast();
+    const topLeftCoords = selectedRange.getTopLeftCorner();
+    const bottomRightCoords = selectedRange.getBottomRightCorner();
+    const { from } = selectedRange;
+
+    // Block the Selection module in controlling how the columns and cells are selected.
+    // From now on, the plugin is responsible for the selection.
+    blockCalculations.column = true;
+    blockCalculations.cell = true;
+
+    const columnsToSelect = [];
+
+    if (coords.isWestOf(from)) {
+      columnsToSelect.push(bottomRightCoords.col, columnIndex);
+
+    } else if (coords.isEastOf(from)) {
+      columnsToSelect.push(topLeftCoords.col, columnIndex + origColspan - 1);
+
+    } else {
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1);
     }
 
-    if (origColspan > 1) {
-      blockCalculations.column = true;
-      blockCalculations.cell = true;
-
-      const columnRange = [];
-
-      if (from.col === to.col) {
-        if (lastColIndex <= from.col && coords.col < from.col) {
-          columnRange.push(to.col, coords.col);
-        } else {
-          columnRange.push(
-            coords.col < from.col ? coords.col : from.col,
-            lastColIndex > to.col ? lastColIndex : to.col
-          );
-        }
-      }
-      if (from.col < to.col) {
-        columnRange.push(coords.col < from.col ? coords.col : from.col, lastColIndex);
-
-      }
-      if (from.col > to.col) {
-        columnRange.push(from.col, coords.col);
-      }
-
-      this.hot.selectColumns(...columnRange);
-    }
+    this.hot.selectColumns(...columnsToSelect);
   }
 
   /**
@@ -521,8 +486,6 @@ export class NestedHeaders extends BasePlugin {
         renderersArray.push(this.headerRendererFactory(headerLayer));
       }
     }
-
-    this.updateHeadersHighlight();
   }
 
   /**
@@ -599,4 +562,11 @@ export class NestedHeaders extends BasePlugin {
     super.destroy();
   }
 
+  _getHeaderTreeNodeDataByCoords(coords) {
+    if (coords.row >= 0 || coords.col < 0) {
+      return;
+    }
+
+    return this.#stateManager.getHeaderTreeNodeData(coords.row, coords.col);
+  }
 }

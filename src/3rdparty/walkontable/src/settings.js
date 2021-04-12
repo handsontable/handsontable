@@ -106,6 +106,7 @@ class Settings {
       onBeforeStretchingColumnWidth: width => width,
       onModifyRowHeaderWidth: null,
       onModifyGetCellCoords: null,
+      onBeforeHighlightingRowHeader: sourceCol => sourceCol,
 
       onWindowResize: null,
 

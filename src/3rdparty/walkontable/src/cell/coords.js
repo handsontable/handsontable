@@ -57,6 +57,13 @@ class CellCoords {
     return this.row === cellCoords.row && this.col === cellCoords.col;
   }
 
+  isWestOf(testedCoords) {
+    return this.col < testedCoords.col;
+  }
+  isEastOf(testedCoords) {
+    return this.col > testedCoords.col;
+  }
+
   /**
    * Checks if tested coordinates are positioned in south-east from this cell coordinates.
    *
