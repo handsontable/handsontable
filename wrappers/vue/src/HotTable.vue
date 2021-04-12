@@ -71,6 +71,8 @@
       return {
         __internalEdit: false,
         miscCache: {
+          // TODO: A workaround for #7548; data.length !== rowIndexMapper.getNumberOfIndexes() for NestedRows plugin.
+          dataLength: 0,
           currentSourceColumns: null
         },
         hotInstance: null,
@@ -113,18 +115,19 @@
 
         preventInternalEditWatch(this);
 
+        this.miscCache.dataLength = newSettings.data.length;
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       },
       matchHotMappersSize: function (data: any[][]): void {
         const rowsToRemove: number[] = [];
         const columnsToRemove: number[] = [];
-        const indexMapperRowCount = this.hotInstance.rowIndexMapper.getNumberOfIndexes();
+        const oldDataLength = this.miscCache.dataLength;
         const isColumnModificationAllowed = this.hotInstance.isColumnModificationAllowed();
         let indexMapperColumnCount = 0;
 
-        if (data && data.length !== indexMapperRowCount) {
-          if (data.length < indexMapperRowCount) {
-            for (let r = data.length; r < indexMapperRowCount; r++) {
+        if (data && data.length !== oldDataLength) {
+          if (data.length < oldDataLength) {
+            for (let r = data.length; r < oldDataLength; r++) {
               rowsToRemove.push(r);
             }
           }
@@ -148,7 +151,7 @@
             this.hotInstance.rowIndexMapper.removeIndexes(rowsToRemove);
 
           } else {
-            this.hotInstance.rowIndexMapper.insertIndexes(indexMapperRowCount - 1, data.length - indexMapperRowCount);
+            this.hotInstance.rowIndexMapper.insertIndexes(oldDataLength - 1, data.length - oldDataLength);
           }
 
           if (isColumnModificationAllowed) {
