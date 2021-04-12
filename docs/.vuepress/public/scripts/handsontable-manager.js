@@ -43,6 +43,7 @@ const useHandsontable = ((instanceRegister) => {
   };
 
   return (version, callback = () => {}, preset = 'hot') => {
+    //todo duplicated in examples
     const buildDependencyGetter = (version) => {
       const [hotJsUrl, hotCssUrl] = getHotUrls(version);
       // todo use version
@@ -115,7 +116,7 @@ const useHandsontable = ((instanceRegister) => {
     });
 
     const reloadPreset = async(preset) => {
-      const presetMap = {
+      const presetMap = { //todo duplicated in examples
         hot: ['hot'],
         react: ['react', 'react-dom', 'hot', 'hot-react', 'fixer'],
         // todo others
