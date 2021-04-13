@@ -952,6 +952,7 @@ describe('UndoRedo', () => {
           });
 
           const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+
           HOT.addHook('afterCreateCol', afterCreateColCallback);
 
           expect(countCols()).toEqual(3);
@@ -2482,6 +2483,7 @@ describe('UndoRedo', () => {
         hot.getPlugin('contextMenu').executeCommand('alignment:bottom');
 
         let cellMeta = hot.getCellMeta(0, 0);
+
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
         expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
 
@@ -2617,6 +2619,7 @@ describe('UndoRedo', () => {
         hot.getPlugin('contextMenu').executeCommand('alignment:bottom');
 
         let cellMeta = hot.getCellMeta(0, 0);
+
         expect(cellMeta.className.indexOf('htCenter')).toBeGreaterThan(-1);
         expect(cellMeta.className.indexOf('htMiddle')).toBeGreaterThan(-1);
 

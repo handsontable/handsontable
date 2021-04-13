@@ -168,6 +168,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   queryChoices(query) {
     const source = this.cellProperties.source;
+
     this.query = query;
 
     if (typeof source === 'function') {

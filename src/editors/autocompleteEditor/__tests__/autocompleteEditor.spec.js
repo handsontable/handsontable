@@ -438,6 +438,7 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 0);
       source.calls.reset();
       keyDownUp('enter');
@@ -466,6 +467,7 @@ describe('AutocompleteEditor', () => {
       });
       selectCell(0, 0);
       const editor = $('.autocompleteEditor');
+
       syncSources.calls.reset();
       keyDownUp('enter');
 
@@ -525,6 +527,7 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 0);
       const editor = hot.getActiveEditor();
 
@@ -555,8 +558,10 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 0);
       const editor = hot.getActiveEditor();
+
       updateChoicesList.calls.reset();
 
       keyDownUp('enter');
@@ -596,8 +601,10 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 0);
       const editor = hot.getActiveEditor();
+
       updateChoicesList.calls.reset();
 
       keyDownUp('enter');
@@ -719,6 +726,7 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 2);
       spyOn(hot.getActiveEditor(), 'beginEditing');
 
@@ -758,6 +766,7 @@ describe('AutocompleteEditor', () => {
       keyDownUp('enter');
       const $autocomplete = autocomplete();
       const $autocompleteHolder = $autocomplete.find('.ht_master .wtHolder').first();
+
       await sleep(100);
 
       expect($autocomplete.find('td').first().text()).toEqual('Acura');
@@ -1248,6 +1257,7 @@ describe('AutocompleteEditor', () => {
 
       setTimeout(() => {
         const editor = $('.handsontableInput');
+
         editor.val('foo');
         keyDownUp('enter');
 
@@ -1276,6 +1286,7 @@ describe('AutocompleteEditor', () => {
 
       setTimeout(() => {
         const editor = $('.handsontableInput');
+
         editor.val('foo');
         spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mousedown');
 
@@ -1299,6 +1310,7 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 0);
       const editorInput = $('.handsontableInput');
 
@@ -1884,6 +1896,7 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 0);
       const editorInput = $('.handsontableInput');
 
@@ -2010,6 +2023,7 @@ describe('AutocompleteEditor', () => {
           }
         ]
       });
+
       selectCell(0, 0);
       const editorInput = $('.handsontableInput');
 
@@ -2496,6 +2510,7 @@ describe('AutocompleteEditor', () => {
     const choicesList = [
       'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
     ];
+
     handsontable({
       columns: [
         {
@@ -2509,6 +2524,7 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('a');
     keyDownUp('a'.charCodeAt(0));
     Handsontable.dom.setCaretPosition($editorInput[0], 1);
@@ -2643,6 +2659,7 @@ describe('AutocompleteEditor', () => {
       minSpareRows: 1,
       afterValidate: afterValidateCallback
     });
+
     selectCell(0, 0);
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
@@ -2933,6 +2950,7 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
@@ -2972,6 +2990,7 @@ describe('AutocompleteEditor', () => {
     selectCell(0, 0);
     keyDownUp('enter');
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
@@ -3014,6 +3033,7 @@ describe('AutocompleteEditor', () => {
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
@@ -3047,6 +3067,7 @@ describe('AutocompleteEditor', () => {
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
@@ -3080,6 +3101,7 @@ describe('AutocompleteEditor', () => {
     selectCell(1, 1);
     keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
@@ -3114,6 +3136,7 @@ describe('AutocompleteEditor', () => {
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n
@@ -3146,6 +3169,7 @@ describe('AutocompleteEditor', () => {
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('anananan');
     keyDownUp(65); // a
     keyDownUp(78); // n
@@ -3184,6 +3208,7 @@ describe('AutocompleteEditor', () => {
     selectCell(1, 0);
     keyDownUp('x'); // trigger quick edit mode
     const $editorInput = $('.handsontableInput');
+
     $editorInput.val('an');
     keyDownUp(65); // a
     keyDownUp(78); // n

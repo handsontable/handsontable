@@ -128,6 +128,7 @@ export class HandsontableEditor extends TextEditor {
     super.createElements();
 
     const DIV = this.hot.rootDocument.createElement('DIV');
+
     DIV.className = 'handsontableEditor';
     this.TEXTAREA_PARENT.appendChild(DIV);
 
@@ -197,6 +198,7 @@ export class HandsontableEditor extends TextEditor {
 
         } else if (!innerHOT.flipped) {
           const lastRow = innerHOT.countRows() - 1;
+
           selectedRow = innerHOT.getSelectedLast()[0];
           rowToSelect = Math.min(lastRow, selectedRow + 1);
         }

@@ -127,6 +127,7 @@ export class SelectEditor extends BaseEditor {
 
     objectEach(options, (optionValue, key) => {
       const optionElement = this.hot.rootDocument.createElement('OPTION');
+
       optionElement.value = key;
 
       fastInnerHTML(optionElement, optionValue);
@@ -163,6 +164,7 @@ export class SelectEditor extends BaseEditor {
    */
   refreshValue() {
     const sourceData = this.hot.getSourceDataAtCell(this.row, this.prop);
+
     this.originalValue = sourceData;
 
     this.setValue(sourceData);

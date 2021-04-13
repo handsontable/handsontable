@@ -476,6 +476,7 @@ export class AutoRowSize extends BasePlugin {
     // Calculate rows height synchronously for bottom overlay
     if (fixedRowsBottom) {
       const totalRows = this.hot.countRows() - 1;
+
       this.calculateRowsHeight({ from: totalRows - fixedRowsBottom, to: totalRows });
     }
 

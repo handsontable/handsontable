@@ -22,6 +22,7 @@ export const PLUGIN_KEY = 'undoRedo';
  */
 function UndoRedo(instance) {
   const plugin = this;
+
   this.instance = instance;
   this.doneActions = [];
   this.undoneActions = [];
@@ -65,6 +66,7 @@ function UndoRedo(instance) {
     }
 
     const action = new UndoRedo.CreateRowAction(index, amount);
+
     plugin.done(action);
   });
 
@@ -131,6 +133,7 @@ function UndoRedo(instance) {
 
   instance.addHook('beforeCellAlignment', (stateBefore, range, type, alignment) => {
     const action = new UndoRedo.CellAlignmentAction(stateBefore, range, type, alignment);
+
     plugin.done(action);
   });
 
@@ -196,6 +199,7 @@ UndoRedo.prototype.undo = function() {
 
     this.ignoreNewActions = true;
     const that = this;
+
     action.undo(this.instance, () => {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
@@ -227,6 +231,7 @@ UndoRedo.prototype.redo = function() {
 
     this.ignoreNewActions = true;
     const that = this;
+
     action.redo(this.instance, () => {
       that.ignoreNewActions = false;
       that.doneActions.push(action);
@@ -679,6 +684,7 @@ class MergeCellsAction extends UndoRedo.Action {
 
   undo(instance, undoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
+
     instance.addHookOnce('afterRender', undoneCallback);
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);
@@ -697,6 +703,7 @@ class MergeCellsAction extends UndoRedo.Action {
 
   redo(instance, redoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
+
     instance.addHookOnce('afterRender', redoneCallback);
 
     mergeCellsPlugin.mergeRange(this.cellRange);
@@ -717,6 +724,7 @@ class UnmergeCellsAction extends UndoRedo.Action {
 
   undo(instance, undoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
+
     instance.addHookOnce('afterRender', undoneCallback);
 
     mergeCellsPlugin.mergeRange(this.cellRange, true);
@@ -724,6 +732,7 @@ class UnmergeCellsAction extends UndoRedo.Action {
 
   redo(instance, redoneCallback) {
     const mergeCellsPlugin = instance.getPlugin('mergeCells');
+
     instance.addHookOnce('afterRender', redoneCallback);
 
     mergeCellsPlugin.unmergeRange(this.cellRange, true);

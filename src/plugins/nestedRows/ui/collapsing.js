@@ -174,6 +174,7 @@ class CollapsingUI extends BaseUI {
 
       arrayEach(parentObject.__children, (elem) => {
         const elemIndex = this.dataManager.getRowIndex(elem);
+
         rowsToTrim.push(elemIndex);
         this.collapseChildRows(elemIndex, rowsToTrim);
       });
@@ -235,6 +236,7 @@ class CollapsingUI extends BaseUI {
       arrayEach(parentObject.__children, (elem) => {
         if (!this.isAnyParentCollapsed(elem)) {
           const elemIndex = this.dataManager.getRowIndex(elem);
+
           rowsToUntrim.push(elemIndex);
           this.expandChildRows(elemIndex, rowsToUntrim);
         }

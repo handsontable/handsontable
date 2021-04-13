@@ -231,6 +231,7 @@ class Menu {
         }
       },
     };
+
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Core(this.container, settings);
@@ -295,6 +296,7 @@ class Menu {
       keepInViewport: true,
       container: this.options.container,
     });
+
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -706,6 +708,7 @@ class Menu {
 
     const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
+
     this.keyEvent = true;
 
     switch (event.keyCode) {

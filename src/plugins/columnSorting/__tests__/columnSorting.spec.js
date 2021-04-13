@@ -211,6 +211,7 @@ describe('ColumnSorting', () => {
     hot.render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
@@ -230,6 +231,7 @@ describe('ColumnSorting', () => {
     updateSettings({ columnSorting: false });
 
     const sortedColumn = spec().$container.find('th span')[0];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
@@ -1781,6 +1783,7 @@ describe('ColumnSorting', () => {
     spec().sortByClickOnColumnHeader(2);
 
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
+
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
@@ -1828,6 +1831,7 @@ describe('ColumnSorting', () => {
 
     // ascending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
@@ -1882,6 +1886,7 @@ describe('ColumnSorting', () => {
 
     // descending
     let sortedColumn = spec().$container.find('th span.columnSorting')[1];
+
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
     getPlugin('columnSorting').sort();
@@ -2699,6 +2704,7 @@ describe('ColumnSorting', () => {
       const freezeColumn = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
         return $(this).text() === 'Freeze column';
       });
+
       simulateClick(freezeColumn);
 
       expect(hot.getSettings().fixedColumnsLeft).toEqual(2);

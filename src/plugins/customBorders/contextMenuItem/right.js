@@ -20,6 +20,7 @@ export default function right(customBordersPlugin) {
     },
     callback(key, selected) {
       const hasBorder = checkSelectionBorders(this, 'right');
+
       customBordersPlugin.prepareBorder(selected, 'right', hasBorder);
     }
   };

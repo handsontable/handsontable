@@ -515,6 +515,7 @@ class IndexMapper {
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
       const physicalIndex = listWithRemovedItems.filter(index => this.isTrimmed(index) === false)[finalIndex];
+
       destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
     }
 

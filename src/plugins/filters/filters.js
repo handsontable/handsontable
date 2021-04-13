@@ -171,6 +171,7 @@ export class Filters extends BasePlugin {
         addSeparator: false,
         menuContainer
       });
+
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition', addConfirmationHooks(conditionComponent));
@@ -190,6 +191,7 @@ export class Filters extends BasePlugin {
         addSeparator: true,
         menuContainer
       });
+
       conditionComponent.addLocalHook('afterClose', () => this.onSelectUIClosed());
 
       this.components.set('filter_by_condition2', addConfirmationHooks(conditionComponent));

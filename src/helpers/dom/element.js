@@ -952,6 +952,7 @@ export function setCaretPosition(element, pos, endPos) {
     } catch (err) {
       const elementParent = element.parentNode;
       const parentDisplayValue = elementParent.style.display;
+
       elementParent.style.display = 'block';
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
@@ -972,10 +973,12 @@ let cachedScrollbarWidth;
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
   const inner = rootDocument.createElement('div');
+
   inner.style.height = '200px';
   inner.style.width = '100%';
 
   const outer = rootDocument.createElement('div');
+
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -988,6 +991,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
 
   (rootDocument.body || rootDocument.documentElement).appendChild(outer);
   const w1 = inner.offsetWidth;
+
   outer.style.overflow = 'scroll';
   let w2 = inner.offsetWidth;
 

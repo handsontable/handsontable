@@ -162,6 +162,7 @@ export class DropdownMenu extends BasePlugin {
     const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
+
     this.registerEvents();
 
     if (typeof settings.callback === 'function') {

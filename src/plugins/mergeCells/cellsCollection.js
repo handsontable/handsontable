@@ -111,6 +111,7 @@ class MergedCellsCollection {
     if (!testedRange.includesRange) {
       const from = new CellCoords(testedRange.from.row, testedRange.from.col);
       const to = new CellCoords(testedRange.to.row, testedRange.to.col);
+
       testedRange = new CellRange(from, from, to);
     }
 

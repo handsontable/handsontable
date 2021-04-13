@@ -271,6 +271,7 @@ describe('ColumnSummarySpec', () => {
               }
 
               let counter = 0;
+
               // go through all declared ranges
               Handsontable.helper.objectEach(endpoint.ranges, (range) => {
                 counter += checkRange(range);
@@ -363,6 +364,7 @@ describe('ColumnSummarySpec', () => {
       });
 
       const plugin = hot.getPlugin('columnSummary');
+
       expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(hot.countRows() / 2, 10));
       expect(hot.getDataAtCell(parseInt(hot.countRows() / 2, 10), 1)).toEqual(820);
 
@@ -633,6 +635,7 @@ describe('ColumnSummarySpec', () => {
         });
 
         const nestedRowsPlugin = hot.getPlugin('nestedRows');
+
         /**
          * @param row
          */

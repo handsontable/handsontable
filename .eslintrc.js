@@ -88,7 +88,9 @@ module.exports = {
       "error",
       { blankLine: "always", prev: "*", next: "return" },
       { blankLine: "always", prev: "*", next: ["if", "for", "switch", "while"] },
-      { blankLine: "any", prev: "block-like", next: ["if", "for", "switch", "while"] }
+      { blankLine: "any", prev: "block-like", next: ["if", "for", "switch", "while"] },
+      { blankLine: "always", prev: ["const", "let", "var"], next: "*" },
+      { blankLine: "any", prev: ["const", "let", "var"], next: ["const", "let", "var"] }
     ],
     "jsdoc/check-access": "error",
     "jsdoc/check-alignment": "error",

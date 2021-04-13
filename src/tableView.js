@@ -255,6 +255,7 @@ class TableView {
 
       if (!this.isTextSelectionAllowed(event.target)) {
         const { rootWindow } = this.instance;
+
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.

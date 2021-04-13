@@ -455,6 +455,7 @@ describe('AutoColumnSize', () => {
 
   it('should consider renderer that uses conditional formatting for specific row & column index', () => {
     const data = arrayOfObjects();
+
     data.push({ id: '2', name: 'Rocket Man', lastName: 'In a tin can' });
     handsontable({
       data,

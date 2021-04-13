@@ -35,6 +35,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
 
     } else if (labelProperty) {
       const labelData = this.getDataAtRowProp(row, labelProperty);
+
       labelText = labelData !== null ? labelData : cellValue;
     }
 
@@ -57,6 +58,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  */
 export function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
+
   baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   registerEvents(instance);
 
@@ -100,6 +102,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
     } else if (labelOptions.property) {
       const labelValue = instance.getDataAtRowProp(row, labelOptions.property);
+
       labelText = labelValue !== null ? labelValue : '';
     }
 
@@ -283,6 +286,7 @@ function registerEvents(instance) {
 
   if (!eventManager) {
     const { rootElement } = instance;
+
     eventManager = new EventManager(instance);
 
     eventManager.addEventListener(rootElement, 'click', event => onClick(event, instance));

@@ -869,6 +869,7 @@ describe('NestedHeaders', () => {
             </tr>
           </tbody>
           `;
+
         expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }
@@ -897,6 +898,7 @@ describe('NestedHeaders', () => {
             </tr>
           </tbody>
           `;
+
         expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }
@@ -934,6 +936,7 @@ describe('NestedHeaders', () => {
             </tr>
           </tbody>
           `;
+
         expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }

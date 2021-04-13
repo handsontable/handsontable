@@ -123,6 +123,7 @@ describe('HiddenColumns', () => {
         .find('tbody')
         .find('th')
         .eq(0);
+
       simulateClick(header, 'LMB');
 
       expect(getSelected()).toEqual([[0, -1, 0, 4]]);
@@ -299,6 +300,7 @@ describe('HiddenColumns', () => {
           .find('thead')
           .find('th')
           .eq(0);
+
         simulateClick(corner, 'LMB');
 
         expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
@@ -333,6 +335,7 @@ describe('HiddenColumns', () => {
           .find('thead')
           .find('th')
           .eq(0);
+
         simulateClick(corner, 'LMB');
 
         expect(getSelected()).toEqual([[-1, -1, 4, 4]]);

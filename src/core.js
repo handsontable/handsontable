@@ -2018,6 +2018,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (data === null) {
       const dataSchema = datamap.getSchema();
+
       // eslint-disable-next-line no-param-reassign
       data = [];
       let row;
@@ -4233,6 +4234,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.toTableElement = () => {
     const tempElement = this.rootDocument.createElement('div');
+
     tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
 
     return tempElement.firstElementChild;

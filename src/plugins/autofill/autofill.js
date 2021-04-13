@@ -625,6 +625,7 @@ export class Autofill extends BasePlugin {
    */
   mapSettings() {
     const mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+
     this.directions = mappedSettings.directions;
     this.autoInsertRow = mappedSettings.autoInsertRow;
   }

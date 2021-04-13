@@ -236,6 +236,7 @@ class Endpoints {
 
         return this.refreshAllEndpoints();
       };
+
       this.hot.addHookOnce('beforeRender', beforeRenderCallback);
 
       return;
@@ -347,6 +348,7 @@ class Endpoints {
 
     arrayEach(allIndexes, (range) => {
       let newRange = [];
+
       arrayEach(range, (coord, index) => {
         if (index === 0) {
           newRange.push(coord);
@@ -452,6 +454,7 @@ class Endpoints {
    */
   refreshChangedEndpoints(changes) {
     const needToRefresh = [];
+
     this.cellsToSetCache = [];
 
     arrayEach(changes, (value, key, changesObj) => {
@@ -504,6 +507,7 @@ class Endpoints {
     if (visualColumnIndex !== null && visualRowIndex !== null) {
       // Clear the meta on the "old" indexes
       const cellMeta = this.hot.getCellMeta(visualRowIndex, visualColumnIndex);
+
       cellMeta.readOnly = false;
       cellMeta.className = '';
     }
