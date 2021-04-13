@@ -116,6 +116,7 @@ describe('WalkontableTable', () => {
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 21))).toBe(-4); // exit code - after rendered column
 
     let results = [];
+
     for (let i = 0; i < 20; i++) {
       const result = wt.wtTable.getCell(new Walkontable.CellCoords(10, i));
       results.push(result instanceof HTMLElement ? HTMLElement : result);
@@ -124,6 +125,7 @@ describe('WalkontableTable', () => {
       .toEqual([-3, -3, -3, -3, -3, HTMLElement, HTMLElement, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4]);
 
     results = [];
+
     for (let i = 0; i < 20; i++) {
       const result = wt.wtTable.getCell(new Walkontable.CellCoords(i, 6));
       results.push(result instanceof HTMLElement ? HTMLElement : result);

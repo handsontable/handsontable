@@ -705,6 +705,7 @@ describe('ColumnSummarySpec', () => {
         maxRows: 5,
         columnSummary() {
           const configArray = [];
+
           for (let i = 0; i < columns; i++) {
             configArray.push({
               sourceColumn: i,

@@ -2548,6 +2548,7 @@ describe('UndoRedo', () => {
 
         // check if all cells are either non-adjusted or adjusted to the left (as default)
         let finish;
+
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);
@@ -2647,6 +2648,7 @@ describe('UndoRedo', () => {
 
         // check if all cells are either non-adjusted or adjusted to the left (as default)
         let finish;
+
         for (let i = 0; i < 9; i++) {
           for (let j = 0; j < 9; j++) {
             cellMeta = hot.getCellMeta(i, j);

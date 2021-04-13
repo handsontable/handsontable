@@ -380,6 +380,7 @@ export function removeTextNodes(element) {
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     const childs = element.childNodes;
+
     for (let i = childs.length - 1; i >= 0; i--) {
       removeTextNodes(childs[i], element);
     }
@@ -396,6 +397,7 @@ export function removeTextNodes(element) {
  */
 export function empty(element) {
   let child;
+
   /* eslint-disable no-cond-assign */
   while (child = element.lastChild) {
     element.removeChild(child);

@@ -538,6 +538,7 @@ class DataMap {
 
     extendArray(elements, after);
     let i = 0;
+
     while (i < amount) {
       elements.push(null); // add null in place of removed elements
       i += 1;
@@ -564,6 +565,7 @@ class DataMap {
 
     extendArray(elements, after);
     let i = 0;
+
     while (i < amount) {
       elements.push(null); // add null in place of removed elements
       i += 1;
