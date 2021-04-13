@@ -21,7 +21,7 @@ describe('Core', () => {
       ]
     });
 
-    const hasMobileClass = hot.container.classList.value.includes('mobile');
+    const hasMobileClass = hot.container.classList.contains('mobile');
 
     expect(hasMobileClass).toBeTruthy();
   });
