@@ -100,8 +100,7 @@ export class Formulas extends BasePlugin {
           height: selected.row
         }
 
-        // TODO name
-        const doTheThing = (
+        const paste = (
           // The cell we're copy'ing to let HyperFormula adjust the references properly
           sourceCellCoordinates,
 
@@ -138,7 +137,7 @@ export class Formulas extends BasePlugin {
               col: index.col % (Math.abs(bucket.range.start.col - bucket.range.end.col) + 1) + bucket.range.start.col
             }
 
-            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+            return paste(sourceCellCoordinates, targetCellCoordinates)
           }
 
           case 'left': {
@@ -155,7 +154,7 @@ export class Formulas extends BasePlugin {
               col: ((selectionDataWidth - fillOffset + index.col) % selectionDataWidth) + bucket.range.start.col
             }
 
-            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+            return paste(sourceCellCoordinates, targetCellCoordinates)
           }
 
           case 'down': {
@@ -169,7 +168,7 @@ export class Formulas extends BasePlugin {
               col: bucket.range.start.col + index.col
             }
 
-            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+            return paste(sourceCellCoordinates, targetCellCoordinates)
           }
 
           case 'up': {
@@ -186,7 +185,7 @@ export class Formulas extends BasePlugin {
               col: bucket.range.start.col + index.col
             }
 
-            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+            return paste(sourceCellCoordinates, targetCellCoordinates)
           }
         }
       })
