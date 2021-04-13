@@ -445,6 +445,7 @@ export class TextEditor extends BaseEditor {
   bindEvents() {
     this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
     this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
+
     if (isIOS()) {
       // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
       this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
