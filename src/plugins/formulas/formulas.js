@@ -70,6 +70,64 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    // this.addHook('beforeAutofill', (start, end, data) => {
+    // })
+
+    // this.addHook('modifyAutofillRange', (startArea, entireArea) => {
+    //   console.log(startArea, entireArea)
+    //   startArea[3] = 4
+    // })
+
+    // this.addHook('beforeAutofillInsidePopulate', (index, dir, inp, del) => {
+    //   console.log(del)
+    // })
+
+    this.addHook('beforeAutofill', (start, end) => {
+      //console.log(start, end)
+      // this.hyperformula.copy()
+      // this.hyperformula.copy(start, )
+    })
+
+    // Abuse the `modifyAutofillRange` hook to get the autofill start
+    // coordinates.
+    this.addHook('modifyAutofillRange', (_ , entireArea) => {
+      console.log('modifyAutofillRange')
+      const [startRow, startCol, endRow, endCol] = entireArea;
+
+      const width = Math.abs(startCol - endCol) + 1
+      const height = Math.abs(startRow - endRow) + 1
+
+      console.log('width', width)
+      console.log('height', height)
+
+      this.hyperformula.copy({
+        sheet: this.hyperformula.getSheetId(this.sheetName),
+        row: startRow,
+        col: startCol
+      }, width, height)
+    })
+
+    this.addHook('afterAutofill', (start, end) => {
+      // Fill out the cells inside HF using its clipboard.
+      // this.hyperformula.paste({
+      //   sheet: this.hyperformula.getSheetId(this.sheetName),
+      //   row: start.row,
+      //   col: start.col
+      // })
+      // console.log(start, end, data)
+      this.hot.render()
+    })
+
+    // Abuse this hook to easily figure out the direction of the
+    // autofill
+    this.addHook('beforeAutofillInsidePopulate', (index, direction, input) => {
+      //console.log('deltas', deltas)
+      // deltas[0][0] = 'turbo'
+      console.log('index', index)
+
+      return {value: `=5 + 5`}
+    })
+
     super.enablePlugin();
   }
 

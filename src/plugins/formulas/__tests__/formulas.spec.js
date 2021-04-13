@@ -1044,6 +1044,247 @@ describe('Formulas general', () => {
     });
   });
 
+  describe('autofill', () => {
+    const fillHandleSelector = '.wtBorder.current.corner';
+
+    const autofill = (endRow, endCol) => {
+      spec().$container.find(fillHandleSelector).simulate('mousedown');
+
+      spec().$container
+        .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
+        .simulate('mouseover')
+        .simulate('mouseup')
+    }
+
+    // Most of these tests will produce invalid values (out of bound addresses,
+    // #CYCLE! errors), but we only care about the formula offsets.
+    //
+    // https://docs.google.com/spreadsheets/d/1ERI3YEe7GYWUKdKGPU4C97yUh1fOM6HILZY03AB8wwk/edit?usp=sharing
+    it('single cell, down', () => {
+      const hot = handsontable({
+        data: [
+          ['=A1'],
+          ['x'],
+          ['x']
+        ],
+        formulas: true
+      })
+
+      selectCell(0, 0)
+      autofill(2, 0)
+
+      expect(hot.getSourceData()).toEqual([
+        ['=A1'],
+        ['=A2'],
+        ['=A3']
+      ])
+    })
+
+    it('single cell, right', () => {
+      const hot = handsontable({
+        data: [
+          ['=A1', 'x', 'x']
+        ],
+        formulas: true
+      })
+
+      selectCell(0, 0)
+      autofill(0, 2)
+
+      expect(hot.getSourceData()).toEqual([
+        ['=A1', '=B1', '=C1']
+      ])
+    })
+
+    it("range, down, partial", () => {
+      const hot = handsontable({
+        data: [
+          ["=E6", "=E10"],
+          ["=G6", "=G10"],
+          ["=I6", "=I10"],
+          ["x", "x"],
+          ["x", "x"],
+        ],
+        formulas: true,
+      });
+
+      selectCell(0, 0, 2, 1);
+      autofill(4, 1);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=E6", "=E10"],
+        ["=G6", "=G10"],
+        ["=I6", "=I10"],
+        ["=E9", "=E13"],
+        ["=G9", "=G13"],
+      ]);
+    });
+
+    it("range, down, overflow", () => {
+      const hot = handsontable({
+        data: [
+          ["=E6", "=E10"],
+          ["=G6", "=G10"],
+          ["=I6", "=I10"],
+          ["x", "x"],
+          ["x", "x"],
+          ["x", "x"],
+          ["x", "x"],
+          ["x", "x"],
+          ["x", "x"],
+        ],
+        formulas: true,
+      });
+
+      selectCell(0, 0, 2, 1);
+      autofill(8, 1);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=E6", "=E10"],
+        ["=G6", "=G10"],
+        ["=I6", "=I10"],
+        ["=E9", "=E13"],
+        ["=G9", "=G13"],
+        ["=I9", "=I13"],
+        ["=E12", "=E16"],
+        ["=G12", "=G16"],
+        ["=I12", "=I16"],
+      ]);
+    });
+
+    it("range, right, partial", () => {
+      const hot = handsontable({
+        data: [
+          ["=E6", "=E10", "x"],
+          ["=G6", "=G10", "x"],
+          ["=I6", "=I10", "x"],
+        ],
+        formulas: true,
+      });
+
+      selectCell(0, 0, 2, 1);
+      autofill(2, 2);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=E6", "=E10", "=G6"],
+        ["=G6", "=G10", "=I6"],
+        ["=I6", "=I10", "=K6"],
+      ]);
+    });
+
+    it("range, right, overflow", () => {
+      const hot = handsontable({
+        data: [
+          ["=E6", "=E10", "x", "x", "x"],
+          ["=G6", "=G10", "x", "x", "x"],
+          ["=I6", "=I10", "x", "x", "x"]
+        ],
+        formulas: true,
+      });
+
+      selectCell(0, 0, 2, 1);
+      autofill(2, 4);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=E6", "=E10", "=G6", "=G10", "=I6"],
+        ["=G6", "=G10", "=I6", "=I10", "=K6"],
+        ["=I6", "=I10", "=K6", "=K10", "=M6"]
+      ]);
+    });
+
+    it("range, left, partial", () => {
+      const hot = handsontable({
+        data: [
+          ["x", "=E6", "=E10"],
+          ["x", "=G6", "=G10"],
+          ["x", "=I6", "=I10"],
+        ],
+        formulas: true,
+      });
+
+      selectCell(0, 1, 2, 2);
+      autofill(2, 0);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=C10", "=E6", "=E10"],
+        ["=E10", "=G6", "=G10"],
+        ["=G10", "=I6", "=I10"],
+      ]);
+    });
+
+    it("range, left, overflow", () => {
+      const hot = handsontable({
+        data: [
+          ["x", "x", "x", "=E6", "=E10"],
+          ["x", "x", "x", "=G6", "=G10"],
+          ["x", "x", "x", "=I6", "=I10"],
+        ],
+        formulas: true,
+      });
+
+      selectCell(0, 3, 2, 4);
+      autofill(2, 0);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=A10", "=C6", "=C10", "=E6", "=E10"],
+        ["=C10", "=E6", "=E10", "=G6", "=G10"],
+        ["=E10", "=G6", "=G10", "=I6", "=I10"],
+      ]);
+    });
+
+    it("range, up, partial", () => {
+      const hot = handsontable({
+        data: [
+          ["x", "x"],
+          ["=E7", "=E10"],
+          ["=G7", "=G10"],
+          ["=I7", "=I10"]
+        ],
+        formulas: true,
+      });
+
+      selectCell(1, 0, 3, 1);
+      autofill(0, 1);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=I4", "=I7"],
+        ["=E7", "=E10"],
+        ["=G7", "=G10"],
+        ["=I7", "=I10"]
+      ]);
+    });
+
+    it("range, up, overflow", () => {
+      const hot = handsontable({
+        data: [
+          ["x", "x"],
+          ["x", "x"],
+          ["x", "x"],
+          ["x", "x"],
+          ["x", "x"],
+          ["=E7", "=E10"],
+          ["=G7", "=G10"],
+          ["=I7", "=I10"],
+        ],
+        formulas: true,
+      });
+
+      selectCell(5, 0, 7, 1);
+      autofill(0, 1);
+
+      expect(hot.getSourceData()).toEqual([
+          ["=G1", "=G4"],
+          ["=I1", "=I4"],
+          ["=E4", "=E7"],
+          ["=G4", "=G7"],
+          ["=I4", "=I7"],
+          ["=E7", "=E10"],
+          ["=G7", "=G10"],
+          ["=I7", "=I10"],
+        ]);
+    });
+  })
+
   xdescribe('column sorting', () => {
     it('should recalculate all formulas and update theirs cell coordinates if needed', () => {
       const hot = handsontable({
