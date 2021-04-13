@@ -1,5 +1,6 @@
 import { HyperFormula } from 'hyperformula';
 import staticRegister from '../../utils/staticRegister';
+import hyperformulaDefaultSettings from './hfDefaultSettings';
 
 /**
  * Registers HyperFormula as a global entity and applies hooks allowing a multi-sheet setup.
@@ -8,7 +9,7 @@ import staticRegister from '../../utils/staticRegister';
  */
 export function registerHF() {
   if (!staticRegister('formulas').hasItem('hyperformula')) {
-    staticRegister('formulas').register('hyperformula', HyperFormula.buildEmpty({}));
+    staticRegister('formulas').register('hyperformula', HyperFormula.buildEmpty(hyperformulaDefaultSettings));
   }
 
   const hfInstance = staticRegister('formulas').getItem('hyperformula');

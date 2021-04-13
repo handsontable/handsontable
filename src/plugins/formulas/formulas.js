@@ -2,7 +2,6 @@
 
 import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
-import hyperformulaDefaultSettings from './hfDefaultSettings';
 import { registerHF } from './hyperformulaSetup';
 import { error } from '../../helpers/console';
 
@@ -200,7 +199,6 @@ export class Formulas extends BasePlugin {
     const hfConfig = this.#settings.hyperFormulaConfig;
 
     this.hyperformula.updateConfig({
-      ...hyperformulaDefaultSettings,
       ...(hfConfig || {}),
       maxColumns: hotSettings.maxColumns,
       maxRows: hotSettings.maxRows
