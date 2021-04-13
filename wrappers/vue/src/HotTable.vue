@@ -115,7 +115,7 @@
 
         preventInternalEditWatch(this);
 
-        this.miscCache.dataLength = newSettings.data.length;
+        this.miscCache.dataLength = newSettings?.data?.length ?? 0;
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
       },
       matchHotMappersSize: function (data: any[][]): void {
@@ -148,9 +148,11 @@
 
         this.hotInstance.batch(() => {
           if (rowsToRemove.length > 0) {
+            this.miscCache.dataLength -= rowsToRemove.length;
             this.hotInstance.rowIndexMapper.removeIndexes(rowsToRemove);
 
           } else {
+            this.miscCache.dataLength += data.length - oldDataLength;
             this.hotInstance.rowIndexMapper.insertIndexes(oldDataLength - 1, data.length - oldDataLength);
           }
 
