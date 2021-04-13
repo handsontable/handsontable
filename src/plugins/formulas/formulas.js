@@ -70,63 +70,96 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    // this.addHook('beforeAutofill', (start, end, data) => {
-    // })
+    // Autofill hooks
+    {
+      // TODO move this into the class probly, or maybe not
+      let bucket = {range: undefined}
 
-    // this.addHook('modifyAutofillRange', (startArea, entireArea) => {
-    //   console.log(startArea, entireArea)
-    //   startArea[3] = 4
-    // })
+      // Abuse the `modifyAutofillRange` hook to get the autofill start
+      // coordinates.
+      this.addHook('modifyAutofillRange', (_ , entireArea) => {
+        const [startRow, startCol, endRow, endCol] = entireArea;
 
-    // this.addHook('beforeAutofillInsidePopulate', (index, dir, inp, del) => {
-    //   console.log(del)
-    // })
+        bucket.range = {
+          start: {
+            row: startRow,
+            col: startCol
+          },
+          end: {
+            row: endRow,
+            col: endCol
+          }
+        }
+      })
 
-    this.addHook('beforeAutofill', (start, end) => {
-      //console.log(start, end)
-      // this.hyperformula.copy()
-      // this.hyperformula.copy(start, )
-    })
+      // Abuse this hook to easily figure out the direction of the
+      // autofill
+      this.addHook('beforeAutofillInsidePopulate', (index, direction, _input, _deltas, _, selected) => {
+        const rangeToBeFilledInSize = {
+          width: selected.col,
+          height: selected.row
+        }
 
-    // Abuse the `modifyAutofillRange` hook to get the autofill start
-    // coordinates.
-    this.addHook('modifyAutofillRange', (_ , entireArea) => {
-      console.log('modifyAutofillRange')
-      const [startRow, startCol, endRow, endCol] = entireArea;
+        // TODO name
+        const doTheThing = (
+          // The cell we're copy'ing to let HyperFormula adjust the references properly
+          sourceCellCoordinates,
 
-      const width = Math.abs(startCol - endCol) + 1
-      const height = Math.abs(startRow - endRow) + 1
+          // The cell we're pasting into
+          targetCellCoordinates
+        ) => {
+          this.hyperformula.copy({
+            sheet: this.hyperformula.getSheetId(this.sheetName),
+            row: sourceCellCoordinates.row,
+            col: sourceCellCoordinates.col
+          }, 1, 1)
 
-      console.log('width', width)
-      console.log('height', height)
+          const [{address}] = this.hyperformula.paste({
+            sheet: this.hyperformula.getSheetId(this.sheetName),
+            row: targetCellCoordinates.row,
+            col: targetCellCoordinates.col
+          })
 
-      this.hyperformula.copy({
-        sheet: this.hyperformula.getSheetId(this.sheetName),
-        row: startRow,
-        col: startCol
-      }, width, height)
-    })
+          const value = this.hyperformula.getCellSerialized(address)
 
-    this.addHook('afterAutofill', (start, end) => {
-      // Fill out the cells inside HF using its clipboard.
-      // this.hyperformula.paste({
-      //   sheet: this.hyperformula.getSheetId(this.sheetName),
-      //   row: start.row,
-      //   col: start.col
-      // })
-      // console.log(start, end, data)
-      this.hot.render()
-    })
+          return {value}
+        }
 
-    // Abuse this hook to easily figure out the direction of the
-    // autofill
-    this.addHook('beforeAutofillInsidePopulate', (index, direction, input) => {
-      //console.log('deltas', deltas)
-      // deltas[0][0] = 'turbo'
-      console.log('index', index)
+        switch (direction) {
+          case 'right': {
+            const targetCellCoordinates = {
+              row: bucket.range.start.row + index.row,
+              col: bucket.range.start.col + index.col + Math.abs(bucket.range.start.col - bucket.range.end.col) + 1
+            }
 
-      return {value: `=5 + 5`}
-    })
+            const sourceCellCoordinates = {
+              row: bucket.range.start.row + index.row,
+              col: index.col % (Math.abs(bucket.range.start.col - bucket.range.end.col) + 1) + bucket.range.start.col
+            }
+
+            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+          }
+
+          case 'left': {
+            const targetCellCoordinates = {
+              row: bucket.range.start.row + index.row,
+              col: bucket.range.start.col + index.col - rangeToBeFilledInSize.width
+            }
+
+            const sourceCellCoordinates = {
+              row: bucket.range.start.row + index.row,
+              col: ((rangeToBeFilledInSize.width - index.col) % (Math.abs(bucket.range.start.col - bucket.range.end.col) + 1)) + bucket.range.start.col
+            }
+
+            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+          }
+
+          // TODO
+          case 'down': {}
+          case 'up': {}
+        }
+      })
+    }
 
     super.enablePlugin();
   }

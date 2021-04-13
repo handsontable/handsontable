@@ -1,5 +1,5 @@
 describe('Formulas general', () => {
-  const debug = false;
+  const debug = true;
   const id = 'testContainer';
 
   beforeEach(function() {
