@@ -197,6 +197,7 @@ export function index(element) {
  */
 export function overlayContainsElement(overlayType, element, root) {
   const overlayElement = root.parentElement.querySelector(`.ht_clone_${overlayType}`);
+
   return overlayElement ? overlayElement.contains(element) : null;
 }
 

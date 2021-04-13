@@ -22,6 +22,7 @@ const calculatedColumns = {
     if (startColumn === null) {
       return -1;
     }
+
     return startColumn;
   },
 
@@ -36,6 +37,7 @@ const calculatedColumns = {
     if (startColumn === null) {
       return -1;
     }
+
     return startColumn;
   },
 
@@ -50,6 +52,7 @@ const calculatedColumns = {
     if (endColumn === null) {
       return -1;
     }
+
     return endColumn;
   },
 
@@ -64,6 +67,7 @@ const calculatedColumns = {
     if (endColumn === null) {
       return -1;
     }
+
     return endColumn;
   },
 

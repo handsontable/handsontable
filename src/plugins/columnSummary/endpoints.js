@@ -152,6 +152,7 @@ class Endpoints {
   assignSetting(settings, endpoint, name, defaultValue) {
     if (name === 'ranges' && settings[name] === void 0) {
       endpoint[name] = defaultValue;
+
       return;
     } else if (name === 'ranges' && settings[name].length === 0) {
       return;
@@ -232,9 +233,11 @@ class Endpoints {
       // and it needs to be run to properly calculate the endpoint value.
       const beforeRenderCallback = () => {
         this.hot.removeHook('beforeRender', beforeRenderCallback);
+
         return this.refreshAllEndpoints();
       };
       this.hot.addHookOnce('beforeRender', beforeRenderCallback);
+
       return;
     }
 
@@ -526,6 +529,7 @@ class Endpoints {
 
     if (endpoint.destinationRow >= this.hot.countRows() || endpoint.destinationColumn >= this.hot.countCols()) {
       this.throwOutOfBoundsWarning();
+
       return;
     }
 

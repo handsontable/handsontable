@@ -266,6 +266,7 @@ describe('ColumnSummarySpec', () => {
 
                   i -= 1;
                 } while (i >= rowRange[0]);
+
                 return counter;
               }
 
@@ -712,6 +713,7 @@ describe('ColumnSummarySpec', () => {
               forceNumeric: true
             });
           }
+
           return configArray;
         }
       });

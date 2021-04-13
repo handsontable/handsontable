@@ -62,6 +62,7 @@ class MergedCellsCollection {
       if (mergedCell.row <= row && mergedCell.row + mergedCell.rowspan - 1 >= row &&
         mergedCell.col <= column && mergedCell.col + mergedCell.colspan - 1 >= column) {
         result = mergedCell;
+
         return false;
       }
 
@@ -85,6 +86,7 @@ class MergedCellsCollection {
       if (mergedCell.row <= range.from.row && mergedCell.row + mergedCell.rowspan - 1 >= range.to.row &&
         mergedCell.col <= range.from.col && mergedCell.col + mergedCell.colspan - 1 >= range.to.col) {
         result = mergedCell;
+
         return result;
       }
 
@@ -179,6 +181,7 @@ class MergedCellsCollection {
 
     if (wantedCollection && wantedCollectionIndex !== false) {
       mergedCells.splice(wantedCollectionIndex, 1);
+
       return wantedCollection;
     }
 
@@ -250,6 +253,7 @@ class MergedCellsCollection {
 
       if (currentRange.overlaps(mergedCellRange)) {
         result = true;
+
         return false;
       }
 

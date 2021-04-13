@@ -44,7 +44,11 @@ function UndoRedo(instance) {
       return;
     }
 
-    const clonedChanges = changes.reduce((arr, change) => { arr.push([...change]); return arr; }, []);
+    const clonedChanges = changes.reduce((arr, change) => {
+      arr.push([...change]);
+
+      return arr;
+    }, []);
 
     arrayEach(clonedChanges, (change) => {
       change[1] = instance.propToCol(change[1]);

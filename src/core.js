@@ -1253,6 +1253,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
+
         return;
       }
 

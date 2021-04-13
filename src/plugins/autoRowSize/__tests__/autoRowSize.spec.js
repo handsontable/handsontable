@@ -490,6 +490,7 @@ describe('AutoRowSize', () => {
         if (index === 22) {
           return 'a<br>much<br>longer<br>label';
         }
+
         return 'test';
       },
       autoRowSize: true,

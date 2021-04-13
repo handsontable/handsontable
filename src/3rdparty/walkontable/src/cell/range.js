@@ -599,6 +599,7 @@ class CellRange {
         }
       }
     }
+
     return out;
   }
 

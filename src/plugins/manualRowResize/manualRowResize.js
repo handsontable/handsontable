@@ -318,6 +318,7 @@ export class ManualRowResize extends BasePlugin {
       if (element.tagName === 'TH') {
         return element;
       }
+
       return this.getClosestTHParent(element.parentNode);
 
     }

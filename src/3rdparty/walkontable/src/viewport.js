@@ -188,6 +188,7 @@ class Viewport {
    */
   getWorkspaceActualWidth() {
     const { wtTable } = this.wot;
+
     return outerWidth(wtTable.TABLE) ||
       outerWidth(wtTable.TBODY) ||
       outerWidth(wtTable.THEAD); // IE8 reports 0 as <table> offsetWidth;

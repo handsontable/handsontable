@@ -59,6 +59,7 @@ describe('CheckboxRenderer', () => {
     const spy = jasmine.createSpyObj('error', ['test']);
     window.onerror = function() {
       spy.test();
+
       return false;
     };
 

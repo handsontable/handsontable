@@ -507,6 +507,7 @@ AutocompleteEditor.sortByRelevance = function(value, choices, caseSensitive) {
     for (i = 0; i < choicesCount; i++) {
       result.push(i);
     }
+
     return result;
   }
 

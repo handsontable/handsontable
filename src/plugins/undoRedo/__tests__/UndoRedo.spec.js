@@ -1998,6 +1998,7 @@ describe('UndoRedo', () => {
               if (col === 1) {
                 return { readOnly: true };
               }
+
               return {};
             }
           });

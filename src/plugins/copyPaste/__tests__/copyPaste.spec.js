@@ -204,6 +204,7 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCopy() {
           beforeCopySpy();
+
           return false;
         },
         afterCopy: afterCopySpy,

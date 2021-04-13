@@ -180,6 +180,7 @@ describe('manualColumnFreeze', () => {
         if ($(this).text() === 'Freeze column') {
           return true;
         }
+
         return false;
       });
 
@@ -221,6 +222,7 @@ describe('manualColumnFreeze', () => {
         if ($(this).text() === 'Unfreeze column') {
           return true;
         }
+
         return false;
       });
       freezeEntry.eq(0).simulate('mousedown').simulate('mouseup');

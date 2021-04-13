@@ -529,6 +529,7 @@ export class ManualRowMove extends BasePlugin {
       priv.pressed = false;
       priv.rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+
       return;
     }
 

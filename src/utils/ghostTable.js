@@ -208,6 +208,7 @@ class GhostTable {
     if (this.settings) {
       return this.settings[name];
     }
+
     return null;
 
   }

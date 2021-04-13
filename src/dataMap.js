@@ -250,6 +250,7 @@ class DataMap {
       if (typeof schema === 'function') {
         return schema();
       }
+
       return schema;
     }
 

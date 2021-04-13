@@ -55,6 +55,7 @@ class SamplesGenerator {
     if (this.customSampleCount) {
       return this.customSampleCount;
     }
+
     return SamplesGenerator.SAMPLE_COUNT;
   }
 

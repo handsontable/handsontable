@@ -310,6 +310,7 @@ export class Autofill extends BasePlugin {
     if (coords.col < 0) {
       coords.col = 0;
     }
+
     return coords;
   }
 

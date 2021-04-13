@@ -1118,6 +1118,7 @@ export default () => {
 
             return isObjectEqual(this.getSchema()[meta.prop], value);
           }
+
           return false;
         }
       }

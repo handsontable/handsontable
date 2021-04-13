@@ -398,6 +398,7 @@ class CollapsingUI extends BaseUI {
 
         if (!this.plugin.collapsedRowsMap.getValueAtIndex(rowIndex)) {
           allCollapsed = false;
+
           return false;
         }
       });

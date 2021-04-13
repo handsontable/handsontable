@@ -14,6 +14,7 @@ export default function right(customBordersPlugin) {
       if (hasBorder) {
         label = markSelected(label);
       }
+
       return label;
     },
     callback(key, selected) {

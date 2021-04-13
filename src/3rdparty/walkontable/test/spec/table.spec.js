@@ -5,6 +5,7 @@ describe('WalkontableTable', () => {
     const hotParent = TH.parentElement.parentElement.parentElement.parentElement.parentElement
       .parentElement.parentElement;
     const classes = hotParent.className.split(' ');
+
     return classes[0];
   }
 
@@ -984,6 +985,7 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
+
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       }
     });

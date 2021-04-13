@@ -724,6 +724,7 @@ describe('TrimRows', () => {
       const event = {};
       event.clipboardData = new DataTransferObject();
       event.preventDefault = () => {};
+
       return event;
     }
 
