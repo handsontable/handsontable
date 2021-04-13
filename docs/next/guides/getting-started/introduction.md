@@ -1,18 +1,17 @@
 ---
-title: Welcome
+title: Introduction
 permalink: /next/
 canonicalUrl: /
 ---
 
-# {{ $frontmatter.title }} <img class="waving-hand" src="/img/pages/welcome/icon-waving-hand.svg" alt="Hello" />
+# Handsontable Guides
 
 [[toc]]
-
-## About Handsontable
 
 **Handsontable** is a **JavaScript data grid** with spreadsheet features and look&feel. It supports the most popular frameworks such as **React, Angular, and Vue**. It can be easily modified or extended with custom plugins. It binds to data using the JSON format, and handles large amounts of records. It supports operations like filtering, sorting, and CRUD operations.
 
 ## Get started with sample apps
+
 
 <div class="row-items-container">
     <a href="hello-world-app" class="row-item">
@@ -36,32 +35,16 @@ canonicalUrl: /
    </a>
 </div>
 
-## What's new in Handsontable
+## What's new
 
-<div class="row-items-container">
-    <a href="release-notes" class="row-item">
-     <h3>Release notes</h3>
-    </a>
+- [Release notes](release-notes)
+- [Roadmap](roadmap)
+- [Blog](https://handsontable.com/blog)
+- [Twitter](https://twitter.com/handsontable)
 
-   <a href="roadmap" class="row-item">
-    <h3>Roadmap</h3>
-   </a>
-   
-   <a href="https://handsontable.com/blog" class="row-item">
-    <h3>Blog</h3>
-   </a>
-   
-   <a href="https://twitter.com/handsontable" class="row-item">
-    <h3>Twitter</h3>
-   </a>
-</div>
+## Get support
 
-## Troubleshooting
-
-If you obtained the commercial license then you have several convenient 
-way to get help.
-
-- [Contact Support Team](https://handsontable.com/contact?category=technical_support)
-- [Ask on Forum](https://forum.handsontable.com)
+- [Contact support team](https://handsontable.com/contact?category=technical_support)
+- [Ask on forum](https://forum.handsontable.com)
 - [Report issue on GitHub](https://github.com/handsontable/handsontable/discussions)
 - [Discuss on GitHub Discussions](https://github.com/handsontable/handsontable/discussions)

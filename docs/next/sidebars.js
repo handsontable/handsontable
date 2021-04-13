@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const gettingStartedItems = [
-  'guides/getting-started/welcome',
-  'guides/getting-started/hello-world-app',
+  'guides/getting-started/introduction',
+  'guides/getting-started/hello-world',
   'guides/getting-started/basic-usage',
   'guides/getting-started/binding-to-data',
   'guides/getting-started/setting-options',
@@ -84,7 +84,7 @@ const cellsItems = [
   'guides/cells/conditional-formatting',
   'guides/cells/data-validation',
   'guides/cells/text-alignment',
-  'guides/cells/read-only-state',
+  'guides/cells/disabled-cells',
   'guides/cells/comments',
   'guides/cells/auto-fill',
   'guides/cells/formatting-cells',

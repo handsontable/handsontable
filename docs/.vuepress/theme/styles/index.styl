@@ -1,11 +1,24 @@
-body, html, #app {
-  min-height 100vh
+/* VuePress Tabs */
+@import '~vuepress-plugin-tabs/dist/themes/default.styl'
+@import 'vuepress-tabs-custom.styl'
 
+body {
+  font-size: 15px;
+}
+
+body, html, #app {
+  min-height 100vh;
 }
 
 body div {
   user-select: initial;
 }
+  
+.theme-default-content:not(.custom) > h1, .theme-default-content:not(.custom) > h2, .theme-default-content:not(.custom) > h3, .theme-default-content:not(.custom) > h4, .theme-default-content:not(.custom) > h5, .theme-default-content:not(.custom) > h6 {
+  margin-top: -2.1rem;
+}
+  
+/* Handsontable styles */
 
 .hot {
   position: relative;
@@ -41,7 +54,7 @@ body div {
 }
   
 .page-edit {
-  margin-top: 50px!important;
+  margin-top: 20px!important;
 }
 
 .theme-default-content:not(.custom) {
@@ -91,7 +104,8 @@ body div {
 
 /* Larger bottom gap of H1, H2, H3 */
 h1 {
-  margin-bottom: 1rem!important;
+  font-size: 2rem;
+  margin-bottom: 2rem!important;
 }
 
 h2 {
@@ -99,7 +113,7 @@ h2 {
   padding-bottom: 0;
   padding-top: 3.6rem!important;
   border-bottom: none;
-  font-size: 1.55rem;
+  font-size: 1.45rem;
 }
 
 h3 {
@@ -161,7 +175,7 @@ table {
   }
 
   .toc-container-header {
-      font-weight: 600;
+      font-weight: 500;
       padding: 1.2em 1rem;
   }
 
@@ -170,7 +184,7 @@ table {
       position: fixed;
       right: 0;
       top: 100px;
-      width: 240px;
+      width: 225px;
       overflow-y: auto;
       overflow-x: hidden;
       border-left: 1px solid #e9eef2;
@@ -198,13 +212,13 @@ table {
           font-weight: 400;
           line-height: 1.4;
           padding: 0.35rem 1rem;
-          color: #104bcd;
+          color: $textColor;
           display: block;
           text-decoration: none!important;
       }
     
       a.active {
-        color: #104bcd;    
+        color: $textColor;
       }
     
       a:hover {
@@ -219,6 +233,10 @@ table {
   .page-top
   .theme-default-content {
     max-width: calc(100% - 370px);
+
+    .table-of-contents {
+      right: 0;
+    }
   }
 }
 }
@@ -229,6 +247,10 @@ table {
   .page-top
   .theme-default-content {
     max-width: 900px;
+
+    .table-of-contents {
+      left: calc(900px + 416px);
+    }
   }
 }
 }
@@ -258,15 +280,6 @@ div.js-fiddle-link {
 .page-nav .inner {
   border-color: #e9eef2!important;
 }
-
-/* Welcome waving hand */
-.waving-hand {
-  width: 50px;
-  height: 50px;
-  position: relative;
-  left: -4px;
-  top: 10px;
-}
   
 /* A navigation element containing clickable fields (columns) */
 .row-items-container {
@@ -285,7 +298,7 @@ div.js-fiddle-link {
     flex-basis: auto;
     text-align: center;
     color: $textColor;
-    border: 2px solid #e9eef2;
+    border: 1px solid #e9eef2;
     border-radius: 8px;
     transition: all .15s ease;
 
@@ -301,7 +314,7 @@ div.js-fiddle-link {
     
     img {
       margin-top: 14px;
-      min-height: 55px;
+      max-height: 45px;
     }
     
     h3 {

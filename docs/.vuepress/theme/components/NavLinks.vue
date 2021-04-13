@@ -141,7 +141,7 @@ export default {
   .nav-item > a
     &.external > span
       display none
-    &:hover, &.router-link-active
+    &.router-link-active
       margin-bottom -2px
       border-bottom 2px solid lighten($accentColor, 8%)
 </style>

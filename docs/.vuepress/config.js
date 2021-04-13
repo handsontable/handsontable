@@ -34,6 +34,7 @@ module.exports = {
     },
   },
   plugins: [
+    'tabs',
     ['sitemap', {
       hostname: 'https://handsontable.com',
     }],

@@ -48,13 +48,15 @@ export default {
   min-height 100%
 
 .version-alert
-  background #104bcd
   margin-top 2rem
-  padding 1.2rem 1.2rem
+  padding 1rem 1.2rem
   border-radius 6px
-  color #fff
+  color $textColor
+  border 1px solid #e9eef2
+  border-left 10px solid #2655f2
+  background #fafbff
   p
     padding 0
     margin 0
-    line-height 1
+    line-height 1.5
 </style>

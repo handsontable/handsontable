@@ -1,0 +1,56 @@
+/* 
+  Customization of the VuePress Tabs plugin 
+  https://www.npmjs.com/package/vuepress-plugin-tabs
+  Copyright (c) 2018 Panagiotis Skordilakis
+  The MIT license 
+*/
+
+.tabs-component {
+  margin 1em 0;
+  
+  ul.tabs-component-tabs {
+    padding-left: 0;
+    border-radius: 6px 6px 0 0;
+    border: 1px solid #e9eef2;
+    background-color: #fafbff;
+    
+    li.tabs-component-tab {
+      margin-right: 0;
+      border-radius: 0;
+      border: none;
+      background: transparent;
+      
+      &:last-child {
+        margin-left: auto;
+      }
+      
+      a.tabs-component-tab-a {
+        padding: 0.5em 1.4em;
+        color: $textColor;
+        
+        &:hover {
+          color: #104bcd;
+          text-decoration: none;
+        }
+      }
+      
+      &.is-active {
+        border-bottom: 2px solid #104bcd;
+        
+        &:hover a {
+          color: $textColor;
+        }
+      }
+    }
+  }
+  
+  .tabs-component-panels {
+    border-radius: 0 0 6px 6px;
+    box-shadow: none;
+    border-color: #e9eef2;
+    
+    pre {
+      margin: 0;
+    }
+  } 
+}

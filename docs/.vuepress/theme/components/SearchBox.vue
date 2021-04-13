@@ -145,7 +145,7 @@ export default {
 
         if (matchQuery(query, p)) {
           res.push(Object.assign({}, p, {
-            category: apiRegex.exec(p.path) ? 'API References' : 'Guides'
+            category: apiRegex.exec(p.path) ? 'API Reference' : 'Guides'
           }))
         } else if (p.headers) {
           for (let j = 0; j < p.headers.length; j++) {
@@ -155,7 +155,7 @@ export default {
               res.push(Object.assign({}, p, {
                 path: p.path + '#' + h.slug,
                 header: h,
-                category: apiRegex.exec(p.path) ? 'API References' : 'Guides'
+                category: apiRegex.exec(p.path) ? 'API Reference' : 'Guides'
               }))
             }
           }
@@ -277,6 +277,9 @@ export default {
     list-style-type none
     &.align-right
       right 0
+    li {
+      padding 0.4rem 0.6rem
+    }
   .suggestion
     line-height 1.4
     padding 0.4rem 0.6rem
