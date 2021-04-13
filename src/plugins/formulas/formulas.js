@@ -199,15 +199,12 @@ export class Formulas extends BasePlugin {
     const hotSettings = this.hot.getSettings();
     const hfConfig = this.#settings.hyperFormulaConfig;
 
-    if (hfConfig) {
-      this.hyperformula.updateConfig({
-        ...hyperformulaDefaultSettings,
-        ...hfConfig,
-        maxColumns: hotSettings.maxColumns,
-        maxRows: hotSettings.maxRows,
-        licenseKey: hotSettings.licenseKey
-      });
-    }
+    this.hyperformula.updateConfig({
+      ...hyperformulaDefaultSettings,
+      ...(hfConfig || {}),
+      maxColumns: hotSettings.maxColumns,
+      maxRows: hotSettings.maxRows
+    });
   }
 
   /**
@@ -226,7 +223,7 @@ export class Formulas extends BasePlugin {
       this.sheetName = this.hyperformula.addSheet(sheetName);
     }
 
-    this.sheetId = this.hyperformula.getSheetId(this.sheetName)
+    this.sheetId = this.hyperformula.getSheetId(this.sheetName);
 
     if (this.hot.getSettings().data) {
       this.skipHF = true;
