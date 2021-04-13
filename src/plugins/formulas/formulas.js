@@ -133,7 +133,13 @@ export class Formulas extends BasePlugin {
    * Triggered on `updateSettings`.
    */
   updatePlugin() {
+    this.#settings = this.hot.getSettings()[PLUGIN_KEY];
+
     this.applyHFSettings();
+
+    if (this.#settings.sheetName !== this.sheetName) {
+      this.switchSheet(this.#settings.sheetName);
+    }
 
     super.updatePlugin();
   }
