@@ -125,6 +125,7 @@ export class Formulas extends BasePlugin {
           return {value}
         }
 
+        // Pretty much reimplements the logic from `src/plugins/autofill/autofill.js#fillIn`
         switch (direction) {
           case 'right': {
             const targetCellCoordinates = {
@@ -146,17 +147,47 @@ export class Formulas extends BasePlugin {
               col: bucket.range.start.col + index.col - rangeToBeFilledInSize.width
             }
 
+            const selectionDataWidth = Math.abs(bucket.range.end.col - bucket.range.start.col) + 1
+            const fillOffset = rangeToBeFilledInSize.width % selectionDataWidth
+
             const sourceCellCoordinates = {
               row: bucket.range.start.row + index.row,
-              col: ((rangeToBeFilledInSize.width - index.col) % (Math.abs(bucket.range.start.col - bucket.range.end.col) + 1)) + bucket.range.start.col
+              col: ((selectionDataWidth - fillOffset + index.col) % selectionDataWidth) + bucket.range.start.col
             }
 
             return doTheThing(sourceCellCoordinates, targetCellCoordinates)
           }
 
-          // TODO
-          case 'down': {}
-          case 'up': {}
+          case 'down': {
+            const targetCellCoordinates = {
+              row: bucket.range.start.row + index.row + Math.abs(bucket.range.start.row - bucket.range.end.row) + 1,
+              col: bucket.range.start.col + index.col
+            }
+
+            const sourceCellCoordinates = {
+              row: index.row % (Math.abs(bucket.range.start.row - bucket.range.end.row) + 1) + bucket.range.start.row,
+              col: bucket.range.start.col + index.col
+            }
+
+            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+          }
+
+          case 'up': {
+            const targetCellCoordinates = {
+              row: bucket.range.start.row + index.row - rangeToBeFilledInSize.height,
+              col: bucket.range.start.col + index.col
+            }
+
+            const selectionDataHeight = Math.abs(bucket.range.end.row - bucket.range.start.row) + 1
+            const fillOffset = rangeToBeFilledInSize.height % selectionDataHeight
+
+            const sourceCellCoordinates = {
+              row: ((selectionDataHeight - fillOffset + index.row) % selectionDataHeight) + bucket.range.start.row,
+              col: bucket.range.start.col + index.col
+            }
+
+            return doTheThing(sourceCellCoordinates, targetCellCoordinates)
+          }
         }
       })
     }
