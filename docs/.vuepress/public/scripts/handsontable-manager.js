@@ -47,13 +47,18 @@ const useHandsontable = ((instanceRegister) => {
     const buildDependencyGetter = (version) => {
       const [hotJsUrl, hotCssUrl] = getHotUrls(version);
       // todo use version
+      // todo describe dynamic dependencies loader in readme
+      // todo describe presets in readme
       return (dependency) => {
         const dependencies = {
           hot: [hotJsUrl, ['Handsontable', 'Handsontable.react'], hotCssUrl],
           react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
           'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
           'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
-          fixer: ['/docs/scripts/fixer.js', ['require', 'exports']]
+          fixer: ['/docs/scripts/fixer.js', ['require', 'exports']],
+          numbro: ['https://handsontable.com/docs/8.3.2/components/numbro/dist/languages.min.js', ['numbro.allLanguages','numbro']],
+          redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js',[]],
+
         };
 
         // [jsUrl, dependentVars[]?, cssUrl?]
@@ -118,7 +123,10 @@ const useHandsontable = ((instanceRegister) => {
     const reloadPreset = async(preset) => {
       const presetMap = { //todo duplicated in examples
         hot: ['hot'],
-        react: ['react', 'react-dom', 'hot', 'hot-react', 'fixer'],
+        react: [ 'hot','react', 'react-dom', 'hot-react', 'fixer'],
+        'react-numbro': [ 'hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
+        'react-redux': [ 'hot', 'react', 'react-dom', 'redux', 'hot-react', 'fixer'],
+
         // todo others
       };
 

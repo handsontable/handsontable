@@ -33,7 +33,9 @@ const buildDependencyGetter = (version) => {
       react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
       'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
       'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
-      fixer: ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js', ['require', 'exports']] //todo new one fixer doesn't work
+      fixer: ['https://handsontable.com/docs/8.3.2/scripts/jsfiddle-fixer.js', ['require', 'exports']], //todo new one fixer doesn't work
+      numbro: ['https://handsontable.com/docs/8.3.2/components/numbro/dist/languages.min.js', ['numbro.allLanguages','numbro']],
+      redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js',[]],
     };
 
     // [jsUrl, dependentVars[]?, cssUrl?]
@@ -46,7 +48,9 @@ const getCss = (version, preset) => {
   const getter = buildDependencyGetter(version)// todo refactoring
   const presetMap = { //todo duplicated, refactoring
     hot: ['hot'],
-    react: ['react', 'react-dom', 'hot', 'hot-react', 'fixer'],
+    react: [ 'hot','react', 'react-dom', 'hot-react', 'fixer'],
+    'react-numbro': [ 'hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
+    'react-redux': [ 'hot', 'react', 'react-dom', 'redux', 'hot-react', 'fixer'],
     // todo others
   };
   return presetMap[preset].map(x => getter(x)).reduce((p,c,i)=> 

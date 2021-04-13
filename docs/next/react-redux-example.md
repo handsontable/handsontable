@@ -4,10 +4,17 @@ permalink: /next/react-redux-example
 canonicalUrl: /react-redux-example
 ---
 
-# {{ $frontmatter.title }}
+# Redux example
 
 An implementation of the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager implemented.
 
+<style>
+  div#example1{
+    max-height:1000px;
+  }
+</style>
+
+::: example #example1 :react-redux
 ```js
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -143,3 +150,4 @@ const render = () => {
 };
 render();
 ```
+:::

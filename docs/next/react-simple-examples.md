@@ -4,7 +4,7 @@ permalink: /next/react-simple-examples
 canonicalUrl: /react-simple-examples
 ---
 
-# {{ $frontmatter.title }}
+# Basic examples
 
 [[toc]]
 

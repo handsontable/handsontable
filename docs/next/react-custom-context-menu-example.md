@@ -4,10 +4,11 @@ permalink: /next/react-custom-context-menu-example
 canonicalUrl: /react-custom-context-menu-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom Context Menu example
 
 An implementation of the `@handsontable/react` component with a custom Context Menu added.
 
+::: example #example1 :react
 ```js
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -52,3 +53,4 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
+:::

@@ -4,7 +4,7 @@ permalink: /next/react-setting-up-a-locale
 canonicalUrl: /react-setting-up-a-locale
 ---
 
-# {{ $frontmatter.title }}
+# Setting up a locale
 
 An example of Handsontable with locales setup in React.
 
@@ -13,6 +13,7 @@ An example of Handsontable with locales setup in React.
 <div id="example1" class="hot"></div>
 ```
 
+::: example #example1 :react-numbro
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -91,3 +92,4 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
+:::
