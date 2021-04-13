@@ -3,11 +3,13 @@ import staticRegister from '../../utils/staticRegister';
 
 /**
  * Registers HyperFormula as a global entity and applies hooks allowing a multi-sheet setup.
+ *
+ * @returns {HyperFormula} The HyperFormula instance.
  */
 export function registerHF() {
-  staticRegister('formulas').register('hyperformula', HyperFormula.buildEmpty({
-    licenseKey: 'non-commercial-and-evaluation' // TODO
-  }));
+  if (!staticRegister('formulas').hasItem('hyperformula')) {
+    staticRegister('formulas').register('hyperformula', HyperFormula.buildEmpty({}));
+  }
 
   const hfInstance = staticRegister('formulas').getItem('hyperformula');
 
@@ -18,4 +20,6 @@ export function registerHF() {
   hfInstance.on('sheetRemoved', () => {
     hfInstance.rebuildAndRecalculate();
   });
+
+  return hfInstance;
 }
