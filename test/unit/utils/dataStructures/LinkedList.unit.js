@@ -130,6 +130,7 @@ describe('Linked List', () => {
     const linkedList = new LinkedList();
     const last = new NodeStructure(2);
     const first = new NodeStructure(1);
+
     last.next = first;
     last.prev = first;
     first.next = last;

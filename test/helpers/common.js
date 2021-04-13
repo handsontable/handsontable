@@ -561,6 +561,7 @@ export function setCaretPosition(pos) {
 
   } else if (el.createTextRange) {
     const range = el.createTextRange();
+
     range.collapse(true);
     range.moveEnd('character', pos);
     range.moveStart('character', pos);
@@ -751,6 +752,7 @@ export function resizeColumn(renderableColumnIndex, width) {
 
   const delta = width - $th.width() - 2;
   const newPosition = resizerPosition.left + delta;
+
   $resizer.simulate('mousemove', {
     clientX: newPosition
   });

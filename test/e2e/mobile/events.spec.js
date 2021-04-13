@@ -40,6 +40,7 @@ describe('Events', () => {
       width: 400,
       height: 400,
     });
+
     hot.view.wt.update('onCellDblClick', onCellDblClick);
 
     const cell = hot.getCell(1, 1);
@@ -72,6 +73,7 @@ describe('Events', () => {
     });
 
     const linkElement = hot.getCell(0, 0).firstChild;
+
     location.hash = ''; // Resetting before test.
 
     // First touch

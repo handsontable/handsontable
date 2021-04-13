@@ -66,12 +66,14 @@ describe('RowHeader', () => {
 
   it('should show row headers with custom label', () => {
     const startRows = 5;
+
     handsontable({
       startRows,
       rowHeaders: ['First', 'Second', 'Third']
     });
 
     const ths = getLeftClone().find('tbody th');
+
     expect(ths.length).toEqual(startRows);
     expect($.trim(ths.eq(0).text())).toEqual('First');
     expect($.trim(ths.eq(1).text())).toEqual('Second');
@@ -240,6 +242,7 @@ describe('RowHeader', () => {
         return array;
       }
     });
+
     hot.render();
 
     expect(spec().$container.find('.handsontable.ht_clone_left tr:nth-child(1) th:nth-child(1)').outerWidth())

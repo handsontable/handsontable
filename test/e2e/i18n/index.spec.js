@@ -203,6 +203,7 @@ describe('i18n', () => {
 
     it('should not log error when trying to set directly default language code by updateSettings', () => {
       const spy = spyOn(console, 'error');
+
       handsontable();
 
       updateSettings({ language: DEFAULT_LANGUAGE_CODE });

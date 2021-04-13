@@ -33,6 +33,7 @@ describe('Core_destroy', () => {
     handsontable();
 
     const $tmp = $('<div id="tmp"></div>').appendTo(document.body);
+
     $tmp.handsontable();
     $tmp.handsontable('destroy');
     $tmp.remove();
