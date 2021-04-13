@@ -106,9 +106,7 @@ export function isIOS() {
  * @returns {boolean}
  */
 export function isIpadOS({ maxTouchPoints } = navigator) {
-  return maxTouchPoints &&
-  maxTouchPoints > 2 &&
-  platforms.mac.value;
+  return maxTouchPoints > 2 && platforms.mac.value;
 }
 
 /**
