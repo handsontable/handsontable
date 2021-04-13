@@ -16,6 +16,7 @@ To run arbitrary code example locally on your machine see [How to run the arbitr
 - [Live on production](#live-on-production)
 - [Preview on CodeSandbox](#preview-on-codesandbox)
 - [Creating new examples](#creating-new-examples)
+- [Deployment](#deployment)
 - [Editing existing examples](#editing-existing-examples)
 - [Development](#development)
   - [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example)
@@ -59,6 +60,14 @@ For example: if the URL to the project is: https://github.com/handsontable/hands
 ### Creating new examples
 
 Read the [Templates Guideline](./templates/README.md) for the detailed information about new code examples creation.
+
+### Deployment of the new code examples
+
+After new code examples are merged into master branch and the new version of the Handsontable has been released to the NPM, you can safely deploy new examples.
+
+In Github Actions run a manual workflow with the `<version_number>` input for the Handsontable version. The new folder will be created: `/examples/<version_number>`. Within that folder, new code examples will be created with Handsontable version fixed to the `<version_number>`.
+
+The new code snippets will be deployed to the Github Pages and will be available under URL mentioned in the "Live on production" section in the [Code Examples](../README.md) README.
 
 ### Editing existing examples
 
