@@ -638,6 +638,7 @@ describe('ColumnSummarySpec', () => {
          */
         function toggle(row) {
           const rowIndex = parseInt(row, 10);
+
           if (isNaN(rowIndex)) {
             return false;
           }

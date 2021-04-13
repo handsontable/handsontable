@@ -297,6 +297,7 @@ class DataManager {
 
     arrayEach(parentNode.__children, (elem) => {
       rowCount += 1;
+
       if (elem.__children) {
         rowCount += this.countChildren(elem);
       }
@@ -430,6 +431,7 @@ class DataManager {
     this.hot.runHooks('beforeAddChild', parent, childElement);
 
     let parentIndex = null;
+
     if (parent) {
       parentIndex = this.getRowIndex(parent);
     }

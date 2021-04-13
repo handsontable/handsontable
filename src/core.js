@@ -2319,11 +2319,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterCellMetaReset');
 
     let currentHeight = instance.rootElement.style.height;
+
     if (currentHeight !== '') {
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
 
     let height = settings.height;
+
     if (isFunction(height)) {
       height = height();
     }

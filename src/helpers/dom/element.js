@@ -917,6 +917,7 @@ export function getSelectionText(rootWindow = window) {
 // eslint-disable-next-line no-restricted-globals
 export function clearTextSelection(rootWindow = window) {
   const rootDocument = rootWindow.document;
+
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
   if (rootWindow.getSelection) {
     if (rootWindow.getSelection().empty) { // Chrome

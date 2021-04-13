@@ -477,6 +477,7 @@ export class ManualRowMove extends BasePlugin {
     }
 
     let topOverlayHeight = 0;
+
     if (this.hot.view.wt.wtOverlays.topOverlay) {
       topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
     }

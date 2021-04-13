@@ -853,6 +853,7 @@ function onBeforeKeyDown(event) {
  */
 function onAfterChange(changes, source) {
   const instance = this;
+
   if (source === 'loadData') {
     return instance.undoRedo.clear();
   }

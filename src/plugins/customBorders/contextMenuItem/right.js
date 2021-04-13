@@ -11,6 +11,7 @@ export default function right(customBordersPlugin) {
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_RIGHT);
       const hasBorder = checkSelectionBorders(this, 'right');
+
       if (hasBorder) {
         label = markSelected(label);
       }

@@ -333,6 +333,7 @@ class Endpoints {
 
     arrayEach(ranges, (range) => {
       const newRange = [];
+
       if (range[1]) {
         for (let i = range[0]; i <= range[1]; i++) {
           newRange.push(this.hot.toPhysicalRow(i));

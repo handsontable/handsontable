@@ -349,6 +349,7 @@ export class DropdownMenu extends BasePlugin {
   onAfterGetColHeader(col, TH) {
     // Corner or a higher-level header
     const headerRow = TH.parentNode;
+
     if (!headerRow) {
       return;
     }

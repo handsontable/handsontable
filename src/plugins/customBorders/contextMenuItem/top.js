@@ -11,6 +11,7 @@ export default function top(customBordersPlugin) {
     name() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_TOP);
       const hasBorder = checkSelectionBorders(this, 'top');
+
       if (hasBorder) {
         label = markSelected(label);
       }

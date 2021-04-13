@@ -278,6 +278,7 @@ class Table {
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
       let performRedraw = true;
+
       // Only master table rendering can be skipped
       if (this.isMaster) {
         this.alignOverlaysWithTrimmingContainer();
@@ -452,6 +453,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+
     if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
     }

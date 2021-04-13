@@ -202,6 +202,7 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
+
         // On the Windows platform, the "contextmenu" is triggered after the "mouseup" so that's
         // why the closing menu is here. (#6507#issuecomment-582392301).
         if (isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {

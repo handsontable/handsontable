@@ -47,6 +47,7 @@ class CollapsingUI extends BaseUI {
       trimStash: (realElementIndex, amount) => {
         rangeEach(realElementIndex, realElementIndex + amount - 1, (i) => {
           const indexOfElement = this.lastCollapsedRows.indexOf(i);
+
           if (indexOfElement > -1) {
             this.lastCollapsedRows.splice(indexOfElement, 1);
           }
@@ -146,6 +147,7 @@ class CollapsingUI extends BaseUI {
 
     arrayEach(rowIndexes, (elem) => {
       rowsToTrim.push(elem);
+
       if (recursive) {
         this.collapseChildRows(elem, rowsToTrim);
       }
@@ -205,6 +207,7 @@ class CollapsingUI extends BaseUI {
 
     arrayEach(rowIndexes, (elem) => {
       rowsToUntrim.push(elem);
+
       if (recursive) {
         this.expandChildRows(elem, rowsToUntrim);
       }
