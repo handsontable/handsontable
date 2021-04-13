@@ -4,6 +4,7 @@ import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
 import { registerHF } from './hyperformulaSetup';
 import { error } from '../../helpers/console';
+import { isDefined, isUndefined } from '../../helpers/mixed';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
@@ -223,7 +224,10 @@ export class Formulas extends BasePlugin {
 
     const sheetName = this.#settings.sheetName;
 
-    if (!this.hyperformula.doesSheetExist(sheetName)) {
+    if (
+      isUndefined(sheetName) ||
+      (isDefined(sheetName) && !this.hyperformula.doesSheetExist(sheetName))
+    ) {
       this.sheetName = this.hyperformula.addSheet(sheetName);
     }
 
