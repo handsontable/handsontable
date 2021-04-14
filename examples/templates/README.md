@@ -51,7 +51,7 @@ Another important file is a `package.json` file. Some properties of this file sh
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.txt",
   "dependencies": {
     "handsontable": "latest",
     "@handsontable/{{ WRAPPER NAME }}": "latest" // only for frameworks, e.g. "@handsontable/react": "latest"
