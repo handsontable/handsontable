@@ -156,7 +156,7 @@
             this.hotInstance.rowIndexMapper.insertIndexes(oldDataLength - 1, data.length - oldDataLength);
           }
 
-          if (isColumnModificationAllowed) {
+          if (isColumnModificationAllowed && data.length !== 0) {
             if (columnsToRemove.length > 0) {
               this.hotInstance.columnIndexMapper.removeIndexes(columnsToRemove);
 

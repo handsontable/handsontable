@@ -206,6 +206,13 @@ describe('Updating the Handsontable settings', () => {
 
     expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([[22, 32, 42]]);
     expect(newHotSettings).toBe(null);
+
+    testWrapper.vm.removeRow();
+
+    await Vue.nextTick();
+
+    expect(testWrapper.vm.$children[0].hotInstance.getData()).toEqual([]);
+    expect(newHotSettings).toBe(null);
   });
 
   it('should call Handsontable\'s `updateSettings` method, when the table data was changed by reference while the' +
