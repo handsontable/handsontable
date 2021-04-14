@@ -770,12 +770,21 @@ class TableView {
       onScrollVertically: () => this.instance.runHooks('afterScrollVertically'),
       onScrollHorizontally: () => this.instance.runHooks('afterScrollHorizontally'),
       onBeforeRemoveCellClassNames: () => this.instance.runHooks('beforeRemoveCellClassNames'),
-      onBeforeHighlightingRowHeader: (renderableColumn, headerLevel, highlightMeta) => {
+      onBeforeHighlightingRowHeader: (renderableRow, headerLevel, highlightMeta) => {
+        const rowMapper = this.instance.rowIndexMapper;
+        const visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+
+        const newVisualRow = this.instance
+          .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
+
+        return rowMapper.getRenderableFromVisualIndex(rowMapper.getFirstNotHiddenIndex(newVisualRow, 1));
+      },
+      onBeforeHighlightingColumnHeader: (renderableColumn, headerLevel, highlightMeta) => {
         const columnMapper = this.instance.columnIndexMapper;
         const visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
 
         const newVisualColumn = this.instance
-          .runHooks('beforeHighlightingRowHeader', visualColumn, headerLevel, highlightMeta);
+          .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
 
         return columnMapper.getRenderableFromVisualIndex(columnMapper.getFirstNotHiddenIndex(newVisualColumn, 1));
       },

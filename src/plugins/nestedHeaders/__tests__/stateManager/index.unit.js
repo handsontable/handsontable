@@ -475,6 +475,67 @@ describe('StateManager', () => {
     });
   });
 
+  describe('getHeaderTreeNodeData', () => {
+    it('should return proper tree data using negative and positive header levels', () => {
+      /**
+       * The column headers visualisation:
+       *   +----+----+----+----+----+----+----+
+       *   | A1 | A2                | A3      |
+       *   +----+----+----+----+----+----+----+
+       *   | B1 | B2                | B3      |
+       *   +----+----+----+----+----+----+----+
+       *   | C1 | C2 | C3           | C4      |
+       *   +----+----+----+----+----+----+----+
+       *   | D1 | D2 | D3 | D4 | D5 | D6      |
+       *   +----+----+----+----+----+----+----+
+       */
+      const state = new StateManager();
+
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      expect(state.getHeaderTreeNodeData(0, 0).label).toBe('A1');
+      expect(state.getHeaderTreeNodeData(-4, 0).label).toBe('A1');
+      expect(state.getHeaderTreeNodeData(0, 1).label).toBe('A2');
+      expect(state.getHeaderTreeNodeData(-4, 1).label).toBe('A2');
+      expect(state.getHeaderTreeNodeData(0, 2).label).toBe('A2');
+      expect(state.getHeaderTreeNodeData(-4, 2).label).toBe('A2');
+      expect(state.getHeaderTreeNodeData(3, 1).label).toBe('D2');
+      expect(state.getHeaderTreeNodeData(-1, 1).label).toBe('D2');
+    });
+
+    it('should return null when header level is higher than passed nested header configuration', () => {
+      const state = new StateManager();
+
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      expect(state.getHeaderTreeNodeData(4, 0)).toBe(null);
+    });
+
+    it('should return null when column index exceeds total columns defined in the nested header configuration', () => {
+      const state = new StateManager();
+
+      state.setState([
+        ['A1', { label: 'A2', colspan: 4 }, { label: 'A3', colspan: 2 }],
+        ['B1', { label: 'B2', colspan: 4 }, { label: 'B3', colspan: 2 }],
+        ['C1', 'C2', { label: 'C3', colspan: 3 }, { label: 'C4', colspan: 2 }],
+        ['D1', 'D2', 'D3', 'D4', 'D5', { label: 'D6', colspan: 2 }],
+      ]);
+
+      expect(state.getHeaderTreeNodeData(0, 100)).toBe(null);
+      expect(state.getHeaderTreeNodeData(0, 101)).toBe(null);
+    });
+  });
+
   describe('findLeftMostColumnIndex', () => {
     it('should return proper column index', () => {
       /**

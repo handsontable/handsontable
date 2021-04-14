@@ -331,6 +331,131 @@ describe('Walkontable.Selection', () => {
     expect(getTableLeftClone().find('.highlightRow').length).toEqual(0);
   });
 
+  it('should add/remove header classes only to the row/column headers closest to the cells when the ' +
+     '"highlightOnlyClosestHeader" option is used', function() {
+    spec().$wrapper.width(300).height(300);
+
+    this.data = createSpreadsheetData(20, 10);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      selections: createSelectionController({
+        activeHeader: new Walkontable.Selection({
+          highlightHeaderClassName: 'active_highlight',
+          highlightOnlyClosestHeader: true,
+        }),
+        header: new Walkontable.Selection({
+          highlightHeaderClassName: 'highlight',
+          highlightOnlyClosestHeader: true,
+        }),
+      }),
+      columnHeaders: [
+        (col, TH) => {
+          TH.innerHTML = `L1: ${col + 1}`;
+        },
+        (col, TH) => {
+          TH.innerHTML = `L2: ${col + 1}`;
+        },
+        (col, TH) => {
+          TH.innerHTML = `L3: ${col + 1}`;
+        },
+      ],
+      rowHeaders: [
+        (row, TH) => {
+          TH.innerHTML = `L1: ${row + 1}`;
+        },
+        (row, TH) => {
+          TH.innerHTML = `L2: ${row + 1}`;
+        },
+        (row, TH) => {
+          TH.innerHTML = `L3: ${row + 1}`;
+        },
+      ],
+    });
+
+    wt.selections.getHeader().add(new Walkontable.CellCoords(0, 0));
+    wt.selections.getHeader().add(new Walkontable.CellCoords(1, 1));
+    wt.selections.getActiveHeader().add(new Walkontable.CellCoords(1, 1));
+    wt.selections.getActiveHeader().add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    // Row headers
+    expect(spec().$table.find('tbody tr:nth(0)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 1</th>
+        <th class="">L2: 1</th>
+        <th class="highlight">L3: 1</th>
+        <td class="">A1</td>
+        <td class="">B1</td>
+        <td class="">C1</td>
+      </tr>
+      `);
+    expect(spec().$table.find('tbody tr:nth(1)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 2</th>
+        <th class="">L2: 2</th>
+        <th class="highlight active_highlight">L3: 2</th>
+        <td class="">A2</td>
+        <td class="">B2</td>
+        <td class="">C2</td>
+      </tr>
+      `);
+    expect(spec().$table.find('tbody tr:nth(2)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 3</th>
+        <th class="">L2: 3</th>
+        <th class="active_highlight">L3: 3</th>
+        <td class="">A3</td>
+        <td class="">B3</td>
+        <td class="">C3</td>
+      </tr>
+      `);
+    expect(spec().$table.find('tbody tr:nth(3)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: 4</th>
+        <th class="">L2: 4</th>
+        <th class="">L3: 4</th>
+        <td class="">A4</td>
+        <td class="">B4</td>
+        <td class="">C4</td>
+      </tr>
+      `);
+    // Column headers
+    expect(spec().$table.find('thead tr:nth(0)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L1: -2</th>
+        <th class="">L1: -1</th>
+        <th class="">L1: 0</th>
+        <th class="">L1: 1</th>
+        <th class="">L1: 2</th>
+        <th class="">L1: 3</th>
+      </tr>
+      `);
+    expect(spec().$table.find('thead tr:nth(1)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L2: -2</th>
+        <th class="">L2: -1</th>
+        <th class="">L2: 0</th>
+        <th class="">L2: 1</th>
+        <th class="">L2: 2</th>
+        <th class="">L2: 3</th>
+      </tr>
+      `);
+    expect(spec().$table.find('thead tr:nth(2)').get(0).outerHTML).toMatchHTML(`
+      <tr>
+        <th class="">L3: -2</th>
+        <th class="">L3: -1</th>
+        <th class="">L3: 0</th>
+        <th class="highlight">L3: 1</th>
+        <th class="highlight active_highlight">L3: 2</th>
+        <th class="active_highlight">L3: 3</th>
+      </tr>
+      `);
+  });
+
   describe('replace', () => {
     it('should replace range from property and return true', () => {
       const wt = walkontable({

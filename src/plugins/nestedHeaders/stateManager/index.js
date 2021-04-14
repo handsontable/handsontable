@@ -283,6 +283,15 @@ export default class StateManager {
     return this.#stateMatrix[headerLevel]?.[columnIndex] ?? null;
   }
 
+  /**
+   * Gets tree data that is connected to the column header. The returned object contains all information
+   * necessary for modifying tree structure (column collapsing, hiding, etc.). It contains a header
+   * label, colspan length, or visual column index that indicates which column index the node is rendered from.
+   *
+   * @param {number} headerLevel Header level (there is support for negative and positive values).
+   * @param {number} columnIndex A visual column index.
+   * @returns {object|null}
+   */
   getHeaderTreeNodeData(headerLevel, columnIndex) {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel);

@@ -200,10 +200,13 @@ class Selection {
     const {
       highlightHeaderClassName,
       highlightColumnClassName,
+      highlightRowClassName,
       highlightOnlyClosestHeader,
+      selectionType,
     } = this.settings;
+    const isHeaderSelectionType = selectionType === 'active-header' || selectionType === 'header';
 
-    if (topColumn !== null && bottomColumn !== null) {
+    if (isHeaderSelectionType && topColumn !== null && bottomColumn !== null) {
       let selectionColumnCursor = 0;
 
       for (let column = 0; column < renderedColumns; column += 1) {
@@ -217,9 +220,9 @@ class Selection {
             THs = [THs[closestHeaderLevel]];
           }
 
-          /* eslint-disable no-loop-func */
-          THs.forEach((TH, headerLevel) => {
+          for (let headerLevel = 0; headerLevel < THs.length; headerLevel += 1) {
             const newClasses = [];
+            let TH = THs[headerLevel];
 
             if (highlightHeaderClassName) {
               newClasses.push(highlightHeaderClassName);
@@ -232,8 +235,8 @@ class Selection {
             headerLevel = highlightOnlyClosestHeader ? closestHeaderLevel : headerLevel;
 
             const newSourceCol = wotInstance
-              .getSetting('onBeforeHighlightingRowHeader', sourceCol, headerLevel, {
-                selectionType: this.settings.selectionType,
+              .getSetting('onBeforeHighlightingColumnHeader', sourceCol, headerLevel, {
+                selectionType,
                 columnCursor: selectionColumnCursor,
                 selectionWidth: bottomColumn - topColumn + 1,
                 classNames: newClasses,
@@ -244,8 +247,7 @@ class Selection {
             }
 
             addClass(TH, newClasses);
-          });
-          /* eslint-enable no-loop-func */
+          }
 
           selectionColumnCursor += 1;
         }
@@ -253,25 +255,49 @@ class Selection {
     }
 
     if (topRow !== null && bottomRow !== null) {
+      let selectionRowCursor = 0;
+
       for (let row = 0; row < renderedRows; row += 1) {
         const sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(row);
 
-        if (sourceRow >= topRow && sourceRow <= bottomRow) {
-          const TH = wotInstance.wtTable.getRowHeader(sourceRow);
+        if (isHeaderSelectionType && sourceRow >= topRow && sourceRow <= bottomRow) {
+          let THs = wotInstance.wtTable.getRowHeaders(sourceRow);
+          const closestHeaderLevel = THs.length - 1;
 
-          if (TH) {
+          if (highlightOnlyClosestHeader && THs.length > 1) {
+            THs = [THs[closestHeaderLevel]];
+          }
+
+          for (let headerLevel = 0; headerLevel < THs.length; headerLevel += 1) {
             const newClasses = [];
+            let TH = THs[headerLevel];
 
-            if (this.settings.highlightHeaderClassName) {
-              newClasses.push(this.settings.highlightHeaderClassName);
+            if (highlightHeaderClassName) {
+              newClasses.push(highlightHeaderClassName);
             }
 
-            if (this.settings.highlightRowClassName) {
-              newClasses.push(this.settings.highlightRowClassName);
+            if (highlightRowClassName) {
+              newClasses.push(highlightRowClassName);
+            }
+
+            headerLevel = highlightOnlyClosestHeader ? closestHeaderLevel : headerLevel;
+
+            const newSourceRow = wotInstance
+              .getSetting('onBeforeHighlightingRowHeader', sourceRow, headerLevel, {
+                selectionType,
+                rowCursor: selectionRowCursor,
+                selectionHeight: bottomRow - topRow + 1,
+                classNames: newClasses,
+              });
+
+            if (newSourceRow !== sourceRow) {
+              TH = wotInstance.wtTable.getRowHeader(newSourceRow, headerLevel);
             }
 
             addClass(TH, newClasses);
           }
+
+          selectionRowCursor += 1;
         }
 
         if (topColumn !== null && bottomColumn !== null) {
@@ -287,13 +313,13 @@ class Selection {
 
             } else if (sourceRow >= topRow && sourceRow <= bottomRow) {
               // selection is in this row
-              if (this.settings.highlightRowClassName) {
-                this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightRowClassName);
+              if (highlightRowClassName) {
+                this.addClassAtCoords(wotInstance, sourceRow, sourceCol, highlightRowClassName);
               }
             } else if (sourceCol >= topColumn && sourceCol <= bottomColumn) {
               // selection is in this column
-              if (this.settings.highlightColumnClassName) {
-                this.addClassAtCoords(wotInstance, sourceRow, sourceCol, this.settings.highlightColumnClassName);
+              if (highlightColumnClassName) {
+                this.addClassAtCoords(wotInstance, sourceRow, sourceCol, highlightColumnClassName);
               }
             }
 

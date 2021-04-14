@@ -1,7 +1,6 @@
 /**
- * Returns HTML string from the passed Handsontable overlays. Teh returned HTML contains
- * only table headers and if the overlay's element is passed the TBODY and its THs and TDs
- * are returned.
+ * Returns HTML string from the passed Handsontable overlays. The returned HTML contains
+ * only table headers and if the overlay's element is passed the TBODY and its THs and TDs as well.
  *
  * @param {HTMLElement} overlaysTHead The HoT overlays element to extract the THead structure.
  * @param {HTMLElement} overlaysTBody The HoT overlay element to extract the TBody structure.

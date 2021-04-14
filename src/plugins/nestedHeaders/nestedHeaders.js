@@ -16,11 +16,6 @@ import GhostTable from './utils/ghostTable';
 
 import './nestedHeaders.css';
 
-const PROCESSABLE_SELECTION_HEADERS = [
-  ACTIVE_HEADER_TYPE,
-  HEADER_TYPE,
-];
-
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
@@ -116,7 +111,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseOver', (...args) => this.onBeforeOnCellMouseOver(...args));
     this.addHook('afterGetColumnHeaderRenderers', array => this.onAfterGetColumnHeaderRenderers(array));
     this.addHook('modifyColWidth', (...args) => this.onModifyColWidth(...args));
-    this.addHook('beforeHighlightingRowHeader', (...args) => this.onBeforeHighlightingRowHeader(...args));
+    this.addHook('beforeHighlightingColumnHeader', (...args) => this.onBeforeHighlightingColumnHeader(...args));
     this.addHook(
       'afterViewportColumnCalculatorOverride',
       (...args) => this.onAfterViewportColumnCalculatorOverride(...args)
@@ -336,26 +331,25 @@ export class NestedHeaders extends BasePlugin {
   /**
    * [onBeforeHighlightingRowHeader description].
    *
+   * @private
    * @param {number} visualColumn A visual column index of the highlighted row header.
    * @param {number} headerLevel A row header level that is currently highlighted.
    * @param {object} highlightMeta An object with meta data that describes the highlight state.
    * @returns {number}
    */
-  onBeforeHighlightingRowHeader(visualColumn, headerLevel, highlightMeta) {
-    const {
-      selectionType,
-    } = highlightMeta;
-
-    if (!PROCESSABLE_SELECTION_HEADERS.includes(selectionType)) {
-      return visualColumn;
-    }
-
+  onBeforeHighlightingColumnHeader(visualColumn, headerLevel, highlightMeta) {
     const headerNodeData = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumn);
 
     if (!headerNodeData) {
       return visualColumn;
     }
 
+    const {
+      classNames,
+      columnCursor,
+      selectionType,
+      selectionWidth,
+    } = highlightMeta;
     const {
       isRoot,
       colspan,
@@ -367,12 +361,6 @@ export class NestedHeaders extends BasePlugin {
       }
 
     } else if (selectionType === ACTIVE_HEADER_TYPE) {
-      const {
-        columnCursor,
-        selectionWidth,
-        classNames,
-      } = highlightMeta;
-
       if (colspan > selectionWidth - columnCursor || !isRoot) {
         // Reset the class names array so the generated TH element won't be modified.
         classNames.length = 0;
@@ -459,10 +447,10 @@ export class NestedHeaders extends BasePlugin {
 
     const columnsToSelect = [];
 
-    if (coords.isWestOf(from)) {
+    if (coords.col < from.col) {
       columnsToSelect.push(bottomRightCoords.col, columnIndex);
 
-    } else if (coords.isEastOf(from)) {
+    } else if (coords.col > from.col) {
       columnsToSelect.push(topLeftCoords.col, columnIndex + origColspan - 1);
 
     } else {
@@ -562,6 +550,12 @@ export class NestedHeaders extends BasePlugin {
     super.destroy();
   }
 
+  /**
+   * Gets the tree data that belongs to the column headers pointed by the passed coordinates.
+   *
+   * @param {CellCoords} coords The CellCoords instance.
+   * @returns {object|undefined}
+   */
   _getHeaderTreeNodeDataByCoords(coords) {
     if (coords.row >= 0 || coords.col < 0) {
       return;
