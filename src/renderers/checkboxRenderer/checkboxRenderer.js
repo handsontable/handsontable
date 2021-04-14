@@ -7,6 +7,7 @@ import {
 } from '../../helpers/dom/event';
 import { partial } from '../../helpers/function';
 import { equalsIgnoreCase } from '../../helpers/string';
+import { isEmpty } from '../../helpers/mixed';
 import { isKey } from '../../helpers/unicode';
 
 import './checkboxRenderer.css';
@@ -79,7 +80,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   } else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
     input.checked = false;
 
-  } else if (value === null) { // default value
+  } else if (isEmpty(value)) { // default value
     addClass(input, 'noValue');
 
   } else {
