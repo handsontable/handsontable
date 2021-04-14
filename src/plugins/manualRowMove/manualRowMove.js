@@ -477,6 +477,7 @@ export class ManualRowMove extends BasePlugin {
     }
 
     let topOverlayHeight = 0;
+
     if (this.hot.view.wt.wtOverlays.topOverlay) {
       topOverlayHeight = this.hot.view.wt.wtOverlays.topOverlay.clone.wtTable.TABLE.offsetHeight;
     }
@@ -529,6 +530,7 @@ export class ManualRowMove extends BasePlugin {
       priv.pressed = false;
       priv.rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+
       return;
     }
 
@@ -585,6 +587,7 @@ export class ManualRowMove extends BasePlugin {
     // callback for browser which doesn't supports CSS pointer-event: none
     if (event.target === this.backlight.element) {
       const height = this.backlight.getSize().height;
+
       this.backlight.setSize(null, 0);
 
       setTimeout(function() {

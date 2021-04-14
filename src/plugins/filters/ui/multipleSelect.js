@@ -171,6 +171,7 @@ class MultipleSelectUI extends BaseUI {
       });
       this.itemsBox.init();
     };
+
     hotInitializer(itemsBoxWrapper);
     setTimeout(() => hotInitializer(itemsBoxWrapper), 100);
   }

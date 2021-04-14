@@ -325,6 +325,7 @@ export class NestedRows extends BasePlugin {
     const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows, physicalIndex) => {
       if (this.dataManager.isParent(physicalIndex)) {
         const children = this.dataManager.getDataObject(physicalIndex).__children;
+
         // Preserve a parent in the list of removed rows.
         removedRows.add(physicalIndex);
 

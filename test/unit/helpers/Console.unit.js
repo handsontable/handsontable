@@ -20,6 +20,7 @@ describe('Console', () => {
 
     it('should not throw Exception when `console` is not exposed', () => {
       const cachedConsole = console;
+
       console = undefined;
 
       expect(() => {
@@ -40,6 +41,7 @@ describe('Console', () => {
 
     it('should not throw Exception when `console` is not exposed', () => {
       const cachedConsole = console;
+
       console = undefined;
 
       expect(() => {
@@ -60,6 +62,7 @@ describe('Console', () => {
 
     it('should not throw Exception when `console` is not exposed', () => {
       const cachedConsole = console;
+
       console = undefined;
 
       expect(() => {
@@ -80,6 +83,7 @@ describe('Console', () => {
 
     it('should not throw Exception when `console` is not exposed', () => {
       const cachedConsole = console;
+
       console = undefined;
 
       expect(() => {

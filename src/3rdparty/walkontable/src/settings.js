@@ -153,6 +153,7 @@ class Settings {
     } else { // if value is defined then settings is the key
       this.settings[settings] = value;
     }
+
     return this.wot;
   }
 

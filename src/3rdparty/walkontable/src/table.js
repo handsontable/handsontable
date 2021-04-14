@@ -274,14 +274,17 @@ class Table {
       }
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
       let performRedraw = true;
+
       // Only master table rendering can be skipped
       if (this.isMaster) {
         this.alignOverlaysWithTrimmingContainer();
         const skipRender = {};
+
         this.wot.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
       }
@@ -452,6 +455,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+
     if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
     }

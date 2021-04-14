@@ -39,6 +39,7 @@ describe('WalkontableBorder', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
@@ -99,6 +100,7 @@ describe('WalkontableBorder', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
@@ -142,6 +144,7 @@ describe('WalkontableBorder', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     wt.selections.getCell().add(new Walkontable.CellCoords(0, 0));
@@ -190,6 +193,7 @@ describe('WalkontableBorder', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');
@@ -235,6 +239,7 @@ describe('WalkontableBorder', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(2) td:eq(1)');
@@ -271,6 +276,7 @@ describe('WalkontableBorder', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(1)');
@@ -343,6 +349,7 @@ describe('WalkontableBorder', () => {
         wt.draw();
       }
     });
+
     wt.draw();
 
     const $td1 = spec().$table.find('tbody tr:eq(1) td:eq(0)');

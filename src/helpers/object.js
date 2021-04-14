@@ -182,6 +182,7 @@ export function mixin(Base, ...mixins) {
             this[propertyName] = newValue;
           };
         };
+
         Object.defineProperty(Base.prototype, key, {
           get: getter(key, value),
           set: setter(key),

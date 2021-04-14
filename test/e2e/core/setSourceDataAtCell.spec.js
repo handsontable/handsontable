@@ -132,6 +132,7 @@ describe('Core.setSourceDataAtCell', () => {
     setSourceDataAtCell(0, 'foo', 'foo2', 'caller-custom-source');
 
     let hookArguments = new Array(6).fill(void 0);
+
     hookArguments[0] = [[0, 'foo', 'bar', 'foo2']];
     hookArguments[1] = 'caller-custom-source';
 

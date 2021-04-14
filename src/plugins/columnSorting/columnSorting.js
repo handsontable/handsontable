@@ -536,6 +536,7 @@ export class ColumnSorting extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(0, column);
 
     const cellMetaCopy = Object.create(cellMeta);
+
     cellMetaCopy[this.pluginKey] = this.columnMetaCache.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
     return cellMetaCopy;

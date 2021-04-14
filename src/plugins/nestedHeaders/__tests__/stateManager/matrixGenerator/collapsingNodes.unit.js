@@ -80,6 +80,7 @@ describe('generateMatrix', () => {
         triggerNodeModification('collapse', tree.getNode(1, 0));
 
         const matrix = generateMatrixFromTree(tree);
+
         /**
          *  +----+----+----+----+
          *  | A1        X       |

@@ -1,4 +1,4 @@
-import { isDefined } from '../../helpers/mixed';
+import { isEmpty } from '../../helpers/mixed';
 import { isObjectEqual } from '../../helpers/object';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -1112,12 +1112,13 @@ export default () => {
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
-        if (value !== '' && value !== null && isDefined(value)) {
+        if (isEmpty(value) === false) {
           if (typeof value === 'object') {
             meta = this.getCellMeta(row, col);
 
             return isObjectEqual(this.getSchema()[meta.prop], value);
           }
+
           return false;
         }
       }
@@ -1149,7 +1150,7 @@ export default () => {
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
-        if (value !== '' && value !== null && isDefined(value)) {
+        if (isEmpty(value) === false) {
           return false;
         }
       }
@@ -1759,7 +1760,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values should be handled
+     * * `sortEmptyCells` - how empty values (more information here: https://handsontable.com/docs/tutorial-cell-types.html#empty-cells) should be handled
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.
@@ -1913,7 +1914,7 @@ export default () => {
      * * `headerAction` - allow to click on the headers to sort
      *   * `true` = turn on possibility to click on the headers to sort
      *   * `false` = turn off possibility to click on the headers to sort
-     * * `sortEmptyCells` - how empty values should be handled
+     * * `sortEmptyCells` - how empty values (more information here: https://handsontable.com/docs/tutorial-cell-types.html#empty-cells) should be handled
      *   * `true` = the table sorts empty cells
      *   * `false` = the table moves all empty cells to the end of the table
      * * `compareFunctionFactory` - curry function returning compare function; compare function should work in the same way as function which is handled by native `Array.sort` method); please take a look at below examples for more information.

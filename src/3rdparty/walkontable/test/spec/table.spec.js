@@ -5,6 +5,7 @@ describe('WalkontableTable', () => {
     const hotParent = TH.parentElement.parentElement.parentElement.parentElement.parentElement
       .parentElement.parentElement;
     const classes = hotParent.className.split(' ');
+
     return classes[0];
   }
 
@@ -34,6 +35,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
     expect(spec().$table.find('tbody tr').length).toBe(9);
   });
@@ -46,6 +48,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
     expect(spec().$table.find('tbody tr').length).toBe(5);
   });
@@ -59,6 +62,7 @@ describe('WalkontableTable', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
     expect(spec().$table.find('tbody tr:first td').length).toBe(spec().$table.find('thead th').length);
   });
@@ -83,6 +87,7 @@ describe('WalkontableTable', () => {
         }
       ]
     });
+
     wt.draw();
     expect(spec().$table.find('thead tr:first th').length).toBe(wt.wtTable.getRenderedColumnsCount() + 1); // 4 columns in THEAD + 1 empty cell in the corner
     expect(spec().$table.find('thead tr:first th:eq(0)')[0].innerHTML.replace(/&nbsp;/, '')).toBe(''); // corner row is empty (or contains only &nbsp;)
@@ -92,6 +97,7 @@ describe('WalkontableTable', () => {
 
   it('getCell should only return cells from rendered rows and columns', function() {
     const scrollbarWidth = getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
+
     spec().$wrapper.width(100 + scrollbarWidth).height(201 + scrollbarWidth);
 
     createDataArray(20, 20);
@@ -100,6 +106,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 0)) instanceof HTMLElement).toBe(true);
@@ -115,16 +122,20 @@ describe('WalkontableTable', () => {
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(7, 21))).toBe(-4); // exit code - after rendered column
 
     let results = [];
+
     for (let i = 0; i < 20; i++) {
       const result = wt.wtTable.getCell(new Walkontable.CellCoords(10, i));
+
       results.push(result instanceof HTMLElement ? HTMLElement : result);
     }
     expect(results)
       .toEqual([-3, -3, -3, -3, -3, HTMLElement, HTMLElement, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4, -4]);
 
     results = [];
+
     for (let i = 0; i < 20; i++) {
       const result = wt.wtTable.getCell(new Walkontable.CellCoords(i, 6));
+
       results.push(result instanceof HTMLElement ? HTMLElement : result);
     }
 
@@ -144,9 +155,11 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     const bottomTable = wt.wtOverlays.bottomOverlay.clone.wtTable;
+
     expect(bottomTable.getCell(new Walkontable.CellCoords(18, 0)) instanceof HTMLTableCellElement).toBe(true);
     expect(bottomTable.getCell(new Walkontable.CellCoords(19, 0)) instanceof HTMLTableCellElement).toBe(true);
   });
@@ -166,6 +179,7 @@ describe('WalkontableTable', () => {
         TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
       }]
     });
+
     wt.draw();
 
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }).innerHTML, 'master')
@@ -338,6 +352,7 @@ describe('WalkontableTable', () => {
         TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
       }]
     });
+
     wt.draw();
 
     expectWtTable(wt, wtTable => wtTable.getCell({ row: -1, col: -1 }), 'master').toBe(-1);
@@ -569,6 +584,7 @@ describe('WalkontableTable', () => {
         TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
       }]
     });
+
     wt.draw();
 
     expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(-1);
@@ -637,6 +653,7 @@ describe('WalkontableTable', () => {
         TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
       }]
     });
+
     wt.draw();
 
     expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(2);
@@ -693,9 +710,11 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     const $td2 = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
@@ -714,9 +733,11 @@ describe('WalkontableTable', () => {
         TH.innerHTML = plusOne(row);
       }]
     });
+
     wt.draw();
 
     const $td2 = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
@@ -731,9 +752,11 @@ describe('WalkontableTable', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
 
     const $th2 = spec().$table.find('thead tr:first th:eq(1)');
+
     expect(wt.wtTable.getCoords($th2[0])).toEqual(new Walkontable.CellCoords(-1, 1));
   });
 
@@ -747,10 +770,12 @@ describe('WalkontableTable', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
 
     const $cloneLeft = $('.ht_clone_left');
     const $td2 = $cloneLeft.find('tbody tr:eq(1) td:eq(1)');
+
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
@@ -764,6 +789,7 @@ describe('WalkontableTable', () => {
       }],
       stretchH: 'all'
     });
+
     wt.draw();
     wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
 
@@ -783,6 +809,7 @@ describe('WalkontableTable', () => {
       }],
       stretchH: 'last'
     });
+
     wt.draw();
     wt.wtViewport.columnsRenderCalculator.refreshStretching(502);
 
@@ -1072,6 +1099,7 @@ describe('WalkontableTable', () => {
         TD.style.backgroundColor = 'yellow';
       }
     });
+
     wt.draw();
     expect(spec().$table.find('td:first')[0].style.backgroundColor).toBe('yellow');
   });
@@ -1084,6 +1112,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
     expect(spec().$table.find('tbody tr').length).toBe(8);
 
@@ -1101,6 +1130,7 @@ describe('WalkontableTable', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
     expect(spec().$table.find('thead tr:first').children().length).toBe(2);
     expect(spec().$table.find('tbody tr:first').children().length).toBe(2);
@@ -1123,6 +1153,7 @@ describe('WalkontableTable', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
     expect(spec().$table.find('thead tr:first').children().length).toBe(2);
     expect(spec().$table.find('tbody tr:first').children().length).toBe(2);
@@ -1150,6 +1181,7 @@ describe('WalkontableTable', () => {
         return (column + 1) * 50;
       }
     });
+
     wt.draw();
     expect(spec().$table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(50);
     expect(spec().$table.find('tbody tr:first td:eq(1)').outerWidth()).toBe(100);
@@ -1172,6 +1204,7 @@ describe('WalkontableTable', () => {
       }],
       columnWidth: [50, 100, 150, 201]
     });
+
     wt.draw();
     expect(spec().$table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(50);
     expect(spec().$table.find('tbody tr:first td:eq(1)').outerWidth()).toBe(100);
@@ -1194,6 +1227,7 @@ describe('WalkontableTable', () => {
       }],
       columnWidth: 100
     });
+
     wt.draw();
     expect(spec().$table.find('tbody tr:first td:eq(0)').outerWidth()).toBe(100);
     expect(spec().$table.find('tbody tr:first td:eq(1)').outerWidth()).toBe(100);
@@ -1218,6 +1252,7 @@ describe('WalkontableTable', () => {
       }],
       columnWidth: 100
     });
+
     wt.draw();
     // start from eq(1) because eq(0) is corner header
     expect(spec().$table.find('thead tr:first th:eq(1)').outerWidth()).toBe(100);
@@ -1232,6 +1267,7 @@ describe('WalkontableTable', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
     spec().$table.find('tbody td').html('');
     wt.draw();
@@ -1247,11 +1283,14 @@ describe('WalkontableTable', () => {
       totalColumns: getTotalColumns,
       cellRenderer(row, column, TD) {
         count += 1;
+
         return wt.wtSettings.defaults.cellRenderer(row, column, TD);
       }
     });
+
     wt.draw();
     const oldCount = count;
+
     wt.draw(true);
 
     expect(count).toBe(oldCount);
@@ -1271,6 +1310,7 @@ describe('WalkontableTable', () => {
         calc.endRow += 10;
       }
     });
+
     wt.draw();
 
     const oldCount = count;
@@ -1295,6 +1335,7 @@ describe('WalkontableTable', () => {
         calc.endRow += 10;
       }
     });
+
     wt.draw();
 
     const oldCount = count;
@@ -1325,6 +1366,7 @@ describe('WalkontableTable', () => {
         calc.endColumn += 10;
       }
     });
+
     wt.draw();
     const oldCount = count;
 
@@ -1349,6 +1391,7 @@ describe('WalkontableTable', () => {
         calc.endColumn += 10;
       }
     });
+
     wt.draw();
 
     const oldCount = count;
@@ -1377,6 +1420,7 @@ describe('WalkontableTable', () => {
         fixedColumnsLeft: 2,
         columnHeaders: [function() {}]
       });
+
       wt.draw();
 
       expect($('.ht_clone_top_left_corner thead tr th').eq(0).css('border-left-width')).toBe('1px');
@@ -1397,6 +1441,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.isLastRowFullyVisible()).toBe(false);
@@ -1411,6 +1456,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportVertically(7);
       wt.draw();
@@ -1429,6 +1475,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.isLastColumnFullyVisible()).toBe(false);
@@ -1462,6 +1509,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getFirstVisibleRow()).toBe(0);
@@ -1476,6 +1524,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportVertically(10);
       wt.draw();
@@ -1495,6 +1544,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getFirstVisibleRow(), 'master').toBe(2);
@@ -1516,6 +1566,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getLastVisibleRow()).toBe(5);
@@ -1530,6 +1581,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportVertically(7);
       wt.draw();
@@ -1549,6 +1601,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getLastVisibleRow(), 'master').toBe(4);
@@ -1570,6 +1623,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getFirstVisibleColumn()).toBe(0);
@@ -1584,6 +1638,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportHorizontally(7);
       wt.draw();
@@ -1603,6 +1658,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getFirstVisibleColumn(), 'master').toBe(2);
@@ -1624,6 +1680,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getLastVisibleColumn()).toBe(2);
@@ -1638,6 +1695,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportHorizontally(7);
       wt.draw();
@@ -1657,6 +1715,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getLastVisibleColumn(), 'master').toBe(4); // TODO I think this should be 3 not 4, because 4 is only partially visible, but for now I am only testing actual behavior
@@ -1678,6 +1737,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
@@ -1692,6 +1752,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportVertically(10);
       wt.draw();
@@ -1711,6 +1772,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(2);
@@ -1731,6 +1793,7 @@ describe('WalkontableTable', () => {
         totalColumns: 1,
         fixedRowsBottom: 3,
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(0);
@@ -1751,6 +1814,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
       wt.scrollViewportVertically(10);
       wt.draw();
@@ -1792,6 +1856,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
       wt.scrollViewportVertically(10);
       wt.draw();
@@ -1835,6 +1900,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
       wt.scrollViewportVertically(10);
       wt.draw();
@@ -1875,6 +1941,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getLastRenderedRow()).toBe(7);
@@ -1889,6 +1956,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportVertically(10);
       wt.draw();
@@ -1908,6 +1976,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(5);
@@ -1929,6 +1998,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getFirstRenderedColumn()).toBe(0);
@@ -1943,6 +2013,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportHorizontally(7);
       wt.draw();
@@ -1962,6 +2033,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'master').toBe(2);
@@ -1983,6 +2055,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getLastRenderedColumn()).toBe(4);
@@ -1997,6 +2070,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
       wt.scrollViewportHorizontally(7);
       wt.draw();
@@ -2016,6 +2090,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getLastRenderedColumn(), 'master').toBe(4);
@@ -2037,6 +2112,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getVisibleRowsCount()).toBe(7);
@@ -2065,6 +2141,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'master').toBe(3);
@@ -2086,6 +2163,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getVisibleColumnsCount()).toBe(3);
@@ -2114,6 +2192,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getVisibleColumnsCount(), 'master').toBe(3);
@@ -2135,6 +2214,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getRenderedRowsCount()).toBe(9);
@@ -2163,6 +2243,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getRenderedRowsCount(), 'master').toBe(4);
@@ -2184,6 +2265,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       expect(wt.wtTable.getRenderedColumnsCount()).toBe(5);
@@ -2212,6 +2294,7 @@ describe('WalkontableTable', () => {
         fixedRowsBottom: 2,
         fixedColumnsLeft: 2
       });
+
       wt.draw();
 
       expectWtTable(wt, wtTable => wtTable.getRenderedColumnsCount(), 'master').toBe(3);
@@ -2230,6 +2313,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
       });
+
       wt.draw();
 
       expect(wt.wtTable.isVisible()).toBe(true);
@@ -2248,6 +2332,7 @@ describe('WalkontableTable', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
       });
+
       wt.draw();
 
       expect(wt.wtTable.hasDefinedSize()).toBe(true);

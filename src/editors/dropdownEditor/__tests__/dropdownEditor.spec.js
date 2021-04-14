@@ -344,6 +344,7 @@ describe('DropdownEditor', () => {
 
       hot.view.wt.wtOverlays.topOverlay.scrollTo(1);
       const dropdown = hot.getActiveEditor();
+
       await sleep(50);
 
       expect($(dropdown.htContainer).is(':visible')).toBe(true);

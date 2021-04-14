@@ -26,6 +26,7 @@ describe('WalkontableScrollbar', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     expect(spec().$table.parents('.wtHolder').length).toEqual(1);
@@ -40,6 +41,7 @@ describe('WalkontableScrollbar', () => {
         totalRows: getTotalRows,
         totalColumns: getTotalColumns
       });
+
       wt.draw();
 
       wt.wtOverlays.topOverlay.onScroll(1);

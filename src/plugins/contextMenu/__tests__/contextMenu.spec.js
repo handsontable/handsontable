@@ -203,6 +203,7 @@ describe('ContextMenu', () => {
 
     it('should be possible to define a custom container for ContextMenu\'s UI elements', () => {
       const uiContainer = $('<div/>').addClass('uiContainer');
+
       spec().$container.append(uiContainer);
 
       handsontable({
@@ -257,6 +258,7 @@ describe('ContextMenu', () => {
       await sleep(400);
 
       const cell = hot.getCell(2, 2);
+
       contextMenu(cell, hot);
 
       const contextMenuElem = $(docOutside.body).find('.htContextMenu');
@@ -606,6 +608,7 @@ describe('ContextMenu', () => {
       const rect = $('.htContextMenu')[0].getBoundingClientRect();
       const x = parseInt(rect.left + (rect.width / 2), 10);
       const y = parseInt(rect.top + rect.height, 10);
+
       mouseDown(document.elementFromPoint(x, y));
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
@@ -720,6 +723,7 @@ describe('ContextMenu', () => {
 
         expect(getData().length).toEqual(4);
       };
+
       test();
 
       destroy();
@@ -818,6 +822,7 @@ describe('ContextMenu', () => {
       contextMenu();
 
       const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+
       item.simulate('mouseover');
       const contextSubMenu = $(`.htContextMenuSub_${item.text()}`).find('tbody td');
 
@@ -1245,6 +1250,7 @@ describe('ContextMenu', () => {
         .find('tbody')
         .find('th')
         .eq(0);
+
       simulateClick(header, 'RMB');
       contextMenu(header);
 
@@ -1333,6 +1339,7 @@ describe('ContextMenu', () => {
       });
 
       const afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+
       addHook('afterCreateRow', afterCreateRowCallback);
 
       expect(countRows()).toEqual(4);
@@ -3724,6 +3731,7 @@ describe('ContextMenu', () => {
 
       selectCell(15, 3);
       const scrollTop = $mainHolder.scrollTop();
+
       contextMenu();
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
@@ -3988,6 +3996,7 @@ describe('ContextMenu', () => {
       contextMenu();
 
       const item = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(9);
+
       item.simulate('mouseover');
 
       destroy();
@@ -4011,6 +4020,7 @@ describe('ContextMenu', () => {
           .find('tbody')
           .find('th')
           .eq(0);
+
         simulateClick(header, 'RMB');
         contextMenu(header);
 
@@ -4053,6 +4063,7 @@ describe('ContextMenu', () => {
           .find('tbody')
           .find('th')
           .eq(0);
+
         simulateClick(header, 'RMB');
         contextMenu(header);
 

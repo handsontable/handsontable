@@ -1253,6 +1253,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
+
         return;
       }
 
@@ -2017,6 +2018,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (data === null) {
       const dataSchema = datamap.getSchema();
+
       // eslint-disable-next-line no-param-reassign
       data = [];
       let row;
@@ -2318,11 +2320,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterCellMetaReset');
 
     let currentHeight = instance.rootElement.style.height;
+
     if (currentHeight !== '') {
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
 
     let height = settings.height;
+
     if (isFunction(height)) {
       height = height();
     }
@@ -4231,6 +4235,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.toTableElement = () => {
     const tempElement = this.rootDocument.createElement('div');
+
     tempElement.insertAdjacentHTML('afterbegin', instanceToHTML(this));
 
     return tempElement.firstElementChild;

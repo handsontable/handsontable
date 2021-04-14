@@ -310,6 +310,7 @@ export class Autofill extends BasePlugin {
     if (coords.col < 0) {
       coords.col = 0;
     }
+
     return coords;
   }
 
@@ -624,6 +625,7 @@ export class Autofill extends BasePlugin {
    */
   mapSettings() {
     const mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
+
     this.directions = mappedSettings.directions;
     this.autoInsertRow = mappedSettings.autoInsertRow;
   }

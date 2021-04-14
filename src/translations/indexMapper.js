@@ -251,6 +251,7 @@ export class IndexMapper {
     }
 
     const numberOfIndexes = this.getNumberOfIndexes();
+
     /*
       We initialize map ony when we have full information about number of indexes and the dataset is not empty.
       Otherwise it's unnecessary. Initialization of empty array would not give any positive changes. After initializing
@@ -570,6 +571,7 @@ export class IndexMapper {
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
       const physicalIndex = listWithRemovedItems.filter(index => this.isTrimmed(index) === false)[finalIndex];
+
       destinationPosition = listWithRemovedItems.indexOf(physicalIndex);
     }
 
