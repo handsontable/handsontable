@@ -110,7 +110,7 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    this.hyperformula = registerHF();
+    this.setupHF();
 
     // HyperFormula events:
     this.hyperformula.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
@@ -124,9 +124,6 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    // TODO add tests for this line
-    this.hyperformula.destroy();
-
     super.disablePlugin();
   }
 
@@ -149,7 +146,49 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
+    const sharedHFInstanceUsage = hfInstances.get(this.hyperformula);
+
+    if (sharedHFInstanceUsage && sharedHFInstanceUsage.includes(this.hot.guid)) {
+      sharedHFInstanceUsage.splice(
+        sharedHFInstanceUsage.indexOf(this.hot.guid),
+        1
+      );
+
+      this.hyperformula.destroy();
+    }
+
     super.destroy();
+  }
+
+  /**
+   * Setup the HyperFormula instance. It either creates a new (possibly shared) HyperFormula instance, or attaches
+   * the plugin to an already-existing instance.
+   */
+  setupHF() {
+    const settingsHF = this.#settings.hyperformula;
+
+    switch (typeof settingsHF) {
+      // There was a HyperFormula class passed.
+      case 'function': {
+        this.hyperformula = registerHF(settingsHF, this.hot.guid);
+        break;
+      }
+      // There was a HyperFormula instance passed.
+      case 'object': {
+        const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
+        const sharedHFInstanceUsage = hfInstances.get(settingsHF);
+
+        this.hyperformula = settingsHF;
+
+        if (sharedHFInstanceUsage) {
+          sharedHFInstanceUsage.push(this.hot.guid);
+        }
+
+        break;
+      }
+      default:
+    }
   }
 
   /**
