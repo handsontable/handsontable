@@ -341,6 +341,7 @@ describe('Comments', () => {
 
       const plugin = hot.getPlugin('comments');
       const editor = plugin.editor.getInputElement();
+
       plugin.showAtCell(1, 1);
       expect(editor.parentNode.style.display).toEqual('block');
 
@@ -701,6 +702,7 @@ describe('Comments', () => {
       $(editCommentButton).simulate('mouseup');
 
       const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+
       textarea.focus();
       textarea.value = 'Edited comment';
 
@@ -744,6 +746,7 @@ describe('Comments', () => {
       $(editCommentButton).simulate('mouseup');
 
       const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+
       textarea.focus();
       textarea.value = 'Edited comment';
 

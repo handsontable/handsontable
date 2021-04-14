@@ -78,6 +78,7 @@ export function instanceToHTML(instance) {
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
               .replace(/\x20/gi, '&nbsp;')
               .replace(/\t/gi, '&#9;');
+
             cell = `<td ${attrs.join(' ')}>${value}</td>`;
           }
         }
@@ -158,6 +159,7 @@ export function htmlToGridSettings(element, rootDocument = document) {
   const settingsObj = {};
   const fragment = rootDocument.createDocumentFragment();
   const tempElem = rootDocument.createElement('div');
+
   fragment.appendChild(tempElem);
 
   let checkElement = element;
@@ -251,7 +253,9 @@ export function htmlToGridSettings(element, rootDocument = document) {
   const dataRows = [
     ...fixedRowsTop,
     ...Array.from(checkElement.tBodies).reduce((sections, section) => {
-      sections.push(...Array.from(section.rows)); return sections;
+      sections.push(...Array.from(section.rows));
+
+      return sections;
     }, []),
     ...fixedRowsBottom];
 

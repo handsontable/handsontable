@@ -1066,6 +1066,7 @@ describe('WalkontableScroll', () => {
       spec().data = createSpreadsheetData(20, 1);
 
       const txt = 'Very very very very very very very very very very very very very very very very very long text.';
+
       spec().data[4][0] = txt;
 
       const wt = walkontable({
@@ -1101,6 +1102,7 @@ describe('WalkontableScroll', () => {
       spec().data = createSpreadsheetData(20, 1);
 
       const txt = 'Very very very very very very very very very very very very very very very very very long text.';
+
       spec().data[19][0] = txt;
 
       const wt = walkontable({

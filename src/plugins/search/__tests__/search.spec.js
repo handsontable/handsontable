@@ -56,6 +56,7 @@ describe('Search plugin', () => {
       const searchResultClass = hot.getPlugin('search').searchResultClass;
 
       let cell = hot.getCell(0, 0);
+
       expect($(cell).hasClass(searchResultClass)).toBe(false);
       cell = hot.getCell(0, 1);
       expect($(cell).hasClass(searchResultClass)).toBe(false);
@@ -419,6 +420,7 @@ describe('Search plugin', () => {
       render();
 
       let cellProperties = hot.getCellMeta(0, 0);
+
       expect(cellProperties.isSearchResult).toBeFalsy();
       cellProperties = hot.getCellMeta(0, 1);
       expect(cellProperties.isSearchResult).toBeFalsy();
@@ -454,6 +456,7 @@ describe('Search plugin', () => {
       const searchResultClass = hot.getPlugin('search').searchResultClass;
 
       let cell = hot.getCell(0, 0);
+
       expect($(cell).hasClass(searchResultClass)).toBe(false);
       cell = hot.getCell(0, 1);
       expect($(cell).hasClass(searchResultClass)).toBe(false);
@@ -486,6 +489,7 @@ describe('Search plugin', () => {
       render();
 
       let cell = hot.getCell(0, 0);
+
       expect($(cell).hasClass('customSearchResultClass')).toBe(false);
       cell = hot.getCell(0, 1);
       expect($(cell).hasClass('customSearchResultClass')).toBe(false);
@@ -544,6 +548,7 @@ describe('Search plugin', () => {
       render();
 
       let cellClassName = hot.getCell(0, 0).className;
+
       expect(cellClassName).toBe('columns cell');
       cellClassName = hot.getCell(0, 1).className;
       expect(cellClassName).toBe('columns cell');
@@ -576,6 +581,7 @@ describe('Search plugin', () => {
       render();
 
       let cellClassName = hot.getCell(0, 0).className;
+
       expect(cellClassName).toBe('cell');
       cellClassName = hot.getCell(0, 1).className;
       expect(cellClassName).toBe('cell');

@@ -869,6 +869,7 @@ describe('NestedHeaders', () => {
             </tr>
           </tbody>
           `;
+
         expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }
@@ -897,6 +898,7 @@ describe('NestedHeaders', () => {
             </tr>
           </tbody>
           `;
+
         expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }
@@ -934,6 +936,7 @@ describe('NestedHeaders', () => {
             </tr>
           </tbody>
           `;
+
         expect(extractDOMStructure(getTopLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
         expect(extractDOMStructure(getLeftClone(), getLeftClone())).toMatchHTML(htmlPattern);
       }
@@ -951,6 +954,7 @@ describe('NestedHeaders', () => {
 
       const allTHs = function allTHs(row) {
         const headerRows = hot.view.wt.wtTable.THEAD.querySelectorAll('tr');
+
         return headerRows[row].querySelectorAll('th');
       };
       const levels = [nonHiddenTHs(hot, 0), nonHiddenTHs(hot, 1), nonHiddenTHs(hot, 2), nonHiddenTHs(hot, 3)];

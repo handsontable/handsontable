@@ -14,6 +14,7 @@ describe('BindRowsWithHeaders', () => {
 
   it('should call rowHeader function with correct index as argument (strict mode)', () => {
     const callback = jasmine.createSpy();
+
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 10),
       rowHeaders: callback,
@@ -50,6 +51,7 @@ describe('BindRowsWithHeaders', () => {
       width: 500,
       height: 300
     });
+
     alter('remove_row', 1, 4);
 
     await sleep(100);

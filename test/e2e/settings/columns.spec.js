@@ -212,6 +212,7 @@ describe('settings', () => {
                 { data: 'name' },
                 { data: 'lastName' }
               ];
+
               return [0, 1, 2].indexOf(column) > -1 ? settings[column] : null;
             },
             afterValidate: onAfterValidate

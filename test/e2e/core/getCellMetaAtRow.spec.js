@@ -16,6 +16,7 @@ describe('Core.getCellMetaAtRow', () => {
     handsontable();
 
     const rowOfMeta = getCellMetaAtRow(0);
+
     expect(rowOfMeta.length).toBe(5);
     expect(rowOfMeta[0].row).toBe(0);
     expect(rowOfMeta[1].row).toBe(0);

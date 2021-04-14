@@ -75,6 +75,7 @@ describe('NumericRenderer', () => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable(DIV, {});
     const TD = document.createElement('TD');
+
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {});
     expect(TD.className).toEqual('someClass htRight htNumeric');
@@ -85,6 +86,7 @@ describe('NumericRenderer', () => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable(DIV, {});
     const TD = document.createElement('TD');
+
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, '123', {});
     expect(TD.className).toEqual('someClass htRight htNumeric');
@@ -95,6 +97,7 @@ describe('NumericRenderer', () => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable(DIV, {});
     const TD = document.createElement('TD');
+
     TD.className = 'someClass';
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 'abc', {});
     expect(TD.className).toEqual('someClass');
@@ -105,6 +108,7 @@ describe('NumericRenderer', () => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable(DIV, {});
     const TD = document.createElement('TD');
+
     Handsontable.renderers.NumericRenderer(instance, TD, 0, 0, 0, 123, {
       readOnly: true,
       readOnlyCellClassName: 'htDimmed',

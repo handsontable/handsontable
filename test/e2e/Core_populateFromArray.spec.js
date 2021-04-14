@@ -100,6 +100,7 @@ describe('Core_populateFromArray', () => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
     const dataArray = arrayOfArrays();
+
     dataArray[0][0] = ['2011'];
 
     handsontable({

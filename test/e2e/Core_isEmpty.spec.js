@@ -16,6 +16,7 @@ describe('Core.isEmpty*', () => {
     it('should be empty row', () => {
       handsontable();
       const hot = getInstance();
+
       expect(hot.isEmptyRow(0)).toEqual(true);
     });
 
@@ -23,6 +24,7 @@ describe('Core.isEmpty*', () => {
       handsontable();
       setDataAtCell(0, 0, 'test');
       const hot = getInstance();
+
       expect(hot.isEmptyRow(0)).toEqual(false);
     });
 
@@ -30,6 +32,7 @@ describe('Core.isEmpty*', () => {
       handsontable();
       const hot = getInstance();
       const check = hot.isEmptyRow;
+
       expect(check(0)).toEqual(true); // this may be change in future when we switch to define isEmptyCol in prototype
     });
   });
@@ -38,6 +41,7 @@ describe('Core.isEmpty*', () => {
     it('should be empty row', () => {
       handsontable();
       const hot = getInstance();
+
       expect(hot.isEmptyCol(0)).toEqual(true);
     });
 
@@ -45,6 +49,7 @@ describe('Core.isEmpty*', () => {
       handsontable();
       setDataAtCell(0, 0, 'test');
       const hot = getInstance();
+
       expect(hot.isEmptyCol(0)).toEqual(false);
     });
 
@@ -52,6 +57,7 @@ describe('Core.isEmpty*', () => {
       handsontable();
       const hot = getInstance();
       const check = hot.isEmptyCol;
+
       expect(check(0)).toEqual(true); // this may be change in future when we switch to define isEmptyCol in prototype
     });
   });

@@ -27,6 +27,7 @@ describe('preventOverflow option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     expect(spec().$table.parents('.wtHolder').css('overflow')).toBe('visible');
@@ -42,6 +43,7 @@ describe('preventOverflow option', () => {
         return 'horizontal';
       }
     });
+
     wt.draw();
 
     expect(spec().$table.parents('.wtHolder').css('overflow')).toBe('auto');
@@ -60,6 +62,7 @@ describe('preventOverflow option', () => {
         return 'horizontal';
       }
     });
+
     wt.draw();
 
     expect($(wt.wtTable.wtRootElement.parentNode).find('.ht_clone_top .wtHolder').css('overflow-x')).toBe('hidden');

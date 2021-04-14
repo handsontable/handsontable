@@ -266,10 +266,12 @@ describe('ColumnSummarySpec', () => {
 
                   i -= 1;
                 } while (i >= rowRange[0]);
+
                 return counter;
               }
 
               let counter = 0;
+
               // go through all declared ranges
               Handsontable.helper.objectEach(endpoint.ranges, (range) => {
                 counter += checkRange(range);
@@ -362,6 +364,7 @@ describe('ColumnSummarySpec', () => {
       });
 
       const plugin = hot.getPlugin('columnSummary');
+
       expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(hot.countRows() / 2, 10));
       expect(hot.getDataAtCell(parseInt(hot.countRows() / 2, 10), 1)).toEqual(820);
 
@@ -632,11 +635,13 @@ describe('ColumnSummarySpec', () => {
         });
 
         const nestedRowsPlugin = hot.getPlugin('nestedRows');
+
         /**
          * @param row
          */
         function toggle(row) {
           const rowIndex = parseInt(row, 10);
+
           if (isNaN(rowIndex)) {
             return false;
           }
@@ -703,6 +708,7 @@ describe('ColumnSummarySpec', () => {
         maxRows: 5,
         columnSummary() {
           const configArray = [];
+
           for (let i = 0; i < columns; i++) {
             configArray.push({
               sourceColumn: i,
@@ -712,6 +718,7 @@ describe('ColumnSummarySpec', () => {
               forceNumeric: true
             });
           }
+
           return configArray;
         }
       });

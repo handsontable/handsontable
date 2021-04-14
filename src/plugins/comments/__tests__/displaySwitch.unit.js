@@ -16,6 +16,7 @@ describe('Comments', () => {
   describe('DisplaySwitch.show', () => {
     it('should call `showDebounced` function after triggering `show` function', () => {
       const displaySwitch = new DisplaySwitch(200);
+
       displaySwitch.showDebounced = jasmine.createSpy('showDebounced');
       const range = { from: new CellCoords(0, 1) };
 
@@ -26,6 +27,7 @@ describe('Comments', () => {
 
     it('should set `wasLastActionShow` variable to `true`', () => {
       const displaySwitch = new DisplaySwitch(200);
+
       displaySwitch.showDebounced = jasmine.createSpy('showDebounced');
       const range = { from: new CellCoords(0, 1) };
 
@@ -80,6 +82,7 @@ describe('Comments', () => {
 
     it('should set `wasLastActionShow` variable to `false`', () => {
       const displaySwitch = new DisplaySwitch(200);
+
       displaySwitch.showDebounced = jasmine.createSpy('showDebounced');
 
       displaySwitch.hide();
@@ -119,6 +122,7 @@ describe('Comments', () => {
 
     it('should set timer properly', () => {
       const displaySwitch = new DisplaySwitch(700);
+
       displaySwitch.hide();
 
       const savedhidingTimer = displaySwitch.hidingTimer;
@@ -150,6 +154,7 @@ describe('Comments', () => {
       const displaySwitch = new DisplaySwitch(1000);
       const range = { from: new CellCoords(0, 1) };
       const cachedShowDebounced = jasmine.createSpy('cachedShowDebounced');
+
       displaySwitch.showDebounced = cachedShowDebounced;
 
       jest.useFakeTimers();
@@ -203,6 +208,7 @@ describe('Comments', () => {
   describe('DisplaySwitch.destroy', () => {
     it('should clear all `localHooks`', () => {
       const displaySwitch = new DisplaySwitch(1000);
+
       displaySwitch.clearLocalHooks = jasmine.createSpy('clearLocalHooks');
 
       displaySwitch.destroy();

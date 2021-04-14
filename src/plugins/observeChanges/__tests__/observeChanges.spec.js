@@ -66,6 +66,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed row', async() => {
         const data = Handsontable.helper.createSpreadsheetData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -79,6 +80,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed column', async() => {
         const data = Handsontable.helper.createSpreadsheetData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -93,6 +95,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change from string to string', async() => {
         const data = Handsontable.helper.createSpreadsheetData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -105,6 +108,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change in a new row', async() => {
         const data = Handsontable.helper.createSpreadsheetData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -122,6 +126,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should not render cell change when turned off (`observeChanges: false`)', async() => {
         const data = Handsontable.helper.createSpreadsheetData(2, 2);
+
         createHOT(data, false);
         const htCore = getHtCore();
 
@@ -135,6 +140,7 @@ describe('HandsontableObserveChanges', () => {
     describe('object data', () => {
       it('should render newly added row', async() => {
         const data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -148,6 +154,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render removed row', async() => {
         const data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -161,6 +168,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change from string to string', async() => {
         const data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -173,6 +181,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should render cell change in a new row', async() => {
         const data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
+
         createHOT(data, true);
         const htCore = getHtCore();
 
@@ -189,6 +198,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should not break with undefined data properties', () => {
         const data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
+
         data[0].prop0 = undefined;
 
         expect(() => {
@@ -199,6 +209,7 @@ describe('HandsontableObserveChanges', () => {
 
       it('should not render cell change when turned off (`observeChanges: false`)', async() => {
         const data = Handsontable.helper.createSpreadsheetObjectData(2, 2);
+
         createHOT(data, false);
         const htCore = getHtCore();
 
@@ -214,6 +225,7 @@ describe('HandsontableObserveChanges', () => {
   describe('enabling/disabling plugin', () => {
     it('should be possible to enable plugin using updateSettings', async() => {
       const data = Handsontable.helper.createSpreadsheetData(2, 2);
+
       createHOT(data, false);
       const htCore = getHtCore();
 
@@ -314,6 +326,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+
         hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
         data[0][0] = 'new string';
@@ -327,6 +340,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+
         hot.addHook('afterCreateRow', afterCreateRowCallback);
 
         data.push(['A2', 'B2']);
@@ -343,6 +357,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
+
         hot.addHook('afterRemoveRow', afterRemoveRowCallback);
 
         data.pop();
@@ -358,6 +373,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
+
         hot.addHook('afterRemoveRow', afterRemoveRowCallback);
 
         data.splice(0, 2);
@@ -367,6 +383,7 @@ describe('HandsontableObserveChanges', () => {
 
         // The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
         const args = [];
+
         args.push(afterRemoveRowCallback.calls.argsFor(0));
         args.push(afterRemoveRowCallback.calls.argsFor(1));
         expect(args).toContain([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
@@ -378,6 +395,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterCreateColCallback = jasmine.createSpy('afterCreateColCallback');
+
         hot.addHook('afterCreateCol', afterCreateColCallback);
 
         data[0].push('C1');
@@ -394,6 +412,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRemoveColCallback = jasmine.createSpy('afterRemoveColCallback');
+
         hot.addHook('afterRemoveCol', afterRemoveColCallback);
 
         data[0].pop();
@@ -410,6 +429,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRemoveColCallback = jasmine.createSpy('afterRemoveColCallback');
+
         hot.addHook('afterRemoveCol', afterRemoveColCallback);
 
         data[0].pop();
@@ -422,6 +442,7 @@ describe('HandsontableObserveChanges', () => {
 
         // The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
         const args = [];
+
         args.push(afterRemoveColCallback.calls.argsFor(0));
         args.push(afterRemoveColCallback.calls.argsFor(1));
         expect(args).toContain([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
@@ -433,6 +454,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
         hot.addHook('afterChange', afterChangeCallback);
 
         data[0][0] = 'new string';
@@ -456,6 +478,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+
         hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
         data[0].prop0 = 'new string';
@@ -469,6 +492,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterCreateRowCallback = jasmine.createSpy('afterCreateRowCallback');
+
         hot.addHook('afterCreateRow', afterCreateRowCallback);
 
         data.push({ prop0: 'A2', prop1: 'B2' });
@@ -484,6 +508,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
+
         hot.addHook('afterRemoveRow', afterRemoveRowCallback);
 
         data.pop();
@@ -499,6 +524,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRemoveRowCallback = jasmine.createSpy('afterRemoveRowCallback');
+
         hot.addHook('afterRemoveRow', afterRemoveRowCallback);
 
         data.splice(0, 2);
@@ -508,6 +534,7 @@ describe('HandsontableObserveChanges', () => {
 
         // The order of run hooks depends on whether objectObserve uses native Object.observe or a shim
         const args = [];
+
         args.push(afterRemoveRowCallback.calls.argsFor(0));
         args.push(afterRemoveRowCallback.calls.argsFor(1));
         expect(args).toContain([1, 1, 'ObserveChanges.change', undefined, undefined, undefined]);
@@ -519,6 +546,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterChangeCallback = jasmine.createSpy('afterChangeCallback');
+
         hot.addHook('afterChange', afterChangeCallback);
 
         data[0].prop0 = 'new string';
@@ -544,6 +572,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         alter('insert_row');
@@ -558,9 +587,11 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+
         hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
         alter('remove_row');
@@ -576,6 +607,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         alter('insert_col');
@@ -590,9 +622,11 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+
         hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
         alter('remove_col');
@@ -609,9 +643,11 @@ describe('HandsontableObserveChanges', () => {
         const htCore = getHtCore();
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+
         hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
         setDataAtCell(0, 0, 'new value');
@@ -628,6 +664,7 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         alter('insert_row');
@@ -642,9 +679,11 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+
         hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
         alter('remove_row');
@@ -660,9 +699,11 @@ describe('HandsontableObserveChanges', () => {
         const hot = createHOT(data, true);
 
         const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
         hot.addHook('afterRender', afterRenderSpy);
 
         const afterChangesObservedCallback = jasmine.createSpy('afterChangesObservedCallback');
+
         hot.addHook('afterChangesObserved', afterChangesObservedCallback);
 
         setDataAtRowProp(0, 'prop0', 'new value');
@@ -681,9 +722,11 @@ describe('HandsontableObserveChanges', () => {
       const newData = Handsontable.helper.createSpreadsheetData(2, 2);
       const hot = createHOT(data, true);
       const htCore = getHtCore();
+
       hot.loadData(newData);
 
       const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
       hot.addHook('afterRender', afterRenderSpy);
 
       newData.push(['A3', 'B3']);
@@ -699,9 +742,11 @@ describe('HandsontableObserveChanges', () => {
       const newData = Handsontable.helper.createSpreadsheetData(2, 2);
       const hot = createHOT(data, true);
       const htCore = getHtCore();
+
       hot.loadData(newData);
 
       const afterRenderSpy = jasmine.createSpy('afterRenderSpy');
+
       hot.addHook('afterRender', afterRenderSpy);
 
       data.push(['A3', 'B3']);

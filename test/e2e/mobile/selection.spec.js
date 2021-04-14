@@ -67,6 +67,7 @@ describe('Selection', () => {
 
     const copyPastePlugin = hot.getPlugin('copyPaste');
     const focusableElement = copyPastePlugin.focusableElement.getFocusableElement();
+
     spyOn(focusableElement, 'select');
 
     hot.selectCell(0, 0);

@@ -501,6 +501,7 @@ describe('SelectEditor', () => {
     keyDown('enter');
 
     const selectMouseDownListener = jasmine.createSpy('selectMouseDownListener');
+
     $('body').on('mousedown', selectMouseDownListener);
 
     editor.mousedown();
