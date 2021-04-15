@@ -28,6 +28,7 @@ describe('Text Editor', () => {
     keyDown('enter');
 
     const editor = getActiveEditor();
+
     editor.setValue('test');
 
     // simulate "Done" click on iOS keyboard
