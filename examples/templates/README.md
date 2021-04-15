@@ -37,7 +37,7 @@ It's great! Now take a closer look at files inside templates.
 
 Every template has files that can be modified to match your needs. But there are some files that you **shouldn't modify** *unless* you know what you are doing (things can break). These files are either framework-specific: `angular.json`, `tsconfig*.json`, `config-overrides.js`, `vue.config.js`, `babel.config.js` or common for every template: `spec/support/jasmine.config.js`.
 
-What you **should modify** though is the `README.md` file. You should add code example-specific content between curly braces. Note: "Live preview" section should have a link to the CodeSandbox but it won't work until this example will be pushed to the repo. You can learn more about CodeSandbox links [here](../#live-on-production).
+What you **should modify** though is the `README.md` file. You should add code example-specific content between curly braces. Note: "Live preview" section should have a link to the CodeSandbox, but it won't work until this example is pushed to the repo. You can learn more about CodeSandbox links [here](../#live-on-production).
 
 Another important file is a `package.json` file. Some properties of this file should be the same for every new code example and **shouldn't be modified** (except `"@handsontable/{{ WRAPPER NAME }}"`):
 
@@ -64,11 +64,11 @@ Another important file is a `package.json` file. Some properties of this file sh
 
 In `package.json` are also scripts ***you should never modify or remove***, because those scripts are used by our CI/CD pipeline : `npm run start`, `npm run build` and `npm run test`.
 
-The only thing you have to modify is `"name"`, `"description"` and `"@handsontable/{{ WRAPPER NAME }}"` (if you are creating a code example made in a framework like React, Angular, or Vue). And, of course, you can install dependencies and stuff.
+The only thing you have to modify is `"name"`, `"description"` and `"@handsontable/{{ WRAPPER NAME }}"` (if you are creating a code example made in a framework like React, Angular, or Vue). And, of course, you can install dependencies.
 
 #### 3. Develop
 
-To run your example live, open terminal, run `npm install` to install all the necessary dependencies. After dependencies are installed run `npm run start` which will build and watch the project for any saved changes in code and run it on port `8080` so you can open the example in your browser at [localhost:8080](localhost:8080).
+After the dependencies are installed, run npm run start that builds the project and watches for any saved code changes. The command opens the project on port 8080 so you can open the example in your browser at `localhost:8080`.
 
 #### 4. Publishing
 

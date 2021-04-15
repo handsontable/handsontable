@@ -16,7 +16,7 @@ To run arbitrary code example locally on your machine see [How to run the arbitr
 - [Live on production](#live-on-production)
 - [Preview on CodeSandbox](#preview-on-codesandbox)
 - [Creating new examples](#creating-new-examples)
-- [Deployment](#deployment)
+- [Deployment](#deployment-of-the-new-code-examples)
 - [Editing existing examples](#editing-existing-examples)
 - [Development](#development)
   - [How to run the arbitrary code example](#how-to-run-the-arbitrary-code-example)
