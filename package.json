@@ -72,7 +72,7 @@
     "examples:build": "node examples/scripts/code-examples.mjs build",
     "examples:test": "node examples/scripts/code-examples.mjs test",
     "examples:start": "http-server ./examples/tmp",
-    "build-zip": "npm install && npm run build && cd tmp && npm pack && mv handsontable*.tgz handsontable-$(date +%Y%m%d).tgz && cp ../hf-zip-readme.md README.md && zip handsontable-9.0.0-$(date +%Y%m%d).zip handsontable*.tgz hyperformula*.tgz README.md && rm handsontable*.tgz && mv handsontable*.zip .."
+    "build-zip": "npm install && npm run build && cd tmp && npm pack && mv handsontable*.tgz handsontable-$(date +%Y%m%d).tgz && cp ../hf-zip-readme.md README.md && zip handsontable-9.0.0-$(date +%Y%m%d).zip handsontable*.tgz README.md && rm handsontable*.tgz && mv handsontable*.zip .."
   },
   "keywords": [
     "data",
@@ -94,7 +94,7 @@
     "core-js": "^3.0.0",
     "dompurify": "^2.1.1",
     "hot-formula-parser": "^4.0.0",
-    "hyperformula": "file:hyperformula-2e44288638f797fe7c1b44493d135160cbff320f.tgz",
+    "hyperformula": "0.5.0",
     "moment": "2.24.0",
     "numbro": "2.1.2",
     "pikaday": "1.8.0"
