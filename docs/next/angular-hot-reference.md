@@ -4,10 +4,11 @@ permalink: /next/angular-hot-reference
 canonicalUrl: /angular-hot-reference
 ---
 
-# {{ $frontmatter.title }}
+# Referencing the Handsontable instance
 
 An implementation of the `@handsontable/angular` explaining how to reference the Handsontable instance from the wrapper component.
 
+::: example #example1 :angular 
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
@@ -15,7 +16,7 @@ import * as Handsontable from 'handsontable';
 import { HotTableRegisterer } from '@handsontable/angular';
 
 @Component({
-  selector: 'app-root',
+  selector: '#example1',
   template: `
   <div class="hot">
     <hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
@@ -54,3 +55,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

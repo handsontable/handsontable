@@ -4,19 +4,18 @@ permalink: /next/angular-simple-example
 canonicalUrl: /angular-simple-example
 ---
 
-# {{ $frontmatter.title }}
+# Angular basic example
 
 An implementation of the `@handsontable/angular` wrapper.
 
-<app-root></app-root>
-
+::: example #example1 :angular
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
 
 @Component({
-  selector: 'app-root',
+  selector: '#example1',
   template: `
   <div>
     <hot-table
@@ -61,3 +60,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

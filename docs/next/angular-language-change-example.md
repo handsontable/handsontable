@@ -4,17 +4,18 @@ permalink: /next/angular-language-change-example
 canonicalUrl: /angular-language-change-example
 ---
 
-# {{ $frontmatter.title }}
+# Language change example
 
 An implementation of the `@handsontable/angular` component with an option to change the Context Menu language. Select a language from the selector above the table and open the Context Menu to see the result.
 
-```
+::: example #example1 :angular-languages
+```ts
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
 
 @Component({
-  selector: 'app-root',
+  selector: '#example1',
   template: `
   <label for="languages">Select language:</label>
   <select [(ngModel)]="language">
@@ -54,3 +55,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

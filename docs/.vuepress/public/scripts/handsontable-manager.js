@@ -29,35 +29,48 @@ const useHandsontable = ((instanceRegister) => {
 
   const getHotUrls = (version) => {
     if (version === 'next') {
-      return [
-        '/docs/handsontable.js',
-        '/docs/handsontable.css',
-      ];
+      return {
+        handsontableJs: '/docs/handsontable.js',
+        handsontableCss: '/docs/handsontable.css',
+        languagesJs: 'https://cdn.jsdelivr.net/npm/handsontable/dist/languages/all.js'
+      };
     }
     const mappedVersion = version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest';
 
-    return [
-      `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
-      `https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.css`,
-    ];
+    return {
+      handsontableJs:`https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.js`,
+      handsontableCss:`https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/handsontable.full.min.css`,
+      languagesJs:`https://cdn.jsdelivr.net/npm/handsontable@${mappedVersion}/dist/languages/all.js`
+    };
   };
 
   return (version, callback = () => {}, preset = 'hot') => {
     //todo duplicated in examples
     const buildDependencyGetter = (version) => {
-      const [hotJsUrl, hotCssUrl] = getHotUrls(version);
+      const {handsontableJs, handsontableCss, languagesJs} = getHotUrls(version);
       // todo use version
       // todo describe dynamic dependencies loader in readme
       // todo describe presets in readme
       return (dependency) => {
         const dependencies = {
-          hot: [hotJsUrl, ['Handsontable', 'Handsontable.react'], hotCssUrl],
+          hot: [handsontableJs, ['Handsontable', 'Handsontable.react'], handsontableCss],
           react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
           'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
           'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
           fixer: ['/docs/scripts/fixer.js', ['require', 'exports']],
           numbro: ['https://handsontable.com/docs/8.3.2/components/numbro/dist/languages.min.js', ['numbro.allLanguages','numbro']],
           redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js',[]],
+          'rxjs': ["https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js",[/*todo*/]],
+          'core-js': ["https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js",[/*todo*/]],
+          'zone': ["https://cdn.jsdelivr.net/npm/zone.js@0.9/dist/zone.min.js",[/*todo*/]],
+          'angular-compiler': ["https://cdn.jsdelivr.net/npm/@angular/compiler@8/bundles/compiler.umd.min.js",[/*todo*/]],
+          'angular-core': ["https://cdn.jsdelivr.net/npm/@angular/core@8/bundles/core.umd.min.js",[/*todo*/]],
+          'angular-common': ["https://cdn.jsdelivr.net/npm/@angular/common@8/bundles/common.umd.min.js",[/*todo*/]],
+          'angular-forms': ['https://cdn.jsdelivr.net/npm/@angular/forms@7/bundles/forms.umd.min.js',[/*todo*/]],
+          'angular-platform-browser': ["https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js",[/*todo*/]],
+          'angular-platform-browser-dynamic': ["https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js",[/*todo*/]],
+          'hot-angular': ["https://cdn.jsdelivr.net/npm/@handsontable/angular@7.0.0/bundles/handsontable-angular.umd.min.js",[/*todo*/]],
+          'languages': [languagesJs,[/*todo*/]],
 
         };
 
@@ -126,6 +139,9 @@ const useHandsontable = ((instanceRegister) => {
         react: [ 'hot','react', 'react-dom', 'hot-react', 'fixer'],
         'react-numbro': [ 'hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
         'react-redux': [ 'hot', 'react', 'react-dom', 'redux', 'hot-react', 'fixer'],
+        angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
+        'angular-languages': ['hot', 'languages', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
+        'angular-numbro': ['hot', 'numbro', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
 
         // todo others
       };
