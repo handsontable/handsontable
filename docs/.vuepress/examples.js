@@ -1,5 +1,5 @@
 /**
- * Matches into: `example #ID .class`.
+ * Matches into: `example #ID .class :preset --html 0 --js 1 --hidden`.
  *
  * @type {RegExp}
  */
@@ -42,6 +42,9 @@ const buildDependencyGetter = (version) => {
       'angular-platform-browser': ["https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js",[/*todo*/]],
       'angular-platform-browser-dynamic': ["https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js",[/*todo*/]],
       'hot-angular': ["https://cdn.jsdelivr.net/npm/@handsontable/angular@7.0.0/bundles/handsontable-angular.umd.min.js",[/*todo*/]],
+      'hot-vue': ["https://cdn.jsdelivr.net/npm/@handsontable/vue@6.0.0/dist/vue-handsontable.min.js", [/*todo*/]],
+      'vue': ["https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js", [/*todo*/]],
+      'vuex': ["https://unpkg.com/vuex@3/dist/vuex.js", [/*todo*/]],
       'languages': [languagesJs,[/*todo*/]],
     };
 
@@ -61,6 +64,10 @@ const getCss = (version, preset) => {
     angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
     'angular-languages': ['hot', 'languages', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
     'angular-numbro': ['hot', 'numbro', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
+    'vue':[ 'hot', 'vue', 'hot-vue', 'fixer'],
+    'vue-numbro':[ 'hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
+    'vue-languages':[ 'hot', 'languages', 'vue', 'hot-vue', 'fixer'],
+    'vue-vuex':[ 'hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
     // todo others
   };
   return presetMap[preset].map(x => getter(x)).reduce((p,c,i)=> 
@@ -70,8 +77,7 @@ const getCss = (version, preset) => {
     '</style><!-- Ugly Hack due to jsFiddle issue -->\n')
 };
 
-const getHtml = id => `<div id="${id}" ></div>`;
-const jsfiddle = (id, code, version, preset) => {
+const jsfiddle = (id, html, code, version, preset) => {
   return `
     <form
       id="jsfiddle-${id}"
@@ -83,9 +89,9 @@ const jsfiddle = (id, code, version, preset) => {
       <input type="text" name="title" readOnly value="Handsontable example" />
       <input type="text" name="wrap" readOnly value="d" />
       <textarea name="js" readOnly v-pre>${code}</textarea>
-      <textarea name="html" readOnly>${getHtml(id)}</textarea>
+      <textarea name="html" readOnly v-pre>${html}</textarea>
       <textarea name="css" readOnly>${getCss(version, preset)}</textarea>
-      ${preset.includes('react') ? '<input type="text" name="panel_js" value="3" readOnly>' : ''}
+      ${preset.includes('react') || preset.includes('vue') ? '<input type="text" name="panel_js" value="3" readOnly>' : ''}
       ${preset.includes('angular') ? '<input type="text" name="panel_js" value="4" readOnly>' : ''}
   }
     </form>
@@ -101,19 +107,30 @@ module.exports = {
     const { transformSync } = require('@babel/core');
 
     const token = tokens[index];
-    const tokenNext = tokens[index + 1];
     const m = token.info.trim().match(exampleRegex);
     const version = env.relativePath.split('/')[0];
 
     if (token.nesting === 1 && m) {
-      let [, , id, klass, preset] = m;
-      id = id ? id.substring(1) : '';
+      let [, , id, klass, preset, args=''] = m;
+      id = id ? id.substring(1) : 'example1';
       klass = klass ? klass.substring(1) : '';
       preset = preset ? preset.substring(1) : 'hot';
+      
+      const htmlPos = args.match(/--html (\d*)/)?.[1]
+      const tokenHtml = htmlPos ? tokens[index + Number.parseInt(htmlPos)] : undefined;
+      const contentHtml = tokenHtml 
+        ? tokenHtml.content
+        : `<div id="${id}" className="hot ${klass}"></div>`
+      
+      const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
+      const tokenJs = tokens[index +  Number.parseInt(jsPos)];
+      const contentJs = tokenJs.content;
+      
+      const hidden = !!args.match(/--hidden/);
 
       let code;
       try {
-        code = transformSync(tokenNext.content, {
+        code = transformSync(contentJs, {
           filename: id + (preset.includes('angular') ? '.ts' : '.jsx'),
           presets: [
             "@babel/preset-env",
@@ -138,10 +155,9 @@ module.exports = {
 
       // opening tag
       return `
-    <div data-jsfiddle="${id}">
-    <div id="${id}" class="hot ${klass}"></div>
-    </div><script data-jsfiddle="${id}" v-pre>useHandsontable('${version}', function(){${code}}, '${preset}');</script>
-    <div class="codeLayout">${jsfiddle(id, tokenNext.content, version, preset)}
+    <div v-pre>${contentHtml}</div>
+    <script data-jsfiddle="${id}" v-pre>useHandsontable('${version}', function(){${code}}, '${preset}');</script>
+    <div class="codeLayout ${hidden?'hidden':''}">${jsfiddle(id, contentHtml, contentJs, version, preset)}
 `;
     } else {
       // closing tag

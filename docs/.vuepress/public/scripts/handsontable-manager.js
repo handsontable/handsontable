@@ -70,6 +70,9 @@ const useHandsontable = ((instanceRegister) => {
           'angular-platform-browser': ["https://cdn.jsdelivr.net/npm/@angular/platform-browser@8/bundles/platform-browser.umd.min.js",[/*todo*/]],
           'angular-platform-browser-dynamic': ["https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@8/bundles/platform-browser-dynamic.umd.min.js",[/*todo*/]],
           'hot-angular': ["https://cdn.jsdelivr.net/npm/@handsontable/angular@7.0.0/bundles/handsontable-angular.umd.min.js",[/*todo*/]],
+          'hot-vue': ["https://cdn.jsdelivr.net/npm/@handsontable/vue@6.0.0/dist/vue-handsontable.min.js", [/*todo*/]],
+          'vue': ["https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js", [/*todo*/]],
+          'vuex': ["https://unpkg.com/vuex@3/dist/vuex.js", [/*todo*/]],
           'languages': [languagesJs,[/*todo*/]],
 
         };
@@ -142,8 +145,12 @@ const useHandsontable = ((instanceRegister) => {
         angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
         'angular-languages': ['hot', 'languages', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
         'angular-numbro': ['hot', 'numbro', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', ],
-
+        'vue':[ 'hot', 'vue', 'hot-vue', 'fixer'],
+        'vue-numbro':[ 'hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
+        'vue-languages':[ 'hot', 'languages', 'vue', 'hot-vue', 'fixer'],
+        'vue-vuex':[ 'hot', 'vue', 'vuex', 'hot-vue', 'fixer'],
         // todo others
+      // <script src=""></script>
       };
 
       for (const dep of presetMap[preset]) { // order of loading is really important. that why I use for with await - really slow solution
