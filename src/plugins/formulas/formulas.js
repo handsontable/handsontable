@@ -90,7 +90,7 @@ export class Formulas extends BasePlugin {
     super.destroy();
   }
 
-  onAfterLoadData(data) {
+  onAfterLoadData() {
     if (!this.enabled) {
       return;
     }
@@ -117,7 +117,13 @@ export class Formulas extends BasePlugin {
       const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
       // Omit the leading `'` from presentation, and all `getData` operations
-      const prettyValue = typeof value === 'string' ? (value.indexOf('\'') === 0 ? value.slice(1) : value) : value;
+      const prettyValue = (() => {
+        if (typeof value === 'string') {
+          return value.indexOf('\'') === 0 ? value.slice(1) : value;
+        }
+
+        return value;
+      })();
 
       valueHolder.value = prettyValue;
     } else {
