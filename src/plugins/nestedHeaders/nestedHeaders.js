@@ -54,13 +54,18 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * The state manager for the nested headers.
+   *
    * @private
    * @type {StateManager}
    */
   #stateManager = new StateManager();
   /**
+   * The instance of the ChangesObservable class that allows track the changes that happens in the
+   * column indexes.
+   *
    * @private
-   * @type {StateManager}
+   * @type {ChangesObservable}
    */
   #hidingIndexMapObserver = null;
   /**
@@ -553,6 +558,7 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Gets the tree data that belongs to the column headers pointed by the passed coordinates.
    *
+   * @private
    * @param {CellCoords} coords The CellCoords instance.
    * @returns {object|undefined}
    */

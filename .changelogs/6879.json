@@ -1,6 +1,6 @@
 {
-  "title": "Fixed the issue where hiding columns causes visual glitches when the _NestedHeaders_ plugin is used",
-  "type": "fixed",
+  "title": "Added support for hiding columns for the _NestedHeaders_ plugin",
+  "type": "added",
   "issue": 6879,
   "breaking": false,
   "framework": "none"

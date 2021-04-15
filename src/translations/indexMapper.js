@@ -70,9 +70,9 @@ export class IndexMapper {
     this.variousMapsCollection = new MapCollection();
     /**
      * The class instance collects row and column index changes that happen while the Handsontable
-     * is running. The object allows creating observers that you can subscribe to so that you can
-     * observe changes in indexes. Each event represents the index change (e.g., insert, removing,
-     * change index value), which can be consumed by a developer to update its logic.
+     * is running. The object allows creating observers that you can subscribe. Each event represents
+     * the index change (e.g., insert, removing, change index value), which can be consumed by a
+     * developer to update its logic.
      *
      * @private
      * @type {ChangesObservable}

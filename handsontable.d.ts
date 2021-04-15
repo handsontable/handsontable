@@ -828,27 +828,12 @@ declare namespace Handsontable {
     }
 
     interface CollapsibleColumns extends Base {
-      buttonEnabledList: Map<number, Set<number>>;
-      collapsableCoordsList: Map<number, Set<number>>;
-      collapsedColumns: number[];
-      collapsedSections: Map<number, any[]>;
-      columnHeaderLevelCount: number;
-      eventManager: EventManager;
-      hiddenColumnsPlugin: object;
-      nestedHeadersPlugin: object;
-      settings: boolean | any[];
-
-      checkDependencies(): void;
       collapseAll(): void;
-      collapseSection(coords: object): void;
+      collapseSection(coords: { row: number, col: number }): void;
       expandAll(): void;
-      expandSection(coords: object): void;
-      generateIndicator(col: number, TH: HTMLElement): HTMLElement;
-      markSectionAs(state: string, row: number, column: number, recursive: boolean): void;
-      meetsDependencies(): boolean;
-      parseSettings(): void;
-      toggleAllCollapsibleSections(action: string): void;
-      toggleCollapsibleSection(coords: Array<object>, action: string): void;
+      expandSection(coords: { row: number, col: number }): void;
+      toggleAllCollapsibleSections(action: 'collapse' | 'expand'): void;
+      toggleCollapsibleSection(coords: { row: number, col: number }, action: 'collapse' | 'expand'): void;
     }
 
     interface ColumnSorting extends Base {
@@ -879,6 +864,7 @@ declare namespace Handsontable {
       from: wot.CellCoords;
       to?: wot.CellCoords;
     }
+
     interface Comments extends Base {
       contextMenuEvent: boolean;
       displayDelay: number;
@@ -955,6 +941,7 @@ declare namespace Handsontable {
 
     type PasteModeType = 'overwrite' | 'shift_down' | 'shift_right';
     type RangeType = { startRow: number, startCol: number, endRow: number, endCol: number };
+
     interface CopyPaste extends Base {
       columnsLimit: number;
       copyableRanges: any[];
@@ -991,6 +978,7 @@ declare namespace Handsontable {
     type SeparatorObject = {
       name: string;
     }
+
     interface DropdownMenu extends Base {
       eventManager: EventManager;
       commandExecutor: CommandExecutor;
@@ -1028,6 +1016,7 @@ declare namespace Handsontable {
       filter(): void;
       removeConditions(column: number): void;
     }
+
     interface DataProvider {
       changes: object;
       hot: _Handsontable.Core;
@@ -1080,6 +1069,7 @@ declare namespace Handsontable {
       toString(): string;
       translateTo(rowOffset: number, columnOffset: number): void;
     }
+
     interface CellReference extends BaseCell { }
 
     interface CellValue extends BaseCell {
@@ -1102,7 +1092,9 @@ declare namespace Handsontable {
       setState(state: number): void;
       setValue(value: any): void;
     }
+
     type Parser = {};
+
     interface Sheet {
       alterManager: AlterManager
       dataProvider: DataProvider;
@@ -1130,7 +1122,6 @@ declare namespace Handsontable {
       pop(): any;
       push(items: any): void;
       size(): number;
-
     }
 
     interface UndoRedoSnapshot {
@@ -1415,31 +1406,8 @@ declare namespace Handsontable {
       isDragged(): boolean;
     }
 
-    interface GhostTableNestedHeaders {
-      container: any;
-      nestedHeaders: NestedHeaders;
-      widthsCache: any[];
-
-      clear(): void;
-    }
-
     interface NestedHeaders extends Base {
-      colspanArray: any[];
-      columnHeaderLevelCount: number;
-      ghostTable: GhostTableNestedHeaders;
-      settings: any[];
-
-      checkForFixedColumnsCollision(): void;
-      checkForOverlappingHeaders(): void;
-      getChildHeaders(row: number, column: number): any[];
-      fillColspanArrayWithDummies(colspan: number, level: number): void;
-      fillTheRemainingColspans(): void;
-      getColspan(row: number, column: number): number;
-      getNestedParent(level: number, column: number): any;
-      headerRendererFactory(headerRow: number): () => void;
-      levelToRowCoords(level: number): number;
-      rowCoordsToLevel(row: number): number;
-      setupColspanArray(): void;
+      detectedOverlappedHeaders: boolean;
     }
 
     interface DataManager {
@@ -1486,6 +1454,7 @@ declare namespace Handsontable {
       resume(): void;
       setObservedData(observedData: any): void;
     }
+
     interface ObserveChanges extends Base {
       observer: DataObserver | void;
     }
@@ -1765,6 +1734,19 @@ declare namespace Handsontable {
   }
 
   namespace Hooks {
+    interface HookHighlightRowHeaderMeta {
+      selectionType: string;
+      rowCursor: number;
+      selectionHeight: number;
+      classNames: string[];
+    }
+    interface HookHighlightColumnHeaderMeta {
+      selectionType: string;
+      columnCursor: number;
+      selectionWidth: number;
+      classNames: string[];
+    }
+
     interface Events {
       afterAddChild?: (parent: RowObject, element: RowObject | void, index: number | void) => void;
       afterAutofill?: (start: wot.CellCoords, end: wot.CellCoords, data: CellValue[][]) => void;
@@ -1873,6 +1855,8 @@ declare namespace Handsontable {
       beforeGetCellMeta?: (row: number, col: number, cellProperties: CellProperties) => void;
       beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
       beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
+      beforeHighlightingColumnHeader?: (column: number, headerLevel: number, highlightMeta: HookHighlightColumnHeaderMeta) => number | void;
+      beforeHighlightingRowHeader?: (row: number, headerLevel: number, highlightMeta: HookHighlightRowHeaderMeta) => number | void;
       beforeInit?: () => void;
       beforeInitWalkontable?: (walkontableConfig: object) => void;
       beforeKeyDown?: (event: KeyboardEvent) => void;
@@ -1996,37 +1980,55 @@ declare namespace Handsontable {
 
   namespace RecordTranslation {
     interface IndexMap {
-      getValues: () => any[],
-      getValueAtIndex: (index: number) => any;
-      setValues: (values: any[]) => void;
-      setValueAtIndex: (index: number, value: any) => boolean;
-      clear: () => void;
-      getLength: () => number;
+      getValues(): any[],
+      getValueAtIndex(i: number): any;
+      setValues(v: any[]): void;
+      setValueAtIndex(i: number, value: any): boolean;
+      clear(): void;
+      getLength(): number;
     }
 
+    interface ChangesEventData {
+      op: 'replace' | 'insert' | 'remove';
+      index: number;
+      oldValue: any;
+      newValue: any;
+    }
+
+    interface ChangesObserver {
+      subscribe(callback: (changes: ChangesEventData[]) => void): ChangesObserver;
+      unsubscribe(): ChangesObserver;
+    }
+
+    type MapTypes = 'hidden' | 'index' | 'linkedPhysicalIndexToValue' | 'physicalIndexToValue' | 'trimming';
+
     interface IndexMapper {
-      executeBatchOperations: (wrappedOperations: () => any) => void;
-      registerMap: (uniqueName: string, indexMap: IndexMap) => IndexMap;
-      unregisterMap: (name: string) => void;
-      getPhysicalFromVisualIndex: (visualIndex: number) => number | null;
-      getVisualFromPhysicalIndex: (physicalIndex: number) => number | null;
-      getPhysicalFromRenderableIndex: (renderableIndex: number) => number | null;
-      getVisualFromRenderableIndex: (renderableIndex: number) => number | null;
-      getRenderableFromVisualIndex: (visualIndex: number) => number | null;
-      getFirstNotHiddenIndex: (fromVisualIndex: number, incrementBy: number, searchAlsoOtherWayAround?: boolean, indexForNextSearch?: number) => number | null;
-      initToLength: (length?: number) => void;
-      getIndexesSequence: () => number[];
-      setIndexesSequence: (indexes: number[]) => void;
-      getNotTrimmedIndexes: (readFromCache?: boolean) => number[];
-      getNotTrimmedIndexesLength: () => number;
-      getNotHiddenIndexes: (readFromCache?: boolean) => number[];
-      getNotHiddenIndexesLength: () => number;
-      getRenderableIndexes: (readFromCache?: boolean) => number[];
-      getRenderableIndexesLength: () => number;
-      getNumberOfIndexes: () => number;
-      moveIndexes: (movedIndexes: number | number[], finalIndex: number) => void;
-      isTrimmed: (physicalIndex: number) => boolean;
-      isHidden: (physicalIndex: number) => boolean;
+      suspendOperations(): void;
+      resumeOperations(): void;
+      createChangesObserver(indexMapType: 'hiding'): ChangesObserver;
+      createAndRegisterIndexMap(indexName: string, mapType: MapTypes, initValueOrFn?: any): IndexMap;
+      registerMap(uniqueName: string, indexMap: IndexMap): IndexMap;
+      unregisterMap(name: string): void;
+      unregisterAll(): void;
+      getPhysicalFromVisualIndex(visualIndex: number): number | null;
+      getPhysicalFromRenderableIndex(renderableIndex: number): number | null;
+      getVisualFromPhysicalIndex(physicalIndex: number): number | null;
+      getVisualFromRenderableIndex(renderableIndex: number): number | null;
+      getRenderableFromVisualIndex(visualIndex: number): number | null;
+      getFirstNotHiddenIndex(fromVisualIndex: number, incrementBy: number, searchAlsoOtherWayAround?: boolean, indexForNextSearch?: number): number | null;
+      initToLength(length?: number): void;
+      getIndexesSequence(): number[];
+      setIndexesSequence(indexes: number[]): void;
+      getNotTrimmedIndexes(readFromCache?: boolean): number[];
+      getNotTrimmedIndexesLength(): number;
+      getNotHiddenIndexes(readFromCache?: boolean): number[];
+      getNotHiddenIndexesLength(): number;
+      getRenderableIndexes(readFromCache?: boolean): number[];
+      getRenderableIndexesLength(): number;
+      getNumberOfIndexes(): number;
+      moveIndexes(movedIndexes: number | number[], finalIndex: number): void;
+      isTrimmed(physicalIndex: number): boolean;
+      isHidden(physicalIndex: number): boolean;
     }
   }
 
@@ -2037,10 +2039,10 @@ declare namespace Handsontable {
     };
     interface Internationalization {
       dictionaryKeys: I18n.LanguageDictionary;
-      registerLanguageDictionary: (languageCodeOrDictionary: LanguageDictionary | string, dictionary?: LanguageDictionary) => LanguageDictionary;
-      getTranslatedPhrase: (dictionaryKey: string, extraArguments?: any) => string | null;
-      getLanguagesDictionaries: () => LanguageDictionary[];
-      getLanguageDictionary: (languageCode: string) => LanguageDictionary;
+      registerLanguageDictionary(languageCodeOrDictionary: LanguageDictionary | string, dictionary?: LanguageDictionary): LanguageDictionary;
+      getTranslatedPhrase(dictionaryKey: string, extraArguments?: any): string | null;
+      getLanguagesDictionaries(): LanguageDictionary[];
+      getLanguageDictionary(languageCode: string): LanguageDictionary;
     }
   }
 
