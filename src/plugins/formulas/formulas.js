@@ -214,7 +214,7 @@ export class Formulas extends BasePlugin {
     super.destroy();
   }
 
-  onAfterLoadData(data) {
+  onAfterLoadData() {
     if (!this.enabled) {
       return;
     }
@@ -241,7 +241,13 @@ export class Formulas extends BasePlugin {
       const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
       // Omit the leading `'` from presentation, and all `getData` operations
-      const prettyValue = typeof value === 'string' ? (value.indexOf('\'') === 0 ? value.slice(1) : value) : value;
+      const prettyValue = (() => {
+        if (typeof value === 'string') {
+          return value.indexOf('\'') === 0 ? value.slice(1) : value;
+        }
+
+        return value;
+      })();
 
       valueHolder.value = prettyValue;
     } else {
@@ -278,11 +284,27 @@ export class Formulas extends BasePlugin {
   }
 
   onBeforeCreateRow(row, amount) {
-    return this.hyperformula.isItPossibleToAddRows(this.hyperformula.getSheetId(this.sheetName), [row, amount]);
+    if (!this.hyperformula.isItPossibleToAddRows(this.hyperformula.getSheetId(this.sheetName), [row, amount])) {
+      return false;
+    }
   }
 
   onBeforeCreateCol(col, amount) {
-    return this.hyperformula.isItPossibleToAddColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
+    if (!this.hyperformula.isItPossibleToAddColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount])) {
+      return false;
+    }
+  }
+
+  onBeforeRemoveRow(row, amount) {
+    if (!this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [row, amount])) {
+      return false;
+    }
+  }
+
+  onBeforeRemoveCol(col, amount) {
+    if (!this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [col, amount])) {
+      return false;
+    }
   }
 
   onAfterCreateRow(row, amount) {
@@ -291,14 +313,6 @@ export class Formulas extends BasePlugin {
 
   onAfterCreateCol(col, amount) {
     this.hyperformula.addColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
-  }
-
-  onBeforeRemoveRow(row, amount) {
-    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [row, amount]);
-  }
-
-  onBeforeRemoveCol(col, amount) {
-    return this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [col, amount]);
   }
 
   onAfterRemoveRow(row, amount) {
