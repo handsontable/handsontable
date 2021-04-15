@@ -395,30 +395,32 @@ describe('Formulas general', () => {
     expect(hot.getDataAtCell(0, 1)).toBe('#CYCLE!');
   });
 
-  // TODO https://github.com/handsontable/handsontable/issues/7668
-  xit('should mark cell as #REF! (out of data table range for columns)', () => {
-    const hot = handsontable({
-      data: getDataForFormulas(0, 'name', ['=K1']),
-      columns: getColumnsForFormulas(),
-      formulas: true,
-      width: 500,
-      height: 300
+  // Discussion on why `null` instead of `#REF!` at
+  // https://github.com/handsontable/handsontable/issues/7668
+  describe('out of range cells should return null', () => {
+    it('columns', () => {
+      const hot = handsontable({
+        data: getDataForFormulas(0, 'name', ['=K1']),
+        columns: getColumnsForFormulas(),
+        formulas: true,
+        width: 500,
+        height: 300
+      });
+
+      expect(hot.getDataAtCell(0, 1)).toBe(null);
     });
 
-    expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
-  });
+    it('rows', () => {
+      const hot = handsontable({
+        data: getDataForFormulas(0, 'name', ['=A1000']),
+        columns: getColumnsForFormulas(),
+        formulas: true,
+        width: 500,
+        height: 300
+      });
 
-  // TODO https://github.com/handsontable/handsontable/issues/7668
-  xit('should mark cell as #REF! (out of data table range for rows)', () => {
-    const hot = handsontable({
-      data: getDataForFormulas(0, 'name', ['=A1000']),
-      columns: getColumnsForFormulas(),
-      formulas: true,
-      width: 500,
-      height: 300
+      expect(hot.getDataAtCell(0, 1)).toBe(null);
     });
-
-    expect(hot.getDataAtCell(0, 1)).toBe('#REF!');
   });
 
   it('should recalculate volatile functions upon data changes', () => {
