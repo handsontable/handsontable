@@ -6,25 +6,25 @@ canonicalUrl: /angular-installation
 
 # {{ $frontmatter.title }}
 
-**Handsontable for Angular** is the official wrapper for Handsontable, a JavaScript data grid component with a spreadsheet look & feel. It easily integrates with any data source and comes with lots of useful features like data binding, validation, sorting or powerful context menu.
+**Handsontable for Angular** is the official wrapper for Handsontable.
 
-### Installation
+### Install with npm
 
-This component needs the Handsontable library to work. We suggest using [npm](https://www.npmjs.com/package/@handsontable/angular) to install the package.
+This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/angular) to install the packages.
 
-```
+```bash
 npm install handsontable @handsontable/angular
 ```
 
 ### Basic usage
 
-Import the Handsontable styles to your project
+Import the Handsontable styles to your project.
 
 ```scss
 @import '~handsontable/dist/handsontable.full.css';
 ```
 
-Import the Handsontable component in your module
+Import the Handsontable component in your module.
 
 ```js
 import { BrowserModule } from '@angular/platform-browser';
@@ -52,9 +52,6 @@ Now, you can use the Handsontable component in your HTML files
 <hot-table
   [colHeaders]="true"
   [rowHeaders]="true"
-  [data]="dataset"></hot-table>`
+  [data]="dataset"
+  [licenseKey]="non-commercial-and-evaluation"></hot-table>`
 ```
-
-### License
-
-Handsontable for Angular wrapper is released under [the MIT license](https://github.com/handsontable/angular-handsontable/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](licensing.md). You can either use it for free in all your non-commercial projects or purchase a commercial license.

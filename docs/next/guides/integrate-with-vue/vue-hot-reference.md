@@ -26,7 +26,8 @@ new Vue({
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(4, 4),
-        colHeaders: true
+        colHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   },

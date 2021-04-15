@@ -60,10 +60,10 @@ class App extends React.Component {
             TR_price: 678.1
           }
         ],
-        licenseKey: 'non-commercial-and-evaluation',
         autoRowSize: false,
         autoColumnSize: false,
-        colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey']
+        colHeaders: ['Product name', 'Price in Japan', 'Price in Turkey'],
+        licenseKey: 'non-commercial-and-evaluation'
       }
     };
   }

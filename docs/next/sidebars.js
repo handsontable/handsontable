@@ -4,8 +4,9 @@ const path = require('path');
 const gettingStartedItems = [
   'guides/getting-started/introduction',
   'guides/getting-started/hello-world',
-  'guides/getting-started/basic-usage',
+  'guides/getting-started/installation',
   'guides/getting-started/binding-to-data',
+  'guides/getting-started/saving-data',
   'guides/getting-started/setting-options',
   'guides/getting-started/grid-size',
   'guides/getting-started/using-callbacks',

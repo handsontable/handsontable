@@ -270,15 +270,17 @@ export default {
     background #fff
     width 26rem
     position absolute
-    top 2rem
+    top 1.6rem
     border 1px solid darken($borderColor, 10%)
     border-radius 6px
     padding 0.4rem
     list-style-type none
     &.align-right
       right 0
-    li {
-      padding 0.4rem 0.6rem
+    li:not(.suggestion) {
+      padding 0.4rem 0.6rem;
+      font-weight: 500;
+      font-size: 15px;
     }
   .suggestion
     line-height 1.4

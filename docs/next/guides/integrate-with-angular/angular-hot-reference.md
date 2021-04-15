@@ -21,7 +21,7 @@ import { HotTableRegisterer } from '@handsontable/angular';
     <hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
   </div>
   <br>
-  <button (click)="swapHotData()">Load new data!</button>
+  <button (click)="swapHotData()">Load new data</button>
   `,
 })
 class AppComponent {
@@ -29,7 +29,8 @@ class AppComponent {
   id = 'hotInstance';
   hotSettings: Handsontable.GridSettings = {
     data: Handsontable.helper.createSpreadsheetData(4, 4),
-    colHeaders: true
+    colHeaders: true,
+    licenseKey: 'non-commercial-and-evaluation'
   };
 
   swapHotData() {

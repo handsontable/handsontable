@@ -33,7 +33,7 @@ const formatTR = {
   selector: 'app-root',
   template: `
     <div>
-      <hot-table class="hot" [data]="dataset" [colHeaders]="true">
+      <hot-table class="hot" [data]="dataset" [colHeaders]="true" [licenseKey]="non-commercial-and-evaluation">
         <hot-column
           data="productName"
           [readOnly]="true"

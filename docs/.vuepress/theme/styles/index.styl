@@ -1,6 +1,16 @@
 /* VuePress Tabs */
 @import '~vuepress-plugin-tabs/dist/themes/default.styl'
-@import 'vuepress-tabs-custom.styl'
+@import 'vuepress-tabs-custom'
+
+/* Code group tabs */
+@import 'code-group'
+
+/* Table of contents */
+@import 'table-of-contents'
+
+/* Temporary stylesheet for random elements */
+@import 'quirks'
+
 
 body {
   font-size: 15px;
@@ -15,12 +25,13 @@ body div {
 }
   
 .theme-default-content:not(.custom) > h1, .theme-default-content:not(.custom) > h2, .theme-default-content:not(.custom) > h3, .theme-default-content:not(.custom) > h4, .theme-default-content:not(.custom) > h5, .theme-default-content:not(.custom) > h6 {
-  margin-top: -2.1rem;
+  margin-top: -2.8rem;
 }
   
 /* Handsontable styles */
 
 .hot {
+  margin-top: 6px;
   position: relative;
   z-index: 9;
   font-size: 13px;
@@ -110,14 +121,16 @@ h1 {
 
 h2 {
   margin-bottom: 1rem!important;
-  padding-bottom: 0;
+  padding-bottom: 6px;
   padding-top: 3.6rem!important;
-  border-bottom: none;
-  font-size: 1.45rem;
+  font-size: 1.55rem;
+  border-color: #e9eef2;
 }
 
 h3 {
   margin-bottom: 1rem!important;
+  padding-top: 3.6rem!important;
+  font-size: 1.25rem;
 }
 
 .page {
@@ -171,58 +184,6 @@ table {
       .theme-default-content {
           margin: 0;
           max-width: calc(100% - 370px);
-      }
-  }
-
-  .toc-container-header {
-      font-weight: 500;
-      padding: 1.2em 1rem;
-  }
-
-  .table-of-contents {
-      font-size: 0.8em;
-      position: fixed;
-      right: 0;
-      top: 100px;
-      width: 225px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      border-left: 1px solid #e9eef2;
-      max-height: 80vh;
-
-      .toc-container-header {
-          position: fixed;
-          width: 100%;
-          background: #fff;
-          z-index: 10;
-      }
-
-      ul {
-          padding: 0;
-          margin: 46px 0 0 0;
-          list-style-type: none;
-
-          ul{
-              padding-left: 1em;
-              margin: 0;
-          }
-      }
-
-      a {
-          font-weight: 400;
-          line-height: 1.4;
-          padding: 0.35rem 1rem;
-          color: $textColor;
-          display: block;
-          text-decoration: none!important;
-      }
-    
-      a.active {
-        color: $textColor;
-      }
-    
-      a:hover {
-          color: #104bcd;
       }
   }
 }
@@ -318,7 +279,21 @@ div.js-fiddle-link {
     }
     
     h3 {
+      padding-top: 0!important;
       font-size: 16px;
     }
   }
+}
+
+.theme-default-content code {
+  background-color: #fafbff;
+}
+
+/* Keyboard formatting */
+kbd {
+  padding: 0 0.25em;
+  font-size :13px;
+  font-weight: 600;
+  border: 1px solid #bbc6d3;
+  background: #fafbff;
 }

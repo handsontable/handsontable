@@ -39,7 +39,8 @@ new Vue({
               }
             }
           }
-        }
+        },
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   },

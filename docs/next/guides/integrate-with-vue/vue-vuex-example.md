@@ -47,7 +47,8 @@ new Vue({
           if (this.hotRef) {
             this.$store.commit('updateData', this.hotRef.getSourceData());
           }
-        }
+        },
+        licenseKey: 'non-commercial-and-evaluation'
       },
       hotRef: null
     };

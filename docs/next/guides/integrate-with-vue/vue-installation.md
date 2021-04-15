@@ -8,21 +8,19 @@ canonicalUrl: /vue-installation
 
 [[toc]]
 
-**Handsontable for Vue** is the official wrapper for Handsontable, a JavaScript data grid component with a spreadsheet look & feel. It easily integrates with any data source and comes with lots of useful features like data binding, validation, sorting or powerful context menu.
+**Handsontable for Vue** is the official wrapper for Handsontable.
 
-## Installation
+## Install with npm
 
-This component needs the Handsontable library to work. We suggest using [npm](https://www.npmjs.com/package/@handsontable/vue) to install the package.
+This component needs the Handsontable library to work. Use [npm](https://www.npmjs.com/package/@handsontable/vue) to install the packages.
 
-```
+```bash
 npm install handsontable @handsontable/vue
 ```
 
 ## Basic usage
 
-Vue Component
-
-```
+```js
 <template>
   <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
 </template>
@@ -49,7 +47,3 @@ Vue Component
 
 <style src="../node_modules/handsontable/dist/handsontable.full.css"></style>`
 ```
-
-## License
-
-Handsontable for Vue wrapper is released under [the MIT license](https://github.com/handsontable/vue-handsontable-official/blob/master/LICENSE) but under the hood it uses Handsontable, which is [dual-licensed](licensing.md). You can either use it for free in all your non-commercial projects or purchase a commercial license.

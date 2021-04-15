@@ -8,15 +8,11 @@ canonicalUrl: /react-hot-column
 
 [[toc]]
 
-::: tip
-Version `3.1.0` of the `@handsontable/react` wrapper introduces a new feature - a `HotColumn` component.
-:::
-
-It doesn't only allow to configure the column-related settings using the `HotColumn` component's attributes, but also create custom renderers and editors using React components.
+It allows to configure the column-related settings using the `HotColumn` component's attributes. It also creates custom renderers and editors using React components.
 
 ## Declaring column settings
 
-To declare column-specific settings, simply pass the settings as `HotColumn` props (either separately or wrapped as a `settings` prop, exactly as you would with `HotTable`).
+To declare column-specific settings, simply pass the settings as `HotColumn` props, either separately or wrapped as a `settings` prop, exactly as you would with `HotTable`.
 
 <iframe src="https://codesandbox.io/embed/declaring-column-settings-hknvq?fontsize=14" title="Declaring column settings" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" style={{
   width:'100%',
@@ -33,9 +29,10 @@ Although it's possible to use class-based react components for this purpose, **w
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
-::: warning
+::: tip
 Because the Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
-**Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results (note that `autoColumnSize` is enabled by default).**
+
+Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results. Please note that `autoColumnSize` is enabled by default.
 :::
 
 <iframe src="https://codesandbox.io/embed/declaring-column-settings-hexfj?fontsize=14" title="Declaring a custom renderer as a component" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" style={{
@@ -48,9 +45,7 @@ Because the Handsontable's `autoRowSize` and `autoColumnSize` options require ca
 
 ## Object data source
 
-When you use object data binding for `HotColumn` you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in props as `data`, for example, `<HotColumn data="id" />` .
-
-You can read more on this topic on the [data source page](data-sources.md#page-object.html).
+When you use object data binding for `HotColumn` you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in props as `data`, for example, `<HotColumn data="id" />`.
 
 <iframe src="https://codesandbox.io/embed/object-data-source-b9799?fontsize=14&hidenavigation=1&theme=dark" style={{
   width:'100%',
@@ -89,10 +84,10 @@ It this example we're using React's Context to pass the information available in
   overflow: 'hidden',
 }} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
-## A more advanced example
+## An advanced example
 
-In this example we will create a custom editor component with an external dependency, which will act as both renderer and editor. Information from that component will be used by another component (first column renderer) to change the way it behaves.
-The information will be passed using Redux and `react-redux`'s `connect` method.
+In this example we create a custom editor component with an external dependency, which acts as both renderer and editor. Information from that component is used by the renderer in the first column to change the way it behaves.
+The information is passed using Redux and `react-redux`'s `connect` method.
 
 <iframe src="https://codesandbox.io/embed/advanced-handsontablereact-implementation-using-hotcolumn-878mz?fontsize=14" title="Advanced @handsontable/react implementation using HotColumn" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" style={{
   width:'100%',

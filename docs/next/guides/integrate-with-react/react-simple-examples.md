@@ -8,10 +8,10 @@ canonicalUrl: /react-simple-examples
 
 [[toc]]
 
-## An implementation of the `@handsontable/react` wrapper.
+## Get started
 
 ```html
-<!-- a root div where the component is rendered -->
+<!-- a root div in which the component is being rendered -->
 <div id="example1" class="hot"></div>
 ```
 
@@ -25,7 +25,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     
-    this.handsontableData = Handsontable.helper.createSpreadsheetData(6, 10);
+    this.handsontableData = Handsontable.helper.createSpreadsheetData(100, 50);
   }
   render() {
     return (<div>
@@ -33,7 +33,8 @@ class App extends React.Component {
         id="hot"
         data={this.handsontableData}
         colHeaders={true}
-        rowHeaders={true} />
+        rowHeaders={true}
+        licenseKey="non-commercial-and-evaluation" />
     </div>);
   }
 }
@@ -41,7 +42,7 @@ class App extends React.Component {
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
 
-## An implementation of the component using a single-property (`settings`) configuration.
+## A single property configuration
 
 ```html
 <!-- a root div where the component is rendered -->
@@ -57,7 +58,7 @@ import Handsontable from 'handsontable';
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.handsontableData = Handsontable.helper.createSpreadsheetData(6, 10);
+    this.handsontableData = Handsontable.helper.createSpreadsheetData(100, 50);
   }
   render() {
     return (<div>
@@ -65,7 +66,8 @@ class App extends React.Component {
         settings={{
           data: this.handsontableData,
           colHeaders: true,
-          rowHeaders: true
+          rowHeaders: true,
+          licenseKey: 'non-commercial-and-evaluation'
         }}/>
     </div>);
   }
@@ -74,7 +76,7 @@ class App extends React.Component {
 ReactDOM.render(<App />, document.getElementById('example2'));
 ```
 
-## An interactive implementation using external checkboxes which control the table behavior.
+## External control
 
 ```css
 .controllers {
@@ -103,9 +105,10 @@ class MyComponent extends React.Component {
     super(props);
     this.state = {
       settings: {
-        data: Handsontable.helper.createSpreadsheetData(15, 20),
+        data: Handsontable.helper.createSpreadsheetData(100, 50),
         width: 570,
         height: 220,
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   }

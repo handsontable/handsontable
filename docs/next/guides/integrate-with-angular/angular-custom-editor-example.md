@@ -47,7 +47,8 @@ class AppComponent {
       }
     ],
     colHeaders: true,
-    colWidths: 200
+    colWidths: 200,
+    licenseKey: 'non-commercial-and-evaluation'
   };
 }
 

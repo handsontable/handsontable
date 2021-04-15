@@ -8,15 +8,11 @@ canonicalUrl: /vue-hot-column
 
 [[toc]]
 
-::: tip
-Version `4.1.0` of the `@handsontable/vue` wrapper introduces a new feature - a `hot-column` component.
-:::
-
-It doesn't only allow to configure the column-related settings using the `hot-column` component's attributes, but also create custom renderers and editors using Vue components.
+You can configure the column-related settings using the `hot-column` component's attributes. You can also create custom renderers and editors using Vue components.
 
 ## Declaring column settings
 
-To declare column-specific settings, simply pass the settings as `hot-column` props (either separately or wrapped as a `settings` prop, exactly as you would for `hot-table`).
+To declare column-specific settings, simply pass the settings as `hot-column` props, either separately or wrapped as a `settings` prop, exactly as you would for `hot-table`.
 
 ```html
 <hot-table :data="hotData">
@@ -49,7 +45,7 @@ new Vue({
 });
 ```
 
-## Object data source
+## Array of objects
 
 To work with an array of objects for the `hot-column` component you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in props as `data`.
 
@@ -97,9 +93,10 @@ The wrapper allows creating custom renderers using Vue components. The data you 
 
 To mark a component as a Handsontable renderer, simply add a `hot-renderer` attribute to it.
 
-::: warning
+::: tip
 Because the Handsontable's `autoRowSize` and `autoColumnSize` options require calculating the widths/heights of some of the cells before rendering them into the table, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
-**Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results.**
+
+Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results.
 :::
 
 ```html
@@ -143,10 +140,10 @@ const App = new Vue({
   data: function() {
     return {
       hotSettings: {
-        data: Handsontable.helper.createSpreadsheetData(10, 10)  ,
-        licenseKey: 'non-commercial-and-evaluation',
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
         autoRowSize: false,
-        autoColumnSize: false
+        autoColumnSize: false,
+        licenseKey: 'non-commercial-and-evaluation',
       }
     }
   },

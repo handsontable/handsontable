@@ -57,7 +57,8 @@ new Vue({
           }
         ],
         colHeaders: true,
-        rowHeights: 55
+        rowHeights: 55,
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   },

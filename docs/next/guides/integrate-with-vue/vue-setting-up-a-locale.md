@@ -14,7 +14,7 @@ An example of Handsontable with locales setup in Vue.
 </div>
 ```
 
-An implementation of the `@handsontable/vue` component. JS file:
+An implementation of the `@handsontable/vue` component.
 
 ```js
 import Vue from 'vue';

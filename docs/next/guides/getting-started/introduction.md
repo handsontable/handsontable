@@ -8,7 +8,7 @@ canonicalUrl: /
 
 [[toc]]
 
-**Handsontable** is a **JavaScript data grid** with spreadsheet features and look&feel. It supports the most popular frameworks such as **React, Angular, and Vue**. It can be easily modified or extended with custom plugins. It binds to data using the JSON format, and handles large amounts of records. It supports operations like filtering, sorting, and CRUD operations.
+Welcome to developer guides. Handsontable is a **JavaScript data grid** with spreadsheet features and look&feel. It supports the most popular frameworks such as **React, Angular, and Vue**. It can be easily modified or extended with custom plugins. It binds to data using the JSON format, and handles large amounts of records. It supports operations like filtering, sorting, and CRUD operations.
 
 ## Get started with sample apps
 

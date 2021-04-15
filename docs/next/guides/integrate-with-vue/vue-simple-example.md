@@ -8,13 +8,13 @@ canonicalUrl: /vue-simple-example
 
 A simple implementation of the `@handsontable/vue` component.
 
-A `div` element of `id="example"` where the `@handsontable/vue` component will be rendered. HTML file:
+A `div` element of `id="example"` where the `@handsontable/vue` component will be rendered.
 
 ```html
 <hot-table :settings="hotSettings"></hot-table>
 ```
 
-An implementation of the `@handsontable/vue` component. JS file:
+An implementation of the component.
 
 ```js
 import Vue from 'vue';
@@ -27,7 +27,8 @@ new Vue({
     return {
       hotSettings: {
         data: Handsontable.helper.createSpreadsheetData(6, 10),
-        colHeaders: true
+        colHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation'
       }
     }
   },

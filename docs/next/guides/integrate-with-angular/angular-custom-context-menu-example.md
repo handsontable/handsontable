@@ -38,7 +38,8 @@ class AppComponent {
           }
         }
       }
-    }
+    },
+    licenseKey: 'non-commercial-and-evaluation'
   };
 }
 

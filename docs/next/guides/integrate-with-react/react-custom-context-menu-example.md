@@ -8,7 +8,7 @@ canonicalUrl: /react-custom-context-menu-example
 
 An implementation of the `@handsontable/react` component with a custom Context Menu added.
 
-```js
+```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -18,7 +18,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.hotSettings = {
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: Handsontable.helper.createSpreadsheetData(100, 50),
       colHeaders: true,
       contextMenu: {
         items: {
@@ -34,7 +34,8 @@ class App extends React.Component {
             }
           }
         }
-      }
+      },
+      licenseKey: 'non-commercial-and-evaluation'
     };
   }
 
