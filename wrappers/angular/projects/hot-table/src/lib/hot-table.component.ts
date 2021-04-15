@@ -287,6 +287,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeTouchScroll: Handsontable.GridSettings['beforeTouchScroll'];
   @Input() beforeTrimRow: Handsontable.GridSettings['beforeTrimRow'];
   @Input() beforeUndo: Handsontable.GridSettings['beforeUndo'];
+  @Input() beforeUndoStackChange: Handsontable.GridSettings['beforeUndoStackChange'];
   @Input() beforeUnhideColumns: Handsontable.GridSettings['beforeUnhideColumns'];
   @Input() beforeUnhideRows: Handsontable.GridSettings['beforeUnhideRows'];
   @Input() beforeUnmergeCells: Handsontable.GridSettings['beforeUnmergeCells'];

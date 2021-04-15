@@ -458,6 +458,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
+  beforeUndoStackChange: (action, source) => {},
   beforeUnhideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeUnhideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeUnmergeCells: (cellRange, auto) => {},

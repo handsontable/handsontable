@@ -29,10 +29,16 @@ function UndoRedo(instance) {
   this.ignoreNewActions = false;
   this.enabled = false;
 
+  instance.addHook('beforeUndoStackChange', (action, source) => {
+    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo') {
+      return false;
+    }
+  });
+
   instance.addHook('afterChange', function(changes, source) {
     const changesLen = changes && changes.length;
 
-    if (!changesLen || ['UndoRedo.undo', 'UndoRedo.redo', 'MergeCells'].includes(source)) {
+    if (!changesLen) {
       return;
     }
     const hasDifferences = changes.find((change) => {
@@ -57,7 +63,7 @@ function UndoRedo(instance) {
 
     const selected = changesLen > 1 ? this.getSelected() : [[clonedChanges[0][0], clonedChanges[0][1]]];
 
-    plugin.done(new UndoRedo.ChangeAction(clonedChanges, selected));
+    plugin.done(new UndoRedo.ChangeAction(clonedChanges, selected), source);
   });
 
   instance.addHook('afterCreateRow', (index, amount, source) => {
@@ -67,7 +73,7 @@ function UndoRedo(instance) {
 
     const action = new UndoRedo.CreateRowAction(index, amount);
 
-    plugin.done(action);
+    plugin.done(action, source);
   });
 
   instance.addHook('beforeRemoveRow', (index, amount, logicRows, source) => {
@@ -81,7 +87,7 @@ function UndoRedo(instance) {
     const removedData = deepClone(originalData.slice(physicalRowIndex, physicalRowIndex + amount));
 
     plugin.done(new UndoRedo.RemoveRowAction(
-      rowIndex, removedData, instance.getSettings().fixedRowsBottom, instance.getSettings().fixedRowsTop));
+      rowIndex, removedData, instance.getSettings().fixedRowsBottom, instance.getSettings().fixedRowsTop), source);
   });
 
   instance.addHook('afterCreateCol', (index, amount, source) => {
@@ -89,7 +95,7 @@ function UndoRedo(instance) {
       return;
     }
 
-    plugin.done(new UndoRedo.CreateColumnAction(index, amount));
+    plugin.done(new UndoRedo.CreateColumnAction(index, amount), source);
   });
 
   instance.addHook('beforeRemoveCol', (index, amount, logicColumns, source) => {
@@ -128,7 +134,7 @@ function UndoRedo(instance) {
     const action = new UndoRedo.RemoveColumnAction(
       columnIndex, indexes, removedData, headers, columnsMap, rowsMap, instance.getSettings().fixedColumnsLeft);
 
-    plugin.done(action);
+    plugin.done(action, source);
   });
 
   instance.addHook('beforeCellAlignment', (stateBefore, range, type, alignment) => {
@@ -168,10 +174,18 @@ function UndoRedo(instance) {
 }
 
 /**
+ * Stash performed actions.
+ *
+ * @function done
+ * @memberof UndoRedo#
+ * @fires Hooks#beforeUndoStackChange
  * @param {object} action The action desciptor.
+ * @param {string} [source] Source of action. It is defined just for more general actions (not related to plugins).
  */
-UndoRedo.prototype.done = function(action) {
-  if (!this.ignoreNewActions) {
+UndoRedo.prototype.done = function(action, source) {
+  const continueAction = this.instance.runHooks('beforeUndoStackChange', action, source);
+
+  if (!this.ignoreNewActions && continueAction !== false) {
     this.doneActions.push(action);
     this.undoneActions.length = 0;
   }

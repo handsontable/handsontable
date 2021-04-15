@@ -1903,6 +1903,7 @@ declare namespace Handsontable {
       beforeTouchScroll?: () => void;
       beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
       beforeUndo?: (action: plugins.UndoRedoAction) => void;
+      beforeUndoStackChange?: (action: plugins.UndoRedoAction, source?: string) => void;
       beforeUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
       beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
       beforeUnmergeCells?: (cellRange: wot.CellRange, auto: boolean) => void;

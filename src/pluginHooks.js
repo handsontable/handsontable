@@ -1452,6 +1452,17 @@ const REGISTERED_HOOKS = [
   'beforeUndo',
 
   /**
+   * Fired by {@link UndoRedo} plugin before changing undo stack. Contains information about the action that is being undone.
+   *
+   * @event Hooks#beforeUndo
+   * @param {object} action The action object. Contains information about the action which may be undone. The `actionType`
+   *                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   * @param {string} [source] String that identifies source of action ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
+   * @returns {*|boolean} If false is returned the action of changing undo stack is canceled.
+   */
+  'beforeUndoStackChange',
+
+  /**
    * Fired by {@link UndoRedo} plugin after the undo action. Contains information about the action that is being undone.
    * This hook is fired when {@link Options#undo} option is enabled.
    *
