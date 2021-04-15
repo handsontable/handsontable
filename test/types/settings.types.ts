@@ -466,6 +466,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeValueRender: (value) => {},
   construct: () => {},
   init: () => {},
+  modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
   modifyAutofillRange: (startArea, entireArea) => {},
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},

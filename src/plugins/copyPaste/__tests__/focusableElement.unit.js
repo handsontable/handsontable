@@ -121,6 +121,7 @@ describe('CopyPaste', () => {
 
     it('should destroy FocusableWrapper object instance and detach secondary focusable element from DOM if they have different container', () => {
       const testContainer = document.createElement('div');
+
       document.body.appendChild(testContainer);
 
       fw1 = createElement(document.body);

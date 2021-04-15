@@ -95,8 +95,10 @@ describe('Core_listen', () => {
 
   it('when second instance is created, first should unlisten automatically', () => {
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+
     $container1.handsontable('selectCell', 0, 0);
     const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+
     $container2.handsontable('selectCell', 0, 0);
 
     expect($container1.handsontable('isListening')).toBe(false);
@@ -110,8 +112,10 @@ describe('Core_listen', () => {
 
   it('when listen is called on first instance, second should unlisten automatically', () => {
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+
     $container1.handsontable('selectCell', 0, 0);
     const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+
     $container2.handsontable('selectCell', 0, 0);
 
     $container1.handsontable('listen');

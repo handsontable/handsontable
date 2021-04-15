@@ -29,9 +29,11 @@ class RadioInputUI extends BaseUI {
   build() {
     super.build();
     const priv = privatePool.get(this);
+
     priv.input = this._element.firstChild;
 
     const label = this.hot.rootDocument.createElement('label');
+
     label.textContent = this.translateIfPossible(this.options.label.textContent);
     label.htmlFor = this.translateIfPossible(this.options.label.htmlFor);
     priv.label = label;

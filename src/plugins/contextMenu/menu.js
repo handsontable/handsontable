@@ -202,6 +202,7 @@ class Menu {
       rowHeights: row => (filteredItems[row].name === SEPARATOR ? 1 : 23),
       afterOnCellContextMenu: (event) => {
         event.preventDefault();
+
         // On the Windows platform, the "contextmenu" is triggered after the "mouseup" so that's
         // why the closing menu is here. (#6507#issuecomment-582392301).
         if (isWindowsOS() && shouldAutoCloseMenu && this.hasSelectedItem()) {
@@ -230,6 +231,7 @@ class Menu {
         }
       },
     };
+
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
     this.hotMenu = new Core(this.container, settings);
@@ -294,6 +296,7 @@ class Menu {
       keepInViewport: true,
       container: this.options.container,
     });
+
     subMenu.setMenuItems(dataItem.submenu.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
@@ -705,6 +708,7 @@ class Menu {
 
     const selection = this.hotMenu.getSelectedLast();
     let stopEvent = false;
+
     this.keyEvent = true;
 
     switch (event.keyCode) {

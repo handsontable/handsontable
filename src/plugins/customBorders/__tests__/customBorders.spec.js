@@ -11,6 +11,7 @@ describe('CustomBorders', () => {
   const EMPTY = { hide: true };
 
   const CUSTOM_BORDER_SELECTOR = '.wtBorder:not(.fill, .current, .area)';
+
   /**
    * Returns number of custom borders in DOM. There are 5 borders per
    * cell (top, left, bottom right, corner), some of which are hidden
@@ -38,6 +39,7 @@ describe('CustomBorders', () => {
         col: 0,
         top: GREEN_BORDER
       };
+
       bordersConfig.push(cellBorder);
     }
 
@@ -580,6 +582,7 @@ describe('CustomBorders', () => {
 
     hot.selectCells([[1, 1, 2, 2]]);
     const borders = customBorders.getBorders(getSelected());
+
     deselectCell();
 
     expect(borders.length).toEqual(1);
@@ -1054,6 +1057,7 @@ describe('CustomBorders', () => {
         height: 100,
         viewportRowRenderingOffset: 0
       });
+
       expect(instance.countRenderedRows()).toEqual(5);
       expect(countVisibleCustomBorders()).toEqual(5);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
@@ -1069,6 +1073,7 @@ describe('CustomBorders', () => {
         viewportRowRenderingOffset: 0
       });
       const mainHolder = instance.view.wt.wtTable.holder;
+
       $(mainHolder).scrollTop(400);
       await sleep(300);
       expect(instance.countRenderedRows()).toEqual(5);
@@ -1085,6 +1090,7 @@ describe('CustomBorders', () => {
         height: 100,
         viewportRowRenderingOffset: 20
       });
+
       expect(instance.countRenderedRows()).toEqual(10);
       expect(countVisibleCustomBorders()).toEqual(10);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
@@ -1094,6 +1100,7 @@ describe('CustomBorders', () => {
       spec().$container.remove();
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
+
       handsontable({
         data,
         customBorders,

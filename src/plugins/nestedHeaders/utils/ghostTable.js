@@ -100,6 +100,7 @@ class GhostTable {
 
         for (let col = 0; col < maxCols; col++) {
           const td = rootDocument.createElement('th');
+
           tr.appendChild(td);
         }
 

@@ -1143,6 +1143,7 @@ describe('Core_selection', () => {
     expect(mainHolder.scrollLeft).toEqual(0);
 
     const lastVisibleColumn = hot.view.wt.wtTable.getLastVisibleColumn();
+
     selectCell(3, lastVisibleColumn);
     keyDownUp('arrow_right');
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
@@ -1154,6 +1155,7 @@ describe('Core_selection', () => {
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const lastVisibleRow = hot.view.wt.wtTable.getLastVisibleRow();
+
     selectCell(lastVisibleRow, 3);
     keyDownUp('arrow_down');
     expect(hot.view.wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
@@ -1195,6 +1197,7 @@ describe('Core_selection', () => {
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const scrollLeft = mainHolder.scrollLeft;
+
     expect(scrollLeft).toBeGreaterThan(0);
     expect(mainHolder.scrollTop).toBe(0);
 
@@ -1723,6 +1726,7 @@ describe('Core_selection', () => {
       data: Handsontable.helper.createSpreadsheetData(2, 2),
       colHeaders: true,
     });
+
     hot.selectAll();
     simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "B"
 
@@ -2910,6 +2914,7 @@ describe('Core_selection', () => {
 
     it('should call afterSelection and afterSelectionEnd hooks with proper arguments', () => {
       const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
+
       handsontable({
         startRows: 21,
         startCols: 30,
@@ -3062,6 +3067,7 @@ describe('Core_selection', () => {
 
     it('should call afterSelectionByProp and afterSelectionEndByProp hooks with proper arguments', () => {
       const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
+
       handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(21, 30),
         selectionMode: 'multiple',

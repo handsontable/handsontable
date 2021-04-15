@@ -232,6 +232,7 @@ describe('DomElement helper', () => {
           contains: jasmine.createSpy('classList'),
         }
       };
+
       hasClass(elementMock);
 
       expect(elementMock.classList.contains).not.toHaveBeenCalled();
@@ -298,6 +299,7 @@ describe('DomElement helper', () => {
           add: jasmine.createSpy('classList'),
         }
       };
+
       addClass(elementMock);
 
       expect(elementMock.classList.add).not.toHaveBeenCalled();
@@ -364,6 +366,7 @@ describe('DomElement helper', () => {
           remove: jasmine.createSpy('classList'),
         }
       };
+
       removeClass(elementMock);
 
       expect(elementMock.classList.remove).not.toHaveBeenCalled();

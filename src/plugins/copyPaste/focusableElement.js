@@ -102,6 +102,7 @@ function createElement(container) {
   const focusableWrapper = new FocusableWrapper(container);
 
   let counter = refCounter.get(container);
+
   counter = isNaN(counter) ? 0 : counter;
 
   refCounter.set(container, counter + 1);
@@ -179,6 +180,7 @@ function destroyElement(wrapper) {
   }
 
   let counter = refCounter.get(wrapper.container);
+
   counter = isNaN(counter) ? 0 : counter;
 
   if (counter > 0) {

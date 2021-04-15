@@ -51,6 +51,7 @@ describe('persistentState', () => {
     hot.runHooks('persistentStateSave', 'testData', 100);
 
     const storedData = {};
+
     hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
@@ -66,6 +67,7 @@ describe('persistentState', () => {
     window.localStorage[`${id}_testData`] = JSON.stringify(100);
 
     const storedData = {};
+
     hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
@@ -80,6 +82,7 @@ describe('persistentState', () => {
     hot.runHooks('persistentStateSave', 'testData', 100);
 
     let storedData = {};
+
     hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
@@ -120,6 +123,7 @@ describe('persistentState', () => {
       {},
       {}
     ];
+
     hot.runHooks('persistentStateLoad', 'testData0', storedData[0]);
     hot.runHooks('persistentStateLoad', 'testData1', storedData[1]);
     hot.runHooks('persistentStateLoad', 'testData2', storedData[2]);
@@ -152,6 +156,7 @@ describe('persistentState', () => {
     hot.runHooks('persistentStateSave', 'testData', 100);
 
     let storedData = {};
+
     hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
@@ -175,6 +180,7 @@ describe('persistentState', () => {
     hot.runHooks('persistentStateSave', 'testData', 100);
 
     let storedData = {};
+
     hot.runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();

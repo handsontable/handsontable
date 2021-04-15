@@ -18,6 +18,7 @@ describe('Core.batch', () => {
       autoColumnSize: false,
       autoRowSize: false,
     });
+
     spyOn(hot, 'suspendRender').and.callThrough();
     spyOn(hot, 'suspendExecution').and.callThrough();
     spyOn(hot, 'resumeExecution').and.callThrough();

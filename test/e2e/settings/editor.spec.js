@@ -102,6 +102,7 @@ describe('settings', () => {
       it('should use editor from custom string', () => {
         const customEditor = jasmine.createSpy('customEditor');
         const td = document.createElement('td');
+
         customEditor.and.callFake(function() {
           this.prepare = function() {};
           this.getEditedCell = () => td;

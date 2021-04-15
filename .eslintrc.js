@@ -84,6 +84,14 @@ module.exports = {
     "padded-blocks": "off",
     "quotes": [ "error", "single" ],
     "space-before-function-paren": ["error", "never"],
+    "padding-line-between-statements": [
+      "error",
+      { blankLine: "always", prev: "*", next: "return" },
+      { blankLine: "always", prev: "*", next: ["if", "for", "switch", "while"] },
+      { blankLine: "any", prev: "block-like", next: ["if", "for", "switch", "while"] },
+      { blankLine: "always", prev: ["const", "let", "var"], next: "*" },
+      { blankLine: "any", prev: ["const", "let", "var"], next: ["const", "let", "var"] }
+    ],
     "jsdoc/check-access": "error",
     "jsdoc/check-alignment": "error",
     "jsdoc/check-examples": "off",
