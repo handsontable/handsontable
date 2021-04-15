@@ -2,6 +2,9 @@
 
 This folder contains templates for new code examples. Every new code example should be made using these templates. 
 
+#### Prerequisite
+To work with code examples (and Handsontable development in general) use at least Node version `15.9.0`. If you have Node Version Manager installed, you can just type in the terminal `nvm use`.
+
 ### Creating a new example
 
 In this guideline, I will walk you through the process of creating new code examples. 
@@ -10,7 +13,7 @@ In this guideline, I will walk you through the process of creating new code exam
 
 Firstly, create a new git branch because you will need to commit new examples to the Handsontable repo.
 
-Currently, we are inside the `examples/templates` directory where all templates for future code examples live. You can see that we have templates for examples made in React, Angular, Vue, and of course vanilla Javascript. 
+Currently, we are inside the `examples/templates` directory where all templates for future code examples live. You can see that we have templates for examples made in React, Angular, Vue, and of course vanilla Javascript.
 
 To create a code example in vanilla Javascript for our documentation we need to use the template from the `examples/templates/js` directory. Let's make one!
 
