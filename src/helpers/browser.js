@@ -27,6 +27,7 @@ const platforms = {
   mac: tester(platform => /^Mac/.test(platform)),
   win: tester(platform => /^Win/.test(platform)),
   linux: tester(platform => /^Linux/.test(platform)),
+  ios: tester(ua => /iPhone|iPad|iPod/i.test(ua))
 };
 
 /**
@@ -89,6 +90,24 @@ export function isMSBrowser() {
  */
 export function isMobileBrowser() {
   return browsers.mobile.value;
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isIOS() {
+  return platforms.ios.value;
+}
+
+/**
+ * A hacky way to recognize the iPad. Since iOS 13, the iPad on Safari mimics macOS behavior and user agent.
+ *
+ * @see {@https://stackoverflow.com/a/57838385}
+ * @param {object} [metaObject] The browser identity collection.
+ * @returns {boolean}
+ */
+export function isIpadOS({ maxTouchPoints } = navigator) {
+  return maxTouchPoints > 2 && platforms.mac.value;
 }
 
 /**

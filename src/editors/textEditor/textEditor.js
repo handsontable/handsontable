@@ -1,6 +1,6 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { isMobileBrowser, isIE, isEdge } from '../../helpers/browser';
+import { isMobileBrowser, isIE, isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
   getCaretPosition,
@@ -446,6 +446,11 @@ export class TextEditor extends BaseEditor {
   bindEvents() {
     this.eventManager.addEventListener(this.TEXTAREA, 'cut', event => event.stopPropagation());
     this.eventManager.addEventListener(this.TEXTAREA, 'paste', event => event.stopPropagation());
+
+    if (isIOS()) {
+      // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
+      this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
+    }
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
