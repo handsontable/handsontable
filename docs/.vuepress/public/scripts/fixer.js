@@ -20,74 +20,79 @@
   }
 
   window.require = function(key) {
-    let ns = '';
+    try {
+      let ns = '';
 
-    if (key === 'exports') {
-      return window.exports;
-    }
-
-    key.split('/').forEach((k, index) => {
-      let nsPart = '';
-
-      if (index === 0) {
-        nsPart = camelCase(k.replace('@', ''));
-
-        if (nsPart === 'Angular') {
-          nsPart = 'ng';
-
-        } else if (nsPart === 'HandsontablePro') {
-          nsPart = 'Handsontable';
-        }
-      } else {
-        nsPart = `.${camelCase(k, true)}`;
+      if (key === 'exports') {
+        return window.exports;
       }
 
-      ns = ns + nsPart;
-    });
+      key.split('/').forEach((k, index) => {
+        let nsPart = '';
 
-    if (key === 'react-dom') {
-      ns = 'ReactDOM';
+        if (index === 0) {
+          nsPart = camelCase(k.replace('@', ''));
 
-    } else if (key === '@handsontable/react' || key === '@handsontable-pro/react') {
-      ns = 'Handsontable.react';
+          if (nsPart === 'Angular') {
+            nsPart = 'ng';
 
-    } else if (key === '@handsontable/vue' || key === '@handsontable-pro/vue') {
-      ns = 'Handsontable.vue';
+          } else if (nsPart === 'HandsontablePro') {
+            nsPart = 'Handsontable';
+          }
+        } else {
+          nsPart = `.${camelCase(k, true)}`;
+        }
 
-    } else if (key === 'handsontable-pro') {
-      ns = 'Handsontable';
-
-    } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
-      ns = '';
-
-    } else if (key === 'numbro') {
-      ns = 'numbro';
-
-    } else if (/^numbro\/dist\/languages\.min(\.js)?$/.test(key)) {
-      ns = 'numbro.allLanguages';
-
-    } else if (/^numbro\/languages\/(.+)$/.test(key)) {
-      const match = key.match(/^numbro\/languages\/(.+)$/);
-
-      ns = `numbro.allLanguages.${match[1]}`;
-    }
-
-    let moduleToReturn = window;
-
-    if (ns !== '') {
-      ns.split('.').forEach((n) => {
-        moduleToReturn = moduleToReturn[n];
+        ns = ns + nsPart;
       });
 
-      if (typeof moduleToReturn === 'undefined') {
-        moduleToReturn = window.exports;
+      if (key === 'react-dom') {
+        ns = 'ReactDOM';
 
+      } else if (key === '@handsontable/react' || key === '@handsontable-pro/react') {
+        ns = 'Handsontable.react';
+
+      } else if (key === '@handsontable/vue' || key === '@handsontable-pro/vue') {
+        ns = 'Handsontable.vue';
+
+      } else if (key === 'handsontable-pro') {
+        ns = 'Handsontable';
+
+      } else if (/^handsontable\/dist\/.+\.css$/.test(key)) { // ignore CSS imports
+        ns = '';
+
+      } else if (key === 'numbro') {
+        ns = 'numbro';
+
+      } else if (/^numbro\/dist\/languages\.min(\.js)?$/.test(key)) {
+        ns = 'numbro.allLanguages';
+
+      } else if (/^numbro\/languages\/(.+)$/.test(key)) {
+        const match = key.match(/^numbro\/languages\/(.+)$/);
+
+        ns = `numbro.allLanguages.${match[1]}`;
+      }
+
+      let moduleToReturn = window;
+
+      if (ns !== '') {
         ns.split('.').forEach((n) => {
           moduleToReturn = moduleToReturn[n];
         });
-      }
-    }
 
-    return moduleToReturn;
+        if (typeof moduleToReturn === 'undefined') {
+          moduleToReturn = window.exports;
+
+          ns.split('.').forEach((n) => {
+            moduleToReturn = moduleToReturn[n];
+          });
+        }
+      }
+
+      return moduleToReturn;
+    }catch(error){
+      console.error("Error when trying import ", key)
+      throw error;
+    }
   };
 }());
