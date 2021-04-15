@@ -204,7 +204,7 @@ class Selection {
       highlightOnlyClosestHeader,
       selectionType,
     } = this.settings;
-    const isHeaderSelectionType = selectionType === 'active-header' || selectionType === 'header';
+    const isHeaderSelectionType = selectionType === void 0 || ['active-header', 'header'].includes(selectionType);
 
     if (isHeaderSelectionType && topColumn !== null && bottomColumn !== null) {
       let selectionColumnCursor = 0;
