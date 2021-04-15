@@ -4,7 +4,7 @@ permalink: /next/vue-installation
 canonicalUrl: /vue-installation
 ---
 
-# {{ $frontmatter.title }}
+# Installation
 
 [[toc]]
 
@@ -22,7 +22,7 @@ npm install handsontable @handsontable/vue
 
 Vue Component
 
-```
+```vue
 <template>
   <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
 </template>

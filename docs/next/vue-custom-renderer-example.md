@@ -4,7 +4,7 @@ permalink: /next/vue-custom-renderer-example
 canonicalUrl: /vue-custom-renderer-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom renderer example
 
 [[toc]]
 
@@ -12,6 +12,7 @@ You can declare a custom renderer for the `HotTable` component either by declari
 
 ## Declaring a renderer as a function
 
+::: example #example1 :vue --html 1 --js 2
 ```html
 <div id="example1" class="hot">
   <hot-table :settings="hotSettings"></hot-table>
@@ -66,3 +67,4 @@ new Vue({
   }
 });
 ```
+:::

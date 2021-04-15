@@ -4,13 +4,35 @@ permalink: /next/vue-setting-up-a-locale
 canonicalUrl: /vue-setting-up-a-locale
 ---
 
-# {{ $frontmatter.title }}
+# Setting up a locale
 
 An example of Handsontable with locales setup in Vue.
 
+::: example #example1 :vue-numbro --html 1 --js 5
 ```html
-<div id="example1" class="hot">
-  <hot-table :settings="hotSettings"></hot-table>
+<div id="example1">
+  <hot-table :data="hotData">
+    <hot-column
+      title="Product name"
+      data="productName"
+      width="120"
+      read-only="true"
+    ></hot-column>
+    <hot-column
+      title="Price in Japan"
+      type="numeric"
+      :numeric-format="formatJP"
+      data="JP_price"
+      width="120"
+    ></hot-column>
+    <hot-column
+      title="Price in Turkey"
+      data="TR_price"
+      type="numeric"
+      :numeric-format="formatTR"
+      width="120"
+    ></hot-column>
+  </hot-table>
 </div>
 ```
 
@@ -69,3 +91,4 @@ components: {
 },
 });
 ```
+:::

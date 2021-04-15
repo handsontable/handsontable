@@ -4,10 +4,11 @@ permalink: /next/vue-custom-context-menu-example
 canonicalUrl: /vue-custom-context-menu-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom Context Menu example
 
 An implementation of the `@handsontable/vue` component with a custom Context Menu added.
 
+::: example #example1 :vue --html 1 --js 2
 ```html
 <div id="example1" class="hot">
   <hot-table :settings="hotSettings"></hot-table>
@@ -48,3 +49,4 @@ new Vue({
   }
 });
 ```
+:::

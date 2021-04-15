@@ -3,12 +3,13 @@ title: Referencing the Handsontable instance
 permalink: /next/vue-hot-reference
 ---
 
-# {{ $frontmatter.title }}
+# Referencing the Handsontable instance
 
 [[toc]]
 
 An implementation of the `@handsontable/vue` explaining how to reference the Handsontable instance from the wrapper component.
 
+::: example #example1 :vue --html 1 --js 2
 ```html
 <div id="example1" class="hot">
   <hot-table ref="hotTableComponent" :settings="hotSettings"></hot-table><br/>
@@ -41,3 +42,4 @@ new Vue({
   }
 });
 ```
+:::

@@ -4,7 +4,7 @@ permalink: /next/vue-vuex-example
 canonicalUrl: /vue-vuex-example
 ---
 
-# {{ $frontmatter.title }}
+# Vuex example
 
 [[toc]]
 
@@ -14,6 +14,7 @@ An implementation of the `@handsontable/vue` component with a `readOnly` toggle 
 
 ## Vuex store dump:
 
+::: example #example1 :vue-vuex --html 1 --js 2
 ```html
 <div id="example1">
   <div id="example-preview" class="hot">
@@ -125,3 +126,4 @@ new Vue({
   })
 });
 ```
+:::
