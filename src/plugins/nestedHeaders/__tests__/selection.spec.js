@@ -13,7 +13,7 @@ describe('NestedHeaders', () => {
   });
 
   describe('selection', () => {
-    it('should generate class names based on "currentHeaderClassName" and "activeHeaderClassName" settings', function() {
+    it('should generate class names based on "currentHeaderClassName" and "activeHeaderClassName" settings', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -28,7 +28,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)') // Select columns from O to P
+      getTopClone().find('thead tr:eq(2) th:eq(1)') // Select columns from O to P
         .simulate('mousedown')
         .simulate('mouseup');
 
@@ -899,7 +899,7 @@ describe('NestedHeaders', () => {
       ]);
     });
 
-    it('should select every column header under the nested headers, when changing the selection by dragging the cursor', function() {
+    it('should select every column header under the nested headers, when changing the selection by dragging the cursor', () => {
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -912,27 +912,27 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)')
+      getTopClone().find('thead tr:eq(2) th:eq(3)')
         .simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)')
+      getTopClone().find('thead tr:eq(2) th:eq(5)')
         .simulate('mouseover')
         .simulate('mouseup');
 
       expect(hot.getSelected()).toEqual([[-1, 3, hot.countRows() - 1, 6]]);
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)')
+      getTopClone().find('thead tr:eq(2) th:eq(3)')
         .simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+      getTopClone().find('thead tr:eq(2) th:eq(1)')
         .simulate('mouseover')
         .simulate('mouseup');
 
       expect(hot.getSelected()).toEqual([[-1, 4, hot.countRows() - 1, 1]]);
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mousedown');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)').simulate('mouseover');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(3)').simulate('mouseover');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseover');
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(5)').simulate('mouseup');
+      getTopClone().find('thead tr:eq(2) th:eq(3)').simulate('mousedown');
+      getTopClone().find('thead tr:eq(2) th:eq(1)').simulate('mouseover');
+      getTopClone().find('thead tr:eq(2) th:eq(3)').simulate('mouseover');
+      getTopClone().find('thead tr:eq(2) th:eq(5)').simulate('mouseover');
+      getTopClone().find('thead tr:eq(2) th:eq(5)').simulate('mouseup');
 
       expect(hot.getSelected()).toEqual([[-1, 3, hot.countRows() - 1, 6]]);
     });
@@ -976,11 +976,11 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)')
+      getTopClone().find('thead tr:eq(2) th:eq(1)')
         .simulate('mousedown')
         .simulate('mouseup');
 
-      const $headerLvl3 = this.$container.find('.ht_clone_top thead tr:eq(2) th:eq(1)');
+      const $headerLvl3 = getTopClone().find('thead tr:eq(2) th:eq(1)');
       const $firstRow = this.$container.find('.ht_master tbody tr:eq(0)');
       const $lastRow = this.$container.find('.ht_master tbody tr:eq(3)');
       const $tbody = this.$container.find('.ht_master tbody');
