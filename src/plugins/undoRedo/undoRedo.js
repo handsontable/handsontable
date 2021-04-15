@@ -30,7 +30,7 @@ function UndoRedo(instance) {
   this.enabled = false;
 
   instance.addHook('beforeUndoStackChange', (action, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo') {
+    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
       return false;
     }
   });
@@ -67,20 +67,12 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('afterCreateRow', (index, amount, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.undo' || source === 'auto') {
-      return;
-    }
-
     const action = new UndoRedo.CreateRowAction(index, amount);
 
     plugin.done(action, source);
   });
 
   instance.addHook('beforeRemoveRow', (index, amount, logicRows, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
-      return;
-    }
-
     const originalData = plugin.instance.getSourceDataArray();
     const rowIndex = (originalData.length + index) % originalData.length;
     const physicalRowIndex = instance.toPhysicalRow(rowIndex);
@@ -91,18 +83,10 @@ function UndoRedo(instance) {
   });
 
   instance.addHook('afterCreateCol', (index, amount, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
-      return;
-    }
-
     plugin.done(new UndoRedo.CreateColumnAction(index, amount), source);
   });
 
   instance.addHook('beforeRemoveCol', (index, amount, logicColumns, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
-      return;
-    }
-
     const originalData = plugin.instance.getSourceDataArray();
     const columnIndex = (plugin.instance.countCols() + index) % plugin.instance.countCols();
     const removedData = [];
@@ -170,17 +154,16 @@ function UndoRedo(instance) {
 
     plugin.done(new UndoRedo.UnmergeCellsAction(instance, cellRange));
   });
-
 }
 
 /**
- * Stash performed actions.
+ * Stash information about performed actions.
  *
  * @function done
  * @memberof UndoRedo#
  * @fires Hooks#beforeUndoStackChange
  * @param {object} action The action desciptor.
- * @param {string} [source] Source of action. It is defined just for more general actions (not related to plugins).
+ * @param {string} [source] Source of the action. It is defined just for more general actions (not related to plugins).
  */
 UndoRedo.prototype.done = function(action, source) {
   const continueAction = this.instance.runHooks('beforeUndoStackChange', action, source);
