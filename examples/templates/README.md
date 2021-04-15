@@ -68,8 +68,6 @@ The only thing you have to modify is `"name"`, `"description"` and `"@handsontab
 
 #### 3. Develop
 
-Now you know what you can and what you can't do with template files. So, to modify the content of our new `this-is-some-js-example/` code example, go to the `src/index.js` and start modifying the file like always.
-
 To run your example live, open terminal, run `npm install` to install all the necessary dependencies. After dependencies are installed run `npm run start` which will build and watch the project for any saved changes in code and run it on port `8080` so you can open the example in your browser at [localhost:8080](localhost:8080).
 
 #### 4. Publishing
