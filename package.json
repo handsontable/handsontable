@@ -168,6 +168,7 @@
     "typescript": "3.8.2",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.0",
+    "webpack-dev-server": "^3.11.2",
     "yargs": "^16.2.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
