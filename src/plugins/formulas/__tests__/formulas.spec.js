@@ -1,5 +1,5 @@
 describe('Formulas general', () => {
-  const debug = true;
+  const debug = false;
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -1232,6 +1232,20 @@ describe('Formulas general', () => {
       ]);
     });
 
+    it('range, left, odd', () => {
+      const hot = handsontable({
+        data: [["x", "x", "x", "x", "x", "x", "=Z3", "=Z5", "=Z8"]],
+        formulas: true,
+      });
+
+      selectCell(0, 6, 0, 8);
+      autofill(0, 0);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=T3", "=T5", "=T8", "=W3", "=W5", "=W8", "=Z3", "=Z5", "=Z8"]
+      ]);
+    })
+
     it("range, up, partial", () => {
       const hot = handsontable({
         data: [
@@ -1283,6 +1297,20 @@ describe('Formulas general', () => {
           ["=I7", "=I10"],
         ]);
     });
+
+    it('range, up, even', () => {
+      const hot = handsontable({
+        data: [["x"], ["x"], ["x"], ["x"], ["x"], ["x"], ["=A9"], ["=A12"]],
+        formulas: true,
+      });
+
+      selectCell(6, 0, 7, 0);
+      autofill(0, 0);
+
+      expect(hot.getSourceData()).toEqual([
+        ["=A3"], ["=A6"], ["=A5"], ["=A8"], ["=A7"], ["=A10"], ["=A9"], ["=A12"]
+      ]);
+    })
   })
 
   xdescribe('column sorting', () => {

@@ -72,15 +72,15 @@ export class Formulas extends BasePlugin {
 
     // Autofill hooks
     {
-      // TODO move this into the class probly, or maybe not
-      let bucket = {range: undefined}
+      // Scoped into this block instead of being on the whole class to prevent
+      // other places from messing with it.
+      let lastAutofillSource = {value: undefined}
 
-      // Abuse the `modifyAutofillRange` hook to get the autofill start
-      // coordinates.
+      // Abuse the `modifyAutofillRange` hook to get the autofill start coordinates.
       this.addHook('modifyAutofillRange', (_ , entireArea) => {
         const [startRow, startCol, endRow, endCol] = entireArea;
 
-        bucket.range = {
+        lastAutofillSource.value = {
           start: {
             row: startRow,
             col: startCol
@@ -92,12 +92,16 @@ export class Formulas extends BasePlugin {
         }
       })
 
-      // Abuse this hook to easily figure out the direction of the
-      // autofill
+      // Abuse this hook to easily figure out the direction of the autofill
       this.addHook('beforeAutofillInsidePopulate', (index, direction, _input, _deltas, _, selected) => {
-        const rangeToBeFilledInSize = {
+        const autofillTargetSize = {
           width: selected.col,
           height: selected.row
+        }
+
+        const autofillSourceSize = {
+          width: Math.abs(lastAutofillSource.value.start.col - lastAutofillSource.value.end.col) + 1,
+          height: Math.abs(lastAutofillSource.value.start.row - lastAutofillSource.value.end.row) + 1
         }
 
         const paste = (
@@ -128,13 +132,13 @@ export class Formulas extends BasePlugin {
         switch (direction) {
           case 'right': {
             const targetCellCoordinates = {
-              row: bucket.range.start.row + index.row,
-              col: bucket.range.start.col + index.col + Math.abs(bucket.range.start.col - bucket.range.end.col) + 1
+              row: lastAutofillSource.value.start.row + index.row,
+              col: lastAutofillSource.value.start.col + index.col + autofillSourceSize.width
             }
 
             const sourceCellCoordinates = {
-              row: bucket.range.start.row + index.row,
-              col: index.col % (Math.abs(bucket.range.start.col - bucket.range.end.col) + 1) + bucket.range.start.col
+              row: lastAutofillSource.value.start.row + index.row,
+              col: index.col % autofillSourceSize.width + lastAutofillSource.value.start.col
             }
 
             return paste(sourceCellCoordinates, targetCellCoordinates)
@@ -142,16 +146,16 @@ export class Formulas extends BasePlugin {
 
           case 'left': {
             const targetCellCoordinates = {
-              row: bucket.range.start.row + index.row,
-              col: bucket.range.start.col + index.col - rangeToBeFilledInSize.width
+              row: lastAutofillSource.value.start.row + index.row,
+              col: lastAutofillSource.value.start.col + index.col - autofillTargetSize.width
             }
 
-            const selectionDataWidth = Math.abs(bucket.range.end.col - bucket.range.start.col) + 1
-            const fillOffset = rangeToBeFilledInSize.width % selectionDataWidth
+            const selectionDataWidth = autofillSourceSize.width
+            const fillOffset = autofillTargetSize.width % selectionDataWidth
 
             const sourceCellCoordinates = {
-              row: bucket.range.start.row + index.row,
-              col: ((selectionDataWidth - fillOffset + index.col) % selectionDataWidth) + bucket.range.start.col
+              row: lastAutofillSource.value.start.row + index.row,
+              col: ((selectionDataWidth - fillOffset + index.col) % selectionDataWidth) + lastAutofillSource.value.start.col
             }
 
             return paste(sourceCellCoordinates, targetCellCoordinates)
@@ -159,13 +163,13 @@ export class Formulas extends BasePlugin {
 
           case 'down': {
             const targetCellCoordinates = {
-              row: bucket.range.start.row + index.row + Math.abs(bucket.range.start.row - bucket.range.end.row) + 1,
-              col: bucket.range.start.col + index.col
+              row: lastAutofillSource.value.start.row + index.row + autofillSourceSize.height,
+              col: lastAutofillSource.value.start.col + index.col
             }
 
             const sourceCellCoordinates = {
-              row: index.row % (Math.abs(bucket.range.start.row - bucket.range.end.row) + 1) + bucket.range.start.row,
-              col: bucket.range.start.col + index.col
+              row: index.row % autofillSourceSize.height + lastAutofillSource.value.start.row,
+              col: lastAutofillSource.value.start.col + index.col
             }
 
             return paste(sourceCellCoordinates, targetCellCoordinates)
@@ -173,16 +177,15 @@ export class Formulas extends BasePlugin {
 
           case 'up': {
             const targetCellCoordinates = {
-              row: bucket.range.start.row + index.row - rangeToBeFilledInSize.height,
-              col: bucket.range.start.col + index.col
+              row: lastAutofillSource.value.start.row + index.row - autofillTargetSize.height,
+              col: lastAutofillSource.value.start.col + index.col
             }
 
-            const selectionDataHeight = Math.abs(bucket.range.end.row - bucket.range.start.row) + 1
-            const fillOffset = rangeToBeFilledInSize.height % selectionDataHeight
+            const fillOffset = autofillTargetSize.height % autofillSourceSize.height
 
             const sourceCellCoordinates = {
-              row: ((selectionDataHeight - fillOffset + index.row) % selectionDataHeight) + bucket.range.start.row,
-              col: bucket.range.start.col + index.col
+              row: ((autofillSourceSize.height - fillOffset + index.row) % autofillSourceSize.height) + lastAutofillSource.value.start.row,
+              col: lastAutofillSource.value.start.col + index.col
             }
 
             return paste(sourceCellCoordinates, targetCellCoordinates)
