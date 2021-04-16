@@ -2006,6 +2006,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.destroy();
     }
 
+    data = instance.runHooks('beforeLoadData', data, firstRun);
+
     datamap = new DataMap(instance, data, tableMeta);
 
     if (typeof data === 'object' && data !== null) {
@@ -2052,8 +2054,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     tableMeta.data = data;
-
-    instance.runHooks('beforeLoadData', data, firstRun);
 
     datamap.dataSource = data;
     dataSource.data = data;

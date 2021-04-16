@@ -4,7 +4,11 @@ import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
 import { registerHF } from './hyperformulaSetup';
 import { error } from '../../helpers/console';
-import { isDefined, isUndefined } from '../../helpers/mixed';
+import {
+  isDefined,
+  isUndefined
+} from '../../helpers/mixed';
+import hyperformulaDefaultSettings from './hfDefaultSettings';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
@@ -31,27 +35,29 @@ export class Formulas extends BasePlugin {
   #settings = this.hot.getSettings()[PLUGIN_KEY];
 
   /**
+   * Flag used to bypass hooks in internal operations.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #internal = false;
+
+  /**
+   * Flag needed to mark if Handsontable was initialized with no data.
+   * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
+   *
+   * @type {boolean}
+   */
+  #emptyData = false;
+
+  /**
    * Static register used to set up one global HyperFormula instance.
+   * TODO: currently used in tests, might be removed later.
    *
    * @private
    * @type {object}
    */
-  #staticRegister = staticRegister('formulas');
-
-  /**
-   * Flag used to retrieve the data straight from Handsontable.
-   *
-   * @private
-   * @type {boolean}
-   */
-  #skipHF = false;
-
-  /**
-   * Flag used to bypass hooks in internal operations.
-   *
-   * @type {boolean}
-   */
-  #internal = false;
+  staticRegister = staticRegister('formulas');
 
   /**
    * The HyperFormula instance that will be used for this instance of Handsontable.
@@ -93,6 +99,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    this.addHook('beforeLoadData', (...args) => this.onBeforeLoadData(...args));
     this.addHook('afterLoadData', (...args) => this.onAfterLoadData(...args));
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
@@ -110,7 +117,11 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
-    this.setupHF();
+    const hfSetUpProperly = this.setupHF();
+
+    if (!hfSetUpProperly) {
+      return;
+    }
 
     // HyperFormula events:
     this.hyperformula.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
@@ -135,7 +146,7 @@ export class Formulas extends BasePlugin {
 
     this.applyHFSettings();
 
-    if (this.#settings.sheetName !== this.sheetName) {
+    if (isDefined(this.#settings.sheetName) && this.#settings.sheetName !== this.sheetName) {
       this.switchSheet(this.#settings.sheetName);
     }
 
@@ -146,8 +157,12 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    if (!this.hyperformula) {
+      return;
+    }
+
     const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
-    const sharedHFInstanceUsage = hfInstances.get(this.hyperformula);
+    const sharedHFInstanceUsage = hfInstances ? hfInstances.get(this.hyperformula) : null;
 
     if (sharedHFInstanceUsage && sharedHFInstanceUsage.includes(this.hot.guid)) {
       sharedHFInstanceUsage.splice(
@@ -155,40 +170,13 @@ export class Formulas extends BasePlugin {
         1
       );
 
-      this.hyperformula.destroy();
+      if (sharedHFInstanceUsage.length === 0) {
+        hfInstances.delete(this.hyperformula);
+        this.hyperformula.destroy();
+      }
     }
 
     super.destroy();
-  }
-
-  /**
-   * Setup the HyperFormula instance. It either creates a new (possibly shared) HyperFormula instance, or attaches
-   * the plugin to an already-existing instance.
-   */
-  setupHF() {
-    const settingsHF = this.#settings.hyperformula;
-
-    switch (typeof settingsHF) {
-      // There was a HyperFormula class passed.
-      case 'function': {
-        this.hyperformula = registerHF(settingsHF, this.hot.guid);
-        break;
-      }
-      // There was a HyperFormula instance passed.
-      case 'object': {
-        const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
-        const sharedHFInstanceUsage = hfInstances.get(settingsHF);
-
-        this.hyperformula = settingsHF;
-
-        if (sharedHFInstanceUsage) {
-          sharedHFInstanceUsage.push(this.hot.guid);
-        }
-
-        break;
-      }
-      default:
-    }
   }
 
   /**
@@ -236,19 +224,79 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Setup the HyperFormula instance. It either creates a new (possibly shared) HyperFormula instance, or attaches
+   * the plugin to an already-existing instance.
+   *
+   * @private
+   * @returns {boolean} `true` if HyperFormula was set up properly, `false` otherwise.
+   */
+  setupHF() {
+    const settingsHF = this.#settings.hyperformula;
+
+    if (isUndefined(settingsHF)) {
+      error('Missing the required `hyperformula` key in the Formulas settings. Please fill it with either a' +
+        ' HyperFormula class or a HyperFormula instance.');
+
+      this.disablePlugin();
+      return false;
+    }
+
+    switch (typeof settingsHF) {
+      // There was a HyperFormula class passed.
+      case 'function': {
+        this.hyperformula = registerHF(this.#settings, this.hot.guid);
+        break;
+      }
+      // There was a HyperFormula instance passed.
+      case 'object': {
+        const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
+        const sharedHFInstanceUsage = hfInstances ? hfInstances.get(settingsHF) : null;
+
+        this.hyperformula = settingsHF;
+
+        if (sharedHFInstanceUsage) {
+          sharedHFInstanceUsage.push(this.hot.guid);
+        }
+
+        break;
+      }
+      default:
+    }
+
+    return true;
+  }
+
+  /**
    * Applies the settings passed to the plugin to the HF instance.
    *
    * @private
    */
   applyHFSettings() {
     const hotSettings = this.hot.getSettings();
-    const hfConfig = this.#settings.hyperFormulaConfig;
+    const hfConfig = this.#settings.hyperformulaConfig;
 
     this.hyperformula.updateConfig({
+      ...hyperformulaDefaultSettings,
       ...(hfConfig || {}),
       maxColumns: hotSettings.maxColumns,
-      maxRows: hotSettings.maxRows
+      maxRows: hotSettings.maxRows,
+      language: this.#settings.language?.code
     });
+  }
+
+  /**
+   * `beforeLoadData` hook callback.
+   *
+   * @private
+   */
+  onBeforeLoadData() {
+    if (this.#internal) {
+      return;
+    }
+
+    // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
+    // initial dataset.
+    this.#emptyData = isUndefined(this.hot.getSettings().data);
   }
 
   /**
@@ -268,22 +316,34 @@ export class Formulas extends BasePlugin {
       (isDefined(sheetName) && !this.hyperformula.doesSheetExist(sheetName))
     ) {
       this.sheetName = this.hyperformula.addSheet(sheetName);
+
+    } else if (isDefined(sheetName)) {
+      this.sheetName = sheetName;
     }
 
     this.sheetId = this.hyperformula.getSheetId(this.sheetName);
 
-    if (this.hot.getSettings().data) {
-      this.skipHF = true;
+    this.#internal = true;
+    if (!this.#emptyData) {
       this.hyperformula.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
-      this.skipHF = false;
 
     } else {
-      this.switchSheet(sheetName);
+      this.switchSheet(this.sheetName);
     }
+    this.#internal = false;
   }
 
+  /**
+   * `modifyData` hook callback.
+   *
+   * @private
+   * @param {number} row Physical row height.
+   * @param {number} column Physical column index.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
   onModifyData(row, column, valueHolder, ioMode) {
-    if (!this.enabled || this.#skipHF) {
+    if (!this.enabled || this.#internal) {
       // TODO check if this line is actually ever reached
       return;
     }
@@ -301,6 +361,7 @@ export class Formulas extends BasePlugin {
       const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
       // Omit the leading `'` from presentation, and all `getData` operations
+      // eslint-disable-next-line no-nested-ternary
       const prettyValue = typeof value === 'string' ? (value.indexOf('\'') === 0 ? value.slice(1) : value) : value;
 
       valueHolder.value = prettyValue;
@@ -309,8 +370,17 @@ export class Formulas extends BasePlugin {
     }
   }
 
+  /**
+   * `modifySourceData` hook callback.
+   *
+   * @private
+   * @param {number} row Physical row index.
+   * @param {number} col Physical column index.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
+   */
   onModifySourceData(row, col, valueHolder, ioMode) {
-    if (!this.enabled || this.skipHF) {
+    if (!this.enabled || this.#internal) {
       return;
     }
 
@@ -337,34 +407,94 @@ export class Formulas extends BasePlugin {
     }
   }
 
+  /**
+   * `beforeCreateRow` hook callback.
+   *
+   * @private
+   * @param {number} row Represents the visual index of first newly created row in the data source array.
+   * @param {number} amount Number of newly created rows in the data source array.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
   onBeforeCreateRow(row, amount) {
     return this.hyperformula.isItPossibleToAddRows(this.sheetId, [row, amount]);
   }
 
+  /**
+   * `beforeCreateCol` hook callback.
+   *
+   * @private
+   * @param {number} col Represents the visual index of first newly created column in the data source.
+   * @param {number} amount Number of newly created columns in the data source.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
   onBeforeCreateCol(col, amount) {
     return this.hyperformula.isItPossibleToAddColumns(this.sheetId, [col, amount]);
   }
 
+  /**
+   * `afterCreateRow` hook callback.
+   *
+   * @private
+   * @param {number} row Represents the visual index of first newly created row in the data source array.
+   * @param {number} amount Number of newly created rows in the data source array.
+   */
   onAfterCreateRow(row, amount) {
     this.hyperformula.addRows(this.sheetId, [row, amount]);
   }
 
+  /**
+   * `afterCreateCol` hook callback.
+   *
+   * @private
+   * @param {number} col Represents the visual index of first newly created column in the data source.
+   * @param {number} amount Number of newly created columns in the data source.
+   */
   onAfterCreateCol(col, amount) {
     this.hyperformula.addColumns(this.sheetId, [col, amount]);
   }
 
+  /**
+   * `beforeRemoveRow` hook callback.
+   *
+   * @private
+   * @param {number} row Visual index of starter row.
+   * @param {number} amount Amount of rows to be removed.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
   onBeforeRemoveRow(row, amount) {
     return this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [row, amount]);
   }
 
+  /**
+   * `beforeRemoveCol` hook callback.
+   *
+   * @private
+   * @param {number} col Visual index of starter column.
+   * @param {number} amount Amount of columns to be removed.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
   onBeforeRemoveCol(col, amount) {
     return this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [col, amount]);
   }
 
+  /**
+   * `afterRemoveRow` hook callback.
+   *
+   * @private
+   * @param {number} row Visual index of starter row.
+   * @param {number} amount An amount of removed rows.
+   */
   onAfterRemoveRow(row, amount) {
     this.hyperformula.removeRows(this.sheetId, [row, amount]);
   }
 
+  /**
+   * `afterRemoveCol` hook callback.
+   *
+   * @private
+   * @param {number} col Visual index of starter column.
+   * @param {number} amount An amount of removed columns.
+   */
   onAfterRemoveCol(col, amount) {
     this.hyperformula.removeColumns(this.sheetId, [col, amount]);
   }
@@ -378,7 +508,7 @@ export class Formulas extends BasePlugin {
     let isAffectedByChange = false;
 
     changes.some((change) => {
-      isAffectedByChange = change.address.sheet === this.sheetId;
+      isAffectedByChange = change?.address?.sheet === this.sheetId;
 
       return isAffectedByChange;
     });

@@ -5,16 +5,10 @@ export default {
 
   // default engine configuration
   binarySearchThreshold: 20,
-  // chooseAddressMappingPolicy: AlwaysDense,
   matrixDetection: true,
   matrixDetectionThreshold: 100,
   useColumnIndex: false,
   useStats: false,
-
-  // // syncing with Handsontable settings
-  // maxColumns: this.getSettings('maxColumns'), // from Handsontable maxColumns
-  // maxRows: this.getSettings('maxRows'), // from Handsontable maxRows
-  // undoLimit: 20, // FIXME: we have to add undoLimit to our undoRedo !!!
 
   // desired UX
   evaluateNullToZero: true, // excel compatibility
@@ -34,13 +28,6 @@ export default {
   dateFormats: ['MM/DD/YYYY', 'MM/DD/YY'],
   timeFormats: ['hh:mm', 'hh:mm:ss.sss'],
 
-  // culture
-  // accentSensitive: ?,
-  // caseFirst: ?,
-  // caseSensitive: ?,
-  // ignorePunctuation: ?,
-  // localeLang: 'en',
-
   // criterions, only wildcards and match whole cell
   matchWholeCell: true, // excel compatilibity
   useRegularExpressions: false, // excel compatilibity
@@ -51,9 +38,4 @@ export default {
   thousandSeparator: '', // excel compatiblity (works with "language", "decimalSeparator" and "functionArgSeparator")
   decimalSeparator: '.', // excel compatiblity (works with "language", "thousandSeparator" and "functionArgSeparator")
   language: 'enGB',
-
-  // set internally, don't touch but allow to overwrite them
-  // parseDateTime,
-  // stringifyDateTime,
-  // stringifyDuration,
 };

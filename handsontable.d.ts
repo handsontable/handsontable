@@ -1,4 +1,5 @@
 import { PikadayOptions } from 'pikaday';
+import { HyperFormula } from 'hyperformula';
 
 /**
  * @internal
@@ -1181,18 +1182,13 @@ declare namespace Handsontable {
     type UndoRedoAction = UndoRedoAction.Change | UndoRedoAction.InsertRow | UndoRedoAction.RemoveRow | UndoRedoAction.InsertCol | UndoRedoAction.RemoveCol | UndoRedoAction.Filter;
 
     interface Formulas extends Base {
-      dataProvider: DataProvider;
-      eventManager: EventManager;
-      sheet: Sheet;
-      undoRedoSnapshot: UndoRedoSnapshot;
+      staticRegister: object;
+      hyperformula: HyperFormula;
+      sheetName: string;
+      sheetId: number;
 
-      getCellValue(row: number, column: number): any;
-      getVariable(name: string): any;
-      hasComputedCellValue(row: number, column: number): boolean;
-      recalculate(): void;
-      recalculateFull(): void;
-      recalculateOptimized(): void;
-      setVariable(name: string, value: any): void;
+      addSheet(sheetData: CellValue[], sheetName: string, autoLoad: boolean): boolean;
+      switchSheet(sheetName: string): void;
     }
 
     interface HeaderTooltips extends Base {
