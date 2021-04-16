@@ -58,13 +58,13 @@ hiddenRowsPlugin.hideRows([1, 2, 9]);
 hot.render();
 ```
 
-## Methods:
+## Methods
 
 ### destroy
 
 _hiddenRows.destroy()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L461)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L461
 
 Destroys the plugin instance.
 
@@ -74,7 +74,7 @@ Destroys the plugin instance.
 
 _hiddenRows.disablePlugin()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L152)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L152
 
 Disables the plugin functionality for this Handsontable instance.
 
@@ -84,7 +84,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 _hiddenRows.enablePlugin()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L111)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L111
 
 Enables the plugin functionality for this Handsontable instance.
 
@@ -94,7 +94,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 _hiddenRows.getHiddenRows() ⇒ Array&lt;number&gt;_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L260)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L260
 
 Returns an array of visual indexes of hidden rows.
 
@@ -104,7 +104,7 @@ Returns an array of visual indexes of hidden rows.
 
 _hiddenRows.hideRow(...row)_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L251)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L251
 
 Hides the row provided as row index (counting from 0).
 
@@ -119,7 +119,7 @@ Hides the row provided as row index (counting from 0).
 
 _hiddenRows.hideRows(rows)_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L219)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L219
 
 Hides the rows provided in the array.
 
@@ -134,7 +134,7 @@ Hides the rows provided in the array.
 
 _hiddenRows.isEnabled() ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L104)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L104
 
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) method is called.
@@ -145,7 +145,7 @@ hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) 
 
 _hiddenRows.isHidden(row) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L272)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L272
 
 Checks if the provided row is hidden.
 
@@ -160,7 +160,7 @@ Checks if the provided row is hidden.
 
 _hiddenRows.isValidConfig(hiddenRows) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L282)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L282
 
 Checks whether all of the provided row indexes are within the bounds of the table.
 
@@ -175,7 +175,7 @@ Checks whether all of the provided row indexes are within the bounds of the tabl
 
 _hiddenRows.showRow(...row)_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L210)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L210
 
 Shows the row provided as row index (counting from 0).
 
@@ -190,7 +190,7 @@ Shows the row provided as row index (counting from 0).
 
 _hiddenRows.showRows(rows)_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L165)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L165
 
 Shows the rows provided in the array.
 
@@ -205,7 +205,7 @@ Shows the rows provided in the array.
 
 _hiddenRows.updatePlugin()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L142)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L142
 
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 

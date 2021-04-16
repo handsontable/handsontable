@@ -8,13 +8,13 @@ editLink: false
 # CellCoords
 
 [[toc]]
-## Members:
+## Members
 
 ### col
 
 _cellCoords.col : number_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L19)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L19
 
 Column index.
 
@@ -24,18 +24,18 @@ Column index.
 
 _cellCoords.row : number_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L13)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L13
 
 Row index.
 
 
-## Methods:
+## Methods
 
 ### clone
 
 _cellCoords.clone() ⇒ [CellCoords](./coords/)_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L118)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L118
 
 Clones the coordinates.
 
@@ -45,7 +45,7 @@ Clones the coordinates.
 
 _cellCoords.isEqual(cellCoords) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L52)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L52
 
 Checks if this cell coordinates are the same as cell coordinates given as an argument.
 
@@ -60,7 +60,7 @@ Checks if this cell coordinates are the same as cell coordinates given as an arg
 
 _cellCoords.isNorthEastOf(testedCoords) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L96)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L96
 
 Checks if tested coordinates are positioned in north-east from this cell coordinates.
 
@@ -75,7 +75,7 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 _cellCoords.isNorthWestOf(testedCoords) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L76)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L76
 
 Checks if tested coordinates are positioned in north-east from this cell coordinates.
 
@@ -90,7 +90,7 @@ Checks if tested coordinates are positioned in north-east from this cell coordin
 
 _cellCoords.isSouthEastOf(testedCoords) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L66)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L66
 
 Checks if tested coordinates are positioned in south-east from this cell coordinates.
 
@@ -105,7 +105,7 @@ Checks if tested coordinates are positioned in south-east from this cell coordin
 
 _cellCoords.isSouthWestOf(testedCoords) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L86)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L86
 
 Checks if tested coordinates are positioned in south-west from this cell coordinates.
 
@@ -120,7 +120,7 @@ Checks if tested coordinates are positioned in south-west from this cell coordin
 
 _cellCoords.isValid(wot) ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L33)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L33
 
 Checks if given set of coordinates is valid in context of a given Walkontable instance.
 
@@ -135,7 +135,7 @@ Checks if given set of coordinates is valid in context of a given Walkontable in
 
 _cellCoords.normalize() ⇒ [CellCoords](./coords/)_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L106)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L106
 
 Normalizes the coordinates to the nearest valid position. The coordinates that point
 to the headers (negative values) are normalized to 0.
@@ -146,7 +146,7 @@ to the headers (negative values) are normalized to 0.
 
 _cellCoords.toObject() ⇒ object_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L127)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/3rdparty/walkontable/src/cell/coords.js#L127
 
 Converts CellCoords to literal object with `row` and `col` properties.
 

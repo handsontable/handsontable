@@ -8,8 +8,8 @@ editLink: false
 # UndoRedo
 
 [[toc]]
-## Methods:
-## Methods:
+## Methods
+## Methods
 
 ## Description
 
@@ -23,13 +23,13 @@ __Note__, that not all actions are currently undo-able. The UndoRedo plugin is e
 undo: true
 ```
 
-## Methods:
+## Methods
 
 ### clear
 
 _undoRedo.clear()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L257)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L257
 
 Clears undo history.
 
@@ -39,7 +39,7 @@ Clears undo history.
 
 _undoRedo.destroy()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L319)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L319
 
 Destroys the instance.
 
@@ -49,7 +49,7 @@ Destroys the instance.
 
 _undoRedo.disable()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L299)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L299
 
 Disables the plugin.
 
@@ -59,7 +59,7 @@ Disables the plugin.
 
 _undoRedo.done(action)_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L166)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L166
 
 
 | Param | Type | Description |
@@ -72,7 +72,7 @@ _undoRedo.done(action)_
 
 _undoRedo.enable()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L279)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L279
 
 Enables the plugin.
 
@@ -82,7 +82,7 @@ Enables the plugin.
 
 _undoRedo.isEnabled() ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L268)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L268
 
 Checks if the plugin is enabled.
 
@@ -92,7 +92,7 @@ Checks if the plugin is enabled.
 
 _undoRedo.isRedoAvailable() ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L246)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L246
 
 Checks if redo action is available.
 
@@ -103,7 +103,7 @@ Checks if redo action is available.
 
 _undoRedo.isUndoAvailable() ⇒ boolean_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L235)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L235
 
 Checks if undo action is available.
 
@@ -114,7 +114,7 @@ Checks if undo action is available.
 
 _undoRedo.redo()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L204)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L204
 
 Redo the previous action performed to the table (used to reverse an undo).
 
@@ -125,7 +125,7 @@ Redo the previous action performed to the table (used to reverse an undo).
 
 _undoRedo.undo()_
 
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L173)
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/undoRedo/undoRedo.js#L173
 
 Undo the last action performed to the table.
 

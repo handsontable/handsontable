@@ -61,8 +61,8 @@ const fixLinks = text => text
   .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, '[$1](./$2/$3)') // @see https://regexr.com/5nqqr
   .replace(/\.\/\//g, '');
 
-const clearEmptyMembersHeaders = text => text.replace(/## Members:\n## Methods:/g, '## Methods:');
-const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods:\n)+$/g, '\n');
+const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
+const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods\n)+$/g, '\n');
 
 const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\*:)( ?[^\n]*)/g, (_, part, signame) => {
   let suffix = ''; let
@@ -178,6 +178,9 @@ const traversePlugins = function* () {
   const items = fs.readdirSync(source('plugins'));
 
   for (const item of items) {
+    if(['base', '__tests__'].includes(item)) {
+      continue;
+    }
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
       yield path.join('plugins', item, `${item}.js`);
     }
