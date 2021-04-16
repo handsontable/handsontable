@@ -11,7 +11,6 @@ editLink: false
 
 ## Description
 
-
 This plugin creates the Handsontable Dropdown Menu. It allows to create a new row or column at any place in the grid
 among [other features](https://handsontable.com/docs/demo-context-menu.html).
 Possible values:
@@ -46,63 +45,57 @@ const hot = new Handsontable(container, {
 ## Members
 
 ### DEFAULT_ITEMS
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L89
+  
 
 _DropdownMenu.DEFAULT\_ITEMS ⇒ Array_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L89
-
 Default menu items order when `dropdownMenu` is enabled by setting the config item to `true`.
 
 
 ## Methods
 
 ### close
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L257
+  
 
 _dropdownMenu.close()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L257
-
 Closes dropdown menu.
 
 
 
 ### destroy
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L423
+  
 
 _dropdownMenu.destroy()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L423
-
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L212
+  
 
 _dropdownMenu.disablePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L212
-
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L155
+  
 
 _dropdownMenu.enablePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L155
-
 Enables the plugin functionality for this Handsontable instance.
 
 **Emits**: <code>Hooks#event:afterDropdownMenuDefaultOptions</code>, <code>Hooks#event:beforeDropdownMenuSetItems</code>  
 
 
 ### executeCommand
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L290
+  
 
 _dropdownMenu.executeCommand(commandName, ...params)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L290
-
 Executes context menu command.
 
 You can execute all predefined commands:
@@ -134,22 +127,20 @@ Or you can execute command registered in settings where `key` is your command na
 
 
 ### isEnabled
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L145
+  
 
 _dropdownMenu.isEnabled() ⇒ boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L145
-
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#DropdownMenu+enablePlugin) method is called.
 
 
 
 ### open
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L242
+  
 
 _dropdownMenu.open(position)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L242
-
 Opens menu and re-position it based on the passed coordinates.
 
 **Emits**: <code>Hooks#event:beforeDropdownMenuShow</code>, <code>Hooks#event:afterDropdownMenuShow</code>  
@@ -161,11 +152,10 @@ Opens menu and re-position it based on the passed coordinates.
 
 
 ### updatePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L203
+  
 
 _dropdownMenu.updatePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/dropdownMenu/dropdownMenu.js#L203
-
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

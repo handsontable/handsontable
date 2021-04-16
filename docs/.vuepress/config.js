@@ -1,6 +1,7 @@
 const highlight = require('./highlight');
 const helpers = require('./helpers');
-const examples = require('./examples');
+const examples = require('./containers/examples');
+const sourceCodeLink = require('./containers/sourceCodeLink');
 
 const environmentHead = process.env.BUILD_MODE === 'production' ?
   [
@@ -43,6 +44,7 @@ module.exports = {
       headerAnchorSelector: '.header-anchor'
     }],
     ['container', examples],
+    ['container', sourceCodeLink],
     {
       chainMarkdown(config) {
         // inject custom markdown highlight with our snippet runner

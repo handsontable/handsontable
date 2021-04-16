@@ -11,59 +11,53 @@ editLink: false
 ## Members
 
 ### BaseEditor
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L26
+  
 
 _baseEditor.[BaseEditor](./base-editor/)_
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L26
-
-
 
 ### _closeCallback
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L68
+  
 
 _baseEditor.\_closeCallback : function_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L68
-
 Callback to call after closing editor.
 
 
 
 ### cellProperties
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L104
+  
 
 _baseEditor.cellProperties : object_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L104
-
 Object containing the cell's properties.
 
 
 
 ### col
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L86
+  
 
 _baseEditor.col : number_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L86
-
 Visual column index.
 
 
 
 ### hot
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L32
+  
 
 _baseEditor.hot : Handsontable_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L32
-
 A reference to the source instance of the Handsontable.
 
 
 
 ### instance
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L40
+  
 
 _baseEditor.instance : Handsontable_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L40
-
 ***Deprecated***
 
 A reference to the source instance of the Handsontable.
@@ -71,62 +65,56 @@ A reference to the source instance of the Handsontable.
 
 
 ### originalValue
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L98
+  
 
 _baseEditor.originalValue : \*_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L98
-
 Original cell's value.
 
 
 
 ### prop
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L92
+  
 
 _baseEditor.prop : number | string_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L92
-
 Column property name or a column index, if datasource is an array of arrays.
 
 
 
 ### row
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L80
+  
 
 _baseEditor.row : number_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L80
-
 Visual row index.
 
 
 
 ### state
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L46
+  
 
 _baseEditor.state : string_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L46
-
 Editor's state.
 
 
 
 ### TD
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L74
+  
 
 _baseEditor.TD : HTMLTableCellElement_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L74
-
 Currently rendered cell's TD element.
 
 
 ## Methods
 
 ### beginEditing
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L225
+  
 
 _baseEditor.beginEditing(newInitialValue, event)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L225
-
 Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
 
@@ -138,31 +126,28 @@ Begins editing on a highlighted cell and hides fillHandle corner if was present.
 
 
 ### cancelChanges
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L332
+  
 
 _baseEditor.cancelChanges()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L332
-
 Finishes editing without singout saving value.
 
 
 
 ### close
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L151
+  
 
 _baseEditor.close()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L151
-
 Required method to close editor.
 
 
 
 ### discardEditor
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L343
+  
 
 _baseEditor.discardEditor(result)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L343
-
 Verifies result of validation or closes editor if user's cancelled changes.
 
 
@@ -173,32 +158,29 @@ Verifies result of validation or closes editor if user's cancelled changes.
 
 
 ### enableFullEditMode
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L368
+  
 
 _baseEditor.enableFullEditMode()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L368
-
 Switch editor into full edit mode. In this state navigation keys don't close editor. This mode is activated
 automatically after hit ENTER or F2 key on the cell or while editing cell press F2 key.
 
 
 
 ### extend
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L180
+  
 
 _baseEditor.extend() ⇒ function_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L180
-
 Fallback method to provide extendable editors in ES5.
 
 
 
 ### finishEditing
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L265
+  
 
 _baseEditor.finishEditing(restoreOriginalValue, ctrlDown, callback)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L265
-
 Finishes editing and start saving or restoring process for editing cell or last selected range.
 
 
@@ -211,91 +193,82 @@ Finishes editing and start saving or restoring process for editing cell or last 
 
 
 ### getEditedCell
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L434
+  
 
 _baseEditor.getEditedCell() ⇒ HTMLTableCellElement | null_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L434
-
 Gets HTMLTableCellElement of the edited cell if exist.
 
 
 
 ### getEditedCellsLayerClass
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L404
+  
 
 _baseEditor.getEditedCellsLayerClass() ⇒ string_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L404
-
 Gets className of the edited cell if exist.
 
 
 
 ### getValue
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L130
+  
 
 _baseEditor.getValue()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L130
-
 Required method to get current value from editable element.
 
 
 
 ### init
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L125
+  
 
 _baseEditor.init()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L125
-
 Initializes an editor's intance.
 
 
 
 ### isInFullEditMode
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L377
+  
 
 _baseEditor.isInFullEditMode() ⇒ boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L377
-
 Checks if editor is in full edit mode.
 
 
 
 ### isOpened
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L386
+  
 
 _baseEditor.isOpened() ⇒ boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L386
-
 Returns information whether the editor is open.
 
 
 
 ### isWaiting
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L395
+  
 
 _baseEditor.isWaiting() ⇒ boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L395
-
 Returns information whether the editor is waiting, eg.: for async validation.
 
 
 
 ### open
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L144
+  
 
 _baseEditor.open()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L144
-
 Required method to open editor.
 
 
 
 ### prepare
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L165
+  
 
 _baseEditor.prepare(row, col, prop, td, value, cellProperties)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L165
-
 Prepares editor's meta data.
 
 
@@ -311,11 +284,10 @@ Prepares editor's meta data.
 
 
 ### saveValue
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L190
+  
 
 _baseEditor.saveValue(value, ctrlDown)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L190
-
 Saves value from editor into data storage.
 
 
@@ -327,11 +299,10 @@ Saves value from editor into data storage.
 
 
 ### setValue
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L137
+  
 
 _baseEditor.setValue()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/editors/baseEditor/baseEditor.js#L137
-
 Required method to set new value into editable element.
 
 

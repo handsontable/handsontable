@@ -11,7 +11,6 @@ editLink: false
 
 ## Description
 
-
 The plugin enables exporting table data to file. It allows to export data as a string, blob or a downloadable file in
 CSV format.
 
@@ -50,11 +49,10 @@ exportPlugin.exportAsString('csv', {
 ## Members
 
 ### ExportOptions
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L66
+  
 
 _ExportFile.ExportOptions : object_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L66
-
 
 **Properties**
 
@@ -70,11 +68,10 @@ _ExportFile.ExportOptions : object_
 ## Methods
 
 ### downloadFile
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L106
+  
 
 _exportFile.downloadFile(format, options)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L106
-
 Exports table data as a downloadable file.
 
 
@@ -86,11 +83,10 @@ Exports table data as a downloadable file.
 
 
 ### exportAsBlob
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L96
+  
 
 _exportFile.exportAsBlob(format, options) ⇒ Blob_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L96
-
 Exports table data as a blob object.
 
 
@@ -102,11 +98,10 @@ Exports table data as a blob object.
 
 
 ### exportAsString
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L85
+  
 
 _exportFile.exportAsString(format, options) ⇒ string_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L85
-
 Exports table data as a string.
 
 
@@ -118,11 +113,10 @@ Exports table data as a string.
 
 
 ### isEnabled
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L62
+  
 
 _exportFile.isEnabled() ⇒ boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/exportFile/exportFile.js#L62
-
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [ExportFile#enablePlugin](./export-file/#enableplugin) method is called.
 

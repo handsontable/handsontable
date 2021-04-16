@@ -11,7 +11,6 @@ editLink: false
 
 ## Description
 
-
 This plugin creates the Handsontable Context Menu. It allows to create a new row or column at any place in the
 grid among [other features](https://handsontable.com/docs/demo-context-menu.html).
 Possible values:
@@ -48,62 +47,56 @@ contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 ## Members
 
 ### DEFAULT_ITEMS
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L94
+  
 
 _ContextMenu.DEFAULT\_ITEMS ⇒ Array&lt;string&gt;_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L94
-
 Context menu default items order when `contextMenu` options is set as `true`.
 
 
 ## Methods
 
 ### close
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L246
+  
 
 _contextMenu.close()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L246
-
 Closes the menu.
 
 
 
 ### destroy
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L385
+  
 
 _contextMenu.destroy()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L385
-
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L195
+  
 
 _contextMenu.disablePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L195
-
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L155
+  
 
 _contextMenu.enablePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L155
-
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### executeCommand
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L281
+  
 
 _contextMenu.executeCommand(commandName, ...params)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L281
-
 Execute context menu command.
 
 You can execute all predefined commands:
@@ -135,22 +128,20 @@ Or you can execute command registered in settings where `key` is your command na
 
 
 ### isEnabled
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L148
+  
 
 _contextMenu.isEnabled() ⇒ boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L148
-
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin) method is called.
 
 
 
 ### open
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L210
+  
 
 _contextMenu.open(event)_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L210
-
 Opens menu and re-position it based on the passed coordinates.
 
 
@@ -161,11 +152,10 @@ Opens menu and re-position it based on the passed coordinates.
 
 
 ### updatePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L185
+  
 
 _contextMenu.updatePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L185
-
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

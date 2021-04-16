@@ -11,7 +11,6 @@ editLink: false
 
 ## Description
 
-
 The plugin allows to create a nested header structure, using the HTML's colspan attribute.
 
 To make any header wider (covering multiple table columns), it's corresponding configuration array element should be
@@ -37,11 +36,10 @@ const hot = new Handsontable(container, {
 ## Members
 
 ### detectedOverlappedHeaders
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L73
+  
 
 _nestedHeaders.detectedOverlappedHeaders : boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L73
-
 The flag which determines that the nested header settings contains overlapping headers
 configuration.
 
@@ -49,51 +47,46 @@ configuration.
 ## Methods
 
 ### destroy
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L547
+  
 
 _nestedHeaders.destroy()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L547
-
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L140
+  
 
 _nestedHeaders.disablePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L140
-
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L87
+  
 
 _nestedHeaders.enablePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L87
-
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L80
+  
 
 _nestedHeaders.isEnabled() ⇒ boolean_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L80
-
 Check if plugin is enabled.
 
 
 
 ### updatePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L115
+  
 
 _nestedHeaders.updatePlugin()_
-
-::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L115
-
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 
