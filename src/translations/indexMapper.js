@@ -657,7 +657,7 @@ export class IndexMapper {
       this.cacheFromPhysicalToVisualIndexes();
       this.cacheFromVisualToRenderabIendexes();
 
-      // Currently there's support only the "hiding" map types.
+      // Currently there's support only for the "hiding" map type.
       if (this.hiddenIndexesChanged) {
         this.hidingChangesObservable.emit(this.hidingMapsCollection.getMergedValues());
       }
