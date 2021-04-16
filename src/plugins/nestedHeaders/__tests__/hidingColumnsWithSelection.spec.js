@@ -214,7 +214,84 @@ describe('NestedHeaders', () => {
           `);
       });
 
-      it('should highlight column headers correctly', () => {
+      it('should highlight column headers for selected cells in-between nested headers', () => {
+        const hot = handsontable({
+          data: Handsontable.helper.createSpreadsheetData(10, 13),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
+            ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
+            ['A3', { label: 'B3', colspan: 4 }, { label: 'F3', colspan: 4 }, 'J3', { label: 'K3', colspan: 3 }],
+            ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
+              { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
+          ],
+        });
+
+        const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+        hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
+        hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
+        hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
+        hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
+        hot.render();
+
+        selectCells([
+          [2, 0, 2, 2], // A3 to C3
+          [4, 3, 4, 5], // D4 to F4
+          [5, 7, 5, 9], // H5 to J5
+        ]);
+
+        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A1</th>
+              <th class="" colspan="5">B1</th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="">J1</th>
+              <th class="" colspan="2">K1</th>
+              <th class="hiddenHeader"></th>
+            </tr>
+            <tr>
+              <th class="">A2</th>
+              <th class="" colspan="5">B2</th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="">J2</th>
+              <th class="" colspan="2">K2</th>
+              <th class="hiddenHeader"></th>
+            </tr>
+            <tr>
+              <th class="">A3</th>
+              <th class="" colspan="2">B3</th>
+              <th class="hiddenHeader"></th>
+              <th class="" colspan="3">F3</th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="">J3</th>
+              <th class="" colspan="2">K3</th>
+              <th class="hiddenHeader"></th>
+            </tr>
+            <tr>
+              <th class="ht__highlight">A4</th>
+              <th class="ht__highlight">B4</th>
+              <th class="ht__highlight">D4</th>
+              <th class="ht__highlight" colspan="2">F4</th>
+              <th class="hiddenHeader"></th>
+              <th class="ht__highlight">H4</th>
+              <th class="ht__highlight">J4</th>
+              <th class="" colspan="2">L4</th>
+              <th class="hiddenHeader"></th>
+            </tr>
+          </thead>
+          `);
+      });
+
+      it('should active highlight column headers correctly', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 13),
           colHeaders: true,
@@ -410,83 +487,6 @@ describe('NestedHeaders', () => {
               <th class="">J4</th>
               <th class="ht__highlight ht__active_highlight">K4</th>
               <th class="ht__highlight ht__active_highlight" colspan="2">L4</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-          </thead>
-          `);
-      });
-
-      it('should highlight column headers for selected cells in-between nested headers', () => {
-        const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 13),
-          colHeaders: true,
-          nestedHeaders: [
-            ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
-            ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
-            ['A3', { label: 'B3', colspan: 4 }, { label: 'F3', colspan: 4 }, 'J3', { label: 'K3', colspan: 3 }],
-            ['A4', { label: 'B4', colspan: 2 }, { label: 'D4', colspan: 2 }, { label: 'F4', colspan: 2 },
-              { label: 'H4', colspan: 2 }, 'J4', 'K4', { label: 'L4', colspan: 2 }],
-          ],
-        });
-
-        const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-        hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
-        hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
-        hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
-        hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
-        hot.render();
-
-        selectCells([
-          [2, 0, 2, 2], // A3 to C3
-          [4, 3, 4, 5], // D4 to F4
-          [5, 7, 5, 9], // H5 to J5
-        ]);
-
-        expect(extractDOMStructure(getTopClone())).toMatchHTML(`
-          <thead>
-            <tr>
-              <th class="">A1</th>
-              <th class="" colspan="5">B1</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">J1</th>
-              <th class="" colspan="2">K1</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A2</th>
-              <th class="" colspan="5">B2</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">J2</th>
-              <th class="" colspan="2">K2</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="">A3</th>
-              <th class="" colspan="2">B3</th>
-              <th class="hiddenHeader"></th>
-              <th class="" colspan="3">F3</th>
-              <th class="hiddenHeader"></th>
-              <th class="hiddenHeader"></th>
-              <th class="">J3</th>
-              <th class="" colspan="2">K3</th>
-              <th class="hiddenHeader"></th>
-            </tr>
-            <tr>
-              <th class="ht__highlight">A4</th>
-              <th class="ht__highlight">B4</th>
-              <th class="ht__highlight">D4</th>
-              <th class="ht__highlight" colspan="2">F4</th>
-              <th class="hiddenHeader"></th>
-              <th class="ht__highlight">H4</th>
-              <th class="ht__highlight">J4</th>
-              <th class="" colspan="2">L4</th>
               <th class="hiddenHeader"></th>
             </tr>
           </thead>

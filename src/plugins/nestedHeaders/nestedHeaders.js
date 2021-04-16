@@ -4,6 +4,7 @@ import {
   fastInnerHTML,
   empty,
 } from '../../helpers/dom/element';
+import { isLeftClick } from '../../helpers/dom/event';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import {
@@ -403,7 +404,7 @@ export class NestedHeaders extends BasePlugin {
   onAfterOnCellMouseDown(event, coords) {
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
-    if (headerNodeData) {
+    if (isLeftClick(event) && headerNodeData) {
       const {
         columnIndex,
         origColspan,

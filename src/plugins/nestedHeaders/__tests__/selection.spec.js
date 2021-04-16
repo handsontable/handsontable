@@ -1000,5 +1000,29 @@ describe('NestedHeaders', () => {
       expect($leftBorder.height()).toEqual($tbody.height() - 1);
       expect($rightBorder.height()).toEqual($tbody.height());
     });
+
+    it('should not change the header selection when the header within selection range is clicked using RMB', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      // Select headers "I" to "K"
+      $(getCell(-1, 1))
+        .simulate('mousedown');
+      $(getCell(-1, 5))
+        .simulate('mouseover')
+        .simulate('mouseup');
+
+      simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
+
+      expect(getSelected()).toEqual([[-1, 1, 9, 6]]);
+    });
   });
 });

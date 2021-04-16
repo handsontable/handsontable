@@ -192,7 +192,7 @@ describe('NestedHeaders', () => {
           `);
       });
 
-      it('should highlight column headers correctly', () => {
+      it('should active highlight column headers correctly', () => {
         const hot = handsontable({
           data: Handsontable.helper.createSpreadsheetData(10, 13),
           colHeaders: true,
