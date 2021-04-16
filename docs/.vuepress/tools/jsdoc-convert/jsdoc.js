@@ -30,7 +30,7 @@ const seo = {
   },
   'core.js': {
     title: 'Core',
-    permalink: '/next/api/'
+    permalink: '/next/api/core'
   },
   'translations/indexMapper.js': {
     title: 'IndexMapper',

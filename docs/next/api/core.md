@@ -1,7 +1,7 @@
 ---
 title: Core
-permalink: /next/api/
-canonicalUrl: /api/
+permalink: /next/api/core
+canonicalUrl: /api/core
 editLink: false
 ---
 
