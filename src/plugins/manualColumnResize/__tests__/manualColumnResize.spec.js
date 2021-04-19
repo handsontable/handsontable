@@ -693,6 +693,7 @@ describe('manualColumnResize', () => {
     $colHeader.simulate('mouseover');
 
     const $handle = spec().$container.find('.manualColumnResizer');
+
     $handle[0].style.background = 'red';
 
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
@@ -748,6 +749,7 @@ describe('manualColumnResize', () => {
     getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
+
     $resizer.simulate('mousedown', { clientX: resizerPosition.left });
     $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
     $resizer.simulate('mouseup');
@@ -882,6 +884,7 @@ describe('manualColumnResize', () => {
       });
 
       const mainHolder = hot.view.wt.wtTable.holder;
+
       $(mainHolder).scrollLeft(200);
 
       await sleep(400);
@@ -893,6 +896,7 @@ describe('manualColumnResize', () => {
 
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientX: resizerPosition.left });
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
@@ -921,6 +925,7 @@ describe('manualColumnResize', () => {
 
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientX: resizerPosition.left });
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
@@ -947,6 +952,7 @@ describe('manualColumnResize', () => {
 
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientX: resizerPosition.left });
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
@@ -975,6 +981,7 @@ describe('manualColumnResize', () => {
 
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientX: resizerPosition.left });
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
@@ -1004,6 +1011,7 @@ describe('manualColumnResize', () => {
 
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientX: resizerPosition.left });
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
@@ -1028,6 +1036,7 @@ describe('manualColumnResize', () => {
       });
 
       const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
       $headerTH.simulate('mouseover');
 
       const $handle = $('.manualColumnResizer');
@@ -1051,6 +1060,7 @@ describe('manualColumnResize', () => {
       });
 
       const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
       $headerTH.simulate('mouseover');
 
       const $handle = $('.manualColumnResizer');

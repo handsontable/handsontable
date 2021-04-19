@@ -372,6 +372,7 @@ describe('AutoFill', () => {
 
   it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', () => {
     const $table = $('<table><tr><td></td></tr></table>').appendTo('body');
+
     spec().$container.appendTo($table.find('td'));
 
     handsontable({
@@ -410,6 +411,7 @@ describe('AutoFill', () => {
 
     selectCell(1, 3);
     const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+
     mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 3)).toEqual(null);
@@ -434,6 +436,7 @@ describe('AutoFill', () => {
 
     selectCell(1, 3, 1, 4);
     const fillHandle = spec().$container.find('.wtBorder.area.corner')[0];
+
     mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(2, 3)).toEqual(null);
@@ -463,6 +466,7 @@ describe('AutoFill', () => {
 
     selectCell(0, 3);
     const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+
     mouseDoubleClick(fillHandle);
 
     expect(getDataAtCell(0, 3)).toEqual('3');

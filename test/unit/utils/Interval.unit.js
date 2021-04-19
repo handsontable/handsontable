@@ -22,6 +22,7 @@ describe('Interval', () => {
 
   it('should create interval object which is stopped by default', (done) => {
     const spy = jasmine.createSpy();
+
     Interval.create(spy);
 
     setTimeout(() => {

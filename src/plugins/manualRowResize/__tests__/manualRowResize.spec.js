@@ -200,6 +200,7 @@ describe('manualRowResize', () => {
     hot.addHook('beforeRowResize', () => void 0);
 
     const $th = getLeftClone().find('tbody tr:eq(0) th:eq(0)');
+
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -259,6 +260,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
     const $th = getLeftClone().find('tbody tr:eq(0) th:eq(0)');
+
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -284,6 +286,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
     const $th = getLeftClone().find('tbody tr:eq(2) th:eq(0)');
+
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -368,6 +371,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 2);
 
     const $th = getLeftClone().find('tbody tr:eq(2) th:eq(0)');
+
     $th.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
@@ -565,6 +569,7 @@ describe('manualRowResize', () => {
     getLeftClone().find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
+
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
@@ -700,6 +705,7 @@ describe('manualRowResize', () => {
       });
 
       const mainHolder = hot.view.wt.wtTable.holder;
+
       $(mainHolder).scrollTop(200);
 
       await sleep(400);
@@ -711,6 +717,7 @@ describe('manualRowResize', () => {
 
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
@@ -738,6 +745,7 @@ describe('manualRowResize', () => {
 
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
@@ -763,6 +771,7 @@ describe('manualRowResize', () => {
 
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
@@ -790,6 +799,7 @@ describe('manualRowResize', () => {
 
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
@@ -819,6 +829,7 @@ describe('manualRowResize', () => {
 
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
+
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
@@ -843,6 +854,7 @@ describe('manualRowResize', () => {
       });
 
       const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
+
       $headerTH.simulate('mouseover');
 
       const $handle = $('.manualRowResizer');
@@ -866,6 +878,7 @@ describe('manualRowResize', () => {
       });
 
       const $headerTH = getLeftClone().find('tbody tr:eq(1) th:eq(0)');
+
       $headerTH.simulate('mouseover');
 
       const $handle = $('.manualRowResizer');

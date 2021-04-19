@@ -21,6 +21,7 @@ describe('settings', () => {
         width: 400,
         height: 100
       });
+
       selectCell(0, 0);
 
       const holderBoundingBox = hot.view.wt.wtTable.holder.getBoundingClientRect();

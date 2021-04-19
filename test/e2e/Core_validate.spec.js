@@ -429,6 +429,7 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
+
     expect(() => hot.validateRows()).toThrow();
     expect(() => hot.validateRows(0, () => {})).toThrow();
     expect(() => hot.validateRows({}, () => {})).toThrow();
@@ -445,6 +446,7 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
+
     expect(() => hot.validateColumns()).toThrow();
     expect(() => hot.validateColumns(0, () => {})).toThrow();
     expect(() => hot.validateColumns({}, () => {})).toThrow();
@@ -1448,6 +1450,7 @@ describe('Core_validate', () => {
     await sleep(300);
 
     const $cell = $(getCell(0, 0));
+
     expect($cell.hasClass('htInvalid')).toEqual(false);
   });
 
@@ -1476,6 +1479,7 @@ describe('Core_validate', () => {
 
     setTimeout(() => {
       const $cell = $(getCell(0, 0));
+
       expect($cell.hasClass('htInvalid')).toEqual(false);
       done();
     }, 200);

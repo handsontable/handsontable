@@ -18,6 +18,7 @@ if (!_requestAnimationFrame) {
     const id = window.setTimeout(() => {
       callback(currTime + timeToCall);
     }, timeToCall);
+
     lastTime = currTime + timeToCall;
 
     return id;
@@ -83,16 +84,19 @@ let _hasCaptionProblem;
  */
 function detectCaptionProblem() {
   const TABLE = document.createElement('TABLE');
+
   TABLE.style.borderSpacing = '0';
   TABLE.style.borderWidth = '0';
   TABLE.style.padding = '0';
   const TBODY = document.createElement('TBODY');
+
   TABLE.appendChild(TBODY);
   TBODY.appendChild(document.createElement('TR'));
   TBODY.firstChild.appendChild(document.createElement('TD'));
   TBODY.firstChild.firstChild.innerHTML = '<tr><td>t<br>t</td></tr>';
 
   const CAPTION = document.createElement('CAPTION');
+
   CAPTION.innerHTML = 'c<br>c<br>c<br>c';
   CAPTION.style.padding = '0';
   CAPTION.style.margin = '0';
@@ -148,6 +152,7 @@ export function getComparisonFunction(language, options = {}) {
 }
 
 let passiveSupported;
+
 /**
  * Checks if browser supports passive events.
  *

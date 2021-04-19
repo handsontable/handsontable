@@ -204,6 +204,7 @@ describe('CopyPaste', () => {
         data: Handsontable.helper.createSpreadsheetData(2, 2),
         beforeCopy() {
           beforeCopySpy();
+
           return false;
         },
         afterCopy: afterCopySpy,
@@ -230,6 +231,7 @@ describe('CopyPaste', () => {
 
       const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
+
       selectCell(0, 0, 1, 0);
 
       plugin.onCopy(copyEvent);
@@ -412,6 +414,7 @@ describe('CopyPaste', () => {
       await sleep(60);
 
       const expected = arrayOfArrays();
+
       expected[3][4] = 'Kia';
       expect(getData()).toEqual(expected);
     });

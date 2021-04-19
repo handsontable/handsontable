@@ -33,6 +33,7 @@ export function textRenderer(instance, TD, row, col, prop, value, cellProperties
   if (cellProperties.rendererTemplate) {
     empty(TD);
     const TEMPLATE = instance.rootDocument.createElement('TEMPLATE');
+
     TEMPLATE.setAttribute('bind', '{{}}');
     TEMPLATE.innerHTML = cellProperties.rendererTemplate;
     HTMLTemplateElement.decorate(TEMPLATE);

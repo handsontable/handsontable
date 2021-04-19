@@ -746,6 +746,7 @@ describe('Filters', () => {
         });
 
         const spy = jasmine.createSpy();
+
         hot.addHook('beforeFilter', spy);
         const plugin = hot.getPlugin('filters');
 
@@ -784,6 +785,7 @@ describe('Filters', () => {
         });
 
         const spy = jasmine.createSpy();
+
         spy.and.callFake(() => false);
         hot.addHook('beforeFilter', spy);
         const plugin = hot.getPlugin('filters');
@@ -810,6 +812,7 @@ describe('Filters', () => {
         });
 
         const spy = jasmine.createSpy();
+
         hot.addHook('afterFilter', spy);
         const plugin = hot.getPlugin('filters');
 

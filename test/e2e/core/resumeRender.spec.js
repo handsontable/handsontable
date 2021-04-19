@@ -17,6 +17,7 @@ describe('Core.resumeRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 
@@ -36,6 +37,7 @@ describe('Core.resumeRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 
@@ -54,6 +56,7 @@ describe('Core.resumeRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 
@@ -72,6 +75,7 @@ describe('Core.resumeRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 

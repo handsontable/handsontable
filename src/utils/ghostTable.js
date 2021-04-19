@@ -69,6 +69,7 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const rowObject = { row };
+
     this.rows.push(rowObject);
 
     this.samples = samples;
@@ -121,6 +122,7 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const columnObject = { col: column };
+
     this.columns.push(columnObject);
 
     this.samples = samples;
@@ -208,6 +210,7 @@ class GhostTable {
     if (this.settings) {
       return this.settings[name];
     }
+
     return null;
 
   }

@@ -16,6 +16,7 @@ describe('Core.suspendRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 
@@ -57,6 +58,7 @@ describe('Core.suspendRender', () => {
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
     });
+
     spyOn(hot.view.wt, 'draw');
     spyOn(hot.view.wt.wtOverlays, 'adjustElementsSize');
 

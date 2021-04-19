@@ -4,7 +4,7 @@ This zip package includes a development build of Handsontable with the new formu
 
 ## npm install
 
-1. Put the `handsontable*.tgz` *and* `hyperformula*.tgz` files at the root of your project
+1. Put the `handsontable*.tgz` file at the root of your project
 2. `npm install handsontable*.tgz`
 
 

@@ -117,6 +117,139 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', (...args) => this.onAfterRemoveRow(...args));
     this.addHook('afterRemoveCol', (...args) => this.onAfterRemoveCol(...args));
 
+    // Autofill hooks
+    {
+      // Scoped into this block instead of being on the whole class to prevent
+      // other places from messing with it.
+      const lastAutofillSource = { value: undefined };
+
+      // Abuse the `modifyAutofillRange` hook to get the autofill start coordinates.
+      this.addHook('modifyAutofillRange', (_, entireArea) => {
+        const [startRow, startCol, endRow, endCol] = entireArea;
+
+        lastAutofillSource.value = {
+          start: {
+            row: startRow,
+            col: startCol
+          },
+          end: {
+            row: endRow,
+            col: endCol
+          }
+        };
+      });
+
+      // Abuse this hook to easily figure out the direction of the autofill
+      this.addHook('beforeAutofillInsidePopulate', (index, direction, _input, _deltas, _, selected) => {
+        const autofillTargetSize = {
+          width: selected.col,
+          height: selected.row
+        };
+
+        const autofillSourceSize = {
+          width: Math.abs(lastAutofillSource.value.start.col - lastAutofillSource.value.end.col) + 1,
+          height: Math.abs(lastAutofillSource.value.start.row - lastAutofillSource.value.end.row) + 1
+        };
+
+        const paste = (
+          // The cell we're copy'ing to let HyperFormula adjust the references properly
+          sourceCellCoordinates,
+
+          // The cell we're pasting into
+          targetCellCoordinates
+        ) => {
+          this.hyperformula.copy({
+            sheet: this.hyperformula.getSheetId(this.sheetName),
+            row: sourceCellCoordinates.row,
+            col: sourceCellCoordinates.col
+          }, 1, 1);
+
+          const [{ address }] = this.hyperformula.paste({
+            sheet: this.hyperformula.getSheetId(this.sheetName),
+            row: targetCellCoordinates.row,
+            col: targetCellCoordinates.col
+          });
+
+          const value = this.hyperformula.getCellSerialized(address);
+
+          return { value };
+        };
+
+        // Pretty much reimplements the logic from `src/plugins/autofill/autofill.js#fillIn`
+        switch (direction) {
+          case 'right': {
+            const targetCellCoordinates = {
+              row: lastAutofillSource.value.start.row + index.row,
+              col: lastAutofillSource.value.start.col + index.col + autofillSourceSize.width
+            };
+
+            const sourceCellCoordinates = {
+              row: lastAutofillSource.value.start.row + index.row,
+              col: (index.col % autofillSourceSize.width) + lastAutofillSource.value.start.col
+            };
+
+            return paste(sourceCellCoordinates, targetCellCoordinates);
+          }
+
+          case 'left': {
+            const targetCellCoordinates = {
+              row: lastAutofillSource.value.start.row + index.row,
+              col: lastAutofillSource.value.start.col + index.col - autofillTargetSize.width
+            };
+
+            const fillOffset = autofillTargetSize.width % autofillSourceSize.width;
+
+            const sourceCellCoordinates = {
+              row: lastAutofillSource.value.start.row + index.row,
+              col:
+                ((autofillSourceSize.width - fillOffset + index.col) %
+                  autofillSourceSize.width) +
+                lastAutofillSource.value.start.col,
+            };
+
+            return paste(sourceCellCoordinates, targetCellCoordinates);
+          }
+
+          case 'down': {
+            const targetCellCoordinates = {
+              row: lastAutofillSource.value.start.row + index.row + autofillSourceSize.height,
+              col: lastAutofillSource.value.start.col + index.col
+            };
+
+            const sourceCellCoordinates = {
+              row: (index.row % autofillSourceSize.height) + lastAutofillSource.value.start.row,
+              col: lastAutofillSource.value.start.col + index.col
+            };
+
+            return paste(sourceCellCoordinates, targetCellCoordinates);
+          }
+
+          case 'up': {
+            const targetCellCoordinates = {
+              row: lastAutofillSource.value.start.row + index.row - autofillTargetSize.height,
+              col: lastAutofillSource.value.start.col + index.col
+            };
+
+            const fillOffset = autofillTargetSize.height % autofillSourceSize.height;
+
+            const sourceCellCoordinates = {
+              row:
+                ((autofillSourceSize.height - fillOffset + index.row) %
+                  autofillSourceSize.height) +
+                lastAutofillSource.value.start.row,
+              col: lastAutofillSource.value.start.col + index.col,
+            };
+
+            return paste(sourceCellCoordinates, targetCellCoordinates);
+          }
+
+          default: {
+            throw new Error('Unexpected direction parameter');
+          }
+        }
+      });
+    }
+
     const hfSetUpProperly = this.setupHF();
 
     if (!hfSetUpProperly) {
@@ -305,7 +438,7 @@ export class Formulas extends BasePlugin {
    * @private
    */
   onAfterLoadData() {
-    if (this.#internal) {
+    if (!this.enabled || this.#internal) {
       return;
     }
 
@@ -361,8 +494,13 @@ export class Formulas extends BasePlugin {
       const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
       // Omit the leading `'` from presentation, and all `getData` operations
-      // eslint-disable-next-line no-nested-ternary
-      const prettyValue = typeof value === 'string' ? (value.indexOf('\'') === 0 ? value.slice(1) : value) : value;
+      const prettyValue = (() => {
+        if (typeof value === 'string') {
+          return value.indexOf('\'') === 0 ? value.slice(1) : value;
+        }
+
+        return value;
+      })();
 
       valueHolder.value = prettyValue;
     } else {
@@ -416,7 +554,9 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateRow(row, amount) {
-    return this.hyperformula.isItPossibleToAddRows(this.sheetId, [row, amount]);
+    if (!this.hyperformula.isItPossibleToAddRows(this.sheetId, [row, amount])) {
+      return false;
+    }
   }
 
   /**
@@ -428,7 +568,37 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateCol(col, amount) {
-    return this.hyperformula.isItPossibleToAddColumns(this.sheetId, [col, amount]);
+    if (!this.hyperformula.isItPossibleToAddColumns(this.sheetId, [col, amount])) {
+      return false;
+    }
+  }
+
+  /**
+   * `beforeRemoveRow` hook callback.
+   *
+   * @private
+   * @param {number} row Visual index of starter row.
+   * @param {number} amount Amount of rows to be removed.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  onBeforeRemoveRow(row, amount) {
+    if (!this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [row, amount])) {
+      return false;
+    }
+  }
+
+  /**
+   * `beforeRemoveCol` hook callback.
+   *
+   * @private
+   * @param {number} col Visual index of starter column.
+   * @param {number} amount Amount of columns to be removed.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  onBeforeRemoveCol(col, amount) {
+    if (!this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [col, amount])) {
+      return false;
+    }
   }
 
   /**
@@ -460,29 +630,6 @@ export class Formulas extends BasePlugin {
    * @param {number} row Visual index of starter row.
    * @param {number} amount Amount of rows to be removed.
    * @returns {*|boolean} If false is returned the action is canceled.
-   */
-  onBeforeRemoveRow(row, amount) {
-    return this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [row, amount]);
-  }
-
-  /**
-   * `beforeRemoveCol` hook callback.
-   *
-   * @private
-   * @param {number} col Visual index of starter column.
-   * @param {number} amount Amount of columns to be removed.
-   * @returns {*|boolean} If false is returned the action is canceled.
-   */
-  onBeforeRemoveCol(col, amount) {
-    return this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [col, amount]);
-  }
-
-  /**
-   * `afterRemoveRow` hook callback.
-   *
-   * @private
-   * @param {number} row Visual index of starter row.
-   * @param {number} amount An amount of removed rows.
    */
   onAfterRemoveRow(row, amount) {
     this.hyperformula.removeRows(this.sheetId, [row, amount]);
