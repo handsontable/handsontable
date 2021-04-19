@@ -36,6 +36,7 @@ describe('Core_render', () => {
     });
 
     const $tds = spec().$container.find('.htCore tbody td');
+
     $tds.each(function() {
       expect(this.style.backgroundColor).toEqual('green');
     });
@@ -60,6 +61,7 @@ describe('Core_render', () => {
     render();
 
     const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
+
     expect(spec().$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 

@@ -60,6 +60,7 @@ describe('TextRenderer', () => {
     const instance = new Handsontable.Core(DIV, {});
 
     const TD = document.createElement('TD');
+
     TD.className = 'someClass';
     Handsontable.renderers.TextRenderer(instance, TD, 0, 0, 0, '', {
       readOnly: true,

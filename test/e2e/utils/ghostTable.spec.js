@@ -25,6 +25,7 @@ describe('GhostTable', () => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
       let exception = false;
+
       gt = new Handsontable.__GhostTable(hot);
 
       gt.addRow(0, samples);
@@ -41,6 +42,7 @@ describe('GhostTable', () => {
     it('should create container element only for first row', () => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
+
       gt = new Handsontable.__GhostTable(hot);
 
       spyOn(gt, 'createContainer').and.callThrough();
@@ -58,6 +60,7 @@ describe('GhostTable', () => {
     it('should add row to rows collection after call `addRow` method', () => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
+
       gt = new Handsontable.__GhostTable(hot);
 
       expect(gt.rows.length).toBe(0);
@@ -91,6 +94,7 @@ describe('GhostTable', () => {
       const hot = handsontable(hotSettings);
       const heightSpy = jasmine.createSpy();
       const samples = new Map();
+
       gt = new Handsontable.__GhostTable(hot);
 
       samples.clear();
@@ -124,6 +128,7 @@ describe('GhostTable', () => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
       let exception = false;
+
       gt = new Handsontable.__GhostTable(hot);
 
       gt.addColumn(0, samples);
@@ -140,6 +145,7 @@ describe('GhostTable', () => {
     it('should create container element only for first column', () => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
+
       gt = new Handsontable.__GhostTable(hot);
 
       spyOn(gt, 'createContainer').and.callThrough();
@@ -157,6 +163,7 @@ describe('GhostTable', () => {
     it('should add column to columns collection after call `addColumn` method', () => {
       const hot = handsontable(hotSettings);
       const samples = new Map();
+
       gt = new Handsontable.__GhostTable(hot);
 
       expect(gt.columns.length).toBe(0);
@@ -192,6 +199,7 @@ describe('GhostTable', () => {
       const hot = handsontable(hotSettings);
       const widthSpy = jasmine.createSpy();
       const samples = new Map();
+
       gt = new Handsontable.__GhostTable(hot);
 
       samples.clear();
@@ -223,6 +231,7 @@ describe('GhostTable', () => {
   it('should reset internal state after call `clean` method', () => {
     const hot = handsontable(hotSettings);
     const samples = new Map();
+
     gt = new Handsontable.__GhostTable(hot);
 
     gt.addColumn(0, samples);
@@ -247,6 +256,7 @@ describe('GhostTable', () => {
   it('should be detected as vertical if at least one row is added', () => {
     const hot = handsontable(hotSettings);
     const samples = new Map();
+
     gt = new Handsontable.__GhostTable(hot);
 
     gt.addRow(0, samples);
@@ -258,6 +268,7 @@ describe('GhostTable', () => {
   it('should be detected as horizontal if at least one column is added', () => {
     const hot = handsontable(hotSettings);
     const samples = new Map();
+
     gt = new Handsontable.__GhostTable(hot);
 
     gt.addColumn(0, samples);

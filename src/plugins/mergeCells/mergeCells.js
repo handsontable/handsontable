@@ -782,6 +782,7 @@ export class MergeCells extends BasePlugin {
    */
   onBeforeSetRangeEnd(coords) {
     const selRange = this.hot.getSelectedRangeLast();
+
     selRange.highlight = new CellCoords(selRange.highlight.row, selRange.highlight.col); // clone in case we will modify its reference
     selRange.to = coords;
     let rangeExpanded = false;

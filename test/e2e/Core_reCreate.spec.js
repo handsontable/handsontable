@@ -19,6 +19,7 @@ describe('Core_reCreate', () => {
         return `Line<br>${col}`;
       }
     };
+
     handsontable(settings);
     destroy();
     handsontable(settings);

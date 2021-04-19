@@ -18,6 +18,7 @@ describe('MergeCells-Autofill calculations', () => {
       });
 
       const area = [0, 0, 0, 0];
+
       instance.correctSelectionAreaSize(area);
 
       expect(area).toEqual([0, 0, 2, 2]);
@@ -119,6 +120,7 @@ describe('MergeCells-Autofill calculations', () => {
       const baseArea = [5, 4, 6, 5];
       let dragArea = [5, 4, 10, 5];
       let direction = 'down';
+
       expect(instance.getAutofillSize(baseArea, dragArea, direction)).toEqual(4);
 
       dragArea = [5, 0, 6, 5];

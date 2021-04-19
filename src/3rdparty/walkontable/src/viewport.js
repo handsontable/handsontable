@@ -54,6 +54,7 @@ class Viewport {
 
     } else {
       const elemHeight = outerHeight(trimmingContainer);
+
       // returns height without DIV scrollbar
       height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
     }
@@ -188,6 +189,7 @@ class Viewport {
    */
   getWorkspaceActualWidth() {
     const { wtTable } = this.wot;
+
     return outerWidth(wtTable.TABLE) ||
       outerWidth(wtTable.TBODY) ||
       outerWidth(wtTable.THEAD); // IE8 reports 0 as <table> offsetWidth;
@@ -250,6 +252,7 @@ class Viewport {
 
       if (rowHeaders.length) {
         let TH = this.instance.wtTable.TABLE.querySelector('TH');
+
         this.rowHeaderWidth = 0;
 
         for (let i = 0, len = rowHeaders.length; i < len; i++) {
@@ -381,6 +384,7 @@ class Viewport {
 
     if (fixedColumnsLeft) {
       const fixedColumnsWidth = wtOverlays.leftOverlay.sumCellSizes(0, fixedColumnsLeft);
+
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }

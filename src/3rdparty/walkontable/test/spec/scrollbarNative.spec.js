@@ -29,9 +29,11 @@ describe('WalkontableScrollbarNative', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     const tds = spec().$table.find('td').length;
+
     wt.draw();
 
     expect(spec().$table.find('td').length).toEqual(tds);
@@ -45,9 +47,11 @@ describe('WalkontableScrollbarNative', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     const tds = spec().$table.find('td').length;
+
     wt.draw();
 
     expect(spec().$table.find('td').length).toEqual(tds);
@@ -61,6 +65,7 @@ describe('WalkontableScrollbarNative', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     const lastRenderedRow = wt.wtTable.getLastRenderedRow();
@@ -83,6 +88,7 @@ describe('WalkontableScrollbarNative', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     wt.wtOverlays.topOverlay.scrollTo(3);

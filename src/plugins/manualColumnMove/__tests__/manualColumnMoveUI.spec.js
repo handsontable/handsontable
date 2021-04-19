@@ -22,6 +22,7 @@ describe('manualColumnMove', () => {
       });
 
       const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
+
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -38,6 +39,7 @@ describe('manualColumnMove', () => {
       });
 
       const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(0)');
+
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -79,6 +81,7 @@ describe('manualColumnMove', () => {
       });
 
       const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(1)');
+
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -116,6 +119,7 @@ describe('manualColumnMove', () => {
       });
 
       const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
+
       $headerTH.simulate('mousedown');
       $headerTH.simulate('mouseup');
       $headerTH.simulate('mousedown');
@@ -195,6 +199,7 @@ describe('manualColumnMove', () => {
       $headerTH.simulate('mouseup');
 
       const $backlight = spec().$container.find('.ht__manualColumnMove--backlight')[0];
+
       $summaryElement.simulate('mousedown');
 
       const displayProp = $backlight.currentStyle ?

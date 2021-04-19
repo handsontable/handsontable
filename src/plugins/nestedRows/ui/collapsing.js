@@ -47,6 +47,7 @@ class CollapsingUI extends BaseUI {
       trimStash: (realElementIndex, amount) => {
         rangeEach(realElementIndex, realElementIndex + amount - 1, (i) => {
           const indexOfElement = this.lastCollapsedRows.indexOf(i);
+
           if (indexOfElement > -1) {
             this.lastCollapsedRows.splice(indexOfElement, 1);
           }
@@ -146,6 +147,7 @@ class CollapsingUI extends BaseUI {
 
     arrayEach(rowIndexes, (elem) => {
       rowsToTrim.push(elem);
+
       if (recursive) {
         this.collapseChildRows(elem, rowsToTrim);
       }
@@ -172,6 +174,7 @@ class CollapsingUI extends BaseUI {
 
       arrayEach(parentObject.__children, (elem) => {
         const elemIndex = this.dataManager.getRowIndex(elem);
+
         rowsToTrim.push(elemIndex);
         this.collapseChildRows(elemIndex, rowsToTrim);
       });
@@ -205,6 +208,7 @@ class CollapsingUI extends BaseUI {
 
     arrayEach(rowIndexes, (elem) => {
       rowsToUntrim.push(elem);
+
       if (recursive) {
         this.expandChildRows(elem, rowsToUntrim);
       }
@@ -232,6 +236,7 @@ class CollapsingUI extends BaseUI {
       arrayEach(parentObject.__children, (elem) => {
         if (!this.isAnyParentCollapsed(elem)) {
           const elemIndex = this.dataManager.getRowIndex(elem);
+
           rowsToUntrim.push(elemIndex);
           this.expandChildRows(elemIndex, rowsToUntrim);
         }
@@ -398,6 +403,7 @@ class CollapsingUI extends BaseUI {
 
         if (!this.plugin.collapsedRowsMap.getValueAtIndex(rowIndex)) {
           allCollapsed = false;
+
           return false;
         }
       });

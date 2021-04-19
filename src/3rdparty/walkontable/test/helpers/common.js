@@ -359,10 +359,12 @@ export function spreadsheetColumnLabel(index) {
  */
 export function walkontableCalculateScrollbarWidth() {
   const inner = document.createElement('div');
+
   inner.style.height = '200px';
   inner.style.width = '100%';
 
   const outer = document.createElement('div');
+
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -375,8 +377,10 @@ export function walkontableCalculateScrollbarWidth() {
 
   (document.body || document.documentElement).appendChild(outer);
   const w1 = inner.offsetWidth;
+
   outer.style.overflow = 'scroll';
   let w2 = inner.offsetWidth;
+
   if (w1 === w2) {
     w2 = outer.clientWidth;
   }

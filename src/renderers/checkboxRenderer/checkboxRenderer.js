@@ -7,6 +7,7 @@ import {
 } from '../../helpers/dom/event';
 import { partial } from '../../helpers/function';
 import { equalsIgnoreCase } from '../../helpers/string';
+import { isEmpty } from '../../helpers/mixed';
 import { isKey } from '../../helpers/unicode';
 
 import './checkboxRenderer.css';
@@ -35,6 +36,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
 
     } else if (labelProperty) {
       const labelData = this.getDataAtRowProp(row, labelProperty);
+
       labelText = labelData !== null ? labelData : cellValue;
     }
 
@@ -57,6 +59,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed, cellMe
  */
 export function checkboxRenderer(instance, TD, row, col, prop, value, cellProperties) {
   const { rootDocument } = instance;
+
   baseRenderer.apply(this, [instance, TD, row, col, prop, value, cellProperties]);
   registerEvents(instance);
 
@@ -79,7 +82,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
   } else if (value === cellProperties.uncheckedTemplate || equalsIgnoreCase(value, cellProperties.uncheckedTemplate)) {
     input.checked = false;
 
-  } else if (value === null) { // default value
+  } else if (isEmpty(value)) { // default value
     addClass(input, 'noValue');
 
   } else {
@@ -100,6 +103,7 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
 
     } else if (labelOptions.property) {
       const labelValue = instance.getDataAtRowProp(row, labelOptions.property);
+
       labelText = labelValue !== null ? labelValue : '';
     }
 
@@ -283,6 +287,7 @@ function registerEvents(instance) {
 
   if (!eventManager) {
     const { rootElement } = instance;
+
     eventManager = new EventManager(instance);
 
     eventManager.addEventListener(rootElement, 'click', event => onClick(event, instance));
