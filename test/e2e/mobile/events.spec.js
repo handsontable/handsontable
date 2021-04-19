@@ -58,6 +58,21 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
+  it('should preventDefault the touchstart event (double-tap issue #7824)', async() => {
+    const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
+
+    const hot = handsontable({
+      width: 400,
+      height: 400,
+      afterOnCellMouseDown
+    });
+
+    const cell = hot.getCell(1, 1);
+    const event = triggerTouchEvent('touchstart', cell);
+
+    expect(event.defaultPrevented).toBeTrue();
+  });
+
   it('should block default action related to link touch and translate from the touch to click on a cell', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],

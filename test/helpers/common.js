@@ -879,8 +879,7 @@ export function swapDisplayedColumns(container, from, to) {
  * @param {number} y The page y coordinates.
  * @param {HTMLElement} element An element for which event will be triggered.
  * @param {string} eventType Type of touch event, ie. 'touchstart', 'touchmove', 'touchend'.
- * @returns {boolean} The return value is `false` if event is cancelable and at least one of the event handlers which
- * received event called `preventDefault()`. Otherwise it returns `true`.
+ * @returns {Event} Returns the Event instance used to trigger the event.
  */
 function sendTouchEvent(x, y, element, eventType) {
   const touchObj = new Touch({
@@ -901,7 +900,9 @@ function sendTouchEvent(x, y, element, eventType) {
     shiftKey: false,
   });
 
-  return element.dispatchEvent(touchEvent);
+  element.dispatchEvent(touchEvent);
+
+  return touchEvent;
 }
 
 /**
@@ -909,8 +910,7 @@ function sendTouchEvent(x, y, element, eventType) {
  * @param {HTMLElement} target The target element from the event was triggered.
  * @param {number} pageX The page x coordinates.
  * @param {number} pageY The page y coordinates.
- * @returns {boolean} The return value is `false` if event is cancelable and at least one of the event handlers which
- * received event called `preventDefault()`. Otherwise it returns `true`.
+ * @returns {Event} Returns the Event instance used to trigger the event.
  */
 export function triggerTouchEvent(type, target, pageX, pageY) {
   const targetCoords = target.getBoundingClientRect();
