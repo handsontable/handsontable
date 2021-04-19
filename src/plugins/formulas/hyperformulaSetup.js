@@ -15,7 +15,7 @@ export function registerHF(pluginSettings, hotId) {
     staticRegister('formulas').register('hyperformulaInstances', new Map());
   }
 
-  const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
+  const hfRegistry = staticRegister('formulas').getItem('hyperformulaInstances');
 
   // Register custom functions
   if (pluginSettings.functions) {
@@ -44,7 +44,7 @@ export function registerHF(pluginSettings, hotId) {
   const hfInstance = HFClass.buildEmpty(hyperformulaDefaultSettings);
 
   // Add it to global registry
-  hfInstances.set(hfInstance, [hotId]);
+  hfRegistry.set(hfInstance, [hotId]);
 
   // Register named expressions
   if (pluginSettings.namedExpressions) {

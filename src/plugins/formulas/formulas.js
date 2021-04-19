@@ -290,22 +290,20 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    if (!this.hyperformula) {
-      return;
-    }
+    if (this.hyperformula) {
+      const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
+      const sharedHFInstanceUsage = hfInstances ? hfInstances.get(this.hyperformula) : null;
 
-    const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
-    const sharedHFInstanceUsage = hfInstances ? hfInstances.get(this.hyperformula) : null;
+      if (sharedHFInstanceUsage && sharedHFInstanceUsage.includes(this.hot.guid)) {
+        sharedHFInstanceUsage.splice(
+          sharedHFInstanceUsage.indexOf(this.hot.guid),
+          1
+        );
 
-    if (sharedHFInstanceUsage && sharedHFInstanceUsage.includes(this.hot.guid)) {
-      sharedHFInstanceUsage.splice(
-        sharedHFInstanceUsage.indexOf(this.hot.guid),
-        1
-      );
-
-      if (sharedHFInstanceUsage.length === 0) {
-        hfInstances.delete(this.hyperformula);
-        this.hyperformula.destroy();
+        if (sharedHFInstanceUsage.length === 0) {
+          hfInstances.delete(this.hyperformula);
+          this.hyperformula.destroy();
+        }
       }
     }
 
