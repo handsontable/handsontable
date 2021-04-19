@@ -297,6 +297,11 @@ class Event {
     priv.selectedCellBeforeTouchEnd = this.instance.selections.getCell().cellRange;
     this.instance.touchApplied = true;
 
+    // This fixes the double tab issue (#7659). By `preventDefault` call on the touch event, we
+    // tell the browser that we don't want to rely on the native 300ms delay. Hence the touch
+    // events can be triggered as fast as the user can (https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
+    event.preventDefault();
+
     this.onMouseDown(event);
   }
 
