@@ -35,6 +35,7 @@ describe('stretchH option', () => {
         TH.innerHTML = row + 1;
       }]
     });
+
     wt.draw();
 
     expect(spec().$table.outerWidth()).toBeAroundValue(wt.wtTable.holder.clientWidth);
@@ -56,9 +57,11 @@ describe('stretchH option', () => {
         TH.innerHTML = row + 1;
       }]
     });
+
     wt.draw();
 
     const initialTableWidth = spec().$table.outerWidth();
+
     expect(initialTableWidth).toBeAroundValue(spec().$table[0].clientWidth);
 
     spec().$wrapper.width(600).height(500);
@@ -72,6 +75,7 @@ describe('stretchH option', () => {
     await sleep(300);
 
     const currentTableWidth = spec().$table.outerWidth();
+
     expect(currentTableWidth).toBeAroundValue(spec().$table[0].clientWidth);
     expect(currentTableWidth).toBeGreaterThan(initialTableWidth);
   });
@@ -96,12 +100,15 @@ describe('stretchH option', () => {
       totalColumns: getTotalColumns,
       stretchH: 'all'
     });
+
     wt.draw();
 
     let expectedColWidth = ((300 - getScrollbarWidth()) / 2);
+
     expectedColWidth = Math.floor(expectedColWidth);
 
     const wtHider = spec().$table.parents('.wtHider');
+
     expect(wtHider.find('col:eq(0)').width()).toBeAroundValue(expectedColWidth);
     expect(wtHider.find('col:eq(1)').width() - expectedColWidth).toBeInArray([0, 1]); // fix differences between Mac and Linux PhantomJS
   });
@@ -120,9 +127,11 @@ describe('stretchH option', () => {
         TH.innerHTML = row + 1;
       }]
     });
+
     wt.draw();
 
     const wtHider = spec().$table.parents('.wtHider');
+
     expect(wtHider.outerWidth()).toBe(getTableWidth(spec().$table));
     expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
   });
@@ -169,9 +178,11 @@ describe('stretchH option', () => {
         TH.innerHTML = row + 1;
       }]
     });
+
     wt.draw();
 
     const wtHider = spec().$table.parents('.wtHider');
+
     expect(wtHider.outerWidth()).toBe(getTableWidth(spec().$table));
     expect(wtHider.find('col:eq(1)').width()).toBeLessThan(wtHider.find('col:eq(2)').width());
   });
@@ -189,6 +200,7 @@ describe('stretchH option', () => {
         TH.innerHTML = row + 1;
       }]
     });
+
     wt.draw();
 
     expect(spec().$table.width()).toBeLessThan(spec().$wrapper.width());

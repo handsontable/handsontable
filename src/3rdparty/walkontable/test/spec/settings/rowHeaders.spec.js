@@ -27,6 +27,7 @@ describe('rowHeaders option', () => {
       totalRows: getTotalRows,
       totalColumns: getTotalColumns
     });
+
     wt.draw();
 
     expect(spec().$wrapper.hasClass('htRowHeaders')).toBe(false);
@@ -41,6 +42,7 @@ describe('rowHeaders option', () => {
         TH.innerHTML = row + 1;
       }]
     });
+
     wt.draw();
 
     expect(spec().$wrapper.hasClass('htRowHeaders')).toBe(true);
@@ -55,6 +57,7 @@ describe('rowHeaders option', () => {
         TH.innerHTML = row + 1;
       }]
     });
+
     wt.draw();
 
     expect(spec().$wrapper.find('.ht_clone_left colgroup col').length).toBe(1);
@@ -80,6 +83,7 @@ describe('rowHeaders option', () => {
 
     wt.draw();
     const potentialRowCount = 9;
+
     expect(spec().$table.find('tbody td').length).toBe(potentialRowCount * wt.wtTable.getRenderedColumnsCount()); // displayed cells
     expect(spec().$table.find('tbody th').length).toBe(potentialRowCount); // 9*1=9 displayed row headers
     expect(spec().$table.find('tbody tr:first th').length).toBe(1); // only one th per row
@@ -98,6 +102,7 @@ describe('rowHeaders option', () => {
         TH.innerHTML = col + 1;
       }]
     });
+
     wt.draw();
 
     expect(spec().$table.find('col:first').hasClass('rowHeader')).toBe(true);

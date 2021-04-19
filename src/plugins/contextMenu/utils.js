@@ -224,6 +224,7 @@ function shiftSeparators(items, separator) {
       break;
     }
   }
+
   return result;
 }
 

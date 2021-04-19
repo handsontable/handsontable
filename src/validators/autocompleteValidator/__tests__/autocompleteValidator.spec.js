@@ -15,6 +15,7 @@ describe('autocompleteValidator', () => {
   describe('allowEmpty', () => {
     it('should validate empty cells positively (by default)', (done) => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
       handsontable({
         data: [
           ['some', 'sample', 'data'],
@@ -49,6 +50,7 @@ describe('autocompleteValidator', () => {
 
     it('should validate empty cells positively when allowEmpty is set to true', (done) => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
       handsontable({
         data: [
           ['some', 'sample', 'data'],
@@ -84,6 +86,7 @@ describe('autocompleteValidator', () => {
 
     it('should validate empty cells negatively when allowEmpty is set to false', (done) => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
       handsontable({
         data: [
           ['some', 'sample', 'data'],
@@ -119,6 +122,7 @@ describe('autocompleteValidator', () => {
 
     it('should respect the allowEmpty property for a single column', (done) => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
       handsontable({
         data: [
           ['some', 'sample', 'data']
@@ -158,6 +162,7 @@ describe('autocompleteValidator', () => {
 
     it('should work for null and undefined values in cells', (done) => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
       handsontable({
         data: [
           ['some', 'sample', 'data']
@@ -198,6 +203,7 @@ describe('autocompleteValidator', () => {
   describe('strict mode', () => {
     it('sshould validate negatively when chars have different size', (done) => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
       handsontable({
         data: [
           ['some', 'sample', 'data'],

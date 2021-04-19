@@ -449,6 +449,7 @@ describe('ConditionCollection', () => {
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
 
       const result = conditionCollection.hasConditions(3);
+
       expect(result).toBe(true);
     });
 
@@ -459,6 +460,7 @@ describe('ConditionCollection', () => {
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
 
       const result = conditionCollection.hasConditions(3);
+
       expect(result).toBe(false);
     });
 
@@ -469,6 +471,7 @@ describe('ConditionCollection', () => {
       spyOn(conditionCollection, 'getConditions').and.returnValue(conditionsMock);
 
       const result = conditionCollection.hasConditions(3, 'eq');
+
       expect(result).toBe(true);
     });
 

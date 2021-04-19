@@ -1,0 +1,7 @@
+{
+  "title": "Enhanced the ESLint config file by adding a rule that checks if there are missing new lines before some keywords or statements.",
+  "type": "changed",
+  "issue": 7691,
+  "breaking": false,
+  "framework": "none"
+}

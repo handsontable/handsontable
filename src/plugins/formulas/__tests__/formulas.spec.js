@@ -465,6 +465,7 @@ describe('Formulas general', () => {
       width: 500,
       height: 300
     });
+
     hot.getPlugin('formulas').setVariable('TEST_2', 12345);
     hot.getPlugin('formulas').recalculateFull();
 

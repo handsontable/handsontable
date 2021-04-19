@@ -359,6 +359,7 @@ class CellRange {
    */
   flipDirectionVertically() {
     const direction = this.getDirection();
+
     switch (direction) {
       case 'NW-SE':
         this.setDirection('SW-NE');
@@ -382,6 +383,7 @@ class CellRange {
    */
   flipDirectionHorizontally() {
     const direction = this.getDirection();
+
     switch (direction) {
       case 'NW-SE':
         this.setDirection('NE-SW');
@@ -599,6 +601,7 @@ class CellRange {
         }
       }
     }
+
     return out;
   }
 

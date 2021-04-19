@@ -139,6 +139,7 @@ describe('settings', () => {
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A20');
 
       const td = hot.getCell(19, 0, true);
+
       td.innerHTML = 'test';
 
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('test');

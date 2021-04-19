@@ -81,6 +81,7 @@ export function parse(str) {
 
       } else {
         const matchedText = str.match(regNextCellNoQuotes);
+
         nextCell = matchedText ? matchedText[0] : '';
         str = str.slice(nextCell.length);
       }

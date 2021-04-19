@@ -55,6 +55,7 @@ describe('MergeCells', () => {
         ]
       });
       let TD = hot.rootElement.querySelector('td');
+
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
@@ -82,6 +83,7 @@ describe('MergeCells', () => {
         ]
       });
       let TD = hot.rootElement.querySelector('td');
+
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
@@ -102,6 +104,7 @@ describe('MergeCells', () => {
         ]
       });
       let TD = hot.rootElement.querySelector('td');
+
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
@@ -123,6 +126,7 @@ describe('MergeCells', () => {
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
+
       expect(hot.getCopyableText(0, 0, 2, 2)).toBe('A1\t\tC1\n\t\tC2\nA3\tB3\tC3');
     });
   });
@@ -295,6 +299,7 @@ describe('MergeCells', () => {
       });
 
       const plugin = hot.getPlugin('mergeCells');
+
       hot.selectCell(0, 0, 2, 2);
       plugin.mergeSelection();
 
@@ -335,6 +340,7 @@ describe('MergeCells', () => {
           { row: 8, col: 8, rowspan: 2, colspan: 2 }
         ]
       });
+
       hot.setDataAtCell(8, 8, 'top-left-corner!');
 
       hot.selectCell(7, 9);
@@ -366,6 +372,7 @@ describe('MergeCells', () => {
         autoWrapCol: false,
         autoWrapRow: false
       });
+
       hot.setDataAtCell(8, 8, 'top-left-corner!');
 
       hot.selectCell(9, 7);
@@ -397,6 +404,7 @@ describe('MergeCells', () => {
         autoWrapCol: false,
         autoWrapRow: false
       });
+
       hot.setDataAtCell(0, 0, 'top-left-corner!');
 
       hot.selectCell(2, 1);
@@ -426,6 +434,7 @@ describe('MergeCells', () => {
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
+
       hot.setDataAtCell(0, 0, 'top-left-corner!');
 
       hot.selectCell(1, 2);
@@ -657,9 +666,11 @@ describe('MergeCells', () => {
       expect(mainHolder.scrollTop).toBe(130);
 
       let TD = hot.getCell(5, 0);
+
       mouseDown(TD);
       mouseUp(TD);
       const mergedCellScrollTop = mainHolder.scrollTop;
+
       expect(mergedCellScrollTop).toBeLessThan(130);
       expect(mergedCellScrollTop).toBeGreaterThan(0);
 
@@ -673,6 +684,7 @@ describe('MergeCells', () => {
       mouseDown(TD);
       mouseUp(TD);
       const regularCellScrollTop = mainHolder.scrollTop;
+
       expect(mergedCellScrollTop).toBe(regularCellScrollTop);
     });
 
@@ -1205,6 +1217,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(0, 1);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(0, 1));
@@ -1218,6 +1231,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(0, 1);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(0, 3));
@@ -1232,6 +1246,7 @@ describe('MergeCells', () => {
       let coords = new CellCoords(2, 0);
       let currentSelection = new CellRange(coords, coords, coords);
       let inDelta = new CellCoords(0, 1);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(-1, 1));
@@ -1252,6 +1267,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(0, -1);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(0, -3));
@@ -1265,6 +1281,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(0, -1);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(0, -1));
@@ -1279,6 +1296,7 @@ describe('MergeCells', () => {
       let coords = new CellCoords(2, 4);
       let currentSelection = new CellRange(coords, coords, coords);
       let inDelta = new CellCoords(0, -1);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(-1, -3));
@@ -1299,6 +1317,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(0, -1);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(0, -1));
@@ -1312,6 +1331,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(1, 0);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(3, 0));
@@ -1325,6 +1345,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(-1, 0);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(-3, 0));
@@ -1338,6 +1359,7 @@ describe('MergeCells', () => {
       const currentSelection = new CellRange(coords, coords, coords);
       const mergeCells = new Handsontable.MergeCells(mergeCellsSettings);
       const inDelta = new CellCoords(-1, 0);
+
       mergeCells.modifyTransform('modifyTransformStart', currentSelection, inDelta);
 
       expect(inDelta).toEqual(new CellCoords(-1, 0));
@@ -1467,6 +1489,7 @@ describe('MergeCells', () => {
       });
 
       const plugin = hot.getPlugin('mergeCells');
+
       plugin.merge(0, 0, 3, 3);
       hot.selectCell(4, 4, 7, 7);
       plugin.mergeSelection();
@@ -1485,6 +1508,7 @@ describe('MergeCells', () => {
       });
 
       const plugin = hot.getPlugin('mergeCells');
+
       plugin.merge(0, 0, 3, 3);
       hot.selectCell(4, 4, 7, 7);
       plugin.mergeSelection();
