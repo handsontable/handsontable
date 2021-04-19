@@ -59,12 +59,9 @@ describe('Events', () => {
   });
 
   it('should preventDefault the touchstart event (double-tap issue #7824)', async() => {
-    const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
-
     const hot = handsontable({
       width: 400,
       height: 400,
-      afterOnCellMouseDown
     });
 
     const cell = hot.getCell(1, 1);
