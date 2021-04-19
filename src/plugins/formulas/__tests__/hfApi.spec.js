@@ -22,6 +22,7 @@ describe('Formulas general', () => {
   describe('Sheet switching', () => {
     it('should allow switching sheets stored in HF by modifying the `sheetName` property in `updateSettings`', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
       hfInstance1.addSheet('Test Sheet');
       hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
       hfInstance1.addSheet('Test Sheet 2');
@@ -51,6 +52,7 @@ describe('Formulas general', () => {
 
     it('should allow switching sheets stored in HF using the plugin\'s `switchSheet` method', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
       hfInstance1.addSheet('Test Sheet');
       hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
       hfInstance1.addSheet('Test Sheet 2');
@@ -76,6 +78,7 @@ describe('Formulas general', () => {
 
     it('should allow adding new HF sheets using the plugin\'s `addSheet` method', () => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+
       hfInstance1.addSheet('Test Sheet');
       hfInstance1.setSheetContent('Test Sheet', [[1, 2, 3], [4, 5, 6]]);
 
@@ -102,5 +105,4 @@ describe('Formulas general', () => {
       expect(getData()).toEqual([[11, 21, 31]]);
     });
   });
-
 });
