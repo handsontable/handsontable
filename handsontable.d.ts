@@ -1,4 +1,5 @@
 import { PikadayOptions } from 'pikaday';
+import numbro from 'numbro';
 
 /**
  * @internal
@@ -1955,7 +1956,7 @@ declare namespace Handsontable {
   };
 
   interface NumericFormatOptions {
-    pattern: string;
+    pattern: string | numbro.Format;
     culture?: string;
   }
 

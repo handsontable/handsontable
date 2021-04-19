@@ -45,6 +45,30 @@ const contextMenuDemo: Handsontable.contextMenu.Settings = {
   }
 }
 
+const legacyNumericFormat: Handsontable.NumericFormatOptions = {
+  pattern: '0.00',
+  culture: 'en-US',
+};
+const numericFormatOptions: Handsontable.NumericFormatOptions = {
+  pattern: {
+    prefix: 2,
+    postfix: 3,
+    characteristic: 5,
+    forceAverage: oneOf('trillion', 'billion', 'million', 'thousand'),
+    average: true,
+    mantissa: 5,
+    optionalMantissa: true,
+    trimMantissa: true,
+    thousandSeparated: true,
+    negative: oneOf('sign', 'parenthesis'),
+    forceSign: true,
+    totalLength: 10,
+    spaceSeparated: true,
+    output: oneOf('currency', 'percent', 'byte', 'time', 'ordinal', 'number'),
+  },
+  culture: 'en-US'
+};
+
 // Use `Required<GridSettings>` to ensure every defined setting is covered here.
 const allSettings: Required<Handsontable.GridSettings> = {
   activeHeaderClassName: 'foo',
@@ -256,10 +280,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   nestedRows: true,
   noWordWrapClassName: 'foo',
-  numericFormat: {
-    pattern: '0,00',
-    culture: 'en-US'
-  },
+  numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
   observeChanges: true,
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, function(target: HTMLElement) {
