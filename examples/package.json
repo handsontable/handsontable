@@ -3,7 +3,6 @@
   "private": true,
   "scripts": {
     "clean": "node ./scripts/clean-subpackages.mjs",
-    "pretest": "npm run install:version next && npm run build",
     "test": "node ./scripts/code-examples.mjs test next",
     "build": "node ./scripts/code-examples.mjs build next",
     "install:version": "node --experimental-json-modules ./scripts/install-subpackages.mjs"

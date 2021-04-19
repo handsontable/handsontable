@@ -15,7 +15,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "scripts": {
     "start": "parcel index.html --port 8080",
-    "build": "parcel build index.html --public-url .",
+    "build": "parcel build index.html --public-url '.'",
     "test": "node spec/support/jasmine.config.js"
   },
   "dependencies": {

@@ -71,7 +71,6 @@ async function distributeBetweenPipelines(modifiedProjects) {
             modifiedProjects.indexOf(projectName) < Math.floor(modifiedProjects.length / pipelineCount)) ||
           (isHandsontableTouched && projectName !== 'handsontable')
         ) {
-          await spawnProcess(`npm run in ${projectName} build`);
           await spawnProcess(`npm run in ${projectName} test`);
         }
       }
