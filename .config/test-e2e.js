@@ -14,7 +14,6 @@ module.exports.create = function create(envArgs) {
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
     c.target = 'web';
-    // c.cache = true;
     c.mode = 'development' // TODO remove this
     c.output = {
       libraryTarget: 'var',
