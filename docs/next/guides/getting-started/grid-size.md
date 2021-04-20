@@ -3,6 +3,7 @@ title: Grid size
 permalink: /next/grid-size
 canonicalUrl: /grid-size
 ---
+
 # {{ $frontmatter.title }}
 
 [[toc]]

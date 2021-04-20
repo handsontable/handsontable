@@ -61,6 +61,7 @@ const columnsItems = [
   'guides/columns/column-width',
   'guides/columns/column-summary',
   'guides/columns/column-virtualization',
+  'guides/columns/column-sorting',
   'guides/columns/column-menu',
   'guides/columns/column-filter',
 ];
@@ -78,41 +79,42 @@ const rowsItems = [
   'guides/rows/row-prepopulating',
 ];
 
-const cellsItems = [
-  'guides/cells/clipboard',
-  'guides/cells/selection',
-  'guides/cells/merge-cells',
-  'guides/cells/conditional-formatting',
-  'guides/cells/data-validation',
-  'guides/cells/text-alignment',
-  'guides/cells/disabled-cells',
-  'guides/cells/comments',
-  'guides/cells/auto-fill',
-  'guides/cells/formatting-cells',
+const cellFeaturesItems = [
+  'guides/cell-features/clipboard',
+  'guides/cell-features/selection',
+  'guides/cell-features/merge-cells',
+  'guides/cell-features/conditional-formatting',
+  'guides/cell-features/data-validation',
+  'guides/cell-features/text-alignment',
+  'guides/cell-features/disabled-cells',
+  'guides/cell-features/comments',
+  'guides/cell-features/autofill-data',
+  'guides/cell-features/formatting-cells',
 ];
 
-const builtInCellTypesItems = [
-  'guides/built-in-cell-types/what-is-cell-type',
-  'guides/built-in-cell-types/numeric-cell-type',
-  'guides/built-in-cell-types/date-cell-type',
-  'guides/built-in-cell-types/time-cell-type',
-  'guides/built-in-cell-types/checkbox-cell-type',
-  'guides/built-in-cell-types/select-cell-type',
-  'guides/built-in-cell-types/dropdown-cell-type',
-  'guides/built-in-cell-types/autocomplete-cell-type',
-  'guides/built-in-cell-types/password-cell-type',
-  'guides/built-in-cell-types/handsontable-cell-type',
+const cellFunctionsItems = [
+  'guides/cell-functions/cell-function',
+  'guides/cell-functions/cell-renderer',
+  'guides/cell-functions/cell-editor',
+  'guides/cell-functions/cell-validator',
 ];
 
-const customCellTypesItems = [
-  'guides/custom-cell-types/custom-cell-type',
-  'guides/custom-cell-types/custom-editor',
-  'guides/custom-cell-types/custom-renderer',
-  'guides/custom-cell-types/custom-validator',
+const cellTypesItems = [
+  'guides/cell-types/cell-type',
+  'guides/cell-types/numeric-cell-type',
+  'guides/cell-types/date-cell-type',
+  'guides/cell-types/time-cell-type',
+  'guides/cell-types/checkbox-cell-type',
+  'guides/cell-types/select-cell-type',
+  'guides/cell-types/dropdown-cell-type',
+  'guides/cell-types/autocomplete-cell-type',
+  'guides/cell-types/password-cell-type',
+  'guides/cell-types/handsontable-cell-type',
 ];
 
 const formulasItems = [
   'guides/formulas/formula-calculation',
+  'guides/formulas/hyperformula-integration',
 ];
 
 const accessoriesAndMenusItems = [
@@ -125,7 +127,7 @@ const accessoriesAndMenusItems = [
 
 const internationalizationItems = [
   'guides/internationalization/internationalization-i18n',
-  'guides/internationalization/rtl',
+  //TODO 'guides/internationalization/rtl',
   'guides/internationalization/ime-support',
 ];
 
@@ -139,11 +141,11 @@ const buildingAndTestingItems = [
 ];
 
 const advancedTopicsItems = [
-  'guides/advanced-topics/accessibility',
-  'guides/advanced-topics/batching-operations',
-  'guides/advanced-topics/touch-events',
+  //TODO 'guides/advanced-topics/accessibility',
+  'guides/advanced-topics/batch-operations',
+  //TODO 'guides/advanced-topics/touch-events',
   'guides/advanced-topics/performance',
-  'guides/advanced-topics/key-concepts',
+  //TODO 'guides/advanced-topics/key-concepts',
 ];
 
 const securityItems = [
@@ -151,17 +153,17 @@ const securityItems = [
 ];
 
 const technicalSpecificationItems = [
-  'guides/technical-specification/about-handsontable',
+  //TODO 'guides/technical-specification/about-handsontable',
   'guides/technical-specification/supported-browsers',
-  'guides/technical-specification/product-license',
-  'guides/technical-specification/documentation-license',
+  'guides/technical-specification/software-license',
   'guides/technical-specification/third-party-licenses',
+  'guides/technical-specification/documentation-license',
 ];
 
 const upgradeAndMigrationItems = [
   'guides/upgrade-and-migration/release-notes',
   'guides/upgrade-and-migration/versioning-policy',
-  'guides/upgrade-and-migration/roadmap',
+  //TODO 'guides/upgrade-and-migration/roadmap',
   'guides/upgrade-and-migration/migrating-from-7.4-to-8.0',
 ];
 
@@ -196,9 +198,9 @@ module.exports = {
     { title: 'Integrate with Vue', children: integrateWithVueItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
-    { title: 'Cells', children: cellsItems },
-    { title: 'Built-in Cell Types', children: builtInCellTypesItems },
-    { title: 'Custom Cell Types', children: customCellTypesItems },
+    { title: 'Cell Features', children: cellFeaturesItems },
+    { title: 'Cell Functions', children: cellFunctionsItems },
+    { title: 'Cell Types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
     { title: 'Accessories and Menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
