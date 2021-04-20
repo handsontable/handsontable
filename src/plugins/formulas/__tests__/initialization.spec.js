@@ -685,10 +685,7 @@ describe('Formulas general', () => {
         formulas: {
           hyperformula: HyperFormula,
           sheetName: 'Sheet1',
-          language: {
-            code: 'plPL',
-            language: plPL
-          }
+          language: plPL
         },
         licenseKey: 'non-commercial-and-evaluation'
       });
