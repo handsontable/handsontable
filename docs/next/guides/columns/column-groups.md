@@ -2,6 +2,9 @@
 title: Column groups
 permalink: /next/column-groups
 canonicalUrl: /column-groups
+tags:
+  - nested headers
+  - collapsing columns
 ---
 
 # {{ $frontmatter.title }}

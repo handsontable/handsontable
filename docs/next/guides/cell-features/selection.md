@@ -2,6 +2,8 @@
 title: Selection
 permalink: /next/selection
 canonicalUrl: /selection
+tags:
+  - selecting ranges
 ---
 
 # {{ $frontmatter.title }}

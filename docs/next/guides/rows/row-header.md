@@ -2,6 +2,10 @@
 title: Row header
 permalink: /next/row-header
 canonicalUrl: /row-header
+tags:
+  - custom headers
+  - bind rows with headers
+  - row id
 ---
 
 # {{ $frontmatter.title }}

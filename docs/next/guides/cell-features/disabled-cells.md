@@ -2,6 +2,8 @@
 title: Disabled cells
 permalink: /next/disabled-cells
 canonicalUrl: /disabled-cells
+tags:
+  - read-only
 ---
 
 # {{ $frontmatter.title }}

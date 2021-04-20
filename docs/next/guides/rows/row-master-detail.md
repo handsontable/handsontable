@@ -2,6 +2,11 @@
 title: Row master-detail
 permalink: /next/row-master-detail
 canonicalUrl: /row-master-detail
+tags:
+  - nested rows
+  - parent child
+  - tree grid
+  - grouping rows
 ---
 
 # {{ $frontmatter.title }}

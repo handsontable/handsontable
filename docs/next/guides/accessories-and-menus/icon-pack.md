@@ -2,6 +2,8 @@
 title: Icon pack
 permalink: /next/icon-pack
 canonicalUrl: /icon-pack
+tags:
+  - spreadsheet icons
 ---
 
 # {{ $frontmatter.title }}

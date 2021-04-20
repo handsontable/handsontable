@@ -2,6 +2,9 @@
 title: Row virtualization
 permalink: /next/row-virtualization
 canonicalUrl: /row-virtualization
+tags:
+  - scrolling
+  - multi-column sorting
 ---
 
 # {{ $frontmatter.title }}

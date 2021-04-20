@@ -2,6 +2,8 @@
 title: Column filter
 permalink: /next/column-filter
 canonicalUrl: /column-filter
+tags:
+  - filtering data
 ---
 
 # {{ $frontmatter.title }}

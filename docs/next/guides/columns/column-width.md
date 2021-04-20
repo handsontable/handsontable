@@ -2,6 +2,9 @@
 title: Column width
 permalink: /next/column-width
 canonicalUrl: /column-width
+tags:
+  - resizing columns
+  - stretching columns
 ---
 
 # {{ $frontmatter.title }}

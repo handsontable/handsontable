@@ -2,6 +2,8 @@
 title: Row height
 permalink: /next/row-height
 canonicalUrl: /row-height
+tags:
+  - resizing
 ---
 
 # {{ $frontmatter.title }}

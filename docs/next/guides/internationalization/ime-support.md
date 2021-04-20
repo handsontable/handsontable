@@ -2,6 +2,11 @@
 title: IME support
 permalink: /next/ime-support
 canonicalUrl: /ime-support
+tags:
+  - input method editor
+  - korean
+  - japanese
+  - chinese
 ---
 
 # {{ $frontmatter.title }}

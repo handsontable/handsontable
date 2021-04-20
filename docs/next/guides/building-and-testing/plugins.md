@@ -2,6 +2,8 @@
 title: Plugins
 permalink: /next/plugins
 canonicalUrl: /plugins
+tags:
+  - custom plugin
 ---
 
 # {{ $frontmatter.title }}

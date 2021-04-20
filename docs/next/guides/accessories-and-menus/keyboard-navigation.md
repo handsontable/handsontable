@@ -2,6 +2,8 @@
 title: Keyboard navigation
 permalink: /next/keyboard-navigation
 canonicalUrl: /keyboard-navigation
+tags:
+  - key bindings
 ---
 
 # {{ $frontmatter.title }}

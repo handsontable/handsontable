@@ -2,6 +2,8 @@
 title: Saving data
 permalink: /next/saving-data
 canonicalUrl: /saving-data
+tags:
+  - load and save
 ---
 
 # {{ $frontmatter.title }}

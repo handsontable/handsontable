@@ -2,6 +2,8 @@
 title: Installation
 permalink: /next/installation
 canonicalUrl: /installation
+tags:
+  - quick start
 ---
 
 # {{ $frontmatter.title }}

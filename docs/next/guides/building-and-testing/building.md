@@ -2,6 +2,8 @@
 title: Building process
 permalink: /next/building
 canonicalUrl: /building
+tags:
+  - custom build
 ---
 
 # {{ $frontmatter.title }}

@@ -2,6 +2,15 @@
 title: HyperFormula integration
 permalink: /next/hyperformula-integration
 canonicalUrl: /hyperformula-integration
+tags:
+  - formula
+  - excel
+  - spreadsheet
+  - gpu
+  - worksheet
+  - workbook
+  - sheet
+  - function
 ---
 
 # {{ $frontmatter.title }}

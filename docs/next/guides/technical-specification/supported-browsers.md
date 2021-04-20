@@ -2,6 +2,8 @@
 title: Supported browsers
 permalink: /next/supported-browsers
 canonicalUrl: /supported-browsers
+tags:
+  - compatibility
 ---
 
 # {{ $frontmatter.title }}

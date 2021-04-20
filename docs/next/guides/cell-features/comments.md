@@ -2,6 +2,8 @@
 title: Comments
 permalink: /next/comments
 canonicalUrl: /comments
+tags:
+  - notes
 ---
 
 # {{ $frontmatter.title }}

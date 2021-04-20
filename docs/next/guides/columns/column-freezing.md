@@ -2,6 +2,10 @@
 title: Column freezing
 permalink: /next/column-freezing
 canonicalUrl: /column-freezing
+tags:
+  - fixing columns
+  - snapping columns
+  - pinning columns 
 ---
 
 # {{ $frontmatter.title }}

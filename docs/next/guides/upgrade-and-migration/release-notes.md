@@ -2,6 +2,10 @@
 title: Release notes
 permalink: /next/release-notes
 canonicalUrl: /release-notes
+tags:
+  - change log
+  - update
+  - upgrade
 ---
 
 # {{ $frontmatter.title }}

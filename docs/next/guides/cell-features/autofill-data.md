@@ -2,6 +2,9 @@
 title: AutoFill data
 permalink: /next/autofill-data
 canonicalUrl: /autofill-data
+tags:
+  - fill handle
+  - smart fill
 ---
 
 # {{ $frontmatter.title }}

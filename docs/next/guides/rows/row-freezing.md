@@ -2,6 +2,9 @@
 title: Row freezing
 permalink: /next/row-freezing
 canonicalUrl: /row-freezing
+tags:
+  - fixing rows
+  - pinning rows
 ---
 
 # {{ $frontmatter.title }}

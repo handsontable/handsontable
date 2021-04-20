@@ -2,6 +2,8 @@
 title: Column menu
 permalink: /next/column-menu
 canonicalUrl: /column-menu
+tags:
+  - dropdown menu
 ---
 
 # {{ $frontmatter.title }}

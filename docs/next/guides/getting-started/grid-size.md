@@ -2,6 +2,11 @@
 title: Grid size
 permalink: /next/grid-size
 canonicalUrl: /grid-size
+tags:
+  - grid sizing
+  - width
+  - height
+  - dimensions
 ---
 
 # {{ $frontmatter.title }}

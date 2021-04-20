@@ -2,6 +2,8 @@
 title: Export to CSV
 permalink: /next/export-to-csv
 canonicalUrl: /export-to-csv
+tags:
+  - export to file
 ---
 
 # {{ $frontmatter.title }}
