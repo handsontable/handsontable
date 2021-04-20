@@ -52,7 +52,6 @@ export class Formulas extends BasePlugin {
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
 
-    // TODO test if the `before` hook will actually block operations
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
 
