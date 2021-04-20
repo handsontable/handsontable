@@ -47,6 +47,7 @@ const { buildDependencyGetter, dependencyPresetMap } = (() => {
   };
   const buildGetter = (version) => {
     const { handsontableJs, handsontableCss, languagesJs } = getHotUrls(version);
+    const { origin } = window.location;
     return (dependency) => {
       /* eslint-disable max-len */
       const dependencies = {
@@ -54,7 +55,7 @@ const { buildDependencyGetter, dependencyPresetMap } = (() => {
         react: ['https://unpkg.com/react@17/umd/react.development.js', ['React']],
         'react-dom': ['https://unpkg.com/react-dom@17/umd/react-dom.development.js', ['ReactDOM']],
         'hot-react': ['https://cdn.jsdelivr.net/npm/@handsontable/react/dist/react-handsontable.js', ['Handsontable.react']],
-        fixer: ['https://dev.handsontable.com/docs/scripts/fixer.js', ['require', 'exports']], // todo remove `dev.`
+        fixer: [`${origin}/docs/scripts/fixer.js`, ['require', 'exports']], // todo remove `dev.`
         numbro: ['https://handsontable.com/docs/8.3.2/components/numbro/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
         redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
         rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
