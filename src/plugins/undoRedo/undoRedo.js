@@ -29,8 +29,8 @@ function UndoRedo(instance) {
   this.ignoreNewActions = false;
   this.enabled = false;
 
-  instance.addHook('beforeUndoStackChange', (action, source) => {
-    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
+  instance.addHook('beforeUndoStackChange', (action, filterBySource) => {
+    if (filterBySource === 'UndoRedo.undo' || filterBySource === 'UndoRedo.redo' || filterBySource === 'auto') {
       return false;
     }
   });
@@ -171,16 +171,35 @@ function UndoRedo(instance) {
  * @function done
  * @memberof UndoRedo#
  * @fires Hooks#beforeUndoStackChange
+ * @fires Hooks#afterUndoStackChange
+ * @fires Hooks#beforeRedoStackChange
+ * @fires Hooks#afterRedoStackChange
  * @param {Function} wrappedAction The action descriptor wrapped in a closure.
  * @param {string} [source] Source of the action. It is defined just for more general actions (not related to plugins).
  */
 UndoRedo.prototype.done = function(wrappedAction, source) {
-  const continueAction = this.instance.runHooks('beforeUndoStackChange', wrappedAction, source);
-
-  if (!this.ignoreNewActions && continueAction !== false) {
-    this.doneActions.push(wrappedAction());
-    this.undoneActions.length = 0;
+  if (this.ignoreNewActions) {
+    return;
   }
+
+  const doneActionsCopy = this.doneActions.slice();
+  const continueAction = this.instance.runHooks('beforeUndoStackChange', this.doneActions, source);
+
+  if (continueAction === false) {
+    return;
+  }
+
+  const newAction = wrappedAction();
+  const undoneActionsCopy = this.undoneActions.slice();
+
+  this.doneActions.push(newAction);
+
+  this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions);
+  this.instance.runHooks('beforeRedoStackChange', this.undoneActions);
+
+  this.undoneActions.length = 0;
+
+  this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions);
 };
 
 /**
@@ -188,16 +207,26 @@ UndoRedo.prototype.done = function(wrappedAction, source) {
  *
  * @function undo
  * @memberof UndoRedo#
+ * @fires Hooks#beforeUndoStackChange
+ * @fires Hooks#afterUndoStackChange
+ * @fires Hooks#beforeRedoStackChange
+ * @fires Hooks#afterRedoStackChange
  * @fires Hooks#beforeUndo
  * @fires Hooks#afterUndo
  */
 UndoRedo.prototype.undo = function() {
   if (this.isUndoAvailable()) {
-    const action = this.doneActions.pop();
-    const actionClone = deepClone(action);
-    const instance = this.instance;
+    const doneActionsCopy = this.doneActions.slice();
 
-    const continueAction = instance.runHooks('beforeUndo', actionClone);
+    this.instance.runHooks('beforeUndoStackChange', this.doneActions);
+
+    const action = this.doneActions.pop();
+
+    this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions, action);
+
+    const actionClone = deepClone(action);
+
+    const continueAction = this.instance.runHooks('beforeUndo', actionClone);
 
     if (continueAction === false) {
       return;
@@ -205,13 +234,17 @@ UndoRedo.prototype.undo = function() {
 
     this.ignoreNewActions = true;
     const that = this;
+    const undoneActionsCopy = this.undoneActions.slice();
+
+    this.instance.runHooks('beforeRedoStackChange', this.undoneActions);
 
     action.undo(this.instance, () => {
       that.ignoreNewActions = false;
       that.undoneActions.push(action);
     });
 
-    instance.runHooks('afterUndo', actionClone);
+    this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions);
+    this.instance.runHooks('afterUndo', actionClone);
   }
 };
 
@@ -220,12 +253,23 @@ UndoRedo.prototype.undo = function() {
  *
  * @function redo
  * @memberof UndoRedo#
+ * @fires Hooks#beforeUndoStackChange
+ * @fires Hooks#afterUndoStackChange
+ * @fires Hooks#beforeRedoStackChange
+ * @fires Hooks#afterRedoStackChange
  * @fires Hooks#beforeRedo
  * @fires Hooks#afterRedo
  */
 UndoRedo.prototype.redo = function() {
   if (this.isRedoAvailable()) {
+    const undoneActionsCopy = this.undoneActions.slice();
+
+    this.instance.runHooks('beforeRedoStackChange', this.undoneActions);
+
     const action = this.undoneActions.pop();
+
+    this.instance.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions);
+
     const actionClone = deepClone(action);
     const instance = this.instance;
 
@@ -239,8 +283,14 @@ UndoRedo.prototype.redo = function() {
     const that = this;
 
     action.redo(this.instance, () => {
+      const doneActionsCopy = this.doneActions.slice();
+
+      this.instance.runHooks('beforeUndoStackChange', this.doneActions);
+
       that.ignoreNewActions = false;
       that.doneActions.push(action);
+
+      this.instance.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions, action);
     });
 
     instance.runHooks('afterRedo', actionClone);
