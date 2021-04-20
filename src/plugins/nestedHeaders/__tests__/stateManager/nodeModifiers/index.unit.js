@@ -18,19 +18,6 @@ describe('NodeModifiers', () => {
         triggerNodeModification('trim');
       }).toThrowError('The node modifier action ("trim") does not exist.');
     });
-
-    // it('should call internal action and return modification results', () => {
-    //   const nodeModifier = new NodeModifiers();
-    //   const mockNode = {};
-    //
-    //   spyOn(nodeModifier, 'collapseNode').and.returnValue('test');
-    //
-    //   const result = triggerNodeModification('collapse', mockNode);
-    //
-    //   expect(nodeModifier.collapseNode).toHaveBeenCalledTimes(1);
-    //   expect(nodeModifier.collapseNode).toHaveBeenCalledWith(mockNode);
-    //   expect(result).toBe('test');
-    // });
   });
 
   describe('multiple tree modification', () => {

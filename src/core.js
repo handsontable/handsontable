@@ -4024,6 +4024,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       datamap.destroy();
     }
 
+    instance.rowIndexMapper = null;
+    instance.columnIndexMapper = null;
+
     datamap = null;
     grid = null;
     selection = null;
