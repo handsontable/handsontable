@@ -1452,11 +1452,10 @@ const REGISTERED_HOOKS = [
   'beforeUndo',
 
   /**
-   * Fired by {@link UndoRedo} plugin before changing undo stack. Contains information about the action that is being undone.
+   * Fired by {@link UndoRedo} plugin before changing undo stack.
    *
-   * @event Hooks#beforeUndo
-   * @param {object} action The action object. Contains information about the action which may be undone. The `actionType`
-   *                        property of the object specifies the type of the action in a String format. (e.g. `'remove_row'`).
+   * @event Hooks#beforeUndoStackChange
+   * @param {Array} doneActions Stack of actions which may be undone.
    * @param {string} [source] String that identifies source of action ([list of all available sources]{@link https://handsontable.com/docs/tutorial-using-callbacks.html#page-source-definition}).
    * @returns {*|boolean} If false is returned the action of changing undo stack is canceled.
    */
@@ -1473,6 +1472,15 @@ const REGISTERED_HOOKS = [
   'afterUndo',
 
   /**
+   * Fired by {@link UndoRedo} plugin after changing undo stack.
+   *
+   * @event Hooks#afterUndoStackChange
+   * @param {Array} doneActionsBefore Stack of actions which could be undone before performing new action.
+   * @param {Array} doneActionsAfter Stack of actions which can be undone after performing new action.
+   */
+  'afterUndoStackChange',
+
+  /**
    * Fired by {@link UndoRedo} plugin before the redo action. Contains information about the action that is being redone.
    * This hook is fired when {@link Options#undo} option is enabled.
    *
@@ -1484,6 +1492,14 @@ const REGISTERED_HOOKS = [
   'beforeRedo',
 
   /**
+   * Fired by {@link UndoRedo} plugin before changing redo stack.
+   *
+   * @event Hooks#beforeRedoStackChange
+   * @param {Array} undoneActions Stack of actions which may be redone.
+   */
+  'beforeRedoStackChange',
+
+  /**
    * Fired by {@link UndoRedo} plugin after the redo action. Contains information about the action that is being redone.
    * This hook is fired when {@link Options#undo} option is enabled.
    *
@@ -1492,6 +1508,15 @@ const REGISTERED_HOOKS = [
    *                        property of the object specifies the type of the action in a String format (e.g. `'remove_row'`).
    */
   'afterRedo',
+
+  /**
+   * Fired by {@link UndoRedo} plugin after changing redo stack.
+   *
+   * @event Hooks#afterRedoStackChange
+   * @param {Array} undoneActionsBefore Stack of actions which could be redone before performing new action.
+   * @param {Array} undoneActionsAfter Stack of actions which can be redone after performing new action.
+   */
+  'afterRedoStackChange',
 
   /**
    * Fired while retrieving the row header width.
