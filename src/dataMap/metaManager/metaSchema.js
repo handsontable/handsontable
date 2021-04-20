@@ -90,8 +90,6 @@ export default () => {
     licenseKey: void 0,
 
     /**
-     * @category AutoColumnSize, Data, AutoColumnSize2
-     * 
      * @description
      * Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
      * Can be declared as an array of arrays or an array of objects.
@@ -123,7 +121,6 @@ export default () => {
     data: void 0,
 
     /**
-     * @category AutoColumnSize
      * @description
      * Defines the structure of a new row when data source is an array of objects.
      *
@@ -154,7 +151,6 @@ export default () => {
     /**
      * Width of the grid. Can be a value or a function that returns a value.
      *
-     * @category AutoColumnSize
      * @memberof Options#
      * @type {number|string|Function}
      * @default undefined
@@ -178,7 +174,6 @@ export default () => {
     /**
      * Height of the grid. Can be a number or a function that returns a number.
      *
-     * @category Core
      * @memberof Options#
      * @type {number|string|Function}
      * @default undefined
