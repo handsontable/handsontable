@@ -39,9 +39,6 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // TODO use this
-    // const settings = this.hot.getSettings()[PLUGIN_KEY];
-
     /**
      * The HyperFormula instance that will be used for this instance of Handsontable.
      *
