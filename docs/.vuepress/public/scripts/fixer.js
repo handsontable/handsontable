@@ -1,3 +1,4 @@
+/* eslint-disable */
 (function() {
   if (typeof window.exports === 'undefined') {
     window.exports = {};
@@ -90,8 +91,8 @@
       }
 
       return moduleToReturn;
-    }catch(error){
-      console.error("Error when trying import ", key)
+    } catch (error) {
+      console.error('Error when trying import ', key);
       throw error;
     }
   };

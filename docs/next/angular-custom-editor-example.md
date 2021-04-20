@@ -8,7 +8,11 @@ canonicalUrl: /angular-custom-editor-example
 
 An implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
 
-::: example #example1 :angular
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
+
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
@@ -32,7 +36,7 @@ class CustomEditor extends Handsontable.editors.TextEditor {
 }
 
 @Component({
-  selector: '#example1',
+  selector: 'app-root',
   template: `
   <div class="hot">
     <hot-table [settings]="hotSettings"></hot-table>

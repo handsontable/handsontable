@@ -8,7 +8,11 @@ canonicalUrl: /angular-setting-up-a-locale
 
 An example of Handsontable with locales setup in Angular.
 
-::: example #example1 :angular-numbro
+::: example :angular-numbro --html 1 --js 2
+```html
+<app-root></app-root>
+```
+
 ```ts
 // app.component.ts
 import { Component } from '@angular/core';
@@ -31,7 +35,7 @@ const formatTR = {
 };
 
 @Component({
-  selector: '#example1',
+  selector: 'app-root',
   template: `
     <div>
       <hot-table class="hot" [data]="dataset" [colHeaders]="true">

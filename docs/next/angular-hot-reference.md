@@ -8,7 +8,10 @@ canonicalUrl: /angular-hot-reference
 
 An implementation of the `@handsontable/angular` explaining how to reference the Handsontable instance from the wrapper component.
 
-::: example #example1 :angular 
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
@@ -16,7 +19,7 @@ import * as Handsontable from 'handsontable';
 import { HotTableRegisterer } from '@handsontable/angular';
 
 @Component({
-  selector: '#example1',
+  selector: 'app-root',
   template: `
   <div class="hot">
     <hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
