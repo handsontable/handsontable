@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 // TODO this file is quite similar to part of handsontable-manager.js,
 //  However be careful because some dependencies have different URLs!
-//  I suppose that all urls per hot version would be stored as JSON - to research further.
+//  That URLs might be stored as JSON - to research further.
 const mapVersion = (version = 'latest') => (version.match(/^\d+\.\d+\.\d+$/) ? version : 'latest');
 
 const getHotUrls = (version) => {

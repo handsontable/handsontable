@@ -120,7 +120,7 @@ In a browser please go into: `/docs/[number]`.
 To edit API Reference goes into source code and change jsdocs comments. Then, to generate API Reference pages:
 
 ```shell script
-npm run docs:jsdoc
+npm run docs:api
 ```
 
 ## Versioning
