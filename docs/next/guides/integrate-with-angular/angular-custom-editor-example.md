@@ -4,9 +4,14 @@ permalink: /next/angular-custom-editor-example
 canonicalUrl: /angular-custom-editor-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom editor example
 
 An implementation of the `@handsontable/angular` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
+
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
 
 ```js
 // app.component.ts
@@ -69,3 +74,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

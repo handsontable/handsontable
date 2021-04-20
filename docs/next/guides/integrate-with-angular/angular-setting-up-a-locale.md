@@ -4,11 +4,16 @@ permalink: /next/angular-setting-up-a-locale
 canonicalUrl: /angular-setting-up-a-locale
 ---
 
-# {{ $frontmatter.title }}
+# Setting up a locale
 
 An example of Handsontable with locales setup in Angular.
 
-```js
+::: example :angular-numbro --html 1 --js 2
+```html
+<app-root></app-root>
+```
+
+```ts
 // app.component.ts
 import { Component } from '@angular/core';
 import Handsontable from 'handsontable';
@@ -86,3 +91,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

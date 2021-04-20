@@ -4,7 +4,7 @@ permalink: /next/vue-hot-column
 canonicalUrl: /vue-hot-column
 ---
 
-# {{ $frontmatter.title }}
+# Using the hot-column component
 
 [[toc]]
 
@@ -14,13 +14,16 @@ You can configure the column-related settings using the `hot-column` component's
 
 To declare column-specific settings, simply pass the settings as `hot-column` props, either separately or wrapped as a `settings` prop, exactly as you would for `hot-table`.
 
+::: example #example1 :vue --html 1 --js 2
 ```html
-<hot-table :data="hotData">
-  <hot-column title="First column header">
-  </hot-column>
-  <hot-column :settings="secondColumnSettings" read-only="true">
-  </hot-column>
-</hot-table>
+<div id="example1" class="hot">
+  <hot-table :data="hotData">
+    <hot-column title="First column header">
+    </hot-column>
+    <hot-column :settings="secondColumnSettings" read-only="true">
+    </hot-column>
+  </hot-table>
+</div>
 ```
 
 ```js
@@ -44,22 +47,26 @@ new Vue({
   }
 });
 ```
+:::
 
 ## Array of objects
 
 To work with an array of objects for the `hot-column` component you need to provide precise information about the data structure for columns. To do so, refer to the data for a column in props as `data`.
 
+::: example #example2 :vue --html 1 --js 2
 ```html
-<hot-table :data="hotData">
-  <hot-column title="ID" data="id">
-  </hot-column>
-  <hot-column :settings="secondColumnSettings" read-only="true" data="name">
-  </hot-column>
-  <hot-column title="Price" data="payment.price">
-  </hot-column>
-  <hot-column title="Currency" data="payment.currency">
-  </hot-column>
-</hot-table>
+<div id="example2" class="hot">
+  <hot-table :data="hotData">
+    <hot-column title="ID" data="id">
+    </hot-column>
+    <hot-column :settings="secondColumnSettings" read-only="true" data="name">
+    </hot-column>
+    <hot-column title="Price" data="payment.price">
+    </hot-column>
+    <hot-column title="Currency" data="payment.currency">
+    </hot-column>
+  </hot-table>
+</div>
 ```
 ```js
 import Vue from 'vue';
@@ -86,6 +93,7 @@ new Vue({
   }
 });
 ```
+:::
 
 ## Declaring a custom renderer as a component
 
@@ -99,12 +107,15 @@ Because the Handsontable's `autoRowSize` and `autoColumnSize` options require ca
 Be sure to turn those options off in your Handsontable config, as keeping them enabled may cause unexpected results.
 :::
 
+::: example #custom-renderer-example :vue --html 1 --js 2
 ```html
-<hot-table :settings="hotSettings">
-  <hot-column :width="250">
-    <custom-renderer hot-renderer></custom-renderer>
-  </hot-column>
-</hot-table>
+<div id="custom-renderer-example" class="hot">
+  <hot-table :settings="hotSettings">
+    <hot-column :width="250">
+      <custom-renderer hot-renderer></custom-renderer>
+    </hot-column>
+  </hot-table>
+</div>
 ```
 ```js
 import Vue from 'vue';
@@ -154,6 +165,7 @@ const App = new Vue({
   }
 });
 ```
+:::
 
 **Note:** in order for the cell renderers to be independent, there are renderer components created for each of the displayed cells (all of them being clones of the "original" renderer component). For performance reasons, there are cached using the LRU algorithm, which stores a certain amount of entries, and overwrites the least recently used ones with fresh ones.
 By default, the number of entries available for the cache is set to `3000`, which means 3000 cells can be rendered at the same time, while being read from the cache. However, for larger tables, some of the cells may not be able to be cached, and thus, their corresponding component would be recreated each time a cell is rendered (which is not great for performance).
@@ -166,12 +178,15 @@ You can also utilize the Vue components to create custom editors. To do so, you'
 
 This will give you a solid base to build upon. Note, that the editor component needs to tick all of the boxes that a regular editor does, such as defining the `getValue`, `setValue`, `open`, `close` and `focus` methods, which are abstract in the `BaseEditor`. For more info, check the documentation on [creating custom editors from scratch](cell-editor#selecteditor---creating-editor-from-scratch).
 
+::: example #custom-editor-example :vue --html 1 --js 2 
 ```html
-<hot-table :settings="hotSettings">
-  <hot-column :width="250">
-    <custom-editor hot-editor></custom-editor>
-  </hot-column>
-</hot-table>
+<div id="custom-editor-example" class="hot">
+  <hot-table :settings="hotSettings">
+    <hot-column :width="250">
+      <custom-editor hot-editor></custom-editor>
+    </hot-column>
+  </hot-table>
+</div>
 
 <script type="text/x-template" id="editor-template">
   // We're binding the `style` attribute to the style object in our component's data
@@ -288,6 +303,7 @@ const App = new Vue({
   }
 });
 ```
+:::
 
 ## Using the renderer/editor components with `v-model`
 
@@ -297,8 +313,9 @@ In the example below, we're utilizing an input with `v-model` assigned, and the 
 
 List of row indexes (starting from 0):
 
+::: example #v-model-example :vue --html 1 --js 2
 ```html
-<div id="v-model-example">
+<div id="v-model-example" class="hot">
   <label for="mainInput">List of row indexes (starting from 0):</label><br>
     <input id="mainInput" v-model="highlightedRows"/>
 
@@ -357,6 +374,7 @@ const App = new Vue({
   }
 });
 ```
+:::
 
 ## A more advanced example
 
@@ -368,13 +386,17 @@ In this example, we'll be combining several capabilities of the wrapper:
 
 Due to the complexity of this example, I've decided to split the components to different files, so it's previewable on Codesandbox instead of jsfiddle.
 
-<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14" title="Advanced vue hot-column implementation (7.2.2 + 4.1.1)" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" style={{
-  width:'100%',
-  height: 500,
-  border: 0,
-  borderRadius: 4,
-  overflow: 'hidden',
-}} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+<style>
+iframe {
+  width: 100%;
+  height: 500px;
+  border: 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+</style>
+
+<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14" title="Advanced vue hot-column implementation (7.2.2 + 4.1.1)" allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
 ### 1. Editor component with an external dependency, which will act as both renderer and editor
 
@@ -387,13 +409,7 @@ All that's left is to modify the component template to be used as a renderer _an
 
 This component contains some Vuex state logic, but ignore it for now, we'll get to it in the third point.
 
-<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14&hidenavigation=1&module=%2Fsrc%2FColorPicker.vue&view=editor" title="Advanced @handsontable/vue hot-column implementation" style={{
-  width:'100%',
-  height: 500,
-  border: 0,
-  borderRadius: 4,
-  overflow: 'hidden',
-}} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14&hidenavigation=1&module=%2Fsrc%2FColorPicker.vue&view=editor" title="Advanced @handsontable/vue hot-column implementation" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
 
 ### 2. Using `v-for` for column declaration
 
@@ -414,10 +430,4 @@ Let's use `v-for` to declare the second and third column in a loop. Obviously, y
 
 As you can see in our first editor/renderer component, we're already commiting all of the changes into the applications `$store`. This way, we can easily bind the state of our new component (based on a star-rating component dependency) to the data in the second and third column.
 
-<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14&hidenavigation=1&module=%2Fsrc%2FStarsRating.vue&view=editor" title="Advanced @handsontable/vue hot-column implementation" style={{
-  width:'100%',
-  height: 500,
-  border: 0,
-  borderRadius: 4,
-  overflow: 'hidden',
-}} sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>
+<iframe src="https://codesandbox.io/embed/advanced-vue-hot-column-implementation-d4ymm?fontsize=14&hidenavigation=1&module=%2Fsrc%2FStarsRating.vue&view=editor" title="Advanced @handsontable/vue hot-column implementation" sandbox="allow-modals allow-forms allow-popups allow-scripts allow-same-origin"></iframe>

@@ -4,11 +4,18 @@ permalink: /next/react-redux-example
 canonicalUrl: /react-redux-example
 ---
 
-# {{ $frontmatter.title }}
+# Redux example
 
 An implementation of the `@handsontable/react` component with a `readOnly` toggle switch and the Redux state manager implemented.
 
-```jsx
+<style>
+  div#example1{
+    max-height:1000px;
+  }
+</style>
+
+::: example #example1 :react-redux
+```js
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {createStore, combineReducers} from 'redux';
@@ -16,11 +23,10 @@ import {HotTable} from '@handsontable/react';
 import Handsontable from 'handsontable';
 
 const initialReduxStoreState = {
-  data: Handsontable.helper.createSpreadsheetData(100, 50),
+  data: Handsontable.helper.createSpreadsheetData(5, 3),
   colHeaders: true,
   rowHeaders: true,
-  readOnly: false,
-  licenseKey: 'non-commercial-and-evaluation'
+  readOnly: false
 };
 
 // Action reducers for callbacks triggered by Handsontable
@@ -144,3 +150,4 @@ const render = () => {
 };
 render();
 ```
+:::

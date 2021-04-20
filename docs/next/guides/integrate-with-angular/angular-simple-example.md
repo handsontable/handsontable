@@ -4,11 +4,14 @@ permalink: /next/angular-simple-example
 canonicalUrl: /angular-simple-example
 ---
 
-# {{ $frontmatter.title }}
+# Angular basic example
 
 An implementation of the `@handsontable/angular` wrapper.
 
+::: example :angular --html 1 --js 2
+```html
 <app-root></app-root>
+```
 
 ```js
 // app.component.ts
@@ -62,3 +65,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

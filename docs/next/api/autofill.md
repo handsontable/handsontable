@@ -11,7 +11,6 @@ editLink: false
 
 ## Description
 
-
 This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
 bottom of the cell selection.
 
@@ -21,65 +20,59 @@ square in the corner.
 "Copy-down" copies the value of the selection to all empty cells below when you double click the small square.
 
 
-## Members:
+## Members
 
 ### autoInsertRow
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L89
+  
 
 _autofill.autoInsertRow : boolean_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L89)
-
 Specifies if can insert new rows if needed.
 
 
-## Methods:
+## Methods
 
 ### destroy
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L634
+  
 
 _autofill.destroy()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L634)
-
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L131
+  
 
 _autofill.disablePlugin()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L131)
-
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L104
+  
 
 _autofill.enablePlugin()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L104)
-
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L97
+  
 
 _autofill.isEnabled() ⇒ boolean_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L97)
-
 Checks if the plugin is enabled in the Handsontable settings.
 
 
 
 ### updatePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L122
+  
 
 _autofill.updatePlugin()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autofill/autofill.js#L122)
-
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

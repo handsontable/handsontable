@@ -2,12 +2,12 @@
 {{>hot-docs~}}
 {{/if}}{{/children~}}
 
-## Members:
+## Members
 {{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#unless (isFunction)}}
 {{>hot-docs~}}
 {{/unless}}{{/unless}}{{/children~}}
 
-## Methods:
+## Methods
 {{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#if (isFunction)}}
 {{>hot-docs~}}
 {{/if}}{{/unless}}{{/children~}}

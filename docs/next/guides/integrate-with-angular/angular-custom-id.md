@@ -4,11 +4,15 @@ permalink: /next/angular-custom-id
 canonicalUrl: /angular-custom-id
 ---
 
-# {{ $frontmatter.title }}
+# Custom ID
 
 You can easily pass `id` and other attributes to the `hot-table` wrapper element.
 It will be applied to the root Handsontable element, allowing further customization of the table.
 
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
@@ -53,3 +57,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

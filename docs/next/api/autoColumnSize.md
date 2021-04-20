@@ -11,7 +11,6 @@ editLink: false
 
 ## Description
 
-
 This plugin allows to set column widths based on their widest cells.
 
 By default, the plugin is declared as `undefined`, which makes it enabled (same as if it was declared as `true`).
@@ -50,35 +49,32 @@ if (plugin.isEnabled()) {
 }
 ```
 
-## Members:
+## Members
 
 ### inProgress
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L144
+  
 
 _autoColumnSize.inProgress : boolean_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L144)
-
 `true` if the size calculation is in progress.
 
 
 
 ### measuredColumns
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L150
+  
 
 _autoColumnSize.measuredColumns : number_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L150)
-
 Number of already measured columns (we already know their sizes).
 
 
-## Methods:
+## Methods
 
 ### calculateAllColumnsWidth
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L295
+  
 
 _autoColumnSize.calculateAllColumnsWidth(rowRange)_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L295)
-
 Calculates all columns width. The calculated column will be cached in the [AutoColumnSize#widths](./auto-column-size/#widths) property.
 To retrieve width for specified column use [AutoColumnSize#getColumnWidth](./auto-column-size/#getcolumnwidth) method.
 
@@ -90,11 +86,10 @@ To retrieve width for specified column use [AutoColumnSize#getColumnWidth](./aut
 
 
 ### calculateColumnsWidth
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L255
+  
 
 _autoColumnSize.calculateColumnsWidth(colRange, rowRange, [force])_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L255)
-
 Calculates a columns width.
 
 
@@ -107,21 +102,19 @@ Calculates a columns width.
 
 
 ### calculateVisibleColumnsWidth
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L229
+  
 
 _autoColumnSize.calculateVisibleColumnsWidth()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L229)
-
 Calculates visible columns width.
 
 
 
 ### clearCache
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L518
+  
 
 _autoColumnSize.clearCache([columns])_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L518)
-
 Clears cache of calculated column widths. If you want to clear only selected columns pass an array with their indexes.
 Otherwise whole cache will be cleared.
 
@@ -133,41 +126,37 @@ Otherwise whole cache will be cleared.
 
 
 ### destroy
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L618
+  
 
 _autoColumnSize.destroy()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L618)
-
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L217
+  
 
 _autoColumnSize.disablePlugin()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L217)
-
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L179
+  
 
 _autoColumnSize.enablePlugin()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L179)
-
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getColumnWidth
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L411
+  
 
 _autoColumnSize.getColumnWidth(column, [defaultWidth], [keepMinimum]) ⇒ number_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L411)
-
 Gets the calculated column width.
 
 
@@ -180,75 +169,68 @@ Gets the calculated column width.
 
 
 ### getFirstVisibleColumn
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L430
+  
 
 _autoColumnSize.getFirstVisibleColumn() ⇒ number_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L430)
-
 Gets the first visible column.
 
 
 **Returns**: `number` - Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.  
 
 ### getLastVisibleColumn
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L459
+  
 
 _autoColumnSize.getLastVisibleColumn() ⇒ number_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L459)
-
 Gets the last visible column.
 
 
 **Returns**: `number` - Returns visual column index or -1 if table is not rendered.  
 
 ### getSyncCalculationLimit
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L383
+  
 
 _autoColumnSize.getSyncCalculationLimit() ⇒ number_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L383)
-
 Gets value which tells how many columns should be calculated synchronously (rest of the columns will be calculated
 asynchronously). The limit is calculated based on `syncLimit` set to `autoColumnSize` option (see [Options#autoColumnSize](./options/#autocolumnsize)).
 
 
 
 ### isEnabled
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L172
+  
 
 _autoColumnSize.isEnabled() ⇒ boolean_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L172)
-
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./hooks/#beforeinit)
 hook and if it returns `true` than the [#enablePlugin](./auto-column-size/#enableplugin) method is called.
 
 
 
 ### isNeedRecalculate
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L536
+  
 
 _autoColumnSize.isNeedRecalculate() ⇒ boolean_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L536)
-
 Checks if all widths were calculated. If not then return `true` (need recalculate).
 
 
 
 ### recalculateAllColumnsWidth
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L370
+  
 
 _autoColumnSize.recalculateAllColumnsWidth()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L370)
-
 Recalculates all columns width (overwrite cache values).
 
 
 
 ### updatePlugin
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L203
+  
 
 _autoColumnSize.updatePlugin()_
-
-[Source code](https://github.com/handsontable/handsontable/blob/develop/src/plugins/autoColumnSize/autoColumnSize.js#L203)
-
 Updates the plugin state. This method is executed when [Core#updateSettings](./core/#updatesettings) is invoked.
 
 

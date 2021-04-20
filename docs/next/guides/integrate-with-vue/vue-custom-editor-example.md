@@ -4,7 +4,7 @@ permalink: /next/vue-custom-editor-example
 canonicalUrl: /vue-custom-editor-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom editor example
 
 [[toc]]
 
@@ -14,6 +14,7 @@ You can declare a custom editor for the `HotTable` component either by declaring
 
 An implementation of the `@handsontable/vue` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
 
+::: example #example1 :vue --html 1 --js 2
 ```html
 <div id="example1" class="hot">
   <hot-table :settings="hotSettings"></hot-table>
@@ -63,3 +64,4 @@ new Vue({
   }
 });
 ```
+:::

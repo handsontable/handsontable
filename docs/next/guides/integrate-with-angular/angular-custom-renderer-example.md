@@ -4,9 +4,14 @@ permalink: /next/angular-custom-renderer-example
 canonicalUrl: /angular-custom-renderer-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom renderer example
 
 An implementation of the `@handsontable/angular` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
+
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
 
 ```js
 // app.component.ts
@@ -76,3 +81,4 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 platformBrowserDynamic().bootstrapModule(AppModule).catch(err => { console.error(err) });
 ```
+:::

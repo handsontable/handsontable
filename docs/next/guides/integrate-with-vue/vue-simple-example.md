@@ -4,14 +4,17 @@ permalink: /next/vue-simple-example
 canonicalUrl: /vue-simple-example
 ---
 
-# {{ $frontmatter.title }}
+# Basic example
 
 A simple implementation of the `@handsontable/vue` component.
 
 A `div` element of `id="example"` where the `@handsontable/vue` component will be rendered.
 
+::: example #example1 :vue --html 1 --js 5 
 ```html
-<hot-table :settings="hotSettings"></hot-table>
+<div id="example1" class="hot">
+    <hot-table :settings="hotSettings"></hot-table>
+</div>
 ```
 
 An implementation of the component.
@@ -37,3 +40,4 @@ new Vue({
   }
 });
 ```
+:::

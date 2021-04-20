@@ -1,6 +1,7 @@
 const highlight = require('./highlight');
 const helpers = require('./helpers');
-const examples = require('./examples');
+const examples = require('./containers/examples');
+const sourceCodeLink = require('./containers/sourceCodeLink');
 
 const environmentHead = process.env.BUILD_MODE === 'production' ?
   [
@@ -23,6 +24,7 @@ module.exports = {
   base: '/docs/',
   head: [
     ['script', { src: '/scripts/handsontable-manager.js' }],
+
     ['link', { rel: 'icon', href: 'https://handsontable.com/static/images/template/ModCommon/favicon-32x32.png' }],
     ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     ...environmentHead
@@ -43,6 +45,7 @@ module.exports = {
       headerAnchorSelector: '.header-anchor'
     }],
     ['container', examples],
+    ['container', sourceCodeLink],
     {
       chainMarkdown(config) {
         // inject custom markdown highlight with our snippet runner
@@ -58,16 +61,16 @@ module.exports = {
     $page.latestVersion = helpers.getLatestVersion();
     $page.currentVersion = helpers.parseVersion($page.path);
     $page.lastUpdatedFormat = new Date($page.lastUpdated)
-        .toDateString()
-        .replace(/^\w+? /, '')
-        .replace(/(\d) (\d)/, '$1, $2');
+      .toDateString()
+      .replace(/^\w+? /, '')
+      .replace(/(\d) (\d)/, '$1, $2');
 
     if ($page.currentVersion === $page.latestVersion && $page.frontmatter.permalink) {
       $page.frontmatter.permalink = $page.frontmatter.permalink.replace(/^\/[^/]*\//, '/');
       $page.frontmatter.canonicalUrl = undefined;
     }
     if ($page.currentVersion !== $page.latestVersion && $page.frontmatter.canonicalUrl) {
-      $page.frontmatter.canonicalUrl='https://handsontable.com/docs'+$page.frontmatter.canonicalUrl;
+      $page.frontmatter.canonicalUrl = `https://handsontable.com/docs${$page.frontmatter.canonicalUrl}`;
     }
   },
   themeConfig: {

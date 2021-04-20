@@ -4,17 +4,16 @@ permalink: /next/react-custom-editor-example
 canonicalUrl: /react-custom-editor-example
 ---
 
-# {{ $frontmatter.title }}
-
-[[toc]]
-
-## Declaring editor as a class
+# Custom editor example
 
 You can declare a custom editor for the `HotTable` component either by declaring it as a class and passing it to the Handsontable options, or create an editor component.
 
-Below is an implementation of the `@handsontable/react` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
+## Declaring an editor as a class
 
-```jsx
+An implementation of the `@handsontable/react` component with a custom editor added. It utilizes the `placeholder` attribute in the editor's `input` element.
+
+::: example #example1 :react
+```js
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -48,8 +47,7 @@ class App extends React.Component {
         }
       ],
       colHeaders: true,
-      colWidths: 200,
-      licenseKey: 'non-commercial-and-evaluation'
+      colWidths: 200
     };
   }
 
@@ -67,3 +65,4 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
+:::

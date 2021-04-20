@@ -25,6 +25,12 @@
   },
   "license": "CC BY 4.0",
   "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/plugin-proposal-decorators": "^7.13.15",
+    "@babel/plugin-syntax-class-properties": "^7.12.13",
+    "@babel/plugin-transform-modules-commonjs": "^7.13.8",
+    "@babel/preset-env": "^7.13.15",
+    "@babel/preset-typescript": "^7.13.0",
     "@vuepress/plugin-active-header-links": "^1.8.2",
     "@vuepress/plugin-search": "^1.8.2",
     "fs-extra": "^9.1.0",
@@ -36,7 +42,6 @@
     "vuepress-plugin-sitemap": "^2.3.1"
   },
   "dependencies": {
-    "vue-tabs-component": "^1.5.0",
-    "vuepress-plugin-tabs": "^0.3.0"
+    "@babel/preset-react": "^7.13.13"
   }
 }

@@ -13,6 +13,7 @@ Note, that the `language` property is bound to the component separately by using
 
 Select language:
 
+::: example #example1 :vue-languages --html 1 --js 2
 ```html
 <div id="example1" class="hot">
   <label for="languages">Select language:</label>
@@ -62,3 +63,4 @@ new Vue({
   }
 });
 ```
+:::

@@ -4,12 +4,13 @@ permalink: /next/react-simple-examples
 canonicalUrl: /react-simple-examples
 ---
 
-# {{ $frontmatter.title }}
+# Basic examples
 
 [[toc]]
 
 ## Get started
 
+::: example #example1 :react --html 1 --js 2
 ```html
 <!-- a root div in which the component is being rendered -->
 <div id="example1" class="hot"></div>
@@ -41,6 +42,7 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
+:::
 
 ## A single property configuration
 
@@ -48,7 +50,8 @@ ReactDOM.render(<App />, document.getElementById('example1'));
 <!-- a root div where the component is rendered -->
 <div id="example2" class="hot"></div>
 ```
-
+ 
+::: example #example2 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -75,6 +78,7 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example2'));
 ```
+:::
 
 ## External control
 
@@ -94,6 +98,7 @@ ReactDOM.render(<App />, document.getElementById('example2'));
 <div id="example3" class="hot"></div>
 ```
 
+::: example #example3 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -140,3 +145,4 @@ class MyComponent extends React.Component {
 
 ReactDOM.render(<MyComponent />, document.getElementById('example3'));
 ```
+:::

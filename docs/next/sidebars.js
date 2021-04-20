@@ -166,6 +166,7 @@ const upgradeAndMigrationItems = [
 ];
 
 const apiHighLevelPages = [
+  'introduction',
   'core',
   'pluginHooks',
   'metaSchema'
@@ -182,6 +183,7 @@ const API = [
   ...apiHighLevelPages,
   {
     title: 'Plugins',
+    path: `/${__dirname.split('/').pop()}/api/plugins`,
     collapsable: false,
     children: fs.readdirSync(path.join(__dirname, 'api/'))
       .filter(f => ![...nonPublicPages, ...apiHighLevelPages].includes(f.split('.').shift()))
