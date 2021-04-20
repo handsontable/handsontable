@@ -10,13 +10,13 @@ const pathToSource = '../../../../src';
 const pathToDist = '../../../next/api';
 const urlPrefix = 'next/api/';
 const whitelist = [
-  'core.js',
-  'pluginHooks.js',
   'dataMap/metaManager/metaSchema.js',
-  'translations/indexMapper.js',
-  'editors/baseEditor/baseEditor.js',
-  '3rdparty/walkontable/src/cell/coords.js',
-  'plugins/copyPaste/focusableElement.js',
+  // 'pluginHooks.js',
+  // 'core.js',
+  // 'translations/indexMapper.js',
+  // 'editors/baseEditor/baseEditor.js',
+  // '3rdparty/walkontable/src/cell/coords.js',
+  // 'plugins/copyPaste/focusableElement.js',
 ];
 
 const seo = {
@@ -49,6 +49,11 @@ const seo = {
     permalink: '/next/api/focusable-element'
   },
 };
+
+/// classifications
+const isOptions = data => data[0].meta.filename === 'metaSchema.js';
+const isPlugin = data => data[0].customTags?.filter(tag=>tag.tag === 'plugin' && tag.value).length > 0 ?? false;
+
 /// paths construction
 const source = file => path.join(__dirname, pathToSource, file);
 
@@ -108,9 +113,38 @@ const linkToSource = data => data.map((x) => {
   return x;
 });
 
+const optionsPerPlugin = {};
+const memorizeOptions = data => !isOptions(data) ? data : data.map(x => {
+  if(x.category){
+    x.category.split(',').forEach(category=>{
+      optionsPerPlugin[category] = optionsPerPlugin[category] || [];
+      optionsPerPlugin[category].push(x);
+    });
+  }
+  return x;
+});
+const applyPluginOptions = data => {
+  if(isPlugin(data)){
+    const plugin = data[0].customTags
+      ?.filter(tag=>tag.tag === 'plugin').pop()
+      ?.value;
+    
+    const options = optionsPerPlugin[plugin]?.map(option => {
+      return {...option, isOption: true};
+    });
+    
+    const index = data.findIndex(x => x.kind==='constructor');
+    data.splice(index+1,0,...options);
+    return options;
+  }
+  return data;
+} 
+
 const preProcessors = [
   sort,
-  linkToSource
+  linkToSource,
+  memorizeOptions,
+  applyPluginOptions
 ];
 
 const preProcess = initialData => preProcessors.reduce((data, preProcessor) => preProcessor(data), initialData);
@@ -183,6 +217,7 @@ const traversePlugins = function* () {
     }
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
       yield path.join('plugins', item, `${item}.js`);
+      return;
     }
   }
 };
