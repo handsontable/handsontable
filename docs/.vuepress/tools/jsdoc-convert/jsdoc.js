@@ -11,12 +11,12 @@ const pathToDist = '../../../next/api';
 const urlPrefix = 'next/api/';
 const whitelist = [
   'dataMap/metaManager/metaSchema.js',
-  // 'pluginHooks.js',
-  // 'core.js',
-  // 'translations/indexMapper.js',
-  // 'editors/baseEditor/baseEditor.js',
-  // '3rdparty/walkontable/src/cell/coords.js',
-  // 'plugins/copyPaste/focusableElement.js',
+  'pluginHooks.js',
+  'core.js',
+  'translations/indexMapper.js',
+  'editors/baseEditor/baseEditor.js',
+  '3rdparty/walkontable/src/cell/coords.js',
+  'plugins/copyPaste/focusableElement.js',
 ];
 
 const seo = {
@@ -66,6 +66,7 @@ const fixLinks = text => text
   .replace(/\[([^\[]*?)]\(([^:]*?)(#[^#]*?)?\)/g, '[$1](./$2/$3)') // @see https://regexr.com/5nqqr
   .replace(/\.\/\//g, '');
 
+const clearEmptyOptionHeaders = text => text.replace(/## Options\n## Members/g, '## Members');
 const clearEmptyMembersHeaders = text => text.replace(/## Members\n## Methods/g, '## Methods');
 const clearEmptyFunctionsHeaders = text => text.replace(/(## Methods\n)+$/g, '\n');
 
@@ -91,6 +92,7 @@ const fixTypes = text => text.replace(/(::: signame |\*\*Returns\*\*:|\*\*See\*\
 
 const postProcessors = [
   fixLinks,
+  clearEmptyOptionHeaders,
   clearEmptyMembersHeaders,
   clearEmptyFunctionsHeaders,
   fixTypes
@@ -130,12 +132,15 @@ const applyPluginOptions = data => {
       ?.value;
     
     const options = optionsPerPlugin[plugin]?.map(option => {
-      return {...option, isOption: true};
-    });
+      return {
+        ...option, 
+        isOption: true, 
+        memberof: plugin // workaround to force print as a member.
+      };
+    }) ?? [];
     
     const index = data.findIndex(x => x.kind==='constructor');
     data.splice(index+1,0,...options);
-    return options;
   }
   return data;
 } 
@@ -217,7 +222,6 @@ const traversePlugins = function* () {
     }
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
       yield path.join('plugins', item, `${item}.js`);
-      return;
     }
   }
 };

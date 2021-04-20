@@ -49,6 +49,91 @@ if (plugin.isEnabled()) {
 }
 ```
 
+## Options
+
+### data
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L123
+  
+
+_autoColumnSize.data : Array&lt;Array&gt; | Array&lt;object&gt;_
+Initial data source that will be bound to the data grid __by reference__ (editing data grid alters the data source).
+Can be declared as an array of arrays or an array of objects.
+
+See [Understanding binding as reference](https://docs.handsontable.com/tutorial-data-binding.html#page-reference).
+
+**Default**: <code>undefined</code>  
+**Category**: AutoColumnSize, Data, AutoColumnSize2  
+**Example**  
+```js
+// as an array of arrays
+data: [
+  ['A', 'B', 'C'],
+  ['D', 'E', 'F'],
+  ['G', 'H', 'J']
+]
+
+// as an array of objects
+data: [
+  {id: 1, name: 'Ted Right'},
+  {id: 2, name: 'Frank Honest'},
+  {id: 3, name: 'Joan Well'},
+  {id: 4, name: 'Gail Polite'},
+  {id: 5, name: 'Michael Fair'},
+]
+```
+
+
+### dataSchema
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L152
+  
+
+_autoColumnSize.dataSchema : object_
+Defines the structure of a new row when data source is an array of objects.
+
+See [data-schema](https://docs.handsontable.com/tutorial-data-sources.html#page-data-schema) for more options.
+
+**Default**: <code>undefined</code>  
+**Category**: AutoColumnSize  
+**Example**  
+```
+// with data schema we can start with an empty table
+data: null,
+dataSchema: {id: null, name: {first: null, last: null}, address: null},
+colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
+columns: [
+  {data: 'id'},
+  {data: 'name.first'},
+  {data: 'name.last'},
+  {data: 'address'}
+],
+startRows: 5,
+minSpareRows: 1
+```
+
+
+### width
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L176
+  
+
+_autoColumnSize.width : number | string | function_
+Width of the grid. Can be a value or a function that returns a value.
+
+**Default**: <code>undefined</code>  
+**Category**: AutoColumnSize  
+**Example**  
+```
+// as a number
+width: 500,
+
+// as a string
+width: '75vw',
+
+// as a function
+width: function() {
+  return 500;
+},
+```
+
 ## Members
 
 ### inProgress
