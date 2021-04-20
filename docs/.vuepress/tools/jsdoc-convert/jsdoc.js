@@ -1,7 +1,7 @@
 /* eslint-disable no-useless-escape */
 /// requires
-const jsdoc2md = require('jsdoc-to-markdown'); // eslint-disable import/no-unresolved
-const dmd = require('dmd'); // eslint-disable import/no-unresolved
+const jsdoc2md = require('jsdoc-to-markdown'); // eslint-disable-line import/no-unresolved
+const dmd = require('dmd'); // eslint-disable-line import/no-unresolved
 const path = require('path');
 const fs = require('fs');
 
