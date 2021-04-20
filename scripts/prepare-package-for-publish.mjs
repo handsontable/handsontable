@@ -44,7 +44,6 @@ const PACKAGE_FIELDS_TO_COPY = [
   'typings',
   'sideEffects',
 ];
-// 'exports'
 
 /**
  * Prepare exports basing on wildcards in paths.
@@ -86,7 +85,7 @@ Object.keys(exportRules).forEach((ruleName) => {
 });
 
 /**
- * Test exports to verify if paths existence in the target directory.
+ * Test exports to verify if paths exist in the target directory.
  */
 const EXPORTS_ERRORS = [];
 
