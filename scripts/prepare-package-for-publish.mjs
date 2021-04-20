@@ -1,8 +1,6 @@
 import fse from 'fs-extra';
 import path from 'path';
 
-const PACKAGE_PATH = path.resolve('package.json');
-const DEV_PACKAGE = fse.readJsonSync(PACKAGE_PATH, { encoding: 'utf-8' });
 const TARGET_PATH = './tmp';
 const FILES_TO_COPY = [
   'dist/handsontable.css',
@@ -24,30 +22,22 @@ const FILES_TO_COPY = [
   'LICENSE.txt',
   'README.md',
 ];
-const PACKAGE_FIELDS_TO_COPY = [
-  'name',
-  'description',
-  'homepage',
-  'repository',
-  'bugs',
-  'author',
-  'version',
-  'main',
-  'module',
-  'jsnext:main',
-  'jsdelivr',
-  'unpkg',
-  'keywords',
-  'dependencies',
-  'license',
-  'resolutions',
-  'typings',
-  'sideEffects',
-];
+
+/**
+ * Copy necessary files we don't need to process.
+ */
+FILES_TO_COPY.forEach((file) => {
+  fse.copySync(
+    path.resolve(`./${file}`),
+    path.resolve(`${TARGET_PATH}/${file}`),
+    { overwrite: true });
+});
 
 /**
  * Prepare exports basing on wildcards in paths.
  */
+const PACKAGE_PATH = path.resolve('package.json');
+const DEV_PACKAGE = fse.readJsonSync(PACKAGE_PATH, { encoding: 'utf-8' });
 const { exports: exportRules } = DEV_PACKAGE;
 const fullExports = {};
 
@@ -129,6 +119,26 @@ if (EXPORTS_ERRORS.length > 0) {
 /**
  * Save a cleaned-up package.json.
  */
+const PACKAGE_FIELDS_TO_COPY = [
+  'name',
+  'description',
+  'homepage',
+  'repository',
+  'bugs',
+  'author',
+  'version',
+  'main',
+  'module',
+  'jsnext:main',
+  'jsdelivr',
+  'unpkg',
+  'keywords',
+  'dependencies',
+  'license',
+  'resolutions',
+  'typings',
+  'sideEffects',
+];
 const newPackageJson = {};
 
 PACKAGE_FIELDS_TO_COPY.forEach((field) => {
@@ -143,14 +153,4 @@ fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
 }, {
   spaces: 2,
   replacer: null,
-});
-
-/**
- * Copy rest of the necessary files.
- */
-FILES_TO_COPY.forEach((file) => {
-  fse.copySync(
-    path.resolve(`./${file}`),
-    path.resolve(`${TARGET_PATH}/${file}`),
-    { overwrite: true });
 });
