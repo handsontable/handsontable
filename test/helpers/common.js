@@ -933,11 +933,11 @@ export function triggerTouchEvent(type, target, pageX, pageY) {
 export function simulateTouch(target) {
   const touchStartRun = triggerTouchEvent('touchstart', target);
 
-  if (touchStartRun === true) {
+  if (!touchStartRun.defaultPrevented) {
     const touchEndRun = triggerTouchEvent('touchend', target);
 
     // If the `preventDefault` is called for below event emulation doesn't reflects "native" behaviour.
-    if (touchEndRun === true) {
+    if (!touchEndRun.defaultPrevented) {
       $(target).simulate('mousedown');
       $(target).simulate('mouseup');
       $(target).simulate('click');

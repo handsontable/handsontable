@@ -58,14 +58,26 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
-  it('should preventDefault the touchstart event (double-tap issue #7824)', async() => {
+  it('should preventDefault the touchend event (double-tap issue #7824)', async() => {
     const hot = handsontable({
       width: 400,
       height: 400,
     });
 
     const cell = hot.getCell(1, 1);
-    const event = triggerTouchEvent('touchstart', cell);
+    const event = triggerTouchEvent('touchend', cell);
+
+    expect(event.defaultPrevented).toBeTrue();
+  });
+
+  it('should not preventDefault the touchend event when interactive element is clicked', async() => {
+    const hot = handsontable({
+      width: 400,
+      height: 400,
+    });
+
+    const cell = hot.getCell(1, 1);
+    const event = triggerTouchEvent('touchend', cell);
 
     expect(event.defaultPrevented).toBeTrue();
   });
@@ -94,7 +106,7 @@ describe('Events', () => {
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-    await sleep(100); // To prevents double-click detection (emulation)
+    await sleep(600); // To prevents double-click detection (emulation)
 
     // Second touch
     simulateTouch(linkElement);
@@ -109,7 +121,7 @@ describe('Events', () => {
     // First touch
     simulateTouch(anotherCell);
 
-    await sleep(100); // To prevents double-click detection (emulation)
+    await sleep(550); // To prevents double-click detection (emulation)
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
