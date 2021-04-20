@@ -335,7 +335,7 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * [onBeforeHighlightingRowHeader description].
+   * Allows to control which header DOM element will be used to highlight.
    *
    * @private
    * @param {number} visualColumn A visual column index of the highlighted row header.
@@ -377,6 +377,8 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
+   * Allows to block the column selection that is controlled by the core Selection module.
+   *
    * @private
    * @param {MouseEvent} event Mouse event.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
@@ -395,7 +397,7 @@ export class NestedHeaders extends BasePlugin {
   }
 
   /**
-   * Select all nested headers of clicked cell.
+   * Allows to control how the column selection based on the coordinates and the nested headers is made.
    *
    * @private
    * @param {MouseEvent} event Mouse event.
@@ -404,19 +406,43 @@ export class NestedHeaders extends BasePlugin {
   onAfterOnCellMouseDown(event, coords) {
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
-    if (isLeftClick(event) && headerNodeData) {
-      const {
-        columnIndex,
-        origColspan,
-      } = headerNodeData;
-
-      // The plugin takes control of the how the columns are selected.
-      this.hot.selection.selectColumns(columnIndex, columnIndex + origColspan - 1, coords.row);
+    if (!headerNodeData) {
+      return;
     }
+
+    const { selection } = this.hot;
+    const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
+    const columnsToSelect = [];
+    const {
+      columnIndex,
+      origColspan,
+    } = headerNodeData;
+
+    // The Selection module doesn't allow it to extend its behavior easily. That's why here we need
+    // to re-implement the "click" and "shift" behavior. As a workaround, the logic for the nested
+    // headers must implement a similar logic as in the original Selection handler
+    // (see src/selection/mouseEventHandler.js).
+    if (event.shiftKey && currentSelection) {
+      if (coords.col < currentSelection.from.col) {
+        columnsToSelect.push(currentSelection.getTopRightCorner().col, columnIndex, coords.row);
+
+      } else if (coords.col > currentSelection.from.col) {
+        columnsToSelect.push(currentSelection.getTopLeftCorner().col, columnIndex + origColspan - 1, coords.row);
+
+      } else {
+        columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+      }
+
+    } else if (isLeftClick(event)) {
+      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+    }
+
+    // The plugin takes control of the how the columns are selected.
+    selection.selectColumns(...columnsToSelect);
   }
 
   /**
-   * Make the header-selection properly select the nested headers.
+   * Makes the header-selection properly select the nested headers.
    *
    * @private
    * @param {MouseEvent} event Mouse event.
