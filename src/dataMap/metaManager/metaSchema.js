@@ -3025,8 +3025,7 @@ export default () => {
 
     /**
      * @description
-     * Disables or enables the drag to scroll functionality.
-     * ! TODO: the link to plugin is missing
+     * Disables or enables the {@link DragToScroll drag to scroll} functionality.
      * @memberof Options#
      * @type {boolean}
      * @default true
