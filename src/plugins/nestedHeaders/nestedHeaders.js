@@ -4,7 +4,7 @@ import {
   fastInnerHTML,
   empty,
 } from '../../helpers/dom/element';
-import { isLeftClick } from '../../helpers/dom/event';
+import { isLeftClick, isRightClick } from '../../helpers/dom/event';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import {
@@ -422,6 +422,8 @@ export class NestedHeaders extends BasePlugin {
     // to re-implement the "click" and "shift" behavior. As a workaround, the logic for the nested
     // headers must implement a similar logic as in the original Selection handler
     // (see src/selection/mouseEventHandler.js).
+    const allowRightClickSelection = !selection.inInSelection(coords);
+
     if (event.shiftKey && currentSelection) {
       if (coords.col < currentSelection.from.col) {
         columnsToSelect.push(currentSelection.getTopRightCorner().col, columnIndex, coords.row);
@@ -433,7 +435,7 @@ export class NestedHeaders extends BasePlugin {
         columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
       }
 
-    } else if (isLeftClick(event)) {
+    } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection)) {
       columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
     }
 

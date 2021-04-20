@@ -1025,6 +1025,23 @@ describe('NestedHeaders', () => {
       expect(getSelected()).toEqual([[-1, 1, 9, 6]]);
     });
 
+    it('should be possible to select the column header with RMB when no column is selected', () => {
+      handsontable({
+        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        colHeaders: true,
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+          ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+          ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 },
+            { label: 'L', colspan: 2 }, 'M'],
+        ]
+      });
+
+      simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
+
+      expect(getSelected()).toEqual([[-1, 5, 9, 6]]);
+    });
+
     it('should be possible to back to the single column selection, when it was modified by the SHIFT key', () => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(10, 13),
