@@ -1,4 +1,4 @@
-/* eslint-disable no-useless-escape, no-restricted-syntax, import/no-unresolved  */
+/* eslint-disable no-useless-escape */
 /// requires
 const jsdoc2md = require('jsdoc-to-markdown');
 const dmd = require('dmd');
@@ -103,7 +103,9 @@ const sort = data => data.sort((m, p) => {
 const linkToSource = data => data.map((x) => {
   if (x.meta && x.meta.path && x.meta.filename && x.meta.lineno) {
     const filepath = path.relative(path.join(__dirname, '../../../../'), x.meta.path);
-    x.sourceLink = `https://github.com/handsontable/handsontable/blob/develop/${filepath}/${x.meta.filename}#L${x.meta.lineno}`;
+    const filename = x.meta.filename;
+    const line = x.meta.lineno;
+    x.sourceLink = `https://github.com/handsontable/handsontable/blob/develop/${filepath}/${filename}#L${line}`;
   }
   return x;
 });
@@ -177,9 +179,10 @@ const render = file => write(dist(file), header(file) + parse(file));
 const traversePlugins = function* () {
   const items = fs.readdirSync(source('plugins'));
 
-  for (const item of items) {
-    if(['base', '__tests__'].includes(item)) {
-      continue;
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (['base', '__tests__'].includes(item)) {
+      continue; // eslint-disable-line no-continue
     }
     if (fs.statSync(source(path.join('plugins', item))).isDirectory()) {
       yield path.join('plugins', item, `${item}.js`);
@@ -194,9 +197,8 @@ const traverse = function* () {
 
 /// program:
 const errors = [];
-for (const file of traverse()) {
-  // eslint-disable-next-line
-  console.log('Generating: ', source(file));
+for (const file of traverse()) { // eslint-disable-line no-restricted-syntax
+  console.log('Generating: ', source(file)); // eslint-disable-line
   try {
     render(file);
   } catch (e) {
