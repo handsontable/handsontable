@@ -80,6 +80,8 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
+     *
      * @example
      * ```js
      * licenseKey: '00000-00000-00000-00000-00000',
@@ -99,6 +101,8 @@ export default () => {
      * @memberof Options#
      * @type {Array[]|object[]}
      * @default undefined
+     * @category Core
+     *
      * @example
      * ```js
      * // as an array of arrays
@@ -154,6 +158,7 @@ export default () => {
      * @memberof Options#
      * @type {number|string|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```
@@ -177,6 +182,7 @@ export default () => {
      * @memberof Options#
      * @type {number|string|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -203,6 +209,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 5
+     * @category Core
      *
      * @example
      * ```js
@@ -221,6 +228,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 5
+     * @category Core
      *
      * @example
      * ```js
@@ -238,6 +246,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -263,6 +272,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default null
+     * @category Core
      *
      * @example
      * ```js
@@ -294,6 +304,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
+     * @category Core, AutoColumnSize
      *
      * @example
      * ```js
@@ -330,6 +341,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
+     * @category Core, ManualRowResize, AutoRowSize
      *
      * @example
      * ```js
@@ -361,6 +373,7 @@ export default () => {
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -407,6 +420,7 @@ export default () => {
      * @memberof Options#
      * @type {Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -460,6 +474,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
+     * @category Comments
      *
      * @example
      * ```js
@@ -497,6 +512,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
+     * @category CustomBorders
      *
      * @example
      * ```js
@@ -554,6 +570,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -571,6 +588,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -587,6 +605,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default Infinity
+     * @category Core
      *
      * @example
      * ```js
@@ -603,6 +622,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default Infinity
+     * @category Core
      *
      * @example
      * ```js
@@ -619,6 +639,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -635,6 +656,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -650,6 +672,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category ContextMenu
      *
      * @example
      * ```js
@@ -665,6 +688,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category ContextMenu
      *
      * @example
      * ```js
@@ -680,6 +704,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category ContextMenu
      *
      * @example
      * ```js
@@ -695,6 +720,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category ContextMenu
      *
      * @example
      * ```js
@@ -717,6 +743,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'multiple'
+     * @category Core
      *
      * @example
      * ```js
@@ -740,6 +767,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|object}
      * @default true
+     * ! TODO @category (there is no fillHandle plugin in the `src/plugins`)
      *
      * @example
      * ```js
@@ -774,6 +802,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -789,6 +818,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -804,6 +834,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 0
+     * @category Core
      *
      * @example
      * ```js
@@ -820,6 +851,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|Function}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -841,6 +873,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -858,6 +891,7 @@ export default () => {
      * @memberof Options#
      * @type {object|Function}
      * @default {col: 0, row: 1}
+     * @category Core
      *
      * @example
      * ```js
@@ -880,6 +914,7 @@ export default () => {
      * @memberof Options#
      * @type {object|Function}
      * @default {row: 0, col: 1}
+     * @category Core
      *
      * @example
      * ```js
@@ -899,6 +934,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -914,6 +950,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -955,6 +992,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category PersistentState
      *
      * @example
      * ```js
@@ -970,6 +1008,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -985,6 +1024,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1000,6 +1040,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'ht__highlight'
+     * @category Core
      *
      * @example
      * ```js
@@ -1017,6 +1058,7 @@ export default () => {
      * @type {string}
      * @since 0.38.2
      * @default 'ht__active_highlight'
+     * @category Core
      *
      * @example
      * ```js
@@ -1035,6 +1077,7 @@ export default () => {
      * @memberof Options#
      * @type {string|string[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1053,6 +1096,7 @@ export default () => {
      * @memberof Options#
      * @type {string|string[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1076,6 +1120,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'none'
+     * @category Core
      *
      * @example
      * ```js
@@ -1092,6 +1137,7 @@ export default () => {
      * @type {Function}
      * @param {number} row Visual row index.
      * @returns {boolean}
+     * @category Core
      *
      * @example
      * ```js
@@ -1130,6 +1176,7 @@ export default () => {
      * @type {Function}
      * @param {number} col Visual column index.
      * @returns {boolean}
+     * @category Core
      *
      * @example
      * ```js
@@ -1161,6 +1208,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1179,6 +1227,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1195,6 +1244,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1220,6 +1270,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htInvalid'
+     * @category Core
      *
      * @example
      * ```js
@@ -1236,6 +1287,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1251,6 +1303,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htPlaceholder'
+     * @category Core
      *
      * @example
      * ```js
@@ -1266,6 +1319,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htDimmed'
+     * @category Core
      *
      * @example
      * ```js
@@ -1299,6 +1353,7 @@ export default () => {
      * @memberof Options#
      * @type {string|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1338,6 +1393,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htCommentCell'
+     * @category Core
      *
      * @example
      * ```js
@@ -1355,6 +1411,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1375,6 +1432,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1391,6 +1449,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1411,6 +1470,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -1435,6 +1495,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Search
      *
      * @example
      * ```js
@@ -1477,6 +1538,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'text'
+     * @category Core
      *
      * @example
      * ```js
@@ -1517,6 +1579,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1554,6 +1617,7 @@ export default () => {
      * @memberof Options#
      * @type {string|Function|boolean}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -1578,6 +1642,7 @@ export default () => {
      * @memberof Options#
      * @type {number}
      * @default 10
+     * @category Core
      *
      * @example
      * ```js
@@ -1599,6 +1664,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1619,6 +1685,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -1639,6 +1706,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'htNoWrap'
+     * @category Core
      *
      * @example
      * ```js
@@ -1667,6 +1735,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string[]|object}
      * @default undefined
+     * @category ContextMenu
      *
      * @example
      * ```js
@@ -1709,6 +1778,7 @@ export default () => {
      * @memberof Options#
      * @type {object|boolean}
      * @default true
+     * @category CopyPaste
      *
      * @example
      * ```js
@@ -1734,6 +1804,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category UndoRedo
      *
      * @example
      * ```js
@@ -1765,6 +1836,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category ColumnSorting
      *
      * @example
      * ```js
@@ -1799,6 +1871,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualColumnMove
      *
      * @example
      * ```js
@@ -1819,6 +1892,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualColumnResize
      *
      * @example
      * ```js
@@ -1839,6 +1913,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualRowMove
      *
      * @example
      * ```js
@@ -1859,6 +1934,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category ManualRowResize
      *
      * @example
      * ```js
@@ -1880,6 +1956,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
+     * @category MergeCells
      *
      * @example
      * ```js
@@ -1919,6 +1996,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category MultiColumnSorting
      *
      * @example
      * ```js
@@ -1959,6 +2037,7 @@ export default () => {
      * @memberof Options#
      * @type {number|string}
      * @default 'auto'
+     * @category Core
      *
      * @example
      * ```js
@@ -1977,6 +2056,7 @@ export default () => {
      * @memberof Options#
      * @type {number|string}
      * @default 'auto'
+     * @category Core
      *
      * @example
      * ```js
@@ -2007,6 +2087,7 @@ export default () => {
      * @memberof Options#
      * @type {Function|RegExp|string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2044,6 +2125,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|string[]}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2065,6 +2147,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category ManualColumnFreeze
      *
      * @example
      * ```js
@@ -2080,6 +2163,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2099,6 +2183,7 @@ export default () => {
      * @memberof Options#
      * @type {Array|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2128,6 +2213,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2152,6 +2238,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|number}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2169,6 +2256,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|number}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2198,6 +2286,7 @@ export default () => {
      * @memberof Options#
      * @type {object}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2227,6 +2316,7 @@ export default () => {
      * @since 0.35.0
      * @type {object}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2250,6 +2340,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'en-US'
+     * @category Core
      *
      * @example
      * ```js
@@ -2267,6 +2358,7 @@ export default () => {
      * @memberof Options#
      * @type {string[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2299,6 +2391,7 @@ export default () => {
      * @memberof Options#
      * @type {object|boolean}
      * @default {syncLimit: 50}
+     * @category autoColumnSize
      *
      * @example
      * ```js
@@ -2329,6 +2422,7 @@ export default () => {
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2349,6 +2443,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default 'DD/MM/YYYY'
+     * @category Core
      *
      * @example
      * ```js
@@ -2369,6 +2464,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2390,6 +2486,7 @@ export default () => {
      * @memberof Options#
      * @type {string}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2414,6 +2511,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2437,6 +2535,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2456,6 +2555,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2477,6 +2577,7 @@ export default () => {
      * @memberof Options#
      * @type {string|boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2492,6 +2593,7 @@ export default () => {
      * @private
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2509,6 +2611,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string}
      * @default undefined
+     * @category BindRowsWithHeaders
      *
      * @example
      * ```js
@@ -2534,6 +2637,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object[]}
      * @default undefined
+     * @category CollapsibleColumns
      *
      * @example
      * ```js
@@ -2567,6 +2671,7 @@ export default () => {
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```
@@ -2596,6 +2701,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object|string[]}
      * @default undefined
+     * @category DropdownMenu
      *
      * @example
      * ```js
@@ -2615,6 +2721,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default undefined
+     * @category Filters
      *
      * @example
      * ```js
@@ -2630,6 +2737,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category Formulas
      *
      * @example
      * ```js
@@ -2660,6 +2768,7 @@ export default () => {
      * @type {boolean|object}
      * @default undefined
      * @deprecated This plugin is deprecated and will be removed in the next major release.
+     * @category HeaderTooltips
      *
      * @example
      * ```js
@@ -2685,6 +2794,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category HiddenColumns
      *
      * @example
      * ```js
@@ -2711,6 +2821,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
+     * @category HiddenRows
      *
      * @example
      * ```js
@@ -2735,6 +2846,7 @@ export default () => {
      * @memberof Options#
      * @type {Array[]}
      * @default undefined
+     * @category NestedHeaders
      *
      * @example
      * ```
@@ -2754,6 +2866,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
+     * @category TrimRows
      *
      * @example
      * ```js
@@ -2775,6 +2888,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2796,6 +2910,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]}
      * @default undefined
+     * @category Core
      *
      * @example
      * ```js
@@ -2824,6 +2939,7 @@ export default () => {
      * @type {boolean}
      * @default undefined
      * @deprecated This plugin is deprecated and will be removed in the next major release.
+     * @category ObserveChanges
      *
      * @example
      * ```js
@@ -2841,6 +2957,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2866,6 +2983,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category Core
      *
      * @example
      * ```js
@@ -2889,6 +3007,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category Core
      *
      * @example
      * ```js
@@ -2907,10 +3026,11 @@ export default () => {
     /**
      * @description
      * Disables or enables the drag to scroll functionality.
-     *
+     * ! TODO: the link to plugin is missing
      * @memberof Options#
      * @type {boolean}
      * @default true
+     * @category DragToScroll
      *
      * @example
      * ```js
@@ -2933,6 +3053,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean}
      * @default false
+     * @category NestedRows
      */
     nestedRows: void 0,
   };
