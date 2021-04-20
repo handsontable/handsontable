@@ -297,7 +297,7 @@ export class Formulas extends BasePlugin {
   }
 
   onBeforeRemoveCol(col, amount) {
-    if (!this.hyperformula.isItPossibleToRemoveRows(this.hyperformula.getSheetId(this.sheetName), [col, amount])) {
+    if (!this.hyperformula.isItPossibleToRemoveColumns(this.hyperformula.getSheetId(this.sheetName), [col, amount])) {
       return false;
     }
   }
