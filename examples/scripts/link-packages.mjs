@@ -41,7 +41,8 @@ const linkPackage = (sourceLocation, linkLocation, packageName, exampleDir = fal
 
       fse.ensureSymlinkSync(
         path.resolve(`${sourceLocation}/${packageName}`),
-        path.resolve(`${linkLocation}/${packageName}`)
+        path.resolve(`${linkLocation}/${packageName}`),
+        'junction',
       );
 
     } catch (e) {
