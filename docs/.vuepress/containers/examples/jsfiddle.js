@@ -10,7 +10,7 @@ const getCss = (version, preset) => {
   '</style><!-- Ugly Hack due to jsFiddle issue -->\n');
 };
 
-const getForm = (id, html, code, version, preset) => {
+const jsfiddle = (id, html, code, version, preset) => {
   const isBabelPanel = preset.includes('react') || preset.includes('vue');
   const isAngularPanel = preset.includes('angular');
 
@@ -39,5 +39,5 @@ const getForm = (id, html, code, version, preset) => {
 
 module.exports = {
   getCss,
-  getForm
+  jsfiddle
 };
