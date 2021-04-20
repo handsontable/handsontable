@@ -45,18 +45,6 @@ module.exports.create = function create(envArgs) {
       c.plugins.push(
         new CopyWebpackPlugin({
           patterns: [
-            { // hot-formula-parser
-              from: 'node_modules/hot-formula-parser/LICENSE',
-              to: 'hot-formula-parser',
-              flatten: true,
-              force: true,
-            },
-            {
-              from: 'node_modules/hot-formula-parser/dist/formula-parser.js',
-              to: 'hot-formula-parser',
-              flatten: true,
-              force: true,
-            },
             { // moment
               from: 'node_modules/moment/@(moment.js|LICENSE)',
               to: 'moment',

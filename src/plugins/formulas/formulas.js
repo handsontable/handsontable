@@ -1,5 +1,3 @@
-// TODO remove hot-formula-parser
-
 import { HyperFormula } from 'hyperformula';
 import { BasePlugin } from '../base';
 
