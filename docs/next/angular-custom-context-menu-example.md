@@ -7,14 +7,17 @@ permalink: /next/angular-custom-context-menu-example
 
 An implementation of the `@handsontable/angular` component with a custom Context Menu added.
 
-::: example #example1 :angular
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
 
 @Component({
-  selector: '#example1',
+  selector: 'app-root',
   template: `
   <div class="hot">
     <hot-table [settings]="hotSettings"></hot-table>

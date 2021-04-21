@@ -9,14 +9,17 @@ canonicalUrl: /angular-custom-id
 You can easily pass `id` and other attributes to the `hot-table` wrapper element.
 It will be applied to the root Handsontable element, allowing further customization of the table.
 
-::: example #example1 :angular
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
 
 @Component({
-  selector: '#example1',
+  selector: 'app-root',
   template: `
   <div class="hot">
     <hot-table

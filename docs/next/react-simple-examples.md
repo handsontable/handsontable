@@ -10,12 +10,12 @@ canonicalUrl: /react-simple-examples
 
 ## An implementation of the `@handsontable/react` wrapper.
 
+::: example #example1 :react --html 1 --js 2
 ```html
 <!-- a root div where the component is rendered -->
 <div id="example1" class="hot"></div>
 ```
 
-::: example #example1 :react
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';

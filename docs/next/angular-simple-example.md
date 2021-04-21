@@ -8,14 +8,18 @@ canonicalUrl: /angular-simple-example
 
 An implementation of the `@handsontable/angular` wrapper.
 
-::: example #example1 :angular
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
+
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
 
 @Component({
-  selector: '#example1',
+  selector: 'app-root',
   template: `
   <div>
     <hot-table

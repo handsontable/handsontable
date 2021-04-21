@@ -8,14 +8,18 @@ canonicalUrl: /angular-custom-renderer-example
 
 An implementation of the `@handsontable/angular` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
 
-::: example #example1 :angular
+::: example :angular --html 1 --js 2
+```html
+<app-root></app-root>
+```
+
 ```js
 // app.component.ts
 import { Component } from '@angular/core';
 import * as Handsontable from 'handsontable';
 
 @Component({
-  selector: '#example1',
+  selector: 'app-root',
   template: `
   <div class="hot">
     <hot-table [settings]="hotSettings"></hot-table>

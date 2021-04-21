@@ -7,11 +7,11 @@ const exampleRegex = /^(source-code-link)\s*(\S*)\s*([\S|\s]*)$/;
 
 module.exports = {
   type: 'source-code-link',
-  render(tokens, index, opts, env) {
+  render(tokens, index) {
     const token = tokens[index];
 
-    const [,,href] = token.info.trim().match(exampleRegex) || [];
-    if(href) {
+    const [,, href] = token.info.trim().match(exampleRegex) || [];
+    if (href) {
       // opening tag
       return `<a href="${href}" target="_blank" class="source-code-link"> Source code <OutboundLink /> </a>`;
     }
