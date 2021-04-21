@@ -304,7 +304,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
-     * @category Core, AutoColumnSize
+     * @category Core
      *
      * @example
      * ```js
@@ -341,7 +341,7 @@ export default () => {
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
      * @default undefined
-     * @category Core, ManualRowResize, AutoRowSize
+     * @category Core
      *
      * @example
      * ```js
@@ -767,7 +767,7 @@ export default () => {
      * @memberof Options#
      * @type {boolean|string|object}
      * @default true
-     * ! TODO @category (there is no fillHandle plugin in the `src/plugins`)
+     * @category Autofill
      *
      * @example
      * ```js
