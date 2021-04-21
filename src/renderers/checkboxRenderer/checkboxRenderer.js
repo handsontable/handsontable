@@ -372,8 +372,8 @@ function onClick(event, instance) {
     return;
   }
 
-  const row = parseInt(event.target.getAttribute(ATTR_ROW), 10);
-  const col = parseInt(event.target.getAttribute(ATTR_COLUMN), 10);
+  const row = parseInt(target.getAttribute(ATTR_ROW), 10);
+  const col = parseInt(target.getAttribute(ATTR_COLUMN), 10);
   const cellProperties = instance.getCellMeta(row, col);
 
   if (cellProperties.readOnly) {
