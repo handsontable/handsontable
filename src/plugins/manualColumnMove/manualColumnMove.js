@@ -439,6 +439,7 @@ export class ManualColumnMove extends BasePlugin {
 
     } else if (((priv.target.TD.offsetWidth / 2) + tdOffsetLeft) <= mouseOffsetLeft) {
       const newCoordsCol = priv.coords >= priv.countCols ? priv.countCols - 1 : priv.coords;
+
       // if hover on right part of TD
       priv.target.col = newCoordsCol + 1;
       // unfortunately first column is bigger than rest
@@ -531,6 +532,7 @@ export class ManualColumnMove extends BasePlugin {
       priv.pressed = false;
       priv.columnsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
+
       return;
     }
 
@@ -597,6 +599,7 @@ export class ManualColumnMove extends BasePlugin {
     // callback for browser which doesn't supports CSS pointer-event: none
     if (event.target === this.backlight.element) {
       const width = this.backlight.getSize().width;
+
       this.backlight.setSize(0);
 
       setTimeout(function() {

@@ -211,24 +211,28 @@ describe('Core_view', () => {
     });
 
     const scrollResult1 = hot.scrollViewportTo(0, 7);
+
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
     expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
     const scrollResult2 = hot.scrollViewportTo(0, 15);
+
     hot.render();
 
     expect(scrollResult2).toBe(true);
     expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
 
     const scrollResult3 = hot.scrollViewportTo(0, 7);
+
     hot.render();
 
     expect(scrollResult3).toBe(true);
     expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
     const scrollResult4 = hot.scrollViewportTo(0, 0);
+
     hot.render();
 
     expect(scrollResult4).toBe(true);
@@ -248,6 +252,7 @@ describe('Core_view', () => {
     });
 
     const scrollResult1 = hot.scrollViewportTo(0, 15);
+
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
@@ -257,12 +262,14 @@ describe('Core_view', () => {
     hot.render();
 
     const scrollResult2 = hot.scrollViewportTo(0, 17);
+
     hot.render();
 
     expect(scrollResult2).toBe(true);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
 
     const scrollResult3 = hot.scrollViewportTo(0, 19);
+
     hot.render();
 
     expect(scrollResult3).toBe(true);
@@ -281,24 +288,28 @@ describe('Core_view', () => {
     });
 
     const scrollResult1 = hot.scrollViewportTo(0, 2, false, false, false);
+
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(true);
     expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
 
     const scrollResult2 = hot.scrollViewportTo(0, 14, false, false, false);
+
     hot.render();
 
     expect(scrollResult2).toBe(true);
     expect(hot.view.wt.wtTable.getLastVisibleColumn()).toBe(14);
 
     const scrollResult3 = hot.scrollViewportTo(0, 2, false, false, false);
+
     hot.render();
 
     expect(scrollResult3).toBe(true);
     expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(2);
 
     const scrollResult4 = hot.scrollViewportTo(0, 0, false, false, false);
+
     hot.render();
 
     expect(scrollResult4).toBe(true);
@@ -317,12 +328,14 @@ describe('Core_view', () => {
     });
 
     const scrollResult1 = hot.scrollViewportTo(0, 0);
+
     hot.render(); // Renders synchronously so we don't have to put stuff in waits/runs.
 
     expect(scrollResult1).toBe(false);
     expect(hot.view.wt.wtTable.getFirstVisibleColumn()).toBe(-1);
 
     const scrollResult2 = hot.scrollViewportTo(0, 5);
+
     hot.render();
 
     expect(scrollResult2).toBe(false);
@@ -640,6 +653,7 @@ describe('Core_view', () => {
     });
 
     const afterRenderCallback = jasmine.createSpy('afterRenderCallback');
+
     hot.addHook('afterRender', afterRenderCallback);
     spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
@@ -687,6 +701,7 @@ describe('Core_view', () => {
 
       const eventManager = new Handsontable.EventManager(hot);
       const spy = jasmine.createSpy();
+
       eventManager.addEventListener(window, 'wheel', spy);
 
       const wheelEvt = new WheelEvent('wheel', {
@@ -933,6 +948,7 @@ describe('Core_view', () => {
 
     it('should be the same as the row heights in the main table (after scroll)', () => {
       const myData = Handsontable.helper.createSpreadsheetData(20, 4);
+
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';
       myData[10][3] = 'very\nlong\ntext';
@@ -961,6 +977,7 @@ describe('Core_view', () => {
 
     it('should be the same as the row heights in the main table (after scroll, in corner)', () => {
       const myData = Handsontable.helper.createSpreadsheetData(20, 4);
+
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';
       myData[10][3] = 'very\nlong\ntext';
@@ -1100,6 +1117,7 @@ describe('Core_view', () => {
         stretchH: 'all'
       });
       const rowHeaderWidth = hot.view.wt.wtViewport.getRowHeaderWidth();
+
       expect(hot.view.wt.wtOverlays.leftOverlay.getScrollPosition()).toEqual(0);
 
       let expectedCellWidth = (parseInt(spec().$container[0].style.width, 10) - rowHeaderWidth) / 5;

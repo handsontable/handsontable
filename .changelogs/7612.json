@@ -1,0 +1,7 @@
+{
+  "title": "Fixed incompatibility in properties types definition for HotColumn component.",
+  "type": "fixed",
+  "issue": 7612,
+  "breaking": false,
+  "framework": "react"
+}

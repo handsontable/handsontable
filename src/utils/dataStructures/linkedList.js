@@ -188,6 +188,7 @@ class LinkedList {
     }
 
     const temp = this.last;
+
     this.last = this.last.prev;
 
     return temp;
@@ -204,6 +205,7 @@ class LinkedList {
     }
 
     const temp = this.first;
+
     this.first = this.first.next;
 
     return temp;
@@ -233,6 +235,7 @@ class LinkedList {
 
     this.first.next = null;
     const temp = this.first;
+
     this.first = this.last;
     this.last = temp;
   }

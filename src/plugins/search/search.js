@@ -105,6 +105,7 @@ export class Search extends BasePlugin {
     }
 
     const searchSettings = this.hot.getSettings()[PLUGIN_KEY];
+
     this.updatePluginSettings(searchSettings);
 
     this.addHook('beforeRenderer', (...args) => this.onBeforeRenderer(...args));

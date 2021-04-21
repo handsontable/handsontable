@@ -30,6 +30,7 @@ describe('Header tooltips', () => {
 
       for (let i = 0; i < headers.length; i++) {
         const title = headers[i].getAttribute('title');
+
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
@@ -55,6 +56,7 @@ describe('Header tooltips', () => {
 
       for (let i = 0; i < headers.length; i++) {
         const title = headers[i].getAttribute('title');
+
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }
@@ -104,6 +106,7 @@ describe('Header tooltips', () => {
 
       for (let i = 0; i < headers.length; i++) {
         const title = headers[i].getAttribute('title');
+
         expect(headers[i].getAttribute('title')).not.toBe(null);
         expect(title).toEqual(headers[i].textContent);
       }

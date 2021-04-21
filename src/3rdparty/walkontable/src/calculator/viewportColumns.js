@@ -175,6 +175,7 @@ class ViewportColumnsCalculator {
       return;
     }
     let totalColumnsWidth = totalWidth;
+
     this.totalTargetWidth = totalColumnsWidth;
 
     const priv = privatePool.get(this);

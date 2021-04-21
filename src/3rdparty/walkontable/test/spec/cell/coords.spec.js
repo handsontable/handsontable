@@ -23,6 +23,7 @@ describe('Walkontable.CellCoords', () => {
     it('should be false if one of the arguments is smaller than 0', () => {
       let cellCoords = new Walkontable.CellCoords(-1, 0);
       let result = cellCoords.isValid(spec().wot);
+
       expect(result).toBe(false);
 
       cellCoords = new Walkontable.CellCoords(0, -1);
@@ -33,24 +34,28 @@ describe('Walkontable.CellCoords', () => {
     it('should be true if row is within the total number of rows', () => {
       const cellCoords = new Walkontable.CellCoords(9, 1);
       const result = cellCoords.isValid(spec().wot);
+
       expect(result).toBe(true);
     });
 
     it('should be false if row is greater than total number of rows', () => {
       const cellCoords = new Walkontable.CellCoords(10, 1);
       const result = cellCoords.isValid(spec().wot);
+
       expect(result).toBe(false);
     });
 
     it('should be true if column is within the total number of columns', () => {
       const cellCoords = new Walkontable.CellCoords(1, 4);
       const result = cellCoords.isValid(spec().wot);
+
       expect(result).toBe(true);
     });
 
     it('should be false if column is greater than total number of columns', () => {
       const cellCoords = new Walkontable.CellCoords(1, 5);
       const result = cellCoords.isValid(spec().wot);
+
       expect(result).toBe(false);
     });
   });
@@ -59,6 +64,7 @@ describe('Walkontable.CellCoords', () => {
     it('should be equal to itself', () => {
       const cellCoords = new Walkontable.CellCoords(1, 1);
       const result = cellCoords.isEqual(cellCoords);
+
       expect(result).toBe(true);
     });
 
@@ -66,6 +72,7 @@ describe('Walkontable.CellCoords', () => {
       const cellCoords = new Walkontable.CellCoords(1, 1);
       const cellCoords2 = new Walkontable.CellCoords(1, 1);
       const result = cellCoords.isEqual(cellCoords2);
+
       expect(result).toBe(true);
     });
 
@@ -73,6 +80,7 @@ describe('Walkontable.CellCoords', () => {
       const cellCoords = new Walkontable.CellCoords(1, 1);
       const cellCoords2 = new Walkontable.CellCoords(2, 1);
       const result = cellCoords.isEqual(cellCoords2);
+
       expect(result).toBe(false);
     });
   });

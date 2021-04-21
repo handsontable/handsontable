@@ -2,12 +2,15 @@ import { BasePlugin } from '../base';
 import { arrayEach, arrayFilter, arrayReduce, arrayMap } from '../../helpers/array';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
+import Hooks from '../../pluginHooks';
 import { isObject, hasOwnProperty } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { ViewportColumnsCalculator } from '../../3rdparty/walkontable/src';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+
+Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
 export const PLUGIN_KEY = 'autoColumnSize';
 export const PLUGIN_PRIORITY = 10;
@@ -38,6 +41,24 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *
  * // as a string (percent)
  * autoColumnSize: {syncLimit: '40%'},
+ * ```
+ *
+ * The plugin uses {@link GhostTable} and {@link SamplesGenerator} for calculations.
+ * First, {@link SamplesGenerator} prepares samples of data with its coordinates.
+ * Next {@link GhostTable} uses coordinates to get cells' renderers and append all to the DOM through DocumentFragment.
+ *
+ * Sampling accepts additional options:
+ * - *samplingRatio* - Defines how many samples for the same length will be used to calculate. Default is `3`.
+ *   ```js
+ *   autoColumnSize: {
+ *     samplingRatio: 10,
+ *   }
+ *   ```
+ * - *allowSampleDuplicates* - Defines if duplicated values might be used in sampling. Default is `false`.
+ *   ```js
+ *   autoColumnSize: {
+ *     allowSampleDuplicates: true,
+ *   }
  * ```
  *
  * To configure this plugin see {@link options#autocolumnsize Options#autoColumnSize}.
@@ -100,6 +121,7 @@ export class AutoColumnSize extends BasePlugin {
      *
      * @private
      * @type {SamplesGenerator}
+     * @fires Hooks#modifyAutoColumnSizeSeed
      */
     this.samplesGenerator = new SamplesGenerator((row, column) => {
       const cellMeta = this.hot.getCellMeta(row, column);
@@ -109,25 +131,13 @@ export class AutoColumnSize extends BasePlugin {
         cellValue = this.hot.getDataAtCell(row, column);
       }
 
-      let bundleCountSeed = 0;
+      let bundleSeed = '';
 
-      if (cellMeta.label) {
-        const { value: labelValue, property: labelProperty } = cellMeta.label;
-        let labelText = '';
-
-        if (labelValue) {
-          labelText = typeof labelValue === 'function' ?
-            labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
-
-        } else if (labelProperty) {
-          const labelData = this.hot.getDataAtRowProp(row, labelProperty);
-          labelText = labelData !== null ? labelData : '';
-        }
-
-        bundleCountSeed = labelText.length;
+      if (this.hot.hasHook('modifyAutoColumnSizeSeed')) {
+        bundleSeed = this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, cellValue);
       }
 
-      return { value: cellValue, bundleCountSeed };
+      return { value: cellValue, bundleSeed };
     });
     /**
      * `true` only if the first calculation was performed.

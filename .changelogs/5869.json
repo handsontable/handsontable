@@ -1,7 +1,0 @@
-{
-  "title": "Fixed problems with `current` value for the `disableVisualSelection` option",
-  "type": "fixed",
-  "issue": 5869,
-  "breaking": false,
-  "framework": "none"
-}

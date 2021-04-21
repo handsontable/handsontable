@@ -232,6 +232,7 @@ class MergedCellCoords {
       // removing the whole merge
       if (changeStart <= mergeStart && changeEnd >= mergeEnd) {
         this.removed = true;
+
         return false;
 
         // removing the merge partially, including the beginning
@@ -281,6 +282,7 @@ class MergedCellCoords {
     } else if (direction === 'left') {
       return mergedCell.col > this.col;
     }
+
     return null;
   }
 

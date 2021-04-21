@@ -69,6 +69,7 @@ describe('AutoRowSize', () => {
     await sleep(200);
 
     const newHeight = spec().$container[0].scrollHeight;
+
     expect(oldHeight).toBeLessThan(newHeight);
   });
 
@@ -92,6 +93,7 @@ describe('AutoRowSize', () => {
     await sleep(200);
 
     const newHeight = spec().$container[0].scrollHeight;
+
     expect(oldHeight).toBeLessThan(newHeight);
   });
 
@@ -351,6 +353,7 @@ describe('AutoRowSize', () => {
 
   it('should consider renderer that uses conditional formatting for specific row & column index', () => {
     const data = arrayOfObjects();
+
     data.push({ id: '2', name: 'Rocket Man', lastName: 'In a tin can' });
 
     const hot = handsontable({
@@ -475,6 +478,7 @@ describe('AutoRowSize', () => {
     expect(parseInt(hot.getCell(2, -1).style.height, 10)).toBeInArray([22, 42]); // -1px of cell border
 
     const plugin = hot.getPlugin('manualRowMove');
+
     plugin.moveRow(1, 0);
     hot.render();
 
@@ -490,6 +494,7 @@ describe('AutoRowSize', () => {
         if (index === 22) {
           return 'a<br>much<br>longer<br>label';
         }
+
         return 'test';
       },
       autoRowSize: true,

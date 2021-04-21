@@ -58,6 +58,7 @@ describe('HiddenRows', () => {
       });
 
       const plugin = getPlugin('hiddenRows');
+
       plugin.disablePlugin();
       render();
 

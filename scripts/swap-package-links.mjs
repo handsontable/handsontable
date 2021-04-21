@@ -23,6 +23,7 @@ const linkPackage = (packageName, packageLocation) => {
     fse.ensureSymlinkSync(
       path.resolve(`${packageLocation}`),
       path.resolve(`./node_modules/${packageName}`),
+      'junction',
     );
 
     displayConfirmationMessage(`Symlink created ${packageName} -> ${packageLocation}.`);

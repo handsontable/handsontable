@@ -197,6 +197,7 @@ export function index(element) {
  */
 export function overlayContainsElement(overlayType, element, root) {
   const overlayElement = root.parentElement.querySelector(`.ht_clone_${overlayType}`);
+
   return overlayElement ? overlayElement.contains(element) : null;
 }
 
@@ -379,6 +380,7 @@ export function removeTextNodes(element) {
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     const childs = element.childNodes;
+
     for (let i = childs.length - 1; i >= 0; i--) {
       removeTextNodes(childs[i], element);
     }
@@ -395,6 +397,7 @@ export function removeTextNodes(element) {
  */
 export function empty(element) {
   let child;
+
   /* eslint-disable no-cond-assign */
   while (child = element.lastChild) {
     element.removeChild(child);
@@ -762,56 +765,11 @@ export function getComputedStyle(element, rootWindow = window) {
 /**
  * Returns the element's outer width.
  *
- * @see {preciseOuterWidth}
  * @param {HTMLElement} element An element to get the width from.
  * @returns {number} Element's outer width.
  */
 export function outerWidth(element) {
-  return element.offsetWidth;
-}
-
-/**
- * Calculates the current `transform` `scaleX` property value for the passed in
- * element, relative to the root document. Involves adding a dummy element of a
- * constant size to the DOM, be cautious about performance.
- *
- * @param {HTMLElement} element An element to get the `scaleX` from.
- * @returns {number} `scaleX` value.
- */
-export function computeScaleX(element) {
-  // A dummy element with a constant size, used to calculate the `scale`.
-  const dummy = element.ownerDocument.createElement('div');
-  const factor = 100;
-
-  dummy.style.width = `${factor}px`;
-  dummy.style.display = 'inline-block';
-  dummy.style.position = 'absolute';
-  dummy.style.left = '0';
-  dummy.style.top = '0';
-  dummy.style.visibility = 'hidden';
-
-  element.appendChild(dummy);
-
-  const dummyRect = dummy.getBoundingClientRect();
-  const scaleX = dummyRect.width / factor;
-
-  // IE doesn't support `HTMLElement#remove()`
-  dummy.parentNode.removeChild(dummy);
-
-  return scaleX;
-}
-
-/**
- * Returns the element's outer width rounded up to the nearest integer,
- * accounting for any scale transforms on parent elements. This function is
- * much more costly than `outerWidth`, use sparingly.
- *
- * @param {HTMLElement} element An element to get the width from.
- * @param {number} scaleX The current `transform` `scaleX` value (@see {computeScaleX}).
- * @returns {number} Element's outer width.
- */
-export function preciseOuterWidth(element, scaleX) {
-  return Math.ceil(element.getBoundingClientRect().width / scaleX);
+  return Math.ceil(element.getBoundingClientRect().width);
 }
 
 /**
@@ -961,6 +919,7 @@ export function getSelectionText(rootWindow = window) {
 // eslint-disable-next-line no-restricted-globals
 export function clearTextSelection(rootWindow = window) {
   const rootDocument = rootWindow.document;
+
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
   if (rootWindow.getSelection) {
     if (rootWindow.getSelection().empty) { // Chrome
@@ -993,6 +952,7 @@ export function setCaretPosition(element, pos, endPos) {
     } catch (err) {
       const elementParent = element.parentNode;
       const parentDisplayValue = elementParent.style.display;
+
       elementParent.style.display = 'block';
       element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
@@ -1013,10 +973,12 @@ let cachedScrollbarWidth;
 // eslint-disable-next-line no-restricted-globals
 function walkontableCalculateScrollbarWidth(rootDocument = document) {
   const inner = rootDocument.createElement('div');
+
   inner.style.height = '200px';
   inner.style.width = '100%';
 
   const outer = rootDocument.createElement('div');
+
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
   outer.style.left = '0px';
@@ -1029,6 +991,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
 
   (rootDocument.body || rootDocument.documentElement).appendChild(outer);
   const w1 = inner.offsetWidth;
+
   outer.style.overflow = 'scroll';
   let w2 = inner.offsetWidth;
 

@@ -162,6 +162,7 @@ export class DropdownMenu extends BasePlugin {
     const predefinedItems = {
       items: this.itemsFactory.getItems(settings)
     };
+
     this.registerEvents();
 
     if (typeof settings.callback === 'function') {
@@ -349,6 +350,7 @@ export class DropdownMenu extends BasePlugin {
   onAfterGetColHeader(col, TH) {
     // Corner or a higher-level header
     const headerRow = TH.parentNode;
+
     if (!headerRow) {
       return;
     }

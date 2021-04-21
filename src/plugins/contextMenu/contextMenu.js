@@ -333,6 +333,7 @@ export class ContextMenu extends BasePlugin {
       return element.nodeName === 'TD' || element.parentNode.nodeName === 'TD';
     }
     const element = event.target;
+
     this.close();
 
     if (hasClass(element, 'handsontableInput')) {

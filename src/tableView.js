@@ -255,6 +255,7 @@ class TableView {
 
       if (!this.isTextSelectionAllowed(event.target)) {
         const { rootWindow } = this.instance;
+
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -336,6 +337,7 @@ class TableView {
             if (event.isTargetWebComponent) {
               break;
             }
+
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
@@ -845,18 +847,19 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const rows = this.countRenderableRows();
+          const renderableRows = this.countRenderableRows();
+          const firstRenderedRow = calc.startRow;
+          const lastRenderedRow = calc.endRow;
 
           if (typeof viewportOffset === 'number') {
-            calc.startRow = Math.max(calc.startRow - viewportOffset, 0);
-            calc.endRow = Math.min(calc.endRow + viewportOffset, rows - 1);
+            calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
+            calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
 
           } else if (viewportOffset === 'auto') {
-            const center = calc.startRow + calc.endRow - calc.startRow;
-            const offset = Math.ceil(center / rows * 12);
+            const offset = Math.ceil(lastRenderedRow / renderableRows * 12);
 
-            calc.startRow = Math.max(calc.startRow - offset, 0);
-            calc.endRow = Math.min(calc.endRow + offset, rows - 1);
+            calc.startRow = Math.max(firstRenderedRow - offset, 0);
+            calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
           }
         }
         this.instance.runHooks('afterViewportRowCalculatorOverride', calc);
@@ -869,18 +872,19 @@ class TableView {
         }
 
         if (viewportOffset > 0 || viewportOffset === 'auto') {
-          const cols = this.countRenderableColumns();
+          const renderableColumns = this.countRenderableColumns();
+          const firstRenderedColumn = calc.startColumn;
+          const lastRenderedColumn = calc.endColumn;
 
           if (typeof viewportOffset === 'number') {
-            calc.startColumn = Math.max(calc.startColumn - viewportOffset, 0);
-            calc.endColumn = Math.min(calc.endColumn + viewportOffset, cols - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
           }
           if (viewportOffset === 'auto') {
-            const center = calc.startColumn + calc.endColumn - calc.startColumn;
-            const offset = Math.ceil(center / cols * 12);
+            const offset = Math.ceil(lastRenderedColumn / renderableColumns * 6);
 
-            calc.startRow = Math.max(calc.startColumn - offset, 0);
-            calc.endColumn = Math.min(calc.endColumn + offset, cols - 1);
+            calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
           }
         }
         this.instance.runHooks('afterViewportColumnCalculatorOverride', calc);
@@ -888,6 +892,7 @@ class TableView {
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
       columnHeaderHeight: () => {
         const columnHeaderHeight = this.instance.runHooks('modifyColumnHeaderHeight');
+
         return this.settings.columnHeaderHeight || columnHeaderHeight;
       }
     };

@@ -1,4 +1,4 @@
-import { addClass, outerHeight, computeScaleX, preciseOuterWidth } from './../helpers/dom/element';
+import { addClass, outerHeight, outerWidth } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 
 /**
@@ -69,6 +69,7 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const rowObject = { row };
+
     this.rows.push(rowObject);
 
     this.samples = samples;
@@ -121,6 +122,7 @@ class GhostTable {
       this.container = this.createContainer(this.hot.rootElement.className);
     }
     const columnObject = { col: column };
+
     this.columns.push(columnObject);
 
     this.samples = samples;
@@ -161,20 +163,8 @@ class GhostTable {
     if (!this.injected) {
       this.injectTable();
     }
-
-    const scaleX = computeScaleX(this.table.table);
-
     arrayEach(this.columns, (column) => {
-      // The reason why `preciseOuterWidth` is here instead of just `outerWidth` is because on Safari, for whatever
-      // reason, using just `outerWidth` does not give enough pixels for all the text to render.  `outerWidth`
-      // internally uses `offsetWidth`, which is always rounded to the nearest integer, whereas `preciseOuterWidth` uses
-      // `getBoundingClientRect`, calculates the current `scaleX` transform value, and rounds it up, always giving
-      // enough space for all the text to render on each line properly.
-      //
-      // (`getBoundingClientRect` on its own returns the width already rendered on the screen, which is usually useless
-      // when we want to reuse that measurement in some sibling/child element size, hence the need for `scaleX`
-      // calculation)
-      callback(column.col, preciseOuterWidth(column.table, scaleX));
+      callback(column.col, outerWidth(column.table));
     });
   }
 
@@ -220,6 +210,7 @@ class GhostTable {
     if (this.settings) {
       return this.settings[name];
     }
+
     return null;
 
   }

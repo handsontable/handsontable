@@ -64,6 +64,7 @@ describe('ColHeader', () => {
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -82,6 +83,7 @@ describe('ColHeader', () => {
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -102,6 +104,7 @@ describe('ColHeader', () => {
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('A');
     expect($.trim(ths.eq(1).text())).toEqual('B');
@@ -112,12 +115,14 @@ describe('ColHeader', () => {
 
   it('should show col headers with custom label', () => {
     const startCols = 5;
+
     handsontable({
       startCols,
       colHeaders: ['First', 'Second', 'Third']
     });
 
     const ths = getHtCore().find('thead th');
+
     expect(ths.length).toEqual(startCols);
     expect($.trim(ths.eq(0).text())).toEqual('First');
     expect($.trim(ths.eq(1).text())).toEqual('Second');
@@ -212,6 +217,7 @@ describe('ColHeader', () => {
     });
 
     const htCore = getHtCore();
+
     expect(htCore.find('thead th:eq(0)').text()).toEqual('A');
     expect(htCore.find('thead th:eq(1)').text()).toEqual('B');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('C');
@@ -409,6 +415,7 @@ describe('ColHeader', () => {
         return array;
       }
     });
+
     hot.render();
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height()).toEqual(45);

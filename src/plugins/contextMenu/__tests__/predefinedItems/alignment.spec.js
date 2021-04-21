@@ -372,6 +372,7 @@ describe('ContextMenu', () => {
 
     it('should trigger `afterSetCellMeta` callback after changing alignment by context menu', async() => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
+
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
