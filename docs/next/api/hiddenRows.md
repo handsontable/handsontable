@@ -61,9 +61,10 @@ hot.render();
 
 ### hiddenRows
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2840
-  
+
 
 _hiddenRows.hiddenRows : boolean | object_
+
 The [HiddenRows](./hidden-rows/) plugin allows hiding of certain rows. You can pass additional configuration with an
 object notation. Options that are then available are:
  * `rows` - an array of rows that should be hidden on plugin initialization
@@ -89,45 +90,50 @@ hiddenRows: {
 
 ### destroy
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L461
-  
+
 
 _hiddenRows.destroy()_
+
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L152
-  
+
 
 _hiddenRows.disablePlugin()_
+
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L111
-  
+
 
 _hiddenRows.enablePlugin()_
+
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getHiddenRows
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L260
-  
+
 
 _hiddenRows.getHiddenRows() ⇒ Array&lt;number&gt;_
+
 Returns an array of visual indexes of hidden rows.
 
 
 
 ### hideRow
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L251
-  
+
 
 _hiddenRows.hideRow(...row)_
+
 Hides the row provided as row index (counting from 0).
 
 
@@ -139,9 +145,10 @@ Hides the row provided as row index (counting from 0).
 
 ### hideRows
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L219
-  
+
 
 _hiddenRows.hideRows(rows)_
+
 Hides the rows provided in the array.
 
 
@@ -153,9 +160,10 @@ Hides the rows provided in the array.
 
 ### isEnabled
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L104
-  
+
 
 _hiddenRows.isEnabled() ⇒ boolean_
+
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) method is called.
 
@@ -163,9 +171,10 @@ hook and if it returns `true` than the [enablePlugin](#HiddenRows+enablePlugin) 
 
 ### isHidden
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L272
-  
+
 
 _hiddenRows.isHidden(row) ⇒ boolean_
+
 Checks if the provided row is hidden.
 
 
@@ -177,9 +186,10 @@ Checks if the provided row is hidden.
 
 ### isValidConfig
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L282
-  
+
 
 _hiddenRows.isValidConfig(hiddenRows) ⇒ boolean_
+
 Checks whether all of the provided row indexes are within the bounds of the table.
 
 
@@ -191,9 +201,10 @@ Checks whether all of the provided row indexes are within the bounds of the tabl
 
 ### showRow
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L210
-  
+
 
 _hiddenRows.showRow(...row)_
+
 Shows the row provided as row index (counting from 0).
 
 
@@ -205,9 +216,10 @@ Shows the row provided as row index (counting from 0).
 
 ### showRows
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L165
-  
+
 
 _hiddenRows.showRows(rows)_
+
 Shows the rows provided in the array.
 
 
@@ -219,9 +231,10 @@ Shows the rows provided in the array.
 
 ### updatePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/hiddenRows/hiddenRows.js#L142
-  
+
 
 _hiddenRows.updatePlugin()_
+
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

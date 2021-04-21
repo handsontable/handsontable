@@ -62,9 +62,10 @@ customBorders: [
 
 ### customBorders
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L565
-  
+
 
 _customBorders.customBorders : boolean | Array&lt;object&gt;_
+
 If `true`, enables the [CustomBorders](./custom-borders/) plugin, which enables an option to apply custom borders through the context
 menu (configurable with context menu key `borders`). To initialize Handsontable with predefined custom borders,
 provide cell coordinates and border styles in a form of an array.
@@ -125,9 +126,10 @@ customBorders: [
 
 ### clearBorders
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L250
-  
+
 
 _customBorders.clearBorders(selectionRanges)_
+
 Clear custom borders.
 
 **Example**  
@@ -150,36 +152,40 @@ customBordersPlugin.clearBorders();
 
 ### destroy
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L767
-  
+
 
 _customBorders.destroy()_
+
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L120
-  
+
 
 _customBorders.disablePlugin()_
+
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L106
-  
+
 
 _customBorders.enablePlugin()_
+
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### getBorders
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L207
-  
+
 
 _customBorders.getBorders(selectionRanges) ⇒ Array&lt;object&gt;_
+
 Get custom borders.
 
 **Example**  
@@ -203,9 +209,10 @@ customBordersPlugin.getBorders();
 
 ### isEnabled
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L99
-  
+
 
 _customBorders.isEnabled() ⇒ boolean_
+
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugin) method is called.
 
@@ -213,9 +220,10 @@ hook and if it returns `true` than the [enablePlugin](#CustomBorders+enablePlugi
 
 ### setBorders
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L158
-  
+
 
 _customBorders.setBorders(selectionRanges, borderObject)_
+
 Set custom borders.
 
 **Example**  
@@ -241,9 +249,10 @@ customBordersPlugin.setBorders(hot.getSelectedRange(), {left: {hide: false, widt
 
 ### updatePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/customBorders/customBorders.js#L129
-  
+
 
 _customBorders.updatePlugin()_
+
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

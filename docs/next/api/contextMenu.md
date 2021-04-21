@@ -48,9 +48,10 @@ contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 
 ### allowInsertColumn
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L699
-  
+
 
 _contextMenu.allowInsertColumn : boolean_
+
 If set to `false`, there won't be an option to insert new columns in the Context Menu.
 
 **Default**: <code>true</code>  
@@ -64,9 +65,10 @@ allowInsertColumn: false,
 
 ### allowInsertRow
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L683
-  
+
 
 _contextMenu.allowInsertRow : boolean_
+
 If set to `false`, there won't be an option to insert new rows in the Context Menu.
 
 **Default**: <code>true</code>  
@@ -80,9 +82,10 @@ allowInsertRow: false,
 
 ### allowRemoveColumn
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L731
-  
+
 
 _contextMenu.allowRemoveColumn : boolean_
+
 If set to `false`, there won't be an option to remove columns in the Context Menu.
 
 **Default**: <code>true</code>  
@@ -96,9 +99,10 @@ allowRemoveColumn: false,
 
 ### allowRemoveRow
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L715
-  
+
 
 _contextMenu.allowRemoveRow : boolean_
+
 If set to `false`, there won't be an option to remove rows in the Context Menu.
 
 **Default**: <code>true</code>  
@@ -112,9 +116,10 @@ allowRemoveRow: false,
 
 ### contextMenu
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1773
-  
+
 
 _contextMenu.contextMenu : boolean | Array&lt;string&gt; | object_
+
 Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
 place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
 Possible values:
@@ -168,9 +173,10 @@ contextMenu: {
 
 ### DEFAULT_ITEMS
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L94
-  
+
 
 _ContextMenu.DEFAULT\_ITEMS ⇒ Array&lt;string&gt;_
+
 Context menu default items order when `contextMenu` options is set as `true`.
 
 
@@ -178,45 +184,50 @@ Context menu default items order when `contextMenu` options is set as `true`.
 
 ### close
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L246
-  
+
 
 _contextMenu.close()_
+
 Closes the menu.
 
 
 
 ### destroy
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L385
-  
+
 
 _contextMenu.destroy()_
+
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L195
-  
+
 
 _contextMenu.disablePlugin()_
+
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L155
-  
+
 
 _contextMenu.enablePlugin()_
+
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### executeCommand
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L281
-  
+
 
 _contextMenu.executeCommand(commandName, ...params)_
+
 Execute context menu command.
 
 You can execute all predefined commands:
@@ -249,9 +260,10 @@ Or you can execute command registered in settings where `key` is your command na
 
 ### isEnabled
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L148
-  
+
 
 _contextMenu.isEnabled() ⇒ boolean_
+
 Checks if the plugin is enabled in the handsontable settings. This method is executed in [Hooks#beforeInit](./Hooks/#beforeInit)
 hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin) method is called.
 
@@ -259,9 +271,10 @@ hook and if it returns `true` than the [enablePlugin](#ContextMenu+enablePlugin)
 
 ### open
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L210
-  
+
 
 _contextMenu.open(event)_
+
 Opens menu and re-position it based on the passed coordinates.
 
 
@@ -273,9 +286,10 @@ Opens menu and re-position it based on the passed coordinates.
 
 ### updatePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/contextMenu/contextMenu.js#L185
-  
+
 
 _contextMenu.updatePlugin()_
+
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 

@@ -37,9 +37,10 @@ const hot = new Handsontable(container, {
 
 ### nestedHeaders
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2860
-  
+
 
 _nestedHeaders.nestedHeaders : Array&lt;Array&gt;_
+
 Allows creating a nested header structure, using the HTML's colspan attribute.
 
 **Default**: <code>undefined</code>  
@@ -57,9 +58,10 @@ nestedHeaders: [
 
 ### detectedOverlappedHeaders
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L73
-  
+
 
 _nestedHeaders.detectedOverlappedHeaders : boolean_
+
 The flag which determines that the nested header settings contains overlapping headers
 configuration.
 
@@ -68,45 +70,50 @@ configuration.
 
 ### destroy
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L547
-  
+
 
 _nestedHeaders.destroy()_
+
 Destroys the plugin instance.
 
 
 
 ### disablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L140
-  
+
 
 _nestedHeaders.disablePlugin()_
+
 Disables the plugin functionality for this Handsontable instance.
 
 
 
 ### enablePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L87
-  
+
 
 _nestedHeaders.enablePlugin()_
+
 Enables the plugin functionality for this Handsontable instance.
 
 
 
 ### isEnabled
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L80
-  
+
 
 _nestedHeaders.isEnabled() ⇒ boolean_
+
 Check if plugin is enabled.
 
 
 
 ### updatePlugin
 ::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/plugins/nestedHeaders/nestedHeaders.js#L115
-  
+
 
 _nestedHeaders.updatePlugin()_
+
 Updates the plugin state. This method is executed when [Core#updateSettings](./Core/#updateSettings) is invoked.
 
 
