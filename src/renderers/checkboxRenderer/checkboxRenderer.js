@@ -16,6 +16,8 @@ import Hooks from '../../pluginHooks';
 const isListeningKeyDownEvent = new WeakMap();
 const isCheckboxListenerAdded = new WeakMap();
 const BAD_VALUE_CLASS = 'htBadValue';
+const ATTR_ROW = 'data-row';
+const ATTR_COLUMN = 'data-col';
 
 export const RENDERER_TYPE = 'checkbox';
 
@@ -91,8 +93,8 @@ export function checkboxRenderer(instance, TD, row, col, prop, value, cellProper
     badValue = true;
   }
 
-  input.setAttribute('data-row', row);
-  input.setAttribute('data-col', col);
+  input.setAttribute(ATTR_ROW, row);
+  input.setAttribute(ATTR_COLUMN, col);
 
   if (!badValue && labelOptions) {
     let labelText = '';
@@ -341,9 +343,15 @@ function createLabel(rootDocument, text) {
  * @param {Core} instance The Handsontable instance.
  */
 function onMouseUp(event, instance) {
-  if (!isCheckboxInput(event.target)) {
+  const { target } = event;
+
+  if (!isCheckboxInput(target)) {
     return;
   }
+  if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
+    return;
+  }
+
   setTimeout(instance.listen, 10);
 }
 
@@ -351,17 +359,21 @@ function onMouseUp(event, instance) {
  * `click` callback.
  *
  * @private
- * @param {Event} event `click` event.
+ * @param {MouseEvent} event `click` event.
  * @param {Core} instance The Handsontable instance.
- * @returns {boolean|undefined}
  */
 function onClick(event, instance) {
-  if (!isCheckboxInput(event.target)) {
-    return false;
+  const { target } = event;
+
+  if (!isCheckboxInput(target)) {
+    return;
+  }
+  if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
+    return;
   }
 
-  const row = parseInt(event.target.getAttribute('data-row'), 10);
-  const col = parseInt(event.target.getAttribute('data-col'), 10);
+  const row = parseInt(event.target.getAttribute(ATTR_ROW), 10);
+  const col = parseInt(event.target.getAttribute(ATTR_COLUMN), 10);
   const cellProperties = instance.getCellMeta(row, col);
 
   if (cellProperties.readOnly) {
@@ -374,15 +386,19 @@ function onClick(event, instance) {
  *
  * @param {Event} event `change` event.
  * @param {Core} instance The Handsontable instance.
- * @returns {boolean}
  */
 function onChange(event, instance) {
-  if (!isCheckboxInput(event.target)) {
-    return false;
+  const { target } = event;
+
+  if (!isCheckboxInput(target)) {
+    return;
+  }
+  if (!target.hasAttribute(ATTR_ROW) || !target.hasAttribute(ATTR_COLUMN)) {
+    return;
   }
 
-  const row = parseInt(event.target.getAttribute('data-row'), 10);
-  const col = parseInt(event.target.getAttribute('data-col'), 10);
+  const row = parseInt(target.getAttribute(ATTR_ROW), 10);
+  const col = parseInt(target.getAttribute(ATTR_COLUMN), 10);
   const cellProperties = instance.getCellMeta(row, col);
 
   if (!cellProperties.readOnly) {
