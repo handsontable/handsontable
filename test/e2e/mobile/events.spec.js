@@ -65,6 +65,7 @@ describe('Events', () => {
     });
 
     const cell = hot.getCell(1, 1);
+
     {
       triggerTouchEvent('touchstart', cell);
 
