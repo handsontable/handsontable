@@ -29,8 +29,8 @@ function UndoRedo(instance) {
   this.ignoreNewActions = false;
   this.enabled = false;
 
-  instance.addHook('beforeUndoStackChange', (action, filterBySource) => {
-    if (filterBySource === 'UndoRedo.undo' || filterBySource === 'UndoRedo.redo' || filterBySource === 'auto') {
+  instance.addHook('beforeUndoStackChange', (action, source) => {
+    if (source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto') {
       return false;
     }
   });
