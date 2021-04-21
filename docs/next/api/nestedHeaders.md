@@ -33,6 +33,26 @@ const hot = new Handsontable(container, {
  ],
 ```
 
+## Options
+
+### nestedHeaders
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L2860
+  
+
+_nestedHeaders.nestedHeaders : Array&lt;Array&gt;_
+Allows creating a nested header structure, using the HTML's colspan attribute.
+
+**Default**: <code>undefined</code>  
+**Category**: NestedHeaders  
+**Example**  
+```
+nestedHeaders: [
+  ['A', {label: 'B', colspan: 8}, 'C'],
+  ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
+  ['H', 'I', 'J', 'K', 'L', 'M', 'N', 'R', 'S', 'T']
+],
+```
+
 ## Members
 
 ### detectedOverlappedHeaders

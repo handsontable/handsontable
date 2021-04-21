@@ -44,6 +44,126 @@ contextMenu: true
 contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo']
 ```
 
+## Options
+
+### allowInsertColumn
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L699
+  
+
+_contextMenu.allowInsertColumn : boolean_
+If set to `false`, there won't be an option to insert new columns in the Context Menu.
+
+**Default**: <code>true</code>  
+**Category**: ContextMenu  
+**Example**  
+```js
+// hide "Insert column left" and "Insert column right" options from the Context Menu
+allowInsertColumn: false,
+```
+
+
+### allowInsertRow
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L683
+  
+
+_contextMenu.allowInsertRow : boolean_
+If set to `false`, there won't be an option to insert new rows in the Context Menu.
+
+**Default**: <code>true</code>  
+**Category**: ContextMenu  
+**Example**  
+```js
+// hide "Insert row above" and "Insert row below" options from the Context Menu
+allowInsertRow: false,
+```
+
+
+### allowRemoveColumn
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L731
+  
+
+_contextMenu.allowRemoveColumn : boolean_
+If set to `false`, there won't be an option to remove columns in the Context Menu.
+
+**Default**: <code>true</code>  
+**Category**: ContextMenu  
+**Example**  
+```js
+// hide "Remove column" option from the Context Menu
+allowRemoveColumn: false,
+```
+
+
+### allowRemoveRow
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L715
+  
+
+_contextMenu.allowRemoveRow : boolean_
+If set to `false`, there won't be an option to remove rows in the Context Menu.
+
+**Default**: <code>true</code>  
+**Category**: ContextMenu  
+**Example**  
+```js
+// hide "Remove row" option from the Context Menu
+allowRemoveRow: false,
+```
+
+
+### contextMenu
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1773
+  
+
+_contextMenu.contextMenu : boolean | Array&lt;string&gt; | object_
+Defines if the right-click context menu should be enabled. Context menu allows to create new row or column at any
+place in the grid among [other features](https://docs.handsontable.com/demo-context-menu.html).
+Possible values:
+* `true` (to enable default options),
+* `false` (to disable completely)
+* an array of [predefined options](https://docs.handsontable.com/demo-context-menu.html#page-specific),
+* an object [with defined structure](https://docs.handsontable.com/demo-context-menu.html#page-custom).
+
+If the value is an object, you can also customize the options with:
+* `disableSelection` - a `boolean`, if set to true it prevents mouseover from highlighting the item for selection
+* `isCommand` - a `boolean`, if set to false it prevents clicks from executing the command and closing the menu.
+
+See [the context menu demo](https://docs.handsontable.com/demo-context-menu.html) for examples.
+
+**Default**: <code>undefined</code>  
+**Category**: ContextMenu  
+**Example**  
+```js
+// as a boolean
+contextMenu: true,
+
+// as an array
+contextMenu: ['row_above', 'row_below', '---------', 'undo', 'redo'],
+
+// as an object (`name` attribute is required in the custom keys)
+contextMenu: {
+  items: {
+    "option1": {
+      name: "option1"
+    },
+    "option2": {
+      name: "option2",
+      submenu: {
+        items: [
+          {
+            key: "option2:suboption1",
+            name: "option2:suboption1",
+            callback: function(key, options) {
+              ...
+            }
+          },
+          ...
+        ]
+      }
+    }
+  }
+},
+```
+
 ## Members
 
 ### DEFAULT_ITEMS

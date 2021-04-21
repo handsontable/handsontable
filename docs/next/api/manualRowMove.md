@@ -28,6 +28,27 @@ The plugin creates additional components to make moving possibly using user inte
 - guideline - line which shows where rows has been moved.
 
 
+## Options
+
+### manualRowMove
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1928
+  
+
+_manualRowMove.manualRowMove : boolean | Array&lt;number&gt;_
+Turns on [Manual row move](https://docs.handsontable.com/demo-moving-rows-and-columns.html), if set to a boolean or define initial row order (as an array of row indexes).
+
+**Default**: <code>undefined</code>  
+**Category**: ManualRowMove  
+**Example**  
+```js
+// as a boolean
+manualRowMove: true,
+
+// as a array with initial order
+// (move row index at 0 to 1 and move row index at 1 to 4)
+manualRowMove: [1, 4],
+```
+
 ## Methods
 
 ### destroy

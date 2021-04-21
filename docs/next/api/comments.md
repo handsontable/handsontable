@@ -55,6 +55,46 @@ commentsPlugin.show();
 commentsPlugin.removeComment();
 ```
 
+## Options
+
+### comments
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L502
+  
+
+_comments.comments : boolean | Array&lt;object&gt;_
+If `true`, enables the [Comments](./comments/) plugin, which enables an option to apply cell comments through the context menu
+(configurable with context menu keys `commentsAddEdit`, `commentsRemove`).
+
+To initialize Handsontable with predefined comments, provide cell coordinates and comment text values in a form of
+an array.
+
+See [Comments](https://docs.handsontable.com/demo-comments_.html) demo for examples.
+
+**Default**: <code>false</code>  
+**Category**: Comments  
+**Example**  
+```js
+// enable comments plugin
+comments: true,
+
+// or an object with extra predefined plugin config:
+
+comments: {
+  displayDelay: 1000
+}
+
+// or
+// enable comments plugin and add predefined comments
+const hot = new Handsontable(document.getElementById('example'), {
+  data: getData(),
+  comments: true,
+  cell: [
+    { row: 1, col: 1, comment: { value: 'Foo' } },
+    { row: 2, col: 2, comment: { value: 'Bar' } }
+  ]
+});
+```
+
 ## Members
 
 ### range

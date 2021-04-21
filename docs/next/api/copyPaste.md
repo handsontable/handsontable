@@ -38,6 +38,31 @@ copyPaste: {
 },
 ```
 
+## Options
+
+### copyPaste
+::: source-code-link https://github.com/handsontable/handsontable/blob/develop/src/dataMap/metaManager/metaSchema.js#L1797
+  
+
+_copyPaste.copyPaste : object | boolean_
+Disables or enables the copy/paste functionality.
+
+**Default**: <code>true</code>  
+**Category**: CopyPaste  
+**Example**  
+```js
+// disable copy and paste
+copyPaste: false,
+
+// enable copy and paste with custom configuration
+copyPaste: {
+  columnsLimit: 25,
+  rowsLimit: 50,
+  pasteMode: 'shift_down',
+  uiContainer: document.body,
+},
+```
+
 ## Members
 
 ### columnsLimit
