@@ -2,10 +2,15 @@
 {{>hot-docs~}}
 {{/if}}{{/children~}}
 
-## Members
-{{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#unless (isFunction)}}
+## Options
+{{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#unless (isFunction)}}{{#if isOption}}
 {{>hot-docs~}}
-{{/unless}}{{/unless}}{{/children~}}
+{{/if}}{{/unless}}{{/unless}}{{/children~}}
+
+## Members
+{{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#unless (isFunction)}}{{#unless isOption}}
+{{>hot-docs~}}
+{{/unless}}{{/unless}}{{/unless}}{{/children~}}
 
 ## Methods
 {{#children inherited=undefined ~}}{{#unless (isConstructor)}}{{#if (isFunction)}}
