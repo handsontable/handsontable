@@ -32,7 +32,7 @@ describe('UndoRedo', () => {
       hot.undo();
 
       await sleep(100);
-      
+
       expect(beforeUndoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
       expect(hookData.actionType).toEqual('remove_row');
