@@ -52,7 +52,7 @@ const seo = {
 
 /// classifications
 const isOptions = data => data[0].meta.filename === 'metaSchema.js';
-const isPlugin = data => data[0].customTags?.filter(tag=>tag.tag === 'plugin' && tag.value).length > 0 ?? false;
+const isPlugin = data => data[0].customTags?.filter(tag => tag.tag === 'plugin' && tag.value).length > 0 ?? false;
 
 /// paths construction
 const source = file => path.join(__dirname, pathToSource, file);
@@ -118,34 +118,35 @@ const linkToSource = data => data.map((x) => {
 });
 
 const optionsPerPlugin = {};
-const memorizeOptions = data => !isOptions(data) ? data : data.map(x => {
-  if(x.category){
-    x.category.split(',').forEach(category=>{
-      optionsPerPlugin[category] = optionsPerPlugin[category] || [];
-      optionsPerPlugin[category].push(x);
+const memorizeOptions = data => (!isOptions(data) ? data : data.map((x) => {
+  if (x.category) {
+    x.category.split(',').forEach((category) => {
+      const cat = category.trim();
+      optionsPerPlugin[cat] = optionsPerPlugin[cat] || [];
+      optionsPerPlugin[cat].push(x);
     });
   }
   return x;
-});
-const applyPluginOptions = data => {
-  if(isPlugin(data)){
+}));
+const applyPluginOptions = (data) => {
+  if (isPlugin(data)) {
     const plugin = data[0].customTags
-      ?.filter(tag=>tag.tag === 'plugin').pop()
+      ?.filter(tag => tag.tag === 'plugin').pop()
       ?.value;
-    
-    const options = optionsPerPlugin[plugin]?.map(option => {
+
+    const options = optionsPerPlugin[plugin]?.map((option) => {
       return {
-        ...option, 
-        isOption: true, 
+        ...option,
+        isOption: true,
         memberof: plugin // workaround to force print as a member.
       };
     }) ?? [];
-    
-    const index = data.findIndex(x => x.kind==='constructor');
-    data.splice(index+1,0,...options);
+
+    const index = data.findIndex(x => x.kind === 'constructor');
+    data.splice(index + 1, 0, ...options);
   }
   return data;
-} 
+};
 
 const preProcessors = [
   sort,
