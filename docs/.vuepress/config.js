@@ -31,11 +31,12 @@ module.exports = {
   ],
   markdown: {
     toc: {
-      includeLevel: [2],
+      includeLevel: [2, 3],
       containerHeaderHtml: '<div class="toc-container-header">Table of contents</div>'
     },
   },
   plugins: [
+    'tabs',
     ['sitemap', {
       hostname: 'https://handsontable.com',
     }],

@@ -4,8 +4,8 @@
       <template #page-top>
         <div v-if="show" class="page-top">
           <div class="version-alert">
-            <p v-if="isNext">This is an unreleased documentation for the next version of Handsontable.</p>
-            <p v-else-if="!isLatest">You're viewing a documentation of a previous version of Handsontable.</p>
+            <p v-if="isNext">This is unreleased documentation for Handsontable next version.</p>
+            <p v-else-if="!isLatest">This is a documentation of an earlier version of Handsontable.</p>
           </div>
         </div>
       </template>
@@ -48,13 +48,15 @@ export default {
   min-height 100%
 
 .version-alert
-  background #104bcd
   margin-top 2rem
-  padding 1.2rem 1.2rem
+  padding 1rem 1.2rem
   border-radius 6px
-  color #fff
+  color $textColor
+  border 1px solid #e9eef2
+  background #fafbff
   p
-    padding 0
     margin 0
-    line-height 1
+    padding 0
+    font-weight 500
+    line-height 1.5
 </style>

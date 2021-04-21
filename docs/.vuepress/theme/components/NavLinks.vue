@@ -8,6 +8,9 @@
       <NavVersionedLink :item="guideLink"/>
     </div>
     <div class="nav-item">
+      <NavVersionedLink :item="examplesLink"/>
+    </div>
+    <div class="nav-item">
       <NavVersionedLink :item="apiLink"/>
     </div>
     <div
@@ -46,6 +49,12 @@ export default {
       return {
         link: '/',
         text: 'Guides'
+      }
+    },
+    examplesLink(){
+      return {
+        link: '/examples/',
+        text: 'Examples'
       }
     },
     apiLink(){
@@ -132,7 +141,7 @@ export default {
   .nav-item > a
     &.external > span
       display none
-    &:hover, &.router-link-active
+    &.router-link-active
       margin-bottom -2px
       border-bottom 2px solid lighten($accentColor, 8%)
 </style>

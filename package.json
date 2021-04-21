@@ -89,7 +89,9 @@
     "hot-formula-parser": "^4.0.0",
     "moment": "2.24.0",
     "numbro": "2.1.2",
-    "pikaday": "1.8.0"
+    "pikaday": "1.8.0",
+    "vue-tabs-component": "^1.5.0",
+    "vuepress-plugin-tabs": "^0.3.0"
   },
   "devDependencies": {
     "@actions/core": "^1.2.6",

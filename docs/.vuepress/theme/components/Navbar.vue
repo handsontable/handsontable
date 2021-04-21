@@ -93,8 +93,7 @@ $navbar-horizontal-padding = 1.5rem
   border-color: #e9eef2;
   a, span, img
     display inline-block
-    text-transform capitalize
-    font-weight 600
+    font-weight 500
     font-size: 14px
   .home-link
     margin-right 2rem

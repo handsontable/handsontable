@@ -145,7 +145,7 @@ export default {
 
         if (matchQuery(query, p)) {
           res.push(Object.assign({}, p, {
-            category: apiRegex.exec(p.path) ? 'API References' : 'Guides'
+            category: apiRegex.exec(p.path) ? 'API Reference' : 'Guides'
           }))
         } else if (p.headers) { //todo add headers at end of the result list
           for (let j = 0; j < p.headers.length; j++) {
@@ -155,7 +155,7 @@ export default {
               res.push(Object.assign({}, p, {
                 path: p.path + '#' + h.slug,
                 header: h,
-                category: apiRegex.exec(p.path) ? 'API References' : 'Guides'
+                category: apiRegex.exec(p.path) ? 'API Reference' : 'Guides'
               }))
             }
           }
@@ -250,11 +250,10 @@ export default {
   margin-right 2rem
   input
     cursor text
-    width 13rem
+    width 14rem
     height: 2rem
-    color #104bcd
     display inline-block
-    border 1px solid darken($borderColor, 10%)
+    border 1px solid #cfdbe4
     border-radius 2rem
     font-size 0.9rem
     line-height 2rem
@@ -264,19 +263,25 @@ export default {
     background #fff url(search.svg) 0.6rem 0.5rem no-repeat
     background-size 1rem
     &:focus
+      color #104bcd
       cursor auto
       border-color $accentColor
   .suggestions
     background #fff
     width 26rem
     position absolute
-    top 2rem
+    top 1.6rem
     border 1px solid darken($borderColor, 10%)
     border-radius 6px
     padding 0.4rem
     list-style-type none
     &.align-right
       right 0
+    li:not(.suggestion) {
+      padding 0.4rem 0.6rem;
+      font-weight: 500;
+      font-size: 15px;
+    }
   .suggestion
     line-height 1.4
     padding 0.4rem 0.6rem

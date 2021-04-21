@@ -1,0 +1,26 @@
+/* 
+  Customization of the native code group tabs
+*/
+
+.theme-code-group {
+  
+  li, button {
+    outline: none!important;
+  }
+  
+  .theme-code-group__nav {
+
+    .theme-code-group__nav-tab {
+      padding: 0 10px 4px!important;
+    }
+
+    .theme-code-group__nav-tab-active {
+      border-color: #fff!important;
+    }
+  }
+}
+
+/* Hide the name of the programming language */
+div[class*="language-"]::before {
+  content: '';
+}
