@@ -93,16 +93,10 @@ describe('Formulas general', () => {
 
       const plugin = getPlugin('formulas');
 
-      plugin.addSheet([[1, 2, 3]], 'Test Sheet 2');
+      plugin.addSheet('Test Sheet 2', [[1, 2, 3]]);
 
-      expect(hfInstance1.doesSheetExist('Test Sheet 2'));
+      expect(hfInstance1.doesSheetExist('Test Sheet 2')).toBe(true);
       expect(hfInstance1.getSheetSerialized(hfInstance1.getSheetId('Test Sheet 2'))).toEqual([[1, 2, 3]]);
-
-      plugin.addSheet([[11, 21, 31]], 'Test Sheet 3', true);
-
-      expect(plugin.sheetName).toEqual('Test Sheet 3');
-      expect(plugin.sheetId).toEqual(hfInstance1.getSheetId(plugin.sheetName));
-      expect(getData()).toEqual([[11, 21, 31]]);
     });
   });
 });

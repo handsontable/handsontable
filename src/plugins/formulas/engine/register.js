@@ -10,7 +10,7 @@ import { mergeEngineSettings } from './settings';
  *
  * @param {object} pluginSettings Object containing the plugin settings.
  * @param {object} additionalSettings Object containing additional settings, overwriting the others.
- * @param {strin} hotId Handsontable guid.
+ * @param {string} hotId Handsontable guid.
  * @returns {null|object} Returns the engine instance if everything worked right and `null` otherwise.
  */
 export function setupEngine(pluginSettings, additionalSettings, hotId) {

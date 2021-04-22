@@ -1187,7 +1187,7 @@ declare namespace Handsontable {
       sheetName: string;
       sheetId: number;
 
-      addSheet(sheetData: CellValue[][], sheetName: string, autoLoad: boolean): boolean;
+      addSheet(sheetName: string, sheetData: CellValue[][]): boolean;
       switchSheet(sheetName: string): void;
     }
 

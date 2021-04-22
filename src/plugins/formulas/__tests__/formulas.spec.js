@@ -1447,7 +1447,11 @@ describe('Formulas general', () => {
     it('should block creating too many rows', () => {
       const hot = handsontable({
         data: [],
-        formulas: true
+        formulas: {
+          engine: {
+            hyperformula: HyperFormula
+          }
+        }
       });
 
       hot.alter('insert_row', 0, 100000);
@@ -1458,7 +1462,9 @@ describe('Formulas general', () => {
     it('should block creating too many columns', () => {
       const hot = handsontable({
         data: [],
-        formulas: true
+        formulas: {
+          engine: HyperFormula
+        }
       });
 
       hot.alter('insert_row', 0, 100000);
@@ -1474,7 +1480,9 @@ describe('Formulas general', () => {
           ['x', ''],
           ['', ''],
         ],
-        formulas: true
+        formulas: {
+          engine: HyperFormula
+        }
       });
 
       hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
@@ -1490,7 +1498,9 @@ describe('Formulas general', () => {
           ['1', '2', 'x', ''],
           ['3', '4'],
         ],
-        formulas: true
+        formulas: {
+          engine: HyperFormula
+        }
       });
 
       hot.setDataAtCell(0, 2, '{=TRANSPOSE(A1:B2)}');
