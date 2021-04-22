@@ -19,11 +19,11 @@ body {
 body, html, #app {
   min-height 100vh;
 }
-  
+
 .hidden{
   display none
 }
-  
+
 a.source-code-link{
   font-size 12px
   float right
@@ -301,11 +301,42 @@ div.js-fiddle-link {
   background-color: #fafbff;
 }
 
-/* Keyboard formatting */
+/* Keyboard keys names formatting */
+
 kbd {
   padding: 0 0.25em;
-  font-size :13px;
-  font-weight: 600;
+  font-size: 13px;
   border: 1px solid #bbc6d3;
+  border-bottom-width: 2px;
   background: #fafbff;
+}
+  
+/* Styles for the icon-pack page */
+
+.icons-wrapper {
+  margin-top: 30px;
+  text-align: center;
+  display: flex;
+  justify-content: space-evenly;
+  
+  & > div {
+    width: 20%;
+    margin: 0 0 2.4rem 0;
+    line-height: 1;
+  }
+  
+  svg {
+    width: 48px;
+    height: 48px;
+    fill: #282c34;
+  }
+  
+  span {
+    padding: 0 10px;
+    display: block;
+    white-space: word-wrap;
+    overflow: hidden;
+    font-size: 12px;
+    text-align: center;
+  }
 }

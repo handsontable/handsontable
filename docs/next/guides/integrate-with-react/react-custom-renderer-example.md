@@ -4,12 +4,11 @@ permalink: /next/react-custom-renderer-example
 canonicalUrl: /react-custom-renderer-example
 ---
 
-# Custom renderer example
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/react` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
 
-::: example #example1 :react
-```js
+```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { HotTable } from '@handsontable/react';
@@ -49,7 +48,8 @@ class App extends React.Component {
         }
       ],
       colHeaders: true,
-      rowHeights: 55
+      rowHeights: 55,
+      licenseKey: 'non-commercial-and-evaluation'
     };
   }
 
@@ -67,4 +67,3 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById('example1'));
 ```
-:::

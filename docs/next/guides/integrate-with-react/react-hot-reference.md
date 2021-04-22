@@ -4,12 +4,11 @@ permalink: /next/react-hot-reference
 canonicalUrl: /react-hot-reference
 ---
 
-# Referencing the Handsontable instance
+# {{ $frontmatter.title }}
 
 An implementation of the `@handsontable/react` explaining how to reference the Handsontable instance from the wrapper component.
 
-::: example #example1 :react
-```js
+```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {HotTable} from '@handsontable/react';
@@ -21,8 +20,9 @@ class App extends React.Component {
 
     this.id = 'hot';
     this.hotSettings = {
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
-      colHeaders: true
+      data: Handsontable.helper.createSpreadsheetData(100, 50),
+      colHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation'
     };
     this.hotTableComponent = React.createRef();
   }
@@ -45,4 +45,3 @@ class App extends React.Component {
 
 ReactDOM.render(<App/>, document.getElementById('example1'));
 ```
-:::

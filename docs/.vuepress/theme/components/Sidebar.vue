@@ -29,7 +29,7 @@ export default {
 .sidebar
   width 18rem
   border-color #e9eef2
-  //background-color #fafbff
+  background-color #fafbff
   
   @media (max-width: $MQMobile) {
     width 18rem

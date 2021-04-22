@@ -26,7 +26,7 @@
   "license": "CC BY 4.0",
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "@babel/plugin-proposal-decorators": "^7.13.15",
+    "@babel/plugin-proposal-decorators": "^7.13.5",
     "@babel/plugin-syntax-class-properties": "^7.12.13",
     "@babel/plugin-transform-modules-commonjs": "^7.13.8",
     "@babel/preset-env": "^7.13.15",
@@ -39,7 +39,7 @@
     "semver": "^5.7.1",
     "vue-router": "^3.5.1",
     "vue-tabs-component": "^1.5.0",
-    "vuepress": "^1.8.1",
+    "vuepress": "^1.8.2",
     "vuepress-plugin-sitemap": "^2.3.1",
     "vuepress-plugin-tabs": "^0.3.0"
   },
