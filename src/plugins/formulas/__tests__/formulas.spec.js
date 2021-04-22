@@ -23,7 +23,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -40,7 +40,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataAdvancedExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -75,7 +75,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data,
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -93,7 +93,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300,
@@ -124,7 +124,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -154,7 +154,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data,
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -174,7 +174,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -190,7 +190,7 @@ describe('Formulas general', () => {
 
     hot.updateSettings({
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       }
     });
 
@@ -205,7 +205,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -235,7 +235,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300,
@@ -256,7 +256,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -276,7 +276,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300,
@@ -298,7 +298,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300,
@@ -322,7 +322,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -345,7 +345,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300,
@@ -367,7 +367,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300,
@@ -391,7 +391,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -414,7 +414,7 @@ describe('Formulas general', () => {
       data: getDataForFormulas(0, 'name', ['=B39']),
       columns: getColumnsForFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 200
@@ -430,7 +430,7 @@ describe('Formulas general', () => {
       data: getDataForFormulas(0, 'name', ['=B1']),
       columns: getColumnsForFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -447,7 +447,7 @@ describe('Formulas general', () => {
         data: getDataForFormulas(0, 'name', ['=K1']),
         columns: getColumnsForFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -461,7 +461,7 @@ describe('Formulas general', () => {
         data: getDataForFormulas(0, 'name', ['=A1000']),
         columns: getColumnsForFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -475,7 +475,7 @@ describe('Formulas general', () => {
     const hot = handsontable({
       data: getDataSimpleExampleFormulas(),
       formulas: {
-        hyperformula: HyperFormula
+        engine: HyperFormula
       },
       width: 500,
       height: 300
@@ -509,7 +509,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -530,7 +530,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -555,7 +555,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -575,7 +575,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -598,7 +598,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -617,7 +617,7 @@ describe('Formulas general', () => {
         const hot = handsontable({
           data: getDataSimpleExampleFormulas(),
           formulas: {
-            hyperformula: HyperFormula
+            engine: HyperFormula
           },
           width: 500,
           height: 300
@@ -639,7 +639,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -657,7 +657,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -683,7 +683,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -706,7 +706,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -732,7 +732,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -757,7 +757,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -782,7 +782,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -807,7 +807,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -834,7 +834,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -861,7 +861,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -889,7 +889,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -918,7 +918,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300
@@ -940,7 +940,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -1002,7 +1002,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -1064,7 +1064,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -1107,7 +1107,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         width: 500,
         height: 300,
@@ -1174,7 +1174,7 @@ describe('Formulas general', () => {
           ['x']
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1194,7 +1194,7 @@ describe('Formulas general', () => {
           ['=A1', 'x', 'x']
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1216,7 +1216,7 @@ describe('Formulas general', () => {
           ['x', 'x'],
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1246,7 +1246,7 @@ describe('Formulas general', () => {
           ['x', 'x'],
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1274,7 +1274,7 @@ describe('Formulas general', () => {
           ['=I6', '=I10', 'x'],
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1296,7 +1296,7 @@ describe('Formulas general', () => {
           ['=I6', '=I10', 'x', 'x', 'x']
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1318,7 +1318,7 @@ describe('Formulas general', () => {
           ['x', '=I6', '=I10'],
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1340,7 +1340,7 @@ describe('Formulas general', () => {
           ['x', 'x', 'x', '=I6', '=I10'],
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1358,7 +1358,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: [['x', 'x', 'x', 'x', 'x', 'x', '=Z3', '=Z5', '=Z8']],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1379,7 +1379,7 @@ describe('Formulas general', () => {
           ['=I7', '=I10']
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1407,7 +1407,7 @@ describe('Formulas general', () => {
           ['=I7', '=I10'],
         ],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1430,7 +1430,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: [['x'], ['x'], ['x'], ['x'], ['x'], ['x'], ['=A9'], ['=A12']],
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         }
       });
 
@@ -1448,7 +1448,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         columnSorting: true,
         width: 500,
@@ -1505,7 +1505,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         columnSorting: true,
         width: 500,
@@ -1569,7 +1569,7 @@ describe('Formulas general', () => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
-          hyperformula: HyperFormula
+          engine: HyperFormula
         },
         columnSorting: true,
         width: 500,

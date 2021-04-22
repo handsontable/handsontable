@@ -2,13 +2,19 @@
 
 import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
-import { registerHF } from './hyperformulaSetup';
 import { error } from '../../helpers/console';
 import {
   isDefined,
   isUndefined
 } from '../../helpers/mixed';
-import hyperformulaDefaultSettings from './hfDefaultSettings';
+import {
+  setupEngine,
+  unregisterEngine
+} from './engine/register';
+import {
+  getEngineSettingsOverrides,
+  mergeEngineSettings
+} from './engine/settings';
 
 export const PLUGIN_KEY = 'formulas';
 export const PLUGIN_PRIORITY = 260;
@@ -60,11 +66,11 @@ export class Formulas extends BasePlugin {
   staticRegister = staticRegister('formulas');
 
   /**
-   * The HyperFormula instance that will be used for this instance of Handsontable.
+   * The engine instance that will be used for this instance of Handsontable.
    *
    * @type {HyperFormula}
    */
-  hyperformula = null;
+  engine = null;
 
   /**
    * HyperFormula's sheet name.
@@ -154,23 +160,22 @@ export class Formulas extends BasePlugin {
         const paste = (
           // The cell we're copy'ing to let HyperFormula adjust the references properly
           sourceCellCoordinates,
-
           // The cell we're pasting into
           targetCellCoordinates
         ) => {
-          this.hyperformula.copy({
-            sheet: this.hyperformula.getSheetId(this.sheetName),
+          this.engine.copy({
+            sheet: this.engine.getSheetId(this.sheetName),
             row: sourceCellCoordinates.row,
             col: sourceCellCoordinates.col
           }, 1, 1);
 
-          const [{ address }] = this.hyperformula.paste({
-            sheet: this.hyperformula.getSheetId(this.sheetName),
+          const [{ address }] = this.engine.paste({
+            sheet: this.engine.getSheetId(this.sheetName),
             row: targetCellCoordinates.row,
             col: targetCellCoordinates.col
           });
 
-          const value = this.hyperformula.getCellSerialized(address);
+          const value = this.engine.getCellSerialized(address);
 
           return { value };
         };
@@ -250,16 +255,20 @@ export class Formulas extends BasePlugin {
       });
     }
 
-    const hfSetUpProperly = this.setupHF();
+    this.engine = setupEngine(
+      this.#settings,
+      getEngineSettingsOverrides(this.hot.getSettings()),
+      this.hot.guid
+    );
 
-    if (!hfSetUpProperly) {
+    if (!this.engine) {
+      this.disablePlugin();
+
       return;
     }
 
     // HyperFormula events:
-    this.hyperformula.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
-
-    this.applyHFSettings();
+    this.engine.on('valuesUpdated', (...args) => this.onHFvaluesUpdated(...args));
 
     super.enablePlugin();
   }
@@ -275,9 +284,19 @@ export class Formulas extends BasePlugin {
    * Triggered on `updateSettings`.
    */
   updatePlugin() {
-    this.#settings = this.hot.getSettings()[PLUGIN_KEY];
+    const hotSettings = this.hot.getSettings();
 
-    this.applyHFSettings();
+    this.#settings = hotSettings[PLUGIN_KEY];
+
+    if (this.#settings.engine) {
+      this.engine.updateConfig(
+        mergeEngineSettings(
+          this.#settings.engine,
+          getEngineSettingsOverrides(hotSettings)
+        ));
+    }
+
+    // this.applyHFSettings();
 
     if (isDefined(this.#settings.sheetName) && this.#settings.sheetName !== this.sheetName) {
       this.switchSheet(this.#settings.sheetName);
@@ -290,22 +309,7 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    if (this.hyperformula) {
-      const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
-      const sharedHFInstanceUsage = hfInstances ? hfInstances.get(this.hyperformula) : null;
-
-      if (sharedHFInstanceUsage && sharedHFInstanceUsage.includes(this.hot.guid)) {
-        sharedHFInstanceUsage.splice(
-          sharedHFInstanceUsage.indexOf(this.hot.guid),
-          1
-        );
-
-        if (sharedHFInstanceUsage.length === 0) {
-          hfInstances.delete(this.hyperformula);
-          this.hyperformula.destroy();
-        }
-      }
-    }
+    unregisterEngine(this.engine, this.hot.guid);
 
     super.destroy();
   }
@@ -329,8 +333,9 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    const actualSheetName = this.hyperformula.addSheet(sheetName ?? void 0);
-    this.hyperformula.setSheetContent(actualSheetName, sheetData);
+    const actualSheetName = this.engine.addSheet(sheetName ?? void 0);
+
+    this.engine.setSheetContent(actualSheetName, sheetData);
 
     if (autoLoad) {
       this.switchSheet(actualSheetName);
@@ -347,72 +352,11 @@ export class Formulas extends BasePlugin {
    */
   switchSheet(sheetName) {
     this.sheetName = sheetName;
-    this.sheetId = this.hyperformula.getSheetId(this.sheetName);
+    this.sheetId = this.engine.getSheetId(this.sheetName);
 
     this.#internal = true;
-    this.hot.loadData(this.hyperformula.getSheetSerialized(this.sheetId));
+    this.hot.loadData(this.engine.getSheetSerialized(this.sheetId));
     this.#internal = false;
-  }
-
-  /**
-   * Setup the HyperFormula instance. It either creates a new (possibly shared) HyperFormula instance, or attaches
-   * the plugin to an already-existing instance.
-   *
-   * @private
-   * @returns {boolean} `true` if HyperFormula was set up properly, `false` otherwise.
-   */
-  setupHF() {
-    const settingsHF = this.#settings.hyperformula;
-
-    if (isUndefined(settingsHF)) {
-      error('Missing the required `hyperformula` key in the Formulas settings. Please fill it with either a' +
-        ' HyperFormula class or a HyperFormula instance.');
-
-      this.disablePlugin();
-      return false;
-    }
-
-    switch (typeof settingsHF) {
-      // There was a HyperFormula class passed.
-      case 'function': {
-        this.hyperformula = registerHF(this.#settings, this.hot.guid);
-        break;
-      }
-      // There was a HyperFormula instance passed.
-      case 'object': {
-        const hfInstances = staticRegister('formulas').getItem('hyperformulaInstances');
-        const sharedHFInstanceUsage = hfInstances ? hfInstances.get(settingsHF) : null;
-
-        this.hyperformula = settingsHF;
-
-        if (sharedHFInstanceUsage) {
-          sharedHFInstanceUsage.push(this.hot.guid);
-        }
-
-        break;
-      }
-      default:
-    }
-
-    return true;
-  }
-
-  /**
-   * Applies the settings passed to the plugin to the HF instance.
-   *
-   * @private
-   */
-  applyHFSettings() {
-    const hotSettings = this.hot.getSettings();
-    const hfConfig = this.#settings.hyperformulaConfig;
-
-    this.hyperformula.updateConfig({
-      ...hyperformulaDefaultSettings,
-      ...(hfConfig || {}),
-      maxColumns: hotSettings.maxColumns,
-      maxRows: hotSettings.maxRows,
-      language: this.#settings.language?.code
-    });
   }
 
   /**
@@ -444,23 +388,25 @@ export class Formulas extends BasePlugin {
 
     if (
       isUndefined(sheetName) ||
-      (isDefined(sheetName) && !this.hyperformula.doesSheetExist(sheetName))
+      (isDefined(sheetName) && !this.engine.doesSheetExist(sheetName))
     ) {
-      this.sheetName = this.hyperformula.addSheet(sheetName);
+      this.sheetName = this.engine.addSheet(sheetName);
 
     } else if (isDefined(sheetName)) {
       this.sheetName = sheetName;
     }
 
-    this.sheetId = this.hyperformula.getSheetId(this.sheetName);
+    this.sheetId = this.engine.getSheetId(this.sheetName);
 
     this.#internal = true;
+
     if (!this.#emptyData) {
-      this.hyperformula.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
+      this.engine.setSheetContent(this.sheetName, this.hot.getSourceDataArray());
 
     } else {
       this.switchSheet(this.sheetName);
     }
+
     this.#internal = false;
   }
 
@@ -470,7 +416,8 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} row Physical row height.
    * @param {number} column Physical column index.
-   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
+   *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   onModifyData(row, column, valueHolder, ioMode) {
@@ -482,11 +429,11 @@ export class Formulas extends BasePlugin {
     const address = {
       row: this.hot.toVisualRow(row),
       col: column,
-      sheet: this.hyperformula.getSheetId(this.sheetName)
+      sheet: this.engine.getSheetId(this.sheetName)
     };
 
     if (ioMode === 'get') {
-      const cellValue = this.hyperformula.getCellValue(address);
+      const cellValue = this.engine.getCellValue(address);
 
       // If `cellValue` is an object it is expected to be an error
       const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
@@ -502,7 +449,7 @@ export class Formulas extends BasePlugin {
 
       valueHolder.value = prettyValue;
     } else {
-      this.hyperformula.setCellContents(address, valueHolder.value);
+      this.engine.setCellContents(address, valueHolder.value);
     }
   }
 
@@ -512,7 +459,8 @@ export class Formulas extends BasePlugin {
    * @private
    * @param {number} row Physical row index.
    * @param {number} col Physical column index.
-   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value` property.
+   * @param {object} valueHolder Object which contains original value which can be modified by overwriting `.value`
+   *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
   onModifySourceData(row, col, valueHolder, ioMode) {
@@ -520,7 +468,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const dimensions = this.hyperformula.getSheetDimensions(this.hyperformula.getSheetId(this.sheetName));
+    const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
 
     // Don't actually change the source data if HyperFormula is not
     // initialized yet. This is done to allow the `afterLoadData` hook to
@@ -533,13 +481,13 @@ export class Formulas extends BasePlugin {
     const address = {
       row: this.hot.toVisualRow(row),
       col,
-      sheet: this.hyperformula.getSheetId(this.sheetName)
+      sheet: this.engine.getSheetId(this.sheetName)
     };
 
     if (ioMode === 'get') {
-      valueHolder.value = this.hyperformula.getCellSerialized(address);
+      valueHolder.value = this.engine.getCellSerialized(address);
     } else if (ioMode === 'set') {
-      this.hyperformula.setCellContents(address, valueHolder.value);
+      this.engine.setCellContents(address, valueHolder.value);
     }
   }
 
@@ -552,7 +500,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateRow(row, amount) {
-    if (!this.hyperformula.isItPossibleToAddRows(this.sheetId, [row, amount])) {
+    if (!this.engine.isItPossibleToAddRows(this.sheetId, [row, amount])) {
       return false;
     }
   }
@@ -566,7 +514,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeCreateCol(col, amount) {
-    if (!this.hyperformula.isItPossibleToAddColumns(this.sheetId, [col, amount])) {
+    if (!this.engine.isItPossibleToAddColumns(this.sheetId, [col, amount])) {
       return false;
     }
   }
@@ -580,7 +528,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveRow(row, amount) {
-    if (!this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [row, amount])) {
+    if (!this.engine.isItPossibleToRemoveRows(this.sheetId, [row, amount])) {
       return false;
     }
   }
@@ -594,7 +542,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveCol(col, amount) {
-    if (!this.hyperformula.isItPossibleToRemoveRows(this.sheetId, [col, amount])) {
+    if (!this.engine.isItPossibleToRemoveRows(this.sheetId, [col, amount])) {
       return false;
     }
   }
@@ -607,7 +555,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created rows in the data source array.
    */
   onAfterCreateRow(row, amount) {
-    this.hyperformula.addRows(this.sheetId, [row, amount]);
+    this.engine.addRows(this.sheetId, [row, amount]);
   }
 
   /**
@@ -618,7 +566,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created columns in the data source.
    */
   onAfterCreateCol(col, amount) {
-    this.hyperformula.addColumns(this.sheetId, [col, amount]);
+    this.engine.addColumns(this.sheetId, [col, amount]);
   }
 
   /**
@@ -630,7 +578,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onAfterRemoveRow(row, amount) {
-    this.hyperformula.removeRows(this.sheetId, [row, amount]);
+    this.engine.removeRows(this.sheetId, [row, amount]);
   }
 
   /**
@@ -641,7 +589,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount An amount of removed columns.
    */
   onAfterRemoveCol(col, amount) {
-    this.hyperformula.removeColumns(this.sheetId, [col, amount]);
+    this.engine.removeColumns(this.sheetId, [col, amount]);
   }
 
   /**

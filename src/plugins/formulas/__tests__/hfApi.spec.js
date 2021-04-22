@@ -31,7 +31,7 @@ describe('Formulas general', () => {
       handsontable({
         data: [['foo']],
         formulas: {
-          hyperformula: hfInstance1,
+          engine: hfInstance1,
           sheetName: 'Test Sheet'
         },
         licenseKey: 'non-commercial-and-evaluation'
@@ -61,7 +61,7 @@ describe('Formulas general', () => {
       handsontable({
         data: [['foo']],
         formulas: {
-          hyperformula: hfInstance1,
+          engine: hfInstance1,
           sheetName: 'Test Sheet'
         },
         licenseKey: 'non-commercial-and-evaluation'
@@ -85,7 +85,7 @@ describe('Formulas general', () => {
       handsontable({
         data: [['foo']],
         formulas: {
-          hyperformula: hfInstance1,
+          engine: hfInstance1,
           sheetName: 'Test Sheet'
         },
         licenseKey: 'non-commercial-and-evaluation'

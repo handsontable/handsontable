@@ -1,6 +1,7 @@
-// TODO: refine the list of default HF settings
+import { PLUGIN_KEY } from '../formulas';
 
-export default {
+// TODO: refine the list of default HF settings
+const DEFAULT_SETTINGS = {
   licenseKey: 'internal-use-in-handsontable',
 
   // default engine configuration
@@ -39,3 +40,42 @@ export default {
   decimalSeparator: '.', // excel compatiblity (works with "language", "thousandSeparator" and "functionArgSeparator")
   language: 'enGB',
 };
+
+/**
+ * Gets a set of engine settings to be applied on top of the provided settings.
+ *
+ * @param {object} hotSettings Handsontable settings object.
+ * @returns {object} Object containing the overriding options.
+ */
+export function getEngineSettingsOverrides(hotSettings) {
+  return {
+    maxColumns: hotSettings.maxColumns,
+    maxRows: hotSettings.maxRows,
+    language: hotSettings[PLUGIN_KEY].language?.langCode
+  };
+}
+
+/**
+ * Takes the default, user and overriding settings and merges them into a single object to be passed to the engine.
+ *
+ * @param {object} configSettings Settings object provided by the Handsontable config.
+ * @param {object} additionalSettings Settings object applied on top of the others.
+ * @returns {object} The final engine settings.
+ */
+export function mergeEngineSettings(configSettings, additionalSettings) {
+  if (configSettings) {
+    configSettings = Object.keys(configSettings)
+      .filter(key => key !== 'hyperformula')
+      .reduce((obj, key) => {
+        obj[key] = configSettings[key];
+
+        return obj;
+      }, {});
+  }
+
+  return {
+    ...DEFAULT_SETTINGS,
+    ...(configSettings || {}),
+    ...additionalSettings || {}
+  };
+}
