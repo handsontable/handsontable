@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const semver = require('semver');
+const execa = require('execa');
 
 const unsortedVersions = fs.readdirSync(path.join(__dirname, '..'))
   .filter(f => semver.valid(semver.coerce(f)));
@@ -33,5 +34,20 @@ module.exports = {
 
   parseVersion(url) {
     return url.split('/')[1] || this.getLatestVersion();
+  },
+
+  spawnProcess(command, options = {}) {
+    const cmdSplit = command.split(' ');
+    const mainCmd = cmdSplit[0];
+
+    cmdSplit.shift();
+
+    if (!options.silent) {
+      options.stdin = options.stdin ?? 'inherit';
+      options.stdout = options.stdout ?? 'inherit';
+      options.stderr = options.stderr ?? 'inherit';
+    }
+
+    return execa(mainCmd, cmdSplit, options);
   }
 };

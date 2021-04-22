@@ -23,7 +23,7 @@
     "docs:docker:build:production": "docker build -t docs-md --build-arg BUILD_MODE=production .",
     "docs:version": "cd .vuepress/tools/version && node rollup-a-version.js",
     "docs:api": "cd .vuepress/tools/jsdoc-convert && node jsdoc.js",
-    "docs:check-links": "http-server .vuepress/dist & node "
+    "docs:check-links": "node .vuepress/tools/check-links.js"
   },
   "license": "CC BY 4.0",
   "devDependencies": {
