@@ -1,5 +1,3 @@
-// TODO remove hot-formula-parser
-
 import { BasePlugin } from '../base';
 import staticRegister from '../../utils/staticRegister';
 import { error } from '../../helpers/console';
@@ -110,7 +108,6 @@ export class Formulas extends BasePlugin {
     this.addHook('modifyData', (...args) => this.onModifyData(...args));
     this.addHook('modifySourceData', (...args) => this.onModifySourceData(...args));
 
-    // TODO test if the `before` hook will actually block operations
     this.addHook('beforeCreateRow', (...args) => this.onBeforeCreateRow(...args));
     this.addHook('beforeCreateCol', (...args) => this.onBeforeCreateCol(...args));
 
@@ -438,16 +435,7 @@ export class Formulas extends BasePlugin {
       // If `cellValue` is an object it is expected to be an error
       const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
 
-      // Omit the leading `'` from presentation, and all `getData` operations
-      const prettyValue = (() => {
-        if (typeof value === 'string') {
-          return value.indexOf('\'') === 0 ? value.slice(1) : value;
-        }
-
-        return value;
-      })();
-
-      valueHolder.value = prettyValue;
+      valueHolder.value = value;
     } else {
       this.engine.setCellContents(address, valueHolder.value);
     }
@@ -542,7 +530,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   onBeforeRemoveCol(col, amount) {
-    if (!this.engine.isItPossibleToRemoveRows(this.sheetId, [col, amount])) {
+    if (!this.hyperformula.isItPossibleToRemoveColumns(this.sheetId, [col, amount])) {
       return false;
     }
   }

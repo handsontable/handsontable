@@ -1443,6 +1443,64 @@ describe('Formulas general', () => {
     });
   });
 
+  describe('hyperformula alter operation blocks', () => {
+    it('should block creating too many rows', () => {
+      const hot = handsontable({
+        data: [],
+        formulas: true
+      });
+
+      hot.alter('insert_row', 0, 100000);
+
+      expect(hot.getData()).toEqual([]);
+    });
+
+    it('should block creating too many columns', () => {
+      const hot = handsontable({
+        data: [],
+        formulas: true
+      });
+
+      hot.alter('insert_row', 0, 100000);
+
+      expect(hot.getData()).toEqual([]);
+    });
+
+    it('should block removing rows if there\'s a matrix underneath', () => {
+      const hot = handsontable({
+        data: [
+          ['1', '2'],
+          ['3', '4'],
+          ['x', ''],
+          ['', ''],
+        ],
+        formulas: true
+      });
+
+      hot.setDataAtCell(2, 0, '{=TRANSPOSE(A1:B2)}');
+
+      hot.alter('remove_row', 3, 1);
+
+      expect(hot.getData().length).toEqual(4);
+    });
+
+    it('should block removing columns if there\'s a matrix underneath', () => {
+      const hot = handsontable({
+        data: [
+          ['1', '2', 'x', ''],
+          ['3', '4'],
+        ],
+        formulas: true
+      });
+
+      hot.setDataAtCell(0, 2, '{=TRANSPOSE(A1:B2)}');
+
+      hot.alter('remove_col', 3, 1);
+
+      expect(hot.getData().map(row => row.length)).toEqual([4, 4]);
+    });
+  });
+
   xdescribe('column sorting', () => {
     it('should recalculate all formulas and update theirs cell coordinates if needed', () => {
       const hot = handsontable({
