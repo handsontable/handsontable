@@ -4,7 +4,7 @@ permalink: /next/row-sorting
 canonicalUrl: /row-sorting
 ---
 
-# {{ $frontmatter.title }}
+# Row sorting
 
 [[toc]]
 

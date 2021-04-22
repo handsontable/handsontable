@@ -8,7 +8,7 @@ tags:
   - pinning columns 
 ---
 
-# {{ $frontmatter.title }}
+# Column freezing
 
 [[toc]]
 

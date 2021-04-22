@@ -6,7 +6,7 @@ tags:
   - compatibility
 ---
 
-# {{ $frontmatter.title }}
+# Supported browsers
 
 [[toc]]
 

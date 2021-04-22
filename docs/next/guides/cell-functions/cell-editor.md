@@ -4,7 +4,7 @@ permalink: /next/cell-editor
 canonicalUrl: /cell-editor
 ---
 
-# {{ $frontmatter.title }}
+# Cell editor
 
 [[toc]]
 

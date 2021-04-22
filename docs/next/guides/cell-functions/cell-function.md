@@ -4,7 +4,7 @@ permalink: /next/cell-function
 canonicalUrl: /cell-function
 ---
 
-# {{ $frontmatter.title }}
+# Cell function
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/react-hot-column
 canonicalUrl: /react-hot-column
 ---
 
-# {{ $frontmatter.title }}
+# Using the HotColumn component
 
 [[toc]]
 

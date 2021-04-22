@@ -6,7 +6,7 @@ tags:
   - quick start
 ---
 
-# {{ $frontmatter.title }}
+# Installation
 
 [[toc]]
 

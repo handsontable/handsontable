@@ -4,7 +4,7 @@ permalink: /next/react-custom-renderer-example
 canonicalUrl: /react-custom-renderer-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom renderer example
 
 An implementation of the `@handsontable/react` with a custom renderer added. It takes an image url as the input and renders the image in the edited cell.
 

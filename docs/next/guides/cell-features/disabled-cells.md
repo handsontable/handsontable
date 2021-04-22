@@ -6,7 +6,7 @@ tags:
   - read-only
 ---
 
-# {{ $frontmatter.title }}
+# Disabled cells
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Dropdown cell type
 
 This example shows the usage of the Dropdown feature. Dropdown is based on [Autocomplete](autocomplete.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
 

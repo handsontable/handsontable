@@ -9,7 +9,7 @@ tags:
   - grouping rows
 ---
 
-# {{ $frontmatter.title }}
+# Row master-detail
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/react-hot-reference
 canonicalUrl: /react-hot-reference
 ---
 
-# {{ $frontmatter.title }}
+# Referencing the Handsontable instance
 
 An implementation of the `@handsontable/react` explaining how to reference the Handsontable instance from the wrapper component.
 

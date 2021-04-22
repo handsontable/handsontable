@@ -6,7 +6,7 @@ tags:
   - selecting ranges
 ---
 
-# {{ $frontmatter.title }}
+# Selection
 
 [[toc]]
 

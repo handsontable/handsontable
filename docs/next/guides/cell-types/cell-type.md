@@ -4,7 +4,7 @@ permalink: /next/cell-type
 canonicalUrl: /cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Cell type
 
 [[toc]]
 

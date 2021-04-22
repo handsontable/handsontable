@@ -4,7 +4,7 @@ permalink: /next/batch-operations
 canonicalUrl: /batch-operations
 ---
 
-# {{ $frontmatter.title }}
+# Batch operations
 
 [[toc]]
 

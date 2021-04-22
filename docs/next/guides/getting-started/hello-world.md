@@ -4,7 +4,7 @@ permalink: /next/hello-world
 canonicalUrl: /hello-world
 ---
 
-# {{ $frontmatter.title }}
+# Hello world
 
 [[toc]]
 

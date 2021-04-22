@@ -4,7 +4,7 @@ permalink: /next/conditional-formatting
 canonicalUrl: /conditional-formatting
 ---
 
-# {{ $frontmatter.title }}
+# Conditional formatting
 
 <style>
 .make-me-red {

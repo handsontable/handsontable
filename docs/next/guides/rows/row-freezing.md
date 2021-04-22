@@ -7,7 +7,7 @@ tags:
   - pinning rows
 ---
 
-# {{ $frontmatter.title }}
+# Row freezing
 
 [[toc]]
 

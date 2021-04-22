@@ -4,7 +4,7 @@ permalink: /next/react-custom-context-menu-example
 canonicalUrl: /react-custom-context-menu-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom Context Menu example
 
 An implementation of the `@handsontable/react` component with a custom Context Menu added.
 

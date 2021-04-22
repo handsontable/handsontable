@@ -4,7 +4,7 @@ permalink: /next/row-hiding
 canonicalUrl: /row-hiding
 ---
 
-# {{ $frontmatter.title }}
+# Row hiding
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/text-alignment
 canonicalUrl: /text-alignment
 ---
 
-# {{ $frontmatter.title }}
+# Text alignment
 
 To initialize Handsontable with predefined horizontal and vertical alignment, provide className cells details in form of a grid, `columns` or `cell` setting (see code sample below).
 

@@ -4,7 +4,7 @@ permalink: /next/row-trimming
 canonicalUrl: /row-trimming
 ---
 
-# {{ $frontmatter.title }}
+# Row trimming
 
 [[toc]]
 

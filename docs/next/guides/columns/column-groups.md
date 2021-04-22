@@ -7,7 +7,7 @@ tags:
   - collapsing columns
 ---
 
-# {{ $frontmatter.title }}
+# Column groups
 
 [[toc]]
 

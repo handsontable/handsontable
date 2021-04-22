@@ -4,7 +4,7 @@ permalink: /next/license-key
 canonicalUrl: /license-key
 ---
 
-# {{ $frontmatter.title }}
+# License key
 
 [[toc]]
 

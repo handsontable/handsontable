@@ -4,7 +4,7 @@ permalink: /next/testing
 canonicalUrl: /testing
 ---
 
-# {{ $frontmatter.title }}
+# Testing process
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/react-installation
 canonicalUrl: /react-installation
 ---
 
-# {{ $frontmatter.title }}
+# Installation
 
 [[toc]]
 

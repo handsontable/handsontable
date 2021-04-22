@@ -6,7 +6,7 @@ tags:
   - dropdown menu
 ---
 
-# {{ $frontmatter.title }}
+# Column menu
 
 [[toc]]
 

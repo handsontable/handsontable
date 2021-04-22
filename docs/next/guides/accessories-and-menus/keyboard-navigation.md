@@ -6,7 +6,7 @@ tags:
   - key bindings
 ---
 
-# {{ $frontmatter.title }}
+# Keyboard navigation
 
 [[toc]]
 

@@ -6,7 +6,7 @@ tags:
   - column summaries
 ---
 
-# {{ $frontmatter.title }}
+# Column summary
 
 [[toc]]
 

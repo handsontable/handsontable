@@ -4,7 +4,7 @@ permalink: /next/versioning-policy
 canonicalUrl: /versioning-policy
 ---
 
-# {{ $frontmatter.title }}
+# Versioning policy
 
 [[toc]]
 

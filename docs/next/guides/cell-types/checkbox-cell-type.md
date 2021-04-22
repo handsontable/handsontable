@@ -4,7 +4,7 @@ permalink: /next/checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Checkbox cell type
 
 [[toc]]
 

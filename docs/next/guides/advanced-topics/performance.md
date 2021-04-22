@@ -4,7 +4,7 @@ permalink: /next/performance
 canonicalUrl: /performance
 ---
 
-# {{ $frontmatter.title }}
+# Performance
 
 [[toc]]
 

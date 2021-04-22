@@ -4,7 +4,7 @@ permalink: /next/row-moving
 canonicalUrl: /row-moving
 ---
 
-# {{ $frontmatter.title }}
+# Row moving
 
 [[toc]]
 

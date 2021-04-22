@@ -4,7 +4,7 @@ permalink: /next/context-menu
 canonicalUrl: /context-menu
 ---
 
-# {{ $frontmatter.title }}
+# Context menu
 
 [[toc]]
 

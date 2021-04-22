@@ -4,7 +4,7 @@ permalink: /next/searching-values
 canonicalUrl: /searching-values
 ---
 
-# {{ $frontmatter.title }}
+# Searching values
 
 [[toc]]
 

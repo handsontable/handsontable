@@ -4,7 +4,7 @@ permalink: /next/time-cell-type
 canonicalUrl: /time-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Time cell type
 
 [[toc]]
 

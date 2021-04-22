@@ -9,7 +9,7 @@ tags:
   - dimensions
 ---
 
-# {{ $frontmatter.title }}
+# Grid size
 
 [[toc]]
 

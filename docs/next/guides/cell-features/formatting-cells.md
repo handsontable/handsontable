@@ -4,7 +4,7 @@ permalink: /next/formatting-cells
 canonicalUrl: /formatting-cells
 ---
 
-# {{ $frontmatter.title }}
+# Formatting cells
 
 [[toc]]
 

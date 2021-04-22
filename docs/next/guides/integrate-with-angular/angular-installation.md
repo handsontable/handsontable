@@ -4,7 +4,7 @@ permalink: /next/angular-installation
 canonicalUrl: /angular-installation
 ---
 
-# {{ $frontmatter.title }}
+# Installation
 
 **Handsontable for Angular** is the official wrapper for Handsontable.
 

@@ -13,7 +13,7 @@ tags:
   - function
 ---
 
-# {{ $frontmatter.title }}
+# HyperFormula integration
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/password-cell-type
 canonicalUrl: /password-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Password cell type
 
 [[toc]]
 

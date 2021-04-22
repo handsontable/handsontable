@@ -6,7 +6,7 @@ tags:
   - spreadsheet icons
 ---
 
-# {{ $frontmatter.title }}
+# Icon pack
 
 [[toc]]
 
