@@ -7,7 +7,7 @@ tags:
   - multi-column sorting
 ---
 
-# {{ $frontmatter.title }}
+# Row virtualization
 
 [[toc]]
 

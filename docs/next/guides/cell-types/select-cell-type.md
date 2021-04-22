@@ -4,7 +4,7 @@ permalink: /next/select-cell-type
 canonicalUrl: /select-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Select cell type
 
 Select editor should be considered an example how to write editors rather than used as a fully featured editor. It is a much simpler form of the [Dropdown editor](dropdown.md). It is suggested to use the latter in your projects.
 

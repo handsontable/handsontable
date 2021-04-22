@@ -4,7 +4,7 @@ permalink: /next/modules
 canonicalUrl: /modules
 ---
 
-# {{ $frontmatter.title }}
+# Modules
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/third-party-licenses
 canonicalUrl: /third-party-licenses
 ---
 
-# {{ $frontmatter.title }}
+# Third-party licenses
 
 [[toc]]
 

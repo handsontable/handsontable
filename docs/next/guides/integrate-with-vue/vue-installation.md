@@ -4,7 +4,7 @@ permalink: /next/vue-installation
 canonicalUrl: /vue-installation
 ---
 
-# {{ $frontmatter.title }}
+# Installation
 
 [[toc]]
 

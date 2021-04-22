@@ -8,7 +8,7 @@ tags:
   - paste
 ---
 
-# {{ $frontmatter.title }}
+# Clipboard
 
 [[toc]]
 

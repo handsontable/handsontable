@@ -4,7 +4,7 @@ permalink: /next/numeric-cell-type
 canonicalUrl: /numeric-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Numeric cell type
 
 [[toc]]
 

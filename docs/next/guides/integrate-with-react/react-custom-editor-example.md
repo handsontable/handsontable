@@ -4,7 +4,7 @@ permalink: /next/react-custom-editor-example
 canonicalUrl: /react-custom-editor-example
 ---
 
-# {{ $frontmatter.title }}
+# Custom editor example
 
 [[toc]]
 

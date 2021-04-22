@@ -6,7 +6,7 @@ tags:
   - custom plugin
 ---
 
-# {{ $frontmatter.title }}
+# Plugins
 
 A plugin contains one or more features that can be easily plugged in to Handsontable. Writing a new plugin is not a difficult task, simply cloning the [Skeleton template](https://github.com/handsontable/handsontable-skeleton) will give you a good starting point.
 

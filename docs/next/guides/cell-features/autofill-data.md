@@ -7,7 +7,7 @@ tags:
   - smart fill
 ---
 
-# {{ $frontmatter.title }}
+# AutoFill data
 
 [[toc]]
 

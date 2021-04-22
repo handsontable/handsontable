@@ -4,7 +4,7 @@ permalink: /next/column-moving
 canonicalUrl: /column-moving
 ---
 
-# {{ $frontmatter.title }}
+# Column moving
 
 [[toc]]
 

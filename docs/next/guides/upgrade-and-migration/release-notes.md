@@ -8,7 +8,7 @@ tags:
   - upgrade
 ---
 
-# {{ $frontmatter.title }}
+# Release notes
 
 [[toc]]
 

@@ -4,7 +4,7 @@ permalink: /next/formula-calculation
 canonicalUrl: /formula-calculation
 ---
 
-# {{ $frontmatter.title }}
+# Formula calculation
 
 [[toc]]
 

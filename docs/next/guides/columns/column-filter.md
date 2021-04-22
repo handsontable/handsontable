@@ -6,7 +6,7 @@ tags:
   - filtering data
 ---
 
-# {{ $frontmatter.title }}
+# Column filter
 
 [[toc]]
 

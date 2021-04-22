@@ -4,7 +4,7 @@ permalink: /next/security
 canonicalUrl: /security
 ---
 
-# {{ $frontmatter.title }}
+# Security
 
 [[toc]]
 

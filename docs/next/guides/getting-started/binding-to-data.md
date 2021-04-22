@@ -8,7 +8,7 @@ tags:
   - data sources
 ---
 
-# {{ $frontmatter.title }}
+# Binding to data
 
 [[toc]]
 

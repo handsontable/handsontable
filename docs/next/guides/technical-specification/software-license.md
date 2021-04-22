@@ -4,7 +4,7 @@ permalink: /next/software-license
 canonicalUrl: /software-license
 ---
 
-# {{ $frontmatter.title }}
+# Software license
 
 [[toc]]
 

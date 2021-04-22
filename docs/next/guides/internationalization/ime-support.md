@@ -9,7 +9,7 @@ tags:
   - chinese
 ---
 
-# {{ $frontmatter.title }}
+# IME support
 
 [[toc]]
 

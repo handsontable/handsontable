@@ -4,7 +4,7 @@ permalink: /next/column-hiding
 canonicalUrl: /column-hiding
 ---
 
-# {{ $frontmatter.title }}
+# Column hiding
 
 [[toc]]
 

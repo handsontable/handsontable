@@ -4,7 +4,7 @@ permalink: /next/date-cell-type
 canonicalUrl: /date-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Date cell type
 
 [[toc]]
 

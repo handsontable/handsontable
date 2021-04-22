@@ -4,7 +4,7 @@ permalink: /next/packages
 canonicalUrl: /packages
 ---
 
-# {{ $frontmatter.title }}
+# Packages
 
 [[toc]]
 

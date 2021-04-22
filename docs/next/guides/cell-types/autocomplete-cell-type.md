@@ -4,7 +4,7 @@ permalink: /next/autocomplete-cell-type
 canonicalUrl: /autocomplete-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Autocomplete cell type
 
 [[toc]]
 

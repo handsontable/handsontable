@@ -4,7 +4,7 @@ permalink: /next/merge-cells
 canonicalUrl: /merge-cells
 ---
 
-# {{ $frontmatter.title }}
+# Merge cells
 
 To enable the merge cells feature, set the `mergeCells` option to be `true` or an array. To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array: `mergeCells: [{row: 1, col: 1, rowspan: 2, colspan: 2}]`
 

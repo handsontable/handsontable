@@ -6,7 +6,7 @@ tags:
   - scrolling
 ---
 
-# {{ $frontmatter.title }}
+# Column virtualization
 
 [[toc]]
 

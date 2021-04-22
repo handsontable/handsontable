@@ -4,7 +4,7 @@ permalink: /next/column-sorting
 canonicalUrl: /column-sorting
 ---
 
-# {{ $frontmatter.title }}
+# Column sorting
 
 [[toc]]
 

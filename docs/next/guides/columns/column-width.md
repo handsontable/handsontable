@@ -7,7 +7,7 @@ tags:
   - stretching columns
 ---
 
-# {{ $frontmatter.title }}
+# Column width
 
 [[toc]]
 

@@ -6,7 +6,7 @@ tags:
   - export to file
 ---
 
-# {{ $frontmatter.title }}
+# Export to CSV
 
 [[toc]]
 

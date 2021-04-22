@@ -4,7 +4,7 @@ permalink: /next/column-header
 canonicalUrl: /column-header
 ---
 
-# {{ $frontmatter.title }}
+# Column header
 
 [[toc]]
 

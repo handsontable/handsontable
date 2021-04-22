@@ -6,7 +6,7 @@ tags:
   - notes
 ---
 
-# {{ $frontmatter.title }}
+# Comments
 
 [[toc]]
 

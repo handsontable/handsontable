@@ -4,7 +4,7 @@ permalink: /next/internationalization-i18n
 canonicalUrl: /internationalization-i18n
 ---
 
-# {{ $frontmatter.title }}
+# Internationalization (i18n)
 
 [[toc]]
 

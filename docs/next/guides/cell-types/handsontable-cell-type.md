@@ -4,7 +4,7 @@ permalink: /next/handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 ---
 
-# {{ $frontmatter.title }}
+# Handsontable cell type
 
 This page shows using Handsontable as a cell editor in Handsontable (sometimes referred as **HOT-in-HOT**). Please **note** that although the functionality of **HOT-in-HOT** is similar to this of the Handsontable, it may not support all of its features.
 
