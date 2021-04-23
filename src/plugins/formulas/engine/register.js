@@ -145,7 +145,9 @@ export function registerLanguage(engineClass, languageSetting) {
       langCode,
     } = languageSetting;
 
-    engineClass.registerLanguage(langCode, languageSetting);
+    if (!engineClass.getRegisteredLanguagesCodes().includes(langCode)) {
+      engineClass.registerLanguage(langCode, languageSetting);
+    }
   }
 }
 
